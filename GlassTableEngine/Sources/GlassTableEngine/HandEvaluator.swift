@@ -51,3 +51,27 @@ func evaluate5(_ cards: [Card]) -> Int {
     for v in padded { key = key * 16 + v }
     return key
 }
+
+// The 21 five-card index combinations of 7 cards.
+private let combos7choose5: [[Int]] = {
+    var out: [[Int]] = []
+    let n = 7
+    for a in 0..<n { for b in (a+1)..<n { for c in (b+1)..<n {
+        for d in (c+1)..<n { for e in (d+1)..<n {
+            out.append([a, b, c, d, e])
+        } } }
+    } }
+    return out  // 21 combinations
+}()
+
+/// Best 5-card rank out of 7 cards. Same scale as `evaluate5`.
+func evaluate7(_ cards: [Card]) -> Int {
+    precondition(cards.count == 7)
+    var best = 0
+    for combo in combos7choose5 {
+        let hand = [cards[combo[0]], cards[combo[1]], cards[combo[2]], cards[combo[3]], cards[combo[4]]]
+        let key = evaluate5(hand)
+        if key > best { best = key }
+    }
+    return best
+}

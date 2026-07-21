@@ -33,4 +33,17 @@ final class HandEvaluatorTests: XCTestCase {
     func testEqualHandsEqualKeys() {
         XCTAssertEqual(eval("AsAhKdQc9s"), eval("AcAdKsQh9c")) // suits irrelevant
     }
+
+    func testEvaluate7PicksBestFive() {
+        // 7 cards containing a flush; best-5 is the flush.
+        let seven = Card.parse("AsKsQs7s2s5h3d")!
+        let flushOnly = evaluate5(Card.parse("AsKsQs7s2s")!)
+        XCTAssertEqual(evaluate7(seven), flushOnly)
+    }
+
+    func testEvaluate7FindsStraightAcrossSevenCards() {
+        let seven = Card.parse("9c8h7s6d5cKsQh")!
+        let straight = evaluate5(Card.parse("9c8h7s6d5c")!)
+        XCTAssertEqual(evaluate7(seven), straight)
+    }
 }
