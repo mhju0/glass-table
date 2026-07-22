@@ -4,3 +4,6 @@
 xcuserdata/
 .claude/settings.local.json
 .superpowers/
+GlassTable.xcodeproj/
+build/
+GlassTable/Info.plist

@@ -1,0 +1,33 @@
+name: GlassTable
+options:
+  bundleIdPrefix: com.michaelju.glasstable
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+packages:
+  GlassTableEngine:
+    path: GlassTableEngine
+  GlassTableDrills:
+    path: GlassTableDrills
+targets:
+  GlassTable:
+    type: application
+    platform: iOS
+    sources:
+      - GlassTable/Sources
+      - GlassTable/Resources
+    dependencies:
+      - package: GlassTableDrills
+      - package: GlassTableEngine
+    info:
+      path: GlassTable/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.michaelju.glasstable.GlassTable
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGNING_ALLOWED: NO
