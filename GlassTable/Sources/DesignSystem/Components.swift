@@ -44,6 +44,19 @@ struct PrimaryCTAButton: View {
     }
 }
 
+struct SecondaryCTAButton: View {
+    let title: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title).font(GT.title(15)).foregroundStyle(GT.ink)
+                .frame(maxWidth: .infinity, minHeight: 52)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 struct EstimateStepper: View {
     let value: Int
     var step: Int = 1

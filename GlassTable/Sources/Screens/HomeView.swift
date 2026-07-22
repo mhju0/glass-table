@@ -87,7 +87,7 @@ struct HomeView: View {
         switch kind {
         case .outs: OutsDrillView()
         case .potodds: PercentDrillView(config: .potOdds)
-        case .callfold: Text(kind.name)  // replaced in Task 8
+        case .callfold: CallFoldView()
         case .mdf: PercentDrillView(config: .mdf)
         case .blockers: Text(kind.name)  // replaced in Task 9
         }
