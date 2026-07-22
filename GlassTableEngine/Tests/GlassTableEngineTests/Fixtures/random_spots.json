@@ -1,1 +1,3002 @@
-[]
+[
+{
+"hero": "Jh3s",
+"villain": "Jc2d",
+"board": "",
+"equity": 0.53102
+},
+{
+"hero": "Kh3c",
+"villain": "7dKc",
+"board": "3s2sQh",
+"equity": 0.86999
+},
+{
+"hero": "7cQd",
+"villain": "Js4h",
+"board": "",
+"equity": 0.63013
+},
+{
+"hero": "2h2c",
+"villain": "5h8d",
+"board": "8c4c7hQh",
+"equity": 0.04522
+},
+{
+"hero": "AhQd",
+"villain": "3h3s",
+"board": "5d4d5h",
+"equity": 0.39993
+},
+{
+"hero": "4d6h",
+"villain": "2s4c",
+"board": "",
+"equity": 0.64004
+},
+{
+"hero": "4s2s",
+"villain": "Kd4d",
+"board": "8c6h2cAd",
+"equity": 0.93192
+},
+{
+"hero": "5c6s",
+"villain": "3c4s",
+"board": "",
+"equity": 0.63087
+},
+{
+"hero": "6h6d",
+"villain": "AsTh",
+"board": "",
+"equity": 0.54278
+},
+{
+"hero": "QsJc",
+"villain": "7hTs",
+"board": "",
+"equity": 0.6769
+},
+{
+"hero": "Kd3h",
+"villain": "3d6c",
+"board": "9dTdKcTs",
+"equity": 1.0
+},
+{
+"hero": "2dQd",
+"villain": "6s8s",
+"board": "",
+"equity": 0.54529
+},
+{
+"hero": "3sAh",
+"villain": "Ac4c",
+"board": "Qc3d8c9d",
+"equity": 0.72676
+},
+{
+"hero": "2s8h",
+"villain": "JdQd",
+"board": "",
+"equity": 0.29796
+},
+{
+"hero": "Ts2s",
+"villain": "7s7d",
+"board": "",
+"equity": 0.31881
+},
+{
+"hero": "TcJc",
+"villain": "9s7c",
+"board": "4s9hQd",
+"equity": 0.49863
+},
+{
+"hero": "5d2h",
+"villain": "Qh3s",
+"board": "Jd5c8s",
+"equity": 0.85685
+},
+{
+"hero": "9s3c",
+"villain": "Js6c",
+"board": "7h4h5d8c",
+"equity": 0.06814
+},
+{
+"hero": "3c5c",
+"villain": "6dQd",
+"board": "",
+"equity": 0.37861
+},
+{
+"hero": "Kd3h",
+"villain": "Jh5s",
+"board": "9c3s8h",
+"equity": 0.72852
+},
+{
+"hero": "Ks9s",
+"villain": "8dQh",
+"board": "8c3d2s3c",
+"equity": 0.13683
+},
+{
+"hero": "8h6h",
+"villain": "Qd7d",
+"board": "",
+"equity": 0.41032
+},
+{
+"hero": "Ah4h",
+"villain": "Qh7s",
+"board": "",
+"equity": 0.61853
+},
+{
+"hero": "Ad3c",
+"villain": "Th4c",
+"board": "",
+"equity": 0.60056
+},
+{
+"hero": "5d3d",
+"villain": "Kc5c",
+"board": "4cAcQs",
+"equity": 0.17483
+},
+{
+"hero": "2d3d",
+"villain": "8h7c",
+"board": "TcAh6d",
+"equity": 0.26647
+},
+{
+"hero": "Qc8d",
+"villain": "8sQs",
+"board": "",
+"equity": 0.47474
+},
+{
+"hero": "JcAc",
+"villain": "3c2h",
+"board": "4hQhJh3s",
+"equity": 0.70707
+},
+{
+"hero": "Tc8s",
+"villain": "3sQh",
+"board": "",
+"equity": 0.44919
+},
+{
+"hero": "9c8h",
+"villain": "Tc5h",
+"board": "AsTh3h",
+"equity": 0.09713
+},
+{
+"hero": "7s2d",
+"villain": "AsQh",
+"board": "",
+"equity": 0.31809
+},
+{
+"hero": "Jc9s",
+"villain": "Ac2s",
+"board": "",
+"equity": 0.43872
+},
+{
+"hero": "8cAs",
+"villain": "Qh5s",
+"board": "3d6h2d2h",
+"equity": 0.77355
+},
+{
+"hero": "4dJs",
+"villain": "Ks7h",
+"board": "AcTc6c6s",
+"equity": 0.16875
+},
+{
+"hero": "JdKh",
+"villain": "Ad7d",
+"board": "8d4dJc",
+"equity": 0.56437
+},
+{
+"hero": "Kc4d",
+"villain": "4c2s",
+"board": "9c4h3hTd",
+"equity": 0.93265
+},
+{
+"hero": "8c5d",
+"villain": "9d6c",
+"board": "Kc2d9c",
+"equity": 0.06236
+},
+{
+"hero": "Qc7s",
+"villain": "3sQs",
+"board": "Ks7dTh4s",
+"equity": 0.81863
+},
+{
+"hero": "Tc3c",
+"villain": "6sJh",
+"board": "7d7hAc",
+"equity": 0.30994
+},
+{
+"hero": "4dTd",
+"villain": "5d3c",
+"board": "",
+"equity": 0.62279
+},
+{
+"hero": "7c2h",
+"villain": "4hAs",
+"board": "8c8hJh",
+"equity": 0.21956
+},
+{
+"hero": "7hTs",
+"villain": "8cAh",
+"board": "Jd7d9c",
+"equity": 0.75277
+},
+{
+"hero": "3hKc",
+"villain": "6s2h",
+"board": "",
+"equity": 0.6312
+},
+{
+"hero": "JdQc",
+"villain": "8dTd",
+"board": "5cQsTc",
+"equity": 0.82338
+},
+{
+"hero": "7h4d",
+"villain": "AsJc",
+"board": "",
+"equity": 0.35649
+},
+{
+"hero": "8s4d",
+"villain": "4c4h",
+"board": "8hTc2s",
+"equity": 0.95801
+},
+{
+"hero": "QsAh",
+"villain": "2d8d",
+"board": "3hTd9s6c",
+"equity": 0.77279
+},
+{
+"hero": "6s4h",
+"villain": "3dTh",
+"board": "",
+"equity": 0.4275
+},
+{
+"hero": "9dQs",
+"villain": "Qh2c",
+"board": "",
+"equity": 0.70166
+},
+{
+"hero": "3c4d",
+"villain": "4h6h",
+"board": "",
+"equity": 0.34927
+},
+{
+"hero": "Qs4c",
+"villain": "8sAh",
+"board": "",
+"equity": 0.36768
+},
+{
+"hero": "7c2d",
+"villain": "3s3h",
+"board": "",
+"equity": 0.3049
+},
+{
+"hero": "TdJh",
+"villain": "4c2s",
+"board": "5d4dAc7c",
+"equity": 0.13725
+},
+{
+"hero": "5h6h",
+"villain": "4c5d",
+"board": "2h8d3d5s",
+"equity": 0.77245
+},
+{
+"hero": "3d5d",
+"villain": "8d9d",
+"board": "4dAsKcKs",
+"equity": 0.26382
+},
+{
+"hero": "7d6c",
+"villain": "5hAd",
+"board": "9h7c6h3h",
+"equity": 0.68159
+},
+{
+"hero": "3c9c",
+"villain": "9h6h",
+"board": "7c7sQs",
+"equity": 0.48358
+},
+{
+"hero": "As2d",
+"villain": "Kh2h",
+"board": "9sAdJs4d",
+"equity": 1.0
+},
+{
+"hero": "Ah9d",
+"villain": "Ac3s",
+"board": "As2c6sJc",
+"equity": 0.86448
+},
+{
+"hero": "7c7s",
+"villain": "2d3c",
+"board": "9sJh5h",
+"equity": 0.95243
+},
+{
+"hero": "QhTc",
+"villain": "4h6d",
+"board": "8s3c7s",
+"equity": 0.63894
+},
+{
+"hero": "3hQh",
+"villain": "8cKc",
+"board": "4s3c7c",
+"equity": 0.45618
+},
+{
+"hero": "4d7s",
+"villain": "3s9h",
+"board": "AcQhTd8s",
+"equity": 0.17052
+},
+{
+"hero": "4cJh",
+"villain": "9cJs",
+"board": "",
+"equity": 0.29654
+},
+{
+"hero": "6sTd",
+"villain": "3h3d",
+"board": "2dAc5s",
+"equity": 0.2312
+},
+{
+"hero": "6s5c",
+"villain": "9dQh",
+"board": "Jh5s5d9h",
+"equity": 0.95424
+},
+{
+"hero": "Td8s",
+"villain": "Th9h",
+"board": "5d4s8dAs",
+"equity": 0.93155
+},
+{
+"hero": "Tc5h",
+"villain": "7sKs",
+"board": "",
+"equity": 0.34199
+},
+{
+"hero": "4hTs",
+"villain": "6hKd",
+"board": "As3s9s",
+"equity": 0.52821
+},
+{
+"hero": "3dKd",
+"villain": "8h3h",
+"board": "6d5dQsJh",
+"equity": 0.9533
+},
+{
+"hero": "Kd2h",
+"villain": "ThAs",
+"board": "TdJc9h",
+"equity": 0.27413
+},
+{
+"hero": "8d5s",
+"villain": "Qs5d",
+"board": "5hKc4c",
+"equity": 0.22342
+},
+{
+"hero": "3d9h",
+"villain": "9c2c",
+"board": "",
+"equity": 0.5001
+},
+{
+"hero": "AsJd",
+"villain": "Qh3d",
+"board": "",
+"equity": 0.65558
+},
+{
+"hero": "9hJs",
+"villain": "QcJh",
+"board": "2sTh5h9d",
+"equity": 0.74978
+},
+{
+"hero": "5d6d",
+"villain": "6cAh",
+"board": "QcJs8s",
+"equity": 0.16109
+},
+{
+"hero": "QcKd",
+"villain": "Qd4d",
+"board": "",
+"equity": 0.72708
+},
+{
+"hero": "9cQd",
+"villain": "KdKc",
+"board": "Th6h3d4s",
+"equity": 0.0
+},
+{
+"hero": "2c5s",
+"villain": "6hQs",
+"board": "Kc4sQcAd",
+"equity": 0.09059
+},
+{
+"hero": "Js7d",
+"villain": "Qd2s",
+"board": "",
+"equity": 0.42231
+},
+{
+"hero": "JhTh",
+"villain": "Ks3c",
+"board": "6sKh5c",
+"equity": 0.09153
+},
+{
+"hero": "2dJs",
+"villain": "As3d",
+"board": "",
+"equity": 0.34696
+},
+{
+"hero": "6c4c",
+"villain": "3d8s",
+"board": "Tc3c4hQh",
+"equity": 0.90838
+},
+{
+"hero": "7d2d",
+"villain": "3d9h",
+"board": "5h6d4h",
+"equity": 0.28565
+},
+{
+"hero": "6sKh",
+"villain": "AsQh",
+"board": "",
+"equity": 0.35828
+},
+{
+"hero": "2s9h",
+"villain": "8d5d",
+"board": "9c2d3h",
+"equity": 0.91264
+},
+{
+"hero": "6cTs",
+"villain": "AdKd",
+"board": "",
+"equity": 0.32345
+},
+{
+"hero": "2d6d",
+"villain": "AsJs",
+"board": "",
+"equity": 0.35442
+},
+{
+"hero": "Jh7c",
+"villain": "9s9h",
+"board": "Ks9c4h",
+"equity": 0.03258
+},
+{
+"hero": "Kh6s",
+"villain": "Ah7s",
+"board": "9d2d4s",
+"equity": 0.24031
+},
+{
+"hero": "3d2c",
+"villain": "Kc2d",
+"board": "7h8dTc4d",
+"equity": 0.06815
+},
+{
+"hero": "9cQd",
+"villain": "5hJc",
+"board": "",
+"equity": 0.64652
+},
+{
+"hero": "3d2c",
+"villain": "Qs3c",
+"board": "Qd9s8d",
+"equity": 0.05583
+},
+{
+"hero": "2sAh",
+"villain": "Js5h",
+"board": "",
+"equity": 0.59724
+},
+{
+"hero": "Qs3s",
+"villain": "3h6d",
+"board": "4s8h4d",
+"equity": 0.83078
+},
+{
+"hero": "Qs9h",
+"villain": "9c6c",
+"board": "2dAs9d4c",
+"equity": 0.8631
+},
+{
+"hero": "7h8c",
+"villain": "9c7s",
+"board": "",
+"equity": 0.29536
+},
+{
+"hero": "QsAd",
+"villain": "6h5h",
+"board": "9h4c3c3s",
+"equity": 0.68007
+},
+{
+"hero": "7c2s",
+"villain": "JdKd",
+"board": "Th5c8h",
+"equity": 0.24826
+},
+{
+"hero": "QhKh",
+"villain": "Ts8s",
+"board": "9s7dAc",
+"equity": 0.48726
+},
+{
+"hero": "6hKc",
+"villain": "JhQs",
+"board": "",
+"equity": 0.553
+},
+{
+"hero": "Jd8s",
+"villain": "Tc9s",
+"board": "KsAd2h3d",
+"equity": 0.8649
+},
+{
+"hero": "9hAh",
+"villain": "Ts6h",
+"board": "",
+"equity": 0.64041
+},
+{
+"hero": "KsQc",
+"villain": "ThAh",
+"board": "",
+"equity": 0.37688
+},
+{
+"hero": "8cTc",
+"villain": "Kc2c",
+"board": "7c8dTs",
+"equity": 0.9341
+},
+{
+"hero": "3c7d",
+"villain": "5hQd",
+"board": "8d9dQs",
+"equity": 0.05038
+},
+{
+"hero": "Qh2c",
+"villain": "5sAc",
+"board": "AhJc5d5h",
+"equity": 0.0
+},
+{
+"hero": "8d9d",
+"villain": "Qh2c",
+"board": "",
+"equity": 0.49311
+},
+{
+"hero": "4sQs",
+"villain": "Qd7s",
+"board": "",
+"equity": 0.39747
+},
+{
+"hero": "AdQc",
+"villain": "8s7c",
+"board": "Kh3cTd",
+"equity": 0.7932
+},
+{
+"hero": "5h8s",
+"villain": "6c2d",
+"board": "",
+"equity": 0.63729
+},
+{
+"hero": "QdJh",
+"villain": "Js4c",
+"board": "",
+"equity": 0.75061
+},
+{
+"hero": "3dJs",
+"villain": "5s3h",
+"board": "4h5d2s",
+"equity": 0.26329
+},
+{
+"hero": "7c7d",
+"villain": "6h8d",
+"board": "",
+"equity": 0.69765
+},
+{
+"hero": "8c7c",
+"villain": "KdKh",
+"board": "",
+"equity": 0.22577
+},
+{
+"hero": "KcKh",
+"villain": "Td7c",
+"board": "5d6c9d",
+"equity": 0.76375
+},
+{
+"hero": "8s6s",
+"villain": "8hAs",
+"board": "JcAdKhKd",
+"equity": 0.0
+},
+{
+"hero": "6sAh",
+"villain": "QcJh",
+"board": "",
+"equity": 0.56282
+},
+{
+"hero": "7c5s",
+"villain": "6dAh",
+"board": "",
+"equity": 0.39625
+},
+{
+"hero": "Qd2s",
+"villain": "7c2c",
+"board": "",
+"equity": 0.69461
+},
+{
+"hero": "JsQd",
+"villain": "6sAd",
+"board": "Kc3c4h",
+"equity": 0.26278
+},
+{
+"hero": "Ac7s",
+"villain": "8dJc",
+"board": "",
+"equity": 0.58446
+},
+{
+"hero": "Jc6d",
+"villain": "5s4s",
+"board": "7h8c6c7s",
+"equity": 0.09055
+},
+{
+"hero": "QhAh",
+"villain": "6h2d",
+"board": "",
+"equity": 0.67769
+},
+{
+"hero": "4d7d",
+"villain": "2cKd",
+"board": "4s2h3d",
+"equity": 0.79799
+},
+{
+"hero": "Ks8d",
+"villain": "2c6d",
+"board": "QhAsKd",
+"equity": 0.97706
+},
+{
+"hero": "6c4c",
+"villain": "9s6d",
+"board": "9h8hJs",
+"equity": 0.02736
+},
+{
+"hero": "2sQd",
+"villain": "2d8c",
+"board": "Tc7sTs",
+"equity": 0.83022
+},
+{
+"hero": "8sJc",
+"villain": "Ks7s",
+"board": "",
+"equity": 0.39832
+},
+{
+"hero": "QsQc",
+"villain": "Jd5s",
+"board": "6sAhKs",
+"equity": 0.97662
+},
+{
+"hero": "6s3h",
+"villain": "3cAh",
+"board": "8s5h9sTs",
+"equity": 0.34336
+},
+{
+"hero": "Ac2s",
+"villain": "QdTc",
+"board": "",
+"equity": 0.56142
+},
+{
+"hero": "6hKh",
+"villain": "KdTh",
+"board": "",
+"equity": 0.31632
+},
+{
+"hero": "3d4s",
+"villain": "4d5c",
+"board": "",
+"equity": 0.38871
+},
+{
+"hero": "Kc3s",
+"villain": "2d8h",
+"board": "Tc4c3hAs",
+"equity": 0.84153
+},
+{
+"hero": "Kd8d",
+"villain": "4s5s",
+"board": "2c6d3h",
+"equity": 0.05024
+},
+{
+"hero": "3c6h",
+"villain": "7d7h",
+"board": "3dQhKh9c",
+"equity": 0.11386
+},
+{
+"hero": "8s5s",
+"villain": "6c8d",
+"board": "3d9d7h",
+"equity": 0.30849
+},
+{
+"hero": "Kc2d",
+"villain": "Th3c",
+"board": "7dQc4d",
+"equity": 0.76687
+},
+{
+"hero": "TcJd",
+"villain": "6s5h",
+"board": "2d7hAh",
+"equity": 0.71047
+},
+{
+"hero": "Kd5c",
+"villain": "7h6s",
+"board": "7s3c4h8d",
+"equity": 0.13545
+},
+{
+"hero": "3sQc",
+"villain": "6c9c",
+"board": "8hTd2cJc",
+"equity": 0.61415
+},
+{
+"hero": "3s7h",
+"villain": "8h6h",
+"board": "",
+"equity": 0.33719
+},
+{
+"hero": "3s5h",
+"villain": "7d9h",
+"board": "",
+"equity": 0.35423
+},
+{
+"hero": "2dQs",
+"villain": "Ah2h",
+"board": "",
+"equity": 0.23062
+},
+{
+"hero": "6cKd",
+"villain": "Kc2c",
+"board": "6dThQh",
+"equity": 0.97063
+},
+{
+"hero": "9c2c",
+"villain": "6s9d",
+"board": "",
+"equity": 0.42919
+},
+{
+"hero": "8h5s",
+"villain": "2s4s",
+"board": "4dAd9h",
+"equity": 0.24559
+},
+{
+"hero": "7dKd",
+"villain": "8c7s",
+"board": "",
+"equity": 0.70833
+},
+{
+"hero": "8h6d",
+"villain": "TdQs",
+"board": "",
+"equity": 0.35051
+},
+{
+"hero": "Qh9d",
+"villain": "6h3s",
+"board": "",
+"equity": 0.65668
+},
+{
+"hero": "7h8d",
+"villain": "8sKc",
+"board": "AcQhTdTh",
+"equity": 0.12503
+},
+{
+"hero": "Qh3d",
+"villain": "JsAd",
+"board": "Kh3c9d",
+"equity": 0.77027
+},
+{
+"hero": "7d5c",
+"villain": "4sAc",
+"board": "",
+"equity": 0.41506
+},
+{
+"hero": "ThKd",
+"villain": "5dKc",
+"board": "",
+"equity": 0.72048
+},
+{
+"hero": "Ah4c",
+"villain": "2d3d",
+"board": "",
+"equity": 0.62773
+},
+{
+"hero": "Ks6c",
+"villain": "Jd7h",
+"board": "AcQh9hAs",
+"equity": 0.86361
+},
+{
+"hero": "TsQd",
+"villain": "Th5s",
+"board": "9dAc5dQs",
+"equity": 0.95412
+},
+{
+"hero": "JhJs",
+"villain": "TdAh",
+"board": "6s7s5s2h",
+"equity": 0.95445
+},
+{
+"hero": "Jd4h",
+"villain": "6s2h",
+"board": "7s9dTs",
+"equity": 0.75616
+},
+{
+"hero": "4d9h",
+"villain": "Ad2d",
+"board": "",
+"equity": 0.37727
+},
+{
+"hero": "9dKd",
+"villain": "9s5c",
+"board": "",
+"equity": 0.74889
+},
+{
+"hero": "5h6d",
+"villain": "QcTd",
+"board": "8s8cQh",
+"equity": 0.03968
+},
+{
+"hero": "8h9c",
+"villain": "4h7c",
+"board": "",
+"equity": 0.68
+},
+{
+"hero": "Js4d",
+"villain": "4s3d",
+"board": "Td8s9d8h",
+"equity": 0.93101
+},
+{
+"hero": "6s5h",
+"villain": "ThAs",
+"board": "Ts8hKs6d",
+"equity": 0.11309
+},
+{
+"hero": "4hJc",
+"villain": "3d5h",
+"board": "4d2hQc9s",
+"equity": 0.75027
+},
+{
+"hero": "2d9s",
+"villain": "AcKh",
+"board": "AdTh7s7c",
+"equity": 0.0
+},
+{
+"hero": "6h3h",
+"villain": "Ac9s",
+"board": "As3s6d",
+"equity": 0.70894
+},
+{
+"hero": "4cKs",
+"villain": "KcQs",
+"board": "Jd9s3d",
+"equity": 0.12822
+},
+{
+"hero": "9h7s",
+"villain": "5c6h",
+"board": "TdAs2s",
+"equity": 0.76736
+},
+{
+"hero": "KhAh",
+"villain": "Kd3c",
+"board": "Tc7cKs",
+"equity": 0.84703
+},
+{
+"hero": "KcAd",
+"villain": "QcQh",
+"board": "7s2d3c9h",
+"equity": 0.13694
+},
+{
+"hero": "Jc2s",
+"villain": "3h6s",
+"board": "8dQs4s",
+"equity": 0.70687
+},
+{
+"hero": "6cQs",
+"villain": "Qd6s",
+"board": "",
+"equity": 0.50356
+},
+{
+"hero": "KdJc",
+"villain": "6s6d",
+"board": "Qd6c5c",
+"equity": 0.06624
+},
+{
+"hero": "Jh8d",
+"villain": "2d9h",
+"board": "4d6sAh",
+"equity": 0.7551
+},
+{
+"hero": "5d9c",
+"villain": "6h5c",
+"board": "",
+"equity": 0.67326
+},
+{
+"hero": "5h7h",
+"villain": "KsQs",
+"board": "AsQcJh",
+"equity": 0.06357
+},
+{
+"hero": "Kd5d",
+"villain": "QsTc",
+"board": "Qh3hAs5s",
+"equity": 0.11372
+},
+{
+"hero": "7dAh",
+"villain": "3hKs",
+"board": "5d9c3c",
+"equity": 0.27867
+},
+{
+"hero": "9cQc",
+"villain": "7h3s",
+"board": "9d6c8c",
+"equity": 0.81322
+},
+{
+"hero": "QdQs",
+"villain": "7hKs",
+"board": "",
+"equity": 0.71743
+},
+{
+"hero": "9cJd",
+"villain": "As2d",
+"board": "8sJc4d",
+"equity": 0.86443
+},
+{
+"hero": "Qh9d",
+"villain": "Ah2s",
+"board": "",
+"equity": 0.42322
+},
+{
+"hero": "2c2d",
+"villain": "5cQs",
+"board": "JsQhKs9h",
+"equity": 0.09046
+},
+{
+"hero": "9s3c",
+"villain": "AcQc",
+"board": "2d5c5dJh",
+"equity": 0.13726
+},
+{
+"hero": "3h7c",
+"villain": "9d6c",
+"board": "5d7s7d",
+"equity": 0.83072
+},
+{
+"hero": "3h3c",
+"villain": "5h4c",
+"board": "JsJd5d4s",
+"equity": 0.04532
+},
+{
+"hero": "Th6c",
+"villain": "Jh6d",
+"board": "3cAdJc5d",
+"equity": 0.0
+},
+{
+"hero": "7dAc",
+"villain": "4s3s",
+"board": "",
+"equity": 0.6007
+},
+{
+"hero": "Th5s",
+"villain": "2cJd",
+"board": "6h7d7h",
+"equity": 0.33034
+},
+{
+"hero": "KcTs",
+"villain": "Js7c",
+"board": "9d7sAh",
+"equity": 0.25904
+},
+{
+"hero": "5h7d",
+"villain": "4s8h",
+"board": "7c7sTd",
+"equity": 0.96286
+},
+{
+"hero": "7d6c",
+"villain": "Ac8h",
+"board": "",
+"equity": 0.37503
+},
+{
+"hero": "AhAs",
+"villain": "Qs7d",
+"board": "4sJd2hJs",
+"equity": 1.0
+},
+{
+"hero": "8cQs",
+"villain": "Qc8s",
+"board": "",
+"equity": 0.49999
+},
+{
+"hero": "8h5c",
+"villain": "8dKs",
+"board": "Jh8s3d",
+"equity": 0.12899
+},
+{
+"hero": "6c6h",
+"villain": "5cJc",
+"board": "TdKh2d",
+"equity": 0.83137
+},
+{
+"hero": "8sKh",
+"villain": "2c3c",
+"board": "Th8cJd",
+"equity": 0.93216
+},
+{
+"hero": "3h5s",
+"villain": "Js6d",
+"board": "3c6h2cKc",
+"equity": 0.20445
+},
+{
+"hero": "4c3c",
+"villain": "Kh4s",
+"board": "",
+"equity": 0.32827
+},
+{
+"hero": "6cQc",
+"villain": "Th9d",
+"board": "",
+"equity": 0.57824
+},
+{
+"hero": "Kd3c",
+"villain": "KsTc",
+"board": "AhJh8c4c",
+"equity": 0.1378
+},
+{
+"hero": "Qs2c",
+"villain": "Qc5d",
+"board": "7c2hAd",
+"equity": 0.84983
+},
+{
+"hero": "QsJd",
+"villain": "9c7c",
+"board": "Tc3d2d5d",
+"equity": 0.90867
+},
+{
+"hero": "Js6s",
+"villain": "8h9h",
+"board": "QdAhQs",
+"equity": 0.70581
+},
+{
+"hero": "Ts6c",
+"villain": "9hAs",
+"board": "Qd2h5h",
+"equity": 0.22406
+},
+{
+"hero": "7c4d",
+"villain": "AsKh",
+"board": "8cAd9s",
+"equity": 0.0634
+},
+{
+"hero": "6cAs",
+"villain": "TsTh",
+"board": "3d4s3s",
+"equity": 0.19589
+},
+{
+"hero": "TsJd",
+"villain": "5h8c",
+"board": "",
+"equity": 0.66596
+},
+{
+"hero": "5s9s",
+"villain": "4h9d",
+"board": "3s7sAdKd",
+"equity": 0.64819
+},
+{
+"hero": "Ad9s",
+"villain": "3hKh",
+"board": "Kd2c8h",
+"equity": 0.1095
+},
+{
+"hero": "4hQd",
+"villain": "4dKc",
+"board": "Qs6hTs",
+"equity": 0.84311
+},
+{
+"hero": "8s9d",
+"villain": "4sKc",
+"board": "7cThJd8c",
+"equity": 0.96562
+},
+{
+"hero": "JdJh",
+"villain": "Jc8s",
+"board": "8h9c7sQc",
+"equity": 0.9098
+},
+{
+"hero": "8sQc",
+"villain": "2d6h",
+"board": "",
+"equity": 0.66671
+},
+{
+"hero": "3c8d",
+"villain": "Ks8s",
+"board": "",
+"equity": 0.23136
+},
+{
+"hero": "8s9c",
+"villain": "TsTd",
+"board": "",
+"equity": 0.1432
+},
+{
+"hero": "Tc4d",
+"villain": "4c4h",
+"board": "7dQcKc5d",
+"equity": 0.06769
+},
+{
+"hero": "7c6h",
+"villain": "Th3h",
+"board": "4h5c2c8s",
+"equity": 1.0
+},
+{
+"hero": "KdTc",
+"villain": "AcKh",
+"board": "8h6c8c3s",
+"equity": 0.06844
+},
+{
+"hero": "3cAc",
+"villain": "7d6s",
+"board": "QhAd7h",
+"equity": 0.81629
+},
+{
+"hero": "Qh5s",
+"villain": "3hJd",
+"board": "KhKd4c",
+"equity": 0.77551
+},
+{
+"hero": "4cQh",
+"villain": "9h9c",
+"board": "",
+"equity": 0.28006
+},
+{
+"hero": "Td4s",
+"villain": "QsQd",
+"board": "3sAhAd8c",
+"equity": 0.0
+},
+{
+"hero": "9hKd",
+"villain": "6sQc",
+"board": "6d5h2h",
+"equity": 0.28198
+},
+{
+"hero": "4cJs",
+"villain": "4d7d",
+"board": "8c2h5c",
+"equity": 0.73379
+},
+{
+"hero": "2h3h",
+"villain": "6c4s",
+"board": "4hKh9c",
+"equity": 0.38576
+},
+{
+"hero": "9s9h",
+"villain": "Td5d",
+"board": "2h6dKs",
+"equity": 0.81458
+},
+{
+"hero": "7c2d",
+"villain": "Ts4d",
+"board": "",
+"equity": 0.35833
+},
+{
+"hero": "2dAh",
+"villain": "Td8s",
+"board": "4sAcThTs",
+"equity": 0.04557
+},
+{
+"hero": "2c6d",
+"villain": "3s9c",
+"board": "3h5s3d",
+"equity": 0.14206
+},
+{
+"hero": "7h5h",
+"villain": "Jh5d",
+"board": "Qc8c3s7d",
+"equity": 0.93177
+},
+{
+"hero": "Ad8c",
+"villain": "4c8s",
+"board": "",
+"equity": 0.74909
+},
+{
+"hero": "3sKd",
+"villain": "Ks6c",
+"board": "6h2d6d5h",
+"equity": 0.09109
+},
+{
+"hero": "4dJh",
+"villain": "7s5s",
+"board": "AhAd7cTd",
+"equity": 0.13739
+},
+{
+"hero": "5s2d",
+"villain": "KdKc",
+"board": "7h5c4c",
+"equity": 0.20719
+},
+{
+"hero": "8sKc",
+"villain": "9hAs",
+"board": "3h6d6h",
+"equity": 0.21331
+},
+{
+"hero": "6d8d",
+"villain": "KsJh",
+"board": "Kc6s2c",
+"equity": 0.18395
+},
+{
+"hero": "AhAs",
+"villain": "Kd9h",
+"board": "5c8d7h8h",
+"equity": 0.90945
+},
+{
+"hero": "4cAh",
+"villain": "ThQd",
+"board": "",
+"equity": 0.56331
+},
+{
+"hero": "Tc3d",
+"villain": "5h3c",
+"board": "Qd2h9h",
+"equity": 0.79362
+},
+{
+"hero": "Ac2d",
+"villain": "TcTd",
+"board": "Jh8d8s",
+"equity": 0.13207
+},
+{
+"hero": "Ad9d",
+"villain": "2h6s",
+"board": "9s6hQh4h",
+"equity": 0.68248
+},
+{
+"hero": "9sQc",
+"villain": "4sKs",
+"board": "5c2c4hQd",
+"equity": 0.88731
+},
+{
+"hero": "QhJd",
+"villain": "8c9s",
+"board": "4cTc6h",
+"equity": 0.61961
+},
+{
+"hero": "Jc8s",
+"villain": "2d6c",
+"board": "",
+"equity": 0.67498
+},
+{
+"hero": "7h3h",
+"villain": "2dJs",
+"board": "4hTd7s9s",
+"equity": 0.84086
+},
+{
+"hero": "ThKh",
+"villain": "8d4c",
+"board": "",
+"equity": 0.68639
+},
+{
+"hero": "Tc6s",
+"villain": "9c3c",
+"board": "",
+"equity": 0.61528
+},
+{
+"hero": "5d6h",
+"villain": "Th3h",
+"board": "QhKs2h",
+"equity": 0.18256
+},
+{
+"hero": "Td6s",
+"villain": "4sQs",
+"board": "8d5s7d7s",
+"equity": 0.18156
+},
+{
+"hero": "2sQd",
+"villain": "JdTh",
+"board": "",
+"equity": 0.54335
+},
+{
+"hero": "8c4s",
+"villain": "AcJs",
+"board": "TcJhKh",
+"equity": 0.03708
+},
+{
+"hero": "Kh7d",
+"villain": "AcKd",
+"board": "",
+"equity": 0.24196
+},
+{
+"hero": "2hTc",
+"villain": "9hQd",
+"board": "",
+"equity": 0.33856
+},
+{
+"hero": "Qh6h",
+"villain": "7d5s",
+"board": "Qc9h2c2h",
+"equity": 1.0
+},
+{
+"hero": "QcQh",
+"villain": "JdQd",
+"board": "3sKc6c",
+"equity": 0.96717
+},
+{
+"hero": "6hKs",
+"villain": "Jc2h",
+"board": "3hQd3sTh",
+"equity": 0.86386
+},
+{
+"hero": "9d8d",
+"villain": "5cJd",
+"board": "TsQd7c",
+"equity": 0.51037
+},
+{
+"hero": "6dQs",
+"villain": "5s7c",
+"board": "",
+"equity": 0.61181
+},
+{
+"hero": "7hTs",
+"villain": "6cJc",
+"board": "4dAd3d",
+"equity": 0.24429
+},
+{
+"hero": "Qs3d",
+"villain": "9h5s",
+"board": "2dJsAs4h",
+"equity": 0.86531
+},
+{
+"hero": "2dQc",
+"villain": "6c9s",
+"board": "7h4d8c",
+"equity": 0.48721
+},
+{
+"hero": "2hQs",
+"villain": "8c6s",
+"board": "TdKc5s9h",
+"equity": 0.77402
+},
+{
+"hero": "7s6s",
+"villain": "AcJs",
+"board": "2c9h3s",
+"equity": 0.2963
+},
+{
+"hero": "JcKc",
+"villain": "6cTh",
+"board": "",
+"equity": 0.69079
+},
+{
+"hero": "Qs3h",
+"villain": "6h2h",
+"board": "Kh6c3s3d",
+"equity": 0.95486
+},
+{
+"hero": "Qs2d",
+"villain": "Qc6s",
+"board": "",
+"equity": 0.40614
+},
+{
+"hero": "3s3c",
+"villain": "3h6s",
+"board": "8h3dAsKs",
+"equity": 1.0
+},
+{
+"hero": "Kh3h",
+"villain": "2dJs",
+"board": "",
+"equity": 0.6598
+},
+{
+"hero": "7sKh",
+"villain": "JsJc",
+"board": "",
+"equity": 0.2775
+},
+{
+"hero": "2hJs",
+"villain": "QdJc",
+"board": "AhQs7s6c",
+"equity": 0.0
+},
+{
+"hero": "Ad9s",
+"villain": "4s6h",
+"board": "2hTdJh",
+"equity": 0.7301
+},
+{
+"hero": "3d9s",
+"villain": "Ac9d",
+"board": "",
+"equity": 0.23401
+},
+{
+"hero": "4s4d",
+"villain": "8h9c",
+"board": "",
+"equity": 0.50067
+},
+{
+"hero": "Qh9d",
+"villain": "7h3c",
+"board": "5c4dThAc",
+"equity": 0.68181
+},
+{
+"hero": "Qh7c",
+"villain": "TdQc",
+"board": "3dKc7d",
+"equity": 0.79536
+},
+{
+"hero": "4h2h",
+"villain": "9s8c",
+"board": "QsKhTcTs",
+"equity": 0.27139
+},
+{
+"hero": "7s4h",
+"villain": "AsKh",
+"board": "",
+"equity": 0.34784
+},
+{
+"hero": "JsKd",
+"villain": "3d6c",
+"board": "7c7s3h",
+"equity": 0.28532
+},
+{
+"hero": "Qh9h",
+"villain": "3sKc",
+"board": "",
+"equity": 0.46894
+},
+{
+"hero": "Jc4h",
+"villain": "9dAc",
+"board": "6sKc5dKd",
+"equity": 0.13592
+},
+{
+"hero": "9c7d",
+"villain": "2cTs",
+"board": "7sQsJc",
+"equity": 0.81436
+},
+{
+"hero": "KcJs",
+"villain": "9s4c",
+"board": "3sAh2h9c",
+"equity": 0.13597
+},
+{
+"hero": "2hKh",
+"villain": "5sJs",
+"board": "5h7hJcKd",
+"equity": 0.36211
+},
+{
+"hero": "6cKs",
+"villain": "Th4c",
+"board": "",
+"equity": 0.63538
+},
+{
+"hero": "JdKs",
+"villain": "4s6h",
+"board": "9c7c5d",
+"equity": 0.52908
+},
+{
+"hero": "3cTc",
+"villain": "8hTh",
+"board": "",
+"equity": 0.3444
+},
+{
+"hero": "2dAc",
+"villain": "Qc5s",
+"board": "Tc3d8h",
+"equity": 0.76237
+},
+{
+"hero": "4c4h",
+"villain": "6d7h",
+"board": "9c8hQc",
+"equity": 0.50457
+},
+{
+"hero": "2s3h",
+"villain": "Ah9s",
+"board": "Qd3d6dKd",
+"equity": 0.80754
+},
+{
+"hero": "6hAc",
+"villain": "8s3s",
+"board": "",
+"equity": 0.59911
+},
+{
+"hero": "Jc2s",
+"villain": "Td6h",
+"board": "7s3hAd8c",
+"equity": 0.77338
+},
+{
+"hero": "3dAs",
+"villain": "Kc7s",
+"board": "2c3cJdKd",
+"equity": 0.11275
+},
+{
+"hero": "Jd4d",
+"villain": "2c7h",
+"board": "",
+"equity": 0.6598
+},
+{
+"hero": "8dQd",
+"villain": "9c6h",
+"board": "Ad3cKd5c",
+"equity": 0.90943
+},
+{
+"hero": "4c8d",
+"villain": "5c8c",
+"board": "3d3hAd2d",
+"equity": 0.6015
+},
+{
+"hero": "9d7d",
+"villain": "7cKc",
+"board": "Jc6s2s",
+"equity": 0.1423
+},
+{
+"hero": "Qh7d",
+"villain": "As9s",
+"board": "",
+"equity": 0.34166
+},
+{
+"hero": "TcKc",
+"villain": "3h8c",
+"board": "",
+"equity": 0.69585
+},
+{
+"hero": "7d6d",
+"villain": "9h7h",
+"board": "3c2dJh9d",
+"equity": 0.20433
+},
+{
+"hero": "TsQh",
+"villain": "7d9d",
+"board": "Ad2h6h7c",
+"equity": 0.13686
+},
+{
+"hero": "8h6s",
+"villain": "5d7c",
+"board": "",
+"equity": 0.6155
+},
+{
+"hero": "Jc2c",
+"villain": "3d8h",
+"board": "7cAsQh2d",
+"equity": 0.86383
+},
+{
+"hero": "Kh8s",
+"villain": "5s3c",
+"board": "Tc7h9hTd",
+"equity": 0.86413
+},
+{
+"hero": "Kc8c",
+"villain": "6h2d",
+"board": "4s7d8s",
+"equity": 0.80309
+},
+{
+"hero": "Ad7h",
+"villain": "9s2d",
+"board": "6cKsQh",
+"equity": 0.77457
+},
+{
+"hero": "Jd3h",
+"villain": "4d4c",
+"board": "4hQhKdAd",
+"equity": 0.09124
+},
+{
+"hero": "4sQd",
+"villain": "Tc6d",
+"board": "2dTdQs",
+"equity": 0.81476
+},
+{
+"hero": "Ts3s",
+"villain": "Kd5s",
+"board": "9s3h6d",
+"equity": 0.7494
+},
+{
+"hero": "6s5h",
+"villain": "Qh7c",
+"board": "",
+"equity": 0.37529
+},
+{
+"hero": "6c2h",
+"villain": "Jh9d",
+"board": "6d5dQh",
+"equity": 0.69373
+},
+{
+"hero": "Jc2c",
+"villain": "9dAs",
+"board": "7sTd9h4s",
+"equity": 0.15894
+},
+{
+"hero": "5dJs",
+"villain": "Th3h",
+"board": "",
+"equity": 0.59561
+},
+{
+"hero": "Qd7s",
+"villain": "2dJc",
+"board": "7cTc9d",
+"equity": 0.69901
+},
+{
+"hero": "Ah3s",
+"villain": "2sJh",
+"board": "",
+"equity": 0.65451
+},
+{
+"hero": "4c2c",
+"villain": "6hKs",
+"board": "9s4h8c6s",
+"equity": 0.11371
+},
+{
+"hero": "6c5c",
+"villain": "Ts7c",
+"board": "ThAh2cKh",
+"equity": 0.0
+},
+{
+"hero": "QsAc",
+"villain": "KcQh",
+"board": "9s6s8dTd",
+"equity": 0.79474
+},
+{
+"hero": "2sJh",
+"villain": "6h4d",
+"board": "KhTdAd",
+"equity": 0.73664
+},
+{
+"hero": "7h4d",
+"villain": "2s3h",
+"board": "Th2h9c",
+"equity": 0.28856
+},
+{
+"hero": "Qs3c",
+"villain": "Ts5h",
+"board": "Ac3hKc",
+"equity": 0.77938
+},
+{
+"hero": "9s8c",
+"villain": "Kh4d",
+"board": "3sJcQd3d",
+"equity": 0.2278
+},
+{
+"hero": "5h9s",
+"villain": "QdAc",
+"board": "Ts6cKd",
+"equity": 0.20759
+},
+{
+"hero": "5hQs",
+"villain": "Ts8c",
+"board": "4cJs4s6h",
+"equity": 0.86286
+},
+{
+"hero": "2sQh",
+"villain": "7cAd",
+"board": "6d3h5d",
+"equity": 0.19041
+},
+{
+"hero": "Qd2s",
+"villain": "3dAc",
+"board": "",
+"equity": 0.35404
+},
+{
+"hero": "QdTh",
+"villain": "7cJh",
+"board": "8d4dAc3d",
+"equity": 0.90937
+},
+{
+"hero": "2sTs",
+"villain": "3dTd",
+"board": "KsJd6c",
+"equity": 0.49503
+},
+{
+"hero": "Js8c",
+"villain": "4c5c",
+"board": "",
+"equity": 0.60161
+},
+{
+"hero": "Qh4h",
+"villain": "4d9h",
+"board": "9c3hAh9d",
+"equity": 0.18085
+},
+{
+"hero": "3cTh",
+"villain": "4c2d",
+"board": "",
+"equity": 0.61201
+},
+{
+"hero": "TdJc",
+"villain": "3c2d",
+"board": "9d2s5dQc",
+"equity": 0.32028
+},
+{
+"hero": "3cJh",
+"villain": "9d6s",
+"board": "9hTh2s",
+"equity": 0.20934
+},
+{
+"hero": "6hKd",
+"villain": "3cQd",
+"board": "Qs5dAh",
+"equity": 0.13469
+},
+{
+"hero": "Tc2h",
+"villain": "JsAs",
+"board": "",
+"equity": 0.29745
+},
+{
+"hero": "Th8h",
+"villain": "4d7s",
+"board": "9dQcTs",
+"equity": 0.95834
+},
+{
+"hero": "Jh5h",
+"villain": "2s6h",
+"board": "6s2c9c",
+"equity": 0.05681
+},
+{
+"hero": "8c4c",
+"villain": "4h9d",
+"board": "Jc9c3c4s",
+"equity": 0.93152
+},
+{
+"hero": "As4s",
+"villain": "2cQs",
+"board": "5h3sKs",
+"equity": 0.89065
+},
+{
+"hero": "5h2d",
+"villain": "Kh7d",
+"board": "Ac3sAs",
+"equity": 0.35623
+},
+{
+"hero": "6h5c",
+"villain": "JcKd",
+"board": "",
+"equity": 0.37061
+},
+{
+"hero": "Th3d",
+"villain": "Jh8c",
+"board": "4dTcAd",
+"equity": 0.84571
+},
+{
+"hero": "Td6c",
+"villain": "Qc8s",
+"board": "8hJd4c",
+"equity": 0.15106
+},
+{
+"hero": "6d5h",
+"villain": "9dJh",
+"board": "AdKs5c",
+"equity": 0.75223
+},
+{
+"hero": "8cJs",
+"villain": "7s9d",
+"board": "4c6h4h",
+"equity": 0.72443
+},
+{
+"hero": "KsJs",
+"villain": "8cAd",
+"board": "",
+"equity": 0.46483
+},
+{
+"hero": "9c4d",
+"villain": "3cJs",
+"board": "2c6h7c",
+"equity": 0.29394
+},
+{
+"hero": "Th8s",
+"villain": "6c4d",
+"board": "",
+"equity": 0.64671
+},
+{
+"hero": "Ts6c",
+"villain": "7s2d",
+"board": "4cKs7dQc",
+"equity": 0.06864
+},
+{
+"hero": "Qh8d",
+"villain": "5d9d",
+"board": "4sKh6c",
+"equity": 0.74065
+},
+{
+"hero": "9c5s",
+"villain": "6cAh",
+"board": "",
+"equity": 0.37663
+},
+{
+"hero": "Ac9c",
+"villain": "Qh7s",
+"board": "Ah9hQsJc",
+"equity": 0.95425
+},
+{
+"hero": "5cQc",
+"villain": "9s3s",
+"board": "TdAcAhTs",
+"equity": 0.90906
+},
+{
+"hero": "Kh4h",
+"villain": "7hTh",
+"board": "",
+"equity": 0.58608
+},
+{
+"hero": "3hJd",
+"villain": "9d2c",
+"board": "3d9c7cJh",
+"equity": 0.95451
+},
+{
+"hero": "JcKc",
+"villain": "2sQc",
+"board": "9s7cAh",
+"equity": 0.79045
+},
+{
+"hero": "6s3d",
+"villain": "5c8s",
+"board": "4c6dTd",
+"equity": 0.72776
+},
+{
+"hero": "Td4d",
+"villain": "8s4h",
+"board": "8c3h5cTc",
+"equity": 0.95534
+},
+{
+"hero": "3hTd",
+"villain": "4d6d",
+"board": "9dKs3d",
+"equity": 0.51166
+},
+{
+"hero": "9s4c",
+"villain": "4sKs",
+"board": "Jh7dTs8c",
+"equity": 0.96585
+},
+{
+"hero": "7c5s",
+"villain": "2hKc",
+"board": "",
+"equity": 0.44176
+},
+{
+"hero": "QhQc",
+"villain": "JhJd",
+"board": "5s6d3s8d",
+"equity": 0.95479
+},
+{
+"hero": "Ks2h",
+"villain": "8sQd",
+"board": "",
+"equity": 0.58044
+},
+{
+"hero": "2c4d",
+"villain": "QsKc",
+"board": "",
+"equity": 0.3424
+},
+{
+"hero": "6dQh",
+"villain": "4hJh",
+"board": "6sJcJd7h",
+"equity": 0.0
+},
+{
+"hero": "Qd3d",
+"villain": "Ad9d",
+"board": "",
+"equity": 0.34695
+},
+{
+"hero": "8h6h",
+"villain": "8dQh",
+"board": "",
+"equity": 0.32153
+},
+{
+"hero": "As5d",
+"villain": "Qc6d",
+"board": "3d3hAd5c",
+"equity": 1.0
+},
+{
+"hero": "Qd3c",
+"villain": "3hQs",
+"board": "9hTs8d6c",
+"equity": 0.5
+},
+{
+"hero": "AcAs",
+"villain": "7c7d",
+"board": "6s8hTd9h",
+"equity": 0.02244
+},
+{
+"hero": "6s4c",
+"villain": "8s5h",
+"board": "Ah2dAdTs",
+"equity": 0.16984
+},
+{
+"hero": "Qd9s",
+"villain": "Tc6c",
+"board": "6d7h7cJs",
+"equity": 0.20467
+},
+{
+"hero": "6cTs",
+"villain": "8hKc",
+"board": "8cQc3h",
+"equity": 0.13882
+},
+{
+"hero": "4h5c",
+"villain": "Ts6s",
+"board": "4d8hJs",
+"equity": 0.69655
+},
+{
+"hero": "3dQc",
+"villain": "Qh8s",
+"board": "",
+"equity": 0.32906
+},
+{
+"hero": "4s3h",
+"villain": "4h5c",
+"board": "Kh9s7d",
+"equity": 0.42109
+},
+{
+"hero": "9s9d",
+"villain": "8h6h",
+"board": "6s2sTd5c",
+"equity": 0.88633
+},
+{
+"hero": "Qh3d",
+"villain": "3h6c",
+"board": "Kh5d2h",
+"equity": 0.72834
+},
+{
+"hero": "3dTs",
+"villain": "KdAh",
+"board": "",
+"equity": 0.32399
+},
+{
+"hero": "9c2c",
+"villain": "KhTd",
+"board": "",
+"equity": 0.35887
+},
+{
+"hero": "4c4h",
+"villain": "3c6c",
+"board": "AdQs8s3h",
+"equity": 0.88749
+},
+{
+"hero": "6hJd",
+"villain": "2c3c",
+"board": "",
+"equity": 0.61025
+},
+{
+"hero": "5dJs",
+"villain": "5c4d",
+"board": "",
+"equity": 0.68802
+},
+{
+"hero": "7h2s",
+"villain": "3c8d",
+"board": "Ts3s7d",
+"equity": 0.77583
+},
+{
+"hero": "AcAd",
+"villain": "Kc4c",
+"board": "",
+"equity": 0.84866
+},
+{
+"hero": "7s2h",
+"villain": "JsQd",
+"board": "7d9hQh",
+"equity": 0.221
+},
+{
+"hero": "4cTh",
+"villain": "QhAd",
+"board": "",
+"equity": 0.3248
+},
+{
+"hero": "8sTd",
+"villain": "4h6d",
+"board": "",
+"equity": 0.64891
+},
+{
+"hero": "Kc2h",
+"villain": "TcKh",
+"board": "8cKd8s2c",
+"equity": 0.21613
+},
+{
+"hero": "AcKs",
+"villain": "Ah7s",
+"board": "8s5dTc9h",
+"equity": 0.74976
+},
+{
+"hero": "KdTc",
+"villain": "2d5h",
+"board": "8h9c7c",
+"equity": 0.83236
+},
+{
+"hero": "Ts2h",
+"villain": "2d8h",
+"board": "3c6h8cAc",
+"equity": 0.06771
+},
+{
+"hero": "6h9h",
+"villain": "TcJs",
+"board": "Jd7dAc2c",
+"equity": 0.0
+},
+{
+"hero": "ThKc",
+"villain": "4sAd",
+"board": "Jh8s9d",
+"equity": 0.50521
+},
+{
+"hero": "JsAc",
+"villain": "3d5h",
+"board": "QdKdAh",
+"equity": 0.9195
+},
+{
+"hero": "9hTh",
+"villain": "5c6h",
+"board": "",
+"equity": 0.66212
+},
+{
+"hero": "TcAc",
+"villain": "Kh4s",
+"board": "JcJd9c",
+"equity": 0.87423
+},
+{
+"hero": "5dAc",
+"villain": "4cJs",
+"board": "JhQd4h8c",
+"equity": 0.0
+},
+{
+"hero": "9c9s",
+"villain": "TdTh",
+"board": "7hQd5s4c",
+"equity": 0.04583
+},
+{
+"hero": "9s8d",
+"villain": "4hTh",
+"board": "6sKdJs",
+"equity": 0.31874
+},
+{
+"hero": "6cJh",
+"villain": "3c4s",
+"board": "8d4d2c",
+"equity": 0.23776
+},
+{
+"hero": "Qs6s",
+"villain": "6c2d",
+"board": "",
+"equity": 0.75342
+},
+{
+"hero": "Ah4c",
+"villain": "Ac6s",
+"board": "9dTs9s",
+"equity": 0.43892
+},
+{
+"hero": "7s6d",
+"villain": "JcAh",
+"board": "",
+"equity": 0.37651
+},
+{
+"hero": "Ah6c",
+"villain": "2hAs",
+"board": "",
+"equity": 0.58916
+},
+{
+"hero": "JhKc",
+"villain": "9sKh",
+"board": "2h3h3d",
+"equity": 0.74723
+},
+{
+"hero": "4cQd",
+"villain": "Qc7h",
+"board": "3c2h8d2s",
+"equity": 0.40916
+},
+{
+"hero": "2h9s",
+"villain": "5dKd",
+"board": "",
+"equity": 0.34084
+},
+{
+"hero": "8dTh",
+"villain": "5s4s",
+"board": "As9sAh9c",
+"equity": 0.64909
+},
+{
+"hero": "9h7s",
+"villain": "7cTh",
+"board": "",
+"equity": 0.28069
+},
+{
+"hero": "6d4d",
+"villain": "Th3c",
+"board": "",
+"equity": 0.46791
+},
+{
+"hero": "7d9h",
+"villain": "8cAd",
+"board": "3dQcJhTc",
+"equity": 0.13589
+},
+{
+"hero": "4h4s",
+"villain": "5cQs",
+"board": "7c6cTs3d",
+"equity": 0.88616
+},
+{
+"hero": "6cKd",
+"villain": "QsTh",
+"board": "4cKh9d6h",
+"equity": 0.90926
+},
+{
+"hero": "2h6c",
+"villain": "6s6h",
+"board": "7s8dAcKd",
+"equity": 0.0
+},
+{
+"hero": "Qc7s",
+"villain": "8d4c",
+"board": "7hKc2s",
+"equity": 0.86676
+},
+{
+"hero": "8cKd",
+"villain": "Jd5d",
+"board": "",
+"equity": 0.60382
+},
+{
+"hero": "TcKc",
+"villain": "2s8h",
+"board": "Kh2h8d",
+"equity": 0.24567
+},
+{
+"hero": "6d5s",
+"villain": "QcKh",
+"board": "Js5c7c6h",
+"equity": 1.0
+},
+{
+"hero": "9cTc",
+"villain": "4sJc",
+"board": "Kc3c7d",
+"equity": 0.51543
+},
+{
+"hero": "2h5c",
+"villain": "JsJh",
+"board": "6sKc5d",
+"equity": 0.1997
+},
+{
+"hero": "JdQc",
+"villain": "Td5c",
+"board": "6s8d7s",
+"equity": 0.52502
+},
+{
+"hero": "Kh8s",
+"villain": "2s6c",
+"board": "",
+"equity": 0.66786
+},
+{
+"hero": "7d4d",
+"villain": "Qc5s",
+"board": "",
+"equity": 0.41989
+},
+{
+"hero": "7dQs",
+"villain": "Ac5d",
+"board": "",
+"equity": 0.39871
+},
+{
+"hero": "Qs2s",
+"villain": "9s8s",
+"board": "7s4c7d",
+"equity": 0.70033
+},
+{
+"hero": "7d2d",
+"villain": "5cKh",
+"board": "JhKcKs",
+"equity": 0.0
+},
+{
+"hero": "8d6s",
+"villain": "3h6c",
+"board": "",
+"equity": 0.70146
+},
+{
+"hero": "9h9d",
+"villain": "6h2c",
+"board": "8cTsTh",
+"equity": 0.99259
+},
+{
+"hero": "QsQd",
+"villain": "8dQh",
+"board": "9hTcKsKc",
+"equity": 0.95375
+},
+{
+"hero": "Jh8h",
+"villain": "6h2d",
+"board": "7dTd4c",
+"equity": 0.75518
+},
+{
+"hero": "2d4s",
+"villain": "2cKh",
+"board": "3h9d4hKd",
+"equity": 0.0464
+},
+{
+"hero": "2c5h",
+"villain": "3sTd",
+"board": "AcKs7s9h",
+"equity": 0.13659
+},
+{
+"hero": "3hKc",
+"villain": "2s2c",
+"board": "Th7s6s",
+"equity": 0.27237
+},
+{
+"hero": "6c2h",
+"villain": "8h2s",
+"board": "",
+"equity": 0.30876
+},
+{
+"hero": "5c4h",
+"villain": "5dAs",
+"board": "",
+"equity": 0.28449
+},
+{
+"hero": "8s5s",
+"villain": "9d6s",
+"board": "",
+"equity": 0.40227
+},
+{
+"hero": "9cJd",
+"villain": "Kc7s",
+"board": "",
+"equity": 0.429
+},
+{
+"hero": "8s8c",
+"villain": "2s6d",
+"board": "9sKh3s6c",
+"equity": 0.88654
+},
+{
+"hero": "AdTs",
+"villain": "5h3h",
+"board": "3c8c6dJs",
+"equity": 0.13736
+},
+{
+"hero": "3s8s",
+"villain": "3h2d",
+"board": "3d6h4h",
+"equity": 0.64829
+},
+{
+"hero": "7c4c",
+"villain": "AhAd",
+"board": "6cKhKs",
+"equity": 0.06423
+},
+{
+"hero": "Tc2c",
+"villain": "9h2h",
+"board": "Ks4dJd",
+"equity": 0.83889
+},
+{
+"hero": "2c9d",
+"villain": "8c2d",
+"board": "",
+"equity": 0.72119
+},
+{
+"hero": "4h9d",
+"villain": "9cJc",
+"board": "6c7dKh",
+"equity": 0.14525
+},
+{
+"hero": "Ac4h",
+"villain": "6h4c",
+"board": "",
+"equity": 0.70661
+},
+{
+"hero": "6sTs",
+"villain": "8cQd",
+"board": "9h8dJd9c",
+"equity": 0.15876
+},
+{
+"hero": "6d2d",
+"villain": "Th3h",
+"board": "2sJd3d",
+"equity": 0.51771
+},
+{
+"hero": "6s6c",
+"villain": "Qd7c",
+"board": "",
+"equity": 0.56167
+},
+{
+"hero": "AhTs",
+"villain": "Kh4s",
+"board": "",
+"equity": 0.65643
+},
+{
+"hero": "6h9d",
+"villain": "9c6d",
+"board": "3h7sKh",
+"equity": 0.5227
+},
+{
+"hero": "7cAd",
+"villain": "5s9s",
+"board": "",
+"equity": 0.58878
+},
+{
+"hero": "8h2c",
+"villain": "3h9c",
+"board": "",
+"equity": 0.36913
+},
+{
+"hero": "9sJs",
+"villain": "Ad4h",
+"board": "",
+"equity": 0.4738
+},
+{
+"hero": "Td6s",
+"villain": "8c6c",
+"board": "",
+"equity": 0.65497
+},
+{
+"hero": "8s7s",
+"villain": "4dTd",
+"board": "Ts5d3c9c",
+"equity": 0.18212
+},
+{
+"hero": "3h7s",
+"villain": "QdAd",
+"board": "",
+"equity": 0.31846
+},
+{
+"hero": "5dKd",
+"villain": "2s7d",
+"board": "3sJc2c",
+"equity": 0.2627
+},
+{
+"hero": "Qh3d",
+"villain": "Ks8s",
+"board": "5d2hKcKd",
+"equity": 0.0
+},
+{
+"hero": "4dJs",
+"villain": "Jd5s",
+"board": "Th6d7sTc",
+"equity": 0.49983
+},
+{
+"hero": "TdJh",
+"villain": "7c9c",
+"board": "7s2h3s",
+"equity": 0.23366
+},
+{
+"hero": "7d3s",
+"villain": "TsKd",
+"board": "",
+"equity": 0.32718
+},
+{
+"hero": "2d7s",
+"villain": "AsAh",
+"board": "6s5dTs",
+"equity": 0.0619
+},
+{
+"hero": "Ad4d",
+"villain": "3c2h",
+"board": "",
+"equity": 0.6915
+},
+{
+"hero": "7dAd",
+"villain": "KhTc",
+"board": "Th8dTd",
+"equity": 0.26713
+},
+{
+"hero": "QsAc",
+"villain": "4s2s",
+"board": "2h6sQd6d",
+"equity": 0.95442
+},
+{
+"hero": "3hTc",
+"villain": "KsQs",
+"board": "8h4dJd",
+"equity": 0.21952
+},
+{
+"hero": "9cJc",
+"villain": "7d4d",
+"board": "Ah7c6sQs",
+"equity": 0.13567
+},
+{
+"hero": "2h2s",
+"villain": "7sJh",
+"board": "",
+"equity": 0.50636
+},
+{
+"hero": "AdAc",
+"villain": "5sQc",
+"board": "3d8h9c",
+"equity": 0.95294
+},
+{
+"hero": "6h6d",
+"villain": "7s9d",
+"board": "",
+"equity": 0.53793
+},
+{
+"hero": "4c4s",
+"villain": "6hAh",
+"board": "6dQs5c",
+"equity": 0.13639
+},
+{
+"hero": "4c3c",
+"villain": "Qd7d",
+"board": "",
+"equity": 0.38027
+},
+{
+"hero": "3h4h",
+"villain": "Th7c",
+"board": "",
+"equity": 0.3878
+},
+{
+"hero": "2s3c",
+"villain": "3d2d",
+"board": "Ah7dKc",
+"equity": 0.47738
+},
+{
+"hero": "AdKc",
+"villain": "JdJs",
+"board": "3hKd5hTs",
+"equity": 0.9541
+},
+{
+"hero": "4s8c",
+"villain": "8s8h",
+"board": "2c2dJdTh",
+"equity": 0.0
+},
+{
+"hero": "6dAh",
+"villain": "Ac7h",
+"board": "3dKhKs",
+"equity": 0.32067
+},
+{
+"hero": "5h9h",
+"villain": "Qh7s",
+"board": "2hKcTs",
+"equity": 0.26493
+},
+{
+"hero": "4h3d",
+"villain": "Ah4c",
+"board": "ThKd9dQd",
+"equity": 0.27384
+},
+{
+"hero": "Jc5c",
+"villain": "KhKc",
+"board": "",
+"equity": 0.16429
+},
+{
+"hero": "Qs6c",
+"villain": "4c2h",
+"board": "4dTh5d",
+"equity": 0.26252
+},
+{
+"hero": "8c3c",
+"villain": "ThKc",
+"board": "",
+"equity": 0.34737
+},
+{
+"hero": "QcTs",
+"villain": "8sQd",
+"board": "Kd2s5hJh",
+"equity": 0.86395
+},
+{
+"hero": "3h8s",
+"villain": "AsQd",
+"board": "",
+"equity": 0.32468
+},
+{
+"hero": "Th9h",
+"villain": "4h8h",
+"board": "",
+"equity": 0.70066
+},
+{
+"hero": "6c7c",
+"villain": "2s3d",
+"board": "5h6dTs",
+"equity": 0.84149
+},
+{
+"hero": "Ah9h",
+"villain": "6d4c",
+"board": "2h9c4h5c",
+"equity": 0.84091
+},
+{
+"hero": "Ts6c",
+"villain": "5sJd",
+"board": "2d6d2s",
+"equity": 0.8112
+},
+{
+"hero": "9d9s",
+"villain": "6dQs",
+"board": "Tc8d7c",
+"equity": 0.81454
+},
+{
+"hero": "Qh5d",
+"villain": "2s9h",
+"board": "",
+"equity": 0.64142
+},
+{
+"hero": "8dKc",
+"villain": "8cAh",
+"board": "4s7h9s",
+"equity": 0.14499
+},
+{
+"hero": "2c9c",
+"villain": "KhQh",
+"board": "Js3sAsKd",
+"equity": 0.0
+},
+{
+"hero": "8dQh",
+"villain": "3cKc",
+"board": "3hTcTs4d",
+"equity": 0.13575
+},
+{
+"hero": "Kc3d",
+"villain": "2d5s",
+"board": "QhQs9s9d",
+"equity": 0.90918
+},
+{
+"hero": "2d8d",
+"villain": "Ks6d",
+"board": "8hJc9d7s",
+"equity": 0.79562
+},
+{
+"hero": "4dKd",
+"villain": "7sQd",
+"board": "9hAc6d4h",
+"equity": 0.864
+}
+]
