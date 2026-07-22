@@ -46,6 +46,8 @@ struct PrimaryCTAButton: View {
 
 struct EstimateStepper: View {
     let value: Int
+    var step: Int = 1
+    var suffix: String = ""
     let onAdjust: (Int) -> Void
     private func key(_ s: String, _ d: Int) -> some View {
         Button { onAdjust(d) } label: {
@@ -56,11 +58,11 @@ struct EstimateStepper: View {
     }
     var body: some View {
         HStack(spacing: 12) {
-            key("−", -1)
-            Text("\(value)").font(GT.title(24)).foregroundStyle(GT.green)
+            key("−", -step)
+            Text("\(value)\(suffix)").font(GT.title(24)).foregroundStyle(GT.green)
                 .frame(minWidth: 60, minHeight: 50)
                 .background(.white, in: RoundedRectangle(cornerRadius: 13))
-            key("+", 1)
+            key("+", step)
         }
     }
 }

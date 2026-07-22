@@ -5,8 +5,7 @@ import GlassTableDrills
 
 struct RevealView: View {
     let spot: OutsSpot
-    let estimate: Int
-    let reveal: Reveal
+    let reveal: OutsReveal
     let streak: Int
     let onNext: () -> Void
 
@@ -37,7 +36,7 @@ struct RevealView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 9) {
                     GradePill(band: reveal.band)
-                    Text("내 답 \(estimate) · 정답 \(spot.outCount)")
+                    Text("내 답 \(reveal.estimate) · 정답 \(spot.outCount)")
                         .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
                 }
                 Text("≈ \(Int(reveal.improvementPct))% 개선  ·  룰 오브 2")
@@ -57,6 +56,6 @@ struct RevealView: View {
     let spot = OutsSpot(hero: Card.parse("AhKh")!, villain: Card.parse("QsQd")!,
                         board: Card.parse("Qh7h2s3c")!, outs: Card.parse("4h5h6h8h9hThJh")!,
                         excluded: Card.parse("2h3h")!)
-    return RevealView(spot: spot, estimate: 9,
-                      reveal: gradeOuts(estimate: 9, spot: spot), streak: 8, onNext: {})
+    return RevealView(spot: spot, reveal: gradeOuts(estimate: 9, spot: spot),
+                      streak: 8, onNext: {})
 }
