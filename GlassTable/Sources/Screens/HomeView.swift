@@ -39,6 +39,7 @@ struct HomeView: View {
     @State private var path: [DrillKind] = []
     @State private var progress: [DrillKind: DrillProgress] = [:]
     @State private var showStats = false
+    @State private var showGlossary = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -47,6 +48,13 @@ struct HomeView: View {
                     HStack {
                         Text("Glass Table").font(GT.title(24)).foregroundStyle(GT.ink)
                         Spacer()
+                        Button { showGlossary = true } label: {
+                            Image(systemName: "book.fill")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(GT.inkSecondary)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 14)
                         Button { showStats = true } label: {
                             Image(systemName: "chart.bar.fill")
                                 .font(.system(size: 17, weight: .semibold))
@@ -65,6 +73,7 @@ struct HomeView: View {
             .background(Color.white)
             .navigationDestination(for: DrillKind.self, destination: drillView)
             .navigationDestination(isPresented: $showStats) { StatsView() }
+            .navigationDestination(isPresented: $showGlossary) { GlossaryView() }
             .onAppear {
                 for k in DrillKind.allCases {
                     progress[k] = ProgressStore.standard(drill: k.rawValue).load()
@@ -76,6 +85,7 @@ struct HomeView: View {
                     path = [kind]
                 }
                 if env["GT_DEMO_STATS"] != nil { showStats = true }
+                if env["GT_DEMO_GLOSSARY"] != nil { showGlossary = true }
                 #endif
             }
         }
