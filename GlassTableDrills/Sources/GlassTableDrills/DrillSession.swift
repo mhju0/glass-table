@@ -1,43 +1,45 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import GlassTableEngine
 
-/// Pure state machine for one Outs-drill run. The app wraps this in an @Observable model.
-public struct DrillSession: Equatable {
+/// A drill's graded result. Each drill's Reveal carries the user's answer plus
+/// whatever its reveal screen needs; `band` is what progress tracking consumes.
+public protocol GradedReveal: Equatable { var band: GradeBand { get } }
+
+/// Pure state machine for one drill run, shared by all drills. In-progress input
+/// is view state; the session only sees the committed answer.
+public struct DrillSession<Spot: Equatable, Answer, Reveal: GradedReveal> {
     public enum Phase: Equatable {
-        case deciding(spot: OutsSpot, estimate: Int)
-        case revealed(spot: OutsSpot, estimate: Int, reveal: Reveal)
+        case deciding(spot: Spot)
+        case revealed(spot: Spot, reveal: Reveal)
     }
 
     public let baseSeed: UInt64
     public private(set) var index: Int
     public private(set) var phase: Phase
     public private(set) var progress: DrillProgress
+    private let generate: (UInt64, Int) -> Spot
+    private let grade: (Answer, Spot) -> Reveal
 
-    static let initialEstimate = 8
-
-    public init(baseSeed: UInt64, progress: DrillProgress = DrillProgress()) {
+    public init(baseSeed: UInt64, progress: DrillProgress = DrillProgress(),
+                generate: @escaping (UInt64, Int) -> Spot,
+                grade: @escaping (Answer, Spot) -> Reveal) {
         self.baseSeed = baseSeed
         self.index = 0
         self.progress = progress
-        self.phase = .deciding(spot: OutsSpotGenerator.spot(baseSeed: baseSeed, index: 0),
-                               estimate: Self.initialEstimate)
+        self.generate = generate
+        self.grade = grade
+        self.phase = .deciding(spot: generate(baseSeed, 0))
     }
 
-    public mutating func adjustEstimate(_ delta: Int) {
-        guard case let .deciding(spot, estimate) = phase else { return }
-        phase = .deciding(spot: spot, estimate: max(0, min(21, estimate + delta)))
-    }
-
-    public mutating func commit() {
-        guard case let .deciding(spot, estimate) = phase else { return }
-        let reveal = gradeOuts(estimate: estimate, spot: spot)
+    public mutating func commit(_ answer: Answer) {
+        guard case let .deciding(spot) = phase else { return }
+        let reveal = grade(answer, spot)
         progress = progress.recording(reveal.band)
-        phase = .revealed(spot: spot, estimate: estimate, reveal: reveal)
+        phase = .revealed(spot: spot, reveal: reveal)
     }
 
     public mutating func next() {
         index += 1
-        phase = .deciding(spot: OutsSpotGenerator.spot(baseSeed: baseSeed, index: index),
-                          estimate: Self.initialEstimate)
+        phase = .deciding(spot: generate(baseSeed, index))
     }
 }
