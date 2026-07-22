@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Michael Ju
+// Copyright (c) 2026 Michael Ju (github.com/mhju0)
 
 /// River cards that turn a currently-losing hero into a winner, vs a known villain,
 /// on a 4-card board. An "out" is a card after which hero7 > villain7.

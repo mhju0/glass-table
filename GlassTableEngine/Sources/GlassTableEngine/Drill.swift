@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Michael Ju
+// Copyright (c) 2026 Michael Ju (github.com/mhju0)
 
 /// Grading band. UI renders: spotOn -> 정확, close -> 근접, off -> 빗나감.
 public enum GradeBand: String {

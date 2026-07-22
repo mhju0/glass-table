@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Michael Ju
+// Copyright (c) 2026 Michael Ju (github.com/mhju0)
 
 /// Seedable, reproducible PRNG. Used so equity benchmarks never jitter between runs.
 public struct SplitMix64: RandomNumberGenerator {

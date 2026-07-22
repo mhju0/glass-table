@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Michael Ju
+// Copyright (c) 2026 Michael Ju (github.com/mhju0)
 // ponytail: naive 5-card classifier taken best-of-7 in evaluate7. Allocation-free hot
 // path (stack rank-count buffer, no dict/set/sorted/map, and no per-subhand array in
 // evaluate7) so the exact-enumeration and Monte-Carlo test gates run in seconds, not

@@ -1,4 +1,4 @@
-# Copyright (c) 2026 Michael Ju
+# Copyright (c) 2026 Michael Ju (github.com/mhju0)
 # Dev-time only (NOT shipped). Generates oracle fixtures with the eval7 reference engine.
 #   python3 -m pip install --user eval7
 #   python3 tools/gen_fixtures.py > GlassTableEngine/Tests/GlassTableEngineTests/Fixtures/random_spots.json

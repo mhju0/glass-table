@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Michael Ju
+// Copyright (c) 2026 Michael Ju (github.com/mhju0)
 
 public enum ComboKind { case pair, suited, offsuit, any }
 

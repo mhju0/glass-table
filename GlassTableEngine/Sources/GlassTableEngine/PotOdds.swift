@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Michael Ju
+// Copyright (c) 2026 Michael Ju (github.com/mhju0)
 // All calculations are rake-free.
 
 /// Minimum equity needed to profitably call. `pot` includes villain's bet.
