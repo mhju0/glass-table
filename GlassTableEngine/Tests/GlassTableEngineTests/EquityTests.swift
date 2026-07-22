@@ -37,4 +37,24 @@ final class EquityTests: XCTestCase {
         let mc = monteCarloEquityHeadsUp(hero: hero, villain: vill, board: [], iterations: 100_000, seed: 7).equity
         XCTAssertEqual(mc, 0.8236, accuracy: 0.006)
     }
+
+    func testEquityVsRangeAveragesCombos() {
+        // vs a two-hand range {KK, QQ}, hero AA equity is the mean of the two matchups.
+        let hero = Card.parse("AsAh")!
+        let kk = Card.parse("KsKh")!, qq = Card.parse("QsQh")!
+        let vsRange = equityVsRange(hero: hero, villainCombos: [kk, qq], board: [])
+        let mean = (exactEquityHeadsUp(hero: hero, villain: kk, board: []).equity
+                  + exactEquityHeadsUp(hero: hero, villain: qq, board: []).equity) / 2.0
+        XCTAssertEqual(vsRange, mean, accuracy: 1e-9)
+    }
+
+    func testEquityVsRangeSkipsCardCollisions() {
+        // A villain combo sharing a card with hero is excluded.
+        let hero = Card.parse("AsAh")!
+        let collides = Card.parse("AsKh")!  // shares As
+        let clean = Card.parse("KsKh")!
+        let vsRange = equityVsRange(hero: hero, villainCombos: [collides, clean], board: [])
+        let onlyClean = exactEquityHeadsUp(hero: hero, villain: clean, board: []).equity
+        XCTAssertEqual(vsRange, onlyClean, accuracy: 1e-9)
+    }
 }

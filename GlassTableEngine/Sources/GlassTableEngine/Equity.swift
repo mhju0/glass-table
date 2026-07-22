@@ -54,6 +54,19 @@ public func monteCarloEquityHeadsUp(hero: [Card], villain: [Card], board: [Card]
     return EquityResult(wins: wins, ties: ties, total: iterations)
 }
 
+/// Hero's equity averaged over a villain range (a list of 2-card combos).
+/// Combos colliding with hero's cards or the board are skipped.
+public func equityVsRange(hero: [Card], villainCombos: [[Card]], board: [Card]) -> Double {
+    let blocked = Set(hero + board)
+    var sum = 0.0, n = 0
+    for combo in villainCombos {
+        if combo.contains(where: { blocked.contains($0) }) { continue }
+        sum += exactEquityHeadsUp(hero: hero, villain: combo, board: board).equity
+        n += 1
+    }
+    return n == 0 ? 0 : sum / Double(n)
+}
+
 /// Invoke `body` once per k-combination of `items` (no allocation of the full list).
 func forEachCombination(of items: [Card], choose k: Int, _ body: ([Card]) -> Void) {
     if k == 0 { body([]); return }
