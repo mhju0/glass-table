@@ -24,4 +24,11 @@ final class ProgressTests: XCTestCase {
         XCTAssertEqual(store.load(), p)
         try? FileManager.default.removeItem(at: url)
     }
+
+    func testStandardDrillFileName() {
+        XCTAssertEqual(ProgressStore.standard(drill: "outs").url.lastPathComponent,
+                       "outs-progress.json")
+        XCTAssertEqual(ProgressStore.standard(drill: "mdf").url.lastPathComponent,
+                       "mdf-progress.json")
+    }
 }

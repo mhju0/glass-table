@@ -36,10 +36,10 @@ public struct ProgressStore {
         try? JSONEncoder().encode(p).write(to: url)
     }
 
-    /// Default on-device store in Application Support.
-    public static func standard() -> ProgressStore {
+    /// Default on-device store in Application Support, one file per drill.
+    public static func standard(drill: String) -> ProgressStore {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return ProgressStore(url: dir.appendingPathComponent("outs-progress.json"))
+        return ProgressStore(url: dir.appendingPathComponent("\(drill)-progress.json"))
     }
 }
