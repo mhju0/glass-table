@@ -24,7 +24,7 @@ struct PlayingCardView: View {
                         .padding(.horizontal, size * 0.1)
                 }
             }
-            .opacity(dead ? 0.32 : 1)
+            .opacity(dead ? 0.55 : 1)
             .shadow(color: .black.opacity(0.22), radius: 3, y: 2)
     }
 }
