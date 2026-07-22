@@ -89,7 +89,7 @@ struct HomeView: View {
         case .potodds: PercentDrillView(config: .potOdds)
         case .callfold: CallFoldView()
         case .mdf: PercentDrillView(config: .mdf)
-        case .blockers: Text(kind.name)  // replaced in Task 9
+        case .blockers: BlockerView()
         }
     }
 }
