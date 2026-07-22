@@ -1,18 +1,18 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
-import GlassTableEngine
 import GlassTableDrills
 
 struct RootView: View {
-    private let spot = OutsSpotGenerator.spot(baseSeed: 1, index: 0)
+    @State private var model = OutsDrillModel()
+
     var body: some View {
-        VStack(spacing: 8) {
-            Text("Glass Table").font(.largeTitle.bold())
-            Text("Sample spot: \(spot.outCount) outs")
-            Text(spot.hero.map(\.description).joined(separator: " ")
-                 + "  vs  " + spot.villain.map(\.description).joined(separator: " "))
-                .monospaced()
+        switch model.phase {
+        case let .deciding(spot, estimate):
+            DecideView(spot: spot, estimate: estimate, streak: model.streak,
+                       onAdjust: model.adjust, onCommit: model.commit)
+        case let .revealed(spot, estimate, reveal):
+            RevealView(spot: spot, estimate: estimate, reveal: reveal,
+                       streak: model.streak, onNext: model.next)
         }
-        .padding()
     }
 }
