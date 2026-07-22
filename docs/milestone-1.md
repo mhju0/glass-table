@@ -44,6 +44,6 @@ The first shippable thing. A complete, free, Korean-first **Math Drills** app th
 3. The three drill screens + the decide→grade loop UI.
 4. Korean localization pass (with the terminology glossary).
 5. Local progress/stats.
-6. App Store submission + Korean rating.
+6. App icon + App Store submission + Korean rating.
 
 Per project working style: each step is verified before the next, and progress is checkpointed so an interruption never loses ground. The step-by-step implementation plan is produced separately (planning phase), not here.
