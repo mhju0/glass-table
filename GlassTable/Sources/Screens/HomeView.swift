@@ -38,13 +38,23 @@ enum DrillKind: String, CaseIterable {
 struct HomeView: View {
     @State private var path: [DrillKind] = []
     @State private var progress: [DrillKind: DrillProgress] = [:]
+    @State private var showStats = false
 
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Glass Table").font(GT.title(24)).foregroundStyle(GT.ink)
-                        .padding(.top, 12)
+                    HStack {
+                        Text("Glass Table").font(GT.title(24)).foregroundStyle(GT.ink)
+                        Spacer()
+                        Button { showStats = true } label: {
+                            Image(systemName: "chart.bar.fill")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(GT.inkSecondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.top, 12)
                     Text("레인지와 EV로 생각하는 홀덤 훈련")
                         .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                         .padding(.bottom, 8)
@@ -54,15 +64,18 @@ struct HomeView: View {
             }
             .background(Color.white)
             .navigationDestination(for: DrillKind.self, destination: drillView)
+            .navigationDestination(isPresented: $showStats) { StatsView() }
             .onAppear {
                 for k in DrillKind.allCases {
                     progress[k] = ProgressStore.standard(drill: k.rawValue).load()
                 }
                 #if DEBUG
-                if let slug = ProcessInfo.processInfo.environment["GT_DEMO_DRILL"],
+                let env = ProcessInfo.processInfo.environment
+                if let slug = env["GT_DEMO_DRILL"],
                    let kind = DrillKind(rawValue: slug), path.isEmpty {
                     path = [kind]
                 }
+                if env["GT_DEMO_STATS"] != nil { showStats = true }
                 #endif
             }
         }
