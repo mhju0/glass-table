@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
-import Foundation
+import SwiftUI
 import Observation
 import GlassTableDrills
 
@@ -30,6 +30,17 @@ final class DrillModel<Spot: Equatable, Answer, Reveal: GradedReveal> {
     var phase: DrillSession<Spot, Answer, Reveal>.Phase { session.phase }
     var streak: Int { session.progress.streak }
 
-    func commit(_ answer: Answer) { session.commit(answer); store.save(session.progress) }
-    func next() { session.next() }
+    func commit(_ answer: Answer) {
+        withAnimation(.easeOut(duration: 0.22)) { session.commit(answer) }
+        store.save(session.progress)
+        if case let .revealed(_, reveal) = session.phase {
+            let haptic = UINotificationFeedbackGenerator()
+            switch reveal.band {
+            case .spotOn: haptic.notificationOccurred(.success)
+            case .close:  haptic.notificationOccurred(.warning)
+            case .off:    haptic.notificationOccurred(.error)
+            }
+        }
+    }
+    func next() { withAnimation(.easeOut(duration: 0.22)) { session.next() } }
 }

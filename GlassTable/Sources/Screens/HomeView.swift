@@ -53,14 +53,16 @@ struct HomeView: View {
                                 .font(.system(size: 17, weight: .semibold))
                                 .foregroundStyle(GT.inkSecondary)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(GTPress())
+                        .accessibilityLabel("용어집")
                         .padding(.trailing, 14)
                         Button { showStats = true } label: {
                             Image(systemName: "chart.bar.fill")
                                 .font(.system(size: 17, weight: .semibold))
                                 .foregroundStyle(GT.inkSecondary)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(GTPress())
+                        .accessibilityLabel("통계")
                     }
                     .padding(.top, 12)
                     Text("레인지와 EV로 생각하는 홀덤 훈련")
@@ -117,7 +119,7 @@ struct HomeView: View {
             .padding(16)
             .background(GT.surface, in: RoundedRectangle(cornerRadius: 16))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(GTPress())
     }
 
     @ViewBuilder

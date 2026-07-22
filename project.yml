@@ -29,6 +29,8 @@ targets:
           - Pretendard-Regular.otf
           - Pretendard-SemiBold.otf
           - Pretendard-Bold.otf
+        # All colors are hand-tuned for light; declare it so dark mode never half-applies.
+        UIUserInterfaceStyle: Light
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.michaelju.glasstable.GlassTable

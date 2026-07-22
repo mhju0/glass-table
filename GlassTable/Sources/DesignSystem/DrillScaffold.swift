@@ -21,7 +21,7 @@ struct DrillScaffold<Content: View, Sheet: View>: View {
             HStack {
                 Text(title).font(GT.title(16)).foregroundStyle(.white)
                 Spacer()
-                Text("🔥 \(streak)").font(GT.semibold(12)).foregroundStyle(.white)
+                Text("🔥 \(streak)").font(GT.semibold(12).monospacedDigit()).foregroundStyle(.white)
                     .padding(.horizontal, 10).padding(.vertical, 4)
                     .background(Color.white.opacity(0.16), in: Capsule())
             }

@@ -11,9 +11,10 @@ enum GT {
     static let surface       = Color(hex: 0xF2F4F6)
     static let suitRed       = Color(hex: 0xE5484D)
 
-    static func title(_ s: CGFloat) -> Font    { .custom("Pretendard-Bold", size: s) }
-    static func semibold(_ s: CGFloat) -> Font { .custom("Pretendard-SemiBold", size: s) }
-    static func body(_ s: CGFloat) -> Font     { .custom("Pretendard-Regular", size: s) }
+    // relativeTo: .body → all text scales with the user's Dynamic Type setting.
+    static func title(_ s: CGFloat) -> Font    { .custom("Pretendard-Bold", size: s, relativeTo: .body) }
+    static func semibold(_ s: CGFloat) -> Font { .custom("Pretendard-SemiBold", size: s, relativeTo: .body) }
+    static func body(_ s: CGFloat) -> Font     { .custom("Pretendard-Regular", size: s, relativeTo: .body) }
 }
 
 extension Color {

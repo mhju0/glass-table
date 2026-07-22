@@ -2,6 +2,16 @@
 import SwiftUI
 import GlassTableEngine
 
+/// Press feedback for every tappable surface: slight shrink + dim, 150ms.
+struct GTPress: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
 struct SectionLabel: View {
     let text: String
     var onDark: Bool = true
@@ -40,7 +50,7 @@ struct PrimaryCTAButton: View {
                 .frame(maxWidth: .infinity, minHeight: 52)
                 .background(GT.cta, in: RoundedRectangle(cornerRadius: 14))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(GTPress())
     }
 }
 
@@ -53,7 +63,7 @@ struct SecondaryCTAButton: View {
                 .frame(maxWidth: .infinity, minHeight: 52)
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(GTPress())
     }
 }
 
@@ -67,12 +77,12 @@ struct EstimateStepper: View {
             Text(s).font(GT.semibold(22)).foregroundStyle(GT.inkSecondary)
                 .frame(width: 44, height: 44)
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
-        }.buttonStyle(.plain)
+        }.buttonStyle(GTPress())
     }
     var body: some View {
         HStack(spacing: 12) {
             key("−", -step)
-            Text("\(value)\(suffix)").font(GT.title(24)).foregroundStyle(GT.green)
+            Text("\(value)\(suffix)").font(GT.title(24).monospacedDigit()).foregroundStyle(GT.green)
                 .frame(minWidth: 60, minHeight: 50)
                 .background(.white, in: RoundedRectangle(cornerRadius: 13))
             key("+", step)
