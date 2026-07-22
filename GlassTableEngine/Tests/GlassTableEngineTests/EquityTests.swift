@@ -24,4 +24,17 @@ final class EquityTests: XCTestCase {
         let e = hero("AsAh", vs: "KsQh", board: "Ad7c2s9dTc")
         XCTAssertEqual(e, 1.0, accuracy: 1e-9)
     }
+
+    func testMonteCarloIsDeterministic() {
+        let hero = Card.parse("AsAh")!, vill = Card.parse("KsKh")!
+        let a = monteCarloEquityHeadsUp(hero: hero, villain: vill, board: [], iterations: 20_000, seed: 42).equity
+        let b = monteCarloEquityHeadsUp(hero: hero, villain: vill, board: [], iterations: 20_000, seed: 42).equity
+        XCTAssertEqual(a, b, accuracy: 1e-12)  // identical seed -> identical result
+    }
+
+    func testMonteCarloApproximatesExact() {
+        let hero = Card.parse("AsAh")!, vill = Card.parse("KsKh")!
+        let mc = monteCarloEquityHeadsUp(hero: hero, villain: vill, board: [], iterations: 100_000, seed: 7).equity
+        XCTAssertEqual(mc, 0.8236, accuracy: 0.006)
+    }
 }

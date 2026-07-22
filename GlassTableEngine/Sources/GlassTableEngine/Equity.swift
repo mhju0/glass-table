@@ -29,6 +29,31 @@ public func exactEquityHeadsUp(hero: [Card], villain: [Card], board: [Card]) -> 
     return EquityResult(wins: wins, ties: ties, total: total)
 }
 
+/// Fixed-seed Monte Carlo equity: sample `iterations` random board completions.
+/// Deterministic for a given `seed` (partial Fisher–Yates over the remaining deck).
+public func monteCarloEquityHeadsUp(hero: [Card], villain: [Card], board: [Card],
+                                    iterations: Int, seed: UInt64) -> EquityResult {
+    precondition(hero.count == 2 && villain.count == 2)
+    let known = Set(hero + villain + board)
+    var deck = Deck.all.filter { !known.contains($0) }
+    let need = 5 - board.count
+    var rng = SplitMix64(seed: seed)
+
+    var wins = 0, ties = 0
+    for _ in 0..<iterations {
+        // Partial shuffle: draw `need` cards to the front.
+        for i in 0..<need {
+            let j = Int(rng.next() % UInt64(deck.count - i)) + i
+            deck.swapAt(i, j)
+        }
+        let full = board + Array(deck[0..<need])
+        let h = evaluate7(hero + full)
+        let v = evaluate7(villain + full)
+        if h > v { wins += 1 } else if h == v { ties += 1 }
+    }
+    return EquityResult(wins: wins, ties: ties, total: iterations)
+}
+
 /// Invoke `body` once per k-combination of `items` (no allocation of the full list).
 func forEachCombination(of items: [Card], choose k: Int, _ body: ([Card]) -> Void) {
     if k == 0 { body([]); return }
