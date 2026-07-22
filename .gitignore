@@ -3,3 +3,4 @@
 .swiftpm/
 xcuserdata/
 .claude/settings.local.json
+.superpowers/
