@@ -25,6 +25,10 @@ targets:
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        UIAppFonts:
+          - Pretendard-Regular.otf
+          - Pretendard-SemiBold.otf
+          - Pretendard-Bold.otf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.michaelju.glasstable.GlassTable
