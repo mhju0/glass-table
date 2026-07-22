@@ -86,9 +86,9 @@ struct HomeView: View {
     private func drillView(_ kind: DrillKind) -> some View {
         switch kind {
         case .outs: OutsDrillView()
-        case .potodds: Text(kind.name)   // replaced in Task 7
+        case .potodds: PercentDrillView(config: .potOdds)
         case .callfold: Text(kind.name)  // replaced in Task 8
-        case .mdf: Text(kind.name)       // replaced in Task 7
+        case .mdf: PercentDrillView(config: .mdf)
         case .blockers: Text(kind.name)  // replaced in Task 9
         }
     }
