@@ -14,6 +14,16 @@ enum DrillKind: String, CaseIterable {
         case .blockers: return "블로커"
         }
     }
+    /// English pair for learning-critical concept terms (glossary rule 3); nil where
+    /// the name is an action (콜/폴드) or already Latin (MDF).
+    var nameEn: String? {
+        switch self {
+        case .outs: return "Outs"
+        case .potodds: return "Pot Odds"
+        case .blockers: return "Blockers"
+        case .callfold, .mdf: return nil
+        }
+    }
     var subtitle: String {
         switch self {
         case .outs: return "리버에서 몇 장이면 이기나"
@@ -63,7 +73,12 @@ struct HomeView: View {
         NavigationLink(value: kind) {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(kind.name).font(GT.title(15)).foregroundStyle(GT.ink)
+                    HStack(spacing: 6) {
+                        Text(kind.name).font(GT.title(15)).foregroundStyle(GT.ink)
+                        if let en = kind.nameEn {
+                            Text("· \(en)").font(GT.body(11)).foregroundStyle(GT.inkMuted)
+                        }
+                    }
                     Text(kind.subtitle).font(GT.body(12)).foregroundStyle(GT.inkMuted)
                 }
                 Spacer()
