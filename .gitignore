@@ -7,3 +7,4 @@ xcuserdata/
 GlassTable.xcodeproj/
 build/
 GlassTable/Info.plist
+build-device/
