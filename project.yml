@@ -31,6 +31,8 @@ targets:
           - Pretendard-Bold.otf
         # All colors are hand-tuned for light; declare it so dark mode never half-applies.
         UIUserInterfaceStyle: Light
+        # Drill layout (green zone + bottom sheet) is portrait-designed; lock it.
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
     settings:
       base:

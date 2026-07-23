@@ -20,15 +20,18 @@ public struct DrillSession<Spot: Equatable, Answer, Reveal: GradedReveal> {
     private let generate: (UInt64, Int) -> Spot
     private let grade: (Answer, Spot) -> Reveal
 
+    /// `startIndex` lets a caller resume the deterministic sequence (the app passes
+    /// `progress.total` so answered spots never repeat across launches).
     public init(baseSeed: UInt64, progress: DrillProgress = DrillProgress(),
+                startIndex: Int = 0,
                 generate: @escaping (UInt64, Int) -> Spot,
                 grade: @escaping (Answer, Spot) -> Reveal) {
         self.baseSeed = baseSeed
-        self.index = 0
+        self.index = startIndex
         self.progress = progress
         self.generate = generate
         self.grade = grade
-        self.phase = .deciding(spot: generate(baseSeed, 0))
+        self.phase = .deciding(spot: generate(baseSeed, startIndex))
     }
 
     public mutating func commit(_ answer: Answer) {

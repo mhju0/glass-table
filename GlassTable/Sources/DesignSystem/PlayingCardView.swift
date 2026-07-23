@@ -8,6 +8,7 @@ struct PlayingCardView: View {
     var dead: Bool = false   // "looks like an out but loses" — dimmed + struck
 
     private static let suits = ["♣", "♦", "♥", "♠"]
+    private static let suitNames = ["클럽", "다이아", "하트", "스페이드"]
     private static let ranks = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"]
     private var isRed: Bool { card.suit == 1 || card.suit == 2 }
     private var label: String { "\(Self.ranks[card.rank - 2])\(Self.suits[card.suit])" }
@@ -29,6 +30,7 @@ struct PlayingCardView: View {
             }
             .opacity(dead ? 0.55 : 1)
             .shadow(color: .black.opacity(0.22), radius: 3, y: 2)
+            .accessibilityLabel("\(Self.suitNames[card.suit]) \(Self.ranks[card.rank - 2])\(dead ? ", 제외" : "")")
     }
 }
 

@@ -50,8 +50,11 @@ struct HomeView: View {
     @State private var progress: [DrillKind: DrillProgress] = [:]
     @State private var showSettings = false
     @State private var showGuide = false
+    // showStats/showGlossary exist only for the DEBUG screenshot hooks below;
+    // the user path to those screens is Settings.
     @State private var showStats = false
     @State private var showGlossary = false
+    @AppStorage("gt.seen_guide") private var seenGuide = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -76,8 +79,10 @@ struct HomeView: View {
                 for k in DrillKind.allCases {
                     progress[k] = ProgressStore.standard(drill: k.rawValue).load()
                 }
+                var demoRun = false
                 #if DEBUG
                 let env = ProcessInfo.processInfo.environment
+                demoRun = env.keys.contains { $0.hasPrefix("GT_DEMO") }
                 if let slug = env["GT_DEMO_DRILL"],
                    let kind = DrillKind(rawValue: slug), path.isEmpty {
                     path = [kind]
@@ -87,6 +92,12 @@ struct HomeView: View {
                 if env["GT_DEMO_SETTINGS"] != nil { showSettings = true }
                 if env["GT_DEMO_GUIDE"] != nil { showGuide = true }
                 #endif
+                // First launch opens the guide once (never during screenshot runs —
+                // GT_DEMO_HOME suppresses without other effects).
+                if !seenGuide, !demoRun {
+                    seenGuide = true
+                    showGuide = true
+                }
             }
         }
         .tint(.white)  // white back chevron over the green zones
@@ -121,7 +132,7 @@ struct HomeView: View {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(.white)
-                        .frame(width: 42, height: 42)
+                        .frame(width: 44, height: 44)
                         .background(.white.opacity(0.14), in: Circle())
                 }
                 .buttonStyle(GTPress())
@@ -162,12 +173,13 @@ struct HomeView: View {
                     Text(kind.name).font(GT.title(15)).foregroundStyle(GT.ink)
                     Text(kind.explain).font(GT.body(12))
                         .foregroundStyle(GT.inkSecondary)
-                        .lineLimit(2).multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.leading)
                     Spacer(minLength: 0)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
-                if let p = progress[kind], p.total > 0 {
+                // Same rule as the drill header: 🔥 appears only with a live streak.
+                if let p = progress[kind], p.streak > 0 {
                     Text("🔥 \(p.streak)").font(GT.semibold(11))
                         .foregroundStyle(GT.inkSecondary)
                         .padding(.horizontal, 9).padding(.vertical, 5)

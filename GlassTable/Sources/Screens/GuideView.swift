@@ -68,11 +68,20 @@ struct GuideView: View {
                     통계에서 드릴별로 확인할 수 있습니다.
                     """)
                 }
+
+                NavigationLink(value: DrillKind.outs) {
+                    Text("아웃 카운팅 시작하기").font(GT.title(15)).foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .background(GT.cta, in: RoundedRectangle(cornerRadius: 14))
+                }
+                .buttonStyle(GTPress())
+                .padding(.top, 4)
             }
             .padding(.horizontal, 18)
             .padding(.bottom, 24)
         }
         .background(FeltBackground())
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     private func card(_ title: String, @ViewBuilder body: () -> Text) -> some View {

@@ -21,9 +21,12 @@ struct DrillScaffold<Content: View, Sheet: View>: View {
             HStack {
                 Text(title).font(GT.title(16)).foregroundStyle(.white)
                 Spacer()
-                Text("🔥 \(streak)").font(GT.semibold(12).monospacedDigit()).foregroundStyle(.white)
-                    .padding(.horizontal, 10).padding(.vertical, 4)
-                    .background(Color.white.opacity(0.16), in: Capsule())
+                // Same rule as home boxes: 🔥 appears only with a live streak.
+                if streak > 0 {
+                    Text("🔥 \(streak)").font(GT.semibold(12).monospacedDigit()).foregroundStyle(.white)
+                        .padding(.horizontal, 10).padding(.vertical, 4)
+                        .background(Color.white.opacity(0.16), in: Capsule())
+                }
             }
             .padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 6)
 

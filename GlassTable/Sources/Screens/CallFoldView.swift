@@ -39,9 +39,11 @@ struct CallFoldView: View {
                             Text("콜해야 할까요?").font(GT.title(15)).foregroundStyle(GT.ink)
                             Text("Call or fold?").font(GT.body(11)).foregroundStyle(GT.inkMuted)
                         }
+                        // Deliberately equal-weight buttons: a primary/secondary pair would
+                        // visually recommend one answer in an unbiased-decision drill.
                         HStack(spacing: 10) {
                             SecondaryCTAButton(title: "폴드", action: { model.commit(false) })
-                            PrimaryCTAButton(title: "콜", action: { model.commit(true) })
+                            SecondaryCTAButton(title: "콜", action: { model.commit(true) })
                         }
                     }
                 }

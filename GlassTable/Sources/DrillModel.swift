@@ -15,12 +15,19 @@ final class DrillModel<Spot: Equatable, Answer, Reveal: GradedReveal> {
          demoAnswer: Answer) {
         let store = ProgressStore.standard(drill: slug)
         self.store = store
-        self.session = DrillSession(baseSeed: baseSeed, progress: store.load(),
+        let progress = store.load()
+        // Resume at progress.total so answered spots never repeat across launches/re-entries.
+        self.session = DrillSession(baseSeed: baseSeed, progress: progress,
+                                    startIndex: progress.total,
                                     generate: generate, grade: grade)
         #if DEBUG
         // GT_DEMO_DRILL=<slug> + GT_DEMO_REVEAL=<n>: open at spot n's reveal for screenshots.
+        // Rebuilt from startIndex 0 so <n> stays an absolute spot index (demoAnswer is
+        // tuned to spot n) even though normal sessions resume at progress.total.
         let env = ProcessInfo.processInfo.environment
         if env["GT_DEMO_DRILL"] == slug, let n = env["GT_DEMO_REVEAL"], let idx = Int(n) {
+            session = DrillSession(baseSeed: baseSeed, progress: progress,
+                                   startIndex: 0, generate: generate, grade: grade)
             for _ in 0..<idx { session.next() }
             session.commit(demoAnswer)
             store.save(session.progress)

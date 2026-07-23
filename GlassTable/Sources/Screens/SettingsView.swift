@@ -29,7 +29,8 @@ struct SettingsView: View {
                 .background(.white, in: RoundedRectangle(cornerRadius: 20))
                 VStack(spacing: 0) {
                     Link(destination: Self.privacyURL) {
-                        row("doc.text", "개인정보 처리방침", nil, chevron: true)
+                        // arrow.up.right = leaves the app (Safari), unlike chevron rows.
+                        row("doc.text", "개인정보 처리방침", nil, chevron: false, external: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -49,10 +50,11 @@ struct SettingsView: View {
             .padding(.horizontal, 18)
         }
         .background(FeltBackground())
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     private func row(_ icon: String, _ title: String, _ sub: String?,
-                     chevron: Bool) -> some View {
+                     chevron: Bool, external: Bool = false) -> some View {
         HStack(spacing: 14) {
             Image(systemName: icon).font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(GT.green).frame(width: 28)
@@ -61,8 +63,8 @@ struct SettingsView: View {
                 if let sub { Text(sub).font(GT.body(12)).foregroundStyle(GT.inkMuted) }
             }
             Spacer()
-            if chevron {
-                Image(systemName: "chevron.right")
+            if chevron || external {
+                Image(systemName: external ? "arrow.up.right" : "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(GT.inkMuted)
             }

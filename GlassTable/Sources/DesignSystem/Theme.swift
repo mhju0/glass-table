@@ -31,6 +31,7 @@ struct FeltBackground: View {
                 .offset(x: 60, y: 70)
         }
         .ignoresSafeArea()
+        .accessibilityHidden(true)
     }
 }
 
