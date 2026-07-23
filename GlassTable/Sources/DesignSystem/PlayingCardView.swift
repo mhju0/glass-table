@@ -15,6 +15,8 @@ struct PlayingCardView: View {
     var body: some View {
         Text(label)
             .font(GT.title(size * 0.36))
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)   // "10♥" and wide ranks shrink to fit instead of wrapping vertically
             .foregroundStyle(isRed ? GT.suitRed : GT.ink)
             .frame(width: size * 0.72, height: size)
             .background(.white, in: RoundedRectangle(cornerRadius: size * 0.17))
