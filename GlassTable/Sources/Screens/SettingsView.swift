@@ -4,6 +4,8 @@ import SwiftUI
 struct SettingsView: View {
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
+    private static let feedbackURL =
+        URL(string: "mailto:michaelju0418@gmail.com?subject=Glass%20Table%20%ED%94%BC%EB%93%9C%EB%B0%B1")!
     private var version: String {
         let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
@@ -28,6 +30,12 @@ struct SettingsView: View {
                 }
                 .background(.white, in: RoundedRectangle(cornerRadius: 20))
                 VStack(spacing: 0) {
+                    Link(destination: Self.feedbackURL) {
+                        row("envelope.fill", "피드백 보내기", "버그·아이디어를 메일로",
+                            chevron: false, external: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
                     Link(destination: Self.privacyURL) {
                         // arrow.up.right = leaves the app (Safari), unlike chevron rows.
                         row("doc.text", "개인정보 처리방침", nil, chevron: false, external: true)
