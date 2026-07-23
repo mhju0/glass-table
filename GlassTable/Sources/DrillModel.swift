@@ -23,6 +23,7 @@ final class DrillModel<Spot: Equatable, Answer, Reveal: GradedReveal> {
         if env["GT_DEMO_DRILL"] == slug, let n = env["GT_DEMO_REVEAL"], let idx = Int(n) {
             for _ in 0..<idx { session.next() }
             session.commit(demoAnswer)
+            store.save(session.progress)
         }
         #endif
     }
