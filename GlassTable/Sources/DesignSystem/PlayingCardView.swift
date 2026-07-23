@@ -16,7 +16,8 @@ struct PlayingCardView: View {
         Text(label)
             .font(GT.title(size * 0.36))
             .lineLimit(1)
-            .minimumScaleFactor(0.6)   // "10♥" and wide ranks shrink to fit instead of wrapping vertically
+            .minimumScaleFactor(0.5)   // "10♥" and wide ranks shrink to fit instead of wrapping vertically
+            .padding(.horizontal, size * 0.08)  // breathing room — label never touches the card edge
             .foregroundStyle(isRed ? GT.suitRed : GT.ink)
             .frame(width: size * 0.72, height: size)
             .background(.white, in: RoundedRectangle(cornerRadius: size * 0.17))
