@@ -31,10 +31,10 @@ targets:
           - Pretendard-Bold.otf
         # All colors are hand-tuned for light; declare it so dark mode never half-applies.
         UIUserInterfaceStyle: Light
+        ITSAppUsesNonExemptEncryption: false
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.michaelju.glasstable.GlassTable
+        PRODUCT_BUNDLE_IDENTIFIER: com.michaelju.glasstable
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "5.9"
-        CODE_SIGNING_ALLOWED: NO
