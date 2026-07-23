@@ -56,10 +56,10 @@ validates the compliance path", `milestone-1.md` §3).
 Nutrition label: **Data Not Collected** (true — no network, no analytics, no
 accounts; progress JSON never leaves the device). Apple still requires a
 privacy policy URL: a one-page bilingual policy authored at
-`docs/privacy-policy.md`. Hosting: the repo is currently **private**, so its
-GitHub Pages is unavailable on the free plan — either make the repo public
-(it's MIT-bound by workspace convention anyway) and enable Pages, or publish
-the policy as a public Gist. Owner's call, recorded before step 3.
+`docs/privacy-policy.md`. Hosting decision (2026-07-23): **make the repo
+public** (it's MIT-bound by workspace convention; a LICENSE file must land
+before flipping visibility) and serve the policy via GitHub Pages from
+`docs/`.
 
 ## 6. Metadata + screenshots
 
