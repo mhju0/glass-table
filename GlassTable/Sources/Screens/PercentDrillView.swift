@@ -8,18 +8,23 @@ struct PercentDrillConfig {
     let question: String
     let questionEn: String
     let grade: (Int, BetSpot) -> PercentReveal
+    /// What the GT_DEMO_REVEAL hook commits — spot index 1's correct pct (baseSeed
+    /// 20260722), rounded, so the demo reveal grades 정확 for screenshots.
+    let demoAnswer: Int
 
     static let potOdds = PercentDrillConfig(
         slug: DrillKind.potodds.rawValue, title: "팟 오즈",
         question: "콜하려면 에퀴티가 몇 % 필요할까요?",
         questionEn: "Equity needed to call?",
-        grade: { gradePotOdds(estimatePct: $0, spot: $1) })
+        grade: { gradePotOdds(estimatePct: $0, spot: $1) },
+        demoAnswer: 31)
 
     static let mdf = PercentDrillConfig(
         slug: DrillKind.mdf.rawValue, title: "MDF",
         question: "최소 몇 %는 폴드하지 않아야 할까요?",
         questionEn: "Minimum defense frequency?",
-        grade: { gradeMDF(estimatePct: $0, spot: $1) })
+        grade: { gradeMDF(estimatePct: $0, spot: $1) },
+        demoAnswer: 55)
 }
 
 struct PercentDrillView: View {
@@ -33,7 +38,7 @@ struct PercentDrillView: View {
             slug: config.slug,
             generate: BetSpotGenerator.spot(baseSeed:index:),
             grade: config.grade,
-            demoAnswer: 50))
+            demoAnswer: config.demoAnswer))
     }
 
     private func chip(_ label: String, _ bb: Int) -> some View {

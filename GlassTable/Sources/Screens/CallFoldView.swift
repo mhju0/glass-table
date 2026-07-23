@@ -8,7 +8,8 @@ struct CallFoldView: View {
         slug: DrillKind.callfold.rawValue,
         generate: CallFoldSpotGenerator.spot(baseSeed:index:),
         grade: { gradeCallFold(userCalls: $0, spot: $1) },
-        demoAnswer: true)
+        // demoAnswer false (fold) = correct call at spot index 1 (baseSeed 20260722) → grades 정확 for screenshots.
+        demoAnswer: false)
 
     private func row(_ cards: [Card]) -> some View {
         HStack(spacing: 7) {

@@ -7,7 +7,8 @@ struct OutsDrillView: View {
         slug: DrillKind.outs.rawValue,
         generate: OutsSpotGenerator.spot(baseSeed:index:),
         grade: { gradeOuts(estimate: $0, spot: $1) },
-        demoAnswer: 8)
+        // demoAnswer 5 = exact outs at spot index 1 (baseSeed 20260722) → grades 정확 for screenshots.
+        demoAnswer: 5)
     @State private var estimate = 8
 
     var body: some View {

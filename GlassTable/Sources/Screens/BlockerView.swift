@@ -8,7 +8,8 @@ struct BlockerView: View {
         slug: DrillKind.blockers.rawValue,
         generate: BlockerSpotGenerator.spot(baseSeed:index:),
         grade: { gradeBlocker(estimate: $0, spot: $1) },
-        demoAnswer: 6)
+        // demoAnswer 3 = exact combo count at spot index 1 (baseSeed 20260722) → grades 정확 for screenshots.
+        demoAnswer: 3)
     // nil = "not touched yet" → falls back to the current spot's class baseline.
     @State private var estimate: Int?
 
