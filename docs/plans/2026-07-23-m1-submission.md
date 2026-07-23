@@ -2,6 +2,12 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **STATUS (2026-07-23): paused after Task 6 by owner decision.** Repo-side work
+> is done; the app is in a personal dogfooding phase before any store submission.
+> Apple Developer enrollment (Task 7) is deliberately deferred. When resumed,
+> proceed through Task 8-9 only as far as a TestFlight upload — do NOT submit
+> for review (Task 11) without an explicit go from Michael.
+
 **Goal:** Ship GlassTable v1.0 (1) to the App Store worldwide with the Korean rating on the self-rating track, per `docs/specs/2026-07-23-m1-submission-design.md`.
 
 **Architecture:** Fully manual pipeline (Xcode Organizer + App Store Connect web UI). The repo work is content and configuration: LICENSE, release build settings, privacy policy, versioned store metadata, screenshots, GitHub Pages hosting. External tasks (enrollment, ASC, TestFlight, review) are exact checklists with expected outcomes.
