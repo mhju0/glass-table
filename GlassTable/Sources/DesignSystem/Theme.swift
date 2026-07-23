@@ -17,6 +17,23 @@ enum GT {
     static func body(_ s: CGFloat) -> Font     { .custom("Pretendard-Regular", size: s, relativeTo: .body) }
 }
 
+/// Home/settings backdrop: tonal felt gradient + faint spade watermark.
+struct FeltBackground: View {
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            LinearGradient(colors: [Color(hex: 0x1B8A52), Color(hex: 0x157A47),
+                                    Color(hex: 0x0E5A34)],
+                           startPoint: .top, endPoint: .bottom)
+            Image(systemName: "suit.spade.fill")
+                .font(.system(size: 300))
+                .foregroundStyle(.white.opacity(0.05))
+                .rotationEffect(.degrees(-12))
+                .offset(x: 60, y: 70)
+        }
+        .ignoresSafeArea()
+    }
+}
+
 extension Color {
     init(hex: UInt32) {
         self.init(.sRGB,

@@ -24,13 +24,23 @@ enum DrillKind: String, CaseIterable {
         case .callfold, .mdf: return nil
         }
     }
-    var subtitle: String {
+    /// One-line beginner explanation shown on the home box.
+    var explain: String {
         switch self {
-        case .outs: return "리버에서 몇 장이면 이기나"
-        case .potodds: return "콜에 필요한 에퀴티"
-        case .callfold: return "가격 대비 콜/폴드 판단"
-        case .mdf: return "최소 방어 빈도"
-        case .blockers: return "남은 콤보 세기"
+        case .outs: return "이기는 카드를 세고 룰 오브 2/4로 에퀴티 추정"
+        case .potodds: return "콜 가격을 필요 에퀴티 %로 바꾸기"
+        case .callfold: return "에퀴티와 가격을 비교해 콜/폴드 결정"
+        case .mdf: return "벳 사이즈에 맞는 최소 방어 빈도 계산"
+        case .blockers: return "블로커로 남은 콤보 세기"
+        }
+    }
+    var glyph: String {
+        switch self {
+        case .outs: return "suit.spade.fill"
+        case .potodds: return "percent"
+        case .callfold: return "arrow.left.arrow.right"
+        case .mdf: return "shield.fill"
+        case .blockers: return "square.grid.2x2.fill"
         }
     }
 }
@@ -38,42 +48,28 @@ enum DrillKind: String, CaseIterable {
 struct HomeView: View {
     @State private var path: [DrillKind] = []
     @State private var progress: [DrillKind: DrillProgress] = [:]
+    @State private var showSettings = false
+    @State private var showGuide = false
     @State private var showStats = false
     @State private var showGlossary = false
 
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("Glass Table").font(GT.title(24)).foregroundStyle(GT.ink)
-                        Spacer()
-                        Button { showGlossary = true } label: {
-                            Image(systemName: "book.fill")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(GT.inkSecondary)
-                        }
-                        .buttonStyle(GTPress())
-                        .accessibilityLabel("용어집")
-                        .padding(.trailing, 14)
-                        Button { showStats = true } label: {
-                            Image(systemName: "chart.bar.fill")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(GT.inkSecondary)
-                        }
-                        .buttonStyle(GTPress())
-                        .accessibilityLabel("통계")
+                VStack(alignment: .leading, spacing: 14) {
+                    masthead
+                    guidePill
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
+                                        GridItem(.flexible())], spacing: 12) {
+                        ForEach(DrillKind.allCases, id: \.self, content: box)
                     }
-                    .padding(.top, 12)
-                    Text("레인지와 EV로 생각하는 홀덤 훈련")
-                        .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-                        .padding(.bottom, 8)
-                    ForEach(DrillKind.allCases, id: \.self, content: row)
                 }
                 .padding(.horizontal, 18)
             }
-            .background(Color.white)
+            .background(FeltBackground())
             .navigationDestination(for: DrillKind.self, destination: drillView)
+            .navigationDestination(isPresented: $showSettings) { SettingsView() }
+            .navigationDestination(isPresented: $showGuide) { GuideView() }
             .navigationDestination(isPresented: $showStats) { StatsView() }
             .navigationDestination(isPresented: $showGlossary) { GlossaryView() }
             .onAppear {
@@ -88,38 +84,105 @@ struct HomeView: View {
                 }
                 if env["GT_DEMO_STATS"] != nil { showStats = true }
                 if env["GT_DEMO_GLOSSARY"] != nil { showGlossary = true }
+                if env["GT_DEMO_SETTINGS"] != nil { showSettings = true }
+                if env["GT_DEMO_GUIDE"] != nil { showGuide = true }
                 #endif
             }
         }
-        .tint(.white)  // white back chevron over the green drill zone
+        .tint(.white)  // white back chevron over the green zones
     }
 
-    private func row(_ kind: DrillKind) -> some View {
-        NavigationLink(value: kind) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
-                        Text(kind.name).font(GT.title(15)).foregroundStyle(GT.ink)
-                        if let en = kind.nameEn {
-                            Text("· \(en)").font(GT.body(11)).foregroundStyle(GT.inkMuted)
-                        }
-                    }
-                    Text(kind.subtitle).font(GT.body(12)).foregroundStyle(GT.inkMuted)
+    private var suitRule: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<24, id: \.self) { i in
+                Image(systemName: ["suit.spade.fill", "suit.heart.fill",
+                                   "suit.diamond.fill", "suit.club.fill"][i % 4])
+                    .font(.system(size: 9))
+                    .foregroundStyle(.white.opacity(0.4))
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private var masthead: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            suitRule
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("Glass Table")
+                        .font(.system(size: 36, weight: .heavy, design: .serif).italic())
+                        .foregroundStyle(.white)
+                    Text("레인지와 EV로 생각하는 홀덤 훈련")
+                        .font(GT.body(14)).foregroundStyle(.white.opacity(0.7))
                 }
                 Spacer()
-                if let p = progress[kind], p.total > 0 {
-                    VStack(alignment: .trailing, spacing: 3) {
-                        Text("🔥 \(p.streak)").font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
-                        Text("\(Int(p.accuracy * 100))%").font(GT.body(11)).foregroundStyle(GT.inkMuted)
-                    }
+                Button { showSettings = true } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 42, height: 42)
+                        .background(.white.opacity(0.14), in: Circle())
                 }
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold)).foregroundStyle(GT.inkMuted)
+                .buttonStyle(GTPress())
+                .accessibilityLabel("설정")
             }
-            .padding(16)
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: 16))
+            .padding(.vertical, 20)
+            suitRule
+        }
+        .padding(.top, 24)
+    }
+
+    private var guidePill: some View {
+        Button { showGuide = true } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "book.fill").font(.system(size: 13))
+                Text("처음이신가요? · 3분 시작 가이드").font(GT.semibold(13))
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16).padding(.vertical, 12)
+            .background(.white.opacity(0.14), in: Capsule())
         }
         .buttonStyle(GTPress())
+        .padding(.bottom, 4)
+    }
+
+    private func box(_ kind: DrillKind) -> some View {
+        NavigationLink(value: kind) {
+            ZStack(alignment: .topTrailing) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Image(systemName: kind.glyph)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(GT.green)
+                        .frame(width: 34, height: 34)
+                        .background(GT.green.opacity(0.10),
+                                    in: RoundedRectangle(cornerRadius: 10))
+                    Text(kind.name).font(GT.title(15)).foregroundStyle(GT.ink)
+                    Text(kind.explain).font(GT.body(12))
+                        .foregroundStyle(GT.inkSecondary)
+                        .lineLimit(2).multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                if let p = progress[kind], p.total > 0 {
+                    Text("🔥 \(p.streak)").font(GT.semibold(11))
+                        .foregroundStyle(GT.inkSecondary)
+                        .padding(.horizontal, 9).padding(.vertical, 5)
+                        .background(GT.surface, in: Capsule())
+                        .padding(10)
+                }
+            }
+            .frame(minHeight: 150)
+            .background(.white, in: RoundedRectangle(cornerRadius: 19))
+            .padding(5)
+            .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 24))
+            .shadow(color: Color(hex: 0x06301C).opacity(0.35), radius: 14, y: 8)
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel("\(kind.name). \(kind.explain)")
     }
 
     @ViewBuilder
