@@ -21,6 +21,11 @@ What still needs the developer's input or outside research, prioritized. P1 bloc
 ## P3 — can wait
 
 11. **GRAC rating-class confirmation (outside counsel).** Have a Korean game-law firm confirm the likely rating class for the actual build before committing to the self-rating track. No precedent ruling exists for a no-money educational trainer. *Needed before Korean submission, not before building.*
+
+*Resolved for M1 (2026-07-23):* proceeding **without** counsel — Math Drills
+is the lowest-signal build and the GRAC direct review is an administrative
+fallback (spec `docs/specs/2026-07-23-m1-submission-design.md`). Revisit
+counsel before the betting-table milestone.
 12. **App name / branding in Korean.** Keep the English "Glass Table," use a Korean name (유리 테이블?), or a bilingual lockup. Store listing language.
 13. **Design/visual tone.** Study-tool aesthetic (equity/EV forward, chips understated) both for the thesis and for the Korean rating lever — needs a concrete direction before UI polish.
 14. **6-max option.** Ship an optional 6-max table size after 8-max Table lands? Cheap, but confirm demand.
