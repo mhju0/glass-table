@@ -1,0 +1,19 @@
+# The engine correctness gate runs in release config (debug is impractically slow).
+# Triggered by engine changes, weekly, or manually — not on every push.
+name: Engine gate
+on:
+  push:
+    branches: [main]
+    paths: ['GlassTableEngine/**']
+  schedule:
+    - cron: '0 20 * * 0'   # Sundays 20:00 UTC = Monday 05:00 KST
+  workflow_dispatch:
+
+jobs:
+  engine-release-tests:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Engine tests (release)
+        run: swift test -c release --package-path GlassTableEngine
