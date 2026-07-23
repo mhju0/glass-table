@@ -1,0 +1,11 @@
+name: 개선 아이디어 · Idea
+description: 새 기능이나 개선 제안 (Feature or improvement)
+labels: [needs-triage]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: 아이디어 · The idea
+      description: 무엇이, 왜 좋아지나요? What improves, and why?
+    validations:
+      required: true

@@ -1,0 +1,21 @@
+name: 버그 신고 · Bug report
+description: 앱이 잘못 동작하는 경우 (Something behaves wrong)
+labels: [needs-triage]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 무슨 일이 있었나요? · What happened?
+      description: 스크린샷이 있으면 붙여 주세요. Screenshots welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 방법 · Steps to reproduce
+      placeholder: "1. 홈에서 팟 오즈 진입\n2. ..."
+  - type: input
+    id: device
+    attributes:
+      label: 기기 / iOS 버전 · Device / iOS version
+      placeholder: iPhone 12 mini · iOS 18.5
