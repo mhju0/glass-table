@@ -39,7 +39,7 @@ Glass Table은 노리밋 홀덤을 레인지(range)와 EV로 생각하는 법을
 • 팟 오즈 — 콜 가격을 필요 에퀴티(%)로 변환
 • 콜/폴드 — 추정 에퀴티와 필요 에퀴티를 비교해 결정
 • MDF — 벳 사이즈에 따른 최소 방어 빈도 계산
-• 블로커 — 블로커가 콤보 수를 어떻게 바꾸는지 계산
+• 블로커 — 블로커가 콤보(combo) 수를 어떻게 바꾸는지 계산
 
 모든 문제는 "결정 → 공개 → 채점" 루프로 진행됩니다. 먼저 스스로 답을
 정하고, 그다음 정확한 수치와 풀이를 확인하세요. 정확/근접/빗나감 채점과
@@ -100,7 +100,9 @@ Glass Table is a study tool. It contains no real-money gambling.
 ## Age rating questionnaire (answers of record)
 
 Strategy per `decisions.md` §7: honest answers, study-tool build, expected
-12+/KR-15 or lower on the self-rating track.
+12+/KR-15 or lower on the self-rating track. (Apple's revised global
+age-rating tiers read 13+/16+/18+ — if the live questionnaire shows those,
+"12+" here means the lowest non-18+ tier and "17+" means 18+/top tier.)
 
 | Question | Answer | Rationale |
 |---|---|---|
