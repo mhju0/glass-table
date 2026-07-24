@@ -12,6 +12,23 @@ struct GTPress: ButtonStyle {
     }
 }
 
+/// A row of cards at the largest ladder size that fits the width — big cards on
+/// today's heads-up spots, graceful shrink when future spots put more cards in a row.
+struct CardRow: View {
+    let cards: [Card]
+    var dead: Bool = false
+    private func row(_ size: CGFloat) -> some View {
+        HStack(spacing: 8) {
+            ForEach(Array(cards.enumerated()), id: \.offset) {
+                PlayingCardView(card: $0.element, size: size, dead: dead)
+            }
+        }
+    }
+    var body: some View {
+        ViewThatFits(in: .horizontal) { row(64); row(56); row(48); row(40) }
+    }
+}
+
 struct SectionLabel: View {
     let text: String
     var onDark: Bool = true

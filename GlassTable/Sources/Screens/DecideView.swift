@@ -10,18 +10,12 @@ struct DecideView: View {
     let onAdjust: (Int) -> Void
     let onCommit: () -> Void
 
-    private func row(_ cards: [Card]) -> some View {
-        HStack(spacing: 7) {
-            ForEach(Array(cards.enumerated()), id: \.offset) { PlayingCardView(card: $0.element) }
-        }
-    }
-
     var body: some View {
         DrillScaffold(title: "아웃 카운팅", streak: streak) {
             VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: "상대 · VILLAIN"); row(spot.villain)
-                SectionLabel(text: "보드 · 턴").padding(.top, 10); row(spot.board)
-                SectionLabel(text: "내 핸드 · HERO").padding(.top, 10); row(spot.hero)
+                SectionLabel(text: "상대 · VILLAIN"); CardRow(cards: spot.villain)
+                SectionLabel(text: "보드 · 턴").padding(.top, 10); CardRow(cards: spot.board)
+                SectionLabel(text: "내 핸드 · HERO").padding(.top, 10); CardRow(cards: spot.hero)
             }
         } sheet: {
             VStack(spacing: 15) {

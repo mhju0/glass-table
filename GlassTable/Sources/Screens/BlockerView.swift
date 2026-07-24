@@ -16,11 +16,7 @@ struct BlockerView: View {
     private func zone(_ spot: BlockerSpot) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             SectionLabel(text: "제거된 카드 · REMOVED")
-            HStack(spacing: 7) {
-                ForEach(Array(spot.removed.enumerated()), id: \.offset) {
-                    PlayingCardView(card: $0.element)
-                }
-            }
+            CardRow(cards: spot.removed)
             Text("남은 \(spot.className) 콤보는?")
                 .font(GT.title(20)).foregroundStyle(.white).padding(.top, 16)
         }

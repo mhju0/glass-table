@@ -11,17 +11,11 @@ struct CallFoldView: View {
         // demoAnswer false (fold) = correct call at spot index 1 (baseSeed 20260722) → grades 정확 for screenshots.
         demoAnswer: false)
 
-    private func row(_ cards: [Card]) -> some View {
-        HStack(spacing: 7) {
-            ForEach(Array(cards.enumerated()), id: \.offset) { PlayingCardView(card: $0.element) }
-        }
-    }
-
     private func cardZone(_ spot: CallFoldSpot) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "상대 · VILLAIN"); row(spot.villain)
-            SectionLabel(text: "보드 · 턴").padding(.top, 10); row(spot.board)
-            SectionLabel(text: "내 핸드 · HERO").padding(.top, 10); row(spot.hero)
+            SectionLabel(text: "상대 · VILLAIN"); CardRow(cards: spot.villain)
+            SectionLabel(text: "보드 · 턴").padding(.top, 10); CardRow(cards: spot.board)
+            SectionLabel(text: "내 핸드 · HERO").padding(.top, 10); CardRow(cards: spot.hero)
             Text("팟 \(spot.pot) bb · 벳 \(spot.bet) bb")
                 .font(GT.title(15)).foregroundStyle(.white).padding(.top, 12)
         }
