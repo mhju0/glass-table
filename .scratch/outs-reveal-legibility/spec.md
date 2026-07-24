@@ -1,6 +1,6 @@
 # Outs drill: card legibility + full-table reveal + tap-to-explain
 
-Status: ready-for-agent
+Status: done (shipped 2026-07-24, commits d05dcff…551cf4f)
 
 ## Problem
 
