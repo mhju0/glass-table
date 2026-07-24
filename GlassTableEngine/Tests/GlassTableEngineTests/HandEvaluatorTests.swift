@@ -46,4 +46,21 @@ final class HandEvaluatorTests: XCTestCase {
         let straight = evaluate5(Card.parse("9c8h7s6d5c")!)
         XCTAssertEqual(evaluate7(seven), straight)
     }
+
+    func testBestHandBriefs() {
+        let cases: [(String, HandBrief)] = [
+            ("AsAhKdQc9s5h3d", HandBrief(category: 1, topRank: 14)),  // pair of aces
+            ("9s9hKcKd2sJh3d", HandBrief(category: 2, topRank: 13)),  // two pair, kings up
+            ("TsThTd4c2sAhKd", HandBrief(category: 3, topRank: 10)),  // trip tens
+            ("As2h3d4c5sKdQh", HandBrief(category: 4, topRank: 5)),   // wheel: 5-high straight
+            ("AsKs7s4s2s9h3d", HandBrief(category: 5, topRank: 14)),  // ace-high flush
+            ("9s9h9dKcKs2h3d", HandBrief(category: 6, topRank: 9)),   // nines full
+            ("9s9h9d9c2sAhKd", HandBrief(category: 7, topRank: 9)),   // quad nines
+            ("9s8s7s6s5sAhKd", HandBrief(category: 8, topRank: 9)),   // 9-high straight flush
+            ("AsKh9d5c2sJh3h", HandBrief(category: 0, topRank: 14)),  // ace high
+        ]
+        for (cards, want) in cases {
+            XCTAssertEqual(bestHand(Card.parse(cards)!), want, cards)
+        }
+    }
 }

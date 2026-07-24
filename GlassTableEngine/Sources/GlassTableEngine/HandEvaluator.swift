@@ -84,6 +84,24 @@ func eval5(_ c0: Card, _ c1: Card, _ c2: Card, _ c3: Card, _ c4: Card) -> Int {
     }
 }
 
+/// Beginner-facing summary of a hand: category plus the rank that defines it
+/// (pair rank, trip rank, straight/flush high card, …).
+public struct HandBrief: Equatable {
+    public let category: Int  // 0=high card, 1=pair, 2=two pair, 3=trips, 4=straight,
+                              // 5=flush, 6=full house, 7=quads, 8=straight flush
+    public let topRank: Int   // 2...14
+    public init(category: Int, topRank: Int) {
+        self.category = category; self.topRank = topRank
+    }
+}
+
+/// Summarize the best 5-card hand out of 7. The evaluate key packs category in the
+/// top base-16 slot and the defining rank in the next, so this is pure arithmetic.
+public func bestHand(_ seven: [Card]) -> HandBrief {
+    let key = evaluate7(seven)
+    return HandBrief(category: key >> 20, topRank: (key >> 16) & 0xF)
+}
+
 // The 21 five-card index combinations of 7 cards.
 private let combos7choose5: [[Int]] = {
     var out: [[Int]] = []
