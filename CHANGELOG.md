@@ -14,6 +14,8 @@ Notable changes to the Glass Table app. Format follows
 - First-launch guide ends with a CTA into the first drill
 
 ### Changed
+- New app icon: 4×4 equity-heatmap range grid with the four suits on the
+  pair diagonal in card colors (replaces the percent-on-disc mark, 2026-07-24)
 - Drill sessions resume where you left off (`progress.total`) instead of
   repeating spot 0 every visit
 - 콜/폴드 answer buttons are equal weight (no visual bias toward calling)
