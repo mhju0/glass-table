@@ -18,6 +18,39 @@ public func gradeOuts(estimate: Int, spot: OutsSpot) -> OutsReveal {
                       improvementPct: spot.improvementPct, whyText: whyText(for: spot))
 }
 
+/// What a tapped river card does for both players. `heroWins` comes straight from
+/// the spot's precomputed outs — no re-comparison.
+public struct RiverExplanation: Equatable {
+    public let hero: HandBrief
+    public let villain: HandBrief
+    public let heroWins: Bool
+}
+
+public func explainRiver(spot: OutsSpot, river: Card) -> RiverExplanation {
+    let full = spot.board + [river]
+    return RiverExplanation(hero: bestHand(spot.hero + full),
+                            villain: bestHand(spot.villain + full),
+                            heroWins: spot.outs.contains(river))
+}
+
+/// Beginner-facing Korean hand name, using the same letter ranks as the cards.
+public func handName(_ b: HandBrief) -> String {
+    let ranks = [2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9",
+                 10: "10", 11: "J", 12: "Q", 13: "K", 14: "A"]
+    let r = ranks[b.topRank] ?? "?"
+    switch b.category {
+    case 0: return "\(r) 하이"
+    case 1: return "\(r) 원 페어"
+    case 2: return "\(r) 투 페어"
+    case 3: return "\(r) 트리플"
+    case 4: return "\(r) 하이 스트레이트"
+    case 5: return "\(r) 하이 플러시"
+    case 6: return "\(r) 풀하우스"
+    case 7: return "\(r) 포카드"
+    default: return b.topRank == 14 ? "로열 플러시" : "\(r) 하이 스트레이트 플러시"
+    }
+}
+
 func whyText(for spot: OutsSpot) -> String {
     guard !spot.excluded.isEmpty else { return "\(spot.outCount) 아웃." }
     let ex = spot.excluded.map(\.description).joined(separator: "·")
