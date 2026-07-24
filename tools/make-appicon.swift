@@ -59,9 +59,12 @@ for row in 0..<n {
         let x = origin + Double(col) * (cell + gap)
         let y = S - origin - cell - Double(row) * (cell + gap)
         let rect = CGRect(x: x, y: y, width: cell, height: cell)
-        // Heatmap: brightness falls off from the AA corner; diagonal = suit tiles, full white.
+        // Heatmap: brightness falls off from the AA corner. Suit tiles on the
+        // diagonal follow the same falloff, one notch brighter, so they blend
+        // into the gradient instead of popping out as solid white.
         let d = Double(row + col) / Double(2 * (n - 1))
-        let alpha: CGFloat = row == col ? 1.0 : 1.0 - d * 0.92
+        let heat = 1.0 - d * 0.92
+        let alpha: CGFloat = row == col ? min(1, heat + 0.20) : heat
         ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: alpha))
         ctx.addPath(CGPath(roundedRect: rect, cornerWidth: radius, cornerHeight: radius, transform: nil))
         ctx.fillPath()
