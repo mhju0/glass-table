@@ -45,23 +45,115 @@ struct SectionLabel: View {
     }
 }
 
-struct GradePill: View {
-    let band: GradeBand
-    private var label: String {
-        switch band { case .spotOn: return "정확"; case .close: return "근접"; case .off: return "빗나감" }
+extension GradeBand {
+    var label: String {
+        switch self { case .spotOn: return "정확"; case .close: return "근접"; case .off: return "빗나감" }
     }
-    private var colors: (bg: Color, fg: Color) {
-        switch band {
-        case .spotOn: return (Color(hex: 0xE7F7EF), Color(hex: 0x12864E))
-        case .close:  return (Color(hex: 0xFEF0DA), Color(hex: 0xC77700))
-        case .off:    return (Color(hex: 0xFDECEC), Color(hex: 0xD23B3B))
+    /// Three shapes, not three colors. WCAG 1.4.1: color can never be the only channel, and
+    /// red/green is the worst possible pair for deuteranopia (~6% of men). ± reads as
+    /// "off by a tolerance", which is what 근접 means — it is not a lesser ✓.
+    var glyph: String {
+        switch self {
+        case .spotOn: return "checkmark.circle.fill"
+        case .close:  return "plusminus.circle.fill"
+        case .off:    return "xmark.circle.fill"
         }
     }
+    /// Darkened from the original trio, which measured 3.08–4.17:1 on their own tints —
+    /// all below AA. These are 4.95–5.12:1, so the verdict is legible at any size.
+    var ink: Color {
+        switch self {
+        case .spotOn: return Color(hex: 0x0F7645)
+        case .close:  return Color(hex: 0x9C5700)
+        case .off:    return Color(hex: 0xC02A2A)
+        }
+    }
+    var tint: Color {
+        switch self {
+        case .spotOn: return Color(hex: 0xE7F7EF)
+        case .close:  return Color(hex: 0xFEF0DA)
+        case .off:    return Color(hex: 0xFDECEC)
+        }
+    }
+}
+
+/// The verdict, at the top of every reveal. The old version put a small pill next to a flat
+/// grey "내 답 X · 정답 Y", so the verdict never reached the numbers and both answers looked
+/// identical. Four redundant channels now carry it:
+///   1. **structure** — 정확 collapses to ONE number; a miss expands to 내 답 → 정답.
+///      Readable even in greyscale, which no amount of color can claim.
+///   2. **shape** — ✓ / ± / ✕
+///   3. **text** — 정확 / 근접 / 빗나감, plus the gap named (`2 차이`)
+///   4. **color** — additive only, never load-bearing.
+/// Numbers stay near-black (14.9:1 on the tint) because the band inks only reach ~5:1.
+struct VerdictRow: View {
+    let band: GradeBand
+    let mine: String
+    let correct: String
+    /// "2 차이" — how far off, so 근접 reads as a measured distance rather than a soft pass.
+    var delta: String?
+
+    init(band: GradeBand, mine: String, correct: String, delta: String? = nil) {
+        self.band = band; self.mine = mine; self.correct = correct; self.delta = delta
+    }
+    /// Counts: the gap is computed here rather than at nine call sites.
+    init(band: GradeBand, mine: Int, correct: Int, unit: String) {
+        self.band = band
+        self.mine = "\(mine)\(unit)"
+        self.correct = "\(correct)\(unit)"
+        self.delta = mine == correct ? nil : "\(abs(mine - correct)) 차이"
+    }
+    /// Percents: the gap between two percentages is percentage *points*, hence %p.
+    init(band: GradeBand, minePct: Int, correctPct: Double) {
+        self.band = band
+        self.mine = "\(minePct)%"
+        self.correct = "\(pctText(correctPct))%"
+        let gap = abs(Double(minePct) - correctPct)
+        self.delta = gap < 0.05 ? nil : "\(pctText(gap))%p 차이"
+    }
+
     var body: some View {
-        Text(label).font(GT.title(13))
-            .padding(.horizontal, 13).padding(.vertical, 5)
-            .background(colors.bg, in: Capsule())
-            .foregroundStyle(colors.fg)
+        HStack(alignment: .top, spacing: 11) {
+            Image(systemName: band.glyph)
+                .font(.system(size: 25, weight: .semibold))
+                .foregroundStyle(band.ink)
+                .symbolEffect(.bounce, options: .nonRepeating, value: band)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 7) {
+                    Text(band.label).font(GT.title(17)).foregroundStyle(band.ink)
+                    if let delta {
+                        Text(delta).font(GT.semibold(12)).foregroundStyle(band.ink.opacity(0.85))
+                    }
+                }
+                answers
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(band.tint, in: RoundedRectangle(cornerRadius: 16))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(band == .spotOn
+            ? "\(band.label). 정답 \(correct), 내 답과 같아요."
+            : "\(band.label). 내 답 \(mine), 정답 \(correct)."
+              + (delta.map { " \($0)." } ?? ""))
+    }
+
+    /// Right answer: one value, nothing to compare. Wrong: the correction shown as a move
+    /// from what you said to what's true, the truth carrying the weight.
+    @ViewBuilder
+    private var answers: some View {
+        if band == .spotOn {
+            Text("정답 \(correct)").font(GT.title(15)).foregroundStyle(GT.ink)
+        } else {
+            HStack(spacing: 6) {
+                Text("내 답 \(mine)").font(GT.body(13)).foregroundStyle(GT.inkMuted)
+                Image(systemName: "arrow.right").font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(GT.inkMuted)
+                Text("정답 \(correct)").font(GT.title(15)).foregroundStyle(GT.ink)
+            }
+        }
     }
 }
 

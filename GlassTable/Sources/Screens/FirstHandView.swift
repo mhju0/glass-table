@@ -275,7 +275,8 @@ struct FirstHandView: View {
             chips(["5장", "7장", "9장"])
         case (.outs, true):
             let est = [5, 7, 9][picked[.outs] ?? 2]
-            grade(gradeOuts(estimate: est, spot: hand).band, "내 답 \(est)장 · 정답 \(hand.outCount)장")
+            VerdictRow(band: gradeOuts(estimate: est, spot: hand).band,
+                       mine: est, correct: hand.outCount, unit: "장")
             headline("남은 \(unseen)장 중 \(hand.outCount)장")
             approx("룰 오브 2로 약 \(Int(hand.improvementPct))% · 근사예요")
             // Credit the correct half before editing it — never 틀렸어요.
@@ -291,8 +292,8 @@ struct FirstHandView: View {
             chips(["20%", "25%", "33%"])
         case (.potOdds, true):
             let est = [20, 25, 33][picked[.potOdds] ?? 1]
-            grade(gradePotOdds(estimatePct: est, spot: priced).band,
-                  "내 답 \(est)% · 정답 \(requiredPct)%")
+            VerdictRow(band: gradePotOdds(estimatePct: est, spot: priced).band,
+                       minePct: est, correctPct: priced.requiredPct)
             PriceBar(pot: priced.pot, bet: priced.bet)
             approx("내가 낼 \(priced.bet)bb도 팟에 들어가요 · 합계 \(priced.pot + 2 * priced.bet)bb")
             why(est == 33
@@ -311,7 +312,8 @@ struct FirstHandView: View {
             }
         case (.callFold, true):
             let folded = (picked[.callFold] ?? 0) == 0
-            grade(folded ? .spotOn : .off, "내 답 \(folded ? "폴드" : "콜") · 정답 폴드")
+            VerdictRow(band: gradeBinary(userChose: folded, correct: true),
+                       mine: folded ? "폴드" : "콜", correct: "폴드")
             headline("\(hand.outCount)장 < \(requiredCards)장 → 폴드")
             // Name the gap instead of leaving the reader to measure it.
             shortfall("\(requiredCards - hand.outCount)장 부족")
@@ -329,7 +331,8 @@ struct FirstHandView: View {
             chips(["한 번", "두 번", "세 번 모두"])
         case (.mdf, true):
             let saidTimes = ["한 번", "두 번", "세 번 모두"][picked[.mdf] ?? 1]
-            grade(saidTimes == "두 번" ? .spotOn : .off, "내 답 \(saidTimes) · 정답 두 번")
+            VerdictRow(band: gradeBinary(userChose: saidTimes == "두 번", correct: true),
+                       mine: saidTimes, correct: "두 번")
             headline("세 번에 두 번 · 약 \(Int(priced.mdfPct.rounded()))%")
             approx("팟 \(priced.pot) ÷ (팟 \(priced.pot) + 벳 \(priced.bet)) = \(pctText(priced.mdfPct))%")
             why("상대가 **세 번에 한 번보다 자주 접으면** 내 블러프는 카드와 상관없이 공짜예요. 그래서 최소 \(Int(priced.mdfPct.rounded()))%는 지켜야 해요 — **MDF는 내 확률이 아니라 상대의 가격이에요.**")
@@ -343,7 +346,8 @@ struct FirstHandView: View {
         case (.blockers, true):
             let est = [6, 3, 1][picked[.blockers] ?? 1]
             let live = qqCombos.filter { !$0.blocked }.count
-            grade(est == live ? .spotOn : .off, "내 답 \(est)조합 · 정답 \(live)조합")
+            VerdictRow(band: gradeBinary(userChose: est == live, correct: true),
+                       mine: est, correct: live, unit: "조합")
             headline("\(qqCombos.count)조합 중 \(live)조합")
             why("포켓 페어는 원래 \(qqCombos.count)조합이에요. 보드에 **Q♥**가 이미 깔려 있어서 \(live)조합만 남아요 — **보드도 블로커예요.** 내 카드가 지우는 조합을 세는 게 블로커 훈련이에요.")
             GlossaryChip(term: DrillKind.blockers.term)
@@ -428,13 +432,6 @@ struct FirstHandView: View {
                     .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(GTPress())
-        }
-    }
-
-    private func grade(_ band: GradeBand, _ said: String) -> some View {
-        HStack(spacing: 9) {
-            GradePill(band: band)
-            Text(said).font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
         }
     }
 

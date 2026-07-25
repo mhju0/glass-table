@@ -48,11 +48,9 @@ struct CallFoldView: View {
                     cardZone(spot)
                 } sheet: {
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 9) {
-                            GradePill(band: reveal.band)
-                            Text("내 답 \(reveal.userCalls ? "콜" : "폴드") · 정답 \(reveal.correctIsCall ? "콜" : "폴드")")
-                                .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
-                        }
+                        VerdictRow(band: reveal.band,
+                                   mine: reveal.userCalls ? "콜" : "폴드",
+                                   correct: reveal.correctIsCall ? "콜" : "폴드")
                         Text(reveal.whyText)
                             .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                             .padding(13).frame(maxWidth: .infinity, alignment: .leading)

@@ -49,11 +49,8 @@ struct BlockerView: View {
                     zone(spot)
                 } sheet: {
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 9) {
-                            GradePill(band: reveal.band)
-                            Text("내 답 \(reveal.estimate) · 정답 \(reveal.count)")
-                                .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
-                        }
+                        VerdictRow(band: reveal.band, mine: reveal.estimate,
+                                   correct: reveal.count, unit: "조합")
                         Text(reveal.whyText)
                             .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                             .padding(13).frame(maxWidth: .infinity, alignment: .leading)

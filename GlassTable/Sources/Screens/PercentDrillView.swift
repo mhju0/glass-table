@@ -82,11 +82,8 @@ struct PercentDrillView: View {
                     potBet(spot)
                 } sheet: {
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 9) {
-                            GradePill(band: reveal.band)
-                            Text("내 답 \(reveal.answerPct)% · 정답 \(pctText(reveal.correctPct))%")
-                                .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
-                        }
+                        VerdictRow(band: reveal.band, minePct: reveal.answerPct,
+                                   correctPct: reveal.correctPct)
                         Text(reveal.whyText)
                             .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                             .padding(13).frame(maxWidth: .infinity, alignment: .leading)

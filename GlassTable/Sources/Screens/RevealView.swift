@@ -75,11 +75,8 @@ struct RevealView: View {
             }
         } sheet: {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 9) {
-                    GradePill(band: reveal.band)
-                    Text("내 답 \(reveal.estimate) · 정답 \(spot.outCount)")
-                        .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
-                }
+                VerdictRow(band: reveal.band, mine: reveal.estimate,
+                           correct: spot.outCount, unit: "장")
                 // Natural frequency first, percent subordinate and labelled as an
                 // approximation: "44장 중 7장" is verifiable by counting, "14%" is not.
                 Text("남은 \(unseen)장 중 \(spot.outCount)장")

@@ -28,6 +28,11 @@ Notable changes to the Glass Table app. Format follows
 - 콜/폴드 answer buttons are equal weight (no visual bias toward calling)
 - MDF reveal now derives the formula instead of asserting it: alpha = 100 − MDF
   is villain's bluff break-even, so the explanation says whose price it is
+- Every reveal opens with a verdict banner instead of a small pill beside grey
+  text: 정확 collapses to one number, 근접/빗나감 expand to 내 답 → 정답 with the
+  gap named (2 차이 / 8%p 차이). Icon (✓ / ± / ✕), text, structure and color all
+  carry the result, so it survives greyscale and color blindness. Band inks
+  darkened to reach WCAG AA on their own tints (they measured 3.08–4.17:1)
 - Portrait-only; consistent hidden toolbar backgrounds; 🔥 shows only with a
   live streak everywhere
 
