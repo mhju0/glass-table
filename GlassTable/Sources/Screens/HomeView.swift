@@ -61,19 +61,19 @@ struct HomeView: View {
     @State private var path: [DrillKind] = []
     @State private var progress: [DrillKind: DrillProgress] = [:]
     @State private var showSettings = false
-    @State private var showGuide = false
+    @State private var showFirstHand = false
     // showStats/showGlossary exist only for the DEBUG screenshot hooks below;
     // the user path to those screens is Settings.
     @State private var showStats = false
     @State private var showGlossary = false
-    @AppStorage("gt.seen_guide") private var seenGuide = false
+    @AppStorage("gt.seen_firsthand") private var seenFirstHand = false
 
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     masthead
-                    guidePill
+                    firstHandPill
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
                                         GridItem(.flexible())], spacing: 12) {
                         ForEach(DrillKind.allCases, id: \.self, content: box)
@@ -84,7 +84,7 @@ struct HomeView: View {
             .background(FeltBackground())
             .navigationDestination(for: DrillKind.self, destination: drillView)
             .navigationDestination(isPresented: $showSettings) { SettingsView() }
-            .navigationDestination(isPresented: $showGuide) { GuideView() }
+            .navigationDestination(isPresented: $showFirstHand) { FirstHandView() }
             .navigationDestination(isPresented: $showStats) { StatsView() }
             .navigationDestination(isPresented: $showGlossary) { GlossaryView() }
             .onAppear {
@@ -102,13 +102,14 @@ struct HomeView: View {
                 if env["GT_DEMO_STATS"] != nil { showStats = true }
                 if env["GT_DEMO_GLOSSARY"] != nil { showGlossary = true }
                 if env["GT_DEMO_SETTINGS"] != nil { showSettings = true }
-                if env["GT_DEMO_GUIDE"] != nil { showGuide = true }
+                if env["GT_DEMO_FIRSTHAND"] != nil { showFirstHand = true }
                 #endif
-                // First launch opens the guide once (never during screenshot runs —
-                // GT_DEMO_HOME suppresses without other effects).
-                if !seenGuide, !demoRun {
-                    seenGuide = true
-                    showGuide = true
+                // First launch plays 첫 핸드 once (never during screenshot runs —
+                // GT_DEMO_HOME suppresses without other effects). It's a hand you play,
+                // not a wall you read, and 건너뛰기 is on screen the whole time.
+                if !seenFirstHand, !demoRun {
+                    seenFirstHand = true
+                    showFirstHand = true
                 }
             }
         }
@@ -156,17 +157,19 @@ struct HomeView: View {
         .padding(.top, 24)
     }
 
-    private var guidePill: some View {
-        Button { showGuide = true } label: {
+    /// Re-entry to 첫 핸드. No duration in the label — naming one ("3분") is what made the
+    /// old guide read as homework.
+    private var firstHandPill: some View {
+        Button { showFirstHand = true } label: {
             HStack(spacing: 8) {
-                Image(systemName: "book.fill").font(.system(size: 13))
-                Text("처음이신가요? · 3분 시작 가이드").font(GT.semibold(13))
+                Image(systemName: "suit.spade.fill").font(.system(size: 13))
+                Text("처음이신가요? · 한 판으로 훑어보기").font(GT.semibold(13))
                 Image(systemName: "chevron.right")
                     .font(.system(size: 11, weight: .semibold))
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 16).padding(.vertical, 12)
-            .background(.white.opacity(0.14), in: Capsule())
+            .background(.white.opacity(0.18), in: Capsule())
         }
         .buttonStyle(GTPress())
         .padding(.bottom, 4)

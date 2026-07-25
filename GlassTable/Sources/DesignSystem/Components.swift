@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
 import GlassTableEngine
+import GlassTableDrills
 
 /// Press feedback for every tappable surface: slight shrink + dim, 150ms.
 struct GTPress: ButtonStyle {
@@ -17,6 +18,9 @@ struct GTPress: ButtonStyle {
 struct CardRow: View {
     let cards: [Card]
     var dead: Bool = false
+    /// Caps the ladder. 첫 핸드 holds the hand and a per-beat diagram on one screen, so it
+    /// trades card size for the room that diagram needs.
+    var maxSize: CGFloat = 64
     private func row(_ size: CGFloat) -> some View {
         HStack(spacing: 8) {
             ForEach(Array(cards.enumerated()), id: \.offset) {
@@ -25,7 +29,10 @@ struct CardRow: View {
         }
     }
     var body: some View {
-        ViewThatFits(in: .horizontal) { row(64); row(56); row(48); row(40) }
+        ViewThatFits(in: .horizontal) {
+            row(min(maxSize, 64)); row(min(maxSize, 56))
+            row(min(maxSize, 48)); row(min(maxSize, 40))
+        }
     }
 }
 
@@ -55,6 +62,37 @@ struct GradePill: View {
             .padding(.horizontal, 13).padding(.vertical, 5)
             .background(colors.bg, in: Capsule())
             .foregroundStyle(colors.fg)
+    }
+}
+
+/// Board + the tapped river card, both finished hands, and who wins. Shared by the outs
+/// reveal and 첫 핸드 on purpose: the first hand rehearses the affordance the drill uses.
+struct RiverExplainPanel: View {
+    let spot: OutsSpot
+    let river: Card
+
+    var body: some View {
+        let ex = explainRiver(spot: spot, river: river)
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 6) {
+                ForEach(Array(spot.board.enumerated()), id: \.offset) {
+                    PlayingCardView(card: $0.element, size: 40)
+                }
+                Text("+").font(GT.title(16)).foregroundStyle(.white.opacity(0.7))
+                PlayingCardView(card: river, size: 40)
+                    .overlay(RoundedRectangle(cornerRadius: 40 * 0.17)
+                        .stroke(GT.cta, lineWidth: 2.5))
+            }
+            Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(.white)
+            Text("상대 · \(handName(ex.villain))")
+                .font(GT.semibold(13)).foregroundStyle(.white.opacity(0.85))
+            Text(ex.heroWins ? "→ 내가 이겨요" : "→ 완성해도 상대가 더 강해요")
+                .font(GT.title(13))
+                .foregroundStyle(Color(hex: ex.heroWins ? 0xA5F3CB : 0xFFB9B9))
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
     }
 }
 

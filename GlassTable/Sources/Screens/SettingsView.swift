@@ -18,6 +18,12 @@ struct SettingsView: View {
                 Text("설정").font(GT.title(26)).foregroundStyle(.white)
                     .padding(.top, 20)
                 VStack(spacing: 0) {
+                    NavigationLink { FirstHandView() } label: {
+                        row("suit.spade.fill", "첫 핸드 다시 보기",
+                            "한 판으로 다섯 드릴 훑어보기", chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
                     NavigationLink { GlossaryView() } label: {
                         row("book.fill", "용어집", "포커 용어 한국어·영어 정리", chevron: true)
                     }

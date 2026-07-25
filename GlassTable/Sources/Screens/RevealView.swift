@@ -33,29 +33,6 @@ struct RevealView: View {
         }
     }
 
-    /// Board + tapped river runout, then both players' made hands and the verdict.
-    private func explainPanel(_ river: Card) -> some View {
-        let ex = explainRiver(spot: spot, river: river)
-        return VStack(alignment: .leading, spacing: 9) {
-            HStack(spacing: 6) {
-                ForEach(Array(spot.board.enumerated()), id: \.offset) {
-                    PlayingCardView(card: $0.element, size: 40)
-                }
-                Text("+").font(GT.title(16)).foregroundStyle(.white.opacity(0.7))
-                PlayingCardView(card: river, size: 40)
-                    .overlay(RoundedRectangle(cornerRadius: 40 * 0.17).stroke(GT.cta, lineWidth: 2.5))
-            }
-            Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(.white)
-            Text("상대 · \(handName(ex.villain))").font(GT.semibold(13)).foregroundStyle(.white.opacity(0.85))
-            Text(ex.heroWins ? "→ 내가 이겨요" : "→ 완성해도 상대가 더 강해요")
-                .font(GT.title(13))
-                .foregroundStyle(Color(hex: ex.heroWins ? 0xA5F3CB : 0xFFB9B9))
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
-    }
-
     /// Cards neither player nor the board has shown — the honest denominator (52 − 8 = 44
     /// on a turn board with villain face-up). Computed, never typed: 47 is the flop number.
     private var unseen: Int { 52 - Set(spot.hero + spot.villain + spot.board).count }
@@ -75,7 +52,8 @@ struct RevealView: View {
                             grid(reveal.excluded, dead: true)
                         }
                         if let selected {
-                            explainPanel(selected).padding(.top, 10).id("explain")
+                            RiverExplainPanel(spot: spot, river: selected)
+                                .padding(.top, 10).id("explain")
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
