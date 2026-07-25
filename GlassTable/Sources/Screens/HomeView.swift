@@ -74,12 +74,11 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     masthead
                     firstHandPill
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
-                                        GridItem(.flexible())], spacing: 12) {
-                        ForEach(DrillKind.allCases, id: \.self, content: box)
-                    }
+                    organizer
+                    chain
                 }
                 .padding(.horizontal, 18)
+                .padding(.bottom, 24)   // the chain is taller than the old grid
             }
             .background(FeltBackground())
             .navigationDestination(for: DrillKind.self, destination: drillView)
@@ -175,7 +174,67 @@ struct HomeView: View {
         .padding(.bottom, 4)
     }
 
-    private func box(_ kind: DrillKind) -> some View {
+    private func tried(_ kind: DrillKind) -> Bool { (progress[kind]?.total ?? 0) > 0 }
+
+    /// The one sentence the five drills add up to, stated on the felt rather than in a
+    /// white card — the deleted guide's 추천 순서 card, made permanent and numberless.
+    /// Deliberately no percentages: two numbers from two unrelated spots aren't comparable,
+    /// and printing them under 「보다 크면」 would invite exactly that comparison.
+    private var organizer: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            SectionLabel(text: "이 한 줄이 전부예요")
+            Text("「이길 확률」이 「낼 가격」보다 크면 → 콜")
+                .font(GT.title(16)).foregroundStyle(.white)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 10) {
+                slot("이길 확률", .outs)
+                slot("낼 가격", .potodds)
+            }
+        }
+        .padding(.top, 2)
+        .accessibilityElement(children: .combine)
+    }
+
+    /// A drill name with a check once it's been tried at least once — the empty slot is
+    /// the invitation, and it fills from progress that's already loaded.
+    private func slot(_ noun: String, _ kind: DrillKind) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: tried(kind) ? "checkmark.circle.fill" : "circle.dotted")
+                .font(.system(size: 11))
+            Text("\(noun) · \(kind.name)").font(GT.body(11.5))
+        }
+        .foregroundStyle(.white.opacity(tried(kind) ? 0.85 : 0.55))
+    }
+
+    /// Two number drills → the decision they feed → the two opponent-side drills. The
+    /// layout *is* the recommended order, so no card has to recommend one.
+    private var chain: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) { box(.outs); box(.potodds) }
+            HStack(spacing: 7) {
+                Image(systemName: "arrow.turn.right.down")
+                Text("두 숫자를 비교하면").font(GT.body(11))
+                Image(systemName: "arrow.turn.left.down").scaleEffect(x: -1, y: 1)
+            }
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(.white.opacity(0.55))
+            .accessibilityLabel("앞의 두 드릴을 비교하면 콜/폴드 결정이 됩니다")
+            box(.callfold, wide: true)
+            HStack(spacing: 10) {
+                rule
+                SectionLabel(text: "그다음 · 상대 쪽 숫자")
+                rule
+            }
+            .padding(.top, 2)
+            HStack(spacing: 12) { box(.mdf); box(.blockers) }
+        }
+    }
+
+    private var rule: some View {
+        Rectangle().fill(.white.opacity(0.22)).frame(height: 1)
+    }
+
+    private func box(_ kind: DrillKind, wide: Bool = false) -> some View {
         NavigationLink(value: kind) {
             ZStack(alignment: .topTrailing) {
                 VStack(alignment: .leading, spacing: 8) {
@@ -202,7 +261,7 @@ struct HomeView: View {
                         .padding(10)
                 }
             }
-            .frame(minHeight: 150)
+            .frame(minHeight: wide ? 104 : 150)
             .background(.white, in: RoundedRectangle(cornerRadius: 19))
             .padding(5)
             .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 24))
