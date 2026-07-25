@@ -24,14 +24,26 @@ enum DrillKind: String, CaseIterable {
         case .callfold, .mdf: return nil
         }
     }
-    /// One-line beginner explanation shown on the home box.
+    /// One verb line, shown on the home box *and* in every drill header. Verbs, not
+    /// stacked nouns — these get read aloud by VoiceOver and skimmed at 11.5pt.
     var explain: String {
         switch self {
-        case .outs: return "이기는 카드를 세고 룰 오브 2/4로 에퀴티 추정"
-        case .potodds: return "콜 가격을 필요 에퀴티 %로 바꾸기"
-        case .callfold: return "에퀴티와 가격을 비교해 콜/폴드 결정"
-        case .mdf: return "벳 사이즈에 맞는 최소 방어 빈도 계산"
-        case .blockers: return "블로커로 남은 콤보 세기"
+        case .outs: return "이기는 카드를 세서 확률로 바꿔요"
+        // No "%" — at grid width it wrapped as "에퀴티 % / 로", orphaning the particle.
+        case .potodds: return "낼 가격을 필요 에퀴티로 바꿔요"
+        case .callfold: return "이길 확률과 낼 가격을 비교해요"
+        case .mdf: return "얼마나 자주 지켜야 하는지 계산해요"
+        case .blockers: return "내 카드가 지운 상대 콤보를 세요"
+        }
+    }
+    /// Glossary entry the reveal's 용어 chip opens — keyed to GlossaryView's Korean term.
+    var term: String {
+        switch self {
+        case .outs: return "아웃"
+        case .potodds: return "팟 오즈"
+        case .callfold: return "필요 에퀴티"
+        case .mdf: return "MDF"
+        case .blockers: return "블로커"
         }
     }
     var glyph: String {

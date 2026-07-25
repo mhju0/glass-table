@@ -56,8 +56,12 @@ struct RevealView: View {
         .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
     }
 
+    /// Cards neither player nor the board has shown — the honest denominator (52 − 8 = 44
+    /// on a turn board with villain face-up). Computed, never typed: 47 is the flop number.
+    private var unseen: Int { 52 - Set(spot.hero + spot.villain + spot.board).count }
+
     var body: some View {
-        DrillScaffold(title: "아웃 카운팅", streak: streak) {
+        DrillScaffold(title: "아웃 카운팅", subtitle: DrillKind.outs.explain, streak: streak) {
             ScrollViewReader { proxy in
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 6) {
@@ -98,13 +102,18 @@ struct RevealView: View {
                     Text("내 답 \(reveal.estimate) · 정답 \(spot.outCount)")
                         .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
                 }
-                Text("≈ \(Int(reveal.improvementPct))% 개선  ·  룰 오브 2")
-                    .font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
+                // Natural frequency first, percent subordinate and labelled as an
+                // approximation: "44장 중 7장" is verifiable by counting, "14%" is not.
+                Text("남은 \(unseen)장 중 \(spot.outCount)장")
+                    .font(GT.title(15)).foregroundStyle(GT.ink)
+                Text("룰 오브 2로 약 \(Int(reveal.improvementPct))% · 근사예요")
+                    .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
                 Text(reveal.whyText)
                     .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                     .padding(13)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+                GlossaryChip(term: DrillKind.outs.term)
                 PrimaryCTAButton(title: "다음 문제", action: onNext)
             }
         }

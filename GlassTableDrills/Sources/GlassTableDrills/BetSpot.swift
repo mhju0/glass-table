@@ -57,5 +57,11 @@ public func gradeMDF(estimatePct: Int, spot: BetSpot) -> PercentReveal {
         band: gradeEstimate(user: Double(estimatePct), correct: correct,
                             closeWithin: 7.5, spotOnWithin: 2.5),
         answerPct: estimatePct, correctPct: correct,
-        whyText: "팟 \(spot.pot) ÷ (팟 \(spot.pot) + 벳 \(spot.bet)) = \(pctText(correct))%")
+        // The formula alone is an assertion. What's missing for a beginner is *whose*
+        // price this is: alpha = 100 − MDF is exactly villain's bluff break-even, so the
+        // second sentence derives the first and is always true (no rounding branch).
+        whyText: "팟 \(spot.pot) ÷ (팟 \(spot.pot) + 벳 \(spot.bet)) = \(pctText(correct))%. "
+               + "상대는 벳 \(spot.bet)로 팟 \(spot.pot)을 노려요 — 블러프가 "
+               + "\(pctText(100 - correct))%보다 자주 통하면 이득이에요. "
+               + "그래서 최소 \(pctText(correct))%는 지켜요.")
 }

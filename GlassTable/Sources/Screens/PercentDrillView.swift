@@ -3,8 +3,9 @@ import SwiftUI
 import GlassTableDrills
 
 struct PercentDrillConfig {
-    let slug: String
-    let title: String
+    /// Owns slug, title, header subtitle and glossary term — the curriculum lives in
+    /// DrillKind, so it can't drift between the home box and the drill header.
+    let kind: DrillKind
     let question: String
     let questionEn: String
     let grade: (Int, BetSpot) -> PercentReveal
@@ -13,14 +14,14 @@ struct PercentDrillConfig {
     let demoAnswer: Int
 
     static let potOdds = PercentDrillConfig(
-        slug: DrillKind.potodds.rawValue, title: "팟 오즈",
+        kind: .potodds,
         question: "콜하려면 에퀴티가 몇 % 필요할까요?",
         questionEn: "Equity needed to call?",
         grade: { gradePotOdds(estimatePct: $0, spot: $1) },
         demoAnswer: 31)
 
     static let mdf = PercentDrillConfig(
-        slug: DrillKind.mdf.rawValue, title: "MDF",
+        kind: .mdf,
         question: "최소 몇 %는 폴드하지 않아야 할까요?",
         questionEn: "Minimum defense frequency?",
         grade: { gradeMDF(estimatePct: $0, spot: $1) },
@@ -35,7 +36,7 @@ struct PercentDrillView: View {
     init(config: PercentDrillConfig) {
         self.config = config
         _model = State(initialValue: DrillModel(
-            slug: config.slug,
+            slug: config.kind.rawValue,
             generate: BetSpotGenerator.spot(baseSeed:index:),
             grade: config.grade,
             demoAnswer: config.demoAnswer))
@@ -61,7 +62,8 @@ struct PercentDrillView: View {
         Group {
             switch model.phase {
             case let .deciding(spot):
-                DrillScaffold(title: config.title, streak: model.streak) {
+                DrillScaffold(title: config.kind.name, subtitle: config.kind.explain,
+                              streak: model.streak) {
                     potBet(spot)
                 } sheet: {
                     VStack(spacing: 15) {
@@ -75,7 +77,8 @@ struct PercentDrillView: View {
                     }
                 }
             case let .revealed(spot, reveal):
-                DrillScaffold(title: config.title, streak: model.streak) {
+                DrillScaffold(title: config.kind.name, subtitle: config.kind.explain,
+                              streak: model.streak) {
                     potBet(spot)
                 } sheet: {
                     VStack(alignment: .leading, spacing: 12) {
@@ -88,6 +91,7 @@ struct PercentDrillView: View {
                             .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                             .padding(13).frame(maxWidth: .infinity, alignment: .leading)
                             .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+                        GlossaryChip(term: config.kind.term)
                         PrimaryCTAButton(title: "다음 문제", action: { estimate = 50; model.next() })
                     }
                 }

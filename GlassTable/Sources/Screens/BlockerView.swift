@@ -26,7 +26,8 @@ struct BlockerView: View {
         Group {
             switch model.phase {
             case let .deciding(spot):
-                DrillScaffold(title: "블로커", streak: model.streak) {
+                DrillScaffold(title: "블로커", subtitle: DrillKind.blockers.explain,
+                              streak: model.streak) {
                     zone(spot)
                 } sheet: {
                     VStack(spacing: 15) {
@@ -43,7 +44,8 @@ struct BlockerView: View {
                     }
                 }
             case let .revealed(spot, reveal):
-                DrillScaffold(title: "블로커", streak: model.streak) {
+                DrillScaffold(title: "블로커", subtitle: DrillKind.blockers.explain,
+                              streak: model.streak) {
                     zone(spot)
                 } sheet: {
                     VStack(alignment: .leading, spacing: 12) {
@@ -56,6 +58,7 @@ struct BlockerView: View {
                             .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                             .padding(13).frame(maxWidth: .infinity, alignment: .leading)
                             .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+                        GlossaryChip(term: DrillKind.blockers.term)
                         PrimaryCTAButton(title: "다음 문제",
                                          action: { estimate = nil; model.next() })
                     }

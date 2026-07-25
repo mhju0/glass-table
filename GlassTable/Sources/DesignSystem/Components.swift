@@ -58,6 +58,27 @@ struct GradePill: View {
     }
 }
 
+/// "용어 · 팟 오즈" — opens the glossary scrolled to one term, from inside a reveal.
+/// Owns its own sheet state so a call site is one line.
+struct GlossaryChip: View {
+    let term: String
+    @State private var open = false
+    var body: some View {
+        Button { open = true } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "text.book.closed.fill").font(.system(size: 9.5))
+                Text("용어 · \(term)").font(GT.semibold(11))
+            }
+            .foregroundStyle(GT.inkSecondary)
+            .padding(.horizontal, 11).padding(.vertical, 6)
+            .background(GT.surface, in: Capsule())
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel("용어집에서 \(term) 보기")
+        .sheet(isPresented: $open) { GlossaryView(focus: term) }
+    }
+}
+
 struct PrimaryCTAButton: View {
     let title: String
     let action: () -> Void

@@ -25,7 +25,8 @@ struct CallFoldView: View {
         Group {
             switch model.phase {
             case let .deciding(spot):
-                DrillScaffold(title: "콜/폴드", streak: model.streak) {
+                DrillScaffold(title: "콜/폴드", subtitle: DrillKind.callfold.explain,
+                              streak: model.streak) {
                     cardZone(spot)
                 } sheet: {
                     VStack(spacing: 15) {
@@ -42,7 +43,8 @@ struct CallFoldView: View {
                     }
                 }
             case let .revealed(spot, reveal):
-                DrillScaffold(title: "콜/폴드", streak: model.streak) {
+                DrillScaffold(title: "콜/폴드", subtitle: DrillKind.callfold.explain,
+                              streak: model.streak) {
                     cardZone(spot)
                 } sheet: {
                     VStack(alignment: .leading, spacing: 12) {
@@ -55,6 +57,7 @@ struct CallFoldView: View {
                             .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                             .padding(13).frame(maxWidth: .infinity, alignment: .leading)
                             .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+                        GlossaryChip(term: DrillKind.callfold.term)
                         PrimaryCTAButton(title: "다음 문제", action: model.next)
                     }
                 }

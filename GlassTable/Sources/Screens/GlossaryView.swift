@@ -2,7 +2,11 @@
 import SwiftUI
 
 /// Static term list from docs/glossary.md — only terms the app actually uses.
+/// `focus` scrolls to one term: how a drill's 용어 chip explains a word in place,
+/// at the moment of confusion, instead of a starter guide explaining it once up front.
 struct GlossaryView: View {
+    var focus: String? = nil
+
     private struct Term {
         let korean: String
         let english: String
@@ -43,7 +47,12 @@ struct GlossaryView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 11)
+        .padding(.horizontal, focus == term.korean ? 12 : 0)
         .frame(maxWidth: .infinity, alignment: .leading)
+        // The chip that opened this screen names one term; tint it so the answer is
+        // findable without reading the other nine.
+        .background(focus == term.korean ? GT.surface : .clear,
+                    in: RoundedRectangle(cornerRadius: 14))
     }
 
     var body: some View {
@@ -54,14 +63,20 @@ struct GlossaryView: View {
             }
             .padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 18)
 
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(Array(Self.terms.enumerated()), id: \.offset) { i, term in
-                        row(term)
-                        if i < Self.terms.count - 1 { Divider() }
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(Array(Self.terms.enumerated()), id: \.offset) { i, term in
+                            row(term)
+                                .id(term.korean)   // scroll target for `focus`
+                            if i < Self.terms.count - 1 { Divider() }
+                        }
                     }
+                    .padding(.horizontal, 18).padding(.top, 10).padding(.bottom, 24)
                 }
-                .padding(.horizontal, 18).padding(.top, 10).padding(.bottom, 24)
+                .onAppear {
+                    if let focus { proxy.scrollTo(focus, anchor: .top) }
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(

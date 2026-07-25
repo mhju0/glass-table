@@ -38,8 +38,11 @@ final class BetSpotTests: XCTestCase {
         XCTAssertEqual(gradeMDF(estimatePct: 65, spot: s).band, .spotOn)  // nearest grid step
         XCTAssertEqual(gradeMDF(estimatePct: 60, spot: s).band, .close)
         XCTAssertEqual(gradeMDF(estimatePct: 55, spot: s).band, .off)
+        // Pins the derivation, not just the formula: the bluff break-even must always be
+        // 100 − MDF (33.3 here), so a wrong alpha or a dropped clause fails this.
         XCTAssertEqual(gradeMDF(estimatePct: 65, spot: s).whyText,
-                       "팟 10 ÷ (팟 10 + 벳 5) = 66.7%")
+                       "팟 10 ÷ (팟 10 + 벳 5) = 66.7%. 상대는 벳 5로 팟 10을 노려요 — "
+                       + "블러프가 33.3%보다 자주 통하면 이득이에요. 그래서 최소 66.7%는 지켜요.")
     }
 
     func testPctText() {
