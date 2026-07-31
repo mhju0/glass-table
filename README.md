@@ -5,8 +5,12 @@ Hold'em math. Free, fully offline, no ads, no accounts.
 
 [![CI](https://github.com/mhju0/glass-table/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/ci.yml)
 [![Engine gate](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
+
+## License
+
+Copyright (c) 2026 Michael Ju. All rights reserved.
+No license is granted for use, copying, modification, or distribution of this code as of 2026-07-30. This repository is public for portfolio review purposes only.
 
 Glass Table teaches serious-minded amateurs to think about poker in **ranges
 and EV** instead of hunches. Every spot runs the same loop: **decide → reveal →
@@ -60,7 +64,3 @@ xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
 swift test --package-path GlassTableDrills          # app logic — fast
 swift test -c release --package-path GlassTableEngine   # math gate — release config, slower
 ```
-
-## License
-
-[MIT](LICENSE) © 2026 Michael Ju
