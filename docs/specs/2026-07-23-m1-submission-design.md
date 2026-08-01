@@ -57,8 +57,7 @@ Nutrition label: **Data Not Collected** (true — no network, no analytics, no
 accounts; progress JSON never leaves the device). Apple still requires a
 privacy policy URL: a one-page bilingual policy authored at
 `docs/privacy-policy.md`. Hosting decision (2026-07-23): **make the repo
-public** (it's MIT-bound by workspace convention; a LICENSE file must land
-before flipping visibility) and serve the policy via GitHub Pages from
+public** (no license file; all rights reserved) and serve the policy via GitHub Pages from
 `docs/`.
 
 ## 6. Metadata + screenshots

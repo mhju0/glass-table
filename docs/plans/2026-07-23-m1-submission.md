@@ -10,7 +10,7 @@
 
 **Goal:** Ship GlassTable v1.0 (1) to the App Store worldwide with the Korean rating on the self-rating track, per `docs/specs/2026-07-23-m1-submission-design.md`.
 
-**Architecture:** Fully manual pipeline (Xcode Organizer + App Store Connect web UI). The repo work is content and configuration: LICENSE, release build settings, privacy policy, versioned store metadata, screenshots, GitHub Pages hosting. External tasks (enrollment, ASC, TestFlight, review) are exact checklists with expected outcomes.
+**Architecture:** Fully manual pipeline (Xcode Organizer + App Store Connect web UI). The repo work is content and configuration: release build settings, privacy policy, versioned store metadata, screenshots, GitHub Pages hosting. External tasks (enrollment, ASC, TestFlight, review) are exact checklists with expected outcomes.
 
 **Tech Stack:** XcodeGen, xcodebuild/simctl, gh CLI, GitHub Pages (Jekyll default), App Store Connect.
 
@@ -30,55 +30,21 @@ Tasks 1–6 are repo work and need no Apple account. Task 7 (enrollment) can be 
 
 ---
 
-### Task 1: MIT LICENSE
+### Task 1: License — none
 
-The repo goes public in Task 6 (privacy-policy hosting); workspace convention requires MIT with the handle-derived copyright line first. Origin is `github.com/mhju0/glass-table` → handle `mhju0`.
+The repo goes public in Task 6 (privacy-policy hosting) **without a license file**. No
+license is granted; all rights are reserved by default. Do not add a `LICENSE` file.
 
 **Files:**
-- Create: `LICENSE`
+- None.
 
 **Interfaces:**
-- Produces: `LICENSE` at repo root; Task 6's public flip depends on it.
+- None. Task 6's public flip has no license prerequisite.
 
-- [ ] **Step 1: Write LICENSE**
-
-Create `LICENSE` with exactly:
-
-```text
-MIT License
-
-Copyright (c) 2026 Michael Ju (github.com/mhju0)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-- [ ] **Step 2: Verify no other license variants exist**
+- [ ] **Step 1: Verify no license file exists**
 
 Run: `ls LICENSE* COPYING* 2>/dev/null`
-Expected: only `LICENSE`.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add LICENSE
-git commit -m "chore: MIT license (pre-public-repo requirement)"
-```
+Expected: no matches.
 
 ---
 
@@ -482,7 +448,7 @@ git commit -m "feat(store): 6.9-inch App Store screenshot set (home, drills, sta
 ### Task 6: Repo public + GitHub Pages + policy URL live
 
 **Files:**
-- None (GitHub settings). Depends on Tasks 1 (LICENSE) and 3 (policy) being pushed.
+- None (GitHub settings). Depends on Task 3 (policy) being pushed.
 
 **Interfaces:**
 - Produces: `https://mhju0.github.io/glass-table/privacy-policy.html` returning 200 — the URL Task 9 enters into ASC.

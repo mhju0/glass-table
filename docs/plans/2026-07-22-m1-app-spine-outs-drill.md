@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - **Language/tooling:** Swift 5.9+, Swift Package Manager, XCTest, SwiftUI. iOS deployment target **17.0**. No third-party *Swift* dependencies (XcodeGen is a dev tool; Pretendard is a bundled resource).
-- **License:** MIT. Copyright header on every source file: `// Copyright (c) 2026 Michael Ju (github.com/mhju0)`.
+- **License:** none — no `LICENSE` file, all rights reserved. Copyright header on every source file: `// Copyright (c) 2026 Michael Ju (github.com/mhju0)`.
 - **Determinism:** the same `(baseSeed, index)` must always yield the same spot and grade — no stored benchmarks (`decisions.md` §2).
 - **Card notation / engine API (public, already shipped):** `Card`, `Deck.all`, `SplitMix64(seed:)`, `countOuts(hero:villain:board:) -> [Card]`, `ruleOf2or4(outs:cardsToCome:) -> Double`, `GradeBand` (`.spotOn`/`.close`/`.off`), `gradeEstimate(user:correct:closeWithin:spotOnWithin:) -> GradeBand`. `Card(_:)` parses `"As"`; `Card.parse(_:)` parses `"AhKh"`; `Card.description` → `"Ah"`; suits `c=0,d=1,h=2,s=3`; ranks `2…14`.
 - **Grade bands (outs):** exact = 정확 (`spotOnWithin: 0`), within 2 = 근접 (`closeWithin: 2`), else = 빗나감.

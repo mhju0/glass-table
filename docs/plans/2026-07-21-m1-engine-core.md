@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - **Language/tooling:** Swift 5.9+, Swift Package Manager, XCTest. No third-party Swift dependencies.
-- **License:** MIT. Copyright line: `Copyright (c) 2026 Michael Ju`.
+- **License:** none — no `LICENSE` file, all rights reserved. Copyright line: `Copyright (c) 2026 Michael Ju`.
 - **Evaluator:** written from scratch. `ponytail:` naive 5-card-classifier-best-of-7 for now; perfect-hash is a deferred optimization behind this same test suite (upgrade when Milestone 3 profiling demands it).
 - **Determinism:** every equity benchmark is computed on the fly and must be reproducible — enumeration where feasible, else fixed-seed Monte Carlo. No stored benchmarks.
 - **Reference oracles (dev-time only, never shipped):** `eval7` (Python, MIT) primary; hard-coded published matchups as the trust anchor. The engine ships only if it matches within tolerance.
@@ -1225,7 +1225,7 @@ git commit -m "feat(engine): drill grading bands"
 - Two-oracle correctness: golden vectors (Task 4) + eval7 cross-check (Task 6) + property/determinism tests (Tasks 4–5). ✓ (OMPEval, named in the spec as the secondary anchor, is deferred — eval7 + hard-coded golden vectors are sufficient for the engine gate; add OMPEval as a second oracle only if eval7 and the golden vectors ever disagree. Flagged in open-questions.)
 - Compute-on-the-fly determinism, no stored benchmarks. ✓
 - Grading bands 정확/근접/빗나감 (Task 11). ✓
-- MIT license header on every source file. ✓
+- Copyright header on every source file. ✓
 
 **Out of scope (correctly deferred to the Drills-app plan):** SwiftUI screens, the decide→reveal loop UI, spot generation/curation for each drill, Korean UI copy, local progress storage, app icon, App Store + GRAC submission. Equity-vs-range (Task 7) is built now because it's cheap and the app/M2 will need it.
 

@@ -21,7 +21,7 @@ Each risk with a concrete mitigation. Severity is relative to a solo, full-time,
 | **Apple simulated-gambling flag** → 17+ globally / KR-19, requiring a GRAC number. | Medium | Answer Apple's age questionnaire honestly; keep betting depiction genuinely incidental so "Infrequent/Mild" is defensible. |
 | **No precedent** for a no-money educational trainer's exact rating class. | Low–Medium | Korean game-law firm confirms the rating class before committing to the self-rating track (P3 open item). Peer trainers appear to coexist on the store (suggestive, not confirmed). |
 | Misclassified as 사행성게임물 / 웹보드게임 payment regime. | **Very low** | Structurally escaped: no property gain/loss (사행성 requires it), no purchasable chips (웹보드 payment/opponent regime has nothing to attach to). Keep it that way — never add purchasable currency or cashout. |
-| Evaluator/library **license incompatibility** with a free MIT app. | Low | Confirm the license of any ported evaluator/reference before shipping (P1 open item). |
+| Evaluator/library **license incompatibility** with a free closed-source app. | Low | Confirm the license of any ported evaluator/reference before shipping (P1 open item). |
 
 ## Product
 
