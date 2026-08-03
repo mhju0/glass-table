@@ -18,6 +18,12 @@ struct NodeSessionView: View {
     @State private var missed = 0
     @State private var answered: [Concept] = []
     @State private var finished = false
+    @State private var stage: Stage = .solo
+    @State private var showHint = false
+
+    /// Spec §5.1 — every new concept opens the same way: watch it worked, do it with
+    /// the scaffolding, then do it alone. Grading starts at `.solo` and only there.
+    enum Stage { case show, together, solo }
 
     /// Blocked first exposure is 5; a boss is 6 mixed items (spec §4.1).
     private var itemCount: Int { if case .boss = node.kind { return 6 } else { return 5 } }
@@ -43,7 +49,9 @@ struct NodeSessionView: View {
 
     var body: some View {
         Group {
-            if finished { summary } else { current }
+            if finished { summary }
+            else if stage != .solo { teaching }
+            else { current }
         }
         .background(FeltBackground())
         .toolbar {
@@ -53,11 +61,73 @@ struct NodeSessionView: View {
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
+        .onAppear {
+            // First exposure to the concept this node teaches opens with the
+            // walkthrough. A node the user has already met goes straight to drilling,
+            // and 천천히 stays available from 기록 either way (spec §5.1).
+            guard let taught = Curriculum.taughtConcept(of: node) else { return }
+            let seen = model.record(for: taught).total > 0
+            stage = seen ? .solo : .show
+        }
+    }
+
+    /// The concept this node introduces — what the teaching stages are about.
+    private var taughtConcept: Concept { Curriculum.taughtConcept(of: node) ?? conceptFor(0) }
+
+    @ViewBuilder
+    private var teaching: some View {
+        switch stage {
+        case .show:
+            // 보여주기: the app solves one out loud. The user answers nothing.
+            let w = Walkthrough.make(concept: taughtConcept, seed: baseSeed, index: 0)
+            WalkthroughView(title: conceptTitle(taughtConcept), beats: w.beats, rows: w.rows,
+                            onFinish: { stage = .together }, onSkip: { stage = .solo })
+        case .together:
+            // 함께 풀기: a *different* spot, the user answers, and the full reasoning
+            // is one tap away via 힌트 — which is never penalised because nothing here
+            // is graded. Only .solo records anything (spec §5.1).
+            ZStack(alignment: .bottomTrailing) {
+                ConceptDrillView(concept: taughtConcept, seed: baseSeed, index: 1,
+                                 progressText: "함께 풀기") { _ in
+                    stage = .solo
+                }
+                hintButton
+            }
+        case .solo:
+            EmptyView()
+        }
+    }
+
+    private var hintButton: some View {
+        Button { showHint = true } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "lightbulb.fill").font(.system(size: 11))
+                Text("힌트").font(GT.semibold(12))
+            }
+            .foregroundStyle(GT.felt)
+            .padding(.horizontal, 13).padding(.vertical, 9)
+            .background(GT.mint, in: Capsule())
+        }
+        .buttonStyle(GTPress())
+        // Sits clear of the answer sheet so it never covers a control.
+        .padding(.trailing, 18).padding(.bottom, 250)
+        .sheet(isPresented: $showHint) {
+            let w = Walkthrough.make(concept: taughtConcept, seed: baseSeed, index: 1)
+            NavigationStack {
+                // Drops the concluding beat: the hint shows the reasoning, not the
+                // answer the user is being asked for.
+                WalkthroughView(title: conceptTitle(taughtConcept),
+                                beats: Array(w.beats.dropLast()), rows: w.rows,
+                                onFinish: { showHint = false }, onSkip: { showHint = false })
+            }
+        }
     }
 
     private var current: some View {
+        // Indices 0 and 1 are reserved for 보여주기 and 함께 풀기, so the graded items
+        // are never a spot the user has already been walked through.
         ConceptDrillView(concept: conceptFor(index),
-                         seed: baseSeed, index: index,
+                         seed: baseSeed, index: index + 2,
                          progressText: "\(index + 1)/\(itemCount)") { band in
             model.record(concept: conceptFor(index), band: band.band, interval: band.interval)
             answered.append(conceptFor(index))
