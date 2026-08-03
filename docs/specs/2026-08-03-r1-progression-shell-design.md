@@ -421,10 +421,10 @@ in dependency order — each gets its own plan and ships behind the previous:
    (`open-questions.md` #1), written during UI-copy work as with M1. *Settled so far:*
    cards are named with suit symbols via `Card.display` ("10♥"); `Card.description`
    ("Th") is the parse format and never appears in prose.
-4. **Where the declared preflop charts come from.** *Direction chosen 2026-08-03:
-   adopt and name a public chart.* **Still blocked on a licensing answer** — see §13.
-   **Blocks R2, not R1**, and remains the highest-risk unresolved question in the
-   product: the transparency thesis dies if the answer is "trust us."
+4. ~~**Where the declared preflop charts come from.**~~ **RESOLVED 2026-08-03: name
+   the public charts as benchmarks, ship our own derived values.** No public chart is
+   redistributable, so adopting one wholesale was not actually available — see §13 for
+   the finding and the resolution. **R2 is unblocked.**
 5. **Postflop grading mode** (EV-loss in bb vs bands). Genuinely EV-indifferent spots
    exist in Blocks B/C, where marking a user "wrong" is factually false. Blocks R4.
 6. ~~**MDF's placement.**~~ **RESOLVED 2026-08-03: stays parked.** It keeps a concept
@@ -432,7 +432,7 @@ in dependency order — each gets its own plan and ships behind the previous:
    fold equity, combos-in-a-range, ranges — actually exist. Shipping only the frequency
    half would teach a referent-free formula, which is the exact defect §0 identified.
 
-## 13. The preflop chart licensing problem (blocks R2)
+## 13. The preflop chart licensing problem — RESOLVED
 
 Research on 2026-08-03 found **no NLHE preflop chart under an open or redistributable
 licence.** Every widely-used chart — Upswing's free RFI charts, PokerCoaching's free
@@ -453,15 +453,30 @@ Two further problems with adopting one wholesale:
   as the direct competitor. Shipping their solved values inside a free competing app is
   the riskiest of all the options.
 
-**Recommendation — the hybrid, which is also what `decisions.md` §E already decided:**
-*name the public charts as the benchmarks we validate against* (Upswing's free 9-handed
-RFI PDF and PokerCoaching's free charts — both explicitly published free, both widely
-used), and *ship our own generated values with the derivation published in-app*. The
-transparency payload is the derivation being inspectable, not the source being famous;
-naming what we checked ourselves against is stronger than copying, and it is the only
-version with no licensing exposure.
+### Resolution (approved 2026-08-03)
 
-**Needs a decision before R2 starts.**
+**Name the public charts as benchmarks; ship our own derived values.** Concretely, R2:
+
+1. **Derives** every opening range from a stated rule over the engine's own numbers —
+   e.g. "top N% by all-in equity versus a uniform random hand, N set per seat by the
+   count of players still to act," with the exact rule and the resulting 169-cell grid
+   both visible in-app.
+2. **Names, and does not reproduce,** the charts it was checked against: Upswing's free
+   9-handed RFI PDF and PokerCoaching's free charts. Both are published free to read
+   and widely used; neither is redistributed. A short in-app note says which benchmarks
+   were compared and where they diverge.
+3. **Discloses the 8-handed interpolation** explicitly, since no canonical 8-max chart
+   exists publicly. That disclosure *is* the transparency feature.
+4. **Does not use GTO Wizard as the primary baseline**, reversing `decisions.md` §E on
+   that one point. It is the product the brief names as the direct competitor, which
+   makes shipping values traceable to it the highest-exposure option available and the
+   worst look for a free app.
+
+The transparency payload is the derivation being inspectable, not the source being
+famous. Naming what we independently checked against is a stronger claim than copying
+one, and it is the only version with no licensing exposure.
+
+**R2 is unblocked.**
 
 ## 14. Out of scope
 

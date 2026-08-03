@@ -158,7 +158,11 @@ For **Table / Range** (exploit grade): lead with **EV loss in big blinds** (cont
 
 ### E. Baseline range source & IP — **cite methodology, generate own values, disclose the 8-handed interpolation**
 
-Primary 8-max baseline: **GTO Wizard's free 8-max cash ranges** (only public source that names 8-max). Full-ring cross-reference: **Upswing's free 9-handed RFI PDF.** No canonical *8-handed* chart exists publicly, so an 8-handed opening range is interpolated (slightly wider than 9-max UTG, tighter than 6-max) — **and the app discloses that it did so.** That disclosure *is* the transparency feature. **IP caution:** cite these as the methodology/baseline validated against; **generate our own range values** rather than shipping competitors' PDFs verbatim.
+No canonical *8-handed* chart exists publicly, so an 8-handed opening range is interpolated (slightly wider than 9-max UTG, tighter than 6-max) — **and the app discloses that it did so.** That disclosure *is* the transparency feature. **Generate our own range values** rather than shipping competitors' PDFs verbatim.
+
+**Amended 2026-08-03 — benchmarks are Upswing + PokerCoaching, not GTO Wizard.** This section originally named GTO Wizard's free 8-max ranges as the primary baseline. Research for the R1 revamp found that **no NLHE preflop chart is available under a redistributable licence** — Upswing, PokerCoaching, GTO Wizard, Preflop Wizard and FreeBetRange are all all-rights-reserved marketing assets, free to *read* only. So "generate our own values" is not merely IP caution, it is the only viable path: shipping any chart's 169 cell values is redistribution regardless of attribution.
+
+GTO Wizard is additionally demoted as a *baseline* because it is the product `product-brief.md` names as the direct competitor; values traceable to it inside a free competing app are the highest-exposure option available. Benchmarks are now **Upswing's free 9-handed RFI PDF** and **PokerCoaching's free charts**, named in-app as what our derivation was checked against and never reproduced. Full reasoning and the R2 implementation rule: `docs/specs/2026-08-03-r1-progression-shell-design.md` §13.
 
 ### F. Korean terminology — **actions Hangul, jargon/acronyms English, some concept terms bilingual**
 
