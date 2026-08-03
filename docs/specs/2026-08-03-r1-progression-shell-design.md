@@ -422,7 +422,7 @@ in dependency order — each gets its own plan and ships behind the previous:
    cards are named with suit symbols via `Card.display` ("10♥"); `Card.description`
    ("Th") is the parse format and never appears in prose.
 4. **Where the declared preflop charts come from.** *Direction chosen 2026-08-03:
-   adopt and name a public chart.* **Still blocked on a licensing answer** — see §14.
+   adopt and name a public chart.* **Still blocked on a licensing answer** — see §13.
    **Blocks R2, not R1**, and remains the highest-risk unresolved question in the
    product: the transparency thesis dies if the answer is "trust us."
 5. **Postflop grading mode** (EV-loss in bb vs bands). Genuinely EV-indifferent spots
@@ -432,7 +432,7 @@ in dependency order — each gets its own plan and ships behind the previous:
    fold equity, combos-in-a-range, ranges — actually exist. Shipping only the frequency
    half would teach a referent-free formula, which is the exact defect §0 identified.
 
-## 14. The preflop chart licensing problem (blocks R2)
+## 13. The preflop chart licensing problem (blocks R2)
 
 Research on 2026-08-03 found **no NLHE preflop chart under an open or redistributable
 licence.** Every widely-used chart — Upswing's free RFI charts, PokerCoaching's free
@@ -463,7 +463,7 @@ version with no licensing exposure.
 
 **Needs a decision before R2 starts.**
 
-## 13. Out of scope
+## 14. Out of scope
 
 No `Range` type, no 13×13 grid, no RFI charts, no archetypes, no bots, no Table, no
 Range Read (R2–R4). No leagues, no XP, no hearts, no IAP, no ads, no accounts, no
