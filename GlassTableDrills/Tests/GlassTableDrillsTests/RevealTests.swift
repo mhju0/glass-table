@@ -19,8 +19,9 @@ final class RevealTests: XCTestCase {
 
     func testWhyMentionsExcludedAndTrueCount() {
         let why = gradeOuts(estimate: 7, spot: spot()).whyText
-        XCTAssertTrue(why.contains("2h"))
-        XCTAssertTrue(why.contains("3h"))
+        // Copy names cards with suit symbols; "2h" is the parse format, not prose.
+        XCTAssertTrue(why.contains("2♥"))
+        XCTAssertTrue(why.contains("3♥"))
         XCTAssertTrue(why.contains("7"))
     }
 

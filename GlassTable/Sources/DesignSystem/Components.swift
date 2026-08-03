@@ -18,20 +18,39 @@ struct GTPress: ButtonStyle {
 struct CardRow: View {
     let cards: [Card]
     var dead: Bool = false
-    /// Caps the ladder. 첫 핸드 holds the hand and a per-beat diagram on one screen, so it
-    /// trades card size for the room that diagram needs.
-    var maxSize: CGFloat = 64
+    /// Caps the ladder for callers that must leave room for something else.
+    ///
+    /// The top rung is sized so a five-card board still fits the narrowest supported
+    /// screen: at 78pt a card is 78 × 0.72 ≈ 56pt wide, so five plus four 8pt gaps is
+    /// ≈ 313pt against the 12 mini's 339pt of usable width. Everything larger than a
+    /// mini simply gets the top rung, which is the point — cards read as cards.
+    var maxSize: CGFloat = 78
+    /// Cards to call out — the winning five on a reveal, say. Everything else steps
+    /// back rather than disappearing, so the row still reads as a whole hand.
+    var highlight: [Card] = []
     private func row(_ size: CGFloat) -> some View {
         HStack(spacing: 8) {
-            ForEach(Array(cards.enumerated()), id: \.offset) {
-                PlayingCardView(card: $0.element, size: size, dead: dead)
+            ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
+                let lit = highlight.contains(card)
+                let dim = !highlight.isEmpty && !lit
+                PlayingCardView(card: card, size: size, dead: dead)
+                    .overlay {
+                        if lit {
+                            RoundedRectangle(cornerRadius: size * 0.17)
+                                .stroke(GT.mint, lineWidth: 3)
+                                .shadow(color: GT.mint.opacity(0.85), radius: 9)
+                        }
+                    }
+                    .scaleEffect(lit ? 1.06 : 1)
+                    .opacity(dim ? 0.62 : 1)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: highlight)
             }
         }
     }
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            row(min(maxSize, 64)); row(min(maxSize, 56))
-            row(min(maxSize, 48)); row(min(maxSize, 40))
+            row(min(maxSize, 78)); row(min(maxSize, 68))
+            row(min(maxSize, 58)); row(min(maxSize, 48))
         }
     }
 }
@@ -41,7 +60,7 @@ struct SectionLabel: View {
     var onDark: Bool = true
     var body: some View {
         Text(text).font(GT.semibold(10)).tracking(0.4)
-            .foregroundStyle(onDark ? Color.white.opacity(0.62) : GT.inkMuted)
+            .foregroundStyle(onDark ? GT.onFelt.opacity(0.62) : GT.inkMuted)
     }
 }
 
@@ -63,16 +82,16 @@ extension GradeBand {
     /// all below AA. These are 4.95–5.12:1, so the verdict is legible at any size.
     var ink: Color {
         switch self {
-        case .spotOn: return Color(hex: 0x0F7645)
-        case .close:  return Color(hex: 0x9C5700)
-        case .off:    return Color(hex: 0xC02A2A)
+        case .spotOn: return GTBand.spotOnInk
+        case .close:  return GTBand.closeInk
+        case .off:    return GTBand.offInk
         }
     }
     var tint: Color {
         switch self {
-        case .spotOn: return Color(hex: 0xE7F7EF)
-        case .close:  return Color(hex: 0xFEF0DA)
-        case .off:    return Color(hex: 0xFDECEC)
+        case .spotOn: return GTBand.spotOnTint
+        case .close:  return GTBand.closeTint
+        case .off:    return GTBand.offTint
         }
     }
 }
@@ -170,21 +189,21 @@ struct RiverExplainPanel: View {
                 ForEach(Array(spot.board.enumerated()), id: \.offset) {
                     PlayingCardView(card: $0.element, size: 40)
                 }
-                Text("+").font(GT.title(16)).foregroundStyle(.white.opacity(0.7))
+                Text("+").font(GT.title(16)).foregroundStyle(GT.onFelt.opacity(0.7))
                 PlayingCardView(card: river, size: 40)
                     .overlay(RoundedRectangle(cornerRadius: 40 * 0.17)
-                        .stroke(GT.cta, lineWidth: 2.5))
+                        .stroke(GT.mint, lineWidth: 2.5))
             }
-            Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(.white)
+            Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(GT.onFelt)
             Text("상대 · \(handName(ex.villain))")
-                .font(GT.semibold(13)).foregroundStyle(.white.opacity(0.85))
+                .font(GT.semibold(13)).foregroundStyle(GT.onFelt.opacity(0.85))
             Text(ex.heroWins ? "→ 내가 이겨요" : "→ 완성해도 상대가 더 강해요")
                 .font(GT.title(13))
                 .foregroundStyle(Color(hex: ex.heroWins ? 0xA5F3CB : 0xFFB9B9))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+        .background(GT.onFelt.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
     }
 }
 
@@ -209,14 +228,79 @@ struct GlossaryChip: View {
     }
 }
 
+// MARK: - surfaces and controls
+
+/// The glass recipe, in one place: a blur of whatever is behind, a green tint so it
+/// belongs to the table, a warm ivory veil for the temperature, and a lit top edge
+/// that sells the elevation. Forced to the dark scheme because the felt under it is
+/// dark in *both* app schemes — letting the system material flip would put light
+/// glass over dark felt in light mode.
+private struct GlassBackground<S: InsettableShape>: View {
+    let shape: S
+    var litEdge: Bool = true
+
+    var body: some View {
+        shape.fill(.ultraThinMaterial)
+            .environment(\.colorScheme, .dark)
+            .overlay { shape.fill(GT.glassTint) }
+            .overlay { shape.fill(GT.glassVeil) }
+            .overlay {
+                if litEdge { shape.strokeBorder(GT.glassEdge, lineWidth: 1) }
+                else { shape.strokeBorder(GT.border, lineWidth: 1) }
+            }
+    }
+}
+
+extension View {
+    /// An elevated glass surface on the felt. Separation comes from the material and
+    /// the elevation — a blurred, lit, floating plane — not from a drawn line.
+    func gtCard(radius: CGFloat = 20) -> some View {
+        self.background {
+            GlassBackground(shape: RoundedRectangle(cornerRadius: radius, style: .continuous),
+                            litEdge: false)
+                .shadow(color: .black.opacity(0.34), radius: 14, y: 6)
+        }
+    }
+}
+
+/// The bottom action sheet. Rounded at the top, **bleeding to the bottom edge**, with
+/// a grabber so it reads as a sheet rather than a colour change.
+struct ActionSheet<Content: View>: View {
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule().fill(GT.ink.opacity(0.30))
+                .frame(width: 36, height: 4)
+                .padding(.bottom, 13)
+                .accessibilityHidden(true)
+            content()
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 12)
+        .padding(.bottom, 22)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            GlassBackground(shape: UnevenRoundedRectangle(topLeadingRadius: 28,
+                                                          topTrailingRadius: 28,
+                                                          style: .continuous))
+                .ignoresSafeArea(edges: .bottom)
+        }
+        .shadow(color: .black.opacity(0.55), radius: 22, y: -10)
+    }
+}
+
+/// Primary action: mint fill, dark lettering. The one visually dominant control in
+/// any sheet — three equal rectangles is what made the old answer sheets read flat.
 struct PrimaryCTAButton: View {
     let title: String
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(GT.title(15)).foregroundStyle(.white)
-                .frame(maxWidth: .infinity, minHeight: 52)
-                .background(GT.cta, in: RoundedRectangle(cornerRadius: 14))
+            Text(title).font(GT.title(16)).foregroundStyle(GT.onCTA)
+                .frame(maxWidth: .infinity, minHeight: 54)
+                .background(GT.cta, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .shadow(color: GT.mint.opacity(0.30), radius: 10, y: 4)
         }
         .buttonStyle(GTPress())
     }
@@ -227,9 +311,49 @@ struct SecondaryCTAButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(GT.title(15)).foregroundStyle(GT.ink)
-                .frame(maxWidth: .infinity, minHeight: 52)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+            Text(title).font(GT.semibold(15)).foregroundStyle(GT.inkSecondary)
+                .frame(maxWidth: .infinity, minHeight: 50)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    .strokeBorder(GT.border, lineWidth: 1))
+        }
+        .buttonStyle(GTPress())
+    }
+}
+
+/// Primary action sitting directly **on felt**, where there is no glass beneath it.
+struct FeltCTAButton: View {
+    let title: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title).font(GT.title(16)).foregroundStyle(GT.onCTA)
+                .frame(maxWidth: .infinity, minHeight: 54)
+                .background(GT.mint, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .shadow(color: GT.mint.opacity(0.28), radius: 12, y: 5)
+        }
+        .buttonStyle(GTPress())
+    }
+}
+
+/// A choice in an answer sheet: translucent ivory on glass, with a selected state that
+/// moves fill, border and weight together so it never leans on colour alone.
+struct GTChoiceButton: View {
+    let title: String
+    var selected: Bool = false
+    var minHeight: CGFloat = 54
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(selected ? GT.title(16) : GT.semibold(16))
+                .foregroundStyle(selected ? GT.onCTA : GT.ink)
+                .frame(maxWidth: .infinity, minHeight: minHeight)
+                .background(selected ? AnyShapeStyle(GT.cta) : AnyShapeStyle(GT.surface),
+                            in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    .strokeBorder(selected ? Color.clear : GT.borderStrong, lineWidth: 1))
         }
         .buttonStyle(GTPress())
     }
@@ -242,17 +366,20 @@ struct EstimateStepper: View {
     let onAdjust: (Int) -> Void
     private func key(_ s: String, _ d: Int) -> some View {
         Button { onAdjust(d) } label: {
-            Text(s).font(GT.semibold(22)).foregroundStyle(GT.inkSecondary)
-                .frame(width: 44, height: 44)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+            Text(s).font(GT.semibold(24)).foregroundStyle(GT.ink)
+                .frame(width: 50, height: 50)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(GT.borderStrong, lineWidth: 1))
         }.buttonStyle(GTPress())
     }
     var body: some View {
-        HStack(spacing: 12) {
-            key("−", -step)
-            Text("\(value)\(suffix)").font(GT.title(24).monospacedDigit()).foregroundStyle(GT.green)
-                .frame(minWidth: 60, minHeight: 50)
-                .background(.white, in: RoundedRectangle(cornerRadius: 13))
+        HStack(spacing: 14) {
+            key("\u{2212}", -step)
+            Text("\(value)\(suffix)").font(GT.title(26).monospacedDigit())
+                .foregroundStyle(GT.ink)
+                .frame(minWidth: 74, minHeight: 54)
+                .contentTransition(.numericText())
             key("+", step)
         }
     }

@@ -2,6 +2,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
     private static let feedbackURL =
@@ -15,26 +16,18 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("설정").font(GT.title(26)).foregroundStyle(.white)
+                Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
                 VStack(spacing: 0) {
-                    NavigationLink { FirstHandView() } label: {
-                        row("suit.spade.fill", "첫 핸드 다시 보기",
-                            "한 판으로 다섯 드릴 훑어보기", chevron: true)
-                    }
-                    .buttonStyle(GTPress())
-                    Divider().padding(.leading, 56)
                     NavigationLink { GlossaryView() } label: {
                         row("book.fill", "용어집", "포커 용어 한국어·영어 정리", chevron: true)
                     }
                     .buttonStyle(GTPress())
-                    Divider().padding(.leading, 56)
-                    NavigationLink { StatsView() } label: {
-                        row("chart.bar.fill", "통계", "드릴별 스트릭과 정답률", chevron: true)
-                    }
-                    .buttonStyle(GTPress())
+                    // 통계 and 첫 핸드 are gone. StatsView read the M1 per-drill stores
+                    // that nothing writes any more, and 첫 핸드 is superseded by first
+                    // run — 천천히 replays any concept's walkthrough on demand instead.
                 }
-                .background(.white, in: RoundedRectangle(cornerRadius: 20))
+                .gtCard(radius: 20)
                 VStack(spacing: 0) {
                     Link(destination: Self.feedbackURL) {
                         row("envelope.fill", "피드백 보내기", "버그·아이디어를 메일로",
@@ -59,11 +52,17 @@ struct SettingsView: View {
                     }
                     .padding(16)
                 }
-                .background(.white, in: RoundedRectangle(cornerRadius: 20))
+                .gtCard(radius: 20)
             }
             .padding(.horizontal, 18)
         }
         .background(FeltBackground())
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("닫기") { dismiss() }
+                    .font(GT.semibold(15)).foregroundStyle(GT.onFelt)
+            }
+        }
         .toolbarBackground(.hidden, for: .navigationBar)
     }
 

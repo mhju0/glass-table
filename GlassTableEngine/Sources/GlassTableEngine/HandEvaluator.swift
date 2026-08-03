@@ -124,3 +124,50 @@ func evaluate7(_ cards: [Card]) -> Int {
     }
     return best
 }
+
+/// Which five of seven cards actually play — the subset `evaluate7` scored highest.
+///
+/// `evaluate7` returns only the score, so the winning combination is otherwise
+/// unrecoverable. Teaching surfaces need the cards themselves: "your hand is two pair"
+/// means nothing next to a highlight covering all seven.
+///
+/// Ties are impossible to observe here: two subsets scoring equal are the same hand by
+/// definition (e.g. two identical kickers cannot both be in one seven-card set), so
+/// returning the first maximum is deterministic and correct.
+/// Accepts 5–7 cards, so a hand can be named at the turn (2 + 4 = six cards) as well
+/// as at showdown. Teaching the street-by-street progression needs both.
+public func bestFiveCards(_ cards: [Card]) -> [Card] {
+    precondition((5...7).contains(cards.count))
+    var best = 0
+    var bestIdx: [Int] = []
+    for combo in combinations(of: cards.count, choose: 5) {
+        let key = eval5(cards[combo[0]], cards[combo[1]], cards[combo[2]],
+                        cards[combo[3]], cards[combo[4]])
+        if key > best { best = key; bestIdx = combo }
+    }
+    return bestIdx.map { cards[$0] }
+}
+
+/// Summarize the best hand from 5–7 cards. `bestHand` requires exactly seven, which
+/// makes it unusable on a turn board — this is the street-agnostic form.
+public func bestHandOfAny(_ cards: [Card]) -> HandBrief {
+    let five = bestFiveCards(cards)
+    let key = eval5(five[0], five[1], five[2], five[3], five[4])
+    return HandBrief(category: key >> 20, topRank: (key >> 16) & 0xF)
+}
+
+/// Index combinations. At most 21 of them (7 choose 5), so this is computed per call
+/// rather than cached — a global cache here would buy nothing and cost thread safety.
+private func combinations(of n: Int, choose k: Int) -> [[Int]] {
+    var out: [[Int]] = []
+    var idx = Array(0..<k)
+    while true {
+        out.append(idx)
+        var i = k - 1
+        while i >= 0 && idx[i] == n - k + i { i -= 1 }
+        if i < 0 { break }
+        idx[i] += 1
+        for j in (i + 1)..<k { idx[j] = idx[j - 1] + 1 }
+    }
+    return out
+}
