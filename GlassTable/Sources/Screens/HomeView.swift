@@ -112,7 +112,7 @@ struct HomeView: View {
                 }
             }
         }
-        .tint(.white)  // white back chevron over the green zones
+        .tint(GT.onFelt)  // back chevron over the felt zones
     }
 
     private var suitRule: some View {
@@ -121,7 +121,7 @@ struct HomeView: View {
                 Image(systemName: ["suit.spade.fill", "suit.heart.fill",
                                    "suit.diamond.fill", "suit.club.fill"][i % 4])
                     .font(.system(size: 9))
-                    .foregroundStyle(.white.opacity(0.4))
+                    .foregroundStyle(GT.onFelt.opacity(0.4))
                     .frame(maxWidth: .infinity)
             }
         }
@@ -135,17 +135,17 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Glass Table")
                         .font(.system(size: 36, weight: .heavy, design: .serif).italic())
-                        .foregroundStyle(.white)
+                        .foregroundStyle(GT.onFelt)
                     Text("레인지와 EV로 생각하는 홀덤 훈련")
-                        .font(GT.body(14)).foregroundStyle(.white.opacity(0.7))
+                        .font(GT.body(14)).foregroundStyle(GT.onFelt.opacity(0.7))
                 }
                 Spacer()
                 Button { showSettings = true } label: {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(GT.onFelt)
                         .frame(width: 44, height: 44)
-                        .background(.white.opacity(0.14), in: Circle())
+                        .background(GT.onFelt.opacity(0.14), in: Circle())
                 }
                 .buttonStyle(GTPress())
                 .accessibilityLabel("설정")
@@ -166,9 +166,9 @@ struct HomeView: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 11, weight: .semibold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(GT.onFelt)
             .padding(.horizontal, 16).padding(.vertical, 12)
-            .background(.white.opacity(0.18), in: Capsule())
+            .background(GT.onFelt.opacity(0.18), in: Capsule())
         }
         .buttonStyle(GTPress())
         .padding(.bottom, 4)
@@ -184,7 +184,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 5) {
             SectionLabel(text: "이 한 줄이 전부예요")
             Text("「이길 확률」이 「낼 가격」보다 크면 → 콜")
-                .font(GT.title(16)).foregroundStyle(.white)
+                .font(GT.title(16)).foregroundStyle(GT.onFelt)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 10) {
                 slot("이길 확률", .outs)
@@ -203,7 +203,7 @@ struct HomeView: View {
                 .font(.system(size: 11))
             Text("\(noun) · \(kind.name)").font(GT.body(11.5))
         }
-        .foregroundStyle(.white.opacity(tried(kind) ? 0.85 : 0.55))
+        .foregroundStyle(GT.onFelt.opacity(tried(kind) ? 0.85 : 0.55))
     }
 
     /// Two number drills → the decision they feed → the two opponent-side drills. The
@@ -217,7 +217,7 @@ struct HomeView: View {
                 Image(systemName: "arrow.turn.left.down").scaleEffect(x: -1, y: 1)
             }
             .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.white.opacity(0.55))
+            .foregroundStyle(GT.onFelt.opacity(0.55))
             .accessibilityLabel("앞의 두 드릴을 비교하면 콜/폴드 결정이 됩니다")
             box(.callfold, wide: true)
             HStack(spacing: 10) {
@@ -231,7 +231,7 @@ struct HomeView: View {
     }
 
     private var rule: some View {
-        Rectangle().fill(.white.opacity(0.22)).frame(height: 1)
+        Rectangle().fill(GT.onFelt.opacity(0.22)).frame(height: 1)
     }
 
     private func box(_ kind: DrillKind, wide: Bool = false) -> some View {
@@ -262,10 +262,10 @@ struct HomeView: View {
                 }
             }
             .frame(minHeight: wide ? 104 : 150)
-            .background(.white, in: RoundedRectangle(cornerRadius: 19))
+            .background(GT.card, in: RoundedRectangle(cornerRadius: 19))
             .padding(5)
-            .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 24))
-            .shadow(color: Color(hex: 0x06301C).opacity(0.35), radius: 14, y: 8)
+            .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 24))
+            .shadow(color: GT.feltDeep.opacity(0.45), radius: 14, y: 8)
         }
         .buttonStyle(GTPress())
         .accessibilityLabel("\(kind.name). \(kind.explain)")

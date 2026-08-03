@@ -44,12 +44,12 @@ struct PercentDrillView: View {
 
     private func chip(_ label: String, _ bb: Int) -> some View {
         VStack(spacing: 4) {
-            Text(label).font(GT.semibold(11)).foregroundStyle(.white.opacity(0.62))
-            Text("\(bb) bb").font(GT.title(26)).foregroundStyle(.white)
+            Text(label).font(GT.semibold(11)).foregroundStyle(GT.onFelt.opacity(0.62))
+            Text("\(bb) bb").font(GT.title(26)).foregroundStyle(GT.onFelt)
         }
         .frame(minWidth: 96)
         .padding(.vertical, 14).padding(.horizontal, 18)
-        .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+        .background(GT.onFelt.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
     }
 
     private func potBet(_ spot: BetSpot) -> some View {

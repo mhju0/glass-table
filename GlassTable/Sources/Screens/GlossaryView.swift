@@ -58,7 +58,7 @@ struct GlossaryView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("용어집").font(GT.title(16)).foregroundStyle(.white)
+                Text("용어집").font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Spacer()
             }
             .padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 18)
@@ -81,10 +81,10 @@ struct GlossaryView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24)
-                    .fill(.white).ignoresSafeArea(edges: .bottom))
+                    .fill(GT.card).ignoresSafeArea(edges: .bottom))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(GT.green.ignoresSafeArea())
+        .background(GT.felt.ignoresSafeArea())
         .toolbarBackground(.hidden, for: .navigationBar)
     }
 }

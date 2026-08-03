@@ -21,7 +21,7 @@ struct PlayingCardView: View {
             .padding(.horizontal, size * 0.08)  // breathing room — label never touches the card edge
             .foregroundStyle(isRed ? GT.suitRed : GT.ink)
             .frame(width: size * 0.72, height: size)
-            .background(.white, in: RoundedRectangle(cornerRadius: size * 0.17))
+            .background(GT.cardFace, in: RoundedRectangle(cornerRadius: size * 0.17))
             .overlay {
                 if dead {
                     Rectangle().fill(GT.ink).frame(height: 2)
@@ -39,5 +39,5 @@ struct PlayingCardView: View {
         PlayingCardView(card: Card("Ah")!)
         PlayingCardView(card: Card("Ks")!)
         PlayingCardView(card: Card("2h")!, dead: true)
-    }.padding().background(GT.green)
+    }.padding().background(GT.felt)
 }

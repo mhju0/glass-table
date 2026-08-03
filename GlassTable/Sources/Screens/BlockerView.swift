@@ -18,7 +18,7 @@ struct BlockerView: View {
             SectionLabel(text: "제거된 카드 · REMOVED")
             CardRow(cards: spot.removed)
             Text("남은 \(spot.className) 콤보는?")
-                .font(GT.title(20)).foregroundStyle(.white).padding(.top, 16)
+                .font(GT.title(20)).foregroundStyle(GT.onFelt).padding(.top, 16)
         }
     }
 

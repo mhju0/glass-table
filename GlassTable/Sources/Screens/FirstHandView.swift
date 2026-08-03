@@ -111,7 +111,7 @@ struct FirstHandView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(step == .handoff ? "닫기" : "건너뛰기") { dismiss() }
-                    .font(GT.semibold(14)).foregroundStyle(.white)
+                    .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -213,9 +213,9 @@ struct FirstHandView: View {
                 Text("\(liveCount)")
                     .font(GT.title(30).monospacedDigit())
                     .contentTransition(.numericText(value: Double(liveCount)))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(GT.onFelt)
                 Text(struck.isEmpty ? "하트 · 세는 중" : "진짜 아웃")
-                    .font(GT.semibold(12)).foregroundStyle(.white.opacity(0.72))
+                    .font(GT.semibold(12)).foregroundStyle(GT.onFelt.opacity(0.72))
             }
             HStack(spacing: 6) {
                 ForEach(Array(draws.enumerated()), id: \.offset) { _, card in
@@ -229,7 +229,7 @@ struct FirstHandView: View {
                             .overlay {
                                 if tapped == card {
                                     RoundedRectangle(cornerRadius: 38 * 0.17)
-                                        .stroke(GT.cta, lineWidth: 2.5)
+                                        .stroke(GT.mint, lineWidth: 2.5)
                                 }
                             }
                     }
@@ -359,7 +359,7 @@ struct FirstHandView: View {
             verdict
             approx("스트릭과 정답률은 실제 드릴에서 쌓여요")
             NavigationLink(value: DrillKind.outs) {
-                Text("아웃 카운팅 시작하기").font(GT.title(15)).foregroundStyle(.white)
+                Text("아웃 카운팅 시작하기").font(GT.title(15)).foregroundStyle(GT.onFelt)
                     .frame(maxWidth: .infinity, minHeight: 52)
                     .background(GT.cta, in: RoundedRectangle(cornerRadius: 14))
             }
@@ -473,11 +473,11 @@ struct FirstHandView: View {
 
     private func feltChip(_ label: String, _ value: String, mine: Bool) -> some View {
         HStack(spacing: 5) {
-            Text(label).font(GT.semibold(11)).foregroundStyle(.white.opacity(0.7))
-            Text(value).font(GT.title(15).monospacedDigit()).foregroundStyle(.white)
+            Text(label).font(GT.semibold(11)).foregroundStyle(GT.onFelt.opacity(0.7))
+            Text(value).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.onFelt)
         }
         .padding(.horizontal, 11).padding(.vertical, 7)
-        .background(mine ? GT.cta.opacity(0.55) : Color.white.opacity(0.14),
+        .background(mine ? GT.mint.opacity(0.30) : GT.onFelt.opacity(0.14),
                     in: RoundedRectangle(cornerRadius: 11))
     }
 
@@ -506,7 +506,7 @@ private struct FaceDownRow: View {
                     .fill(LinearGradient(colors: [Color(hex: 0x1F6D4A), Color(hex: 0x0C3F28)],
                                          startPoint: .topLeading, endPoint: .bottomTrailing))
                     .overlay(RoundedRectangle(cornerRadius: size * 0.17)
-                        .stroke(.white.opacity(0.34), lineWidth: 1.5))
+                        .stroke(GT.onFelt.opacity(0.34), lineWidth: 1.5))
                     .frame(width: size * 0.72, height: size)
                     .shadow(color: .black.opacity(0.22), radius: 3, y: 2)
             }
@@ -525,12 +525,14 @@ private struct DefenseTiles: View {
             ForEach(0..<3, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 9)
                     .fill(defended.map { i < $0 } == true
-                          ? GT.cta.opacity(0.9) : Color.white.opacity(0.16))
+                          ? GT.mint.opacity(0.85) : GT.onFelt.opacity(0.16))
                     .frame(width: 52, height: 34)
                     .overlay {
                         if let defended, i < defended {
+                            // Dark ink, because the filled tile is now mint — cream on
+                            // mint would be the one unreadable pairing in the palette.
                             Image(systemName: "shield.fill").font(.system(size: 13))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(GT.feltDeep)
                         }
                     }
             }
@@ -551,9 +553,9 @@ private struct PriceBar: View {
     var body: some View {
         GeometryReader { geo in
             HStack(spacing: 2) {
-                seg("팟 \(pot)", GT.green, geo.size.width * Double(pot) / Double(total))
-                seg("벳 \(bet)", Color(hex: 0x2FA26B), geo.size.width * Double(bet) / Double(total))
-                seg("콜 \(bet)", GT.cta, geo.size.width * Double(bet) / Double(total))
+                seg("팟 \(pot)", GT.segPot, geo.size.width * Double(pot) / Double(total))
+                seg("벳 \(bet)", GT.segBet, geo.size.width * Double(bet) / Double(total))
+                seg("콜 \(bet)", GT.segCall, geo.size.width * Double(bet) / Double(total))
             }
         }
         .frame(height: 46)
@@ -562,7 +564,7 @@ private struct PriceBar: View {
     }
 
     private func seg(_ label: String, _ color: Color, _ width: Double) -> some View {
-        Text(label).font(GT.semibold(12).monospacedDigit()).foregroundStyle(.white)
+        Text(label).font(GT.semibold(12).monospacedDigit()).foregroundStyle(GT.onFelt)
             .lineLimit(1).minimumScaleFactor(0.6)
             .frame(width: max(0, width - 2), height: 46)
             .background(color)
@@ -586,7 +588,7 @@ private struct ComboGrid: View {
                 }
                 .padding(.vertical, 6)
                 .frame(maxWidth: .infinity)
-                .background(Color.white.opacity(gone ? 0.06 : 0.11),
+                .background(GT.onFelt.opacity(gone ? 0.06 : 0.11),
                             in: RoundedRectangle(cornerRadius: 10))
             }
         }

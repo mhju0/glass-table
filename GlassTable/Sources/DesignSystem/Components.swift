@@ -41,7 +41,7 @@ struct SectionLabel: View {
     var onDark: Bool = true
     var body: some View {
         Text(text).font(GT.semibold(10)).tracking(0.4)
-            .foregroundStyle(onDark ? Color.white.opacity(0.62) : GT.inkMuted)
+            .foregroundStyle(onDark ? GT.onFelt.opacity(0.62) : GT.inkMuted)
     }
 }
 
@@ -170,21 +170,21 @@ struct RiverExplainPanel: View {
                 ForEach(Array(spot.board.enumerated()), id: \.offset) {
                     PlayingCardView(card: $0.element, size: 40)
                 }
-                Text("+").font(GT.title(16)).foregroundStyle(.white.opacity(0.7))
+                Text("+").font(GT.title(16)).foregroundStyle(GT.onFelt.opacity(0.7))
                 PlayingCardView(card: river, size: 40)
                     .overlay(RoundedRectangle(cornerRadius: 40 * 0.17)
-                        .stroke(GT.cta, lineWidth: 2.5))
+                        .stroke(GT.mint, lineWidth: 2.5))
             }
-            Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(.white)
+            Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(GT.onFelt)
             Text("상대 · \(handName(ex.villain))")
-                .font(GT.semibold(13)).foregroundStyle(.white.opacity(0.85))
+                .font(GT.semibold(13)).foregroundStyle(GT.onFelt.opacity(0.85))
             Text(ex.heroWins ? "→ 내가 이겨요" : "→ 완성해도 상대가 더 강해요")
                 .font(GT.title(13))
                 .foregroundStyle(Color(hex: ex.heroWins ? 0xA5F3CB : 0xFFB9B9))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+        .background(GT.onFelt.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
     }
 }
 
@@ -214,7 +214,7 @@ struct PrimaryCTAButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(GT.title(15)).foregroundStyle(.white)
+            Text(title).font(GT.title(15)).foregroundStyle(GT.onFelt)
                 .frame(maxWidth: .infinity, minHeight: 52)
                 .background(GT.cta, in: RoundedRectangle(cornerRadius: 14))
         }
@@ -252,7 +252,7 @@ struct EstimateStepper: View {
             key("−", -step)
             Text("\(value)\(suffix)").font(GT.title(24).monospacedDigit()).foregroundStyle(GT.green)
                 .frame(minWidth: 60, minHeight: 50)
-                .background(.white, in: RoundedRectangle(cornerRadius: 13))
+                .background(GT.card, in: RoundedRectangle(cornerRadius: 13))
             key("+", step)
         }
     }

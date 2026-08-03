@@ -23,18 +23,18 @@ struct DrillScaffold<Content: View, Sheet: View>: View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(GT.title(16)).foregroundStyle(.white)
+                    Text(title).font(GT.title(16)).foregroundStyle(GT.onFelt)
                     if let subtitle {
                         Text(subtitle).font(GT.body(11.5))
-                            .foregroundStyle(.white.opacity(0.66))
+                            .foregroundStyle(GT.onFelt.opacity(0.66))
                     }
                 }
                 Spacer()
                 // Same rule as home boxes: 🔥 appears only with a live streak.
                 if streak > 0 {
-                    Text("🔥 \(streak)").font(GT.semibold(12).monospacedDigit()).foregroundStyle(.white)
+                    Text("🔥 \(streak)").font(GT.semibold(12).monospacedDigit()).foregroundStyle(GT.onFelt)
                         .padding(.horizontal, 10).padding(.vertical, 4)
-                        .background(Color.white.opacity(0.16), in: Capsule())
+                        .background(GT.onFelt.opacity(0.16), in: Capsule())
                 }
             }
             // With a subtitle the header ends in small grey text, and so does the first
@@ -51,10 +51,10 @@ struct DrillScaffold<Content: View, Sheet: View>: View {
             sheet
                 .padding(18)
                 .frame(maxWidth: .infinity)
-                .background(.white)
+                .background(GT.card)
                 .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(GT.green.ignoresSafeArea())
+        .background(GT.felt.ignoresSafeArea())
     }
 }

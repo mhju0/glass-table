@@ -23,7 +23,7 @@ struct RevealView: View {
                         .overlay {
                             if selected == card {
                                 RoundedRectangle(cornerRadius: 52 * 0.17)
-                                    .stroke(GT.cta, lineWidth: 3)
+                                    .stroke(GT.mint, lineWidth: 3)
                             }
                         }
                 }

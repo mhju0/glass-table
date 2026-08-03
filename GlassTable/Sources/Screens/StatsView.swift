@@ -12,8 +12,8 @@ struct StatsView: View {
 
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(spacing: 3) {
-            Text(value).font(GT.title(26)).foregroundStyle(.white)
-            Text(label).font(GT.semibold(11)).foregroundStyle(.white.opacity(0.62))
+            Text(value).font(GT.title(26)).foregroundStyle(GT.onFelt)
+            Text(label).font(GT.semibold(11)).foregroundStyle(GT.onFelt.opacity(0.62))
         }
         .frame(maxWidth: .infinity)
     }
@@ -44,7 +44,7 @@ struct StatsView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("통계").font(GT.title(16)).foregroundStyle(.white)
+                Text("통계").font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Spacer()
             }
             .padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 6)
@@ -69,10 +69,10 @@ struct StatsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24)
-                    .fill(.white).ignoresSafeArea(edges: .bottom))
+                    .fill(GT.card).ignoresSafeArea(edges: .bottom))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(GT.green.ignoresSafeArea())
+        .background(GT.felt.ignoresSafeArea())
         .toolbarBackground(.hidden, for: .navigationBar)
         .onAppear {
             for k in DrillKind.allCases {

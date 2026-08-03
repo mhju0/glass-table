@@ -15,7 +15,7 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("설정").font(GT.title(26)).foregroundStyle(.white)
+                Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
                 VStack(spacing: 0) {
                     NavigationLink { FirstHandView() } label: {
@@ -34,7 +34,7 @@ struct SettingsView: View {
                     }
                     .buttonStyle(GTPress())
                 }
-                .background(.white, in: RoundedRectangle(cornerRadius: 20))
+                .background(GT.card, in: RoundedRectangle(cornerRadius: 20))
                 VStack(spacing: 0) {
                     Link(destination: Self.feedbackURL) {
                         row("envelope.fill", "피드백 보내기", "버그·아이디어를 메일로",
@@ -59,7 +59,7 @@ struct SettingsView: View {
                     }
                     .padding(16)
                 }
-                .background(.white, in: RoundedRectangle(cornerRadius: 20))
+                .background(GT.card, in: RoundedRectangle(cornerRadius: 20))
             }
             .padding(.horizontal, 18)
         }

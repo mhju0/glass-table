@@ -17,7 +17,7 @@ struct CallFoldView: View {
             SectionLabel(text: "보드 · 턴").padding(.top, 10); CardRow(cards: spot.board)
             SectionLabel(text: "내 핸드 · HERO").padding(.top, 10); CardRow(cards: spot.hero)
             Text("팟 \(spot.pot) bb · 벳 \(spot.bet) bb")
-                .font(GT.title(15)).foregroundStyle(.white).padding(.top, 12)
+                .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
         }
     }
 
