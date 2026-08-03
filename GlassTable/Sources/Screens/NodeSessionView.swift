@@ -153,12 +153,7 @@ struct NodeSessionView: View {
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
-            Button { dismiss() } label: {
-                Text("길로 돌아가기").font(GT.title(15)).foregroundStyle(GT.felt)
-                    .frame(maxWidth: .infinity, minHeight: 52)
-                    .gtCard(radius: 14)
-            }
-            .buttonStyle(GTPress())
+            FeltCTAButton(title: "길로 돌아가기") { dismiss() }
         }
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

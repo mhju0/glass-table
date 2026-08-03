@@ -73,13 +73,7 @@ private struct DrillShell<Content: View, Sheet: View>: View {
 
             ScrollView { content().padding(.horizontal, 18) }
 
-            sheet()
-                .padding(18)
-                .frame(maxWidth: .infinity)
-                .background(GT.card)
-                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
-                // The sheet's top edge; without it the cream merges into the felt.
-                .overlay(alignment: .top) { Rectangle().fill(GT.border).frame(height: 1) }
+            ActionSheet { sheet() }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -153,14 +147,27 @@ private struct ShowdownDrill: View {
 
     private var spot: ShowdownSpot { ShowdownSpotGenerator.spot(baseSeed: seed, index: index) }
 
+    /// The five cards that actually won, lit once the answer is in. Getting it right
+    /// should *show* you something — the previous reveal changed only the text.
+    private var winningFive: [Card] {
+        guard let reveal else { return [] }
+        switch reveal.winner {
+        case 0: return bestFiveCards(spot.hero + spot.board)
+        case 1: return bestFiveCards(spot.villain + spot.board)
+        default: return spot.board
+        }
+    }
+
     var body: some View {
         DrillShell(title: "쇼다운", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
+                SectionLabel(text: reveal == nil ? "상대" : (reveal!.winner == 1 ? "상대 · 승" : "상대"))
+                CardRow(cards: spot.villain, maxSize: 78, highlight: winningFive)
                 SectionLabel(text: "보드").padding(.top, 10)
-                CardRow(cards: spot.board, maxSize: 70)
-                SectionLabel(text: "내 핸드").padding(.top, 10)
-                CardRow(cards: spot.hero, maxSize: 78)
+                CardRow(cards: spot.board, maxSize: 70, highlight: winningFive)
+                SectionLabel(text: reveal == nil ? "내 핸드" : (reveal!.winner == 0 ? "내 핸드 · 승" : "내 핸드"))
+                    .padding(.top, 10)
+                CardRow(cards: spot.hero, maxSize: 78, highlight: winningFive)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {

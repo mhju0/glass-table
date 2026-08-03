@@ -34,7 +34,7 @@ struct WalkthroughView: View {
             ScrollView {
                 content.padding(.horizontal, 18).padding(.top, 6)
             }
-            sheet
+            ActionSheet { sheet }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(FeltBackground())
@@ -196,11 +196,6 @@ struct WalkthroughView: View {
                 else { withAnimation(.easeOut(duration: 0.25)) { index += 1 } }
             }
         }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(GT.card)
-        .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
-        .overlay(alignment: .top) { Rectangle().fill(GT.border).frame(height: 1) }
         .accessibilityElement(children: .combine)
     }
 }

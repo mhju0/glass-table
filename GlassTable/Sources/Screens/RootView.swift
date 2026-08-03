@@ -13,16 +13,12 @@ struct RootView: View {
     @State private var showFreePlay = false
     @State private var showSettings = false
 
-    @AppStorage("gt.seen_firstrun") private var seenFirstRun = false
-
     var body: some View {
         Group {
             if model.unreadable != nil {
                 // Spec §8.2: a store that exists but will not parse must never be
                 // silently replaced with empty progress.
                 StoreRecoveryView()
-            } else if forceFirstRun || (!seenFirstRun && !isDemoRun) {
-                FirstRunView { seenFirstRun = true }
             } else {
                 tabs
             }
@@ -31,23 +27,6 @@ struct RootView: View {
         .tint(GT.onFelt)
     }
 
-    /// Screenshot runs never play first run — it would sit in front of every screen.
-    /// `GT_DEMO_FIRSTRUN=1` opts back in so first run itself stays screenshottable.
-    private var isDemoRun: Bool {
-        #if DEBUG
-        return ProcessInfo.processInfo.environment.keys.contains { $0.hasPrefix("GT_DEMO") }
-        #else
-        return false
-        #endif
-    }
-
-    private var forceFirstRun: Bool {
-        #if DEBUG
-        return ProcessInfo.processInfo.environment["GT_DEMO_FIRSTRUN"] != nil
-        #else
-        return false
-        #endif
-    }
 
     private var tabs: some View {
         TabView(selection: $tab) {
@@ -136,10 +115,7 @@ struct StoreRecoveryView: View {
                  + "백업이 있으면 불러오고, 없으면 새로 시작할 수 있어요.")
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Button("백업 불러오기") { importing = true }
-                .font(GT.title(14)).foregroundStyle(GT.card)
-                .frame(maxWidth: .infinity, minHeight: 50)
-                .background(GT.mint.opacity(0.85), in: RoundedRectangle(cornerRadius: 13))
+            FeltCTAButton(title: "백업 불러오기") { importing = true }
             Button("새로 시작하기") { model.discardUnreadableStore() }
                 .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)

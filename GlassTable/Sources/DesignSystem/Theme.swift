@@ -2,82 +2,74 @@
 import SwiftUI
 import UIKit
 
-/// A colour that resolves per interface style.
-///
-/// Chosen over asset-catalog colour sets because the whole palette then lives in one
-/// readable file where a light/dark pair sits on one line — the same reason the store
-/// is a plain JSON file.
+/// Resolves per interface style. Used for the *few* tokens that genuinely differ.
 private func dyn(_ light: UInt32, _ dark: UInt32) -> Color {
     Color(UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(Color(hex: dark)) : UIColor(Color(hex: light)) })
 }
 
-/// 펠트 + 카드지 — felt surface with warm cards laid on it (spec §9), in two schemes.
+/// 펠트 + 카드지 — two materials, and only two.
 ///
-/// Light is a card room by day: deep desaturated felt, cream paper. Dark is the same
-/// room at night — the felt drops further, the "cream" card becomes an elevated dark
-/// green surface, and the ink inverts. Playing-card faces stay the lightest thing on
-/// screen in both, because a card is paper; but in dark they dim to a bone so a grid
-/// of nine outs isn't nine little floodlights.
+/// **The rule: ink never flips, because the surface under it never flips.**
+/// A thing is either on the *felt* (dark, always) or on *paper* (light, always), so
+/// `onFelt*` and `ink*` are fixed values. Every colour bug so far came from breaking
+/// this — near-white ink printed on a cream card, a dark button on dark felt — and
+/// each was a scheme-aware ink sitting on a surface that stayed put.
+///
+/// Only the felt's depth and the paper's brightness follow the system scheme. Dark
+/// mode is the same room at night, not an inverted one.
 enum GT {
-    // Felt — the surface everything sits on.
+    // MARK: felt — the table
+
     static let felt         = dyn(0x1B4234, 0x0F211A)
     static let feltDeep     = dyn(0x14382B, 0x0A1811)
     static let hairlineFelt = dyn(0x2A5546, 0x244134)
 
-    // Ink on felt.
-    static let onFelt          = dyn(0xF2EFE7, 0xE8EFE9)
-    static let onFeltSecondary = dyn(0x8CA396, 0x8CA396)
-    static let onFeltMuted     = dyn(0x7E978A, 0x6E8579)
+    /// Ink on felt. Fixed.
+    static let onFelt          = Color(hex: 0xF2EFE7)
+    static let onFeltSecondary = Color(hex: 0x9DB3A6)
+    static let onFeltMuted     = Color(hex: 0x7E978A)
 
-    // Cards laid on the felt.
-    static let card     = dyn(0xF4F1E9, 0x1A2E25)
-    static let cardFace = dyn(0xF7F5EF, 0xDAD6CA)
-    /// Ink **printed on a playing card**. Fixed, never scheme-aware: the card face is
-    /// paper in both schemes, so following the interface style would print near-white
-    /// on cream in dark mode — which is exactly what it did before this token existed.
+    // MARK: paper — cards, sheets, anything you act on
+
+    /// Dimmed at night so a full-width sheet is not a floodlight, but still paper.
+    /// This is what gives separation from the felt: a different *material*, which
+    /// reads at a glance in a way a hairline never does.
+    static let card     = dyn(0xF4F1E9, 0xE4E0D4)
+    static let cardFace = dyn(0xF7F5EF, 0xEFEBE0)
+    /// Inset block inside paper — the "why" panel, stepper keys, unfilled pips.
+    static let surface  = dyn(0xE9E4D6, 0xD8D3C4)
+
+    /// Ink on paper. Fixed.
+    static let ink          = Color(hex: 0x16211C)
+    static let inkSecondary = Color(hex: 0x55635B)
+    static let inkMuted     = Color(hex: 0x8B978D)
+
+    /// Edges. Present but quiet — separation comes from the material change first.
+    static let border       = Color(hex: 0xD8D2C1)
+    static let borderStrong = Color(hex: 0xBDB6A2)
+
+    // MARK: actions
+
+    /// Primary action **on paper**: deep felt fill, cream lettering.
+    static let cta   = Color(hex: 0x1B4234)
+    static let onCTA = Color(hex: 0xF4F1E9)
+    /// Accent for icons and live values on paper.
+    static let green = Color(hex: 0x1B4234)
+    /// Accents drawn **on felt**, where the deep greens vanish.
+    static let mint  = Color(hex: 0x6FD3A0)
+
+    /// Price-bar segments, on felt, with `onFelt` numerals inside. Measured against
+    /// `onFelt` at 7.1 / 4.9 / 5.4:1 — all clear WCAG AA. 콜 is a different hue
+    /// because the denominator is the term beginners miss.
+    static let segPot  = Color(hex: 0x24593F)
+    static let segBet  = Color(hex: 0x2F7352)
+    static let segCall = Color(hex: 0x7A5C18)
+
+    static let suitRed = Color(hex: 0xC0392B)
+    /// Ink printed on a playing card. Fixed, for the same reason as everything above.
     static let cardInk     = Color(hex: 0x1A2621)
     static let cardSuitRed = Color(hex: 0xC0392B)
-    /// Inset block *inside* a card (the "why" panel, stepper keys, dividers).
-    static let surface  = dyn(0xEBE7DA, 0x24382E)
-
-    // Ink on a card.
-    static let ink          = dyn(0x1A2621, 0xE8EFE9)
-    static let inkSecondary = dyn(0x5D6B64, 0xA8BBAF)
-    static let inkMuted     = dyn(0x98A199, 0x7B9086)
-
-    /// Primary action sitting on a card. Light: deep felt. Dark: mint — deep felt on a
-    /// dark card would be invisible.
-    static let cta = dyn(0x1B4234, 0x6FD3A0)
-    /// Lettering *on* `cta`. It flips with the fill, which is why it is its own token
-    /// rather than reusing `onFelt`: cream on mint is the palette's one unreadable pair.
-    static let onCTA = dyn(0xF4F1E9, 0x0F211A)
-    /// Accent for icons and live values on a card.
-    static let green = dyn(0x1B4234, 0x6FD3A0)
-    /// Accents drawn *on felt*, where the deep felt greens vanish. Any highlight,
-    /// stroke or progress fill over felt uses this — never `cta`/`green`.
-    static let mint = dyn(0x6FD3A0, 0x6FD3A0)
-
-    /// Price-bar segments, drawn on felt with `onFelt` numerals inside them. Measured
-    /// against `onFelt` at 7.1 / 4.9 / 5.4:1, so every segment clears WCAG AA for
-    /// normal-size text. (The M1 pair reached only ~2.8:1 — those numerals were below
-    /// AA before the retint.) 콜 takes a different hue because the denominator is the
-    /// term beginners miss.
-    static let segPot  = dyn(0x24593F, 0x24593F)
-    static let segBet  = dyn(0x2F7352, 0x2F7352)
-    static let segCall = dyn(0x7A5C18, 0x7A5C18)
-
-    static let suitRed = dyn(0xC0392B, 0xE06B60)
-
-    /// Hairline that separates a surface from what it sits on.
-    ///
-    /// Material 3's guidance is that on a dark elevated surface a tonal fill alone is
-    /// too close in value to read as a control — an outline is structural there, not
-    /// decoration. Light mode needs less of it, so it is quieter.
-    static let border       = dyn(0xE2DCCB, 0x33513F)
-    /// The same idea for something interactive, where the edge has to survive being
-    /// glanced at rather than looked at.
-    static let borderStrong = dyn(0xD2CAB4, 0x40634E)
 
     // relativeTo: .body → all text scales with the user's Dynamic Type setting.
     static func title(_ s: CGFloat) -> Font    { .custom("Pretendard-Bold", size: s, relativeTo: .body) }
@@ -85,23 +77,18 @@ enum GT {
     static func body(_ s: CGFloat) -> Font     { .custom("Pretendard-Regular", size: s, relativeTo: .body) }
 }
 
-/// Grade band colours, scheme-aware.
-///
-/// The band inks were measured against their own light tints at 4.95–5.12:1. In dark
-/// the tints become deep washes and the inks lighten to keep that ratio, so the
-/// verdict stays AA in both schemes — and structure/shape/text still carry it even if
-/// colour is stripped entirely.
+/// Grade bands. Always on paper, so these are fixed too — the inks were measured
+/// against their own tints at 4.95–5.12:1 and that no longer depends on the scheme.
 enum GTBand {
-    static let spotOnInk  = dyn(0x0F7645, 0x5FD79B)
-    static let closeInk   = dyn(0x9C5700, 0xE0A85A)
-    static let offInk     = dyn(0xC02A2A, 0xF08A80)
-    static let spotOnTint = dyn(0xE7F7EF, 0x13322A)
-    static let closeTint  = dyn(0xFEF0DA, 0x33291A)
-    static let offTint    = dyn(0xFDECEC, 0x361F1F)
+    static let spotOnInk  = Color(hex: 0x0F7645)
+    static let closeInk   = Color(hex: 0x9C5700)
+    static let offInk     = Color(hex: 0xC02A2A)
+    static let spotOnTint = Color(hex: 0xE0F2E7)
+    static let closeTint  = Color(hex: 0xFAEBD4)
+    static let offTint    = Color(hex: 0xF9E5E3)
 }
 
-/// Home/settings backdrop. Flat rather than gradient — M1's spanned `#1B8A52`→
-/// `#0E5A34`, which is a lot of moving luminance behind text you read for an hour.
+/// Home/settings backdrop: flat felt plus a faint spade.
 struct FeltBackground: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
