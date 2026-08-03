@@ -86,7 +86,20 @@ struct WalkthroughView: View {
     private var content: some View {
         switch beat.focus {
         case .none:
-            EmptyView()
+            // A concept with no cards — EV, pot odds, position — otherwise left the
+            // whole content area empty, which reads as a broken screen rather than a
+            // text beat. The payload moves up onto the felt so the beat has a subject;
+            // the sheet keeps the label, the reasoning and the button.
+            VStack(alignment: .leading, spacing: 10) {
+                Spacer(minLength: 24)
+                Text(beat.value ?? beat.caption)
+                    .font(GT.title(34)).foregroundStyle(GT.onFelt)
+                    .minimumScaleFactor(0.5)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .contentTransition(.numericText())
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         case .table:
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
@@ -178,7 +191,7 @@ struct WalkthroughView: View {
     /// the previous layout had those the wrong way round.
     private var sheet: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let value = beat.value {
+            if let value = beat.value, beat.focus != .none {
                 Text(beat.caption)
                     .font(GT.semibold(11)).tracking(0.5)
                     .foregroundStyle(GT.inkMuted)
@@ -187,6 +200,12 @@ struct WalkthroughView: View {
                     .minimumScaleFactor(0.6).lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.numericText())
+            } else if beat.focus == .none {
+                // The payload is already large on the felt. Repeating it here is the
+                // same sentence twice; only its label belongs in the sheet.
+                if beat.value != nil {
+                    Text(beat.caption).font(GT.semibold(13)).foregroundStyle(GT.inkMuted)
+                }
             } else {
                 Text(beat.caption).font(GT.title(19)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
