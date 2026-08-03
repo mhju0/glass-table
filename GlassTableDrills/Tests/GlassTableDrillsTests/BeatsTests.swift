@@ -68,11 +68,10 @@ final class BeatsTests: XCTestCase {
         // 13 hearts − Ah,Kh (hand) − Qh,7h (board) = 9 candidates before exclusions.
         XCTAssertTrue(all.contains("남은 하트 9장"), all)
         XCTAssertTrue(all.contains("13 − 4 = 9장"), all)
-        // The two dead cards are named and struck in place, not dropped. Card naming
-        // uses `Card.description` ("2h") to match the shipped reveal copy in
-        // Reveal.swift — the walkthrough and the reveal say the same sentence, so
-        // they must spell a card the same way.
-        XCTAssertTrue(all.contains("2h·3h") || all.contains("3h·2h"), all)
+        // The two dead cards are named and struck in place, not dropped. Copy uses
+        // `Card.display` ("2♥"), never the `description` parse format ("2h").
+        XCTAssertTrue(all.contains("2♥·3♥") || all.contains("3♥·2♥"), all)
+        XCTAssertFalse(all.contains("2h"), "copy must not leak the parse format")
         XCTAssertEqual(Set(beats.compactMap { $0.struck.isEmpty ? nil : $0.struck }.flatMap { $0 }),
                        Set(Card.parse("2h3h")!))
         XCTAssertTrue(all.contains("그래서 7장"), all)

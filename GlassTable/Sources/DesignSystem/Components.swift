@@ -63,16 +63,16 @@ extension GradeBand {
     /// all below AA. These are 4.95–5.12:1, so the verdict is legible at any size.
     var ink: Color {
         switch self {
-        case .spotOn: return Color(hex: 0x0F7645)
-        case .close:  return Color(hex: 0x9C5700)
-        case .off:    return Color(hex: 0xC02A2A)
+        case .spotOn: return GTBand.spotOnInk
+        case .close:  return GTBand.closeInk
+        case .off:    return GTBand.offInk
         }
     }
     var tint: Color {
         switch self {
-        case .spotOn: return Color(hex: 0xE7F7EF)
-        case .close:  return Color(hex: 0xFEF0DA)
-        case .off:    return Color(hex: 0xFDECEC)
+        case .spotOn: return GTBand.spotOnTint
+        case .close:  return GTBand.closeTint
+        case .off:    return GTBand.offTint
         }
     }
 }
@@ -214,7 +214,7 @@ struct PrimaryCTAButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(GT.title(15)).foregroundStyle(GT.onFelt)
+            Text(title).font(GT.title(15)).foregroundStyle(GT.onCTA)
                 .frame(maxWidth: .infinity, minHeight: 52)
                 .background(GT.cta, in: RoundedRectangle(cornerRadius: 14))
         }

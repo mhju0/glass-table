@@ -103,7 +103,7 @@ public enum BeatScript {
                               detail: sub,
                               focus: .grid(remaining.sorted(by: byRank))))
             if !s.excluded.isEmpty {
-                beats.append(Beat("그런데 \(s.excluded.map(\.description).joined(separator: "·"))는 아니에요",
+                beats.append(Beat("그런데 \(s.excluded.map(\.display).joined(separator: "·"))는 아니에요",
                                   detail: "완성해도 상대가 더 강해져서 져요. 그래서 아웃에서 빼요.",
                                   focus: .grid(remaining.sorted(by: byRank)),
                                   struck: s.excluded))
@@ -198,7 +198,7 @@ public enum BeatScript {
     // MARK: 콤보
 
     public static func combos(_ s: BlockerSpot) -> [Beat] {
-        let removedNames = s.removed.map(\.description).joined(separator: "·")
+        let removedNames = s.removed.map(\.display).joined(separator: "·")
         return [
             Beat("\(s.className)는 원래 \(s.baseline)가지예요",
                  detail: kindExplain(s.kind)),
@@ -295,7 +295,7 @@ public enum BeatScript {
         a.rank == b.rank ? a.suit < b.suit : a.rank < b.rank
     }
 
-    public static func suitName(_ suit: Int) -> String {
-        ["클럽", "다이아", "하트", "스페이드"][suit]
-    }
+    /// Defers to the shared table in CardDisplay so suit names cannot drift between
+    /// the walkthrough prose and the card faces.
+    public static func suitName(_ suit: Int) -> String { suitKoreanName(suit) }
 }

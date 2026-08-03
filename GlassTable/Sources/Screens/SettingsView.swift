@@ -18,19 +18,13 @@ struct SettingsView: View {
                 Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
                 VStack(spacing: 0) {
-                    NavigationLink { FirstHandView() } label: {
-                        row("suit.spade.fill", "첫 핸드 다시 보기",
-                            "한 판으로 다섯 드릴 훑어보기", chevron: true)
-                    }
-                    .buttonStyle(GTPress())
-                    Divider().padding(.leading, 56)
                     NavigationLink { GlossaryView() } label: {
                         row("book.fill", "용어집", "포커 용어 한국어·영어 정리", chevron: true)
                     }
                     .buttonStyle(GTPress())
-                    // 통계 removed: StatsView reads the M1 per-drill stores, and no
-                    // drill writes those any more — it would show a permanent zero.
-                    // The 기록 tab supersedes it and reads the live store.
+                    // 통계 and 첫 핸드 are gone. StatsView read the M1 per-drill stores
+                    // that nothing writes any more, and 첫 핸드 is superseded by first
+                    // run — 천천히 replays any concept's walkthrough on demand instead.
                 }
                 .background(GT.card, in: RoundedRectangle(cornerRadius: 20))
                 VStack(spacing: 0) {

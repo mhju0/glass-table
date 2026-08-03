@@ -63,7 +63,7 @@ struct TodayView: View {
                         .foregroundStyle(GT.inkSecondary)
                         .padding(.top, 3)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text("이어서 하기").font(GT.title(14)).foregroundStyle(GT.card)
+                    Text("이어서 하기").font(GT.title(14)).foregroundStyle(GT.onCTA)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .background(GT.cta, in: RoundedRectangle(cornerRadius: 12))
                         .padding(.top, 14)

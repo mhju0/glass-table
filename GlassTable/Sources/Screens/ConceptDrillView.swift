@@ -461,19 +461,27 @@ private struct CountDrill: View {
     let onAnswer: (DrillOutcome) -> Void
     @State private var value = 8
     @State private var result: (band: GradeBand, mine: String, correct: String, why: String)?
+    @State private var tappedOut: Card?
 
     private var outsSpot: OutsSpot { OutsSpotGenerator.spot(baseSeed: seed, index: index) }
     private var comboSpot: BlockerSpot { BlockerSpotGenerator.spot(baseSeed: seed, index: index) }
 
     var body: some View {
         DrillShell(title: kind == .outs ? "아웃" : "콤보", progressText: progressText) {
-            if kind == .outs { outsContent } else { comboContent }
+            if kind == .outs {
+                // After the reveal the outs become tappable, so an abstract count turns
+                // into a hand you can actually see finish. Counting 9 teaches less than
+                // watching one of the nine win.
+                if result != nil { outsReveal } else { outsContent }
+            } else {
+                comboContent
+            }
         } sheet: {
             if let result {
                 RevealSheet(band: result.band, mine: result.mine,
                             correct: result.correct, why: result.why) {
                     onAnswer(DrillOutcome(band: result.band, interval: nil))
-                    self.result = nil; value = 8
+                    self.result = nil; value = 8; tappedOut = nil
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
@@ -512,6 +520,52 @@ private struct CountDrill: View {
             CardRow(cards: outsSpot.hero, maxSize: 52)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// The restored affordance from the M1 outs reveal: every out is tappable and
+    /// shows the finished river hand for both players via `RiverExplainPanel`.
+    private var outsReveal: some View {
+        let spot = outsSpot
+        return VStack(alignment: .leading, spacing: 6) {
+            SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 44)
+            SectionLabel(text: "보드 · 턴").padding(.top, 8)
+            CardRow(cards: spot.board, maxSize: 40)
+            SectionLabel(text: "내 핸드").padding(.top, 8); CardRow(cards: spot.hero, maxSize: 44)
+
+            SectionLabel(text: "리버 아웃 · \(spot.outCount)장 · 눌러서 확인").padding(.top, 12)
+            outsGrid(spot.outs, dead: false)
+            if !spot.excluded.isEmpty {
+                SectionLabel(text: "제외 · 상대 핸드 개선").padding(.top, 10)
+                outsGrid(spot.excluded, dead: true)
+            }
+            if let tappedOut {
+                RiverExplainPanel(spot: spot, river: tappedOut).padding(.top, 10)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func outsGrid(_ cards: [Card], dead: Bool) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 38), spacing: 8)],
+                  alignment: .leading, spacing: 8) {
+            ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        tappedOut = tappedOut == card ? nil : card
+                    }
+                } label: {
+                    PlayingCardView(card: card, size: 48, dead: dead)
+                        .overlay {
+                            if tappedOut == card {
+                                RoundedRectangle(cornerRadius: 48 * 0.17)
+                                    .stroke(GT.mint, lineWidth: 3)
+                            }
+                        }
+                }
+                .buttonStyle(GTPress())
+                .accessibilityHint("리버 완성 핸드 보기")
+            }
+        }
     }
 
     private var comboContent: some View {

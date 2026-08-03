@@ -53,7 +53,7 @@ public func handName(_ b: HandBrief) -> String {
 
 func whyText(for spot: OutsSpot) -> String {
     guard !spot.excluded.isEmpty else { return "\(spot.outCount) 아웃." }
-    let ex = spot.excluded.map(\.description).joined(separator: "·")
+    let ex = spot.excluded.map(\.display).joined(separator: "·")
     let apparent = spot.outCount + spot.excluded.count
     // Always-true reason: these cards complete the draw but hero still loses (the board
     // pairs villain up, villain out-flushes, etc.). Spot-specific reasoning is deferred.

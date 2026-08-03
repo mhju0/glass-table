@@ -29,8 +29,8 @@ targets:
           - Pretendard-Regular.otf
           - Pretendard-SemiBold.otf
           - Pretendard-Bold.otf
-        # All colors are hand-tuned for light; declare it so dark mode never half-applies.
-        UIUserInterfaceStyle: Light
+        # Both schemes are hand-tuned in Theme.swift (GT/GTBand resolve per style), so
+        # the app follows the system setting rather than pinning to light.
         # Drill layout (green zone + bottom sheet) is portrait-designed; lock it.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
