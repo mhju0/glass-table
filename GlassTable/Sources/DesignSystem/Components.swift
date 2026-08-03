@@ -18,9 +18,13 @@ struct GTPress: ButtonStyle {
 struct CardRow: View {
     let cards: [Card]
     var dead: Bool = false
-    /// Caps the ladder. 첫 핸드 holds the hand and a per-beat diagram on one screen, so it
-    /// trades card size for the room that diagram needs.
-    var maxSize: CGFloat = 64
+    /// Caps the ladder for callers that must leave room for something else.
+    ///
+    /// The top rung is sized so a five-card board still fits the narrowest supported
+    /// screen: at 78pt a card is 78 × 0.72 ≈ 56pt wide, so five plus four 8pt gaps is
+    /// ≈ 313pt against the 12 mini's 339pt of usable width. Everything larger than a
+    /// mini simply gets the top rung, which is the point — cards read as cards.
+    var maxSize: CGFloat = 78
     private func row(_ size: CGFloat) -> some View {
         HStack(spacing: 8) {
             ForEach(Array(cards.enumerated()), id: \.offset) {
@@ -30,8 +34,8 @@ struct CardRow: View {
     }
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            row(min(maxSize, 64)); row(min(maxSize, 56))
-            row(min(maxSize, 48)); row(min(maxSize, 40))
+            row(min(maxSize, 78)); row(min(maxSize, 68))
+            row(min(maxSize, 58)); row(min(maxSize, 48))
         }
     }
 }
@@ -255,5 +259,44 @@ struct EstimateStepper: View {
                 .background(GT.card, in: RoundedRectangle(cornerRadius: 13))
             key("+", step)
         }
+    }
+}
+
+// MARK: - surfaces and controls
+
+extension View {
+    /// A cream/elevated card with a hairline edge. Marvel Snap's rule — the cards on
+    /// the table take visual precedence and the chrome exists to frame them — is why
+    /// this stays a thin outline rather than a heavier fill or a drop shadow.
+    func gtCard(radius: CGFloat = 18) -> some View {
+        self.background(GT.card, in: RoundedRectangle(cornerRadius: radius))
+            .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(GT.border, lineWidth: 1))
+    }
+}
+
+/// A choice in an answer sheet: tonal fill **plus** an outline.
+///
+/// The fill alone measured almost identically to the card behind it in dark mode,
+/// which is what made the answer buttons read as flat text. Selected state changes
+/// fill, border and weight together so it never depends on colour alone.
+struct GTChoiceButton: View {
+    let title: String
+    var selected: Bool = false
+    var minHeight: CGFloat = 52
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(selected ? GT.title(15) : GT.semibold(15))
+                .foregroundStyle(GT.ink)
+                .frame(maxWidth: .infinity, minHeight: minHeight)
+                .background(selected ? GT.mint.opacity(0.22) : GT.surface,
+                            in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .strokeBorder(selected ? GT.cta : GT.borderStrong,
+                                  lineWidth: selected ? 2 : 1))
+        }
+        .buttonStyle(GTPress())
     }
 }

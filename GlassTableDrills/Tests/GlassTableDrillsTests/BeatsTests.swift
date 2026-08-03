@@ -103,15 +103,52 @@ final class BeatsTests: XCTestCase {
         XCTAssertTrue(beats.map { $0.detail ?? "" }.joined().contains("다시 세지 않아요"))
     }
 
-    func testShowdownScriptNamesBothHandsAndTheOutcome() {
+    /// The showdown script replays the street progression: turn, both hands as they
+    /// stand, the river landing, both hands re-read, then the comparison.
+    func testShowdownScriptWalksTheTurnThenTheRiver() {
         let spot = ShowdownSpot(hero: Card.parse("KhKs")!, villain: Card.parse("QhQs")!,
                                 board: Card.parse("2c7d9hJc4s")!)
         let beats = BeatScript.showdown(spot)
-        XCTAssertEqual(beats.count, 4)
+        XCTAssertEqual(beats.count, 7)
         XCTAssertEqual(beats.last?.caption, "내가 이겨요")
+
+        let river = Card("4s")!
+        // The river is face-down for every beat before it lands, and never after.
+        for b in beats.prefix(3) { XCTAssertEqual(b.hidden, [river], b.caption) }
+        for b in beats.dropFirst(3) { XCTAssertTrue(b.hidden.isEmpty, b.caption) }
+        XCTAssertEqual(beats[3].caption, "리버")
+        XCTAssertTrue(beats[3].detail?.contains("4♠") == true, beats[3].detail ?? "")
+
         let all = beats.map { $0.detail ?? "" }.joined()
         XCTAssertTrue(all.contains("K 원 페어"))
         XCTAssertTrue(all.contains("Q 원 페어"))
+    }
+
+    /// Highlights are the five cards that actually play — never all seven. This is the
+    /// difference between "your hand is two pair" and pointing at two pair.
+    func testShowdownHighlightsOnlyTheFivePlayingCards() {
+        for i in 0..<40 {
+            let s = ShowdownSpotGenerator.spot(baseSeed: 31, index: i)
+            for b in BeatScript.showdown(s) where !b.highlight.isEmpty {
+                XCTAssertLessThanOrEqual(b.highlight.count, 5,
+                                         "beat \"\(b.caption)\" highlighted \(b.highlight.count) cards")
+            }
+        }
+    }
+
+    /// A hand that changes on the river must say so, and one that does not must not.
+    func testRiverRereadNamesTheChangeOnlyWhenThereIsOne() {
+        // Board 2-7-9-J then 4: neither pocket pair improves, so both are unchanged.
+        let steady = BeatScript.showdown(
+            ShowdownSpot(hero: Card.parse("KhKs")!, villain: Card.parse("QhQs")!,
+                         board: Card.parse("2c7d9hJc4s")!))
+        XCTAssertTrue(steady[4].detail?.contains("그대로") == true, steady[4].detail ?? "")
+
+        // Hero turns a set on the river, so the re-read must announce the change.
+        let changed = BeatScript.showdown(
+            ShowdownSpot(hero: Card.parse("KhKs")!, villain: Card.parse("QhQs")!,
+                         board: Card.parse("2c7d9hJcKd")!))
+        XCTAssertTrue(changed[4].detail?.contains("→") == true, changed[4].detail ?? "")
     }
 
     func testPositionScriptListsTheSeatsThatActBehind() {

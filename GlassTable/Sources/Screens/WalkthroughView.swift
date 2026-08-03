@@ -96,10 +96,10 @@ struct WalkthroughView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         case let .grid(cards):
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 40), spacing: 8)],
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
                       alignment: .leading, spacing: 8) {
                 ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
-                    cardView(card, size: 46)
+                    cardView(card, size: 58)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -109,19 +109,24 @@ struct WalkthroughView: View {
     private func cardRow(_ cards: [Card]) -> some View {
         HStack(spacing: 7) {
             ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
-                cardView(card, size: 46)
+                cardView(card, size: 58)
             }
         }
     }
 
-    /// Three states, and none of them removes the card from the layout.
+    /// Four states, and none of them removes the card from the layout.
     private func cardView(_ card: Card, size: CGFloat) -> some View {
         let lit = beat.highlight.contains(card)
         let dead = beat.struck.contains(card)
+        let down = beat.hidden.contains(card)
         // Only dim when something is actually singled out, or a beat with no
         // highlight would grey the whole board for no reason.
-        let dim = !beat.highlight.isEmpty && !lit
-        return PlayingCardView(card: card, size: size)
+        let dim = !beat.highlight.isEmpty && !lit && !down
+        return PlayingCardView(card: card, size: size, faceDown: down)
+            // The river landing: it flips up and settles, so the one card that
+            // changed is the one thing that moved.
+            .rotation3DEffect(.degrees(down ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+            .scaleEffect(down ? 0.96 : 1)
             .overlay {
                 if dead {
                     // Strike + a red bar, so "removed" survives greyscale.
@@ -140,6 +145,9 @@ struct WalkthroughView: View {
             }
             .animation(reduceMotion ? nil : .easeInOut(duration: 1.9).repeatForever(autoreverses: true),
                        value: pulsing)
+            .animation(reduceMotion ? .easeOut(duration: 0.01)
+                                    : .spring(response: 0.55, dampingFraction: 0.72),
+                       value: down)
             .animation(.easeOut(duration: 0.25), value: index)
             .accessibilityLabel(accessibilityText(card, lit: lit, dead: dead))
     }
@@ -167,6 +175,7 @@ struct WalkthroughView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(GT.card)
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
+        .overlay(alignment: .top) { Rectangle().fill(GT.border).frame(height: 1) }
         .accessibilityElement(children: .combine)
     }
 }

@@ -33,6 +33,11 @@ enum GT {
     // Cards laid on the felt.
     static let card     = dyn(0xF4F1E9, 0x1A2E25)
     static let cardFace = dyn(0xF7F5EF, 0xDAD6CA)
+    /// Ink **printed on a playing card**. Fixed, never scheme-aware: the card face is
+    /// paper in both schemes, so following the interface style would print near-white
+    /// on cream in dark mode — which is exactly what it did before this token existed.
+    static let cardInk     = Color(hex: 0x1A2621)
+    static let cardSuitRed = Color(hex: 0xC0392B)
     /// Inset block *inside* a card (the "why" panel, stepper keys, dividers).
     static let surface  = dyn(0xEBE7DA, 0x24382E)
 
@@ -63,6 +68,16 @@ enum GT {
     static let segCall = dyn(0x7A5C18, 0x7A5C18)
 
     static let suitRed = dyn(0xC0392B, 0xE06B60)
+
+    /// Hairline that separates a surface from what it sits on.
+    ///
+    /// Material 3's guidance is that on a dark elevated surface a tonal fill alone is
+    /// too close in value to read as a control — an outline is structural there, not
+    /// decoration. Light mode needs less of it, so it is quieter.
+    static let border       = dyn(0xE2DCCB, 0x33513F)
+    /// The same idea for something interactive, where the edge has to survive being
+    /// glanced at rather than looked at.
+    static let borderStrong = dyn(0xD2CAB4, 0x40634E)
 
     // relativeTo: .body → all text scales with the user's Dynamic Type setting.
     static func title(_ s: CGFloat) -> Font    { .custom("Pretendard-Bold", size: s, relativeTo: .body) }

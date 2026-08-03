@@ -25,11 +25,16 @@ public struct Beat: Equatable, Sendable {
     /// Struck through **in place** rather than removed: seeing what was taken away,
     /// and why, is the lesson.
     public let struck: [Card]
+    /// Not dealt yet — rendered face-down. A card leaving this set between beats is
+    /// the river landing, which is what lets a walkthrough replay the actual street
+    /// progression instead of presenting a finished board as a fait accompli.
+    public let hidden: [Card]
 
     public init(_ caption: String, detail: String? = nil, focus: BeatFocus = .none,
-                highlight: [Card] = [], struck: [Card] = []) {
+                highlight: [Card] = [], struck: [Card] = [], hidden: [Card] = []) {
         self.caption = caption; self.detail = detail
-        self.focus = focus; self.highlight = highlight; self.struck = struck
+        self.focus = focus; self.highlight = highlight
+        self.struck = struck; self.hidden = hidden
     }
 }
 
@@ -42,24 +47,52 @@ public enum BeatScript {
 
     // MARK: 쇼다운
 
+    /// Replays the hand as it was actually played: the turn, both hands as they stand,
+    /// then the river lands and both are re-read before they are compared. A finished
+    /// board shown all at once teaches the answer; this teaches the reading.
     public static func showdown(_ s: ShowdownSpot) -> [Beat] {
-        let heroFive = s.hero + s.board
-        let villainFive = s.villain + s.board
+        let turn = Array(s.board.prefix(4))
+        let river = Array(s.board.suffix(1))
+
+        let heroTurn = bestFiveCards(s.hero + turn)
+        let villainTurn = bestFiveCards(s.villain + turn)
+        let heroRiver = bestFiveCards(s.hero + s.board)
+        let villainRiver = bestFiveCards(s.villain + s.board)
+        let heroTurnName = handName(bestHandOfAny(s.hero + turn))
+        let villainTurnName = handName(bestHandOfAny(s.villain + turn))
+        let heroName = handName(s.heroBest)
+        let villainName = handName(s.villainBest)
+
         var beats = [
-            Beat("지금 상황이에요", detail: "보드 5장이 모두 깔렸어요. 두 사람 다 여기서 가장 좋은 5장을 골라요.",
-                 focus: .table),
-            Beat("내 패", detail: handName(s.heroBest), focus: .table, highlight: heroFive),
-            Beat("상대 패", detail: handName(s.villainBest), focus: .table, highlight: villainFive),
+            Beat("턴까지 왔어요", detail: "보드 4장. 리버 한 장이 남았어요.",
+                 focus: .table, hidden: river),
+            Beat("지금 내 패", detail: heroTurnName,
+                 focus: .table, highlight: heroTurn, hidden: river),
+            Beat("지금 상대 패", detail: villainTurnName,
+                 focus: .table, highlight: villainTurn, hidden: river),
+            // The river lands here — nothing is highlighted, so the eye goes to the
+            // one card that just changed.
+            Beat("리버", detail: "\(river[0].display)가 떨어졌어요. 두 사람 다 다시 읽어야 해요.",
+                 focus: .table, highlight: river),
         ]
+
+        beats.append(Beat("다시 읽은 내 패",
+                          detail: heroTurnName == heroName
+                              ? "\(heroName) — 그대로예요."
+                              : "\(heroTurnName) → \(heroName)로 바뀌었어요.",
+                          focus: .table, highlight: heroRiver))
+        beats.append(Beat("다시 읽은 상대 패",
+                          detail: villainTurnName == villainName
+                              ? "\(villainName) — 그대로예요."
+                              : "\(villainTurnName) → \(villainName)로 바뀌었어요.",
+                          focus: .table, highlight: villainRiver))
+
         switch s.winner {
-        case 0: beats.append(Beat("내가 이겨요",
-                                  detail: "\(handName(s.heroBest))가 \(handName(s.villainBest))를 이겨요.",
-                                  focus: .table, highlight: heroFive))
-        case 1: beats.append(Beat("상대가 이겨요",
-                                  detail: "\(handName(s.villainBest))가 \(handName(s.heroBest))를 이겨요.",
-                                  focus: .table, highlight: villainFive))
-        default: beats.append(Beat("찹이에요",
-                                   detail: "둘 다 \(handName(s.heroBest)) — 보드가 그대로 플레이돼요.",
+        case 0: beats.append(Beat("내가 이겨요", detail: "\(heroName)가 \(villainName)를 이겨요.",
+                                  focus: .table, highlight: heroRiver))
+        case 1: beats.append(Beat("상대가 이겨요", detail: "\(villainName)가 \(heroName)를 이겨요.",
+                                  focus: .table, highlight: villainRiver))
+        default: beats.append(Beat("찹이에요", detail: "둘 다 \(heroName) — 보드가 그대로 플레이돼요.",
                                    focus: .table, highlight: s.board))
         }
         return beats

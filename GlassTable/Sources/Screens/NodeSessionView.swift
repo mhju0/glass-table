@@ -156,7 +156,7 @@ struct NodeSessionView: View {
             Button { dismiss() } label: {
                 Text("길로 돌아가기").font(GT.title(15)).foregroundStyle(GT.felt)
                     .frame(maxWidth: .infinity, minHeight: 52)
-                    .background(GT.card, in: RoundedRectangle(cornerRadius: 14))
+                    .gtCard(radius: 14)
             }
             .buttonStyle(GTPress())
         }
@@ -221,7 +221,7 @@ struct FreePlayView: View {
                         }
                         .padding(14)
                         .frame(maxWidth: .infinity)
-                        .background(GT.card, in: RoundedRectangle(cornerRadius: 14))
+                        .gtCard(radius: 14)
                     }
                     .buttonStyle(GTPress())
                 }

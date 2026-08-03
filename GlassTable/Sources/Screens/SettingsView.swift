@@ -26,7 +26,7 @@ struct SettingsView: View {
                     // that nothing writes any more, and 첫 핸드 is superseded by first
                     // run — 천천히 replays any concept's walkthrough on demand instead.
                 }
-                .background(GT.card, in: RoundedRectangle(cornerRadius: 20))
+                .gtCard(radius: 20)
                 VStack(spacing: 0) {
                     Link(destination: Self.feedbackURL) {
                         row("envelope.fill", "피드백 보내기", "버그·아이디어를 메일로",
@@ -51,7 +51,7 @@ struct SettingsView: View {
                     }
                     .padding(16)
                 }
-                .background(GT.card, in: RoundedRectangle(cornerRadius: 20))
+                .gtCard(radius: 20)
             }
             .padding(.horizontal, 18)
         }

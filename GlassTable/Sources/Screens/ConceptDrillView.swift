@@ -78,6 +78,8 @@ private struct DrillShell<Content: View, Sheet: View>: View {
                 .frame(maxWidth: .infinity)
                 .background(GT.card)
                 .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
+                // The sheet's top edge; without it the cream merges into the felt.
+                .overlay(alignment: .top) { Rectangle().fill(GT.border).frame(height: 1) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -98,6 +100,7 @@ private struct RevealSheet: View {
                 .padding(13)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(GT.border, lineWidth: 1))
                 .fixedSize(horizontal: false, vertical: true)
             PrimaryCTAButton(title: "다음 문제", action: onNext)
         }
@@ -153,11 +156,11 @@ private struct ShowdownDrill: View {
     var body: some View {
         DrillShell(title: "쇼다운", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 52)
+                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
                 SectionLabel(text: "보드").padding(.top, 10)
-                CardRow(cards: spot.board, maxSize: 44)
+                CardRow(cards: spot.board, maxSize: 70)
                 SectionLabel(text: "내 핸드").padding(.top, 10)
-                CardRow(cards: spot.hero, maxSize: 52)
+                CardRow(cards: spot.hero, maxSize: 78)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
@@ -173,12 +176,9 @@ private struct ShowdownDrill: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("누가 이겼나요?").font(GT.title(15)).foregroundStyle(GT.ink)
                     ForEach(Array(["내가 이김", "상대가 이김", "찹"].enumerated()), id: \.offset) { i, label in
-                        Button { reveal = gradeShowdown(answer: i, spot: spot) } label: {
-                            Text(label).font(GT.title(14)).foregroundStyle(GT.ink)
-                                .frame(maxWidth: .infinity, minHeight: 48)
-                                .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+                        GTChoiceButton(title: label) {
+                            reveal = gradeShowdown(answer: i, spot: spot)
                         }
-                        .buttonStyle(GTPress())
                     }
                 }
             }
@@ -318,23 +318,17 @@ private struct PositionDrill: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
                       spacing: 8) {
                 ForEach(0...7, id: \.self) { n in
-                    Button { reveal = gradePosition(answer: n, spot: spot) } label: {
-                        Text("\(n)").font(GT.title(15)).foregroundStyle(GT.ink)
-                            .frame(maxWidth: .infinity, minHeight: 46)
-                            .background(GT.surface, in: RoundedRectangle(cornerRadius: 12))
+                    GTChoiceButton(title: "\(n)", minHeight: 50) {
+                        reveal = gradePosition(answer: n, spot: spot)
                     }
-                    .buttonStyle(GTPress())
                 }
             }
         case let .whichIsLater(a, b):
             HStack(spacing: 10) {
                 ForEach(Array([a, b].enumerated()), id: \.offset) { i, p in
-                    Button { reveal = gradePosition(answer: i, spot: spot) } label: {
-                        Text(p.rawValue).font(GT.title(15)).foregroundStyle(GT.ink)
-                            .frame(maxWidth: .infinity, minHeight: 50)
-                            .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+                    GTChoiceButton(title: p.rawValue, minHeight: 54) {
+                        reveal = gradePosition(answer: i, spot: spot)
                     }
-                    .buttonStyle(GTPress())
                 }
             }
         }
@@ -362,12 +356,12 @@ private struct EquitySenseDrill: View {
     var body: some View {
         DrillShell(title: "에퀴티 감각", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 52)
+                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
                 SectionLabel(text: spot.board.count == 3 ? "보드 · 플랍" : "보드 · 턴")
                     .padding(.top, 10)
-                CardRow(cards: spot.board, maxSize: 46)
+                CardRow(cards: spot.board, maxSize: 70)
                 SectionLabel(text: "내 핸드").padding(.top, 10)
-                CardRow(cards: spot.hero, maxSize: 52)
+                CardRow(cards: spot.hero, maxSize: 78)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
@@ -513,11 +507,11 @@ private struct CountDrill: View {
 
     private var outsContent: some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "상대"); CardRow(cards: outsSpot.villain, maxSize: 52)
+            SectionLabel(text: "상대"); CardRow(cards: outsSpot.villain, maxSize: 78)
             SectionLabel(text: "보드 · 턴").padding(.top, 10)
-            CardRow(cards: outsSpot.board, maxSize: 46)
+            CardRow(cards: outsSpot.board, maxSize: 70)
             SectionLabel(text: "내 핸드").padding(.top, 10)
-            CardRow(cards: outsSpot.hero, maxSize: 52)
+            CardRow(cards: outsSpot.hero, maxSize: 78)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -527,10 +521,10 @@ private struct CountDrill: View {
     private var outsReveal: some View {
         let spot = outsSpot
         return VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 44)
+            SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 70)
             SectionLabel(text: "보드 · 턴").padding(.top, 8)
-            CardRow(cards: spot.board, maxSize: 40)
-            SectionLabel(text: "내 핸드").padding(.top, 8); CardRow(cards: spot.hero, maxSize: 44)
+            CardRow(cards: spot.board, maxSize: 64)
+            SectionLabel(text: "내 핸드").padding(.top, 8); CardRow(cards: spot.hero, maxSize: 70)
 
             SectionLabel(text: "리버 아웃 · \(spot.outCount)장 · 눌러서 확인").padding(.top, 12)
             outsGrid(spot.outs, dead: false)
@@ -546,7 +540,7 @@ private struct CountDrill: View {
     }
 
     private func outsGrid(_ cards: [Card], dead: Bool) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 38), spacing: 8)],
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
                   alignment: .leading, spacing: 8) {
             ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
                 Button {
@@ -554,10 +548,10 @@ private struct CountDrill: View {
                         tappedOut = tappedOut == card ? nil : card
                     }
                 } label: {
-                    PlayingCardView(card: card, size: 48, dead: dead)
+                    PlayingCardView(card: card, size: 58, dead: dead)
                         .overlay {
                             if tappedOut == card {
-                                RoundedRectangle(cornerRadius: 48 * 0.17)
+                                RoundedRectangle(cornerRadius: 58 * 0.17)
                                     .stroke(GT.mint, lineWidth: 3)
                             }
                         }
@@ -573,7 +567,7 @@ private struct CountDrill: View {
             SectionLabel(text: "상대 핸드 클래스")
             Text(comboSpot.className).font(GT.title(26)).foregroundStyle(GT.onFelt)
             SectionLabel(text: "보이는 카드").padding(.top, 6)
-            CardRow(cards: comboSpot.removed, maxSize: 46)
+            CardRow(cards: comboSpot.removed, maxSize: 70)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -637,11 +631,11 @@ private struct CallFoldDrill: View {
     var body: some View {
         DrillShell(title: "콜/폴드", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 50)
+                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
                 SectionLabel(text: "보드 · 턴").padding(.top, 10)
-                CardRow(cards: spot.board, maxSize: 44)
+                CardRow(cards: spot.board, maxSize: 70)
                 SectionLabel(text: "내 핸드").padding(.top, 10)
-                CardRow(cards: spot.hero, maxSize: 50)
+                CardRow(cards: spot.hero, maxSize: 78)
                 Text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb")
                     .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
             }
@@ -663,12 +657,9 @@ private struct CallFoldDrill: View {
                         // Equal weight on both, so the layout carries no bias toward
                         // calling — the same rule the M1 screen already followed.
                         ForEach([("폴드", false), ("콜", true)], id: \.0) { label, calls in
-                            Button { reveal = gradeCallFold(userCalls: calls, spot: spot) } label: {
-                                Text(label).font(GT.title(15)).foregroundStyle(GT.ink)
-                                    .frame(maxWidth: .infinity, minHeight: 52)
-                                    .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+                            GTChoiceButton(title: label, minHeight: 56) {
+                                reveal = gradeCallFold(userCalls: calls, spot: spot)
                             }
-                            .buttonStyle(GTPress())
                         }
                     }
                 }

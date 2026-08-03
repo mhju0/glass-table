@@ -66,7 +66,7 @@ struct FirstRunView: View {
             Button { step = 0 } label: {
                 Text("시작하기").font(GT.title(15)).foregroundStyle(GT.felt)
                     .frame(maxWidth: .infinity, minHeight: 54)
-                    .background(GT.card, in: RoundedRectangle(cornerRadius: 14))
+                    .gtCard(radius: 14)
             }
             .buttonStyle(GTPress())
             Button("건너뛰기", action: finish)
@@ -135,7 +135,7 @@ struct FirstRunView: View {
             Button(action: finish) {
                 Text("길 열기").font(GT.title(15)).foregroundStyle(GT.felt)
                     .frame(maxWidth: .infinity, minHeight: 54)
-                    .background(GT.card, in: RoundedRectangle(cornerRadius: 14))
+                    .gtCard(radius: 14)
             }
             .buttonStyle(GTPress())
         }

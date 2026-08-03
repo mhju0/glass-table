@@ -47,7 +47,7 @@ struct RecordsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 13)
-        .background(GT.card, in: RoundedRectangle(cornerRadius: 15))
+        .gtCard(radius: 15)
         .accessibilityElement(children: .combine)
     }
 
@@ -87,7 +87,7 @@ struct RecordsView: View {
         }
         .padding(15)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(GT.card, in: RoundedRectangle(cornerRadius: 18))
+        .gtCard(radius: 18)
     }
 
     private func verdictLine(_ v: Calibration.Verdict) -> String {
@@ -119,7 +119,7 @@ struct RecordsView: View {
                 }
             }
             .padding(.horizontal, 14)
-            .background(GT.card, in: RoundedRectangle(cornerRadius: 18))
+            .gtCard(radius: 18)
         }
     }
 

@@ -70,7 +70,7 @@ struct TodayView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
-                .background(GT.card, in: RoundedRectangle(cornerRadius: 18))
+                .gtCard(radius: 18)
             }
             .buttonStyle(GTPress())
             .accessibilityLabel("다음 단계 \(node.title). \(nodeBlurb(node))")
@@ -84,7 +84,7 @@ struct TodayView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(GT.card, in: RoundedRectangle(cornerRadius: 18))
+            .gtCard(radius: 18)
         }
     }
 
@@ -104,7 +104,7 @@ struct TodayView: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity)
-            .background(GT.card, in: RoundedRectangle(cornerRadius: 18))
+            .gtCard(radius: 18)
         }
         .buttonStyle(GTPress())
     }
