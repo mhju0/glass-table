@@ -28,11 +28,9 @@ struct SettingsView: View {
                         row("book.fill", "용어집", "포커 용어 한국어·영어 정리", chevron: true)
                     }
                     .buttonStyle(GTPress())
-                    Divider().padding(.leading, 56)
-                    NavigationLink { StatsView() } label: {
-                        row("chart.bar.fill", "통계", "드릴별 스트릭과 정답률", chevron: true)
-                    }
-                    .buttonStyle(GTPress())
+                    // 통계 removed: StatsView reads the M1 per-drill stores, and no
+                    // drill writes those any more — it would show a permanent zero.
+                    // The 기록 tab supersedes it and reads the live store.
                 }
                 .background(GT.card, in: RoundedRectangle(cornerRadius: 20))
                 VStack(spacing: 0) {

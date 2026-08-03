@@ -13,18 +13,40 @@ struct RootView: View {
     @State private var showFreePlay = false
     @State private var showSettings = false
 
+    @AppStorage("gt.seen_firstrun") private var seenFirstRun = false
+
     var body: some View {
         Group {
             if model.unreadable != nil {
                 // Spec §8.2: a store that exists but will not parse must never be
                 // silently replaced with empty progress.
                 StoreRecoveryView()
+            } else if forceFirstRun || (!seenFirstRun && !isDemoRun) {
+                FirstRunView { seenFirstRun = true }
             } else {
                 tabs
             }
         }
         .environment(model)
         .tint(GT.onFelt)
+    }
+
+    /// Screenshot runs never play first run — it would sit in front of every screen.
+    /// `GT_DEMO_FIRSTRUN=1` opts back in so first run itself stays screenshottable.
+    private var isDemoRun: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.environment.keys.contains { $0.hasPrefix("GT_DEMO") }
+        #else
+        return false
+        #endif
+    }
+
+    private var forceFirstRun: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.environment["GT_DEMO_FIRSTRUN"] != nil
+        #else
+        return false
+        #endif
     }
 
     private var tabs: some View {
