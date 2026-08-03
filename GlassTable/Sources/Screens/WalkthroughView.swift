@@ -135,19 +135,29 @@ struct WalkthroughView: View {
                         .rotationEffect(.degrees(-16))
                 }
             }
-            .opacity(dead ? 0.45 : (dim ? 0.26 : 1))
+            // A dimmed card must stay *readable* — the beat is a comparison, and you
+            // cannot compare against something you cannot read. At 0.26 the face
+            // measured ~3.7:1 against its own ink over the dark felt; 0.62 puts it
+            // near 7:1 while still sitting clearly behind the highlighted cards,
+            // which now carry the emphasis themselves rather than borrowing it from
+            // everything else being crushed.
+            .opacity(dead ? 0.5 : (dim ? 0.62 : 1))
             .overlay {
                 if lit {
                     RoundedRectangle(cornerRadius: size * 0.17)
-                        .stroke(GT.mint, lineWidth: 2.5)
-                        .shadow(color: GT.mint.opacity(pulsing ? 0.85 : 0.4), radius: 7)
+                        .stroke(GT.mint, lineWidth: 3)
+                        .shadow(color: GT.mint.opacity(pulsing ? 0.9 : 0.45), radius: 9)
                 }
             }
+            // Lifted rather than merely outlined, so emphasis reads even at a glance
+            // now that the unhighlighted cards stay legible.
+            .scaleEffect(lit ? 1.06 : 1)
             .animation(reduceMotion ? nil : .easeInOut(duration: 1.9).repeatForever(autoreverses: true),
                        value: pulsing)
             .animation(reduceMotion ? .easeOut(duration: 0.01)
                                     : .spring(response: 0.55, dampingFraction: 0.72),
                        value: down)
+            .animation(.easeOut(duration: 0.22), value: lit)
             .animation(.easeOut(duration: 0.25), value: index)
             .accessibilityLabel(accessibilityText(card, lit: lit, dead: dead))
     }
@@ -158,10 +168,25 @@ struct WalkthroughView: View {
         return card.description
     }
 
+    /// Hierarchy follows the payload, not the sentence order. When a beat carries a
+    /// `value` the caption demotes to a small label above it and the value becomes the
+    /// biggest thing on screen — "지금 내 패" is the label, "10 하이" is the lesson, and
+    /// the previous layout had those the wrong way round.
     private var sheet: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(beat.caption).font(GT.title(17)).foregroundStyle(GT.ink)
-                .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 8) {
+            if let value = beat.value {
+                Text(beat.caption)
+                    .font(GT.semibold(11)).tracking(0.5)
+                    .foregroundStyle(GT.inkMuted)
+                Text(value)
+                    .font(GT.title(30)).foregroundStyle(GT.ink)
+                    .minimumScaleFactor(0.6).lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .contentTransition(.numericText())
+            } else {
+                Text(beat.caption).font(GT.title(19)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if let detail = beat.detail {
                 Text(detail).font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)

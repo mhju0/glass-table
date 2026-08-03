@@ -19,6 +19,10 @@ public enum BeatFocus: Equatable, Sendable {
 /// generated spot rather than only on an authored one.
 public struct Beat: Equatable, Sendable {
     public let caption: String
+    /// The short payload the beat exists to deliver — a hand name, a card, a count.
+    /// Rendered as the largest thing in the sheet, because the caption is only its
+    /// label: "지금 내 패" is not the lesson, "10 하이" is.
+    public let value: String?
     public let detail: String?
     public let focus: BeatFocus
     public let highlight: [Card]
@@ -30,9 +34,10 @@ public struct Beat: Equatable, Sendable {
     /// progression instead of presenting a finished board as a fait accompli.
     public let hidden: [Card]
 
-    public init(_ caption: String, detail: String? = nil, focus: BeatFocus = .none,
+    public init(_ caption: String, value: String? = nil, detail: String? = nil,
+                focus: BeatFocus = .none,
                 highlight: [Card] = [], struck: [Card] = [], hidden: [Card] = []) {
-        self.caption = caption; self.detail = detail
+        self.caption = caption; self.value = value; self.detail = detail
         self.focus = focus; self.highlight = highlight
         self.struck = struck; self.hidden = hidden
     }
@@ -66,31 +71,37 @@ public enum BeatScript {
         var beats = [
             Beat("턴까지 왔어요", detail: "보드 4장. 리버 한 장이 남았어요.",
                  focus: .table, hidden: river),
-            Beat("지금 내 패", detail: heroTurnName,
+            Beat("지금 내 패", value: heroTurnName,
                  focus: .table, highlight: heroTurn, hidden: river),
-            Beat("지금 상대 패", detail: villainTurnName,
+            Beat("지금 상대 패", value: villainTurnName,
                  focus: .table, highlight: villainTurn, hidden: river),
             // The river lands here — nothing is highlighted, so the eye goes to the
             // one card that just changed.
-            Beat("리버", detail: "\(river[0].display)가 떨어졌어요. 두 사람 다 다시 읽어야 해요.",
+            Beat("리버", value: river[0].display, detail: "두 사람 다 다시 읽어야 해요.",
                  focus: .table, highlight: river),
         ]
 
-        beats.append(Beat("다시 읽은 내 패",
+        beats.append(Beat("다시 읽은 내 패", value: heroName,
                           detail: heroTurnName == heroName
-                              ? "\(heroName) — 그대로예요."
-                              : "\(heroTurnName) → \(heroName)로 바뀌었어요.",
+                              ? "그대로예요."
+                              : "\(heroTurnName)에서 바뀌었어요.",
                           focus: .table, highlight: heroRiver))
-        beats.append(Beat("다시 읽은 상대 패",
+        beats.append(Beat("다시 읽은 상대 패", value: villainName,
                           detail: villainTurnName == villainName
-                              ? "\(villainName) — 그대로예요."
-                              : "\(villainTurnName) → \(villainName)로 바뀌었어요.",
+                              ? "그대로예요."
+                              : "\(villainTurnName)에서 바뀌었어요.",
                           focus: .table, highlight: villainRiver))
 
+        // Shares `showdownWhy` with the reveal, so both get the same particle
+        // agreement and the same kicker sentence when the two hands share a name.
         switch s.winner {
-        case 0: beats.append(Beat("내가 이겨요", detail: "\(heroName)가 \(villainName)를 이겨요.",
+        case 0: beats.append(Beat("내가 이겨요",
+                                  detail: showdownWhy(winner: heroName, loser: villainName,
+                                                      spot: s, heroWon: true),
                                   focus: .table, highlight: heroRiver))
-        case 1: beats.append(Beat("상대가 이겨요", detail: "\(villainName)가 \(heroName)를 이겨요.",
+        case 1: beats.append(Beat("상대가 이겨요",
+                                  detail: showdownWhy(winner: villainName, loser: heroName,
+                                                      spot: s, heroWon: false),
                                   focus: .table, highlight: villainRiver))
         default: beats.append(Beat("찹이에요", detail: "둘 다 \(heroName) — 보드가 그대로 플레이돼요.",
                                    focus: .table, highlight: s.board))
@@ -152,7 +163,7 @@ public enum BeatScript {
                               focus: .grid(s.outs.sorted(by: byRank))))
         }
 
-        beats.append(Beat("그래서 \(s.outCount)장",
+        beats.append(Beat("진짜 아웃", value: "\(s.outCount)장",
                           detail: "남은 \(unseen)장 중 \(s.outCount)장 — 룰 오브 2로 약 "
                                 + "\(Int(s.improvementPct))%예요.",
                           focus: .grid(s.outs.sorted(by: byRank))))
@@ -188,10 +199,10 @@ public enum BeatScript {
         }
         switch s.question {
         case .potNow:
-            beats.append(Beat("그래서 팟은 \(s.pot)bb"))
+            beats.append(Beat("그래서 팟은", value: "\(s.pot)bb"))
         case let .fractionOfPot(f):
-            beats.append(Beat("팟의 \(Int((f * 100).rounded()))%",
-                              detail: "\(s.pot) × \(Int((f * 100).rounded()))% = \(s.correctAnswer)bb"))
+            beats.append(Beat("팟의 \(Int((f * 100).rounded()))%", value: "\(s.correctAnswer)bb",
+                              detail: "\(s.pot) × \(Int((f * 100).rounded()))%"))
         }
         return beats
     }
@@ -239,7 +250,7 @@ public enum BeatScript {
                  focus: .grid(s.removed), highlight: s.removed),
             Beat("보이는 카드는 상대가 가질 수 없어요",
                  detail: "그만큼 조합이 줄어요."),
-            Beat("그래서 \(s.count)가지",
+            Beat("그래서", value: "\(s.count)가지",
                  detail: "\(s.baseline) → \(s.count)"),
         ]
     }
@@ -286,7 +297,7 @@ public enum BeatScript {
             Beat("상대 카드", focus: .table, highlight: s.villain),
             Beat("남은 \(unseen)장으로 가능한 보드를 전부 세요",
                  detail: "몇 번 이기는지 세면 그게 에퀴티예요.", focus: .table),
-            Beat("\(pctText(s.equityPct))%",
+            Beat("내 에퀴티", value: "\(pctText(s.equityPct))%",
                  detail: "근사가 아니라 전부 세어본 정확한 값이에요.", focus: .table),
         ]
     }
@@ -301,7 +312,7 @@ public enum BeatScript {
                  detail: "\(pctText(s.equityPct))% 확률로 +\(pctText(s.equityPct / 100 * win))bb"),
             Beat("지면 \(s.bet)bb를 잃어요",
                  detail: "\(pctText(100 - s.equityPct))% 확률로 −\(pctText((1 - s.equityPct / 100) * Double(s.bet)))bb"),
-            Beat("둘을 더하면 \(pctText(s.evBB))bb",
+            Beat("둘을 더하면", value: "\(pctText(s.evBB))bb",
                  detail: s.isProfitable ? "장기적으로 이득인 콜이에요."
                                         : "장기적으로 손해인 콜이에요."),
             Beat("이번 판의 결과는 상관없어요",

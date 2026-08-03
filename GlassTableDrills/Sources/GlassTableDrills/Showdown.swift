@@ -63,11 +63,36 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot) -> ShowdownReveal {
     let hName = handName(spot.heroBest), vName = handName(spot.villainBest)
     let why: String
     switch w {
-    case 0: why = "내 \(hName)가 상대 \(vName)를 이겨요."
-    case 1: why = "상대 \(vName)가 내 \(hName)를 이겨요."
+    case 0: why = showdownWhy(winner: hName, loser: vName, spot: spot, heroWon: true)
+    case 1: why = showdownWhy(winner: vName, loser: hName, spot: spot, heroWon: false)
     default: why = "둘 다 \(hName) — 보드가 그대로 플레이돼서 찹이에요."
     }
     return ShowdownReveal(band: gradeBinary(userChose: answer == w, correct: true),
                           answer: answer, winner: w,
                           heroName: hName, villainName: vName, whyText: why)
+}
+
+/// When both hands share a name — two players on the same trips, say — "3 트리플이 3
+/// 트리플을 이겨요" is true and useless. The kicker decided it, so the kicker is what
+/// the sentence has to name.
+func showdownWhy(winner: String, loser: String, spot: ShowdownSpot, heroWon: Bool) -> String {
+    let side = heroWon ? "내" : "상대"
+    let other = heroWon ? "상대" : "내"
+    guard winner == loser else {
+        return "\(side) \(KO.subject(winner)) \(other) \(KO.object(loser)) 이겨요."
+    }
+    let winFive = bestFiveCards((heroWon ? spot.hero : spot.villain) + spot.board)
+    let loseFive = bestFiveCards((heroWon ? spot.villain : spot.hero) + spot.board)
+    // Highest-first, first differing rank is the one that broke the tie.
+    let w = winFive.map(\.rank).sorted(by: >), l = loseFive.map(\.rank).sorted(by: >)
+    if let i = w.indices.first(where: { $0 < l.count && w[$0] != l[$0] }) {
+        return "둘 다 \(KO.copula(winner)) 키커가 갈랐어요 — "
+             + "\(side) \(rankLabel(w[i])) vs \(other) \(rankLabel(l[i])). \(side) 쪽이 이겨요."
+    }
+    return "둘 다 \(KO.copula(winner))"
+}
+
+/// Rank as the app prints it on a card face ("10", "Q"), not the parse letter.
+func rankLabel(_ r: Int) -> String {
+    ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"][r - 2]
 }

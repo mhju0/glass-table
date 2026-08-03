@@ -4,6 +4,13 @@ import GlassTableEngine
 
 final class BeatsTests: XCTestCase {
 
+    /// Everything a beat says. `value` carries the payload (a hand name, a count), so
+    /// a test that only reads `detail` sees half the beat.
+    private func text(_ b: Beat) -> String {
+        [b.caption, b.value ?? "", b.detail ?? ""].joined(separator: " ")
+    }
+    private func text(_ beats: [Beat]) -> String { beats.map(text).joined(separator: " | ") }
+
     /// Spec §5.2: templated narration must run on *any* generated spot, not just an
     /// authored one. This is the test that would catch a crash like calling
     /// `bestHand` on a 6-card turn board, or a format string left unfilled.
@@ -13,10 +20,9 @@ final class BeatsTests: XCTestCase {
             for b in beats {
                 XCTAssertFalse(b.caption.trimmingCharacters(in: .whitespaces).isEmpty,
                                "\(label) has an empty caption")
-                XCTAssertFalse(b.caption.contains("nil") || (b.detail ?? "").contains("nil"),
-                               "\(label) leaked a nil into copy: \(b.caption) / \(b.detail ?? "")")
-                XCTAssertFalse(b.caption.contains("Optional"),
-                               "\(label) leaked an Optional into copy")
+                let all = self.text(b)
+                XCTAssertFalse(all.contains("nil"), "\(label) leaked a nil into copy: \(all)")
+                XCTAssertFalse(all.contains("Optional"), "\(label) leaked an Optional: \(all)")
                 if case let .grid(cards) = b.focus {
                     XCTAssertFalse(cards.isEmpty, "\(label) showed an empty grid")
                 }
@@ -45,7 +51,7 @@ final class BeatsTests: XCTestCase {
     func testOutsScriptOnlyMentionsAFlushWhenTheSpotActuallyHasOne() {
         for i in 0..<200 {
             let s = OutsSpotGenerator.spot(baseSeed: 5, index: i)
-            let text = BeatScript.outs(s).map { $0.caption + ($0.detail ?? "") }.joined()
+            let text = text(BeatScript.outs(s))
             if s.excluded.isEmpty {
                 XCTAssertFalse(text.contains("플러시"),
                                "spot \(i) has no proven flush draw but the script claims one")
@@ -60,7 +66,7 @@ final class BeatsTests: XCTestCase {
                             outs: Card.parse("4h5h6h8h9hThJh")!,
                             excluded: Card.parse("2h3h")!)
         let beats = BeatScript.outs(spot)
-        let all = beats.map { $0.caption + " " + ($0.detail ?? "") }.joined(separator: " | ")
+        let all = text(beats)
 
         // The hand has no non-flush outs, so the "other outs" beat must not appear.
         XCTAssertEqual(beats.count, 7, all)
@@ -74,7 +80,7 @@ final class BeatsTests: XCTestCase {
         XCTAssertFalse(all.contains("2h"), "copy must not leak the parse format")
         XCTAssertEqual(Set(beats.compactMap { $0.struck.isEmpty ? nil : $0.struck }.flatMap { $0 }),
                        Set(Card.parse("2h3h")!))
-        XCTAssertTrue(all.contains("그래서 7장"), all)
+        XCTAssertTrue(all.contains("진짜 아웃 7장"), all)
     }
 
     /// Every card shown in the counting grid must reconcile with the spot: the grid
@@ -98,9 +104,9 @@ final class BeatsTests: XCTestCase {
         let beats = BeatScript.potMath(spot)
         // intro + one per action + conclusion
         XCTAssertEqual(beats.count, spot.actions.count + 2)
-        XCTAssertTrue(beats.last!.caption.contains("36"))
+        XCTAssertTrue(text(beats.last!).contains("36"))
         // The replace step must be explained, not silently applied.
-        XCTAssertTrue(beats.map { $0.detail ?? "" }.joined().contains("다시 세지 않아요"))
+        XCTAssertTrue(text(beats).contains("다시 세지 않아요"))
     }
 
     /// The showdown script replays the street progression: turn, both hands as they
@@ -117,9 +123,9 @@ final class BeatsTests: XCTestCase {
         for b in beats.prefix(3) { XCTAssertEqual(b.hidden, [river], b.caption) }
         for b in beats.dropFirst(3) { XCTAssertTrue(b.hidden.isEmpty, b.caption) }
         XCTAssertEqual(beats[3].caption, "리버")
-        XCTAssertTrue(beats[3].detail?.contains("4♠") == true, beats[3].detail ?? "")
+        XCTAssertTrue(text(beats[3]).contains("4♠"), text(beats[3]))
 
-        let all = beats.map { $0.detail ?? "" }.joined()
+        let all = text(beats)
         XCTAssertTrue(all.contains("K 원 페어"))
         XCTAssertTrue(all.contains("Q 원 페어"))
     }
@@ -142,18 +148,18 @@ final class BeatsTests: XCTestCase {
         let steady = BeatScript.showdown(
             ShowdownSpot(hero: Card.parse("KhKs")!, villain: Card.parse("QhQs")!,
                          board: Card.parse("2c7d9hJc4s")!))
-        XCTAssertTrue(steady[4].detail?.contains("그대로") == true, steady[4].detail ?? "")
+        XCTAssertTrue(text(steady[4]).contains("그대로"), text(steady[4]))
 
         // Hero turns a set on the river, so the re-read must announce the change.
         let changed = BeatScript.showdown(
             ShowdownSpot(hero: Card.parse("KhKs")!, villain: Card.parse("QhQs")!,
                          board: Card.parse("2c7d9hJcKd")!))
-        XCTAssertTrue(changed[4].detail?.contains("→") == true, changed[4].detail ?? "")
+        XCTAssertTrue(text(changed[4]).contains("에서 바뀌었어요"), text(changed[4]))
     }
 
     func testPositionScriptListsTheSeatsThatActBehind() {
         let beats = BeatScript.position(PositionSpot(question: .behind(.hj, preflop: true)))
-        let all = beats.map { $0.caption + " " + ($0.detail ?? "") }.joined()
+        let all = text(beats)
         XCTAssertTrue(all.contains("뒤에 4명"))
         XCTAssertTrue(all.contains("CO"))
         XCTAssertTrue(all.contains("BTN"))
@@ -168,15 +174,15 @@ final class BeatsTests: XCTestCase {
         for i in 0..<40 {
             let s = BlockerSpotGenerator.spot(baseSeed: 2, index: i)
             let beats = BeatScript.combos(s)
-            XCTAssertTrue(beats.first!.caption.contains("\(s.baseline)"))
-            XCTAssertTrue(beats.last!.caption.contains("\(s.count)"))
+            XCTAssertTrue(text(beats.first!).contains("\(s.baseline)"))
+            XCTAssertTrue(text(beats.last!).contains("\(s.count)"))
         }
     }
 
     func testEVScriptShowsBothSidesAndDisownsTheOutcome() {
         let spot = EVCallSpot(pot: 10, bet: 10, equityPct: 50, didWin: true)
         let beats = BeatScript.evCall(spot)
-        let all = beats.map { $0.caption + " " + ($0.detail ?? "") }.joined()
+        let all = text(beats)
         XCTAssertTrue(all.contains("20bb"))      // what a win collects
         XCTAssertTrue(all.contains("10bb"))      // what a loss costs
         XCTAssertTrue(all.contains("5bb"))       // the EV itself
