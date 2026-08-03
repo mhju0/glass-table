@@ -4,6 +4,6 @@ import SwiftUI
 @main
 struct GlassTableApp: App {
     var body: some Scene {
-        WindowGroup { HomeView() }
+        WindowGroup { RootView() }
     }
 }

@@ -25,6 +25,15 @@ final class ProgressionModel {
 
     init(store: ProgressionStore = .standard()) {
         self.store = store
+        #if DEBUG
+        // GT_DEMO_SEED=1 — a representative mid-path state for screenshot runs.
+        // Built through the real types rather than a hand-written JSON fixture, so it
+        // can never encode a shape the store would reject.
+        if ProcessInfo.processInfo.environment["GT_DEMO_SEED"] != nil {
+            state = Self.demoState()
+            return
+        }
+        #endif
         switch store.load() {
         case .fresh:
             // First launch on this build. Fold in any M1 per-drill progress, then
@@ -134,4 +143,58 @@ final class ProgressionModel {
     }
 
     private func save() { try? store.save(state) }
+
+    #if DEBUG
+    /// Mid-path demo state: unit 1 cleared, unit 2 started, two concepts due for
+    /// review, one stuck, and enough interval answers for a calibration readout.
+    static func demoState() -> ProgressState {
+        var s = ProgressState()
+        let now = Date()
+        let scheduler = FSRSScheduler()
+
+        func study(_ c: Concept, correct: Int, total: Int, tier: MasteryTier,
+                   dueInDays: Double, misses: Int = 0) {
+            s.updateRecord(for: c) {
+                $0.correct = correct; $0.total = total; $0.tier = tier
+                $0.consecutiveMisses = misses
+                $0.proficientAt = tier >= .proficient ? now.addingTimeInterval(-86400 * 3) : nil
+                $0.masteredAt = tier == .mastered ? now.addingTimeInterval(-86400 * 2) : nil
+                $0.review = ReviewState(stability: 6, difficulty: 5,
+                                        lastReview: now.addingTimeInterval(-86400 * 2),
+                                        due: now.addingTimeInterval(86400 * dueInDays),
+                                        reps: 3)
+            }
+        }
+        study(.showdown, correct: 18, total: 20, tier: .mastered, dueInDays: 6)
+        study(.potMath, correct: 14, total: 16, tier: .proficient, dueInDays: 1)
+        study(.position, correct: 11, total: 15, tier: .familiar, dueInDays: -1)
+        study(.combos, correct: 9, total: 14, tier: .familiar, dueInDays: -2)
+        study(.potOdds, correct: 4, total: 12, tier: .attempted, dueInDays: -3, misses: 3)
+        study(.equitySense, correct: 6, total: 9, tier: .familiar, dueInDays: 2)
+
+        for id in ["u1-showdown", "u1-potMath", "u1-position", "u1-combos", "u1-boss",
+                   "u2-potOdds"] {
+            s.nodes[id] = NodeRecord(cleared: true, clearedAt: now, attempts: 1)
+        }
+
+        // Deliberately overconfident: tight intervals that mostly miss, which is the
+        // state the calibration copy is written for.
+        let truths: [(Double, Double, Double)] = [
+            (40, 5, 52), (30, 4, 31), (55, 6, 70), (25, 5, 26),
+            (60, 5, 44), (35, 4, 36), (20, 3, 38), (48, 5, 62),
+            (33, 4, 33), (44, 5, 58), (28, 4, 29), (52, 5, 66),
+        ]
+        for (i, t) in truths.enumerated() {
+            let iv = IntervalAnswer(point: t.0, lo: t.0 - t.1, hi: t.0 + t.1, truth: t.2)
+            s.append(AnswerRecord(concept: .equitySense,
+                                  at: now.addingTimeInterval(-Double(i) * 3600),
+                                  correct: iv.containsTruth, interval: iv))
+        }
+
+        s.streak = StreakRecord(current: 12, longest: 12, lastSessionDay: DayKey(now),
+                                freezesRemaining: 2, lastFreezeEarnedDay: DayKey(now))
+        _ = scheduler
+        return s
+    }
+    #endif
 }

@@ -13,7 +13,7 @@ public enum NodeKind: Equatable, Sendable {
     case boss(own: Concept?, mixes: [Concept])
 }
 
-public struct CurriculumNode: Equatable, Sendable {
+public struct CurriculumNode: Equatable, Identifiable, Sendable {
     public let id: String
     public let kind: NodeKind
     /// Korean title, from the approved spec §4.1 roster.
