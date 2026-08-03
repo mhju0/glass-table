@@ -86,7 +86,7 @@ struct PathView: View {
     private func badge(status: NodeStatus, isBoss: Bool) -> some View {
         ZStack {
             Circle()
-                .fill(status == .locked ? Color.clear : GT.card)
+                .fill(status == .locked ? Color.clear : GT.onFelt)
                 .overlay {
                     if status == .locked {
                         Circle().stroke(GT.hairlineFelt, lineWidth: 1.5)
@@ -100,7 +100,7 @@ struct PathView: View {
         // The live node gets a halo so it reads at a glance without needing colour.
         .overlay {
             if status == .available {
-                Circle().stroke(GT.card.opacity(0.28), lineWidth: 5)
+                Circle().stroke(GT.onFelt.opacity(0.28), lineWidth: 5)
                     .frame(width: 48, height: 48)
             }
         }

@@ -79,9 +79,7 @@ struct GlossaryView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24)
-                    .fill(GT.card).ignoresSafeArea(edges: .bottom))
+            .gtCard(radius: 24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(GT.felt.ignoresSafeArea())

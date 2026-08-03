@@ -230,36 +230,68 @@ struct GlossaryChip: View {
 
 // MARK: - surfaces and controls
 
-extension View {
-    /// A paper surface on the felt. Separation comes from the *material* change —
-    /// paper against felt — with the edge only tidying it. That is what "borders"
-    /// should mean here: a distinct plane, not a drawn line.
-    func gtCard(radius: CGFloat = 18) -> some View {
-        self.background(GT.card, in: RoundedRectangle(cornerRadius: radius))
-            .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(GT.border, lineWidth: 1))
-    }
-}
-
-/// The bottom action sheet: paper, rounded at the top, and **bleeding to the bottom
-/// edge**. Previously it stopped at the safe area, leaving a strip of felt below two
-/// square corners — the sheet looked cropped rather than anchored.
-struct ActionSheet<Content: View>: View {
-    @ViewBuilder var content: () -> Content
+/// The glass recipe, in one place: a blur of whatever is behind, a green tint so it
+/// belongs to the table, a warm ivory veil for the temperature, and a lit top edge
+/// that sells the elevation. Forced to the dark scheme because the felt under it is
+/// dark in *both* app schemes — letting the system material flip would put light
+/// glass over dark felt in light mode.
+private struct GlassBackground<S: InsettableShape>: View {
+    let shape: S
+    var litEdge: Bool = true
 
     var body: some View {
-        VStack(spacing: 0) { content() }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                UnevenRoundedRectangle(topLeadingRadius: 26, topTrailingRadius: 26)
-                    .fill(GT.card)
-                    .ignoresSafeArea(edges: .bottom)
-                    .shadow(color: .black.opacity(0.28), radius: 18, y: -6)
+        shape.fill(.ultraThinMaterial)
+            .environment(\.colorScheme, .dark)
+            .overlay { shape.fill(GT.glassTint) }
+            .overlay { shape.fill(GT.glassVeil) }
+            .overlay {
+                if litEdge { shape.strokeBorder(GT.glassEdge, lineWidth: 1) }
+                else { shape.strokeBorder(GT.border, lineWidth: 1) }
             }
     }
 }
 
-/// Primary action **on paper**: deep felt fill, cream lettering.
+extension View {
+    /// An elevated glass surface on the felt. Separation comes from the material and
+    /// the elevation — a blurred, lit, floating plane — not from a drawn line.
+    func gtCard(radius: CGFloat = 20) -> some View {
+        self.background {
+            GlassBackground(shape: RoundedRectangle(cornerRadius: radius, style: .continuous),
+                            litEdge: false)
+                .shadow(color: .black.opacity(0.34), radius: 14, y: 6)
+        }
+    }
+}
+
+/// The bottom action sheet. Rounded at the top, **bleeding to the bottom edge**, with
+/// a grabber so it reads as a sheet rather than a colour change.
+struct ActionSheet<Content: View>: View {
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule().fill(GT.ink.opacity(0.30))
+                .frame(width: 36, height: 4)
+                .padding(.bottom, 13)
+                .accessibilityHidden(true)
+            content()
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 12)
+        .padding(.bottom, 22)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            GlassBackground(shape: UnevenRoundedRectangle(topLeadingRadius: 28,
+                                                          topTrailingRadius: 28,
+                                                          style: .continuous))
+                .ignoresSafeArea(edges: .bottom)
+        }
+        .shadow(color: .black.opacity(0.55), radius: 22, y: -10)
+    }
+}
+
+/// Primary action: mint fill, dark lettering. The one visually dominant control in
+/// any sheet — three equal rectangles is what made the old answer sheets read flat.
 struct PrimaryCTAButton: View {
     let title: String
     let action: () -> Void
@@ -267,13 +299,13 @@ struct PrimaryCTAButton: View {
         Button(action: action) {
             Text(title).font(GT.title(16)).foregroundStyle(GT.onCTA)
                 .frame(maxWidth: .infinity, minHeight: 54)
-                .background(GT.cta, in: RoundedRectangle(cornerRadius: 15))
+                .background(GT.cta, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .shadow(color: GT.mint.opacity(0.30), radius: 10, y: 4)
         }
         .buttonStyle(GTPress())
     }
 }
 
-/// Secondary action on paper.
 struct SecondaryCTAButton: View {
     let title: String
     let action: () -> Void
@@ -281,33 +313,31 @@ struct SecondaryCTAButton: View {
         Button(action: action) {
             Text(title).font(GT.semibold(15)).foregroundStyle(GT.inkSecondary)
                 .frame(maxWidth: .infinity, minHeight: 50)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: 15))
-                .overlay(RoundedRectangle(cornerRadius: 15)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
                     .strokeBorder(GT.border, lineWidth: 1))
         }
         .buttonStyle(GTPress())
     }
 }
 
-/// Primary action **on felt**, where a deep-green fill would disappear. Cream fill,
-/// felt lettering — the inverse of the paper button, and the reason the first-run
-/// "시작하기" was invisible: it used a card *container* fill instead of this.
+/// Primary action sitting directly **on felt**, where there is no glass beneath it.
 struct FeltCTAButton: View {
     let title: String
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(GT.title(16)).foregroundStyle(GT.felt)
+            Text(title).font(GT.title(16)).foregroundStyle(GT.onCTA)
                 .frame(maxWidth: .infinity, minHeight: 54)
-                .background(GT.onFelt, in: RoundedRectangle(cornerRadius: 15))
+                .background(GT.mint, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .shadow(color: GT.mint.opacity(0.28), radius: 12, y: 5)
         }
         .buttonStyle(GTPress())
     }
 }
 
-/// A choice in an answer sheet: tonal fill on paper with a defined edge, and a
-/// selected state that moves fill, border and weight together so it never leans on
-/// colour alone.
+/// A choice in an answer sheet: translucent ivory on glass, with a selected state that
+/// moves fill, border and weight together so it never leans on colour alone.
 struct GTChoiceButton: View {
     let title: String
     var selected: Bool = false
@@ -318,13 +348,12 @@ struct GTChoiceButton: View {
         Button(action: action) {
             Text(title)
                 .font(selected ? GT.title(16) : GT.semibold(16))
-                .foregroundStyle(GT.ink)
+                .foregroundStyle(selected ? GT.onCTA : GT.ink)
                 .frame(maxWidth: .infinity, minHeight: minHeight)
-                .background(selected ? GT.mint.opacity(0.30) : GT.surface,
-                            in: RoundedRectangle(cornerRadius: 15))
-                .overlay(RoundedRectangle(cornerRadius: 15)
-                    .strokeBorder(selected ? GT.cta : GT.borderStrong,
-                                  lineWidth: selected ? 2 : 1))
+                .background(selected ? AnyShapeStyle(GT.cta) : AnyShapeStyle(GT.surface),
+                            in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    .strokeBorder(selected ? Color.clear : GT.borderStrong, lineWidth: 1))
         }
         .buttonStyle(GTPress())
     }
@@ -339,8 +368,8 @@ struct EstimateStepper: View {
         Button { onAdjust(d) } label: {
             Text(s).font(GT.semibold(24)).foregroundStyle(GT.ink)
                 .frame(width: 50, height: 50)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .strokeBorder(GT.borderStrong, lineWidth: 1))
         }.buttonStyle(GTPress())
     }

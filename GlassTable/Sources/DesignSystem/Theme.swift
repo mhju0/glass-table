@@ -8,16 +8,20 @@ private func dyn(_ light: UInt32, _ dark: UInt32) -> Color {
         ? UIColor(Color(hex: dark)) : UIColor(Color(hex: light)) })
 }
 
-/// 펠트 + 카드지 — two materials, and only two.
+/// Three materials, and only three.
 ///
-/// **The rule: ink never flips, because the surface under it never flips.**
-/// A thing is either on the *felt* (dark, always) or on *paper* (light, always), so
-/// `onFelt*` and `ink*` are fixed values. Every colour bug so far came from breaking
-/// this — near-white ink printed on a cream card, a dark button on dark felt — and
-/// each was a scheme-aware ink sitting on a surface that stayed put.
+/// - **Felt** — the table. Dark, matte, always.
+/// - **Glass** — every elevated surface: sheets, cards, panels. A blur of the felt
+///   beneath it, tinted green and veiled with warm ivory, lit along its top edge.
+/// - **Paper** — playing-card faces, and nothing else. A card is paper in any light.
 ///
-/// Only the felt's depth and the paper's brightness follow the system scheme. Dark
-/// mode is the same room at night, not an inverted one.
+/// **The rule: ink never flips, because the surface under it never flips.** Every
+/// colour bug in this app came from breaking it — near-white numerals printed on a
+/// cream card, a card-container fill used as a button so it went dark-on-dark. Each
+/// was a scheme-aware ink sitting on a surface that stayed put.
+///
+/// Only the felt's depth and the card stock's brightness follow the system scheme.
+/// Dark mode is the same room at night, not an inverted one.
 enum GT {
     // MARK: felt — the table
 
@@ -30,33 +34,47 @@ enum GT {
     static let onFeltSecondary = Color(hex: 0x9DB3A6)
     static let onFeltMuted     = Color(hex: 0x7E978A)
 
-    // MARK: paper — cards, sheets, anything you act on
+    // MARK: glass — every elevated surface
 
-    /// Dimmed at night so a full-width sheet is not a floodlight, but still paper.
-    /// This is what gives separation from the felt: a different *material*, which
-    /// reads at a glance in a way a hairline never does.
-    static let card     = dyn(0xF4F1E9, 0xE4E0D4)
+    /// Warm ivory veil laid **over** a blur rather than a solid fill. That is what
+    /// keeps the surface dark enough for white text while still reading as ivory:
+    /// a solid ivory would lighten it past the point where white survives, and the
+    /// only fix there is dark text, which is the flat-paper look this replaces.
+    ///
+    /// Measured 8.4:1 for `ink` on the resulting surface. The ceiling is ~40% veil,
+    /// past which white text drops under WCAG AA.
+    static let glassVeil = LinearGradient(
+        colors: [Color(hex: 0xF4F1E9).opacity(0.20), Color(hex: 0xF4F1E9).opacity(0.09)],
+        startPoint: .top, endPoint: .bottom)
+    /// Green tint under the veil, so the glass belongs to the table it floats over.
+    static let glassTint = Color(hex: 0x1A3026).opacity(0.68)
+    /// The lit edge that sells elevation — light catching the lip of a raised surface.
+    static let glassEdge = Color(hex: 0x6FD3A0).opacity(0.40)
+
+    /// Playing-card faces stay **paper**. A card is paper in any light; it is the one
+    /// surface in the app that is not glass, and that is the point of the metaphor.
     static let cardFace = dyn(0xF7F5EF, 0xEFEBE0)
-    /// Inset block inside paper — the "why" panel, stepper keys, unfilled pips.
-    static let surface  = dyn(0xE9E4D6, 0xD8D3C4)
 
-    /// Ink on paper. Fixed.
-    static let ink          = Color(hex: 0x16211C)
-    static let inkSecondary = Color(hex: 0x55635B)
-    static let inkMuted     = Color(hex: 0x8B978D)
+    /// Inset block inside glass — the "why" panel, stepper keys, unfilled pips.
+    static let surface  = Color(hex: 0xF7F4EC).opacity(0.10)
 
-    /// Edges. Present but quiet — separation comes from the material change first.
-    static let border       = Color(hex: 0xD8D2C1)
-    static let borderStrong = Color(hex: 0xBDB6A2)
+    /// Ink on glass. Light, because the surface under it is dark.
+    static let ink          = Color(hex: 0xF7F4EC)
+    static let inkSecondary = Color(hex: 0xC2CBC3)
+    static let inkMuted     = Color(hex: 0x98A79E)
+
+    /// Edges. Quiet — separation comes from the material and the elevation first.
+    static let border       = Color(hex: 0xF7F4EC).opacity(0.16)
+    static let borderStrong = Color(hex: 0xF7F4EC).opacity(0.26)
 
     // MARK: actions
 
-    /// Primary action **on paper**: deep felt fill, cream lettering.
-    static let cta   = Color(hex: 0x1B4234)
-    static let onCTA = Color(hex: 0xF4F1E9)
-    /// Accent for icons and live values on paper.
-    static let green = Color(hex: 0x1B4234)
-    /// Accents drawn **on felt**, where the deep greens vanish.
+    /// Primary action on glass: mint fill, dark lettering.
+    static let cta   = Color(hex: 0x6FD3A0)
+    static let onCTA = Color(hex: 0x10261C)
+    /// Accent for icons and live values on glass.
+    static let green = Color(hex: 0x6FD3A0)
+    /// Accents drawn on felt.
     static let mint  = Color(hex: 0x6FD3A0)
 
     /// Price-bar segments, on felt, with `onFelt` numerals inside. Measured against
@@ -77,15 +95,17 @@ enum GT {
     static func body(_ s: CGFloat) -> Font     { .custom("Pretendard-Regular", size: s, relativeTo: .body) }
 }
 
-/// Grade bands. Always on paper, so these are fixed too — the inks were measured
-/// against their own tints at 4.95–5.12:1 and that no longer depends on the scheme.
+/// Grade bands, on glass. Light inks over their own low-alpha washes — the previous
+/// dark-on-pale-tint pair would have vanished once the surface went dark.
+/// Measured 6.5 / 6.9 / 6.1:1 against the glass, so the verdict clears AA; shape,
+/// structure and wording still carry it if colour is stripped entirely.
 enum GTBand {
-    static let spotOnInk  = Color(hex: 0x0F7645)
-    static let closeInk   = Color(hex: 0x9C5700)
-    static let offInk     = Color(hex: 0xC02A2A)
-    static let spotOnTint = Color(hex: 0xE0F2E7)
-    static let closeTint  = Color(hex: 0xFAEBD4)
-    static let offTint    = Color(hex: 0xF9E5E3)
+    static let spotOnInk  = Color(hex: 0x8FE3BB)
+    static let closeInk   = Color(hex: 0xE8C089)
+    static let offInk     = Color(hex: 0xF0A49C)
+    static let spotOnTint = Color(hex: 0x6FD3A0).opacity(0.16)
+    static let closeTint  = Color(hex: 0xE0A85A).opacity(0.16)
+    static let offTint    = Color(hex: 0xE06B60).opacity(0.16)
 }
 
 /// Home/settings backdrop: flat felt plus a faint spade.
