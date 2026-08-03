@@ -60,6 +60,14 @@ struct RootView: View {
         .sheet(isPresented: $showFreePlay) {
             NavigationStack { FreePlayView() }.environment(model)
         }
+        // Presented once, here, rather than inside each tab's NavigationStack. The
+        // previous version bound one @State into three sibling stacks, so flipping it
+        // pushed Settings onto *all three* — switching tabs worked but landed on
+        // Settings every time, which read as the tab bar being dead. Presenting it as
+        // a sheet also covers the tab bar, which is what a full-screen detail should do.
+        .sheet(isPresented: $showSettings) {
+            NavigationStack { SettingsView() }.environment(model)
+        }
         .onAppear {
             #if DEBUG
             // Screenshot hooks, same pattern as M1's GT_DEMO_*: synthetic taps never
@@ -67,7 +75,7 @@ struct RootView: View {
             // unverifiable (spec §10.6).
             //   GT_DEMO_TAB=path|today|records
             //   GT_DEMO_NODE=<node id>   opens that node's session
-            //   GT_DEMO_FREEPLAY=1
+            //   GT_DEMO_FREEPLAY=1 · GT_DEMO_SETTINGS=1
             let env = ProcessInfo.processInfo.environment
             switch env["GT_DEMO_TAB"] {
             case "path": tab = .path
@@ -77,6 +85,7 @@ struct RootView: View {
             }
             if let id = env["GT_DEMO_NODE"] { openNode = Curriculum.node(id: id) }
             if env["GT_DEMO_FREEPLAY"] != nil { showFreePlay = true }
+            if env["GT_DEMO_SETTINGS"] != nil { showSettings = true }
             #endif
         }
     }
@@ -98,7 +107,6 @@ private struct RootChrome: ViewModifier {
                 }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
-            .navigationDestination(isPresented: $showSettings) { SettingsView() }
     }
 }
 

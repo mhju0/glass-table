@@ -2,6 +2,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
     private static let feedbackURL =
@@ -56,6 +57,12 @@ struct SettingsView: View {
             .padding(.horizontal, 18)
         }
         .background(FeltBackground())
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("닫기") { dismiss() }
+                    .font(GT.semibold(15)).foregroundStyle(GT.onFelt)
+            }
+        }
         .toolbarBackground(.hidden, for: .navigationBar)
     }
 
