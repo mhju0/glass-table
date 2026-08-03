@@ -409,21 +409,59 @@ in dependency order — each gets its own plan and ships behind the previous:
 
 ## 12. Open questions
 
-1. **Dark mode.** `project.yml` hard-locks `UIUserInterfaceStyle: Light`. The new
-   felt+cream palette is mid-luminance — better than today's bright green, but cream
-   cards are still bright fields at hour two. R1 ships one palette; revisit a true dark
-   variant after real daily use, since the answer depends on how it actually feels.
+1. ~~**Dark mode.**~~ **RESOLVED 2026-08-03: ship the dark twin.** `GT`/`GTBand`
+   resolve per interface style and `UIUserInterfaceStyle: Light` is removed, so the app
+   follows the system. Dark inverts the card to an elevated dark green; playing-card
+   faces dim to bone rather than staying paper-white, so a grid of nine outs is not
+   nine floodlights. `GT.onCTA` exists because CTA lettering flips with its fill.
 2. **Widget** (streak + today's spot). Recommended by research as a re-entry surface,
    and cheap with a plain-file store via an App Group. Deferred to R2 — not needed to
    validate the path.
 3. **Korean copy for the new drills and all beat scripts** is developer-owned
-   (`open-questions.md` #1), written during UI-copy work as with M1.
-4. **Where the declared preflop charts come from** — adopt a named public chart and
-   cite it, or generate our own and publish the derivation. **Blocks R2, not R1**, but
-   it is the highest-risk unresolved question in the product: the transparency thesis
-   dies if the answer is "trust us."
+   (`open-questions.md` #1), written during UI-copy work as with M1. *Settled so far:*
+   cards are named with suit symbols via `Card.display` ("10♥"); `Card.description`
+   ("Th") is the parse format and never appears in prose.
+4. **Where the declared preflop charts come from.** *Direction chosen 2026-08-03:
+   adopt and name a public chart.* **Still blocked on a licensing answer** — see §14.
+   **Blocks R2, not R1**, and remains the highest-risk unresolved question in the
+   product: the transparency thesis dies if the answer is "trust us."
 5. **Postflop grading mode** (EV-loss in bb vs bands). Genuinely EV-indifferent spots
    exist in Blocks B/C, where marking a user "wrong" is factually false. Blocks R4.
+6. ~~**MDF's placement.**~~ **RESOLVED 2026-08-03: stays parked.** It keeps a concept
+   and free-play access but no path node until Block B (R2), where its prerequisites —
+   fold equity, combos-in-a-range, ranges — actually exist. Shipping only the frequency
+   half would teach a referent-free formula, which is the exact defect §0 identified.
+
+## 14. The preflop chart licensing problem (blocks R2)
+
+Research on 2026-08-03 found **no NLHE preflop chart under an open or redistributable
+licence.** Every widely-used chart — Upswing's free RFI charts, PokerCoaching's free
+"implementable" charts, GTO Wizard's free ranges, Preflop Wizard, FreeBetRange — is a
+marketing asset of a commercial training site, published free to *read* under
+all-rights-reserved terms. None grants reproduction.
+
+That matters because shipping a chart's 169 cell values inside the app **is**
+redistribution, attribution notwithstanding. Solved frequencies are arguably
+uncopyrightable facts, but a specific chart's exact values function as a database, and
+"we cited them" is not a licence.
+
+Two further problems with adopting one wholesale:
+
+- **No canonical 8-max chart exists.** The category standard is 6-max, with 9-max for
+  full ring. `decisions.md` §E already records that 8-handed has to be interpolated.
+- The strongest candidate by popularity, GTO Wizard, is the one product the brief names
+  as the direct competitor. Shipping their solved values inside a free competing app is
+  the riskiest of all the options.
+
+**Recommendation — the hybrid, which is also what `decisions.md` §E already decided:**
+*name the public charts as the benchmarks we validate against* (Upswing's free 9-handed
+RFI PDF and PokerCoaching's free charts — both explicitly published free, both widely
+used), and *ship our own generated values with the derivation published in-app*. The
+transparency payload is the derivation being inspectable, not the source being famous;
+naming what we checked ourselves against is stronger than copying, and it is the only
+version with no licensing exposure.
+
+**Needs a decision before R2 starts.**
 
 ## 13. Out of scope
 
