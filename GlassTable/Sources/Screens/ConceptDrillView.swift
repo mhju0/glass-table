@@ -48,6 +48,12 @@ struct ConceptDrillView: View {
         case .callFold:
             CallFoldDrill(seed: seed, index: index,
                           progressText: progressText, onAnswer: onAnswer)
+        case .rangeNotation:
+            RangeNotationDrill(seed: seed, index: index,
+                               progressText: progressText, onAnswer: onAnswer)
+        case .rfi:
+            RFIDrill(seed: seed, index: index,
+                     progressText: progressText, onAnswer: onAnswer)
         }
     }
 }
@@ -670,6 +676,124 @@ private struct CallFoldDrill: View {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+
+// MARK: - 레인지 표기법
+
+private struct RangeNotationDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var value = 12
+    @State private var reveal: RangeNotationReveal?
+
+    private var spot: RangeNotationSpot {
+        RangeNotationSpotGenerator.spot(baseSeed: seed, index: index)
+    }
+
+    var body: some View {
+        DrillShell(title: "레인지 표기법", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionLabel(text: "레인지")
+                Text(spot.notation)
+                    .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
+                    .minimumScaleFactor(0.5).lineLimit(2)
+                if reveal != nil {
+                    SectionLabel(text: "표에서 보면").padding(.top, 6)
+                    RangeGridView(range: spot.range)
+                        .frame(maxWidth: 320)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band, mine: "\(reveal.estimate) 콤보",
+                            correct: "\(reveal.count) 콤보", why: reveal.whyText) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                    self.reveal = nil; value = 12
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("이 레인지는 몇 콤보인가요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                    HStack { Spacer()
+                        EstimateStepper(value: value, suffix: "") {
+                            value = max(0, value + $0)
+                        }
+                        Spacer() }
+                    PrimaryCTAButton(title: "확인") {
+                        reveal = gradeRangeNotation(estimate: value, spot: spot)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - RFI 차트
+
+private struct RFIDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var reveal: RFIReveal?
+
+    private var spot: RFISpot { RFISpotGenerator.spot(baseSeed: seed, index: index) }
+
+    var body: some View {
+        DrillShell(title: "RFI 차트", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "내 핸드")
+                CardRow(cards: spot.hand, maxSize: 78)
+                SectionLabel(text: "내 자리").padding(.top, 8)
+                seatStrip
+                if reveal != nil {
+                    SectionLabel(text: "\(spot.seat.rawValue) 오픈 레인지").padding(.top, 10)
+                    RangeGridView(range: RFIChart.range(for: spot.seat),
+                                  highlight: spot.handClass)
+                        .frame(maxWidth: 320)
+                    Text("8핸드 차트는 공개된 9맥스·6맥스 사이를 보간한 값이에요.")
+                        .font(GT.body(10.5)).foregroundStyle(GT.onFeltMuted)
+                        .padding(.top, 2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band,
+                            mine: reveal.userOpens ? "오픈" : "폴드",
+                            correct: reveal.correctOpens ? "오픈" : "폴드",
+                            why: reveal.whyText) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                    self.reveal = nil
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("\(spot.seat.rawValue)에서 이 핸드, 오픈인가요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                    HStack(spacing: 10) {
+                        ForEach([("폴드", false), ("오픈", true)], id: \.0) { label, opens in
+                            GTChoiceButton(title: label, minHeight: 56) {
+                                reveal = gradeRFI(userOpens: opens, spot: spot)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var seatStrip: some View {
+        HStack(spacing: 4) {
+            ForEach(Position.preflopOrder, id: \.self) { p in
+                Text(p.rawValue)
+                    .font(GT.semibold(9.5))
+                    .foregroundStyle(p == spot.seat ? GT.onCTA : GT.onFelt.opacity(0.75))
+                    .frame(maxWidth: .infinity, minHeight: 32)
+                    .background(p == spot.seat ? GT.mint : GT.onFelt.opacity(0.10),
+                                in: RoundedRectangle(cornerRadius: 7))
             }
         }
     }

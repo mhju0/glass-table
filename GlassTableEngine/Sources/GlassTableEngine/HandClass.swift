@@ -40,7 +40,9 @@ public struct HandClass: Hashable, Sendable, CustomStringConvertible, Comparable
         return "\(r[high - 2])\(r[low - 2])\(suited ? "s" : "o")"
     }
 
-    static let rankChars = Array("23456789TJQKA").map(String.init)
+    /// Rank letters in chart notation. Public because the drill generators build
+    /// notation strings from them, and two copies would be one too many.
+    public static let rankChars = Array("23456789TJQKA").map(String.init)
 
     /// All 169, in no particular order.
     public static let all: [HandClass] = {

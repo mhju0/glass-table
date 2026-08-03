@@ -9,6 +9,7 @@
 public enum Concept: String, CaseIterable, Codable, Sendable {
     case showdown, potMath, position, combos
     case potOdds, outs, equitySense, evCall, callFold
+    case rangeNotation, rfi
     case mdf
 }
 
@@ -22,7 +23,8 @@ extension Concept {
     public var isEstimation: Bool {
         switch self {
         case .equitySense, .evCall, .outs: return true
-        case .showdown, .potMath, .position, .combos, .potOdds, .callFold, .mdf: return false
+        case .showdown, .potMath, .position, .combos, .potOdds, .callFold,
+             .rangeNotation, .rfi, .mdf: return false
         }
     }
 }

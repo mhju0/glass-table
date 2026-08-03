@@ -59,6 +59,17 @@ public enum Curriculum {
                                                .evCall, .combos, .position]),
                            title: "콜/폴드"),
         ]),
+        CurriculumUnit(id: "u3", title: "레인지", nodes: [
+            CurriculumNode(id: "u3-notation", kind: .drill(.rangeNotation),
+                           title: "레인지 표기법"),
+            CurriculumNode(id: "u3-rfi", kind: .drill(.rfi), title: "RFI 차트"),
+            // Reaches back into both earlier units, as spec §4.1 requires.
+            CurriculumNode(id: "u3-boss",
+                           kind: .boss(own: nil,
+                                       mixes: [.rangeNotation, .rfi, .position,
+                                               .combos, .potOdds]),
+                           title: "오픈 결정"),
+        ]),
     ]
 
     /// Flattened in path order — this ordering *is* the unlock order.

@@ -10,6 +10,9 @@ public enum BeatFocus: Equatable, Sendable {
     /// A countable grid laid out to be counted, which is the whole point of the
     /// beat the user described: "show them in a layout where it's easily countable".
     case grid([Card])
+    /// The 13×13 range grid, optionally ringing one class. A range beat with no
+    /// visual is a wall of text about a picture the user cannot see.
+    case rangeGrid(HandRange, highlight: HandClass?)
 }
 
 /// One tap of a worked example (spec §5.2).
@@ -318,6 +321,71 @@ public enum BeatScript {
             Beat("이번 판의 결과는 상관없어요",
                  detail: "한 판의 승패는 이 계산을 바꾸지 않아요."),
         ]
+    }
+
+    // MARK: 레인지 표기법
+
+    public static func rangeNotation(_ s: RangeNotationSpot) -> [Beat] {
+        var beats: [Beat] = [
+            Beat("표기법은 핸드 묶음을 줄여 쓴 거예요", value: s.notation,
+                 focus: .rangeGrid(s.range, highlight: nil)),
+            Beat("모양마다 콤보 수가 달라요",
+                 detail: "페어는 6개, 수티드는 4개, 오프수트는 12개. 여기서 헷갈리면 전부 어긋나요.",
+                 focus: .rangeGrid(s.range, highlight: nil)),
+        ]
+        for c in s.range.classes.prefix(6) {
+            beats.append(Beat(c.description, value: "\(c.comboCount) 콤보",
+                              detail: c.isPair ? "페어" : (c.suited ? "수티드" : "오프수트"),
+                              focus: .rangeGrid(s.range, highlight: c)))
+        }
+        if s.range.classes.count > 6 {
+            beats.append(Beat("나머지 \(s.range.classes.count - 6)개도 같은 방식이에요",
+                              focus: .rangeGrid(s.range, highlight: nil)))
+        }
+        beats.append(Beat("전부 더하면", value: "\(s.comboCount) 콤보",
+                          detail: "전체 1326개 중 \(pctText(s.range.percent))%예요.",
+                          focus: .rangeGrid(s.range, highlight: nil)))
+        return beats
+    }
+
+    // MARK: RFI 차트
+
+    public static func rfi(_ s: RFISpot) -> [Beat] {
+        let h = s.handClass
+        let pct = RFIChart.openPercent[s.seat] ?? 0
+        let chart = RFIChart.range(for: s.seat)
+        var beats: [Beat] = [
+            Beat("내 핸드", value: h.description, focus: .table, highlight: s.hand),
+            Beat("자리", value: s.seat.rawValue,
+                 detail: "뒤에 \(s.seat.playersBehind(preflop: true))명 남았어요. "
+                       + "많을수록 좁게 열어요.",
+                 focus: .table, highlight: s.hand),
+            Beat("이 핸드의 점수", value: "\(pctTextScore(Chen.score(h)))점",
+                 detail: Chen.explain(h),
+                 focus: .table, highlight: s.hand),
+            Beat("\(s.seat.rawValue)가 여는 범위", value: "상위 \(Int(pct))%",
+                 detail: "점수 순으로 위에서 \(Int(pct))%까지예요.",
+                 focus: .rangeGrid(chart, highlight: h)),
+        ]
+        if s.opens {
+            beats.append(Beat("그래서 오픈", value: "레이즈",
+                              detail: "\(h.description)는 \(s.seat.rawValue) 범위 안에 있어요.",
+                              focus: .rangeGrid(chart, highlight: h)))
+        } else if let earliest = RFIChart.earliestSeatOpening(s.hand) {
+            beats.append(Beat("그래서 폴드", value: "폴드",
+                              detail: "\(h.description)는 \(earliest.rawValue)부터 열어요. "
+                                    + "\(s.seat.rawValue)에서는 아직 일러요.",
+                              focus: .rangeGrid(chart, highlight: h)))
+        } else {
+            beats.append(Beat("그래서 폴드", value: "폴드",
+                              detail: "\(h.description)는 어느 자리에서도 열지 않아요.",
+                              focus: .rangeGrid(chart, highlight: h)))
+        }
+        return beats
+    }
+
+    static func pctTextScore(_ x: Double) -> String {
+        abs(x - x.rounded()) < 0.01 ? "\(Int(x.rounded()))" : String(format: "%.1f", x)
     }
 
     // MARK: 콜/폴드

@@ -95,6 +95,10 @@ struct WalkthroughView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        case let .rangeGrid(range, highlight):
+            RangeGridView(range: range, highlight: highlight)
+                .frame(maxWidth: 330)
+                .frame(maxWidth: .infinity, alignment: .leading)
         case let .grid(cards):
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
                       alignment: .leading, spacing: 8) {
@@ -238,6 +242,12 @@ enum Walkthrough {
             return (BeatScript.mdf(BetSpotGenerator.spot(baseSeed: seed, index: index)), [])
         case .evCall:
             return (BeatScript.evCall(EVCallSpotGenerator.spot(baseSeed: seed, index: index)), [])
+        case .rangeNotation:
+            return (BeatScript.rangeNotation(
+                RangeNotationSpotGenerator.spot(baseSeed: seed, index: index)), [])
+        case .rfi:
+            let s = RFISpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.rfi(s), [("내 핸드", s.hand)])
         }
     }
 }
