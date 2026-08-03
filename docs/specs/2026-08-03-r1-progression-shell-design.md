@@ -457,10 +457,16 @@ Two further problems with adopting one wholesale:
 
 **Name the public charts as benchmarks; ship our own derived values.** Concretely, R2:
 
-1. **Derives** every opening range from a stated rule over the engine's own numbers —
-   e.g. "top N% by all-in equity versus a uniform random hand, N set per seat by the
-   count of players still to act," with the exact rule and the resulting 169-cell grid
-   both visible in-app.
+1. **Derives** every opening range from a stated, published rule, with the rule and
+   the resulting 169-cell grid both visible in-app.
+
+   > **Amended 2026-08-04 — the rule sketched here was wrong.** "Top N% by all-in
+   > equity versus a uniform random hand" was measured over all 169 classes and puts
+   > 76s in the bottom quartile, 22 at 87/169, and A9o *above* AJs — it cannot see
+   > playability, so it would have shipped a chart opening A9o under the gun while
+   > folding 76s everywhere. Replaced by **Bill Chen's published starting-hand
+   > formula**, which matches convention on every boundary case tested. Evidence and
+   > the replacement: `docs/specs/2026-08-04-r2-range-primitive-design.md` §1.
 2. **Names, and does not reproduce,** the charts it was checked against: Upswing's free
    9-handed RFI PDF and PokerCoaching's free charts. Both are published free to read
    and widely used; neither is redistributed. A short in-app note says which benchmarks
