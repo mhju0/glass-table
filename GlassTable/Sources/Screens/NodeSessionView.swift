@@ -66,7 +66,16 @@ struct NodeSessionView: View {
             // walkthrough. A node the user has already met goes straight to drilling,
             // and 천천히 stays available from 기록 either way (spec §5.1).
             guard let taught = Curriculum.taughtConcept(of: node) else { return }
-            let seen = model.record(for: taught).total > 0
+            var seen = model.record(for: taught).total > 0
+            #if DEBUG
+            // A GT_DEMO_NODE capture wants the *drill*; the sweep reaches the teaching
+            // stages through GT_DEMO_BEAT instead. Without this every `drill-…` entry
+            // for a concept the demo state has not studied silently screenshotted the
+            // walkthrough under a drill's name — which is how drill-rfi, drill-notation
+            // and drill-callfold went unlooked-at.
+            let env = ProcessInfo.processInfo.environment
+            if env["GT_DEMO_NODE"] != nil, env["GT_DEMO_BEAT"] == nil { seen = true }
+            #endif
             stage = seen ? .solo : .show
         }
     }

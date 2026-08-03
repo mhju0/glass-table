@@ -13,6 +13,10 @@ public enum BeatFocus: Equatable, Sendable {
     /// The 13×13 range grid, optionally ringing one class. A range beat with no
     /// visual is a wall of text about a picture the user cannot see.
     case rangeGrid(HandRange, highlight: HandClass?)
+    /// The betting history, with `lit` emphasised. For a range read this *is* the
+    /// board — it is the only evidence there is — so a read beat must never fall back
+    /// to `.none` and leave the felt empty.
+    case actionList([String], lit: Int?)
 }
 
 /// One tap of a worked example (spec §5.2).
@@ -380,6 +384,57 @@ public enum BeatScript {
             beats.append(Beat("그래서 폴드", value: "폴드",
                               detail: "\(h.description)는 어느 자리에서도 열지 않아요.",
                               focus: .rangeGrid(chart, highlight: h)))
+        }
+        return beats
+    }
+
+    // MARK: 레인지 리드
+
+    /// The read, taken apart in the order a player actually takes it apart: what he
+    /// did, who he is, where he did it from, and only then the shape that falls out.
+    ///
+    /// The point of the beats is that the answer is *derived* in front of the user —
+    /// VPIP and PFR are printed, the seat adjustment is printed, and the grid appears
+    /// last. A range handed over as a finished picture teaches nothing about reading.
+    public static func rangeRead(_ s: RangeReadSpot) -> [Beat] {
+        let a = s.archetype
+        let truth = s.trueRange
+        let raising = { if case .opened = s.action { return true } else { return false } }()
+        let headline = raising ? a.pfr : a.vpip
+        let statName = raising ? "PFR" : "VPIP"
+
+        var beats: [Beat] = [
+            Beat("상대가 한 것", value: raising ? "오픈 레이즈" : "콜",
+                 detail: "보이는 건 이게 전부예요. 카드는 끝까지 안 보여줘요.",
+                 focus: .actionList(s.actionLines, lit: raising ? 0 : 1)),
+            Beat("상대가 어떤 사람인지", value: a.name, detail: a.blurb,
+                 focus: .actionList(s.actionLines, lit: nil)),
+            Beat("숫자로 보면", value: "VPIP \(Int(a.vpip))% · PFR \(Int(a.pfr))%",
+                 detail: raising
+                    ? "레이즈하는 건 PFR \(Int(a.pfr))%. 평균적으로 상위 \(Int(a.pfr))%를 열어요."
+                    : "들어오는 건 VPIP \(Int(a.vpip))%인데 그중 \(Int(a.pfr))%는 레이즈해요. "
+                      + "콜은 그 사이 \(Int(a.vpip - a.pfr))%p예요.",
+                 focus: .actionList(s.actionLines, lit: nil)),
+            Beat("자리를 반영하면", value: "상위 \(pctText(truth.percent))%",
+                 detail: "\(s.seat.rawValue)는 뒤에 \(s.seat.playersBehind(preflop: true))명 남았어요. "
+                       + "\(statName) \(Int(headline))%는 모든 자리 평균이라 여기선 "
+                       + "\(truth.percent >= headline ? "더 넓어" : "더 좁아")져요.",
+                 focus: .actionList(s.actionLines, lit: nil)),
+            Beat("그래서 이 모양", value: "\(truth.classes.count)개 핸드",
+                 detail: raising
+                    ? "점수 순으로 위에서 \(pctText(truth.percent))%까지."
+                    : "레이즈 범위를 빼고 남은 띠예요 — 놀 만하지만 올리긴 아까운 패들.",
+                 focus: .rangeGrid(truth, highlight: nil)),
+        ]
+        // The shape is the second half of a read, so name whichever category this
+        // range actually leans on rather than claiming a generic tilt.
+        if let lean = RangeTendency.allCases.max(by: {
+            truth.tendencyShare($0) < truth.tendencyShare($1)
+        }) {
+            beats.append(Beat("어디에 몰려 있나", value: tendencyWord(lean),
+                              detail: "이 범위의 \(Int((truth.tendencyShare(lean) * 100).rounded()))%가 "
+                                    + "\(tendencyWord(lean))예요. 넓이를 맞춰도 모양이 틀리면 읽은 게 아니에요.",
+                              focus: .rangeGrid(truth, highlight: nil)))
         }
         return beats
     }

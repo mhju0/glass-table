@@ -91,3 +91,91 @@ public struct HandRange: Equatable, Sendable {
         return HandRange(taken)
     }
 }
+
+// MARK: - shaped ranges, and comparing two of them
+
+/// A leaning a player can have on top of raw hand strength — the vocabulary a read is
+/// actually spoken in ("wide, but only suited stuff").
+public enum RangeTendency: String, CaseIterable, Sendable {
+    case pairs, suited, offsuitBroadway, connectors
+
+    /// Chen-equivalent points added before the cut. Deliberately small: a tendency
+    /// tilts a range, it does not replace hand strength with a category.
+    public var bonus: Double {
+        switch self {
+        case .pairs: return 3
+        case .suited: return 2
+        case .offsuitBroadway: return 2.5
+        case .connectors: return 2.5
+        }
+    }
+
+    public func matches(_ h: HandClass) -> Bool {
+        switch self {
+        case .pairs: return h.isPair
+        case .suited: return h.suited
+        case .offsuitBroadway: return !h.isPair && !h.suited && h.low >= 10
+        case .connectors: return !h.isPair && h.gap <= 1
+        }
+    }
+}
+
+public extension HandRange {
+    /// The top `width` percent under a set of leanings.
+    ///
+    /// A tendency re-weights the ranking *before* the cut rather than adding cells
+    /// after it, so the result is always a coherent "top N% under this preference"
+    /// instead of a shape with holes punched in it. That matters because the grid is
+    /// shown while the slider moves — an incoherent range would be visibly wrong.
+    static func shaped(width: Double, tendencies: Set<RangeTendency> = []) -> HandRange {
+        let ranked = HandClass.all.sorted { a, b in
+            let sa = Chen.score(a) + tendencies.reduce(0) { $0 + ($1.matches(a) ? $1.bonus : 0) }
+            let sb = Chen.score(b) + tendencies.reduce(0) { $0 + ($1.matches(b) ? $1.bonus : 0) }
+            if sa != sb { return sa > sb }
+            if a.isPair != b.isPair { return a.isPair }
+            if a.suited != b.suited { return a.suited }
+            if a.gap != b.gap { return a.gap < b.gap }
+            return a.high > b.high
+        }
+        let target = Double(HandClass.totalCombos) * width / 100
+        var taken: [HandClass] = []
+        var running = 0.0
+        for h in ranked {
+            if running >= target { break }
+            taken.append(h)
+            running += Double(h.comboCount)
+        }
+        return HandRange(taken)
+    }
+
+    /// Combo-weighted overlap: |A ∩ B| ÷ |A ∪ B|, 1 for identical ranges, 0 for
+    /// disjoint ones. Weighted by combos rather than classes because a pair is 6 and
+    /// an offsuit class is 12 — counting cells would score a pair-heavy miss as
+    /// generously as an offsuit-heavy one.
+    func jaccard(_ other: HandRange) -> Double {
+        let inter = intersection(other).comboCount
+        let uni = union(other).comboCount
+        return uni == 0 ? (comboCount == 0 && other.comboCount == 0 ? 1 : 0) : inter / uni
+    }
+
+    /// Which categories this range leans toward, relative to how common they are in a
+    /// deck. Used to say *how* a read differed rather than only by how much.
+    func tendencyShare(_ t: RangeTendency) -> Double {
+        guard comboCount > 0 else { return 0 }
+        let mine = classes.filter(t.matches).reduce(0.0) { $0 + Double($1.comboCount) * weight($1) }
+        return mine / comboCount
+    }
+}
+
+public extension RangeTendency {
+    /// True when every class in this category already fits inside a range of that
+    /// width, so preferring the category cannot change anything.
+    ///
+    /// Pairs are 78 of 1326 combos and offsuit broadways 120, so both saturate well
+    /// before a loose range. The UI needs this to explain why a chip has no visible
+    /// effect rather than letting it look broken.
+    func isSaturated(atWidth width: Double) -> Bool {
+        let plain = HandRange.shaped(width: width)
+        return HandClass.all.filter(matches).allSatisfy { plain.weight($0) > 0 }
+    }
+}

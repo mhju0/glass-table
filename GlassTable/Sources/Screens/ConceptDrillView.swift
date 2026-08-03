@@ -54,6 +54,9 @@ struct ConceptDrillView: View {
         case .rfi:
             RFIDrill(seed: seed, index: index,
                      progressText: progressText, onAnswer: onAnswer)
+        case .rangeRead:
+            RangeReadDrill(seed: seed, index: index,
+                           progressText: progressText, onAnswer: onAnswer)
         }
     }
 }
@@ -796,5 +799,210 @@ private struct RFIDrill: View {
                                 in: RoundedRectangle(cornerRadius: 7))
             }
         }
+    }
+}
+
+// MARK: - 레인지 리드
+
+/// The one drill where you never see a card. You get the action, and you build the
+/// shape you think it means with a width and a set of tendencies.
+///
+/// The grid sits in the content zone and the controls in the sheet on purpose: both
+/// are on screen at once, so dragging the slider *is* watching a range widen. That
+/// live coupling is the whole reason the input is coarse — a number alone would teach
+/// the arithmetic of a percentage rather than the look of a range.
+private struct RangeReadDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var width: Double = 20
+    @State private var tendencies: Set<RangeTendency> = []
+    @State private var reveal: RangeReadReveal?
+
+    private var spot: RangeReadSpot { RangeReadSpotGenerator.spot(baseSeed: seed, index: index) }
+    private var estimate: RangeEstimate { RangeEstimate(width: width, tendencies: tendencies) }
+
+    var body: some View {
+        DrillShell(title: "레인지 리드", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 9) {
+                opponentLine
+                actionList
+                SectionLabel(text: reveal == nil ? "내가 보는 범위" : "정답 · 내 답 비교")
+                    .padding(.top, 4)
+                // The legend goes *above* the grid. Below it, the one thing that makes
+                // a two-channel grid readable sat under the answer sheet and was never
+                // seen — found by looking at the sweep rather than by reasoning.
+                if reveal != nil { legend }
+                RangeGridView(range: reveal?.truth ?? estimate.range,
+                              outline: reveal?.guess)
+                    .frame(maxWidth: 250)
+                    .animation(.easeOut(duration: 0.18), value: width)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                #if DEBUG
+                // GT_DEMO_REVEAL=<width> answers with that width so the comparison
+                // grid and its legend are reachable by screenshot. Same reason as
+                // GT_DEMO_BEAT: synthetic taps never reach Simulator content, and the
+                // reveal is the half of this screen most likely to be wrong.
+                if let w = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Double.init) {
+                    width = w
+                    reveal = gradeRangeRead(estimate: RangeEstimate(width: w), spot: spot)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band,
+                            mine: "상위 \(pctText(reveal.guess.percent))%",
+                            correct: "상위 \(pctText(reveal.truth.percent))%",
+                            why: reveal.whyText) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                    self.reveal = nil; width = 20; tendencies = []
+                }
+            } else {
+                input
+            }
+        }
+    }
+
+    // MARK: what the user is told
+
+    private var opponentLine: some View {
+        // Hidden archetype is the harder band, and it must not read as a bug: say
+        // outright that the identification is part of the question.
+        VStack(alignment: .leading, spacing: 1) {
+            Text(spot.archetypeShown ? spot.archetype.name : "모르는 상대")
+                .font(GT.title(19)).foregroundStyle(GT.onFelt)
+            Text(spot.archetypeShown ? spot.archetype.blurb
+                                     : "어떤 사람인지도 액션으로 판단해야 해요.")
+                .font(GT.body(11.5)).foregroundStyle(GT.onFeltSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var actionList: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            ForEach(Array(spot.actionLines.enumerated()), id: \.offset) { _, line in
+                HStack(spacing: 8) {
+                    Circle().fill(GT.onFelt.opacity(0.35)).frame(width: 4, height: 4)
+                    Text(line).font(GT.semibold(13)).foregroundStyle(GT.onFelt)
+                }
+            }
+        }
+        .padding(.horizontal, 12).padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    /// Fill = truth, ring = your guess. Spelled out, because an unexplained two-channel
+    /// grid is a puzzle rather than a reveal.
+    private var legend: some View {
+        HStack(spacing: 14) {
+            key(filled: true, ringed: true, "맞음")
+            key(filled: true, ringed: false, "놓침")
+            key(filled: false, ringed: true, "넘침")
+        }
+        .padding(.top, 2)
+    }
+
+    private func key(filled: Bool, ringed: Bool, _ label: String) -> some View {
+        HStack(spacing: 5) {
+            RoundedRectangle(cornerRadius: 3)
+                .fill(filled ? GT.mint.opacity(0.85) : GT.surface)
+                .frame(width: 15, height: 15)
+                .overlay {
+                    if ringed { RoundedRectangle(cornerRadius: 3).strokeBorder(GT.ink, lineWidth: 2) }
+                }
+            Text(label).font(GT.semibold(11)).foregroundStyle(GT.onFeltSecondary)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: what the user answers with
+
+    private var input: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("상대는 몇 %로 \(actionVerb)했을까요?")
+                    .font(GT.title(15)).foregroundStyle(GT.ink)
+                Spacer(minLength: 8)
+                Text("\(pctText(width))%")
+                    .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
+                    .contentTransition(.numericText())
+            }
+            Slider(value: $width, in: 3...80, step: 1).tint(GT.cta)
+                .accessibilityLabel("범위 넓이")
+                .accessibilityValue("상위 \(pctText(width))퍼센트")
+
+            SectionLabel(text: "어디에 몰려 있나요 (선택)", onDark: false)
+            chips
+            if RangeTendency.allCases.contains(where: { $0.isSaturated(atWidth: width) }) {
+                Text("\u{2261} 표시는 이 넓이에 이미 전부 들어 있어서 모양이 바뀌지 않는다는 뜻이에요.")
+                    .font(GT.body(10)).foregroundStyle(GT.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            PrimaryCTAButton(title: "확인") {
+                reveal = gradeRangeRead(estimate: estimate, spot: spot)
+            }
+        }
+    }
+
+    private var actionVerb: String {
+        if case .opened = spot.action { return "오픈" }
+        return "콜"
+    }
+
+    /// Two rows of two, because four chips across a mini would each be ~78pt and the
+    /// longest label is 오프수트 브로드웨이.
+    private var chips: some View {
+        let all = RangeTendency.allCases
+        return VStack(spacing: 8) {
+            ForEach(0..<2, id: \.self) { r in
+                HStack(spacing: 8) {
+                    ForEach(all[(r * 2)..<(r * 2 + 2)], id: \.self) { chip($0) }
+                }
+            }
+        }
+    }
+
+    /// Chip labels are shortened from the prose names — 오프수트 브로드웨이 does not
+    /// fit a half-width chip, and 수티드 already carries the suited half of broadway.
+    /// `tendencyWord` stays long, because the reveal sentence has room.
+    private func chipLabel(_ t: RangeTendency) -> String {
+        t == .offsuitBroadway ? "브로드웨이" : tendencyWord(t)
+    }
+
+    private func chip(_ t: RangeTendency) -> some View {
+        let on = tendencies.contains(t)
+        // A category entirely inside the cut has nothing left to prefer, so the chip
+        // genuinely does nothing at this width. Say so rather than letting it read as
+        // a dead control.
+        let saturated = t.isSaturated(atWidth: width)
+        return Button {
+            if on { tendencies.remove(t) } else { tendencies.insert(t) }
+        } label: {
+            HStack(spacing: 4) {
+                Text(chipLabel(t))
+                    .font(on ? GT.title(13) : GT.semibold(13))
+                    .foregroundStyle(on ? GT.onCTA : GT.ink)
+                    .minimumScaleFactor(0.7).lineLimit(1)
+                if saturated {
+                    Image(systemName: "equal.circle.fill").font(.system(size: 11))
+                        .foregroundStyle(on ? GT.onCTA.opacity(0.75) : GT.inkMuted)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.horizontal, 6)
+            .background(on ? AnyShapeStyle(GT.cta) : AnyShapeStyle(GT.surface),
+                        in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .strokeBorder(on ? Color.clear : GT.borderStrong, lineWidth: 1))
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel(tendencyWord(t))
+        .accessibilityValue(on ? "선택됨" : "선택 안 됨")
+        .accessibilityHint(saturated ? "이 넓이에서는 모양이 바뀌지 않아요" : "")
     }
 }

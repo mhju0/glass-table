@@ -99,8 +99,17 @@ and the retinted design system. Detailed in §4–§8.
 ### 4.1 Structure
 
 **Sections → Units → Nodes.** A node is one exercise type at one difficulty band.
-Units are 5–8 nodes and **end in a boss node** drawing from this unit plus 2–3 earlier
-units, deliberately juxtaposing confusable spots (same board / different position).
+Units **end in a boss node** drawing from this unit plus 2–3 earlier units,
+deliberately juxtaposing confusable spots (same board / different position).
+
+> **Amended 2026-08-04 — the "5–8 nodes" figure is withdrawn.** It was written when R1
+> planned two fat units and it did not survive contact with the slice plan: R2 adds one
+> primitive (레인지, 3 nodes) and R3 adds one (레인지 리드, 2 nodes), so the rule had
+> already needed a "the last unit may be short" carve-out in R2, and R3 expired that
+> carve-out by adding a unit after it. The count was never the property that mattered.
+> What has to hold is that a unit is a chapter rather than a single node wearing
+> chrome, and that it ends in a boss. Deleting the shipped 오픈 결정 boss purely to
+> reach an arbitrary floor would have been fitting the curriculum to the test.
 
 R1 ships Section 기초 with two units:
 

@@ -77,12 +77,19 @@ SCREENS=(
   "drill-callfold:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-boss"
   "drill-notation:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-notation"
   "drill-rfi:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-rfi"
+  "drill-rangeread:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead"
+  # The reveal is the two-channel comparison grid: fill = truth, ring = your guess.
+  # 18 lands close, 60 lands badly wrong — both bands need looking at.
+  "drill-rangeread-close:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead GT_DEMO_REVEAL=18"
+  "drill-rangeread-off:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead GT_DEMO_REVEAL=60"
   "teach-showdown-b1:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=1"
   "teach-showdown-b3:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=3"
   "teach-showdown-b5:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=5"
   "teach-outs-grid:GT_DEMO_NODE=u2-outs GT_DEMO_BEAT=4"
   "teach-rfi-grid:GT_DEMO_NODE=u3-rfi GT_DEMO_BEAT=3"
   "teach-notation:GT_DEMO_NODE=u3-notation GT_DEMO_BEAT=2"
+  "teach-rangeread-stats:GT_DEMO_NODE=u4-rangeRead GT_DEMO_BEAT=2"
+  "teach-rangeread-grid:GT_DEMO_NODE=u4-rangeRead GT_DEMO_BEAT=4"
 )
 
 for mode in "${APPEARANCES[@]}"; do

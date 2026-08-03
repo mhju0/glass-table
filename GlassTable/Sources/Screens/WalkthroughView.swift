@@ -112,6 +112,27 @@ struct WalkthroughView: View {
             RangeGridView(range: range, highlight: highlight)
                 .frame(maxWidth: 330)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        case let .actionList(lines, lit):
+            // Centred rather than pinned to the top: the action history is only a few
+            // short lines, and a small box top-left under an empty felt reads as a
+            // screen that failed to load.
+            VStack(alignment: .leading, spacing: 9) {
+                SectionLabel(text: "액션")
+                ForEach(Array(lines.enumerated()), id: \.offset) { i, line in
+                    HStack(spacing: 9) {
+                        Circle()
+                            .fill(i == lit ? GT.mint : GT.onFelt.opacity(0.35))
+                            .frame(width: i == lit ? 7 : 4, height: i == lit ? 7 : 4)
+                        Text(line)
+                            .font(i == lit ? GT.title(17) : GT.semibold(16))
+                            .foregroundStyle(i == lit ? GT.onFelt : GT.onFeltSecondary)
+                    }
+                }
+            }
+            .padding(15)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
+            .padding(.top, 90)
         case let .grid(cards):
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
                       alignment: .leading, spacing: 8) {
@@ -267,6 +288,10 @@ enum Walkthrough {
         case .rfi:
             let s = RFISpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.rfi(s), [("내 핸드", s.hand)])
+        case .rangeRead:
+            // No card rows on purpose: seeing no cards *is* the drill.
+            return (BeatScript.rangeRead(
+                RangeReadSpotGenerator.spot(baseSeed: seed, index: index)), [])
         }
     }
 }

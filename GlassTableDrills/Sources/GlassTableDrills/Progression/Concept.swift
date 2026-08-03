@@ -9,7 +9,7 @@
 public enum Concept: String, CaseIterable, Codable, Sendable {
     case showdown, potMath, position, combos
     case potOdds, outs, equitySense, evCall, callFold
-    case rangeNotation, rfi
+    case rangeNotation, rfi, rangeRead
     case mdf
 }
 
@@ -20,11 +20,16 @@ extension Concept {
     /// `outs` is here for its *equity* half only. The out **count** is exact and is
     /// graded exactly; the rule-of-2/4 equity derived from it is explicitly an
     /// approximation, which is already how the reveal presents it.
+    ///
+    /// `rangeRead` is emphatically an estimate but is **not** here: it is answered
+    /// with a width and a shape, never a point plus a 90% interval, so there is no
+    /// Winkler score to feed calibration. Its softness is carried by the overlap
+    /// bands instead.
     public var isEstimation: Bool {
         switch self {
         case .equitySense, .evCall, .outs: return true
         case .showdown, .potMath, .position, .combos, .potOdds, .callFold,
-             .rangeNotation, .rfi, .mdf: return false
+             .rangeNotation, .rfi, .rangeRead, .mdf: return false
         }
     }
 }
