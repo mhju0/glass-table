@@ -65,6 +65,7 @@ SCREENS=(
   "path:GT_DEMO_SEED=1 GT_DEMO_TAB=path"
   "records:GT_DEMO_SEED=1 GT_DEMO_TAB=records"
   "settings:GT_DEMO_SEED=1 GT_DEMO_SETTINGS=1"
+  "glossary:GT_DEMO_SEED=1 GT_DEMO_SETTINGS=1 GT_DEMO_GLOSSARY=1"
   "freeplay:GT_DEMO_SEED=1 GT_DEMO_FREEPLAY=1"
   "drill-showdown:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-showdown"
   "drill-potmath:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-potMath"

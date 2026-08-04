@@ -95,18 +95,9 @@ struct RootView: View {
 private struct RootChrome: ViewModifier {
     @Binding var showSettings: Bool
     func body(content: Content) -> some View {
-        content
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showSettings = true } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(GT.onFelt)
-                    }
-                    .accessibilityLabel("설정")
-                }
-            }
-            .toolbarBackground(.hidden, for: .navigationBar)
+        content.gtChrome(.topBarTrailing) {
+            ChromeButton(symbol: "gearshape.fill", spoken: "설정") { showSettings = true }
+        }
     }
 }
 

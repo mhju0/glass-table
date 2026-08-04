@@ -6,6 +6,7 @@ import SwiftUI
 /// at the moment of confusion, instead of a starter guide explaining it once up front.
 struct GlossaryView: View {
     var focus: String? = nil
+    @Environment(\.dismiss) private var dismiss
 
     private struct Term {
         let korean: String
@@ -57,11 +58,18 @@ struct GlossaryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Presented as a bare sheet from both entry points, so there is no nav bar
+            // to hang a toolbar item on — the chevron lives in the header instead.
+            HStack {
+                ChromeButton.close { dismiss() }
+                Spacer()
+            }
+            .padding(.leading, 4)
             HStack {
                 Text("용어집").font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Spacer()
             }
-            .padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 18)
+            .padding(.horizontal, 18).padding(.bottom, 18)
 
             ScrollViewReader { proxy in
                 ScrollView {
@@ -83,8 +91,7 @@ struct GlossaryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(GT.felt.ignoresSafeArea())
-        .toolbarBackground(.hidden, for: .navigationBar)
     }
 }
 
-#Preview { NavigationStack { GlossaryView() } }
+#Preview { GlossaryView() }

@@ -263,6 +263,77 @@ extension View {
     }
 }
 
+// MARK: - navigation chrome
+
+/// The one nav-bar control, drawn by us rather than by the system.
+///
+/// Under iOS 26 a toolbar item is handed a Liquid Glass capsule whose material samples
+/// whatever sits behind it. On a sheet that is the *outgoing* screen, so the button
+/// visibly changes shade while the sheet settles — the flicker this replaces — and the
+/// ring around it reads as a floating bubble rather than a control. A bare glyph has
+/// no material to resolve, so there is nothing to settle.
+///
+/// Direction carries the meaning, which is why these are arrows and not words: ∨ puts
+/// the sheet back down the way it came up, ‹ steps back one level inside it.
+struct ChromeButton: View {
+    let symbol: String
+    /// Never rendered — the arrow is the label. Spoken by VoiceOver, which cannot see it.
+    let spoken: String
+    let action: () -> Void
+
+    /// Dismisses the sheet. It rose from the bottom; it leaves the same way.
+    static func close(_ action: @escaping () -> Void) -> ChromeButton {
+        ChromeButton(symbol: "chevron.down", spoken: "닫기", action: action)
+    }
+
+    /// One level back, staying inside the sheet.
+    static func back(_ spoken: String, _ action: @escaping () -> Void) -> ChromeButton {
+        ChromeButton(symbol: "chevron.left", spoken: spoken, action: action)
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(GT.onFelt)
+                // 44pt target: the glyph is small and the felt around it is not tappable.
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel(spoken)
+    }
+}
+
+extension View {
+    /// Every nav bar in the app: no background, and its item drawn by us.
+    func gtChrome<V: View>(_ placement: ToolbarItemPlacement,
+                           @ViewBuilder item: @escaping () -> V) -> some View {
+        modifier(GTChrome(placement: placement, item: item))
+    }
+}
+
+private struct GTChrome<V: View>: ViewModifier {
+    let placement: ToolbarItemPlacement
+    @ViewBuilder let item: () -> V
+
+    func body(content: Content) -> some View {
+        content
+            .toolbar { bar }
+            .toolbarBackground(.hidden, for: .navigationBar)
+    }
+
+    @ToolbarContentBuilder
+    private var bar: some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            ToolbarItem(placement: placement) { item() }
+                .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: placement) { item() }
+        }
+    }
+}
+
 /// The bottom action sheet. Rounded at the top, **bleeding to the bottom edge**, with
 /// a grabber so it reads as a sheet rather than a colour change.
 struct ActionSheet<Content: View>: View {

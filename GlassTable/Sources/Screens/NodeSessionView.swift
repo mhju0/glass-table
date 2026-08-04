@@ -54,13 +54,7 @@ struct NodeSessionView: View {
             else { current }
         }
         .background(FeltBackground())
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("닫기") { dismiss() }
-                    .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-            }
-        }
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
         .onAppear {
             // First exposure to the concept this node teaches opens with the
             // walkthrough. A node the user has already met goes straight to drilling,
@@ -190,15 +184,12 @@ struct FreePlayView: View {
             }
         }
         .background(FeltBackground())
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(concept == nil ? "닫기" : "드릴 바꾸기") {
-                    if concept == nil { dismiss() } else { concept = nil }
-                }
-                .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-            }
+        // Two different jobs, so two different arrows: at the picker the button leaves
+        // free play altogether, inside a drill it only steps back to the picker.
+        .gtChrome(.topBarLeading) {
+            if concept == nil { ChromeButton.close { dismiss() } }
+            else { ChromeButton.back("드릴 바꾸기") { concept = nil } }
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     private var picker: some View {

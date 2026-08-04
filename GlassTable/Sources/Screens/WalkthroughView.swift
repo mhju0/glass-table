@@ -48,13 +48,13 @@ struct WalkthroughView: View {
             }
             #endif
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("건너뛰기", action: onSkip)
-                    .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-            }
+        // Stays a word, and stays opposite 닫기. Skipping a lesson is a decision, not a
+        // direction — an arrow would leave the user guessing what they were giving up.
+        .gtChrome(.topBarTrailing) {
+            Button("건너뛰기", action: onSkip)
+                .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+                .frame(minHeight: 44)
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     private var header: some View {

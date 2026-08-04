@@ -60,10 +60,15 @@ struct BucketBarView: View {
         .accessibilityLabel(spoken)
     }
 
+    /// Only the buckets the bar actually drew. A paired board makes every made pair
+    /// into two pair, so 약한 페어 and 탑 페어 are *structurally* zero there — printing
+    /// them anyway cost two chips and a wrapped line to say nothing.
+    private var present: [MadeHand] { MadeHand.allCases.filter { distribution.share($0) > 0 } }
+
     private var legend: some View {
         // Wraps, because five Korean bucket names do not fit one line on a mini.
         FlowRow(spacing: 9) {
-            ForEach(MadeHand.allCases, id: \.self) { b in
+            ForEach(present, id: \.self) { b in
                 HStack(spacing: 4) {
                     RoundedRectangle(cornerRadius: 2).fill(fill(b))
                         .frame(width: 9, height: 9)
@@ -74,6 +79,8 @@ struct BucketBarView: View {
         }
     }
 
+    /// Keeps the zeroes the legend drops: a sighted user can see the bar has three
+    /// segments, a VoiceOver user only learns a bucket is empty by being told.
     private var spoken: String {
         label + ", " + MadeHand.allCases
             .map { "\($0.korean) \(pctText(distribution.share($0) * 100))퍼센트" }
