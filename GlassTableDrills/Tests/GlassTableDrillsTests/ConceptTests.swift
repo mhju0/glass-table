@@ -3,12 +3,13 @@ import XCTest
 
 final class ConceptTests: XCTestCase {
     func testRosterCoversBlockA() {
-        XCTAssertEqual(Concept.allCases.count, 17)
+        XCTAssertEqual(Concept.allCases.count, 18)
         XCTAssertEqual(Set(Concept.allCases.map(\.rawValue)),
                        ["showdown", "potMath", "position", "combos", "potOdds",
                         "outs", "equitySense", "evCall", "callFold",
                         "rangeNotation", "rfi", "rangeRead",
-                        "hitFrequency", "rangeAdvantage", "evLoss", "actionRead", "mdf"])
+                        "hitFrequency", "rangeAdvantage", "evLoss", "actionRead",
+                        "defend", "mdf"])
     }
 
     /// Spec §5.4: interval input only where the answer is genuinely estimated.
@@ -17,7 +18,7 @@ final class ConceptTests: XCTestCase {
                        [.equitySense, .evCall, .outs, .hitFrequency, .rangeAdvantage,
                         .actionRead])
         for c in [Concept.showdown, .potMath, .position, .combos, .potOdds, .callFold,
-                  .rangeNotation, .rfi, .rangeRead, .evLoss, .mdf] {
+                  .rangeNotation, .rfi, .rangeRead, .evLoss, .defend, .mdf] {
             XCTAssertFalse(c.isEstimation, "\(c.rawValue) has an exact answer")
         }
     }

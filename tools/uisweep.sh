@@ -106,6 +106,10 @@ SCREENS=(
   "drill-actionread:GT_DEMO_SEED=1 GT_DEMO_NODE=u7-actionRead"
   "drill-actionread-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u7-actionRead GT_DEMO_REVEAL=60"
   "teach-actionread-rule:GT_DEMO_NODE=u7-actionRead GT_DEMO_BEAT=2"
+  # R5b. GT_DEMO_REVEAL: 0 폴드, 1 콜, 2 3벳 — the reveal's chart is the payload.
+  "drill-defend:GT_DEMO_SEED=1 GT_DEMO_NODE=u8-defend"
+  "drill-defend-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u8-defend GT_DEMO_REVEAL=1"
+  "teach-defend-chart:GT_DEMO_NODE=u8-defend GT_DEMO_BEAT=3"
   "teach-actionread-bars:GT_DEMO_NODE=u7-actionRead GT_DEMO_BEAT=4"
   # R4-S4. Scripted passive steps drive the seeded hand to a grade pill and, with
   # enough of them, the summary. Flop pricing is seconds in a debug build, so these

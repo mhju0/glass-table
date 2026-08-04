@@ -22,6 +22,9 @@ public enum BeatFocus: Equatable, Sendable {
     /// only visible as one — so a single percentage would be the lesson's summary
     /// rather than the lesson.
     case buckets([BucketBar])
+    /// The three-band defending chart vs one opener, hero's class ringed — rendered
+    /// by the same grid the 테이블's 차트 보기 uses, so they can never drift.
+    case defendChart(opener: Position, highlight: HandClass?)
 }
 
 /// One labelled distribution in a `.buckets` beat.
@@ -572,6 +575,39 @@ public enum BeatScript {
                  detail: "전체 레인지는 \(pctText(s.full.pairOrBetter * 100))%였어요. "
                        + "같은 레인지인데 행동 하나로 모양이 달라져요 — 이게 리드예요.",
                  focus: .buckets(bars)),
+        ]
+    }
+
+    // MARK: 디펜드 차트
+
+    /// Derives the chart instead of asserting it: the opener's range, the two shares
+    /// applied to its width, then the finished bands with the hand ringed.
+    public static func defend(_ s: DefendSpot) -> [Beat] {
+        let openPct = RFIChart.openPercent[s.opener] ?? 0
+        let correct = s.correct
+        return [
+            Beat("상황", value: "\(s.opener.rawValue) 3bb 오픈",
+                 detail: "열 핸드인지가 아니라, 열린 판에 어떻게 맞설지예요. "
+                       + "갈래는 셋: 폴드, 콜, 3벳.",
+                 focus: .table),
+            Beat("상대의 폭", value: "상위 \(pctText(openPct))%",
+                 detail: "\(s.opener.rawValue)가 여는 범위예요. 수비 기준은 전부 "
+                       + "이 폭에서 나와요.",
+                 focus: .rangeGrid(RFIChart.range(for: s.opener), highlight: nil)),
+            Beat("기준 유도", value: "폭에 비례해요",
+                 detail: "차트를 외우는 게 아니라 규칙에서 꺼내 쓰는 거예요.",
+                 focus: .actionList([
+                     "오픈 폭 \(pctText(openPct))%",
+                     "상위 \(pctText(openPct * DefendChart.threeBetShare))% → 3벳",
+                     "\(pctText(openPct * DefendChart.defendShare))%까지 → 콜",
+                     "나머지 → 폴드",
+                 ], lit: nil)),
+            Beat("차트", value: "빨강 3벳 · 초록 콜",
+                 detail: "내 핸드가 어느 밴드에 있는지 보세요.",
+                 focus: .defendChart(opener: s.opener, highlight: s.handClass)),
+            Beat("그래서", value: "\(s.handClass.description) → \(correct.rawValue)",
+                 detail: "테이블의 프리플랍도 정확히 이 차트로 채점해요.",
+                 focus: .defendChart(opener: s.opener, highlight: s.handClass)),
         ]
     }
 

@@ -72,6 +72,9 @@ struct ConceptDrillView: View {
         case .actionRead:
             ActionReadDrill(seed: seed, index: index,
                             progressText: progressText, onAnswer: onAnswer)
+        case .defend:
+            DefendDrill(seed: seed, index: index,
+                        progressText: progressText, onAnswer: onAnswer)
         }
     }
 }
@@ -1389,6 +1392,71 @@ private struct ActionReadDrill: View {
                             estimate: Estimate(point: point, lo: max(0, point - halfWidth),
                                                hi: min(100, point + halfWidth)),
                             spot: spot)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 디펜드 차트
+
+private struct DefendDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var reveal: DefendReveal?
+
+    private var spot: DefendSpot { DefendSpotGenerator.spot(baseSeed: seed, index: index) }
+
+    var body: some View {
+        DrillShell(title: "디펜드 차트", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "내 핸드")
+                CardRow(cards: spot.hand, maxSize: 78)
+                SectionLabel(text: "상황").padding(.top, 8)
+                Text("\(spot.opener.rawValue)가 3bb 오픈했어요")
+                    .font(GT.title(17)).foregroundStyle(GT.onFelt)
+                Text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요")
+                    .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                if reveal != nil {
+                    // The chart the verdict came from, hand ringed — same grid the
+                    // 테이블's 차트 보기 uses, so they can never disagree.
+                    DefendGridView(opener: spot.opener, highlight: spot.handClass)
+                        .frame(maxWidth: 320)
+                        .padding(.top, 10)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                #if DEBUG
+                // GT_DEMO_REVEAL=<0|1|2> answers 폴드/콜/3벳 — the chart is the payload
+                // and synthetic taps never reach Simulator content.
+                if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Int.init) {
+                    let chosen: DefendAction = v == 0 ? .fold : (v == 1 ? .call : .threeBet)
+                    reveal = gradeDefend(chosen: chosen, spot: spot)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band,
+                            mine: reveal.chosen.rawValue,
+                            correct: reveal.correct.rawValue,
+                            why: reveal.whyText) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                    self.reveal = nil
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("이 핸드로 어떻게 맞서나요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                    HStack(spacing: 10) {
+                        ForEach(DefendAction.allCases.reversed(), id: \.self) { a in
+                            GTChoiceButton(title: a.rawValue, minHeight: 56) {
+                                reveal = gradeDefend(chosen: a, spot: spot)
+                            }
+                        }
                     }
                 }
             }

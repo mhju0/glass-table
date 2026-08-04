@@ -141,6 +141,10 @@ struct WalkthroughView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 8)
+        case let .defendChart(opener, highlight):
+            DefendGridView(opener: opener, highlight: highlight)
+                .frame(maxWidth: 330)
+                .frame(maxWidth: .infinity, alignment: .leading)
         case let .grid(cards):
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
                       alignment: .leading, spacing: 8) {
@@ -312,6 +316,9 @@ enum Walkthrough {
         case .actionRead:
             let s = ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.actionRead(s), [("보드 · 플랍", s.board)])
+        case .defend:
+            let s = DefendSpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.defend(s), [("내 핸드", s.hand)])
         }
     }
 }

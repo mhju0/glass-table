@@ -35,7 +35,7 @@ public enum NodeStatus: Equatable, Sendable {
 }
 
 /// The path, by section: 기초 (R1) → 레인지 (R2's charts, R3's reads) → 보드 (R4-S1) →
-/// 결정 (R4-S2) → 상대 (R4-S3).
+/// 결정 (R4-S2) → 상대 (R4-S3, R5b).
 ///
 /// Unlocking is strictly linear and not skippable — the only way past a node is the
 /// first-run diagnostic pre-clearing it (spec §6).
@@ -124,6 +124,15 @@ public enum Curriculum {
                                        mixes: [.actionRead, .evLoss, .rangeAdvantage,
                                                .rangeRead]),
                            title: "좁히고 결정"),
+        ]),
+        // R5b. u7 read the opponent's postflop actions; u8 answers his preflop one —
+        // the same three-way choice the 테이블's first street asks, trained.
+        CurriculumUnit(id: "u8", title: "오픈에 맞서기", section: "상대", nodes: [
+            CurriculumNode(id: "u8-defend", kind: .drill(.defend), title: "디펜드 차트"),
+            CurriculumNode(id: "u8-boss",
+                           kind: .boss(own: nil,
+                                       mixes: [.defend, .rfi, .rangeNotation, .combos]),
+                           title: "프리플랍 종합"),
         ]),
     ]
 

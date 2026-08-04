@@ -11,7 +11,7 @@ public enum Concept: String, CaseIterable, Codable, Sendable {
     case potOdds, outs, equitySense, evCall, callFold
     case rangeNotation, rfi, rangeRead
     case hitFrequency, rangeAdvantage
-    case evLoss, actionRead
+    case evLoss, actionRead, defend
     case mdf
 }
 
@@ -35,7 +35,7 @@ extension Concept {
         case .equitySense, .evCall, .outs, .hitFrequency, .rangeAdvantage,
              .actionRead: return true
         case .showdown, .potMath, .position, .combos, .potOdds, .callFold,
-             .rangeNotation, .rfi, .rangeRead, .evLoss, .mdf: return false
+             .rangeNotation, .rfi, .rangeRead, .evLoss, .defend, .mdf: return false
         }
     }
 }
