@@ -1,5 +1,16 @@
 # App Store submission — v1.0 (1)
 
+> **Status (2026-08-04): stale in one load-bearing place — re-review before
+> resuming.** This doc was written for the M1 five-drill build and submission
+> is paused for dogfood. The revamp added the 테이블: simulated betting
+> gameplay with bb stakes (no real money, no purchasable currency). The
+> age-rating rationale below ("no betting gameplay") therefore **no longer
+> describes the app**; the Simulated Gambling answer, the review notes and
+> likely the KR rating path must be reassessed (see `open-questions.md` #11 —
+> counsel before the betting-table submission was always the plan). The
+> screenshots are also the M1 set. Descriptive metadata (subtitle, promo,
+> keywords, descriptions) has been refreshed to the current app.
+
 Single source of truth for everything entered into App Store Connect.
 Field limits: name 30, subtitle 30, keywords 100, promotional text 170,
 description 4000 characters.
@@ -21,29 +32,36 @@ description 4000 characters.
 
 ## Korean (primary) metadata
 
-**부제 (subtitle):** 아웃 · 팟 오즈 · MDF 계산 훈련
+**부제 (subtitle):** 레인지 · EV · 상대 읽기 훈련
 
-**프로모션 텍스트:** 레인지와 EV로 생각하는 포커. 하루 몇 분, 다섯 가지 수학
-드릴로 감이 아니라 계산으로 결정하세요.
+**프로모션 텍스트:** 레인지와 EV로 생각하는 홀덤. 단계별 코스로 기초를 다지고,
+전략이 공개된 상대와 한 핸드씩 결정을 bb로 채점받으세요.
 
-**키워드:** 포커,홀덤,팟오즈,아웃,에퀴티,MDF,블로커,포커수학,연습,드릴,훈련,계산
+**키워드:** 포커,홀덤,레인지,팟오즈,에퀴티,EV,아웃,MDF,포커수학,연습,훈련,차트
 
 **설명:**
 
 Glass Table은 노리밋 홀덤을 레인지(range)와 EV로 생각하는 법을 훈련하는
 무료 학습 앱입니다.
 
-다섯 가지 수학 드릴:
+길 — 단계별 코스:
 
-• 아웃 카운팅 — 드로우의 아웃(out)을 세고 룰 오브 2/4로 에퀴티를 추정
-• 팟 오즈 — 콜 가격을 필요 에퀴티(%)로 변환
-• 콜/폴드 — 추정 에퀴티와 필요 에퀴티를 비교해 결정
-• MDF — 벳 사이즈에 따른 최소 방어 빈도 계산
-• 블로커 — 블로커가 콤보(combo) 수를 어떻게 바꾸는지 계산
+8개 단원, 18개 개념. 쇼다운 읽기와 팟 계산에서 시작해 팟 오즈, 아웃,
+에퀴티 감각, EV, 콤보, 레인지 표기법, RFI 차트, 레인지 리드, 보드 텍스처,
+히트 프리퀀시, 레인지 어드밴티지, EV 손실, 액션 리드, 디펜드 차트까지.
+새 개념은 언제나 천천히(단계별 풀이)로 시작하고, 복습은 간격 반복으로
+자동 예약됩니다.
+
+테이블 — 전략이 공개된 상대:
+
+Nit · TAG · LAG · 콜링 스테이션 · 매니악 중 상대를 골라 헤즈업 한 핸드를
+플레이하세요. 상대의 전략은 표로 공개되어 있고, 행동할 때마다 남은
+레인지가 화면에서 좁혀집니다. 내 결정 하나하나가 bb 단위로 채점되고,
+핸드가 끝나면 실제 결과와 버린 EV를 나란히 보여줍니다.
 
 모든 문제는 "결정 → 공개 → 채점" 루프로 진행됩니다. 먼저 스스로 답을
-정하고, 그다음 정확한 수치와 풀이를 확인하세요. 정확/근접/빗나감 채점과
-스트릭이 반복 훈련을 이끕니다.
+정하고, 그다음 정확한 수치와 그 출처를 확인하세요. 추정 문제는 90% 구간을
+함께 답해 과신 여부(캘리브레이션)까지 추적합니다.
 
 이런 분을 위해 만들었습니다:
 • 감이 아니라 근거로 결정하고 싶은 진지한 아마추어
@@ -60,29 +78,34 @@ Glass Table은 학습 도구입니다. 실제 돈이 오가는 도박 기능은 
 
 ## English (U.S.) metadata
 
-**Subtitle:** Outs, pot odds & MDF drills
+**Subtitle:** Ranges, EV & reading opponents
 
-**Promotional text:** Think in ranges and EV. Five daily math drills to make
-poker decisions by calculation, not feel.
+**Promotional text:** Think in ranges and EV. A guided course plus hands
+against opponents whose strategies are published — every decision graded in
+big blinds.
 
-**Keywords:** poker,holdem,texas,outs,pot odds,equity,MDF,blockers,drills,trainer,study,math
+**Keywords:** poker,holdem,texas,ranges,pot odds,equity,EV,outs,MDF,trainer,study,charts
 
 **Description:**
 
 Glass Table is a free study app that trains you to think about No-Limit
 Hold'em in ranges and EV.
 
-Five math drills:
+The course: 8 units, 18 concepts — from reading a showdown through pot odds,
+outs, equity sense, EV, combos, range notation, opening charts, range reads,
+board texture, hit frequency, range advantage, EV-loss decisions, action
+reads and the defend chart. New concepts open with a step-by-step worked
+example; review is scheduled by spaced repetition.
 
-• Outs — count your draw's outs and estimate equity with the rule of 2/4
-• Pot odds — convert a call price into required equity (%)
-• Call/Fold — compare estimated vs. required equity and decide
-• MDF — compute the minimum defense frequency for a bet size
-• Blockers — work out how blockers change combo counts
+The table: play heads-up hands against a chosen archetype (Nit, TAG, LAG,
+calling station, maniac). The opponent's strategy is a published table, its
+range visibly narrows as it acts, and every decision is priced in big blinds
+— with the hand summary showing net result and EV burned side by side.
 
 Every spot runs a decide → reveal → grade loop: commit to your answer first,
-then see the exact numbers and the reasoning. Exact/close/miss grading and
-streaks drive the reps.
+then see the exact numbers and where they came from. Estimation questions
+also take a 90% interval, so the app tracks whether you're overconfident —
+not just whether you're right.
 
 Built for:
 • Serious-minded amateurs who want reasons, not vibes
@@ -107,7 +130,7 @@ age-rating tiers read 13+/16+/18+ — if the live questionnaire shows those,
 | Question | Answer | Rationale |
 |---|---|---|
 | Violence (cartoon/realistic), horror, sexual content, nudity, profanity, drugs/alcohol/tobacco, medical info | None | Absent from the app |
-| Simulated Gambling | **Infrequent/Mild** | Poker-themed calculation drills; no wagering, no chips staked, no betting gameplay, no virtual currency. Conservative honest answer for a poker-subject app |
+| Simulated Gambling | **Infrequent/Mild** *(M1 answer — MUST be reassessed: the 테이블 adds simulated betting gameplay with bb stakes, no real money)* | M1 rationale ("no betting gameplay") no longer holds. Honest re-answer required; likely Frequent/Intense → higher tier. See the status banner and `open-questions.md` #11 |
 | Real-money gambling / contests | No | Free study tool, no money in or out |
 | Unrestricted web access | No | No networking at all |
 | User-generated content / communication | No | None |
@@ -128,10 +151,12 @@ leaves the device.
 Glass Table is a free educational study tool for No-Limit Hold'em poker
 mathematics, aimed at Korean-speaking players (UI is Korean-first).
 
-- No real-money gambling, no wagering, no virtual currency, and no simulated
-  betting gameplay. The app contains only calculation drills: counting outs,
-  converting pot odds to required equity, minimum defense frequency, and
-  card-combination (blocker) counting.
+- No real-money gambling, no purchasable currency, and nothing to win or lose
+  outside a study session. The app contains a guided curriculum of poker-math
+  drills and a practice table where hands are played against rule-based
+  training opponents with big-blind units used as the unit of account.
+  *(M1's "no simulated betting gameplay" phrasing was removed — the practice
+  table does depict betting; describe it honestly at resubmission.)*
 - Fully offline: no account, no login, no in-app purchases, no ads, no data
   collection.
 - No demo account is needed; all content is available on first launch.
@@ -140,4 +165,7 @@ mathematics, aimed at Korean-speaking players (UI is Korean-first).
 
 One iPhone 6.9" set (1320×2868, from iPhone 17 Pro Max simulator), reused for
 both locales: `docs/store-assets/ko-0[1-5]-*.png` — home, outs reveal,
-pot-odds question, stats, glossary.
+pot-odds question, stats, glossary. **Stale (M1 UI): re-capture the full set
+before resuming** — the current app's 길/오늘/테이블/기록 look nothing like
+these. `tools/uisweep.sh` on an iPhone 17 Pro Max simulator produces the raw
+frames.

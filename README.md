@@ -1,7 +1,7 @@
 # Glass Table
 
 **레인지와 EV로 생각하는 홀덤 훈련** — a Korean-first iOS trainer for No-Limit
-Hold'em math. Free, fully offline, no ads, no accounts.
+Hold'em. Free, fully offline, no ads, no accounts.
 
 [![CI](https://github.com/mhju0/glass-table/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/ci.yml)
 [![Engine gate](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml)
@@ -9,37 +9,50 @@ Hold'em math. Free, fully offline, no ads, no accounts.
 
 Glass Table teaches serious-minded amateurs to think about poker in **ranges
 and EV** instead of hunches. Every spot runs the same loop: **decide → reveal →
-grade** — commit to your answer first, then see the exact numbers, then get
-graded 정확/근접/빗나감 so your estimates calibrate over time.
+grade** — commit to your answer first, then see the exact numbers and where they
+came from. The opponents are rule-based archetypes whose strategies are
+**published inside the app**, so every grade is computable and checkable rather
+than handed down by a black box.
 
-| Home | Drill | Stats |
-|---|---|---|
-| ![Home](docs/store-assets/ko-01-home.png) | ![Outs reveal](docs/store-assets/ko-02-outs-reveal.png) | ![Stats](docs/store-assets/ko-04-stats.png) |
+| 길 — the course | Decide → reveal | 테이블 — a graded hand | The chart, derived |
+|---|---|---|---|
+| ![Path](docs/readme-assets/readme-01-path.png) | ![Reveal](docs/readme-assets/readme-02-reveal.png) | ![Table](docs/readme-assets/readme-03-table.png) | ![Defend chart](docs/readme-assets/readme-04-chart.png) |
 
-## The five drills
+## What's inside
 
-1. **아웃 카운팅 · Outs** — count the winning cards, estimate equity with the rule of 2/4
-2. **팟 오즈 · Pot Odds** — convert a call price into required equity (%)
-3. **콜/폴드** — compare estimated vs. required equity and decide
-4. **MDF** — minimum defense frequency for a bet size
-5. **블로커 · Blockers** — how card removal changes combo counts
+- **길** — a linear course of 8 units / 18 concepts, from reading a showdown to
+  defending against an open: pot odds, outs, equity sense, EV, combos, range
+  notation, RFI charts, range reads, board texture, hit frequency, range
+  advantage, EV-loss decisions, action reads, and the defend chart. Every new
+  concept opens with a step-by-step worked example (천천히); mastery and review
+  run on FSRS spaced repetition.
+- **테이블** — play a heads-up hand against a chosen archetype (Nit / TAG / LAG /
+  콜링 스테이션 / 매니악). The bot's pre- and postflop strategy is a printable
+  table, its live range narrows on screen as it acts, and every decision comes
+  back priced in big blinds — with the hand summary showing *net result* and
+  *EV burned* side by side.
+- **Calibration** — estimation drills collect a point estimate plus a 90%
+  interval, scored by a proper scoring rule (Winkler), so the app can tell you
+  whether you're overconfident — not just whether you're right.
+- **자유 연습** — every drill, unlimited, no gates.
 
-Streaks and accuracy are stored on-device only — the app has zero networking.
+Progress is stored on-device only — the app has zero networking.
 See the [privacy policy](https://mhju0.github.io/glass-table/privacy-policy.html).
 
 ## Architecture
 
 ```
-GlassTableEngine   pure poker math (equity, grading) — correctness-proven, release-mode test gate
-      ↑
-GlassTableDrills   drill logic: spot generators, sessions, progress — plain Swift, fast tests
-      ↑
+GlassTableEngine   pure poker math (evaluator, equity, ranges, board texture)
+      ↑            — correctness-proven, release-mode test gate
+GlassTableDrills   spot generators, grading, archetype policies, the table hand
+      ↑            machine, curriculum & spaced repetition — plain Swift, fast tests
 GlassTable         thin SwiftUI app (screens + design system)
 ```
 
 The heavy lifting lives in two Swift packages so nearly everything is testable
-without a simulator. Design docs live in [`docs/`](docs/), including the product
-brief, decisions log, and per-feature specs/plans.
+without a simulator. Zero third-party dependencies. Design docs live in
+[`docs/`](docs/): the product brief, the decisions log (`docs/decisions.md`),
+and one spec per shipped slice under [`docs/specs/`](docs/specs/).
 
 ## Building
 
@@ -52,6 +65,9 @@ xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
   -destination 'platform=iOS Simulator,name=iPhone 17' \
   CODE_SIGNING_ALLOWED=NO build
 ```
+
+`tools/uisweep.sh` screenshots every significant screen via launch-argument
+hooks — the cheap way to *look at* the app after a UI change.
 
 ## Testing
 

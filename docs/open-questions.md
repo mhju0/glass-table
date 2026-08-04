@@ -14,13 +14,13 @@ What still needs the developer's input or outside research, prioritized. P1 bloc
 ## P2 — needed before Range Read / Table
 
 7. ~~**Which published range charts source the archetypes.**~~ **RESOLVED (amended 2026-08-03): derive our own values from a published rule; name Upswing's free 9-handed RFI PDF + PokerCoaching's free charts as the benchmarks checked against, and reproduce neither.** No public chart is redistributable, so adopting one wholesale was never actually available; GTO Wizard is no longer the baseline because it is the named direct competitor. 8-handed interpolation stays disclosed in-app. See `decisions.md` §E and `docs/specs/2026-08-03-r1-progression-shell-design.md` §13.
-8. **Archetype parameters — opening widths done, post-flop knobs open.** *Resolved:* VPIP/PFR per archetype (Nit 12/9, TAG 20/17, LAG 27/22, Station 40/10, Maniac 55/40; `decisions.md` §C). *Still open:* the per-street continuing/c-bet/bluff frequencies and aggression/honesty knobs — part of the post-flop bot design (see #9).
-9. **Post-flop feature definitions (the remaining bot-design task).** The exact hand-strength buckets, board-texture classifier (wet/dry thresholds), and how they map to each archetype's action distribution. *Blocks the post-flop bot (Milestone 3), not Range Read.* This is the one substantive piece of bot design still to specify — I'll drive it when Table planning begins.
-10. ~~**Grade presentation & thresholds.**~~ **RESOLVED (format): EV loss in bb + three-band soft severity for Table/Range; estimation-error bands (정확/근접/빗나감) for Math Drills.** See `decisions.md` §D. *(Remaining: exact bb thresholds per band and the Range-grid delta metric — tune during build.)*
+8. ~~**Archetype parameters — post-flop knobs.**~~ **RESOLVED (2026-08-04): the postflop policy is a printable bucket table per archetype** — bet/call/raise rows over the five made-hand buckets, deterministic on purpose so an observed action inverts into the surviving range; plus a per-archetype continue-share against 3-bets. See `docs/specs/2026-08-04-r4-s3-postflop-policy-design.md` §1 and `2026-08-04-r5-hero-preflop-design.md` §2.
+9. ~~**Post-flop feature definitions.**~~ **RESOLVED (2026-08-04): five made-hand buckets (노페어/드로우/약한 페어/탑 페어/투페어 이상) + a derived board-texture classifier**, both engine-level and test-pinned; the policy table maps buckets to actions. See `docs/specs/2026-08-04-r4-s1-board-texture-design.md` §1–3.
+10. ~~**Grade presentation & thresholds.**~~ **RESOLVED and shipped:** EV loss in bb with 최선/부정확/실수 at 0.5/2.0bb (R4-S2), estimation bands elsewhere, Winkler-scored intervals feeding calibration. *(Still open: the bb thresholds are absolute, not pot-relative — flagged in the R4-S2 spec as the model's weakest joint; retune from real answers.)*
 
 ## P3 — can wait
 
-11. **GRAC rating-class confirmation (outside counsel).** Have a Korean game-law firm confirm the likely rating class for the actual build before committing to the self-rating track. No precedent ruling exists for a no-money educational trainer. *Needed before Korean submission, not before building.*
+11. **GRAC rating-class confirmation (outside counsel).** *Now live rather than hypothetical: the 테이블 (betting UI with bb stakes) exists, which is the build the M1-era note said to revisit counsel before submitting.* Have a Korean game-law firm confirm the likely rating class for the actual build before committing to the self-rating track. No precedent ruling exists for a no-money educational trainer. *Needed before Korean submission, not before building.*
 
 *Resolved for M1 (2026-07-23):* proceeding **without** counsel — Math Drills
 is the lowest-signal build and the GRAC direct review is an administrative
@@ -28,7 +28,7 @@ fallback (spec `docs/specs/2026-07-23-m1-submission-design.md`). Revisit
 counsel before the betting-table milestone.
 
 12. **App name / branding in Korean.** Keep the English "Glass Table," use a Korean name (유리 테이블?), or a bilingual lockup. Store listing language.
-13. **Design/visual tone.** Study-tool aesthetic (equity/EV forward, chips understated) both for the thesis and for the Korean rating lever — needs a concrete direction before UI polish.
+13. ~~**Design/visual tone.**~~ **RESOLVED: the felt/glass/paper system** — dark table felt, opaque "glass" surfaces, paper card faces; one pinned appearance; every boundary measured to WCAG 3:1. See `decisions.md` §G.
 14. **6-max option.** Ship an optional 6-max table size after 8-max Table lands? Cheap, but confirm demand.
-15. **Curriculum unlock specifics.** Exact gates (which drills/modes unlock what), and whether progress is per-skill or linear.
+15. ~~**Curriculum unlock specifics.**~~ **RESOLVED (R1): strictly linear path, boss nodes as the only route to 숙달, first-run diagnostic can pre-clear.** See `docs/specs/2026-08-03-r1-progression-shell-design.md`.
 16. **Puzzle sharing format.** `.glasstable` file schema and/or URL-encoded share string for Lab puzzles.
