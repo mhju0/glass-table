@@ -54,6 +54,14 @@ archetype's check buckets are disjoint from its raise buckets — so a check-rai
 cannot happen and hero never *faces* a raise. The machine supports that phase anyway;
 the pin exists so a future slowplay row forces real coverage before it ships.
 
+And one correction, resolving the wrinkle S3's spec deferred here: **on the river the
+table collapses `draw → air`** before any policy lookup — bot action, narrowing and
+grading all see the same corrected bucket. "Four to a flush" stays factually true
+with no cards to come, but its future value is zero; without the collapse every
+draw-betting archetype bluffs busted draws by accident of classification. With it,
+river bluffing follows from each archetype's own air row — LAG and 매니악 fire, TAG
+and Nit give up — which is character, not accident.
+
 ## 3. Grading — the checkdown model, disclosed
 
 Every hero decision is graded by S2's `gradeByEVLoss` over the legal options. EVs are

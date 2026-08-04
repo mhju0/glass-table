@@ -2,9 +2,11 @@
 import SwiftUI
 import GlassTableDrills
 
-/// Three tabs, icon + label (spec §9). 오늘 is home; 길 and 기록 are one tap away.
-/// Free play is never a tab — it lives under 길.
-enum Tab: Hashable { case path, today, records }
+/// Four tabs, icon + label. 오늘 is home; 길, 테이블 and 기록 are one tap away.
+/// Free play is never a tab — it lives under 길. 테이블 is one (R4-S4): it is the
+/// mode Block C promised, a pillar rather than a sub-feature, and burying it under
+/// another tab would price it as one.
+enum Tab: Hashable { case path, today, table, records }
 
 struct RootView: View {
     @State private var model = ProgressionModel()
@@ -47,6 +49,13 @@ struct RootView: View {
             .tag(Tab.today)
 
             NavigationStack {
+                TableView()
+                    .modifier(RootChrome(showSettings: $showSettings))
+            }
+            .tabItem { Label("테이블", systemImage: "suit.spade.fill") }
+            .tag(Tab.table)
+
+            NavigationStack {
                 RecordsView()
                     .modifier(RootChrome(showSettings: $showSettings))
             }
@@ -81,8 +90,10 @@ struct RootView: View {
             case "path": tab = .path
             case "records": tab = .records
             case "today": tab = .today
+            case "table": tab = .table
             default: break
             }
+            if env["GT_DEMO_TABLE"] != nil { tab = .table }
             if let id = env["GT_DEMO_NODE"] { openNode = Curriculum.node(id: id) }
             if env["GT_DEMO_FREEPLAY"] != nil { showFreePlay = true }
             if env["GT_DEMO_SETTINGS"] != nil { showSettings = true }

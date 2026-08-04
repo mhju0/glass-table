@@ -244,6 +244,34 @@ final class TableTests: XCTestCase {
         XCTAssertEqual(TableHand.graded(best.choice, with: options)?.loss, 0)
     }
 
+    /// A draw with no cards to come is air. Villain holds 8♠7♠ on 9♥6♦2♣ K♠ 3♦ —
+    /// an open-ended draw on flop and turn (TAG bets both, per policy), a busted
+    /// nothing on the river. Raw classification still calls it a draw there, and a
+    /// TAG that bets draws would bluff it by accident; the table's bucket collapse
+    /// makes him check it, which is what "disciplined" means.
+    func testABustedDrawChecksTheRiverInsteadOfBluffingIt() {
+        func c(_ rank: Int, _ suit: Int) -> Card { Card(rank: rank, suit: suit) }
+        var hand = TableHand(villainSeat: .co, heroSeat: .btn, villain: .tag,
+                             hero: [c(14, 0), c(12, 0)],           // A♣Q♣ — air all the way
+                             villainCombo: [c(8, 3), c(7, 3)],     // 8♠7♠
+                             fullBoard: [c(9, 2), c(6, 1), c(2, 0), c(13, 3), c(3, 1)],
+                             handSeed: 7)
+        // Flop and turn: the draw bets (policy), hero calls.
+        guard case .hero(.bet) = hand.phase else { return XCTFail("TAG must bet his draw") }
+        hand.play(.call)
+        guard case .hero(.bet) = hand.phase, hand.street == 4 else {
+            return XCTFail("TAG must barrel the turn draw")
+        }
+        hand.play(.call)
+        // River: the draw busted. Without the collapse TAG would bet it.
+        XCTAssertEqual(hand.street, 5)
+        guard case .hero(.checkedTo) = hand.phase else {
+            return XCTFail("a busted draw must check the river, not bluff it")
+        }
+        // And the narrowing agrees with the behaviour: his combo survived his check.
+        XCTAssertTrue(hand.villainCombos.contains([c(8, 3), c(7, 3)]))
+    }
+
     func testGradedRejectsAChoiceNotOnTheMenu() {
         let hand = TableDealer.deal(baseSeed: 5, index: 0)
         let options = hand.gradedOptions()

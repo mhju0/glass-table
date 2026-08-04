@@ -103,12 +103,23 @@ public struct TableHand: Equatable {
 
     // MARK: villain, who is S3 verbatim
 
-    private var villainBucket: MadeHand { madeHand(hand: villainCombo, board: board) }
+    /// The bucket the *policy* sees. One correction over the raw classification: a
+    /// draw with no cards to come is air. "Four to a flush" stays factually true on a
+    /// river, but its future value is zero — and without the collapse a TAG would
+    /// bluff busted draws by accident of classification. With it, river bluffing
+    /// follows from each archetype's own air row: LAG and 매니악 still fire, TAG and
+    /// Nit give up. (The wrinkle both S3 and S4 specs deferred, resolved here.)
+    private func bucket(of combo: [Card]) -> MadeHand {
+        let raw = madeHand(hand: combo, board: board)
+        return street == 5 && raw == .draw ? .air : raw
+    }
+
+    private var villainBucket: MadeHand { bucket(of: villainCombo) }
 
     /// Keep only combos whose policy action matches what was just observed — the S3
     /// inversion, applied per street as it happens.
     private mutating func narrow(_ keep: (MadeHand) -> Bool) {
-        villainCombos = villainCombos.filter { keep(madeHand(hand: $0, board: board)) }
+        villainCombos = villainCombos.filter { keep(bucket(of: $0)) }
     }
 
     private mutating func revealBoard() {
@@ -145,7 +156,7 @@ public struct TableHand: Equatable {
 
     // MARK: hero acts
 
-    public enum HeroChoice: Equatable {
+    public enum HeroChoice: Hashable {
         case fold, check, call
         /// Fraction of pot from the decisions.md §A menu.
         case bet(Double)
@@ -341,9 +352,11 @@ public extension TableHand {
         let n = Double(villainCombos.count)
         guard n > 0 else { return [] }
 
+        // Grading must see the same buckets the bot acts on — bucket(of:), not the
+        // raw classification, or a river grade would price a bluff the bot cannot make.
         func mean(_ f: (Double, MadeHand) -> Double) -> Double {
             zip(eq, villainCombos).reduce(0) { acc, pair in
-                acc + f(pair.0, madeHand(hand: pair.1, board: board))
+                acc + f(pair.0, bucket(of: pair.1))
             } / n
         }
 

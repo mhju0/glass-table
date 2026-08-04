@@ -107,18 +107,29 @@ SCREENS=(
   "drill-actionread-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u7-actionRead GT_DEMO_REVEAL=60"
   "teach-actionread-rule:GT_DEMO_NODE=u7-actionRead GT_DEMO_BEAT=2"
   "teach-actionread-bars:GT_DEMO_NODE=u7-actionRead GT_DEMO_BEAT=4"
+  # R4-S4. Scripted passive steps drive the seeded hand to a grade pill and, with
+  # enough of them, the summary. Flop pricing is seconds in a debug build, so these
+  # entries carry their own longer sleep (third field).
+  "table-picker:GT_DEMO_TAB=table"
+  "table-hand:GT_DEMO_TABLE=tag:8"
+  "table-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1:12"
+  "table-summary:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=9:20"
 )
 
 # One pass, not two. The app pins UIUserInterfaceStyle to Dark, so the light run was
 # capturing the same pixels — the two schemes measured 1.04:1 apart on glass.
+# Entry format: name:envs[:sleep] — the optional third field replaces the default
+# settle time, for screens that compute before they can be photographed.
 for entry in "${SCREENS[@]}"; do
   name="${entry%%:*}"
-  envs="${entry#*:}"
+  rest="${entry#*:}"
+  slp="${rest##*:}"
+  if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=2.2; fi
   args=()
   for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
   xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
   env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
-  sleep 2.2
+  sleep "$slp"
   xcrun simctl io "$DEV" screenshot "$OUT/$name.png" >/dev/null 2>&1 || true
   printf '.'
 done
