@@ -11,6 +11,14 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      # The app compiles against iOS 26 API (sharedBackgroundVisibility in the nav
+      # chrome), and #available guards runtime, not compile — the runner's default
+      # Xcode builds with an older SDK and fails on the symbol. Pick the newest
+      # installed Xcode and say which, so the next SDK mismatch is one log line away.
+      - name: Select newest Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          xcodebuild -version
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
