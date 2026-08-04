@@ -132,7 +132,8 @@ struct NodeSessionView: View {
         ConceptDrillView(concept: conceptFor(index),
                          seed: baseSeed, index: index + 2,
                          progressText: "\(index + 1)/\(itemCount)") { band in
-            model.record(concept: conceptFor(index), band: band.band, interval: band.interval)
+            model.record(concept: conceptFor(index), band: band.band,
+                         interval: band.interval, evLoss: band.evLoss)
             answered.append(conceptFor(index))
             if band.band != .spotOn { missed += 1 }
             if index + 1 >= itemCount {
@@ -176,7 +177,8 @@ struct FreePlayView: View {
             if let concept {
                 ConceptDrillView(concept: concept, seed: 0x5EED, index: index,
                                  progressText: "자유 연습") { result in
-                    model.record(concept: concept, band: result.band, interval: result.interval)
+                    model.record(concept: concept, band: result.band,
+                                 interval: result.interval, evLoss: result.evLoss)
                     index += 1
                 }
             } else {

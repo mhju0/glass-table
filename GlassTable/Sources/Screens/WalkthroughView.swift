@@ -306,6 +306,9 @@ enum Walkthrough {
         case .rangeAdvantage:
             let s = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.rangeAdvantage(s), [("보드 · 플랍", s.board)])
+        case .evLoss:
+            let s = EVLossSpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.evLoss(s), [("보드 · 리버", s.board), ("내 핸드", s.hero)])
         }
     }
 }

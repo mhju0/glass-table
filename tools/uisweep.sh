@@ -94,6 +94,13 @@ SCREENS=(
   # The stacked bucket bars are the whole lesson of both board drills.
   "teach-hitfreq-buckets:GT_DEMO_NODE=u5-hitFrequency GT_DEMO_BEAT=3"
   "teach-rangeadv-buckets:GT_DEMO_NODE=u5-rangeAdvantage GT_DEMO_BEAT=3"
+  # R4-S2. Both sides of the reveal, because the headline differs: one of these is a
+  # 0bb choice and the other is what it cost to take the other one.
+  "drill-evloss:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss"
+  "drill-evloss-call:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=1"
+  "drill-evloss-fold:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=0"
+  "teach-evloss-range:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=1"
+  "teach-evloss-cost:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=5"
 )
 
 # One pass, not two. The app pins UIUserInterfaceStyle to Dark, so the light run was

@@ -8,6 +8,9 @@ struct DrillOutcome {
     let band: GradeBand
     /// Present only for estimation concepts (spec §5.4).
     let interval: IntervalAnswer?
+    /// Big blinds given up. Present only where the grade *is* a cost (R4-S2), so the
+    /// rolling 기록 average never counts an ungraded concept as a perfect 0bb.
+    var evLoss: Double? = nil
 }
 
 /// Renders one spot for any concept and reports the graded result.
@@ -63,6 +66,9 @@ struct ConceptDrillView: View {
         case .rangeAdvantage:
             RangeAdvantageDrill(seed: seed, index: index,
                                 progressText: progressText, onAnswer: onAnswer)
+        case .evLoss:
+            EVLossDrill(seed: seed, index: index,
+                        progressText: progressText, onAnswer: onAnswer)
         }
     }
 }
@@ -1181,6 +1187,121 @@ private struct RangeAdvantageDrill: View {
                     } else {
                         PrimaryCTAButton(title: "확인") { submit(point) }
                     }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - EV 손실
+
+/// The bb is the headline, not the band.
+///
+/// Every other reveal in the app can lead with 정확/근접/빗나감 because every other
+/// answer is either right or not. This concept exists to say that being wrong is not
+/// one thing, so a verdict pill at the top would contradict the lesson underneath it.
+private struct EVLossRevealSheet: View {
+    let reveal: EVLossReveal
+    let onNext: () -> Void
+
+    private var headline: String {
+        reveal.grade.loss <= 0 ? "0bb" : "\u{2212}\(bbText(reveal.grade.loss))bb"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 9) {
+                Text(headline)
+                    .font(GT.title(32).monospacedDigit())
+                    .foregroundStyle(reveal.band.ink)
+                // Shape and word beside the number, so the verdict never rests on hue
+                // alone — the same three-channel rule VerdictRow follows.
+                Image(systemName: reveal.band.glyph)
+                    .font(.system(size: 15)).foregroundStyle(reveal.band.ink)
+                Text(reveal.band.evLossLabel)
+                    .font(GT.title(15)).foregroundStyle(reveal.band.ink)
+                Spacer(minLength: 6)
+                Text("내 선택 · \(reveal.grade.chosen.label)")
+                    .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
+            }
+            .padding(.horizontal, 13).padding(.vertical, 11)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(reveal.band.tint, in: RoundedRectangle(cornerRadius: 14))
+
+            Text(reveal.whyText).font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
+                .padding(13)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(GT.border, lineWidth: 1))
+                .fixedSize(horizontal: false, vertical: true)
+            PrimaryCTAButton(title: "다음 문제", action: onNext)
+        }
+        .accessibilityElement(children: .contain)
+    }
+}
+
+private struct EVLossDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var reveal: EVLossReveal?
+
+    /// Exact, and 1ms on a river — no sampling and no off-thread dance, unlike
+    /// 레인지 어드밴티지 (spec §3.2).
+    private var spot: EVLossSpot { EVLossSpotGenerator.spot(baseSeed: seed, index: index) }
+
+    var body: some View {
+        DrillShell(title: "EV 손실", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 6) {
+                SectionLabel(text: "보드 · 리버")
+                CardRow(cards: spot.board, maxSize: 62)
+                SectionLabel(text: "내 핸드").padding(.top, 10)
+                CardRow(cards: spot.hero, maxSize: 78)
+                // The range is stated, never guessed (spec §3.1). Printing it as the
+                // premise is the difference between this and 콜/폴드, where the
+                // villain's two cards are face up.
+                SectionLabel(text: "상대 레인지").padding(.top, 10)
+                Text(spot.rangeLabel)
+                    .font(GT.title(15)).foregroundStyle(GT.onFelt)
+                Text("리버에서 어떻게 좁혔는지는 아직 안 따져요")
+                    .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                // Drawn, not just named. A stated range the user cannot see is still a
+                // number handed down — showing the 169 cells the equity came from is
+                // the whole transparency claim (spec §3.1), and it is what the felt
+                // below the cards was empty for.
+                RangeGridView(range: spot.villainRange)
+                    .frame(height: 230)
+                    .padding(.top, 8)
+                Text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb")
+                    .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } sheet: {
+            if let reveal {
+                EVLossRevealSheet(reveal: reveal) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: nil,
+                                          evLoss: reveal.grade.loss))
+                    self.reveal = nil
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("콜인가요, 폴드인가요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                    HStack(spacing: 10) {
+                        ForEach([("폴드", false), ("콜", true)], id: \.0) { label, calls in
+                            GTChoiceButton(title: label, minHeight: 56) {
+                                reveal = gradeEVLoss(userCalls: calls, spot: spot)
+                            }
+                        }
+                    }
+                }
+                .task {
+                    #if DEBUG
+                    // GT_DEMO_REVEAL=1 answers 콜, =0 answers 폴드 — the sweep needs both
+                    // sides because the headline differs on each.
+                    if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"] {
+                        reveal = gradeEVLoss(userCalls: v != "0", spot: spot)
+                    }
+                    #endif
                 }
             }
         }

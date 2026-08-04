@@ -11,6 +11,7 @@ public enum Concept: String, CaseIterable, Codable, Sendable {
     case potOdds, outs, equitySense, evCall, callFold
     case rangeNotation, rfi, rangeRead
     case hitFrequency, rangeAdvantage
+    case evLoss
     case mdf
 }
 
@@ -26,11 +27,14 @@ extension Concept {
     /// with a width and a shape, never a point plus a 90% interval, so there is no
     /// Winkler score to feed calibration. Its softness is carried by the overlap
     /// bands instead.
+    /// `evLoss` is not here either, and for a different reason than `rangeRead`: the
+    /// answer is a *choice*, not a number. What is continuous is the grade, not the
+    /// answer, so there is nothing to put an interval around.
     public var isEstimation: Bool {
         switch self {
         case .equitySense, .evCall, .outs, .hitFrequency, .rangeAdvantage: return true
         case .showdown, .potMath, .position, .combos, .potOdds, .callFold,
-             .rangeNotation, .rfi, .rangeRead, .mdf: return false
+             .rangeNotation, .rfi, .rangeRead, .evLoss, .mdf: return false
         }
     }
 }

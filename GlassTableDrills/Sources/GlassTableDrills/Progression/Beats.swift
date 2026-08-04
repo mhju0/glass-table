@@ -536,6 +536,45 @@ public enum BeatScript {
         abs(x - x.rounded()) < 0.01 ? "\(Int(x.rounded()))" : String(format: "%.1f", x)
     }
 
+    // MARK: EV 손실
+
+    /// Walks the price and the equity separately, then puts a **number on each option**
+    /// before naming a winner. 콜/폴드 above ends at "which one" on purpose — that node
+    /// teaches the comparison. This one has to end at "how much", because the whole
+    /// point of the concept is that being wrong is not one thing.
+    public static func evLoss(_ s: EVLossSpot) -> [Beat] {
+        let ev = s.callEVbb
+        let gap = s.equityPct - s.requiredPct
+        return [
+            Beat("리버예요", value: "팟 \(s.pot)bb · 벳 \(s.bet)bb",
+                 detail: "카드는 다 나왔어요. 더 좋아질 일도, 나빠질 일도 없어요.",
+                 focus: .table, highlight: s.hero),
+            // The range is a premise, not a read — the app states it rather than
+            // claiming to know it (spec §3.1).
+            Beat("상대 레인지", value: s.rangeLabel,
+                 detail: "상대가 리버에서 어떻게 좁혔는지는 아직 안 따져요. "
+                       + "\(KO.subject(s.villain.name)) 이 자리에서 여는 범위 그대로예요.",
+                 focus: .rangeGrid(s.villainRange, highlight: nil)),
+            Beat("이 레인지 상대로 내 에퀴티", value: "\(pctText(s.equityPct))%",
+                 detail: "한 손이 아니라 저 범위 전체를 상대로 계산한 값이에요.",
+                 focus: .rangeGrid(s.villainRange, highlight: nil)),
+            Beat("낼 가격", value: "필요 에퀴티 \(pctText(s.requiredPct))%",
+                 detail: "벳 \(s.bet) ÷ (팟 \(s.pot) + 벳 \(s.bet) + 콜 \(s.bet)).",
+                 focus: .table),
+            Beat("콜의 EV", value: "\(bbText(ev))bb",
+                 detail: "\(pctText(s.equityPct))%로 \(s.pot + s.bet)bb를 따고, "
+                       + "\(pctText(100 - s.equityPct))%로 \(s.bet)bb를 잃어요.",
+                 focus: .table),
+            // The concluding beat is the concept: two prices, and a gap between them.
+            Beat("폴드는 언제나 0bb", value: "차이 \(bbText(abs(ev)))bb",
+                 detail: abs(gap) < 3
+                       ? "에퀴티와 가격이 거의 같아요. 어느 쪽을 골라도 잃는 게 적은 판이에요."
+                       : "틀린 쪽을 고르면 딱 이만큼을 버리는 거예요. "
+                       + "맞다·틀리다가 아니라 얼마를 버렸는지로 채점해요.",
+                 focus: .table),
+        ]
+    }
+
     // MARK: 콜/폴드
 
     public static func callFold(_ s: CallFoldSpot) -> [Beat] {

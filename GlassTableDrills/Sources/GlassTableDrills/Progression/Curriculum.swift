@@ -34,7 +34,8 @@ public enum NodeStatus: Equatable, Sendable {
     case locked, available, cleared
 }
 
-/// The path: section 기초 (R1) then section 레인지 (R2's charts, R3's reads).
+/// The path, by section: 기초 (R1) → 레인지 (R2's charts, R3's reads) → 보드 (R4-S1) →
+/// 결정 (R4-S2).
 ///
 /// Unlocking is strictly linear and not skippable — the only way past a node is the
 /// first-run diagnostic pre-clearing it (spec §6).
@@ -100,6 +101,17 @@ public enum Curriculum {
                                        mixes: [.hitFrequency, .rangeAdvantage,
                                                .rangeRead, .rfi, .equitySense]),
                            title: "플랍 읽기"),
+        ]),
+        // R4-S2. The first unit that scores a decision by what it cost rather than by
+        // whether it was the one. Its boss is the first place a board read (S1) and a
+        // price (u2) have to be spent in the same answer.
+        CurriculumUnit(id: "u6", title: "손실 줄이기", section: "결정", nodes: [
+            CurriculumNode(id: "u6-evLoss", kind: .drill(.evLoss), title: "EV 손실"),
+            CurriculumNode(id: "u6-boss",
+                           kind: .boss(own: nil,
+                                       mixes: [.evLoss, .rangeAdvantage, .potOdds,
+                                               .equitySense, .callFold]),
+                           title: "리버 결정"),
         ]),
     ]
 
