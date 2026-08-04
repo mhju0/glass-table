@@ -84,9 +84,10 @@ final class ProgressionModel {
 
     /// One graded answer: counts, miss streak, FSRS schedule, calibration log.
     func record(concept: Concept, band: GradeBand, interval: IntervalAnswer? = nil,
-                now: Date = Date()) {
+                evLoss: Double? = nil, now: Date = Date()) {
         ReviewQueue.recordReview(&state, concept: concept, rating: .forBand(band),
-                                 interval: interval, now: now, scheduler: scheduler)
+                                 interval: interval, now: now, scheduler: scheduler,
+                                 evLoss: evLoss)
         save()
     }
 
@@ -189,6 +190,14 @@ final class ProgressionModel {
             s.append(AnswerRecord(concept: .equitySense,
                                   at: now.addingTimeInterval(-Double(i) * 3600),
                                   correct: iv.containsTruth, interval: iv))
+        }
+
+        // A spread of EV-graded answers, so 기록's 결정 card has something to average.
+        // Mixed on purpose: two clean choices, a leak, and one real blunder.
+        for (i, loss) in [0.0, 0.0, 0.3, 1.4, 0.0, 2.9].enumerated() {
+            s.append(AnswerRecord(concept: .evLoss,
+                                  at: now.addingTimeInterval(-Double(i) * 1800),
+                                  correct: loss <= 0.5, evLoss: loss))
         }
 
         s.streak = StreakRecord(current: 12, longest: 12, lastSessionDay: DayKey(now),

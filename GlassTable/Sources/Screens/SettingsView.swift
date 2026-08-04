@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var showGlossary = false
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
     private static let feedbackURL =
@@ -19,7 +20,10 @@ struct SettingsView: View {
                 Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
                 VStack(spacing: 0) {
-                    NavigationLink { GlossaryView() } label: {
+                    // A sheet, not a push — the same way the 용어 chip in a reveal opens
+                    // it. Pushing gave the glossary a system back button, the one piece
+                    // of chrome the app cannot draw itself.
+                    Button { showGlossary = true } label: {
                         row("book.fill", "용어집", "포커 용어 한국어·영어 정리", chevron: true)
                     }
                     .buttonStyle(GTPress())
@@ -57,13 +61,19 @@ struct SettingsView: View {
             .padding(.horizontal, 18)
         }
         .background(FeltBackground())
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("닫기") { dismiss() }
-                    .font(GT.semibold(15)).foregroundStyle(GT.onFelt)
+        .sheet(isPresented: $showGlossary) { GlossaryView() }
+        .onAppear {
+            #if DEBUG
+            // GT_DEMO_SETTINGS=1 GT_DEMO_GLOSSARY=1 — same reason as every other hook:
+            // synthetic taps never reach Simulator content.
+            if ProcessInfo.processInfo.environment["GT_DEMO_GLOSSARY"] != nil {
+                showGlossary = true
             }
+            #endif
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
+        // Leading, like every other 닫기 — it used to sit trailing, so dismissing a sheet
+        // meant looking in a different corner depending on which sheet you were in.
+        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
     }
 
     private func row(_ icon: String, _ title: String, _ sub: String?,

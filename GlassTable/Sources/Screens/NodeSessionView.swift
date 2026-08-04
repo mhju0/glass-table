@@ -54,19 +54,22 @@ struct NodeSessionView: View {
             else { current }
         }
         .background(FeltBackground())
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("닫기") { dismiss() }
-                    .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-            }
-        }
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
         .onAppear {
             // First exposure to the concept this node teaches opens with the
             // walkthrough. A node the user has already met goes straight to drilling,
             // and 천천히 stays available from 기록 either way (spec §5.1).
             guard let taught = Curriculum.taughtConcept(of: node) else { return }
-            let seen = model.record(for: taught).total > 0
+            var seen = model.record(for: taught).total > 0
+            #if DEBUG
+            // A GT_DEMO_NODE capture wants the *drill*; the sweep reaches the teaching
+            // stages through GT_DEMO_BEAT instead. Without this every `drill-…` entry
+            // for a concept the demo state has not studied silently screenshotted the
+            // walkthrough under a drill's name — which is how drill-rfi, drill-notation
+            // and drill-callfold went unlooked-at.
+            let env = ProcessInfo.processInfo.environment
+            if env["GT_DEMO_NODE"] != nil, env["GT_DEMO_BEAT"] == nil { seen = true }
+            #endif
             stage = seen ? .solo : .show
         }
     }
@@ -129,7 +132,8 @@ struct NodeSessionView: View {
         ConceptDrillView(concept: conceptFor(index),
                          seed: baseSeed, index: index + 2,
                          progressText: "\(index + 1)/\(itemCount)") { band in
-            model.record(concept: conceptFor(index), band: band.band, interval: band.interval)
+            model.record(concept: conceptFor(index), band: band.band,
+                         interval: band.interval, evLoss: band.evLoss)
             answered.append(conceptFor(index))
             if band.band != .spotOn { missed += 1 }
             if index + 1 >= itemCount {
@@ -173,7 +177,8 @@ struct FreePlayView: View {
             if let concept {
                 ConceptDrillView(concept: concept, seed: 0x5EED, index: index,
                                  progressText: "자유 연습") { result in
-                    model.record(concept: concept, band: result.band, interval: result.interval)
+                    model.record(concept: concept, band: result.band,
+                                 interval: result.interval, evLoss: result.evLoss)
                     index += 1
                 }
             } else {
@@ -181,15 +186,12 @@ struct FreePlayView: View {
             }
         }
         .background(FeltBackground())
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(concept == nil ? "닫기" : "드릴 바꾸기") {
-                    if concept == nil { dismiss() } else { concept = nil }
-                }
-                .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-            }
+        // Two different jobs, so two different arrows: at the picker the button leaves
+        // free play altogether, inside a drill it only steps back to the picker.
+        .gtChrome(.topBarLeading) {
+            if concept == nil { ChromeButton.close { dismiss() } }
+            else { ChromeButton.back("드릴 바꾸기") { concept = nil } }
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     private var picker: some View {

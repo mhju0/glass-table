@@ -41,9 +41,10 @@ public enum ReviewQueue {
     /// streaks, and logs the answer for calibration.
     public static func recordReview(_ state: inout ProgressState, concept: Concept,
                                     rating: FSRS.Rating, interval: IntervalAnswer?,
-                                    now: Date, scheduler: FSRSScheduler) {
+                                    now: Date, scheduler: FSRSScheduler,
+                                    evLoss: Double? = nil) {
         Mastery.record(&state, concept: concept, correct: rating != .again,
-                       interval: interval, now: now)
+                       interval: interval, now: now, evLoss: evLoss)
         state.updateRecord(for: concept) {
             scheduler.review(&$0.review, rating: rating, now: now)
         }

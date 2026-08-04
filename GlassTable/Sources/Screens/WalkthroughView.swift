@@ -48,13 +48,13 @@ struct WalkthroughView: View {
             }
             #endif
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("건너뛰기", action: onSkip)
-                    .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-            }
+        // Stays a word, and stays opposite 닫기. Skipping a lesson is a decision, not a
+        // direction — an arrow would leave the user guessing what they were giving up.
+        .gtChrome(.topBarTrailing) {
+            Button("건너뛰기", action: onSkip)
+                .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+                .frame(minHeight: 44)
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     private var header: some View {
@@ -86,7 +86,20 @@ struct WalkthroughView: View {
     private var content: some View {
         switch beat.focus {
         case .none:
-            EmptyView()
+            // A concept with no cards — EV, pot odds, position — otherwise left the
+            // whole content area empty, which reads as a broken screen rather than a
+            // text beat. The payload moves up onto the felt so the beat has a subject;
+            // the sheet keeps the label, the reasoning and the button.
+            VStack(alignment: .leading, spacing: 10) {
+                Spacer(minLength: 24)
+                Text(beat.value ?? beat.caption)
+                    .font(GT.title(34)).foregroundStyle(GT.onFelt)
+                    .minimumScaleFactor(0.5)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .contentTransition(.numericText())
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         case .table:
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
@@ -97,6 +110,39 @@ struct WalkthroughView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         case let .rangeGrid(range, highlight):
             RangeGridView(range: range, highlight: highlight)
+                .frame(maxWidth: 330)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        case let .actionList(lines, lit):
+            // Centred rather than pinned to the top: the action history is only a few
+            // short lines, and a small box top-left under an empty felt reads as a
+            // screen that failed to load.
+            VStack(alignment: .leading, spacing: 9) {
+                SectionLabel(text: "액션")
+                ForEach(Array(lines.enumerated()), id: \.offset) { i, line in
+                    HStack(spacing: 9) {
+                        Circle()
+                            .fill(i == lit ? GT.mint : GT.onFelt.opacity(0.35))
+                            .frame(width: i == lit ? 7 : 4, height: i == lit ? 7 : 4)
+                        Text(line)
+                            .font(i == lit ? GT.title(17) : GT.semibold(16))
+                            .foregroundStyle(i == lit ? GT.onFelt : GT.onFeltSecondary)
+                    }
+                }
+            }
+            .padding(15)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
+            .padding(.top, 90)
+        case let .buckets(bars):
+            VStack(alignment: .leading, spacing: 18) {
+                ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
+                    BucketBarView(label: bar.label, distribution: bar.distribution)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 8)
+        case let .defendChart(opener, highlight):
+            DefendGridView(opener: opener, highlight: highlight)
                 .frame(maxWidth: 330)
                 .frame(maxWidth: .infinity, alignment: .leading)
         case let .grid(cards):
@@ -178,7 +224,7 @@ struct WalkthroughView: View {
     /// the previous layout had those the wrong way round.
     private var sheet: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let value = beat.value {
+            if let value = beat.value, beat.focus != .none {
                 Text(beat.caption)
                     .font(GT.semibold(11)).tracking(0.5)
                     .foregroundStyle(GT.inkMuted)
@@ -187,6 +233,12 @@ struct WalkthroughView: View {
                     .minimumScaleFactor(0.6).lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.numericText())
+            } else if beat.focus == .none {
+                // The payload is already large on the felt. Repeating it here is the
+                // same sentence twice; only its label belongs in the sheet.
+                if beat.value != nil {
+                    Text(beat.caption).font(GT.semibold(13)).foregroundStyle(GT.inkMuted)
+                }
             } else {
                 Text(beat.caption).font(GT.title(19)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
@@ -248,6 +300,25 @@ enum Walkthrough {
         case .rfi:
             let s = RFISpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.rfi(s), [("내 핸드", s.hand)])
+        case .rangeRead:
+            // No card rows on purpose: seeing no cards *is* the drill.
+            return (BeatScript.rangeRead(
+                RangeReadSpotGenerator.spot(baseSeed: seed, index: index)), [])
+        case .hitFrequency:
+            let s = HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.hitFrequency(s), [("보드 · 플랍", s.board)])
+        case .rangeAdvantage:
+            let s = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.rangeAdvantage(s), [("보드 · 플랍", s.board)])
+        case .evLoss:
+            let s = EVLossSpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.evLoss(s), [("보드 · 리버", s.board), ("내 핸드", s.hero)])
+        case .actionRead:
+            let s = ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.actionRead(s), [("보드 · 플랍", s.board)])
+        case .defend:
+            let s = DefendSpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.defend(s), [("내 핸드", s.hand)])
         }
     }
 }

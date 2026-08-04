@@ -41,7 +41,8 @@ public enum Mastery {
 
     /// Records one graded answer against a concept and appends it to the calibration log.
     public static func record(_ state: inout ProgressState, concept: Concept,
-                              correct: Bool, interval: IntervalAnswer?, now: Date) {
+                              correct: Bool, interval: IntervalAnswer?, now: Date,
+                              evLoss: Double? = nil) {
         state.updateRecord(for: concept) {
             $0.total += 1
             if correct {
@@ -52,7 +53,7 @@ public enum Mastery {
             }
         }
         state.append(AnswerRecord(concept: concept, at: now,
-                                  correct: correct, interval: interval))
+                                  correct: correct, interval: interval, evLoss: evLoss))
     }
 
     /// Spec §4.6: three misses in a row means the explanation didn't land, so offer

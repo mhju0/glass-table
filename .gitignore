@@ -8,3 +8,4 @@ GlassTable.xcodeproj/
 build/
 GlassTable/Info.plist
 build-device/
+.uisweep/

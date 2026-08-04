@@ -15,6 +15,14 @@ struct RangeGridView: View {
     let range: HandRange
     /// Drawn with a ring, so "where does my hand sit" is answered by looking.
     var highlight: HandClass?
+    /// A second range drawn as a ring around each of its cells, so a reveal can put a
+    /// guess on top of the truth in one grid instead of two.
+    ///
+    /// Fill and ring are independent channels, which is what makes the comparison
+    /// readable without colour: filled + ringed = agreed, filled only = missed,
+    /// ringed only = over-included. Two grids side by side on a phone would be ~12pt
+    /// a cell, and a third colour would be neither.
+    var outline: HandRange?
     var cellSpacing: CGFloat = 1.5
 
 
@@ -62,15 +70,25 @@ struct RangeGridView: View {
         .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: max(1.5, side * 0.14)))
         .overlay {
+            let ringed = (outline?.weight(h) ?? 0) > 0
             if lit {
                 RoundedRectangle(cornerRadius: max(1.5, side * 0.14))
                     .strokeBorder(GT.ink, lineWidth: 2)
+            } else if ringed {
+                RoundedRectangle(cornerRadius: max(1.5, side * 0.14))
+                    .strokeBorder(GT.ink, lineWidth: max(1, side * 0.09))
             }
         }
     }
 
     private var accessibilitySummary: String {
         let pct = Int(range.percent.rounded())
+        if let outline {
+            let missed = range.subtracting(outline).comboCount
+            let over = outline.subtracting(range).comboCount
+            return "레인지 비교 표. 정답 상위 \(pct)%. "
+                 + "놓친 콤보 \(missed)개, 넣지 않았어야 할 콤보 \(over)개."
+        }
         guard let h = highlight else { return "레인지 표, 상위 \(pct)%" }
         let inside = range.weight(h) > 0
         return "레인지 표, 상위 \(pct)%. \(h.description)는 \(inside ? "포함" : "제외")."

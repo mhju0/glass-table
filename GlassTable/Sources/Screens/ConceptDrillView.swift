@@ -8,6 +8,9 @@ struct DrillOutcome {
     let band: GradeBand
     /// Present only for estimation concepts (spec §5.4).
     let interval: IntervalAnswer?
+    /// Big blinds given up. Present only where the grade *is* a cost (R4-S2), so the
+    /// rolling 기록 average never counts an ungraded concept as a perfect 0bb.
+    var evLoss: Double? = nil
 }
 
 /// Renders one spot for any concept and reports the graded result.
@@ -54,6 +57,24 @@ struct ConceptDrillView: View {
         case .rfi:
             RFIDrill(seed: seed, index: index,
                      progressText: progressText, onAnswer: onAnswer)
+        case .rangeRead:
+            RangeReadDrill(seed: seed, index: index,
+                           progressText: progressText, onAnswer: onAnswer)
+        case .hitFrequency:
+            HitFrequencyDrill(seed: seed, index: index,
+                              progressText: progressText, onAnswer: onAnswer)
+        case .rangeAdvantage:
+            RangeAdvantageDrill(seed: seed, index: index,
+                                progressText: progressText, onAnswer: onAnswer)
+        case .evLoss:
+            EVLossDrill(seed: seed, index: index,
+                        progressText: progressText, onAnswer: onAnswer)
+        case .actionRead:
+            ActionReadDrill(seed: seed, index: index,
+                            progressText: progressText, onAnswer: onAnswer)
+        case .defend:
+            DefendDrill(seed: seed, index: index,
+                        progressText: progressText, onAnswer: onAnswer)
         }
     }
 }
@@ -603,6 +624,18 @@ private struct PercentDrill: View {
                 Text("팟 \(spot.pot)bb").font(GT.title(22)).foregroundStyle(GT.onFelt)
                 Text("상대 벳 \(spot.bet)bb").font(GT.title(18))
                     .foregroundStyle(GT.onFeltSecondary)
+                // The price as a picture: the answer is a share of this bar, so the
+                // proportion can be *read* before it is computed — which is the drill.
+                // MDF's bar has no 콜 segment; its denominator is only the money
+                // already out there.
+                PriceBarView.priced(pot: spot.pot, bet: spot.bet, withCall: !isMDF)
+                    .padding(.top, 12)
+                // Explains the dash, not which share is the answer — that stays the
+                // drill's job. MDF's bar needs no caption at all.
+                if !isMDF {
+                    Text("콜 \(spot.bet)bb는 아직 내지 않은 돈이라 점선이에요")
+                        .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
@@ -698,13 +731,29 @@ private struct RangeNotationDrill: View {
         DrillShell(title: "레인지 표기법", progressText: progressText) {
             VStack(alignment: .leading, spacing: 14) {
                 SectionLabel(text: "레인지")
-                Text(spot.notation)
-                    .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
-                    .minimumScaleFactor(0.5).lineLimit(2)
                 if reveal != nil {
+                    Text(spot.notation)
+                        .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
+                        .minimumScaleFactor(0.5).lineLimit(2)
                     SectionLabel(text: "표에서 보면").padding(.top, 6)
                     RangeGridView(range: spot.range)
                         .frame(maxWidth: 320)
+                } else {
+                    // Pre-answer the notation IS the whole screen, so it is staged
+                    // like one — the hero treatment `.none` beats get — instead of two
+                    // small lines adrift on an empty felt. The grid stays post-reveal
+                    // on purpose: shown earlier it turns combo arithmetic into cell
+                    // counting.
+                    Spacer(minLength: 60)
+                    Text(spot.notation)
+                        .font(GT.title(44).monospaced()).foregroundStyle(GT.onFelt)
+                        .minimumScaleFactor(0.4).lineLimit(3)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .multilineTextAlignment(.center)
+                    Text("페어 6 · 수티드 4 · 오프수트 12")
+                        .font(GT.semibold(12)).foregroundStyle(GT.onFeltMuted)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, 4)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -794,6 +843,650 @@ private struct RFIDrill: View {
                     .frame(maxWidth: .infinity, minHeight: 32)
                     .background(p == spot.seat ? GT.mint : GT.onFelt.opacity(0.10),
                                 in: RoundedRectangle(cornerRadius: 7))
+            }
+        }
+    }
+}
+
+// MARK: - 레인지 리드
+
+/// The one drill where you never see a card. You get the action, and you build the
+/// shape you think it means with a width and a set of tendencies.
+///
+/// The grid sits in the content zone and the controls in the sheet on purpose: both
+/// are on screen at once, so dragging the slider *is* watching a range widen. That
+/// live coupling is the whole reason the input is coarse — a number alone would teach
+/// the arithmetic of a percentage rather than the look of a range.
+private struct RangeReadDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var width: Double = 20
+    @State private var tendencies: Set<RangeTendency> = []
+    @State private var reveal: RangeReadReveal?
+
+    private var spot: RangeReadSpot { RangeReadSpotGenerator.spot(baseSeed: seed, index: index) }
+    private var estimate: RangeEstimate { RangeEstimate(width: width, tendencies: tendencies) }
+
+    var body: some View {
+        DrillShell(title: "레인지 리드", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 9) {
+                opponentLine
+                actionList
+                SectionLabel(text: reveal == nil ? "내가 보는 범위" : "정답 · 내 답 비교")
+                    .padding(.top, 4)
+                // The legend goes *above* the grid. Below it, the one thing that makes
+                // a two-channel grid readable sat under the answer sheet and was never
+                // seen — found by looking at the sweep rather than by reasoning.
+                if reveal != nil { legend }
+                RangeGridView(range: reveal?.truth ?? estimate.range,
+                              outline: reveal?.guess)
+                    .frame(maxWidth: 250)
+                    .animation(.easeOut(duration: 0.18), value: width)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                #if DEBUG
+                // GT_DEMO_REVEAL=<width> answers with that width so the comparison
+                // grid and its legend are reachable by screenshot. Same reason as
+                // GT_DEMO_BEAT: synthetic taps never reach Simulator content, and the
+                // reveal is the half of this screen most likely to be wrong.
+                if let w = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Double.init) {
+                    width = w
+                    reveal = gradeRangeRead(estimate: RangeEstimate(width: w), spot: spot)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band,
+                            mine: "상위 \(pctText(reveal.guess.percent))%",
+                            correct: "상위 \(pctText(reveal.truth.percent))%",
+                            why: reveal.whyText) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                    self.reveal = nil; width = 20; tendencies = []
+                }
+            } else {
+                input
+            }
+        }
+    }
+
+    // MARK: what the user is told
+
+    private var opponentLine: some View {
+        // Hidden archetype is the harder band, and it must not read as a bug: say
+        // outright that the identification is part of the question.
+        VStack(alignment: .leading, spacing: 1) {
+            Text(spot.archetypeShown ? spot.archetype.name : "모르는 상대")
+                .font(GT.title(19)).foregroundStyle(GT.onFelt)
+            Text(spot.archetypeShown ? spot.archetype.blurb
+                                     : "어떤 사람인지도 액션으로 판단해야 해요.")
+                .font(GT.body(11.5)).foregroundStyle(GT.onFeltSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var actionList: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            ForEach(Array(spot.actionLines.enumerated()), id: \.offset) { _, line in
+                HStack(spacing: 8) {
+                    Circle().fill(GT.onFelt.opacity(0.35)).frame(width: 4, height: 4)
+                    Text(line).font(GT.semibold(13)).foregroundStyle(GT.onFelt)
+                }
+            }
+        }
+        .padding(.horizontal, 12).padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    /// Fill = truth, ring = your guess. Spelled out, because an unexplained two-channel
+    /// grid is a puzzle rather than a reveal.
+    private var legend: some View {
+        HStack(spacing: 14) {
+            key(filled: true, ringed: true, "맞음")
+            key(filled: true, ringed: false, "놓침")
+            key(filled: false, ringed: true, "넘침")
+        }
+        .padding(.top, 2)
+    }
+
+    private func key(filled: Bool, ringed: Bool, _ label: String) -> some View {
+        HStack(spacing: 5) {
+            RoundedRectangle(cornerRadius: 3)
+                .fill(filled ? GT.mint.opacity(0.85) : GT.surface)
+                .frame(width: 15, height: 15)
+                .overlay {
+                    if ringed { RoundedRectangle(cornerRadius: 3).strokeBorder(GT.ink, lineWidth: 2) }
+                }
+            Text(label).font(GT.semibold(11)).foregroundStyle(GT.onFeltSecondary)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: what the user answers with
+
+    private var input: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("상대는 몇 %로 \(actionVerb)했을까요?")
+                    .font(GT.title(15)).foregroundStyle(GT.ink)
+                Spacer(minLength: 8)
+                Text("\(pctText(width))%")
+                    .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
+                    .contentTransition(.numericText())
+            }
+            Slider(value: $width, in: 3...80, step: 1).tint(GT.cta)
+                .accessibilityLabel("범위 넓이")
+                .accessibilityValue("상위 \(pctText(width))퍼센트")
+
+            SectionLabel(text: "어디에 몰려 있나요 (선택)", onDark: false)
+            chips
+            if RangeTendency.allCases.contains(where: { $0.isSaturated(atWidth: width) }) {
+                Text("\u{2261} 표시는 이 넓이에 이미 전부 들어 있어서 모양이 바뀌지 않는다는 뜻이에요.")
+                    .font(GT.body(10)).foregroundStyle(GT.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            PrimaryCTAButton(title: "확인") {
+                reveal = gradeRangeRead(estimate: estimate, spot: spot)
+            }
+        }
+    }
+
+    private var actionVerb: String {
+        if case .opened = spot.action { return "오픈" }
+        return "콜"
+    }
+
+    /// Two rows of two, because four chips across a mini would each be ~78pt and the
+    /// longest label is 오프수트 브로드웨이.
+    private var chips: some View {
+        let all = RangeTendency.allCases
+        return VStack(spacing: 8) {
+            ForEach(0..<2, id: \.self) { r in
+                HStack(spacing: 8) {
+                    ForEach(all[(r * 2)..<(r * 2 + 2)], id: \.self) { chip($0) }
+                }
+            }
+        }
+    }
+
+    /// Chip labels are shortened from the prose names — 오프수트 브로드웨이 does not
+    /// fit a half-width chip, and 수티드 already carries the suited half of broadway.
+    /// `tendencyWord` stays long, because the reveal sentence has room.
+    private func chipLabel(_ t: RangeTendency) -> String {
+        t == .offsuitBroadway ? "브로드웨이" : tendencyWord(t)
+    }
+
+    private func chip(_ t: RangeTendency) -> some View {
+        let on = tendencies.contains(t)
+        // A category entirely inside the cut has nothing left to prefer, so the chip
+        // genuinely does nothing at this width. Say so rather than letting it read as
+        // a dead control.
+        let saturated = t.isSaturated(atWidth: width)
+        return Button {
+            if on { tendencies.remove(t) } else { tendencies.insert(t) }
+        } label: {
+            HStack(spacing: 4) {
+                Text(chipLabel(t))
+                    .font(on ? GT.title(13) : GT.semibold(13))
+                    .foregroundStyle(on ? GT.onCTA : GT.ink)
+                    .minimumScaleFactor(0.7).lineLimit(1)
+                if saturated {
+                    Image(systemName: "equal.circle.fill").font(.system(size: 11))
+                        .foregroundStyle(on ? GT.onCTA.opacity(0.75) : GT.inkMuted)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.horizontal, 6)
+            .background(on ? AnyShapeStyle(GT.cta) : AnyShapeStyle(GT.surface),
+                        in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .strokeBorder(on ? Color.clear : GT.borderStrong, lineWidth: 1))
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel(tendencyWord(t))
+        .accessibilityValue(on ? "선택됨" : "선택 안 됨")
+        .accessibilityHint(saturated ? "이 넓이에서는 모양이 바뀌지 않아요" : "")
+    }
+}
+
+// MARK: - 히트 프리퀀시
+
+/// The first postflop drill: not "what should I do" — that needs S2's EV-loss grading —
+/// but "what is even out there", which is the question every postflop decision starts
+/// from and the one beginners skip.
+private struct HitFrequencyDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var point = 35.0
+    @State private var halfWidth = 12.0
+    @State private var reveal: EstimateReveal?
+
+    private var spot: HitFrequencySpot {
+        HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
+    }
+
+    var body: some View {
+        DrillShell(title: "히트 프리퀀시", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "보드 · 플랍")
+                CardRow(cards: spot.board, maxSize: 70)
+                Text(spot.texture.summary)
+                    .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
+                SectionLabel(text: "상대 레인지").padding(.top, 8)
+                Text("\(spot.seat.rawValue) 오픈 · 상위 \(pctText(spot.range.percent))%")
+                    .font(GT.title(17)).foregroundStyle(GT.onFelt)
+                if reveal != nil {
+                    BucketBarView(label: "\(spot.seat.rawValue) 오픈 레인지",
+                                  distribution: spot.distribution)
+                        .padding(.top, 6)
+                    RangeGridView(range: spot.range).frame(maxWidth: 230).padding(.top, 4)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                #if DEBUG
+                // GT_DEMO_REVEAL=<point> answers with that estimate, so the bucket
+                // bars — the actual payload of both board drills — are reachable by
+                // screenshot. Same reason as GT_DEMO_BEAT.
+                if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Double.init) {
+                    point = v
+                    reveal = gradeHitFrequency(
+                        estimate: Estimate(point: v, lo: max(0, v - halfWidth),
+                                           hi: min(100, v + halfWidth)),
+                        spot: spot)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
+                            correct: "\(pctText(reveal.correct))%",
+                            why: reveal.whyText + (reveal.intervalHit
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
+                    self.reveal = nil; point = 35; halfWidth = 12
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("이 레인지의 몇 %가 페어 이상을 만들었을까요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    IntervalInput(point: $point, halfWidth: $halfWidth,
+                                  range: 0...100, step: 1, unit: "%")
+                    PrimaryCTAButton(title: "확인") {
+                        reveal = gradeHitFrequency(
+                            estimate: Estimate(point: point, lo: max(0, point - halfWidth),
+                                               hi: min(100, point + halfWidth)),
+                            spot: spot)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 레인지 어드밴티지
+
+private struct RangeAdvantageDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var point = 50.0
+    @State private var halfWidth = 10.0
+    @State private var reveal: EstimateReveal?
+    /// Sampled off the main thread the moment the spot appears, so it is already
+    /// waiting by the time the sliders have been set. Computing it *during* the tap
+    /// froze the screen for three seconds under a debug build.
+    @State private var equity: Double?
+
+    private var spot: RangeAdvantageSpot {
+        RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
+    }
+
+    private func submit(_ v: Double) {
+        guard let equity else { return }
+        reveal = gradeRangeAdvantage(
+            estimate: Estimate(point: v, lo: max(0, v - halfWidth),
+                               hi: min(100, v + halfWidth)),
+            spot: spot, openerEquityPct: equity)
+    }
+
+    var body: some View {
+        DrillShell(title: "레인지 어드밴티지", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "보드 · 플랍")
+                CardRow(cards: spot.board, maxSize: 70)
+                Text(spot.texture.summary)
+                    .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
+                SectionLabel(text: "액션").padding(.top, 8)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("\(spot.openerSeat.rawValue) 오픈 3bb")
+                    Text("\(spot.callerSeat.rawValue) 콜 · \(spot.caller.name)")
+                }
+                .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
+                .padding(.horizontal, 12).padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+                if reveal != nil {
+                    VStack(alignment: .leading, spacing: 18) {
+                        BucketBarView(label: "\(spot.openerSeat.rawValue) 오픈",
+                                      distribution: rangeOnBoard(spot.openerRange,
+                                                                 board: spot.board))
+                        BucketBarView(label: "\(spot.callerSeat.rawValue) 콜",
+                                      distribution: rangeOnBoard(spot.callerRange,
+                                                                 board: spot.board))
+                    }
+                    .padding(.top, 8)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .task(id: index) {
+                let s = seed, i = index
+                equity = await Task.detached(priority: .userInitiated) {
+                    RangeAdvantageSpotGenerator.spot(baseSeed: s, index: i).openerEquityPct
+                }.value
+                #if DEBUG
+                // GT_DEMO_REVEAL=<point> answers with that estimate once the sampling
+                // has landed, so the bucket bars are reachable by screenshot.
+                if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Double.init) {
+                    point = v
+                    submit(v)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
+                            correct: "\(pctText(reveal.correct))%",
+                            why: reveal.whyText + (reveal.intervalHit
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
+                    self.reveal = nil; point = 50; halfWidth = 10
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("쇼다운까지 가면 오프너의 승률은 몇 %일까요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    IntervalInput(point: $point, halfWidth: $halfWidth,
+                                  range: 0...100, step: 1, unit: "%")
+                    if equity == nil {
+                        Text("계산 중…").font(GT.semibold(13)).foregroundStyle(GT.inkMuted)
+                            .frame(maxWidth: .infinity, minHeight: 54)
+                    } else {
+                        PrimaryCTAButton(title: "확인") { submit(point) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - EV 손실
+
+/// The bb is the headline, not the band.
+///
+/// Every other reveal in the app can lead with 정확/근접/빗나감 because every other
+/// answer is either right or not. This concept exists to say that being wrong is not
+/// one thing, so a verdict pill at the top would contradict the lesson underneath it.
+private struct EVLossRevealSheet: View {
+    let reveal: EVLossReveal
+    let onNext: () -> Void
+
+    private var headline: String {
+        reveal.grade.loss <= 0 ? "0bb" : "\u{2212}\(bbText(reveal.grade.loss))bb"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 9) {
+                Text(headline)
+                    .font(GT.title(32).monospacedDigit())
+                    .foregroundStyle(reveal.band.ink)
+                // Shape and word beside the number, so the verdict never rests on hue
+                // alone — the same three-channel rule VerdictRow follows.
+                Image(systemName: reveal.band.glyph)
+                    .font(.system(size: 15)).foregroundStyle(reveal.band.ink)
+                Text(reveal.band.evLossLabel)
+                    .font(GT.title(15)).foregroundStyle(reveal.band.ink)
+                Spacer(minLength: 6)
+                Text("내 선택 · \(reveal.grade.chosen.label)")
+                    .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
+            }
+            .padding(.horizontal, 13).padding(.vertical, 11)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(reveal.band.tint, in: RoundedRectangle(cornerRadius: 14))
+
+            Text(reveal.whyText).font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
+                .padding(13)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(GT.border, lineWidth: 1))
+                .fixedSize(horizontal: false, vertical: true)
+            PrimaryCTAButton(title: "다음 문제", action: onNext)
+        }
+        .accessibilityElement(children: .contain)
+    }
+}
+
+private struct EVLossDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var reveal: EVLossReveal?
+
+    /// Exact, and 1ms on a river — no sampling and no off-thread dance, unlike
+    /// 레인지 어드밴티지 (spec §3.2).
+    private var spot: EVLossSpot { EVLossSpotGenerator.spot(baseSeed: seed, index: index) }
+
+    var body: some View {
+        DrillShell(title: "EV 손실", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 6) {
+                SectionLabel(text: "보드 · 리버")
+                CardRow(cards: spot.board, maxSize: 62)
+                SectionLabel(text: "내 핸드").padding(.top, 10)
+                CardRow(cards: spot.hero, maxSize: 78)
+                // The range is stated, never guessed (spec §3.1). Printing it as the
+                // premise is the difference between this and 콜/폴드, where the
+                // villain's two cards are face up.
+                SectionLabel(text: "상대 레인지").padding(.top, 10)
+                Text(spot.rangeLabel)
+                    .font(GT.title(15)).foregroundStyle(GT.onFelt)
+                Text("리버에서 어떻게 좁혔는지는 아직 안 따져요")
+                    .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                // Drawn, not just named. A stated range the user cannot see is still a
+                // number handed down — showing the 169 cells the equity came from is
+                // the whole transparency claim (spec §3.1), and it is what the felt
+                // below the cards was empty for.
+                RangeGridView(range: spot.villainRange)
+                    .frame(height: 230)
+                    .padding(.top, 8)
+                Text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb")
+                    .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } sheet: {
+            if let reveal {
+                EVLossRevealSheet(reveal: reveal) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: nil,
+                                          evLoss: reveal.grade.loss))
+                    self.reveal = nil
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("콜인가요, 폴드인가요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                    HStack(spacing: 10) {
+                        ForEach([("폴드", false), ("콜", true)], id: \.0) { label, calls in
+                            GTChoiceButton(title: label, minHeight: 56) {
+                                reveal = gradeEVLoss(userCalls: calls, spot: spot)
+                            }
+                        }
+                    }
+                }
+                .task {
+                    #if DEBUG
+                    // GT_DEMO_REVEAL=1 answers 콜, =0 answers 폴드 — the sweep needs both
+                    // sides because the headline differs on each.
+                    if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"] {
+                        reveal = gradeEVLoss(userCalls: v != "0", spot: spot)
+                    }
+                    #endif
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 액션 리드
+
+private struct ActionReadDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var point = 40.0
+    @State private var halfWidth = 12.0
+    @State private var reveal: EstimateReveal?
+
+    private var spot: ActionReadSpot {
+        ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
+    }
+
+    var body: some View {
+        DrillShell(title: "액션 리드", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "보드 · 플랍")
+                CardRow(cards: spot.board, maxSize: 70)
+                Text(spot.texture.summary)
+                    .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
+                SectionLabel(text: "행동").padding(.top, 8)
+                Text("\(spot.villainSeat.rawValue) 오픈 → \(spot.actionLine)")
+                    .font(GT.title(17)).foregroundStyle(GT.onFelt)
+                Text("\(spot.villain.name) · \(spot.villain.blurb)")
+                    .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                if reveal != nil {
+                    // The payload: the same range before and after the action. The
+                    // number is graded, but the shape change is the lesson.
+                    BucketBarView(label: "오픈 레인지 전체", distribution: spot.full)
+                        .padding(.top, 6)
+                    BucketBarView(label: "\(spot.action.rawValue) 이후",
+                                  distribution: spot.acted.distribution)
+                        .padding(.top, 8)
+                } else {
+                    // Pre-answer, the grid is fair game — the preflop range is the
+                    // stated premise, the same way EV 손실 prints it.
+                    RangeGridView(range: spot.range)
+                        .frame(height: 230)
+                        .padding(.top, 6)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                #if DEBUG
+                // GT_DEMO_REVEAL=<point> — same hook as the other estimation drills:
+                // the before/after bars are the payload and synthetic taps never
+                // reach Simulator content.
+                if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Double.init) {
+                    point = v
+                    reveal = gradeActionRead(
+                        estimate: Estimate(point: v, lo: max(0, v - halfWidth),
+                                           hi: min(100, v + halfWidth)),
+                        spot: spot)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
+                            correct: "\(pctText(reveal.correct))%",
+                            why: reveal.whyText + (reveal.intervalHit
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
+                    self.reveal = nil; point = 40; halfWidth = 12
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("\(KO.subject(spot.action.rawValue)) 남긴 레인지의 몇 %가 페어 이상일까요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    IntervalInput(point: $point, halfWidth: $halfWidth,
+                                  range: 0...100, step: 1, unit: "%")
+                    PrimaryCTAButton(title: "확인") {
+                        reveal = gradeActionRead(
+                            estimate: Estimate(point: point, lo: max(0, point - halfWidth),
+                                               hi: min(100, point + halfWidth)),
+                            spot: spot)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 디펜드 차트
+
+private struct DefendDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var reveal: DefendReveal?
+
+    private var spot: DefendSpot { DefendSpotGenerator.spot(baseSeed: seed, index: index) }
+
+    var body: some View {
+        DrillShell(title: "디펜드 차트", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "내 핸드")
+                CardRow(cards: spot.hand, maxSize: 78)
+                SectionLabel(text: "상황").padding(.top, 8)
+                Text("\(spot.opener.rawValue)가 3bb 오픈했어요")
+                    .font(GT.title(17)).foregroundStyle(GT.onFelt)
+                Text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요")
+                    .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                if reveal != nil {
+                    // The chart the verdict came from, hand ringed — same grid the
+                    // 테이블's 차트 보기 uses, so they can never disagree.
+                    DefendGridView(opener: spot.opener, highlight: spot.handClass)
+                        .frame(maxWidth: 320)
+                        .padding(.top, 10)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                #if DEBUG
+                // GT_DEMO_REVEAL=<0|1|2> answers 폴드/콜/3벳 — the chart is the payload
+                // and synthetic taps never reach Simulator content.
+                if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Int.init) {
+                    let chosen: DefendAction = v == 0 ? .fold : (v == 1 ? .call : .threeBet)
+                    reveal = gradeDefend(chosen: chosen, spot: spot)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band,
+                            mine: reveal.chosen.rawValue,
+                            correct: reveal.correct.rawValue,
+                            why: reveal.whyText) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                    self.reveal = nil
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("이 핸드로 어떻게 맞서나요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                    HStack(spacing: 10) {
+                        ForEach(DefendAction.allCases.reversed(), id: \.self) { a in
+                            GTChoiceButton(title: a.rawValue, minHeight: 56) {
+                                reveal = gradeDefend(chosen: a, spot: spot)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -23,6 +23,7 @@ struct RecordsView: View {
                     .padding(.top, 14)
                 headline
                 calibrationCard
+                evLossCard
                 if studied.isEmpty { emptyState } else { conceptList }
             }
             .padding(.horizontal, 18)
@@ -88,6 +89,32 @@ struct RecordsView: View {
         .padding(15)
         .frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: 18)
+    }
+
+    /// decisions.md §D asks for a rolling EV-loss-per-hand alongside accuracy. Shown
+    /// only once there is one, because a 0.0bb average with no answers behind it would
+    /// read as a perfect record.
+    @ViewBuilder
+    private var evLossCard: some View {
+        if let mean = meanEVLoss(in: model.state) {
+            VStack(alignment: .leading, spacing: 6) {
+                SectionLabel(text: "결정", onDark: false)
+                Text("핸드당 버린 EV").font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("\(bbText(mean))bb")
+                        .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
+                    Text("· 낮을수록 좋아요").font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
+                }
+                Text(mean <= 0.5 ? "고를 때마다 거의 최선을 고르고 있어요."
+                     : (mean <= 2 ? "큰 실수는 없지만 조금씩 새고 있어요."
+                                  : "가끔 크게 버리고 있어요. 가격을 먼저 확인해 보세요."))
+                    .font(GT.body(11.5)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(15)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .gtCard(radius: 18)
+        }
     }
 
     private func verdictLine(_ v: Calibration.Verdict) -> String {

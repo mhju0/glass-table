@@ -13,6 +13,27 @@ public enum BeatFocus: Equatable, Sendable {
     /// The 13×13 range grid, optionally ringing one class. A range beat with no
     /// visual is a wall of text about a picture the user cannot see.
     case rangeGrid(HandRange, highlight: HandClass?)
+    /// The betting history, with `lit` emphasised. For a range read this *is* the
+    /// board — it is the only evidence there is — so a read beat must never fall back
+    /// to `.none` and leave the felt empty.
+    case actionList([String], lit: Int?)
+    /// One or two labelled bucket distributions, as stacked bars. A postflop range
+    /// question's answer *is* the distribution — "A-high boards favour the opener" is
+    /// only visible as one — so a single percentage would be the lesson's summary
+    /// rather than the lesson.
+    case buckets([BucketBar])
+    /// The three-band defending chart vs one opener, hero's class ringed — rendered
+    /// by the same grid the 테이블's 차트 보기 uses, so they can never drift.
+    case defendChart(opener: Position, highlight: HandClass?)
+}
+
+/// One labelled distribution in a `.buckets` beat.
+public struct BucketBar: Equatable, Sendable {
+    public let label: String
+    public let distribution: RangeOnBoard
+    public init(label: String, distribution: RangeOnBoard) {
+        self.label = label; self.distribution = distribution
+    }
 }
 
 /// One tap of a worked example (spec §5.2).
@@ -384,8 +405,249 @@ public enum BeatScript {
         return beats
     }
 
+    // MARK: 레인지 리드
+
+    /// The read, taken apart in the order a player actually takes it apart: what he
+    /// did, who he is, where he did it from, and only then the shape that falls out.
+    ///
+    /// The point of the beats is that the answer is *derived* in front of the user —
+    /// VPIP and PFR are printed, the seat adjustment is printed, and the grid appears
+    /// last. A range handed over as a finished picture teaches nothing about reading.
+    public static func rangeRead(_ s: RangeReadSpot) -> [Beat] {
+        let a = s.archetype
+        let truth = s.trueRange
+        let raising = { if case .opened = s.action { return true } else { return false } }()
+        let headline = raising ? a.pfr : a.vpip
+        let statName = raising ? "PFR" : "VPIP"
+
+        var beats: [Beat] = [
+            Beat("상대가 한 것", value: raising ? "오픈 레이즈" : "콜",
+                 detail: "보이는 건 이게 전부예요. 카드는 끝까지 안 보여줘요.",
+                 focus: .actionList(s.actionLines, lit: raising ? 0 : 1)),
+            Beat("상대가 어떤 사람인지", value: a.name, detail: a.blurb,
+                 focus: .actionList(s.actionLines, lit: nil)),
+            Beat("숫자로 보면", value: "VPIP \(Int(a.vpip))% · PFR \(Int(a.pfr))%",
+                 detail: raising
+                    ? "레이즈하는 건 PFR \(Int(a.pfr))%. 평균적으로 상위 \(Int(a.pfr))%를 열어요."
+                    : "들어오는 건 VPIP \(Int(a.vpip))%인데 그중 \(Int(a.pfr))%는 레이즈해요. "
+                      + "콜은 그 사이 \(Int(a.vpip - a.pfr))%p예요.",
+                 focus: .actionList(s.actionLines, lit: nil)),
+            Beat("자리를 반영하면", value: "상위 \(pctText(truth.percent))%",
+                 detail: "\(s.seat.rawValue)는 뒤에 \(s.seat.playersBehind(preflop: true))명 남았어요. "
+                       + "\(statName) \(Int(headline))%는 모든 자리 평균이라 여기선 "
+                       + "\(truth.percent >= headline ? "더 넓어" : "더 좁아")져요.",
+                 focus: .actionList(s.actionLines, lit: nil)),
+            Beat("그래서 이 모양", value: "\(truth.classes.count)개 핸드",
+                 detail: raising
+                    ? "점수 순으로 위에서 \(pctText(truth.percent))%까지."
+                    : "레이즈 범위를 빼고 남은 띠예요 — 놀 만하지만 올리긴 아까운 패들.",
+                 focus: .rangeGrid(truth, highlight: nil)),
+        ]
+        // The shape is the second half of a read, so name whichever category this
+        // range actually leans on rather than claiming a generic tilt.
+        if let lean = RangeTendency.allCases.max(by: {
+            truth.tendencyShare($0) < truth.tendencyShare($1)
+        }) {
+            beats.append(Beat("어디에 몰려 있나", value: tendencyWord(lean),
+                              detail: "이 범위의 \(Int((truth.tendencyShare(lean) * 100).rounded()))%가 "
+                                    + "\(tendencyWord(lean))예요. 넓이를 맞춰도 모양이 틀리면 읽은 게 아니에요.",
+                              focus: .rangeGrid(truth, highlight: nil)))
+        }
+        return beats
+    }
+
+    // MARK: 히트 프리퀀시
+
+    /// Builds the number instead of stating it: the board, then the range, then what
+    /// that range actually made on it, then the share that is a real pair.
+    public static func hitFrequency(_ s: HitFrequencySpot) -> [Beat] {
+        let d = s.distribution
+        let t = s.texture
+        return [
+            Beat("보드", value: t.summary,
+                 detail: "먼저 보드가 어떤 종류인지 봐요. 하이카드, 무늬, 페어 여부.",
+                 focus: .table, highlight: s.board),
+            Beat("상대 레인지", value: "\(s.seat.rawValue) 오픈",
+                 detail: "\(s.seat.rawValue)가 여는 범위는 상위 "
+                       + "\(pctText(RFIChart.openPercent[s.seat] ?? 0))%예요.",
+                 focus: .rangeGrid(s.range, highlight: nil)),
+            Beat("보드가 지운 콤보", value: "\(d.liveCombos)콤보 남음",
+                 detail: "보드에 깔린 카드는 상대가 가질 수 없어요. "
+                       + "그래서 세는 대상이 먼저 줄어요.",
+                 focus: .table, highlight: s.board),
+            // The five numbers are already printed under the bar; repeating them here
+            // would put the same list in both zones. The detail carries the reading.
+            Beat("남은 콤보가 만든 것", value: "\(pctText(d.pairOrBetter * 100))%가 페어 이상",
+                 detail: "막대 왼쪽이 약한 쪽이에요. "
+                       + (d.share(.air) > 0.4
+                          ? "노페어가 가장 큰 덩어리라는 게 핵심이에요."
+                          : "이 보드는 이 레인지와 유난히 잘 맞았어요."),
+                 focus: .buckets([BucketBar(label: "\(s.seat.rawValue) 오픈 레인지",
+                                            distribution: d)])),
+            Beat("그래서", value: "\(pctText(d.pairOrBetter * 100))%",
+                 detail: "대부분의 레인지는 플랍을 대부분 빗나가요. "
+                       + "이게 벳이 통하는 이유예요.",
+                 focus: .buckets([BucketBar(label: "\(s.seat.rawValue) 오픈 레인지",
+                                            distribution: d)])),
+        ]
+    }
+
+    // MARK: 레인지 어드밴티지
+
+    /// Two distributions side by side, because the whole answer is the comparison.
+    public static func rangeAdvantage(_ s: RangeAdvantageSpot) -> [Beat] {
+        let o = rangeOnBoard(s.openerRange, board: s.board)
+        let c = rangeOnBoard(s.callerRange, board: s.board)
+        let eq = s.openerEquityPct
+        let bars = [BucketBar(label: "\(s.openerSeat.rawValue) 오픈", distribution: o),
+                    BucketBar(label: "\(s.callerSeat.rawValue) 콜 · \(s.caller.name)",
+                              distribution: c)]
+        return [
+            Beat("보드", value: s.texture.summary,
+                 detail: "\(s.openerSeat.rawValue) 오픈, \(s.callerSeat.rawValue) 콜. "
+                       + "이 플랍이 누구 편인지 봐요.",
+                 focus: .table, highlight: s.board),
+            Beat("오프너의 레인지", value: "상위 \(pctText(s.openerRange.percent))%",
+                 detail: "먼저 들어온 쪽은 좁고 센 범위예요.",
+                 focus: .rangeGrid(s.openerRange, highlight: nil)),
+            Beat("콜러의 레인지", value: "상위 \(pctText(s.callerRange.percent))%",
+                 detail: "\(s.caller.name)가 콜만 하는 구간 — 올리긴 아까운 패들이에요. "
+                       + "\(s.caller.blurb).",
+                 focus: .rangeGrid(s.callerRange, highlight: nil)),
+            // The bucket that actually separates them, not a fixed one — on many
+            // boards two-pair-plus is 2% against 0% and says nothing.
+            Beat("각자 뭘 만들었나", value: widestGapValue(opener: o, caller: c),
+                 detail: "같은 보드인데 만든 게 달라요. 이 차이가 어드밴티지예요.",
+                 focus: .buckets(bars)),
+            Beat("그래서 에퀴티", value: "오프너 \(pctText(eq))%",
+                 detail: eq > 52 ? "오프너가 앞서요 — 그래서 오프너가 벳할 수 있어요."
+                       : (eq < 48 ? "콜러가 앞서요 — 오프너가 함부로 벳하면 안 되는 보드예요."
+                                  : "거의 반반이에요."),
+                 focus: .buckets(bars)),
+        ]
+    }
+
+    static func widestGapValue(opener: RangeOnBoard, caller: RangeOnBoard) -> String {
+        let bucket = MadeHand.allCases.max {
+            abs(opener.share($0) - caller.share($0)) < abs(opener.share($1) - caller.share($1))
+        } ?? .strong
+        return "\(bucket.korean) \(pctText(opener.share(bucket) * 100))% 대 "
+             + "\(pctText(caller.share(bucket) * 100))%"
+    }
+
     static func pctTextScore(_ x: Double) -> String {
         abs(x - x.rounded()) < 0.01 ? "\(Int(x.rounded()))" : String(format: "%.1f", x)
+    }
+
+    // MARK: 액션 리드
+
+    /// Rule → inversion → shape change. The policy table row is shown *as the rule*
+    /// before the bars, because the whole claim of the drill is that the number is
+    /// checkable against a published table rather than read off a black box.
+    public static func actionRead(_ s: ActionReadSpot) -> [Beat] {
+        let acted = s.acted
+        let bars = [BucketBar(label: "\(s.villain.name) 오픈 레인지 전체",
+                              distribution: s.full),
+                    BucketBar(label: "\(s.action.rawValue) 이후",
+                              distribution: acted.distribution)]
+        // One line per bucket: what this archetype does with it when checked to.
+        let ruleLines = MadeHand.allCases.map {
+            "\($0.korean) → \(s.policy.opens(with: $0) ? "벳" : "체크")"
+        }
+        return [
+            Beat("상황", value: "\(s.villainSeat.rawValue) 오픈 → \(s.actionLine)",
+                 detail: "\(s.villain.name) — \(s.villain.blurb). "
+                       + "\(s.texture.summary).",
+                 focus: .table, highlight: s.board),
+            Beat("상대 레인지", value: "상위 \(pctText(s.range.percent))%",
+                 detail: "행동을 읽기 전의 출발점이에요. \(s.villainSeat.rawValue)에서 "
+                       + "여는 범위 그대로.",
+                 focus: .rangeGrid(s.range, highlight: nil)),
+            Beat("이 성향의 규칙", value: "\(s.villain.name)의 플랍",
+                 detail: "실제 상대는 섞어서 쳐요. 이 표는 성향을 규칙으로 단순화한 거예요 "
+                       + "— 대신 규칙이라서 뒤집어 읽을 수 있어요.",
+                 focus: .actionList(ruleLines, lit: nil)),
+            Beat("행동이 지우는 것", value: "\(acted.combos)콤보 남음",
+                 detail: "\(KO.subject(s.action.rawValue)) 남기는 건 딱 이 버킷들이에요: "
+                       + "\(s.actedBucketList).",
+                 focus: .buckets(bars)),
+            Beat("그래서", value: "페어 이상 \(pctText(acted.distribution.pairOrBetter * 100))%",
+                 detail: "전체 레인지는 \(pctText(s.full.pairOrBetter * 100))%였어요. "
+                       + "같은 레인지인데 행동 하나로 모양이 달라져요 — 이게 리드예요.",
+                 focus: .buckets(bars)),
+        ]
+    }
+
+    // MARK: 디펜드 차트
+
+    /// Derives the chart instead of asserting it: the opener's range, the two shares
+    /// applied to its width, then the finished bands with the hand ringed.
+    public static func defend(_ s: DefendSpot) -> [Beat] {
+        let openPct = RFIChart.openPercent[s.opener] ?? 0
+        let correct = s.correct
+        return [
+            Beat("상황", value: "\(s.opener.rawValue) 3bb 오픈",
+                 detail: "열 핸드인지가 아니라, 열린 판에 어떻게 맞설지예요. "
+                       + "갈래는 셋: 폴드, 콜, 3벳.",
+                 focus: .table),
+            Beat("상대의 폭", value: "상위 \(pctText(openPct))%",
+                 detail: "\(s.opener.rawValue)가 여는 범위예요. 수비 기준은 전부 "
+                       + "이 폭에서 나와요.",
+                 focus: .rangeGrid(RFIChart.range(for: s.opener), highlight: nil)),
+            Beat("기준 유도", value: "폭에 비례해요",
+                 detail: "차트를 외우는 게 아니라 규칙에서 꺼내 쓰는 거예요.",
+                 focus: .actionList([
+                     "오픈 폭 \(pctText(openPct))%",
+                     "상위 \(pctText(openPct * DefendChart.threeBetShare))% → 3벳",
+                     "\(pctText(openPct * DefendChart.defendShare))%까지 → 콜",
+                     "나머지 → 폴드",
+                 ], lit: nil)),
+            Beat("차트", value: "빨강 3벳 · 초록 콜",
+                 detail: "내 핸드가 어느 밴드에 있는지 보세요.",
+                 focus: .defendChart(opener: s.opener, highlight: s.handClass)),
+            Beat("그래서", value: "\(s.handClass.description) → \(correct.rawValue)",
+                 detail: "테이블의 프리플랍도 정확히 이 차트로 채점해요.",
+                 focus: .defendChart(opener: s.opener, highlight: s.handClass)),
+        ]
+    }
+
+    // MARK: EV 손실
+
+    /// Walks the price and the equity separately, then puts a **number on each option**
+    /// before naming a winner. 콜/폴드 above ends at "which one" on purpose — that node
+    /// teaches the comparison. This one has to end at "how much", because the whole
+    /// point of the concept is that being wrong is not one thing.
+    public static func evLoss(_ s: EVLossSpot) -> [Beat] {
+        let ev = s.callEVbb
+        let gap = s.equityPct - s.requiredPct
+        return [
+            Beat("리버예요", value: "팟 \(s.pot)bb · 벳 \(s.bet)bb",
+                 detail: "카드는 다 나왔어요. 더 좋아질 일도, 나빠질 일도 없어요.",
+                 focus: .table, highlight: s.hero),
+            // The range is a premise, not a read — the app states it rather than
+            // claiming to know it (spec §3.1).
+            Beat("상대 레인지", value: s.rangeLabel,
+                 detail: "상대가 리버에서 어떻게 좁혔는지는 아직 안 따져요. "
+                       + "\(KO.subject(s.villain.name)) 이 자리에서 여는 범위 그대로예요.",
+                 focus: .rangeGrid(s.villainRange, highlight: nil)),
+            Beat("이 레인지 상대로 내 에퀴티", value: "\(pctText(s.equityPct))%",
+                 detail: "한 손이 아니라 저 범위 전체를 상대로 계산한 값이에요.",
+                 focus: .rangeGrid(s.villainRange, highlight: nil)),
+            Beat("낼 가격", value: "필요 에퀴티 \(pctText(s.requiredPct))%",
+                 detail: "벳 \(s.bet) ÷ (팟 \(s.pot) + 벳 \(s.bet) + 콜 \(s.bet)).",
+                 focus: .table),
+            Beat("콜의 EV", value: "\(bbText(ev))bb",
+                 detail: "\(pctText(s.equityPct))%로 \(s.pot + s.bet)bb를 따고, "
+                       + "\(pctText(100 - s.equityPct))%로 \(s.bet)bb를 잃어요.",
+                 focus: .table),
+            // The concluding beat is the concept: two prices, and a gap between them.
+            Beat("폴드는 언제나 0bb", value: "차이 \(bbText(abs(ev)))bb",
+                 detail: abs(gap) < 3
+                       ? "에퀴티와 가격이 거의 같아요. 어느 쪽을 골라도 잃는 게 적은 판이에요."
+                       : "틀린 쪽을 고르면 딱 이만큼을 버리는 거예요. "
+                       + "맞다·틀리다가 아니라 얼마를 버렸는지로 채점해요.",
+                 focus: .table),
+        ]
     }
 
     // MARK: 콜/폴드

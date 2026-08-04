@@ -188,6 +188,12 @@ func conceptBlurb(_ c: Concept) -> String {
     case .callFold:    return "이길 확률과 낼 가격을 비교해요"
     case .rangeNotation: return "핸드 묶음이 몇 콤보인지 세요"
     case .rfi:           return "이 자리에서 열 핸드인지 판단해요"
+    case .rangeRead:     return "행동만 보고 상대 패의 범위를 읽어요"
+    case .hitFrequency:  return "이 보드가 레인지의 몇 %를 맞혔는지 세요"
+    case .rangeAdvantage: return "이 보드가 누구에게 유리한지 판단해요"
+    case .evLoss:      return "고른 쪽이 몇 bb를 버렸는지 확인해요"
+    case .actionRead:  return "벳과 체크가 레인지를 어떻게 좁히는지 읽어요"
+    case .defend:      return "오픈에 맞서 폴드·콜·3벳을 판단해요"
     case .mdf:         return "얼마나 자주 지켜야 하는지 계산해요"
     }
 }

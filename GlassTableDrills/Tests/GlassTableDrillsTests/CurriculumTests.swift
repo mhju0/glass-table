@@ -8,14 +8,31 @@ final class CurriculumTests: XCTestCase {
     /// R2 is where the ladder currently ends, and it grows when Block B lands.
     /// Padding a unit with invented nodes to hit a number would be worse than a short
     /// one, so the floor is relaxed only for the last unit.
-    func testUnitsAreWellSizedWithTheLastOneAllowedToBeShort() {
-        XCTAssertEqual(Curriculum.units.count, 3)
-        for unit in Curriculum.units.dropLast() {
-            XCTAssertTrue((5...8).contains(unit.nodes.count),
-                          "\(unit.id) is \(unit.nodes.count) nodes; spec §4.1 wants 5–8")
+    /// Spec §4.1, as amended 2026-08-04. The original rule was a flat 5–8 nodes per
+    /// unit, written when R1 planned two fat units. Every slice since adds one
+    /// primitive, so 레인지 (3 nodes) and 레인지 리드 (2) are genuinely short and the
+    /// rule had already needed one special case in R2. What actually has to hold is
+    /// the shape, not the count: a unit is never a single node dressed as a chapter,
+    /// and nothing runs away in the other direction either.
+    /// Structural rather than a pinned total: an exact node count is churn every slice
+    /// and `testNodeIDsAreUniqueAndLookupWorks` already catches duplication.
+    func testEveryUnitIsAChapterRatherThanASingleNode() {
+        XCTAssertGreaterThanOrEqual(Curriculum.units.count, 4)
+        for unit in Curriculum.units {
+            XCTAssertTrue((2...8).contains(unit.nodes.count),
+                          "\(unit.id) is \(unit.nodes.count) nodes")
         }
-        XCTAssertGreaterThanOrEqual(Curriculum.units.last!.nodes.count, 3)
-        XCTAssertEqual(Curriculum.allNodes.count, 13)
+        XCTAssertEqual(Curriculum.allNodes.count,
+                       Curriculum.units.reduce(0) { $0 + $1.nodes.count },
+                       "the flattened path must be exactly the units")
+    }
+
+    /// Sections group units, and a unit must never be filed under a section that
+    /// misdescribes it — the path header used to hardcode 기초 for everything.
+    func testEveryUnitDeclaresANonEmptySection() {
+        for unit in Curriculum.units {
+            XCTAssertFalse(unit.section.isEmpty, unit.id)
+        }
     }
 
     /// Spec §4.1: every unit ends in a boss node.

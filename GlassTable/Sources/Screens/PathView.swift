@@ -44,7 +44,7 @@ struct PathView: View {
     private func unitHeader(_ unit: CurriculumUnit, index: Int) -> some View {
         let cleared = unit.nodes.filter { model.status(of: $0) == .cleared }.count
         return VStack(alignment: .leading, spacing: 3) {
-            SectionLabel(text: "기초 · \(index + 1)단원")
+            SectionLabel(text: "\(unit.section) · \(index + 1)단원")
             Text("\(unit.title) · \(cleared)/\(unit.nodes.count)")
                 .font(GT.title(13)).foregroundStyle(GT.onFelt)
         }

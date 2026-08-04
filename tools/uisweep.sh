@@ -1,0 +1,147 @@
+#!/bin/bash
+# Copyright (c) 2026 Michael Ju (github.com/mhju0)
+#
+# Capture every significant screen into one folder.
+#
+# The point is to make *looking at the app* cheap enough to do after every UI
+# change. Synthetic taps never reach Simulator content, so each screen is reached
+# by a GT_DEMO_* launch hook instead of by driving the UI — see RootView.
+#
+#   tools/uisweep.sh              # build, install, sweep to a timestamped folder
+#   tools/uisweep.sh --no-build   # reuse the current build
+#
+# Every capture is a fresh launch, so screens never leak state into each other.
+set -euo pipefail
+
+BUNDLE=com.michaelju.glasstable
+SCHEME=GlassTable
+DEVICE_NAME="${GT_SIM:-iPhone 17}"
+BUILD=1
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --no-build) BUILD=0 ;;
+    *) echo "unknown flag: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+OUT="$ROOT/.uisweep/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$OUT"
+
+DEV=$(xcrun simctl list devices available \
+      | grep "$DEVICE_NAME (" | head -1 \
+      | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+[ -n "$DEV" ] || { echo "no available simulator named '$DEVICE_NAME'" >&2; exit 1; }
+
+if [ "$BUILD" = 1 ]; then
+  echo "building…"
+  xcodebuild -project "$ROOT/GlassTable.xcodeproj" -scheme "$SCHEME" \
+    -destination "platform=iOS Simulator,id=$DEV" CODE_SIGNING_ALLOWED=NO build \
+    2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
+fi
+
+APP=$(find ~/Library/Developer/Xcode/DerivedData/GlassTable-*/Build/Products/Debug-iphonesimulator \
+      -maxdepth 1 -name "$SCHEME.app" 2>/dev/null | head -1)
+[ -n "$APP" ] || { echo "no built .app found" >&2; exit 1; }
+
+xcrun simctl boot "$DEV" 2>/dev/null || true
+xcrun simctl bootstatus "$DEV" -b >/dev/null 2>&1 || true
+xcrun simctl install "$DEV" "$APP"
+
+# name : GT_DEMO env, space separated. Seeded runs show a populated app; the
+# unseeded ones are what a brand-new user actually sees, which is the state
+# most easily broken and least often looked at.
+SCREENS=(
+  "today-empty:GT_DEMO_TAB=today"
+  "path-empty:GT_DEMO_TAB=path"
+  "records-empty:GT_DEMO_TAB=records"
+  "today:GT_DEMO_SEED=1 GT_DEMO_TAB=today"
+  "path:GT_DEMO_SEED=1 GT_DEMO_TAB=path"
+  "records:GT_DEMO_SEED=1 GT_DEMO_TAB=records"
+  "settings:GT_DEMO_SEED=1 GT_DEMO_SETTINGS=1"
+  "glossary:GT_DEMO_SEED=1 GT_DEMO_SETTINGS=1 GT_DEMO_GLOSSARY=1"
+  "freeplay:GT_DEMO_SEED=1 GT_DEMO_FREEPLAY=1"
+  "drill-showdown:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-showdown"
+  "drill-potmath:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-potMath"
+  "drill-position:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-position"
+  "drill-combos:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-combos"
+  "drill-potodds:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds"
+  "drill-outs:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-outs"
+  "drill-equity:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-equitySense"
+  "drill-ev:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-evCall"
+  "drill-callfold:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-boss"
+  "drill-notation:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-notation"
+  "drill-rfi:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-rfi"
+  "drill-rangeread:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead"
+  # The reveal is the two-channel comparison grid: fill = truth, ring = your guess.
+  # 18 lands close, 60 lands badly wrong — both bands need looking at.
+  "drill-rangeread-close:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead GT_DEMO_REVEAL=18"
+  "drill-rangeread-off:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead GT_DEMO_REVEAL=60"
+  "teach-showdown-b1:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=1"
+  "teach-showdown-b3:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=3"
+  "teach-showdown-b5:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=5"
+  "teach-outs-grid:GT_DEMO_NODE=u2-outs GT_DEMO_BEAT=4"
+  "teach-rfi-grid:GT_DEMO_NODE=u3-rfi GT_DEMO_BEAT=3"
+  "teach-notation:GT_DEMO_NODE=u3-notation GT_DEMO_BEAT=2"
+  "teach-rangeread-stats:GT_DEMO_NODE=u4-rangeRead GT_DEMO_BEAT=2"
+  "teach-rangeread-grid:GT_DEMO_NODE=u4-rangeRead GT_DEMO_BEAT=4"
+  "drill-hitfreq:GT_DEMO_SEED=1 GT_DEMO_NODE=u5-hitFrequency"
+  "drill-hitfreq-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u5-hitFrequency GT_DEMO_REVEAL=40"
+  "drill-rangeadv:GT_DEMO_SEED=1 GT_DEMO_NODE=u5-rangeAdvantage"
+  "drill-rangeadv-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u5-rangeAdvantage GT_DEMO_REVEAL=55"
+  # The stacked bucket bars are the whole lesson of both board drills.
+  "teach-hitfreq-buckets:GT_DEMO_NODE=u5-hitFrequency GT_DEMO_BEAT=3"
+  "teach-rangeadv-buckets:GT_DEMO_NODE=u5-rangeAdvantage GT_DEMO_BEAT=3"
+  # R4-S2. Both sides of the reveal, because the headline differs: one of these is a
+  # 0bb choice and the other is what it cost to take the other one.
+  "drill-evloss:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss"
+  "drill-evloss-call:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=1"
+  "drill-evloss-fold:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=0"
+  "teach-evloss-range:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=1"
+  "teach-evloss-cost:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=5"
+  # R4-S3. The reveal swaps the grid for before/after bars — both states need looking
+  # at, plus the rule beat (the policy table) and the bars beat in the walkthrough.
+  "drill-actionread:GT_DEMO_SEED=1 GT_DEMO_NODE=u7-actionRead"
+  "drill-actionread-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u7-actionRead GT_DEMO_REVEAL=60"
+  "teach-actionread-rule:GT_DEMO_NODE=u7-actionRead GT_DEMO_BEAT=2"
+  # R5b. GT_DEMO_REVEAL: 0 폴드, 1 콜, 2 3벳 — the reveal's chart is the payload.
+  "drill-defend:GT_DEMO_SEED=1 GT_DEMO_NODE=u8-defend"
+  "drill-defend-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u8-defend GT_DEMO_REVEAL=1"
+  "teach-defend-chart:GT_DEMO_NODE=u8-defend GT_DEMO_BEAT=3"
+  "teach-actionread-bars:GT_DEMO_NODE=u7-actionRead GT_DEMO_BEAT=4"
+  # R4-S4. Scripted passive steps drive the seeded hand to a grade pill and, with
+  # enough of them, the summary. Flop pricing is seconds in a debug build, so these
+  # entries carry their own longer sleep (third field).
+  "table-picker:GT_DEMO_TAB=table"
+  # R5: the hand now opens at the preflop decision — chart-graded, no pricing wait.
+  "table-preflop:GT_DEMO_TABLE=tag"
+  "table-preflop-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1:6"
+  "table-chart:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CHART=1:6"
+  "table-hand:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CONTINUE=1:12"
+  "table-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=2:14"
+  "table-summary:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=10:24"
+)
+
+# One pass, not two. The app pins UIUserInterfaceStyle to Dark, so the light run was
+# capturing the same pixels — the two schemes measured 1.04:1 apart on glass.
+# Entry format: name:envs[:sleep] — the optional third field replaces the default
+# settle time, for screens that compute before they can be photographed.
+for entry in "${SCREENS[@]}"; do
+  name="${entry%%:*}"
+  rest="${entry#*:}"
+  slp="${rest##*:}"
+  if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=2.2; fi
+  args=()
+  for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
+  xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
+  env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
+  sleep "$slp"
+  xcrun simctl io "$DEV" screenshot "$OUT/$name.png" >/dev/null 2>&1 || true
+  printf '.'
+done
+echo
+
+xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
+echo "$OUT"

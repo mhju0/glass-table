@@ -92,16 +92,24 @@ public struct IntervalAnswer: Codable, Equatable, Sendable {
     public var containsTruth: Bool { truth >= lo && truth <= hi }
 }
 
-/// One graded answer. `interval` is nil for exact concepts.
+/// One graded answer. `interval` is nil for exact concepts, `evLoss` for everything not
+/// graded by what the decision cost (decisions.md §D).
+///
+/// Both are Optionals, so a store written before either existed decodes unchanged —
+/// synthesised `Decodable` uses `decodeIfPresent` for Optional properties — and
+/// `schemaVersion` does not move.
 public struct AnswerRecord: Codable, Equatable, Sendable {
     public var concept: String
     public var at: Date
     public var correct: Bool
     public var interval: IntervalAnswer?
+    /// Big blinds given up against the best available option. Never negative.
+    public var evLoss: Double?
 
-    public init(concept: Concept, at: Date, correct: Bool, interval: IntervalAnswer? = nil) {
+    public init(concept: Concept, at: Date, correct: Bool,
+                interval: IntervalAnswer? = nil, evLoss: Double? = nil) {
         self.concept = concept.rawValue; self.at = at
-        self.correct = correct; self.interval = interval
+        self.correct = correct; self.interval = interval; self.evLoss = evLoss
     }
 }
 
