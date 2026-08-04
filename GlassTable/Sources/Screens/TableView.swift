@@ -19,20 +19,54 @@ struct TableView: View {
     @State private var handIndex = 0
     @State private var villainPick: Archetype?
 
-    /// One graded hero decision, kept for the pill and the summary.
+    /// One graded hero decision, kept for the pill and the summary. Postflop
+    /// decisions carry a bb price; the preflop one carries the chart verdict —
+    /// future-value is exactly what the checkdown model cannot price (R5 §3).
     struct TurnRecord: Equatable {
         let street: String
-        let chosen: GradedOption
-        let bestLabel: String
-        let loss: Double
-        var band: GradeBand { evLossBand(bb: loss) }
+        let label: String
+        enum Verdict: Equatable {
+            case ev(loss: Double, best: String)
+            case chart(TableHand.PreflopVerdict)
+        }
+        let verdict: Verdict
+
+        var band: GradeBand {
+            switch verdict {
+            case let .ev(loss, _): return evLossBand(bb: loss)
+            case let .chart(v): return v.matched ? .spotOn : .off
+            }
+        }
     }
+    @State private var showChart = false
 
     var body: some View {
         Group {
             if let hand { table(hand) } else { picker }
         }
         .background(FeltBackground())
+        .sheet(isPresented: $showChart) {
+            if let hand {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        ChromeButton.close { showChart = false }
+                        Spacer()
+                    }
+                    Text("디펜드 차트 · \(hand.villainSeat.rawValue) 오픈에 맞서")
+                        .font(GT.title(16)).foregroundStyle(GT.onFelt)
+                        .padding(.horizontal, 18)
+                    Text("오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요.")
+                        .font(GT.body(11)).foregroundStyle(GT.onFeltSecondary)
+                        .padding(.horizontal, 18)
+                    DefendGridView(opener: hand.villainSeat,
+                                   highlight: HandClass(hand.hero))
+                        .padding(18)
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(FeltBackground())
+            }
+        }
         .onAppear {
             #if DEBUG
             // GT_DEMO_TABLE=<archetype|random> starts a seeded hand;
@@ -46,17 +80,28 @@ struct TableView: View {
                 var h = TableDealer.deal(baseSeed: 0x5EED, index: 0, villain: villain)
                 let steps = env["GT_DEMO_TABLE_STEP"].flatMap(Int.init) ?? 0
                 for _ in 0..<steps {
-                    guard case .hero = h.phase else { break }
-                    let opts = h.gradedOptions()
-                    let choice: TableHand.HeroChoice =
-                        h.choices().contains(.check) ? .check : .call
-                    record(choice, options: opts, of: h)
-                    h.play(choice)
+                    guard case let .hero(facing) = h.phase else { break }
+                    if case .open = facing {
+                        if let v = h.preflopVerdict(for: .call) {
+                            decisions.append(TurnRecord(street: "프리플랍", label: "콜",
+                                                        verdict: .chart(v)))
+                        }
+                        h.play(.call)
+                    } else {
+                        let opts = h.gradedOptions()
+                        let choice: TableHand.HeroChoice =
+                            h.choices().contains(.check) ? .check : .call
+                        record(choice, options: opts, of: h)
+                        h.play(choice)
+                    }
                 }
                 hand = h
                 // Mid-hand after scripted steps → show the last grade's pill; a hand
-                // that ended shows its summary by itself.
+                // that ended shows its summary by itself. CONTINUE simulates 계속, so
+                // the sweep can also photograph the action buttons mid-hand.
                 if steps > 0, case .hero = h.phase { lastTurn = decisions.last }
+                if env["GT_DEMO_TABLE_CONTINUE"] != nil { lastTurn = nil }
+                if env["GT_DEMO_TABLE_CHART"] != nil { showChart = true }
                 prepareOptions(for: h)
             }
             #endif
@@ -196,6 +241,8 @@ struct TableView: View {
             summary(hand, outcome)
         } else if let lastTurn {
             turnReveal(lastTurn)
+        } else if case .hero(.open(let b)) = hand.phase {
+            preflopButtons(hand, open: b)
         } else if let options {
             actionButtons(hand, options)
         } else {
@@ -241,30 +288,75 @@ struct TableView: View {
         .buttonStyle(GTPress())
     }
 
+    /// 폴드 / 콜 3bb / 3벳 9bb. No pricing pass — the grade here is the chart.
+    private func preflopButtons(_ hand: TableHand, open b: Double) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                GTChoiceButton(title: "폴드", minHeight: 52) { actPreflop(.fold, hand) }
+                GTChoiceButton(title: "콜 \(bbText(b))bb", minHeight: 52) {
+                    actPreflop(.call, hand)
+                }
+                GTChoiceButton(title: "3벳 \(bbText(b * TableHand.raiseFactor))bb",
+                               minHeight: 52) { actPreflop(.raise, hand) }
+            }
+            Text("프리플랍은 디펜드 차트로 채점해요 — 답한 뒤에 차트를 보여드려요")
+                .font(GT.body(10)).foregroundStyle(GT.inkMuted)
+        }
+    }
+
     private func turnReveal(_ turn: TurnRecord) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 9) {
-                Text(turn.loss <= 0 ? "0bb" : "\u{2212}\(bbText(turn.loss))bb")
-                    .font(GT.title(28).monospacedDigit()).foregroundStyle(turn.band.ink)
-                Image(systemName: turn.band.glyph)
-                    .font(.system(size: 14)).foregroundStyle(turn.band.ink)
-                Text(turn.band.evLossLabel).font(GT.title(14)).foregroundStyle(turn.band.ink)
+                switch turn.verdict {
+                case let .ev(loss, _):
+                    Text(loss <= 0 ? "0bb" : "\u{2212}\(bbText(loss))bb")
+                        .font(GT.title(28).monospacedDigit()).foregroundStyle(turn.band.ink)
+                    Image(systemName: turn.band.glyph)
+                        .font(.system(size: 14)).foregroundStyle(turn.band.ink)
+                    Text(turn.band.evLossLabel).font(GT.title(14)).foregroundStyle(turn.band.ink)
+                case let .chart(v):
+                    Text(v.matched ? "차트대로" : "차트는 \(v.chart.rawValue)")
+                        .font(GT.title(24)).foregroundStyle(turn.band.ink)
+                    Image(systemName: turn.band.glyph)
+                        .font(.system(size: 14)).foregroundStyle(turn.band.ink)
+                }
                 Spacer(minLength: 6)
-                Text("내 선택 · \(turn.chosen.label)")
+                Text("내 선택 · \(turn.label)")
                     .font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
             }
             .padding(.horizontal, 13).padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(turn.band.tint, in: RoundedRectangle(cornerRadius: 14))
-            if turn.loss > 0 {
-                Text("최선은 \(turn.bestLabel)")
+            switch turn.verdict {
+            case let .ev(loss, best) where loss > 0:
+                Text("최선은 \(best)")
                     .font(GT.body(12)).foregroundStyle(GT.inkSecondary)
+            case .chart:
+                SecondaryCTAButton(title: "차트 보기") { showChart = true }
+            default:
+                EmptyView()
             }
             PrimaryCTAButton(title: "계속") {
                 lastTurn = nil
                 if let hand { prepareOptions(for: hand) }
             }
         }
+    }
+
+    private func actPreflop(_ choice: TableHand.HeroChoice, _ current: TableHand) {
+        guard var h = hand, let v = h.preflopVerdict(for: choice) else { return }
+        let label: String
+        switch choice {
+        case .fold: label = "폴드"
+        case .call: label = "콜"
+        default: label = "3벳"
+        }
+        decisions.append(TurnRecord(street: "프리플랍", label: label, verdict: .chart(v)))
+        h.play(choice)
+        hand = h
+        lastTurn = decisions.last
+        options = nil
+        _ = current
     }
 
     private func summary(_ hand: TableHand, _ outcome: TableHand.Outcome) -> some View {
@@ -279,16 +371,26 @@ struct TableView: View {
             }
             // Result and decision quality, side by side — the gap between them is
             // the thing poker teaches slowest (spec §4).
-            let lost = decisions.reduce(0) { $0 + $1.loss }
+            let lost = decisions.reduce(0.0) {
+                if case let .ev(loss, _) = $1.verdict { return $0 + loss }
+                return $0
+            }
             VStack(alignment: .leading, spacing: 5) {
                 ForEach(Array(decisions.enumerated()), id: \.offset) { _, d in
                     HStack {
-                        Text("\(d.street) · \(d.chosen.label)")
+                        Text("\(d.street) · \(d.label)")
                             .font(GT.body(11.5)).foregroundStyle(GT.inkSecondary)
                         Spacer(minLength: 6)
-                        Text(d.loss <= 0 ? "최선" : "\u{2212}\(bbText(d.loss))bb")
-                            .font(GT.semibold(11.5).monospacedDigit())
-                            .foregroundStyle(d.band.ink)
+                        Group {
+                            switch d.verdict {
+                            case let .ev(loss, _):
+                                Text(loss <= 0 ? "최선" : "\u{2212}\(bbText(loss))bb")
+                            case let .chart(v):
+                                Text(v.matched ? "차트대로" : "차트: \(v.chart.rawValue)")
+                            }
+                        }
+                        .font(GT.semibold(11.5).monospacedDigit())
+                        .foregroundStyle(d.band.ink)
                     }
                 }
                 if decisions.count > 1 {
@@ -335,8 +437,8 @@ struct TableView: View {
         guard let grade = TableHand.graded(choice, with: options),
               let chosen = options.first(where: { $0.choice == choice }) else { return }
         let street = hand.street == 3 ? "플랍" : (hand.street == 4 ? "턴" : "리버")
-        decisions.append(TurnRecord(street: street, chosen: chosen,
-                                    bestLabel: grade.best.label, loss: grade.loss))
+        decisions.append(TurnRecord(street: street, label: chosen.label,
+                                    verdict: .ev(loss: grade.loss, best: grade.best.label)))
     }
 
     /// The slow part, off the main thread on a copy (spec §3): exact on turn and

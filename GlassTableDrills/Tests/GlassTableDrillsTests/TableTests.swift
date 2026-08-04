@@ -106,8 +106,12 @@ final class TableTests: XCTestCase {
             let policy = hand.villain.postflop
             while case let .hero(facing) = hand.phase {
                 // Whatever he did to reach this phase must match his actual bucket.
-                let bucket = madeHand(hand: hand.villainCombo, board: hand.board)
+                // (Preflop has no board; its case below never reads the bucket.)
+                let bucket = hand.board.isEmpty
+                    ? MadeHand.air
+                    : madeHand(hand: hand.villainCombo, board: hand.board)
                 switch facing {
+                case .open: XCTAssertEqual(hand.street, 0)
                 case .bet: XCTAssertTrue(policy.opens(with: bucket), "street \(hand.street)")
                 case .checkedTo: XCTAssertFalse(policy.opens(with: bucket))
                 case .raise: XCTAssertEqual(policy.response(toBetWith: bucket), .raise)
@@ -256,6 +260,8 @@ final class TableTests: XCTestCase {
                              villainCombo: [c(8, 3), c(7, 3)],     // 8♠7♠
                              fullBoard: [c(9, 2), c(6, 1), c(2, 0), c(13, 3), c(3, 1)],
                              handSeed: 7)
+        // R5: the hand now opens at the preflop decision — call to reach the flop.
+        hand.play(.call)
         // Flop and turn: the draw bets (policy), hero calls.
         guard case .hero(.bet) = hand.phase else { return XCTFail("TAG must bet his draw") }
         hand.play(.call)
@@ -284,15 +290,17 @@ final class TableTests: XCTestCase {
         for i in 0..<12 {
             let hand = TableDealer.deal(baseSeed: 0xDEA1, index: i)
             XCTAssertEqual(hand.hero.count, 2)
-            XCTAssertEqual(hand.board.count, 3, "hands start on the flop")
+            // R5: the hand starts at the preflop decision, no board out yet.
+            XCTAssertEqual(hand.board.count, 0)
+            XCTAssertEqual(hand.phase, .hero(.open(TableHand.openSize)))
             // Hero acts after the opener — he has position (spec §1).
             XCTAssertLessThan(hand.heroSeat.playersBehind(preflop: true),
                               hand.villainSeat.playersBehind(preflop: true))
             // No card appears twice anywhere.
             let all = hand.hero + hand.villainCombo + hand.fullBoard
             XCTAssertEqual(Set(all).count, all.count)
-            // The pot opens at 7.5bb: two 3bb commitments plus dead blinds.
-            XCTAssertGreaterThanOrEqual(hand.pot, 7.5)
+            // The pot at the decision: villain's 3bb plus the dead blinds.
+            XCTAssertEqual(hand.pot, 4.5, accuracy: 1e-12)
         }
     }
 

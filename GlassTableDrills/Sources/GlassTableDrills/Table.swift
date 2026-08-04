@@ -10,9 +10,9 @@ import GlassTableEngine
 /// and is the slow part (spec §3), so the UI computes it off the main thread on a
 /// copy and passes the result back alongside the choice.
 ///
-/// Format (spec §1): heads-up single-raised pot, hero in position, 100bb, blinds
-/// dead. The archetype opened 3bb preflop — his hand is dealt *from that range* —
-/// and hero called with a playable hand; the hand starts on the flop with 7.5bb.
+/// Format (spec §1, amended by R5): heads-up, hero in position, 100bb, blinds dead.
+/// The archetype opened 3bb — his hand is dealt *from that range* — and hero, dealt
+/// any two cards, plays the preflop street for real: fold, call, or 3-bet.
 public struct TableHand: Equatable {
     public static let stack: Double = 100
     public static let openSize: Double = 3
@@ -20,10 +20,6 @@ public struct TableHand: Equatable {
     /// becomes a call. Both rules exist so every subtree is closed-form (spec §1).
     public static let raiseFactor: Double = 3
     public static let deadBlinds: Double = 1.5
-    /// Hero's dealt band: hands worth a preflop call, stated rather than hidden.
-    /// Playing the preflop street needs defending charts — a later slice (spec §1).
-    public static let heroBandPercent: Double = 30
-
     // MARK: cast
 
     public let villainSeat: Position
@@ -38,6 +34,8 @@ public struct TableHand: Equatable {
     // MARK: state
 
     public enum Facing: Equatable {
+        /// Villain's 3bb preflop open, before any board: fold, call, or 3-bet (R5).
+        case open(Double)
         /// Villain checked (or the street just opened with a check): check or bet.
         case checkedTo
         /// Villain bet this much: fold, call, or raise if the street still allows one.
@@ -62,8 +60,8 @@ public struct TableHand: Equatable {
     }
 
     public private(set) var phase: Phase = .hero(.checkedTo)
-    /// Board cards revealed: 3, 4, 5.
-    public private(set) var street = 3
+    /// Board cards revealed: 0 preflop, then 3, 4, 5.
+    public private(set) var street = 0
     /// Includes every chip placed, outstanding bets too.
     public private(set) var pot: Double
     public private(set) var heroStack: Double
@@ -89,16 +87,36 @@ public struct TableHand: Equatable {
         self.hero = hero; self.villainCombo = villainCombo; self.fullBoard = fullBoard
         self.handSeed = handSeed
 
-        pot = TableHand.openSize * 2 + TableHand.deadBlinds
-        heroStack = TableHand.stack - TableHand.openSize
+        pot = TableHand.openSize + TableHand.deadBlinds
+        heroStack = TableHand.stack
         villainStack = TableHand.stack - TableHand.openSize
-        heroInvested = TableHand.openSize
+        heroInvested = 0
         villainCombos = villain.raiseRange(from: villainSeat).combos(removing: hero)
         history.append("프리플랍 · \(villainSeat.rawValue) \(villain.name) "
-                       + "\(bbText(TableHand.openSize))bb 오픈, \(heroSeat.rawValue) 콜")
+                       + "\(bbText(TableHand.openSize))bb 오픈")
+        phase = .hero(.open(TableHand.openSize))
+    }
 
-        revealBoard()
-        villainOpensStreet()
+    /// R5 §3: the chart verdict for a preflop choice — grading here is the chart,
+    /// not bb, because preflop future-value is exactly what the checkdown model
+    /// cannot price (the reason S4 scripted this street).
+    public struct PreflopVerdict: Equatable {
+        public let chosen: DefendAction
+        public let chart: DefendAction
+        public var matched: Bool { chosen == chart }
+    }
+
+    public func preflopVerdict(for choice: HeroChoice) -> PreflopVerdict? {
+        guard case .hero(.open) = phase else { return nil }
+        let chosen: DefendAction
+        switch choice {
+        case .fold: chosen = .fold
+        case .call: chosen = .call
+        case .raise: chosen = .threeBet
+        default: return nil
+        }
+        return PreflopVerdict(chosen: chosen,
+                              chart: DefendChart.action(for: hero, vsOpenFrom: villainSeat))
     }
 
     // MARK: villain, who is S3 verbatim
@@ -127,7 +145,14 @@ public struct TableHand: Equatable {
         villainCombos.removeAll { $0.contains(where: visible.contains) }
     }
 
-    private var streetName: String { street == 3 ? "플랍" : (street == 4 ? "턴" : "리버") }
+    private var streetName: String {
+        switch street {
+        case 0: return "프리플랍"
+        case 3: return "플랍"
+        case 4: return "턴"
+        default: return "리버"
+        }
+    }
 
     /// New street: villain is out of position and acts first.
     private mutating func villainOpensStreet() {
@@ -168,6 +193,8 @@ public struct TableHand: Equatable {
     public func choices() -> [HeroChoice] {
         guard case let .hero(facing) = phase else { return [] }
         switch facing {
+        case .open:
+            return [.fold, .call, .raise]
         case .checkedTo:
             let sizes = BetSpotGenerator.fractions.filter {
                 clampedBet($0 * pot, cap: min(heroStack, villainStack)) > 0.5
@@ -200,6 +227,21 @@ public struct TableHand: Equatable {
     public mutating func play(_ choice: HeroChoice) {
         guard case let .hero(facing) = phase else { return }
         switch (facing, choice) {
+        case (.open, .fold):
+            // Nothing invested: blinds are dead money in this format, so a preflop
+            // fold nets exactly 0 — and the grade says folding junk costs nothing.
+            history.append("프리플랍 · 나 폴드")
+            finish(heroWins: false, showdown: false)
+        case let (.open(b), .call):
+            heroStack -= b; heroInvested += b; pot += b
+            history.append("프리플랍 · 나 콜")
+            startFlop()
+        case let (.open(b), .raise):
+            let r = b * TableHand.raiseFactor
+            heroStack -= r; heroInvested += r; pot += r
+            raisesThisStreet += 1
+            history.append("프리플랍 · 나 \(bbText(r))bb 3벳")
+            villainRespondsTo3Bet(to: r, hisOpen: b)
         case (.checkedTo, .check):
             history.append("\(streetName) · 나 체크")
             settleStreet()
@@ -284,6 +326,29 @@ public struct TableHand: Equatable {
         }
     }
 
+    private mutating func startFlop() {
+        street = 3
+        revealBoard()
+        villainOpensStreet()
+    }
+
+    /// R5 §2: he continues with a top slice of the range he opened — in character,
+    /// never 4-bets (capped the way the postflop re-raise already is). His call
+    /// narrows the range to exactly that band; his fold ends the hand.
+    private mutating func villainRespondsTo3Bet(to r: Double, hisOpen b: Double) {
+        let band = villain.continueRange(vs3BetFrom: villainSeat)
+        if band.contains(villainCombo) {
+            villainCombos = villainCombos.filter(band.contains)
+            let c = min(r - b, villainStack)
+            villainStack -= c; pot += c
+            history.append("프리플랍 · \(villain.name) 콜")
+            startFlop()
+        } else {
+            history.append("프리플랍 · \(villain.name) 폴드")
+            finish(heroWins: true, showdown: false)
+        }
+    }
+
     private mutating func settleStreet() {
         if street == 5 { return showdown() }
         // All-in: no more betting is possible, so the board simply runs out. Without
@@ -348,6 +413,8 @@ public extension TableHand {
     /// runs it off the main thread on a copy and hands the result to `graded(_:with:)`.
     func gradedOptions() -> [GradedOption] {
         guard case let .hero(facing) = phase else { return [] }
+        // Preflop is graded by the chart (preflopVerdict), never priced — see spec §3.
+        if case .open = facing { return [] }
         let eq = comboEquities()
         let n = Double(villainCombos.count)
         guard n > 0 else { return [] }
@@ -361,6 +428,8 @@ public extension TableHand {
         }
 
         switch facing {
+        case .open:
+            return []   // unreachable — the early return above already handled it
         case .checkedTo:
             var out = [GradedOption(choice: .check, label: "체크",
                                     ev: mean { e, _ in e * pot })]
@@ -446,8 +515,9 @@ public enum TableDealer {
             $0.playersBehind(preflop: true) < vSeat.playersBehind(preflop: true)
         }.randomElement(using: &rng)!
 
-        let hero = HandRange.topByChen(percent: TableHand.heroBandPercent)
-            .combos(removing: []).randomElement(using: &rng)!
+        var full = Deck.all
+        full.shuffle(using: &rng)
+        let hero = Array(full[0..<2])
         let combo = archetype.raiseRange(from: vSeat)
             .combos(removing: hero).randomElement(using: &rng)!
         var deck = Deck.all.filter { !hero.contains($0) && !combo.contains($0) }

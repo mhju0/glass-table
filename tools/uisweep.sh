@@ -111,9 +111,13 @@ SCREENS=(
   # enough of them, the summary. Flop pricing is seconds in a debug build, so these
   # entries carry their own longer sleep (third field).
   "table-picker:GT_DEMO_TAB=table"
-  "table-hand:GT_DEMO_TABLE=tag:8"
-  "table-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1:12"
-  "table-summary:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=9:20"
+  # R5: the hand now opens at the preflop decision — chart-graded, no pricing wait.
+  "table-preflop:GT_DEMO_TABLE=tag"
+  "table-preflop-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1:6"
+  "table-chart:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CHART=1:6"
+  "table-hand:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CONTINUE=1:12"
+  "table-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=2:14"
+  "table-summary:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=10:24"
 )
 
 # One pass, not two. The app pins UIUserInterfaceStyle to Dark, so the light run was
