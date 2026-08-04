@@ -69,6 +69,9 @@ struct ConceptDrillView: View {
         case .evLoss:
             EVLossDrill(seed: seed, index: index,
                         progressText: progressText, onAnswer: onAnswer)
+        case .actionRead:
+            ActionReadDrill(seed: seed, index: index,
+                            progressText: progressText, onAnswer: onAnswer)
         }
     }
 }
@@ -1302,6 +1305,91 @@ private struct EVLossDrill: View {
                         reveal = gradeEVLoss(userCalls: v != "0", spot: spot)
                     }
                     #endif
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 액션 리드
+
+private struct ActionReadDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var point = 40.0
+    @State private var halfWidth = 12.0
+    @State private var reveal: EstimateReveal?
+
+    private var spot: ActionReadSpot {
+        ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
+    }
+
+    var body: some View {
+        DrillShell(title: "액션 리드", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "보드 · 플랍")
+                CardRow(cards: spot.board, maxSize: 70)
+                Text(spot.texture.summary)
+                    .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
+                SectionLabel(text: "행동").padding(.top, 8)
+                Text("\(spot.villainSeat.rawValue) 오픈 → \(spot.actionLine)")
+                    .font(GT.title(17)).foregroundStyle(GT.onFelt)
+                Text("\(spot.villain.name) · \(spot.villain.blurb)")
+                    .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                if reveal != nil {
+                    // The payload: the same range before and after the action. The
+                    // number is graded, but the shape change is the lesson.
+                    BucketBarView(label: "오픈 레인지 전체", distribution: spot.full)
+                        .padding(.top, 6)
+                    BucketBarView(label: "\(spot.action.rawValue) 이후",
+                                  distribution: spot.acted.distribution)
+                        .padding(.top, 8)
+                } else {
+                    // Pre-answer, the grid is fair game — the preflop range is the
+                    // stated premise, the same way EV 손실 prints it.
+                    RangeGridView(range: spot.range)
+                        .frame(height: 230)
+                        .padding(.top, 6)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                #if DEBUG
+                // GT_DEMO_REVEAL=<point> — same hook as the other estimation drills:
+                // the before/after bars are the payload and synthetic taps never
+                // reach Simulator content.
+                if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Double.init) {
+                    point = v
+                    reveal = gradeActionRead(
+                        estimate: Estimate(point: v, lo: max(0, v - halfWidth),
+                                           hi: min(100, v + halfWidth)),
+                        spot: spot)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
+                            correct: "\(pctText(reveal.correct))%",
+                            why: reveal.whyText + (reveal.intervalHit
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
+                    self.reveal = nil; point = 40; halfWidth = 12
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("\(KO.subject(spot.action.rawValue)) 남긴 레인지의 몇 %가 페어 이상일까요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    IntervalInput(point: $point, halfWidth: $halfWidth,
+                                  range: 0...100, step: 1, unit: "%")
+                    PrimaryCTAButton(title: "확인") {
+                        reveal = gradeActionRead(
+                            estimate: Estimate(point: point, lo: max(0, point - halfWidth),
+                                               hi: min(100, point + halfWidth)),
+                            spot: spot)
+                    }
                 }
             }
         }

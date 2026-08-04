@@ -309,6 +309,9 @@ enum Walkthrough {
         case .evLoss:
             let s = EVLossSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.evLoss(s), [("보드 · 리버", s.board), ("내 핸드", s.hero)])
+        case .actionRead:
+            let s = ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.actionRead(s), [("보드 · 플랍", s.board)])
         }
     }
 }

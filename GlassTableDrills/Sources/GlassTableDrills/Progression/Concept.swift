@@ -11,7 +11,7 @@ public enum Concept: String, CaseIterable, Codable, Sendable {
     case potOdds, outs, equitySense, evCall, callFold
     case rangeNotation, rfi, rangeRead
     case hitFrequency, rangeAdvantage
-    case evLoss
+    case evLoss, actionRead
     case mdf
 }
 
@@ -32,7 +32,8 @@ extension Concept {
     /// answer, so there is nothing to put an interval around.
     public var isEstimation: Bool {
         switch self {
-        case .equitySense, .evCall, .outs, .hitFrequency, .rangeAdvantage: return true
+        case .equitySense, .evCall, .outs, .hitFrequency, .rangeAdvantage,
+             .actionRead: return true
         case .showdown, .potMath, .position, .combos, .potOdds, .callFold,
              .rangeNotation, .rfi, .rangeRead, .evLoss, .mdf: return false
         }

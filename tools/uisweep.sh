@@ -101,6 +101,12 @@ SCREENS=(
   "drill-evloss-fold:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=0"
   "teach-evloss-range:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=1"
   "teach-evloss-cost:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=5"
+  # R4-S3. The reveal swaps the grid for before/after bars — both states need looking
+  # at, plus the rule beat (the policy table) and the bars beat in the walkthrough.
+  "drill-actionread:GT_DEMO_SEED=1 GT_DEMO_NODE=u7-actionRead"
+  "drill-actionread-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u7-actionRead GT_DEMO_REVEAL=60"
+  "teach-actionread-rule:GT_DEMO_NODE=u7-actionRead GT_DEMO_BEAT=2"
+  "teach-actionread-bars:GT_DEMO_NODE=u7-actionRead GT_DEMO_BEAT=4"
 )
 
 # One pass, not two. The app pins UIUserInterfaceStyle to Dark, so the light run was

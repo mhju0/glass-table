@@ -25,10 +25,23 @@ public struct RangeOnBoard: Equatable, Sendable {
 }
 
 public func rangeOnBoard(_ range: HandRange, board: [Card]) -> RangeOnBoard {
+    rangeOnBoard(combos: range.combos(removing: board), board: board)
+}
+
+/// The same distribution over an explicit combo list.
+///
+/// This is how a *subset* of a range gets a `RangeOnBoard` — an action-narrowed range
+/// (R4-S3) is combo-level, since A♠K♠ and A♥K♥ land in different buckets on a spade
+/// board, so no `HandRange` can describe it. The factory keeps the type's invariant
+/// (shares sum to 1 over live combos) where a public memberwise init could not.
+///
+/// Combos that intersect the board are skipped rather than trusted away, so a caller
+/// holding a stale list cannot corrupt the shares.
+public func rangeOnBoard(combos: [[Card]], board: [Card]) -> RangeOnBoard {
     precondition((3...5).contains(board.count))
     var counts = [MadeHand: Int]()
     var live = 0
-    for combo in range.combos(removing: board) {
+    for combo in combos where !combo.contains(where: board.contains) {
         counts[madeHand(hand: combo, board: board), default: 0] += 1
         live += 1
     }

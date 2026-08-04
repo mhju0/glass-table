@@ -192,6 +192,7 @@ func conceptBlurb(_ c: Concept) -> String {
     case .hitFrequency:  return "이 보드가 레인지의 몇 %를 맞혔는지 세요"
     case .rangeAdvantage: return "이 보드가 누구에게 유리한지 판단해요"
     case .evLoss:      return "고른 쪽이 몇 bb를 버렸는지 확인해요"
+    case .actionRead:  return "벳과 체크가 레인지를 어떻게 좁히는지 읽어요"
     case .mdf:         return "얼마나 자주 지켜야 하는지 계산해요"
     }
 }

@@ -536,6 +536,45 @@ public enum BeatScript {
         abs(x - x.rounded()) < 0.01 ? "\(Int(x.rounded()))" : String(format: "%.1f", x)
     }
 
+    // MARK: 액션 리드
+
+    /// Rule → inversion → shape change. The policy table row is shown *as the rule*
+    /// before the bars, because the whole claim of the drill is that the number is
+    /// checkable against a published table rather than read off a black box.
+    public static func actionRead(_ s: ActionReadSpot) -> [Beat] {
+        let acted = s.acted
+        let bars = [BucketBar(label: "\(s.villain.name) 오픈 레인지 전체",
+                              distribution: s.full),
+                    BucketBar(label: "\(s.action.rawValue) 이후",
+                              distribution: acted.distribution)]
+        // One line per bucket: what this archetype does with it when checked to.
+        let ruleLines = MadeHand.allCases.map {
+            "\($0.korean) → \(s.policy.opens(with: $0) ? "벳" : "체크")"
+        }
+        return [
+            Beat("상황", value: "\(s.villainSeat.rawValue) 오픈 → \(s.actionLine)",
+                 detail: "\(s.villain.name) — \(s.villain.blurb). "
+                       + "\(s.texture.summary).",
+                 focus: .table, highlight: s.board),
+            Beat("상대 레인지", value: "상위 \(pctText(s.range.percent))%",
+                 detail: "행동을 읽기 전의 출발점이에요. \(s.villainSeat.rawValue)에서 "
+                       + "여는 범위 그대로.",
+                 focus: .rangeGrid(s.range, highlight: nil)),
+            Beat("이 성향의 규칙", value: "\(s.villain.name)의 플랍",
+                 detail: "실제 상대는 섞어서 쳐요. 이 표는 성향을 규칙으로 단순화한 거예요 "
+                       + "— 대신 규칙이라서 뒤집어 읽을 수 있어요.",
+                 focus: .actionList(ruleLines, lit: nil)),
+            Beat("행동이 지우는 것", value: "\(acted.combos)콤보 남음",
+                 detail: "\(KO.subject(s.action.rawValue)) 남기는 건 딱 이 버킷들이에요: "
+                       + "\(s.actedBucketList).",
+                 focus: .buckets(bars)),
+            Beat("그래서", value: "페어 이상 \(pctText(acted.distribution.pairOrBetter * 100))%",
+                 detail: "전체 레인지는 \(pctText(s.full.pairOrBetter * 100))%였어요. "
+                       + "같은 레인지인데 행동 하나로 모양이 달라져요 — 이게 리드예요.",
+                 focus: .buckets(bars)),
+        ]
+    }
+
     // MARK: EV 손실
 
     /// Walks the price and the equity separately, then puts a **number on each option**

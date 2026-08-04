@@ -121,6 +121,33 @@ final class BoardTextureTests: XCTestCase {
 }
 
 final class RangeOnBoardTests: XCTestCase {
+    /// R4-S3 §2: the combo factory over all live combos must agree exactly with the
+    /// range factory, or a narrowed range and its parent live in different worlds.
+    func testComboFactoryAgreesWithTheRangeFactory() {
+        let range = HandRange.topByChen(percent: 22)
+        for b in ["Ah9d3c", "7h7s2d", "KsQdJc9h8d"] {
+            let board = cards(b)
+            XCTAssertEqual(rangeOnBoard(combos: range.combos(removing: board), board: board),
+                           rangeOnBoard(range, board: board), b)
+        }
+    }
+
+    /// Board-blocked combos are skipped, not trusted away — a stale list cannot
+    /// corrupt the shares.
+    func testComboFactorySkipsBoardCollisions() {
+        let board = cards("Ah9d3c")
+        let stale = HandRange.topByChen(percent: 22).combos(removing: [])   // includes Ah combos
+        let clean = HandRange.topByChen(percent: 22).combos(removing: board)
+        XCTAssertEqual(rangeOnBoard(combos: stale, board: board),
+                       rangeOnBoard(combos: clean, board: board))
+    }
+
+    func testComboFactoryOnAnEmptyListIsTheEmptyDistribution() {
+        let d = rangeOnBoard(combos: [], board: cards("Ah9d3c"))
+        XCTAssertEqual(d.liveCombos, 0)
+        XCTAssertEqual(d.hitRate, 0)
+    }
+
     func testSharesSumToOne() {
         for b in ["Ah9d3c", "7h7s2d", "QhJhTh", "KsQdJc9h8d"] {
             let d = rangeOnBoard(HandRange.topByChen(percent: 25), board: cards(b))
