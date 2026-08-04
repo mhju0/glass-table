@@ -10,6 +10,7 @@ public enum Concept: String, CaseIterable, Codable, Sendable {
     case showdown, potMath, position, combos
     case potOdds, outs, equitySense, evCall, callFold
     case rangeNotation, rfi, rangeRead
+    case hitFrequency, rangeAdvantage
     case mdf
 }
 
@@ -27,7 +28,7 @@ extension Concept {
     /// bands instead.
     public var isEstimation: Bool {
         switch self {
-        case .equitySense, .evCall, .outs: return true
+        case .equitySense, .evCall, .outs, .hitFrequency, .rangeAdvantage: return true
         case .showdown, .potMath, .position, .combos, .potOdds, .callFold,
              .rangeNotation, .rfi, .rangeRead, .mdf: return false
         }

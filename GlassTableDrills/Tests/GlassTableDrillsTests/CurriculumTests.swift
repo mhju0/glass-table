@@ -14,13 +14,25 @@ final class CurriculumTests: XCTestCase {
     /// rule had already needed one special case in R2. What actually has to hold is
     /// the shape, not the count: a unit is never a single node dressed as a chapter,
     /// and nothing runs away in the other direction either.
+    /// Structural rather than a pinned total: an exact node count is churn every slice
+    /// and `testNodeIDsAreUniqueAndLookupWorks` already catches duplication.
     func testEveryUnitIsAChapterRatherThanASingleNode() {
-        XCTAssertEqual(Curriculum.units.count, 4)
+        XCTAssertGreaterThanOrEqual(Curriculum.units.count, 4)
         for unit in Curriculum.units {
             XCTAssertTrue((2...8).contains(unit.nodes.count),
                           "\(unit.id) is \(unit.nodes.count) nodes")
         }
-        XCTAssertEqual(Curriculum.allNodes.count, 15)
+        XCTAssertEqual(Curriculum.allNodes.count,
+                       Curriculum.units.reduce(0) { $0 + $1.nodes.count },
+                       "the flattened path must be exactly the units")
+    }
+
+    /// Sections group units, and a unit must never be filed under a section that
+    /// misdescribes it — the path header used to hardcode 기초 for everything.
+    func testEveryUnitDeclaresANonEmptySection() {
+        for unit in Curriculum.units {
+            XCTAssertFalse(unit.section.isEmpty, unit.id)
+        }
     }
 
     /// Spec §4.1: every unit ends in a boss node.

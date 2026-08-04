@@ -87,6 +87,20 @@ public enum Curriculum {
                            // the chart, plus the combos it removes.
                            title: "상대 좁히기"),
         ]),
+        // R4-S1. The first postflop unit: not "what should I do", which needs the
+        // EV-loss grading of S2, but "what is even out there" — the question every
+        // postflop decision starts from.
+        CurriculumUnit(id: "u5", title: "보드 읽기", section: "보드", nodes: [
+            CurriculumNode(id: "u5-hitFrequency", kind: .drill(.hitFrequency),
+                           title: "히트 프리퀀시"),
+            CurriculumNode(id: "u5-rangeAdvantage", kind: .drill(.rangeAdvantage),
+                           title: "레인지 어드밴티지"),
+            CurriculumNode(id: "u5-boss",
+                           kind: .boss(own: nil,
+                                       mixes: [.hitFrequency, .rangeAdvantage,
+                                               .rangeRead, .rfi, .equitySense]),
+                           title: "플랍 읽기"),
+        ]),
     ]
 
     /// Flattened in path order — this ordering *is* the unlock order.

@@ -133,6 +133,14 @@ struct WalkthroughView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
             .padding(.top, 90)
+        case let .buckets(bars):
+            VStack(alignment: .leading, spacing: 18) {
+                ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
+                    BucketBarView(label: bar.label, distribution: bar.distribution)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 8)
         case let .grid(cards):
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
                       alignment: .leading, spacing: 8) {
@@ -292,6 +300,12 @@ enum Walkthrough {
             // No card rows on purpose: seeing no cards *is* the drill.
             return (BeatScript.rangeRead(
                 RangeReadSpotGenerator.spot(baseSeed: seed, index: index)), [])
+        case .hitFrequency:
+            let s = HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.hitFrequency(s), [("보드 · 플랍", s.board)])
+        case .rangeAdvantage:
+            let s = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
+            return (BeatScript.rangeAdvantage(s), [("보드 · 플랍", s.board)])
         }
     }
 }

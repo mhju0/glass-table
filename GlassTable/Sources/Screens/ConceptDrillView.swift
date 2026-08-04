@@ -57,6 +57,12 @@ struct ConceptDrillView: View {
         case .rangeRead:
             RangeReadDrill(seed: seed, index: index,
                            progressText: progressText, onAnswer: onAnswer)
+        case .hitFrequency:
+            HitFrequencyDrill(seed: seed, index: index,
+                              progressText: progressText, onAnswer: onAnswer)
+        case .rangeAdvantage:
+            RangeAdvantageDrill(seed: seed, index: index,
+                                progressText: progressText, onAnswer: onAnswer)
         }
     }
 }
@@ -1004,5 +1010,179 @@ private struct RangeReadDrill: View {
         .accessibilityLabel(tendencyWord(t))
         .accessibilityValue(on ? "선택됨" : "선택 안 됨")
         .accessibilityHint(saturated ? "이 넓이에서는 모양이 바뀌지 않아요" : "")
+    }
+}
+
+// MARK: - 히트 프리퀀시
+
+/// The first postflop drill: not "what should I do" — that needs S2's EV-loss grading —
+/// but "what is even out there", which is the question every postflop decision starts
+/// from and the one beginners skip.
+private struct HitFrequencyDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var point = 35.0
+    @State private var halfWidth = 12.0
+    @State private var reveal: EstimateReveal?
+
+    private var spot: HitFrequencySpot {
+        HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
+    }
+
+    var body: some View {
+        DrillShell(title: "히트 프리퀀시", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "보드 · 플랍")
+                CardRow(cards: spot.board, maxSize: 70)
+                Text(spot.texture.summary)
+                    .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
+                SectionLabel(text: "상대 레인지").padding(.top, 8)
+                Text("\(spot.seat.rawValue) 오픈 · 상위 \(pctText(spot.range.percent))%")
+                    .font(GT.title(17)).foregroundStyle(GT.onFelt)
+                if reveal != nil {
+                    BucketBarView(label: "\(spot.seat.rawValue) 오픈 레인지",
+                                  distribution: spot.distribution)
+                        .padding(.top, 6)
+                    RangeGridView(range: spot.range).frame(maxWidth: 230).padding(.top, 4)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                #if DEBUG
+                // GT_DEMO_REVEAL=<point> answers with that estimate, so the bucket
+                // bars — the actual payload of both board drills — are reachable by
+                // screenshot. Same reason as GT_DEMO_BEAT.
+                if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Double.init) {
+                    point = v
+                    reveal = gradeHitFrequency(
+                        estimate: Estimate(point: v, lo: max(0, v - halfWidth),
+                                           hi: min(100, v + halfWidth)),
+                        spot: spot)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
+                            correct: "\(pctText(reveal.correct))%",
+                            why: reveal.whyText + (reveal.intervalHit
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
+                    self.reveal = nil; point = 35; halfWidth = 12
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("이 레인지의 몇 %가 페어 이상을 만들었을까요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    IntervalInput(point: $point, halfWidth: $halfWidth,
+                                  range: 0...100, step: 1, unit: "%")
+                    PrimaryCTAButton(title: "확인") {
+                        reveal = gradeHitFrequency(
+                            estimate: Estimate(point: point, lo: max(0, point - halfWidth),
+                                               hi: min(100, point + halfWidth)),
+                            spot: spot)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 레인지 어드밴티지
+
+private struct RangeAdvantageDrill: View {
+    let seed: UInt64; let index: Int; let progressText: String
+    let onAnswer: (DrillOutcome) -> Void
+    @State private var point = 50.0
+    @State private var halfWidth = 10.0
+    @State private var reveal: EstimateReveal?
+    /// Sampled off the main thread the moment the spot appears, so it is already
+    /// waiting by the time the sliders have been set. Computing it *during* the tap
+    /// froze the screen for three seconds under a debug build.
+    @State private var equity: Double?
+
+    private var spot: RangeAdvantageSpot {
+        RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
+    }
+
+    private func submit(_ v: Double) {
+        guard let equity else { return }
+        reveal = gradeRangeAdvantage(
+            estimate: Estimate(point: v, lo: max(0, v - halfWidth),
+                               hi: min(100, v + halfWidth)),
+            spot: spot, openerEquityPct: equity)
+    }
+
+    var body: some View {
+        DrillShell(title: "레인지 어드밴티지", progressText: progressText) {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionLabel(text: "보드 · 플랍")
+                CardRow(cards: spot.board, maxSize: 70)
+                Text(spot.texture.summary)
+                    .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
+                SectionLabel(text: "액션").padding(.top, 8)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("\(spot.openerSeat.rawValue) 오픈 3bb")
+                    Text("\(spot.callerSeat.rawValue) 콜 · \(spot.caller.name)")
+                }
+                .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
+                .padding(.horizontal, 12).padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+                if reveal != nil {
+                    VStack(alignment: .leading, spacing: 18) {
+                        BucketBarView(label: "\(spot.openerSeat.rawValue) 오픈",
+                                      distribution: rangeOnBoard(spot.openerRange,
+                                                                 board: spot.board))
+                        BucketBarView(label: "\(spot.callerSeat.rawValue) 콜",
+                                      distribution: rangeOnBoard(spot.callerRange,
+                                                                 board: spot.board))
+                    }
+                    .padding(.top, 8)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .task(id: index) {
+                let s = seed, i = index
+                equity = await Task.detached(priority: .userInitiated) {
+                    RangeAdvantageSpotGenerator.spot(baseSeed: s, index: i).openerEquityPct
+                }.value
+                #if DEBUG
+                // GT_DEMO_REVEAL=<point> answers with that estimate once the sampling
+                // has landed, so the bucket bars are reachable by screenshot.
+                if let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"]
+                    .flatMap(Double.init) {
+                    point = v
+                    submit(v)
+                }
+                #endif
+            }
+        } sheet: {
+            if let reveal {
+                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
+                            correct: "\(pctText(reveal.correct))%",
+                            why: reveal.whyText + (reveal.intervalHit
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                    onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
+                    self.reveal = nil; point = 50; halfWidth = 10
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("쇼다운까지 가면 오프너의 승률은 몇 %일까요?")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    IntervalInput(point: $point, halfWidth: $halfWidth,
+                                  range: 0...100, step: 1, unit: "%")
+                    if equity == nil {
+                        Text("계산 중…").font(GT.semibold(13)).foregroundStyle(GT.inkMuted)
+                            .frame(maxWidth: .infinity, minHeight: 54)
+                    } else {
+                        PrimaryCTAButton(title: "확인") { submit(point) }
+                    }
+                }
+            }
+        }
     }
 }

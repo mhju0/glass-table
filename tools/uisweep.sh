@@ -90,6 +90,13 @@ SCREENS=(
   "teach-notation:GT_DEMO_NODE=u3-notation GT_DEMO_BEAT=2"
   "teach-rangeread-stats:GT_DEMO_NODE=u4-rangeRead GT_DEMO_BEAT=2"
   "teach-rangeread-grid:GT_DEMO_NODE=u4-rangeRead GT_DEMO_BEAT=4"
+  "drill-hitfreq:GT_DEMO_SEED=1 GT_DEMO_NODE=u5-hitFrequency"
+  "drill-hitfreq-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u5-hitFrequency GT_DEMO_REVEAL=40"
+  "drill-rangeadv:GT_DEMO_SEED=1 GT_DEMO_NODE=u5-rangeAdvantage"
+  "drill-rangeadv-reveal:GT_DEMO_SEED=1 GT_DEMO_NODE=u5-rangeAdvantage GT_DEMO_REVEAL=55"
+  # The stacked bucket bars are the whole lesson of both board drills.
+  "teach-hitfreq-buckets:GT_DEMO_NODE=u5-hitFrequency GT_DEMO_BEAT=3"
+  "teach-rangeadv-buckets:GT_DEMO_NODE=u5-rangeAdvantage GT_DEMO_BEAT=3"
 )
 
 for mode in "${APPEARANCES[@]}"; do

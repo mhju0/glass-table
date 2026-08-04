@@ -17,6 +17,20 @@ public enum BeatFocus: Equatable, Sendable {
     /// board — it is the only evidence there is — so a read beat must never fall back
     /// to `.none` and leave the felt empty.
     case actionList([String], lit: Int?)
+    /// One or two labelled bucket distributions, as stacked bars. A postflop range
+    /// question's answer *is* the distribution — "A-high boards favour the opener" is
+    /// only visible as one — so a single percentage would be the lesson's summary
+    /// rather than the lesson.
+    case buckets([BucketBar])
+}
+
+/// One labelled distribution in a `.buckets` beat.
+public struct BucketBar: Equatable, Sendable {
+    public let label: String
+    public let distribution: RangeOnBoard
+    public init(label: String, distribution: RangeOnBoard) {
+        self.label = label; self.distribution = distribution
+    }
 }
 
 /// One tap of a worked example (spec §5.2).
@@ -437,6 +451,85 @@ public enum BeatScript {
                               focus: .rangeGrid(truth, highlight: nil)))
         }
         return beats
+    }
+
+    // MARK: 히트 프리퀀시
+
+    /// Builds the number instead of stating it: the board, then the range, then what
+    /// that range actually made on it, then the share that is a real pair.
+    public static func hitFrequency(_ s: HitFrequencySpot) -> [Beat] {
+        let d = s.distribution
+        let t = s.texture
+        return [
+            Beat("보드", value: t.summary,
+                 detail: "먼저 보드가 어떤 종류인지 봐요. 하이카드, 무늬, 페어 여부.",
+                 focus: .table, highlight: s.board),
+            Beat("상대 레인지", value: "\(s.seat.rawValue) 오픈",
+                 detail: "\(s.seat.rawValue)가 여는 범위는 상위 "
+                       + "\(pctText(RFIChart.openPercent[s.seat] ?? 0))%예요.",
+                 focus: .rangeGrid(s.range, highlight: nil)),
+            Beat("보드가 지운 콤보", value: "\(d.liveCombos)콤보 남음",
+                 detail: "보드에 깔린 카드는 상대가 가질 수 없어요. "
+                       + "그래서 세는 대상이 먼저 줄어요.",
+                 focus: .table, highlight: s.board),
+            // The five numbers are already printed under the bar; repeating them here
+            // would put the same list in both zones. The detail carries the reading.
+            Beat("남은 콤보가 만든 것", value: "\(pctText(d.pairOrBetter * 100))%가 페어 이상",
+                 detail: "막대 왼쪽이 약한 쪽이에요. "
+                       + (d.share(.air) > 0.4
+                          ? "노페어가 가장 큰 덩어리라는 게 핵심이에요."
+                          : "이 보드는 이 레인지와 유난히 잘 맞았어요."),
+                 focus: .buckets([BucketBar(label: "\(s.seat.rawValue) 오픈 레인지",
+                                            distribution: d)])),
+            Beat("그래서", value: "\(pctText(d.pairOrBetter * 100))%",
+                 detail: "대부분의 레인지는 플랍을 대부분 빗나가요. "
+                       + "이게 벳이 통하는 이유예요.",
+                 focus: .buckets([BucketBar(label: "\(s.seat.rawValue) 오픈 레인지",
+                                            distribution: d)])),
+        ]
+    }
+
+    // MARK: 레인지 어드밴티지
+
+    /// Two distributions side by side, because the whole answer is the comparison.
+    public static func rangeAdvantage(_ s: RangeAdvantageSpot) -> [Beat] {
+        let o = rangeOnBoard(s.openerRange, board: s.board)
+        let c = rangeOnBoard(s.callerRange, board: s.board)
+        let eq = s.openerEquityPct
+        let bars = [BucketBar(label: "\(s.openerSeat.rawValue) 오픈", distribution: o),
+                    BucketBar(label: "\(s.callerSeat.rawValue) 콜 · \(s.caller.name)",
+                              distribution: c)]
+        return [
+            Beat("보드", value: s.texture.summary,
+                 detail: "\(s.openerSeat.rawValue) 오픈, \(s.callerSeat.rawValue) 콜. "
+                       + "이 플랍이 누구 편인지 봐요.",
+                 focus: .table, highlight: s.board),
+            Beat("오프너의 레인지", value: "상위 \(pctText(s.openerRange.percent))%",
+                 detail: "먼저 들어온 쪽은 좁고 센 범위예요.",
+                 focus: .rangeGrid(s.openerRange, highlight: nil)),
+            Beat("콜러의 레인지", value: "상위 \(pctText(s.callerRange.percent))%",
+                 detail: "\(s.caller.name)가 콜만 하는 구간 — 올리긴 아까운 패들이에요. "
+                       + "\(s.caller.blurb).",
+                 focus: .rangeGrid(s.callerRange, highlight: nil)),
+            // The bucket that actually separates them, not a fixed one — on many
+            // boards two-pair-plus is 2% against 0% and says nothing.
+            Beat("각자 뭘 만들었나", value: widestGapValue(opener: o, caller: c),
+                 detail: "같은 보드인데 만든 게 달라요. 이 차이가 어드밴티지예요.",
+                 focus: .buckets(bars)),
+            Beat("그래서 에퀴티", value: "오프너 \(pctText(eq))%",
+                 detail: eq > 52 ? "오프너가 앞서요 — 그래서 오프너가 벳할 수 있어요."
+                       : (eq < 48 ? "콜러가 앞서요 — 오프너가 함부로 벳하면 안 되는 보드예요."
+                                  : "거의 반반이에요."),
+                 focus: .buckets(bars)),
+        ]
+    }
+
+    static func widestGapValue(opener: RangeOnBoard, caller: RangeOnBoard) -> String {
+        let bucket = MadeHand.allCases.max {
+            abs(opener.share($0) - caller.share($0)) < abs(opener.share($1) - caller.share($1))
+        } ?? .strong
+        return "\(bucket.korean) \(pctText(opener.share(bucket) * 100))% 대 "
+             + "\(pctText(caller.share(bucket) * 100))%"
     }
 
     static func pctTextScore(_ x: Double) -> String {

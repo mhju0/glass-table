@@ -238,8 +238,8 @@ final class RangeReadDrillTests: XCTestCase {
 
 final class RangeReadCurriculumTests: XCTestCase {
     func testUnitFourTeachesRangeReadAndItsBossReachesBack() {
-        let u4 = Curriculum.units.last!
-        XCTAssertEqual(u4.id, "u4")
+        // By id, not by position — `units.last` meant u4 until R4-S1 appended u5.
+        let u4 = Curriculum.units.first { $0.id == "u4" }!
         XCTAssertEqual(Curriculum.taughtConcept(of: u4.nodes[0]), .rangeRead)
         guard case let .boss(_, mixes) = u4.nodes.last?.kind else {
             return XCTFail("u4 must end in a boss")
@@ -287,6 +287,86 @@ final class RangeReadBeatTests: XCTestCase {
             // The last beat is the shape, so it must be showing the grid.
             guard case .rangeGrid = beats.last!.focus else {
                 return XCTFail("script \(i) ends without showing the range")
+            }
+        }
+    }
+}
+
+final class BoardDrillTests: XCTestCase {
+    func testHitFrequencyGeneratorIsDeterministicAndCoherent() {
+        XCTAssertEqual(HitFrequencySpotGenerator.spot(baseSeed: 7, index: 3),
+                       HitFrequencySpotGenerator.spot(baseSeed: 7, index: 3))
+        for i in 0..<120 {
+            let s = HitFrequencySpotGenerator.spot(baseSeed: 7, index: i)
+            XCTAssertEqual(s.board.count, 3)
+            XCTAssertEqual(Set(s.board).count, 3, "a board dealt the same card twice")
+            XCTAssertNotEqual(s.seat, .bb, "the big blind never opens")
+            XCTAssertTrue((0...100).contains(s.pairOrBetterPct))
+            XCTAssertGreaterThan(s.distribution.liveCombos, 0)
+        }
+    }
+
+    /// The graded number must be pair-or-better, never the looser hit rate that counts
+    /// draws — those are different questions and the spec picks one (§1).
+    func testHitFrequencyGradesPairOrBetterNotHitRate() {
+        let s = HitFrequencySpot(seat: .utg, board: Card.parse("Ah9d3c")!)
+        XCTAssertEqual(s.pairOrBetterPct, s.distribution.pairOrBetter * 100, accuracy: 1e-9)
+        XCTAssertLessThan(s.distribution.pairOrBetter, s.distribution.hitRate,
+                          "draws must not be counted as made hands")
+    }
+
+    func testRangeAdvantageCallerAlwaysActsAfterTheOpener() {
+        for i in 0..<120 {
+            let s = RangeAdvantageSpotGenerator.spot(baseSeed: 11, index: i)
+            XCTAssertLessThan(s.callerSeat.playersBehind(preflop: true),
+                              s.openerSeat.playersBehind(preflop: true),
+                              "the caller must act after the opener")
+            XCTAssertFalse(s.openerRange.isEmpty)
+            XCTAssertFalse(s.callerRange.isEmpty)
+        }
+    }
+
+    /// A tight opener on an ace-high board is the textbook range-advantage case; if the
+    /// number did not show it, it would be decorative.
+    func testATightOpenerIsAheadOnAnAceHighBoard() {
+        let s = RangeAdvantageSpot(openerSeat: .utg, callerSeat: .btn, caller: .station,
+                                   board: Card.parse("AhKd7c")!)
+        XCTAssertGreaterThan(s.openerEquityPct, 55, "UTG should own an A-K-high flop")
+    }
+
+    /// Four spots, not forty: each `gradeRangeAdvantage` runs a 20,000-sample Monte
+    /// Carlo, which is ~6s under a debug build. Breadth here buys nothing the engine's
+    /// own property tests do not already cover.
+    func testBothGradersProduceAUsableRevealForEverySpot() {
+        for i in 0..<4 {
+            let h = HitFrequencySpotGenerator.spot(baseSeed: 3, index: i)
+            let hr = gradeHitFrequency(estimate: Estimate(point: 40, lo: 30, hi: 50), spot: h)
+            XCTAssertFalse(hr.whyText.contains("nil"))
+            XCTAssertTrue(hr.whyText.contains("%"))
+
+            let a = RangeAdvantageSpotGenerator.spot(baseSeed: 3, index: i)
+            let ar = gradeRangeAdvantage(estimate: Estimate(point: 50, lo: 40, hi: 60), spot: a)
+            XCTAssertFalse(ar.whyText.contains("nil"))
+            XCTAssertTrue((0...100).contains(ar.correct))
+        }
+    }
+
+    func testBoardBeatScriptsAreCompleteOnArbitrarySpots() {
+        for i in 0..<4 {
+            for beats in [BeatScript.hitFrequency(
+                              HitFrequencySpotGenerator.spot(baseSeed: 5, index: i)),
+                          BeatScript.rangeAdvantage(
+                              RangeAdvantageSpotGenerator.spot(baseSeed: 5, index: i))] {
+                XCTAssertGreaterThanOrEqual(beats.count, 5)
+                for b in beats {
+                    XCTAssertFalse(b.caption.isEmpty)
+                    XCTAssertFalse(b.value?.isEmpty ?? true)
+                    XCTAssertFalse(b.detail?.contains("nil") ?? false)
+                }
+                // The last beat has to be showing the distribution it is talking about.
+                guard case .buckets = beats.last!.focus else {
+                    return XCTFail("script \(i) ends without showing the breakdown")
+                }
             }
         }
     }
