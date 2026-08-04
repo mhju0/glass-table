@@ -1,5 +1,12 @@
 # Glass Table — Milestone 1: Math Drills
 
+> **Status: shipped 2026-07-23, then superseded.** M1's five drills and its
+> submission prep landed as scoped (store submission itself is paused for a
+> dogfood phase). The revamp that followed (R1–R5b, specs under `docs/specs/`)
+> rebuilt the app around a guided curriculum and delivered Range Read and the
+> Table; the M1 drills live on as path nodes and 자유 연습 entries. This
+> document is kept as the historical record of the milestone's reasoning.
+
 The first shippable thing. A complete, free, Korean-first **Math Drills** app that already contains the correctness-proven equity core. It proves the entire spine — Swift/SwiftUI app, verified equity engine, the decide→grade loop, App Store + GRAC submission — at minimum risk, *before* any betting-table UI or bots exist.
 
 ## Why this is Milestone 1

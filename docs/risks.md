@@ -6,12 +6,12 @@ Each risk with a concrete mitigation. Severity is relative to a solo, full-time,
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| **Post-flop bot is a caricature** the audience grinds in 50 hands, making "what does his call mean?" provably-correct-but-useless. | **High** (the credibility floor) | Sequence Table *last*. Set the bar at "consistent with its declared archetype + never absurd," not "unexploitable" — achievable for a home-game-improver audience. Single-street-lookahead heuristic with legible features; defer multi-street planning. The bot's self-explanation is derived from its actual decision path, so it can't lie about itself. |
-| **Engine math is wrong** → the whole product is worthless. | **High** | Golden fixtures (published matchup equities) + cross-check vs an open reference calculator on a random-spot batch + property tests (sum-to-100%, monotonicity, enum≈MC) + determinism test. Blocks Milestone 1. See `decisions.md` §10. |
+| **Post-flop bot is a caricature** the audience grinds in 50 hands, making "what does his call mean?" provably-correct-but-useless. | **High** (the credibility floor) | *Mitigation shipped as designed (R4-S3/S4):* the bot is a printable per-archetype bucket table, deterministic so its actions invert into ranges, grades always labeled vs the archetype. The residual risk is now empirical — whether real play finds the caricature *useful* — and is dogfood territory. Slowplay rows and deeper streets are pinned by tests as explicit future work. |
+| **Engine math is wrong** → the whole product is worthless. | **High** | *Standing gate, in CI:* golden fixtures + dual reference-oracle cross-check + property tests + determinism, run in release config (`engine-gate.yml`, weekly + on engine paths). 92 tests at last gate. |
 | **Grades jitter** between runs on the same spot (Monte Carlo variance). | Medium | Enumerate wherever feasible; where MC is needed, fixed seed + CI<0.5%; **store the benchmark with the puzzle** so a spot always grades identically. |
 | **App bundle bloated** by a giant evaluator table (123 MB two-plus-two). | Medium | Use a perfect-hash evaluator (~few MB, or generated at first launch). Reject the 123 MB table. |
 | **UI blocks** during 8-way equity compute. | Low | Compute on a background task, *started when the spot is dealt* (during the user's think-time); reveal is already done when it animates. Budget <100ms, ceiling 200ms — easily met on A-series. |
-| **Learning Swift from zero** stalls velocity. | Medium | Full-time makes it affordable; Milestone 1 (Math Drills) is deliberately the smallest surface to learn the platform + submission pipeline on before the hard UI. |
+| ~~**Learning Swift from zero** stalls velocity.~~ | — | Retired: M1 and the full revamp shipped; the platform is learned. |
 
 ## Legal & store
 
@@ -27,7 +27,7 @@ Each risk with a concrete mitigation. Severity is relative to a solo, full-time,
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| **Archetype ranges lack credibility** (no in-house pro validator). | Medium | Baseline from reputable, citable public charts — **GTO Wizard free 8-max cash** (primary) + **Upswing 9-handed RFI** (full-ring cross-ref) — with archetypes as labeled deviations (VPIP/PFR in `decisions.md` §C). No public 8-*handed* chart exists, so the 8-handed range is interpolated and **the app says so** — that disclosure *is* the transparency feature. |
+| **Archetype ranges lack credibility** (no in-house pro validator). | Medium | Derive our own values from stated rules and benchmark against **Upswing's free 9-handed RFI + PokerCoaching's free charts** — never GTO Wizard, which is the named competitor (`decisions.md` §E, amended 2026-08-03). Archetypes are labeled VPIP/PFR deviations; the 8-handed interpolation and the defend-chart derivation are both disclosed in-app — that disclosure *is* the transparency feature. |
 | **Range-content IP** — reproducing competitors' exact range files. | Medium | Cite the public charts as *methodology/baseline validated against*; **generate our own range values**; don't ship competitors' PDFs verbatim. Disclose the interpolation. |
 | **Grading the wrong thing** — teaching users to beat *this bot* instead of poker. | Medium | Two-tier grade: math grade (objective) for fundamentals; exploit grade always labeled "vs a LAG," never "universally correct." Never grade Table decisions as GTO truth. |
 | **Localization errors / awkward jargon** alienate the Korean audience. | Medium | Korean-first with a developer-owned terminology glossary; keep only the English jargon Korean players actually use. |
@@ -37,7 +37,7 @@ Each risk with a concrete mitigation. Severity is relative to a solo, full-time,
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| **"All three modes" scope trap** for a solo dev. | **High** | Enforced build order Drills → Read → Table; each independently shippable. "All three" is the destination, not the first release. |
+| ~~**"All three modes" scope trap** for a solo dev.~~ | — | Retired: all three modes shipped slice-by-slice (M1 2026-07-23; R1–R5b 2026-08-03/04), each slice independently green. |
 | **Feature creep** into deferred rabbit holes (multi-street bot, backend, monetization, continuous sizing, rake). | Medium | All explicitly non-goals in `product-brief.md`; each has a named back-burner trigger. Revisit only on evidence, not vibes. |
 | **Never shipping** (polishing forever pre-launch). | Medium | Milestone 1 is a real, submittable, complete app by itself. Ship it to the store before building Range Read. |
 | **Free-forever unsustainable.** | Very low | On-device, no infra cost, no ads, no accounts → burn is ~zero. Optional tip-jar is a deferred, not-needed lever. |
