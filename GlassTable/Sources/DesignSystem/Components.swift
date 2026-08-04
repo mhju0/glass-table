@@ -230,23 +230,21 @@ struct GlossaryChip: View {
 
 // MARK: - surfaces and controls
 
-/// The glass recipe, in one place: a blur of whatever is behind, a green tint so it
-/// belongs to the table, a warm ivory veil for the temperature, and a lit top edge
-/// that sells the elevation. Forced to the dark scheme because the felt under it is
-/// dark in *both* app schemes — letting the system material flip would put light
-/// glass over dark felt in light mode.
+/// The glass recipe, in one place: a green fill and an edge that reads as the lip of a
+/// raised surface. No blur — `FeltBackground` is a flat fill, so the material was
+/// paying for an offscreen pass to arrive at a solid tint (see `GT.glass`).
+///
+/// The edge is what separates the surface from the felt, so it is `borderStrong` and
+/// not the quiet `border` it used to be — measured 1.19:1 for a card against the felt
+/// in the old build, which is no boundary at all.
 private struct GlassBackground<S: InsettableShape>: View {
     let shape: S
     var litEdge: Bool = true
 
     var body: some View {
-        shape.fill(.ultraThinMaterial)
-            .environment(\.colorScheme, .dark)
-            .overlay { shape.fill(GT.glassTint) }
-            .overlay { shape.fill(GT.glassVeil) }
+        shape.fill(GT.glass)
             .overlay {
-                if litEdge { shape.strokeBorder(GT.glassEdge, lineWidth: 1) }
-                else { shape.strokeBorder(GT.border, lineWidth: 1) }
+                shape.strokeBorder(litEdge ? GT.glassEdge : GT.borderStrong, lineWidth: 1)
             }
     }
 }

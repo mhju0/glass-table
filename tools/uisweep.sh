@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copyright (c) 2026 Michael Ju (github.com/mhju0)
 #
-# Capture every significant screen, in both appearances, into one folder.
+# Capture every significant screen into one folder.
 #
 # The point is to make *looking at the app* cheap enough to do after every UI
 # change. Synthetic taps never reach Simulator content, so each screen is reached
@@ -9,7 +9,6 @@
 #
 #   tools/uisweep.sh              # build, install, sweep to a timestamped folder
 #   tools/uisweep.sh --no-build   # reuse the current build
-#   tools/uisweep.sh --dark-only
 #
 # Every capture is a fresh launch, so screens never leak state into each other.
 set -euo pipefail
@@ -18,13 +17,10 @@ BUNDLE=com.michaelju.glasstable
 SCHEME=GlassTable
 DEVICE_NAME="${GT_SIM:-iPhone 17}"
 BUILD=1
-APPEARANCES=(light dark)
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --no-build) BUILD=0 ;;
-    --dark-only) APPEARANCES=(dark) ;;
-    --light-only) APPEARANCES=(light) ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
   shift
@@ -100,22 +96,20 @@ SCREENS=(
   "teach-rangeadv-buckets:GT_DEMO_NODE=u5-rangeAdvantage GT_DEMO_BEAT=3"
 )
 
-for mode in "${APPEARANCES[@]}"; do
-  xcrun simctl ui "$DEV" appearance "$mode" >/dev/null 2>&1 || true
-  mkdir -p "$OUT/$mode"
-  for entry in "${SCREENS[@]}"; do
-    name="${entry%%:*}"
-    envs="${entry#*:}"
-    args=()
-    for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
-    xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
-    env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
-    sleep 2.2
-    xcrun simctl io "$DEV" screenshot "$OUT/$mode/$name.png" >/dev/null 2>&1 || true
-    printf '.'
-  done
-  echo " $mode"
+# One pass, not two. The app pins UIUserInterfaceStyle to Dark, so the light run was
+# capturing the same pixels — the two schemes measured 1.04:1 apart on glass.
+for entry in "${SCREENS[@]}"; do
+  name="${entry%%:*}"
+  envs="${entry#*:}"
+  args=()
+  for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
+  xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
+  env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
+  sleep 2.2
+  xcrun simctl io "$DEV" screenshot "$OUT/$name.png" >/dev/null 2>&1 || true
+  printf '.'
 done
+echo
 
 xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
 echo "$OUT"

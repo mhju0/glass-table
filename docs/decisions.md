@@ -167,3 +167,19 @@ GTO Wizard is additionally demoted as a *baseline* because it is the product `pr
 ### F. Korean terminology — **actions Hangul, jargon/acronyms English, some concept terms bilingual**
 
 Confirmed against real Korean sources (pokergosu, CoinPoker KR glossary, namu.wiki). Actions/streets always Hangul (콜/레이즈/폴드/체크/벳/올인/프리플랍/플랍/턴/리버); acronyms and positions stay Latin (GTO, EV, MDF, SB/BB/UTG/HJ/CO/BTN); **3벳/4벳** = digit + Hangul; **TAG/LAG stay Latin** (Hangul 태그/래그 collide with everyday "tag"/"lag"); learning-critical concept terms shown **bilingually** (에퀴티/Equity, 팟 오즈/Pot odds, 블로커/Blocker) since users meet them in English solver tools. Use 플랍 (not 플롭) for community feel. Full glossary is built during UI-copy work.
+
+### G. Surface material — **glass is a colour, not a material; one appearance, not two**
+
+Amended 2026-08-04, after measuring real pixels out of a `tools/uisweep.sh` capture rather than reading the tokens.
+
+**The material was not separating anything.** WCAG 2.1 SC 1.4.11 wants 3:1 for a UI boundary. Measured on the shipped build: a glass card against the felt was **1.71:1** on 오늘 and **1.19:1** on 설정; the answer sheet against the felt **1.17:1**; a choice button against the sheet **1.36:1**. Taking the most generous reading — the 1px border as the boundary — it topped out at **2.49:1** against the sheet and **1.86:1** against its own fill. Three choice buttons read as three rows of text because that is what the numbers say they were.
+
+**There was nothing to blur.** `FeltBackground` is a flat fill plus a spade at 3.5% opacity, so `.ultraThinMaterial` was paying an offscreen pass per surface to arrive at a solid tint — and it had to be forced to `.dark` to stop the system flipping it, which is where the "ink never flips" rule came from. Glass is now the opaque value the stack already resolved to (`#3B4941`, measured off a screenshot as `#38473E`).
+
+**The boundary moved to the edge.** `borderStrong` is opaque `#8C938B` — 3.0:1 against the glass, 5.3:1 against the felt or a recessed inset. It is opaque because `strokeBorder` paints over the shape's own fill, so a translucent edge resolved to `#8C938B` on a card and `#777F77` on a choice button, and only the first cleared 3:1.
+
+**Insets go down, not up.** White ink cannot survive two 3:1 steps up from the felt: the second one puts the fill at `#A8AEA6`, where `ink` measures 1.9:1. So `GT.surface` is a well cut toward the table (`#16261E`), not a smudge of ivory laid on top. Direction was forced by the arithmetic, not chosen.
+
+**Brightening the glass instead was tried and rejected.** Taking it to `#566D60` clears 3:1 against the felt, but drops `inkMuted` to 2.2:1 and the three band inks to 2.6–3.3:1 — one boundary failure traded for six ink failures.
+
+**One appearance.** The two schemes measured **1.50:1 apart on the felt and 1.04:1 on every glass surface** — the same pixel. `UIUserInterfaceStyle: Dark` is set in `project.yml`; `dyn()` is gone, and `tools/uisweep.sh` makes one pass instead of two. Dark mode was never the same room at night; it was the same room.

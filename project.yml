@@ -29,8 +29,11 @@ targets:
           - Pretendard-Regular.otf
           - Pretendard-SemiBold.otf
           - Pretendard-Bold.otf
-        # Both schemes are hand-tuned in Theme.swift (GT/GTBand resolve per style), so
-        # the app follows the system setting rather than pinning to light.
+        # One appearance. The two schemes measured 1.50:1 apart on the felt and 1.04:1
+        # on every glass surface — the same pixel — so the second one was maintenance
+        # without a product. Pinning here rather than with .preferredColorScheme also
+        # keeps system UI (sheets, keyboards, alerts) in the same room.
+        UIUserInterfaceStyle: Dark
         # Drill layout (green zone + bottom sheet) is portrait-designed; lock it.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false

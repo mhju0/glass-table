@@ -1,33 +1,32 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
-import UIKit
-
-/// Resolves per interface style. Used for the *few* tokens that genuinely differ.
-private func dyn(_ light: UInt32, _ dark: UInt32) -> Color {
-    Color(UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(Color(hex: dark)) : UIColor(Color(hex: light)) })
-}
 
 /// Three materials, and only three.
 ///
 /// - **Felt** — the table. Dark, matte, always.
-/// - **Glass** — every elevated surface: sheets, cards, panels. A blur of the felt
-///   beneath it, tinted green and veiled with warm ivory, lit along its top edge.
-/// - **Paper** — playing-card faces, and nothing else. A card is paper in any light.
+/// - **Glass** — every elevated surface: sheets, cards, panels. Green, lit along its
+///   top edge, floating on a shadow.
+/// - **Paper** — playing-card faces, and nothing else.
 ///
-/// **The rule: ink never flips, because the surface under it never flips.** Every
-/// colour bug in this app came from breaking it — near-white numerals printed on a
-/// cream card, a card-container fill used as a button so it went dark-on-dark. Each
-/// was a scheme-aware ink sitting on a surface that stayed put.
+/// **The rule: ink never flips, because the surface under it never flips.**
 ///
-/// Only the felt's depth and the card stock's brightness follow the system scheme.
-/// Dark mode is the same room at night, not an inverted one.
+/// The app is pinned to the dark appearance (`UIUserInterfaceStyle` in project.yml),
+/// so there is no second set of values to keep in step. It used to ship two, and they
+/// measured 1.50:1 apart on the felt and **1.04:1 on every glass surface** — the same
+/// pixel. Two schemes were being maintained and one was being shipped.
+///
+/// **Glass is a colour, not a material.** It was `.ultraThinMaterial` under a tint and
+/// an ivory veil. But `FeltBackground` is a flat fill plus a spade at 3.5% opacity, so
+/// the blur had nothing to blur: it cost an offscreen pass per surface to arrive at a
+/// solid tint, and it forced `.dark` onto the material to stop the system flipping it.
+/// The opaque value below is where that stack already landed (#38473E measured off a
+/// real screenshot), so the app looks the same and the boundary is now controllable.
 enum GT {
     // MARK: felt — the table
 
-    static let felt         = dyn(0x1B4234, 0x0F211A)
-    static let feltDeep     = dyn(0x14382B, 0x0A1811)
-    static let hairlineFelt = dyn(0x2A5546, 0x244134)
+    static let felt         = Color(hex: 0x0F211A)
+    static let feltDeep     = Color(hex: 0x0A1811)
+    static let hairlineFelt = Color(hex: 0x244134)
 
     /// Ink on felt. Fixed.
     static let onFelt          = Color(hex: 0xF2EFE7)
@@ -36,36 +35,50 @@ enum GT {
 
     // MARK: glass — every elevated surface
 
-    /// Warm ivory veil laid **over** a blur rather than a solid fill. That is what
-    /// keeps the surface dark enough for white text while still reading as ivory:
-    /// a solid ivory would lighten it past the point where white survives, and the
-    /// only fix there is dark text, which is the flat-paper look this replaces.
+    /// Every elevated surface. Deliberately kept dark: brightening it to clear 3:1
+    /// against the felt takes it to #566D60, where `inkMuted` falls to 2.2:1 and the
+    /// three band inks to 2.6–3.3:1. That trades one boundary failure for six ink
+    /// failures, so the boundary is carried by `borderStrong` instead.
     ///
-    /// Measured 8.4:1 for `ink` on the resulting surface. The ceiling is ~40% veil,
-    /// past which white text drops under WCAG AA.
-    static let glassVeil = LinearGradient(
-        colors: [Color(hex: 0xF4F1E9).opacity(0.20), Color(hex: 0xF4F1E9).opacity(0.09)],
-        startPoint: .top, endPoint: .bottom)
-    /// Green tint under the veil, so the glass belongs to the table it floats over.
-    static let glassTint = Color(hex: 0x1A3026).opacity(0.68)
+    /// Measured on this value: ink 8.6:1, inkSecondary 5.7:1, green 5.2:1,
+    /// 정확 6.3:1, 근접 5.6:1, 빗나감 4.7:1 — all clear WCAG AA.
+    static let glass = Color(hex: 0x3B4941)
     /// The lit edge that sells elevation — light catching the lip of a raised surface.
     static let glassEdge = Color(hex: 0x6FD3A0).opacity(0.40)
 
-    /// Playing-card faces stay **paper**. A card is paper in any light; it is the one
-    /// surface in the app that is not glass, and that is the point of the metaphor.
-    static let cardFace = dyn(0xF7F5EF, 0xEFEBE0)
+    /// Playing-card faces stay **paper**. It is the one surface in the app that is not
+    /// glass, and that is the point of the metaphor — measured 7.7:1 against the felt,
+    /// the highest contrast anywhere in the app and the fastest thing to read.
+    static let cardFace = Color(hex: 0xEFEBE0)
 
-    /// Inset block inside glass — the "why" panel, stepper keys, unfilled pips.
-    static let surface  = Color(hex: 0xF7F4EC).opacity(0.10)
+    /// Inset block inside glass — the "why" panel, stepper keys, unfilled pips, a
+    /// choice that is not selected.
+    ///
+    /// Recessed: a well cut **down** toward the table, not a smudge of ivory laid on
+    /// top. Direction is forced, not chosen. White ink cannot survive two 3:1 steps up
+    /// from the felt — the second one puts the fill at #A8AEA6, where `ink` is 1.9:1 —
+    /// so an inset that must be distinguishable has nowhere to go but down.
+    static let surface  = Color(hex: 0x16261E)
 
     /// Ink on glass. Light, because the surface under it is dark.
     static let ink          = Color(hex: 0xF7F4EC)
     static let inkSecondary = Color(hex: 0xC2CBC3)
     static let inkMuted     = Color(hex: 0x98A79E)
 
-    /// Edges. Quiet — separation comes from the material and the elevation first.
+    /// Edges. **The edge is the boundary now**, not the material — a surface that is
+    /// only 1.8:1 off its background is not a boundary no matter how it was made.
+    ///
+    /// `borderStrong` is **opaque**, unlike every edge before it. `strokeBorder` insets
+    /// and paints over the shape's own fill, so a translucent edge resolves against
+    /// whatever it happens to be drawn on: at 43% ivory it came out #8C938B on a card
+    /// and #777F77 on a recessed choice button, and only the first cleared 3:1 against
+    /// the surface behind it. A fixed value is the same edge everywhere.
+    ///
+    /// Measured 3.0:1 against the glass and 5.3:1 against the felt or a recessed
+    /// inset — clears WCAG 1.4.11 on both sides. The old 26% ivory managed 2.49:1 and
+    /// 1.86:1, which is why three choice buttons read as three rows of text.
     static let border       = Color(hex: 0xF7F4EC).opacity(0.16)
-    static let borderStrong = Color(hex: 0xF7F4EC).opacity(0.26)
+    static let borderStrong = Color(hex: 0x8C938B)
 
     // MARK: actions
 
