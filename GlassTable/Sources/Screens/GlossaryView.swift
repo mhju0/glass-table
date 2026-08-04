@@ -35,6 +35,16 @@ struct GlossaryView: View {
              definition: "한 손이 아니라, 이 상황에서 가질 수 있는 모든 핸드의 집합으로 생각합니다."),
         Term(korean: "정확 · 근접 · 빗나감", english: "Spot-on · Close · Off",
              definition: "추정 오차 등급. 정답 맞추기가 아니라 감각을 보정(캘리브레이션)하는 훈련입니다."),
+        // The revamp's vocabulary — VPIP/PFR sit on the 테이블 picker, 3벳 and bb on
+        // every priced screen, so the glossary owes each a sentence.
+        Term(korean: "VPIP", english: "Voluntarily put in pot",
+             definition: "자발적으로 팟에 돈을 넣은 핸드의 비율. 상대가 얼마나 넓게 들어오는지를 나타냅니다."),
+        Term(korean: "PFR", english: "Preflop raise",
+             definition: "프리플랍에서 레이즈한 핸드의 비율. VPIP와의 차이가 크면 콜만 많이 하는 수동적인 상대입니다."),
+        Term(korean: "3벳", english: "3-bet",
+             definition: "오픈 레이즈에 다시 레이즈하는 것. 블라인드가 첫 벳, 오픈이 두 번째라서 3벳입니다."),
+        Term(korean: "bb", english: "Big blind",
+             definition: "빅 블라인드를 1로 두는 금액 단위. 스택과 팟 크기를 블라인드 레벨과 무관하게 비교할 수 있습니다."),
     ]
 
     private func row(_ term: Term) -> some View {

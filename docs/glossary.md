@@ -35,3 +35,8 @@ usage (pokergosu, CoinPoker KR glossary, namu.wiki).
 | 룰 오브 2/4 | rule of 2/4 | concept | Hangul transliteration |
 | 스트릭 | streak | UI | shown as 🔥 + number, no word |
 | 정확 / 근접 / 빗나감 | spot-on / close / off | grade band | fixed triple |
+| VPIP / PFR | voluntarily put in pot / preflop raise | acronym | Latin; archetype stats on the 테이블 picker |
+| 3벳 | 3-bet | action | digit + Hangul per decisions.md §F |
+| bb | big blind | unit | Latin lowercase, the app's money unit |
+| 디펜드 차트 | defend chart | concept | vs an open: 3벳/콜/폴드 bands |
+| 최선 / 부정확 / 실수 | optimal / inaccuracy / mistake | grade band | EV-loss severity (decisions.md §D), distinct from 정확/근접/빗나감 |

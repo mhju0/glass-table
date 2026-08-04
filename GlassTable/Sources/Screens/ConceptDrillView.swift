@@ -624,6 +624,18 @@ private struct PercentDrill: View {
                 Text("팟 \(spot.pot)bb").font(GT.title(22)).foregroundStyle(GT.onFelt)
                 Text("상대 벳 \(spot.bet)bb").font(GT.title(18))
                     .foregroundStyle(GT.onFeltSecondary)
+                // The price as a picture: the answer is a share of this bar, so the
+                // proportion can be *read* before it is computed — which is the drill.
+                // MDF's bar has no 콜 segment; its denominator is only the money
+                // already out there.
+                PriceBarView.priced(pot: spot.pot, bet: spot.bet, withCall: !isMDF)
+                    .padding(.top, 12)
+                // Explains the dash, not which share is the answer — that stays the
+                // drill's job. MDF's bar needs no caption at all.
+                if !isMDF {
+                    Text("콜 \(spot.bet)bb는 아직 내지 않은 돈이라 점선이에요")
+                        .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
@@ -719,13 +731,29 @@ private struct RangeNotationDrill: View {
         DrillShell(title: "레인지 표기법", progressText: progressText) {
             VStack(alignment: .leading, spacing: 14) {
                 SectionLabel(text: "레인지")
-                Text(spot.notation)
-                    .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
-                    .minimumScaleFactor(0.5).lineLimit(2)
                 if reveal != nil {
+                    Text(spot.notation)
+                        .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
+                        .minimumScaleFactor(0.5).lineLimit(2)
                     SectionLabel(text: "표에서 보면").padding(.top, 6)
                     RangeGridView(range: spot.range)
                         .frame(maxWidth: 320)
+                } else {
+                    // Pre-answer the notation IS the whole screen, so it is staged
+                    // like one — the hero treatment `.none` beats get — instead of two
+                    // small lines adrift on an empty felt. The grid stays post-reveal
+                    // on purpose: shown earlier it turns combo arithmetic into cell
+                    // counting.
+                    Spacer(minLength: 60)
+                    Text(spot.notation)
+                        .font(GT.title(44).monospaced()).foregroundStyle(GT.onFelt)
+                        .minimumScaleFactor(0.4).lineLimit(3)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .multilineTextAlignment(.center)
+                    Text("페어 6 · 수티드 4 · 오프수트 12")
+                        .font(GT.semibold(12)).foregroundStyle(GT.onFeltMuted)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, 4)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
