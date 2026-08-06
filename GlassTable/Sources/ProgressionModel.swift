@@ -143,6 +143,10 @@ final class ProgressionModel {
         save()
     }
 
+    /// Settings' 진행 초기화 — the same move-aside-and-fresh as the recovery screen's
+    /// "새로 시작하기", reused so there is exactly one way progress is ever replaced.
+    func resetProgress() { discardUnreadableStore() }
+
     private func save() { try? store.save(state) }
 
     #if DEBUG
@@ -170,7 +174,9 @@ final class ProgressionModel {
         study(.potMath, correct: 14, total: 16, tier: .proficient, dueInDays: 1)
         study(.position, correct: 11, total: 15, tier: .familiar, dueInDays: -1)
         study(.combos, correct: 9, total: 14, tier: .familiar, dueInDays: -2)
-        study(.potOdds, correct: 4, total: 12, tier: .attempted, dueInDays: -3, misses: 3)
+        // 8 misses, not 3: past shouldStopDrilling, so the sweep photographs 오늘's
+        // 막힌 개념 panel too — at 3 the "stuck" state only ever reached 기록's row.
+        study(.potOdds, correct: 4, total: 12, tier: .attempted, dueInDays: -3, misses: 8)
         study(.equitySense, correct: 6, total: 9, tier: .familiar, dueInDays: 2)
 
         for id in ["u1-showdown", "u1-potMath", "u1-position", "u1-combos", "u1-boss",

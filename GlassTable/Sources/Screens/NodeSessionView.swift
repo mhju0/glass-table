@@ -166,9 +166,16 @@ struct NodeSessionView: View {
 
 /// Unlimited practice on any single concept, no node and no grading pressure
 /// (spec §7.1: no caps, ever).
+///
+/// Doubles as 오늘's 복습 flow: same player, the picker just narrowed to the due
+/// concepts. Answers record through the same path either way, which is what clears
+/// an item off the review queue.
 struct FreePlayView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    var title = "자유 연습"
+    var blurb = "횟수 제한은 없어요. 아무거나 골라서 원하는 만큼 푸세요."
+    var concepts = Concept.allCases
     @State private var concept: Concept?
     @State private var index = 0
 
@@ -176,7 +183,7 @@ struct FreePlayView: View {
         Group {
             if let concept {
                 ConceptDrillView(concept: concept, seed: 0x5EED, index: index,
-                                 progressText: "자유 연습") { result in
+                                 progressText: title) { result in
                     model.record(concept: concept, band: result.band,
                                  interval: result.interval, evLoss: result.evLoss)
                     index += 1
@@ -197,12 +204,12 @@ struct FreePlayView: View {
     private var picker: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                Text("자유 연습").font(GT.title(22)).foregroundStyle(GT.onFelt)
+                Text(title).font(GT.title(22)).foregroundStyle(GT.onFelt)
                     .padding(.bottom, 4)
-                Text("횟수 제한은 없어요. 아무거나 골라서 원하는 만큼 푸세요.")
+                Text(blurb)
                     .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
                     .padding(.bottom, 8)
-                ForEach(Concept.allCases, id: \.self) { c in
+                ForEach(concepts, id: \.self) { c in
                     Button { index = 0; concept = c } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {

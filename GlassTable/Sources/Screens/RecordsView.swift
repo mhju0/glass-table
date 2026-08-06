@@ -9,6 +9,7 @@ import GlassTableDrills
 /// for learning rather than evidence of it.
 struct RecordsView: View {
     @Environment(ProgressionModel.self) private var model
+    @State private var replay: Concept?
 
     /// Only concepts the user has actually met. An untouched roster reads as a
     /// to-do list, which is the path's job, not this screen's.
@@ -30,6 +31,15 @@ struct RecordsView: View {
             .padding(.bottom, 96)   // clears the floating tab bar
         }
         .background(FeltBackground())
+        // Same replay the 오늘 stuck panel offers, so the subtitle's promise holds
+        // wherever it appears.
+        .sheet(item: $replay) { concept in
+            let w = Walkthrough.make(concept: concept, seed: 0x5EED, index: 0)
+            NavigationStack {
+                WalkthroughView(title: conceptTitle(concept), beats: w.beats, rows: w.rows,
+                                onFinish: { replay = nil }, onSkip: { replay = nil })
+            }
+        }
     }
 
     private var headline: some View {
@@ -150,10 +160,11 @@ struct RecordsView: View {
         }
     }
 
+    @ViewBuilder
     private func row(_ concept: Concept) -> some View {
         let r = model.record(for: concept)
         let stuck = model.shouldOfferWalkthrough(concept)
-        return HStack(spacing: 10) {
+        let line = HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(conceptTitle(concept)).font(GT.title(13)).foregroundStyle(GT.ink)
                 Text(subtitle(r, stuck: stuck))
@@ -162,11 +173,25 @@ struct RecordsView: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
+            // The subtitle advertises 천천히 다시 보기, so a stuck row must be a door,
+            // not a caption — the glyph marks the one row here that acts on a tap.
+            if stuck {
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 14)).foregroundStyle(GT.suitRed)
+            }
             pips(r.tier)
         }
         .padding(.vertical, 11)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(conceptTitle(concept)). \(tierWord(r.tier)). \(subtitle(r, stuck: stuck))")
+
+        if stuck {
+            Button { replay = concept } label: { line.contentShape(Rectangle()) }
+                .buttonStyle(GTPress())
+                .accessibilityHint("천천히 다시 보기 열기")
+        } else {
+            line
+        }
     }
 
     private func subtitle(_ r: ConceptRecord, stuck: Bool) -> String {
