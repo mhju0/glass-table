@@ -76,7 +76,8 @@ struct RootView: View {
             NavigationStack {
                 FreePlayView(title: "복습",
                              blurb: "지금 복습 시점이 된 개념이에요. 몇 문제든 풀면 다음 복습이 뒤로 밀려요.",
-                             concepts: model.dueConcepts())
+                             concepts: model.dueConcepts(),
+                             emptyText: "오늘 복습을 다 끝냈어요. 다음 복습은 내일 이후에 돌아와요.")
             }
             .environment(model)
         }

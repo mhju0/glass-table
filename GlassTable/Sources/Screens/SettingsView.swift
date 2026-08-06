@@ -8,6 +8,10 @@ struct SettingsView: View {
     @State private var showGlossary = false
     @State private var backup: BackupDocument?
     @State private var exportingBackup = false
+    @State private var importingBackup = false
+    @State private var pendingImport: Data?
+    @State private var confirmingImport = false
+    @State private var importFailed = false
     @State private var confirmingReset = false
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
@@ -50,6 +54,43 @@ struct SettingsView: View {
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
+                    // Without this row a backup was write-only: the recovery importer
+                    // only appears once the store is *corrupt*, so a healthy reset or
+                    // a new phone had no way back in — review finding on e059ec6.
+                    Button { importingBackup = true } label: {
+                        row("square.and.arrow.down", "백업 불러오기",
+                            "백업 JSON으로 기록을 되돌려요", chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    .fileImporter(isPresented: $importingBackup,
+                                  allowedContentTypes: [.json]) { result in
+                        guard case let .success(url) = result else { return }
+                        let scoped = url.startAccessingSecurityScopedResource()
+                        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                        pendingImport = try? Data(contentsOf: url)
+                        if pendingImport != nil { confirmingImport = true }
+                        else { importFailed = true }
+                    }
+                    .confirmationDialog("지금 기록을 백업 내용으로 바꿀까요?",
+                                        isPresented: $confirmingImport,
+                                        titleVisibility: .visible) {
+                        Button("백업으로 바꾸기", role: .destructive) {
+                            // importData validates before replacing; a bad file lands
+                            // in the alert, never in a half-replaced store.
+                            if let data = pendingImport,
+                               (try? model.importData(data)) == nil { importFailed = true }
+                            pendingImport = nil
+                        }
+                        Button("취소", role: .cancel) { pendingImport = nil }
+                    } message: {
+                        Text("지금까지의 진행이 백업 시점의 기록으로 돌아가요.")
+                    }
+                    .alert("백업을 열 수 없어요", isPresented: $importFailed) {
+                        Button("확인", role: .cancel) {}
+                    } message: {
+                        Text("Glass Table의 백업 만들기로 저장한 JSON 파일인지 확인해 주세요.")
+                    }
+                    Divider().padding(.leading, 56)
                     Button { confirmingReset = true } label: {
                         row("arrow.counterclockwise", "진행 초기화",
                             "모든 기록을 지우고 처음부터", chevron: true, destructive: true)
@@ -90,9 +131,8 @@ struct SettingsView: View {
         .fileExporter(isPresented: $exportingBackup, document: backup,
                       contentType: .json,
                       defaultFilename: "glass-table-backup") { _ in backup = nil }
-        // The quarantine keeps the old file's bytes, but no healthy-path import exists
-        // (spec §8.2 reaches it only through a corrupt store) — so the dialog points at
-        // 백업 만들기 rather than promising an undo the app cannot offer.
+        // 백업 만들기 + 백업 불러오기 make the advice real: a backup taken before this
+        // genuinely restores from Settings, not only via the corrupt-store screen.
         .confirmationDialog("모든 진행 기록을 지울까요?", isPresented: $confirmingReset,
                             titleVisibility: .visible) {
             Button("전부 지우고 처음부터", role: .destructive) { model.resetProgress() }
@@ -136,8 +176,8 @@ struct SettingsView: View {
     }
 }
 
-/// Wraps the store's bytes for `fileExporter`. Write-only in practice — reading a
-/// backup happens through the recovery screen's importer, not through this type.
+/// Wraps the store's bytes for `fileExporter`. Write-only — reading a backup happens
+/// through the fileImporters (Settings row, recovery screen), not through this type.
 private struct BackupDocument: FileDocument {
     static let readableContentTypes: [UTType] = [.json]
     let data: Data

@@ -37,9 +37,12 @@ struct TodayView: View {
             #endif
         }
         .sheet(item: $replay) { concept in
-            // Deterministic on purpose: a replay is re-reading the same lesson, so it
-            // shows the walkthrough spot the drill's own 힌트 uses, not a fresh one.
-            let w = Walkthrough.make(concept: concept, seed: 0x5EED, index: 0)
+            // Progress-salted like a node re-run (§4.2's fresh-spots rule), on a base
+            // distinct from free play's 0x5EED — the walkthrough narrates its spot's
+            // answer, so the replayed spot must never double as review question 1.
+            let w = Walkthrough.make(concept: concept,
+                                     seed: 0x7EAC &+ UInt64(model.record(for: concept).total),
+                                     index: 0)
             NavigationStack {
                 WalkthroughView(title: conceptTitle(concept), beats: w.beats, rows: w.rows,
                                 onFinish: { replay = nil }, onSkip: { replay = nil })
@@ -188,7 +191,9 @@ struct TodayView: View {
                         Image(systemName: "play.circle.fill")
                             .font(.system(size: 12)).foregroundStyle(GT.mint)
                     }
-                    .frame(minHeight: 32)   // widen the target beyond one text line
+                    // Full-width 44pt target — the app's documented floor
+                    // (ChromeButton), owed most to the user this panel exists for.
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(GTPress())

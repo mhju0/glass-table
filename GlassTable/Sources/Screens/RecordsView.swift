@@ -32,9 +32,12 @@ struct RecordsView: View {
         }
         .background(FeltBackground())
         // Same replay the 오늘 stuck panel offers, so the subtitle's promise holds
-        // wherever it appears.
+        // wherever it appears. Seed rule mirrors TodayView's: progress-salted, off
+        // free play's base, so the narrated answer never doubles as a review question.
         .sheet(item: $replay) { concept in
-            let w = Walkthrough.make(concept: concept, seed: 0x5EED, index: 0)
+            let w = Walkthrough.make(concept: concept,
+                                     seed: 0x7EAC &+ UInt64(model.record(for: concept).total),
+                                     index: 0)
             NavigationStack {
                 WalkthroughView(title: conceptTitle(concept), beats: w.beats, rows: w.rows,
                                 onFinish: { replay = nil }, onSkip: { replay = nil })
