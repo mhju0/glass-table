@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import Foundation
 
-public struct Card: Equatable, Hashable, CustomStringConvertible {
+public struct Card: Equatable, Hashable, Sendable, CustomStringConvertible {
     public let rank: Int  // 2...14 (11=J, 12=Q, 13=K, 14=A)
     public let suit: Int  // 0=c, 1=d, 2=h, 3=s
 

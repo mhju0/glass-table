@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # The app compiles against iOS 26 API (sharedBackgroundVisibility in the nav
       # chrome), and #available guards runtime, not compile — the runner's default
       # Xcode builds with an older SDK and fails on the symbol. Pick the newest
