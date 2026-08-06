@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import UIKit
 import GlassTableEngine
 import GlassTableDrills
 
@@ -25,6 +26,30 @@ struct ConceptDrillView: View {
     let onAnswer: (DrillOutcome) -> Void
 
     var body: some View {
+        // One key set here instead of a `term:` threaded through eighteen drills —
+        // the reveal sheets read it back to draw their 용어 chip.
+        drill.environment(\.glossaryTerm, Self.glossaryTerm(for: concept))
+    }
+
+    /// The glossary entry a confused user most likely needs mid-drill. Values must
+    /// match `GlossaryView`'s Korean keys exactly — they are its scroll targets.
+    private static func glossaryTerm(for concept: Concept) -> String? {
+        switch concept {
+        case .showdown, .position: return nil   // no matching glossary entry
+        case .potMath, .evLoss:    return "bb"
+        case .equitySense, .evCall, .rangeAdvantage: return "에퀴티"
+        case .combos, .rangeNotation: return "콤보"
+        case .outs:     return "아웃"
+        case .potOdds:  return "팟 오즈"
+        case .mdf:      return "MDF"
+        case .callFold: return "필요 에퀴티"
+        case .rfi, .rangeRead, .hitFrequency, .actionRead: return "레인지"
+        case .defend:   return "3벳"
+        }
+    }
+
+    @ViewBuilder
+    private var drill: some View {
         switch concept {
         case .showdown:
             ShowdownDrill(seed: seed, index: index, progressText: progressText, onAnswer: onAnswer)
@@ -81,6 +106,27 @@ struct ConceptDrillView: View {
 
 // MARK: - shared chrome
 
+/// Set once by `ConceptDrillView`, read by the reveal sheets. An environment value
+/// rather than a parameter so the eighteen drill structs stay untouched.
+private struct GlossaryTermKey: EnvironmentKey {
+    static let defaultValue: String? = nil
+}
+
+extension EnvironmentValues {
+    fileprivate var glossaryTerm: String? {
+        get { self[GlossaryTermKey.self] }
+        set { self[GlossaryTermKey.self] = newValue }
+    }
+}
+
+/// The reveal moment gets one notification tap: ✓/±/✕ as success/warning/error.
+/// No app toggle — the system Reduce Haptics setting is the opt-out.
+private func gradeHaptic(_ band: GradeBand) {
+    let type: UINotificationFeedbackGenerator.FeedbackType =
+        switch band { case .spotOn: .success; case .close: .warning; case .off: .error }
+    UINotificationFeedbackGenerator().notificationOccurred(type)
+}
+
 /// Every drill shares the same skeleton: felt content zone, cream answer sheet.
 private struct DrillShell<Content: View, Sheet: View>: View {
     let title: String
@@ -108,6 +154,7 @@ private struct DrillShell<Content: View, Sheet: View>: View {
 
 /// Reveal panel shared by every drill: verdict, the "why", then advance.
 private struct RevealSheet: View {
+    @Environment(\.glossaryTerm) private var term
     let band: GradeBand
     let mine: String
     let correct: String
@@ -123,8 +170,10 @@ private struct RevealSheet: View {
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(GT.border, lineWidth: 1))
                 .fixedSize(horizontal: false, vertical: true)
+            if let term { GlossaryChip(term: term) }
             PrimaryCTAButton(title: "다음 문제", action: onNext)
         }
+        .onAppear { gradeHaptic(band) }
     }
 }
 
@@ -1235,6 +1284,7 @@ private struct RangeAdvantageDrill: View {
 /// answer is either right or not. This concept exists to say that being wrong is not
 /// one thing, so a verdict pill at the top would contradict the lesson underneath it.
 private struct EVLossRevealSheet: View {
+    @Environment(\.glossaryTerm) private var term
     let reveal: EVLossReveal
     let onNext: () -> Void
 
@@ -1268,9 +1318,11 @@ private struct EVLossRevealSheet: View {
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(GT.border, lineWidth: 1))
                 .fixedSize(horizontal: false, vertical: true)
+            if let term { GlossaryChip(term: term) }
             PrimaryCTAButton(title: "다음 문제", action: onNext)
         }
         .accessibilityElement(children: .contain)
+        .onAppear { gradeHaptic(reveal.band) }
     }
 }
 

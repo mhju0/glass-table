@@ -221,6 +221,9 @@ struct GlossaryChip: View {
             .foregroundStyle(GT.inkSecondary)
             .padding(.horizontal, 11).padding(.vertical, 6)
             .background(GT.surface, in: Capsule())
+            // The capsule stays chip-sized; the tap target meets the 44pt floor.
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
         .accessibilityLabel("용어집에서 \(term) 보기")

@@ -13,6 +13,7 @@ struct RootView: View {
     @State private var tab: Tab = .today
     @State private var openNode: CurriculumNode?
     @State private var showFreePlay = false
+    @State private var showReview = false
     @State private var showSettings = false
 
     var body: some View {
@@ -42,7 +43,7 @@ struct RootView: View {
 
             NavigationStack {
                 TodayView(onOpenNode: { openNode = $0 },
-                          onOpenReview: { tab = .path })
+                          onOpenReview: { showReview = true })
                     .modifier(RootChrome(showSettings: $showSettings))
             }
             .tabItem { Label("오늘", systemImage: "target") }
@@ -68,6 +69,17 @@ struct RootView: View {
         }
         .sheet(isPresented: $showFreePlay) {
             NavigationStack { FreePlayView() }.environment(model)
+        }
+        // 오늘's 복습 card used to dump the user on the 길 tab to hunt for the due
+        // concepts themselves; this is the same free-play player narrowed to them.
+        .sheet(isPresented: $showReview) {
+            NavigationStack {
+                FreePlayView(title: "복습",
+                             blurb: "지금 복습 시점이 된 개념이에요. 몇 문제든 풀면 다음 복습이 뒤로 밀려요.",
+                             concepts: model.dueConcepts(),
+                             emptyText: "오늘 복습을 다 끝냈어요. 다음 복습은 내일 이후에 돌아와요.")
+            }
+            .environment(model)
         }
         // Presented once, here, rather than inside each tab's NavigationStack. The
         // previous version bound one @State into three sibling stacks, so flipping it
@@ -96,6 +108,7 @@ struct RootView: View {
             if env["GT_DEMO_TABLE"] != nil { tab = .table }
             if let id = env["GT_DEMO_NODE"] { openNode = Curriculum.node(id: id) }
             if env["GT_DEMO_FREEPLAY"] != nil { showFreePlay = true }
+            if env["GT_DEMO_REVIEW"] != nil { showReview = true }
             if env["GT_DEMO_SETTINGS"] != nil { showSettings = true }
             #endif
         }

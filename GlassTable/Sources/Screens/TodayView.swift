@@ -10,6 +10,7 @@ struct TodayView: View {
     @Environment(ProgressionModel.self) private var model
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenReview: () -> Void
+    @State private var replay: Concept?
 
     private var due: [Concept] { model.dueConcepts() }
 
@@ -26,6 +27,27 @@ struct TodayView: View {
             .padding(.bottom, 96)   // clears the floating tab bar
         }
         .background(FeltBackground())
+        .onAppear {
+            #if DEBUG
+            // GT_DEMO_REPLAY=<concept raw value> opens the 천천히 replay sheet — same
+            // reason as every other hook: synthetic taps never reach Simulator content.
+            if let raw = ProcessInfo.processInfo.environment["GT_DEMO_REPLAY"] {
+                replay = Concept(rawValue: raw)
+            }
+            #endif
+        }
+        .sheet(item: $replay) { concept in
+            // Progress-salted like a node re-run (§4.2's fresh-spots rule), on a base
+            // distinct from free play's 0x5EED — the walkthrough narrates its spot's
+            // answer, so the replayed spot must never double as review question 1.
+            let w = Walkthrough.make(concept: concept,
+                                     seed: 0x7EAC &+ UInt64(model.record(for: concept).total),
+                                     index: 0)
+            NavigationStack {
+                WalkthroughView(title: conceptTitle(concept), beats: w.beats, rows: w.rows,
+                                onFinish: { replay = nil }, onSkip: { replay = nil })
+            }
+        }
     }
 
     private var header: some View {
@@ -33,11 +55,18 @@ struct TodayView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("오늘").font(GT.title(24)).foregroundStyle(GT.onFelt)
                 Spacer()
-                // Same rule as everywhere else: 🔥 only with a live streak.
+                // Same rule as everywhere else: 🔥 only with a live streak. The shield
+                // count rides along so a missed-day-yet-intact streak reads as a spent
+                // freeze rather than unexplained magic.
                 if model.state.streak.current > 0 {
-                    Text("🔥 \(model.state.streak.current)일째")
+                    Text("🔥 \(model.state.streak.current)일째"
+                         + (model.state.streak.freezesRemaining > 0
+                            ? " · 🛡 \(model.state.streak.freezesRemaining)" : ""))
                         .font(GT.semibold(12).monospacedDigit())
                         .foregroundStyle(GT.onFeltSecondary)
+                        .accessibilityLabel("연속 \(model.state.streak.current)일째"
+                            + (model.state.streak.freezesRemaining > 0
+                               ? ", 하루 놓쳐도 지켜주는 보호 \(model.state.streak.freezesRemaining)개" : ""))
                 }
             }
             Text(subtitleLine)
@@ -46,9 +75,12 @@ struct TodayView: View {
         .padding(.top, 14)
     }
 
+    /// Only claims the screen can keep: the old "N문제 · 약 X분" promised a daily set
+    /// no button ever played.
     private var subtitleLine: String {
-        let n = model.dailySet().count
-        return n == 0 ? "첫 단계부터 시작해요" : "\(n)문제 · 약 \(max(3, n * 90 / 60))분"
+        if !due.isEmpty { return "복습 \(due.count)개가 기다리고 있어요" }
+        if model.nextNode == nil { return "기초 완주 · 복습으로 감각을 유지해요" }
+        return model.state.nodes.isEmpty ? "첫 단계부터 시작해요" : "다음 단계를 이어가요"
     }
 
     @ViewBuilder
@@ -147,17 +179,34 @@ struct TodayView: View {
     }
 
     /// Spec §4.6: past the stop-drilling threshold the app owes an explanation, not
-    /// another rep.
+    /// another rep — so the row *is* the explanation's door, not a caption about one.
     private var stuckPanel: some View {
         VStack(alignment: .leading, spacing: 6) {
             SectionLabel(text: "막힌 개념")
             ForEach(model.needingExplainer(), id: \.self) { c in
-                Text("\(conceptTitle(c)) · 천천히 다시 보기")
-                    .font(GT.semibold(12)).foregroundStyle(GT.onFelt)
+                Button { replay = c } label: {
+                    HStack(spacing: 6) {
+                        Text("\(conceptTitle(c)) · 천천히 다시 보기")
+                            .font(GT.semibold(12)).foregroundStyle(GT.onFelt)
+                        Image(systemName: "play.circle.fill")
+                            .font(.system(size: 12)).foregroundStyle(GT.mint)
+                    }
+                    // Full-width 44pt target — the app's documented floor
+                    // (ChromeButton), owed most to the user this panel exists for.
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(GTPress())
+                .accessibilityLabel("\(conceptTitle(c)) 천천히 다시 보기")
             }
         }
         .padding(.top, 6)
     }
+}
+
+/// `sheet(item:)` currency for the replay sheets here and in 기록.
+extension Concept: @retroactive Identifiable {
+    public var id: String { rawValue }
 }
 
 /// Korean title for a concept, taken from the node that teaches it so the path and
