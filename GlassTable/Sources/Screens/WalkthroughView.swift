@@ -31,10 +31,20 @@ struct WalkthroughView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            ScrollView {
-                content.padding(.horizontal, 18).padding(.top, 6)
+            // Same shape the table had: a top-anchored column in a ScrollView, so a
+            // beat shorter than the viewport left the slack as bare felt above the
+            // sheet — around 40% of the screen on the outs grid. Pinning to the
+            // viewport height centres the beat in the band between header and sheet,
+            // and long beats still scroll.
+            GeometryReader { geo in
+                ScrollView {
+                    content
+                        .padding(.horizontal, 18).padding(.top, 6)
+                        .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
             }
-            ActionSheet { sheet }
+            ActionSheet { sheet }.layoutPriority(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(FeltBackground())
