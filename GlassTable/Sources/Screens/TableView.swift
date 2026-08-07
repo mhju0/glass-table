@@ -176,14 +176,23 @@ struct TableView: View {
     private func table(_ hand: TableHand) -> some View {
         VStack(spacing: 0) {
             GeometryReader { geo in
+                // Card sizes follow the band the layout actually got rather than the
+                // device model, because the same phone hands the table a much shorter
+                // band on the summary — where the sheet carries a whole EV ledger —
+                // than it does mid-hand. On a 12 mini that band is ~320pt and the
+                // full-size zones need ~335, which pushed hero's cards under the sheet
+                // at exactly the moment the screen exists to compare two hands.
+                let tight = geo.size.height < 380
                 ScrollView {
                     VStack(spacing: 0) {
                         seatRow(hand)
-                        streetStrip(hand)
+                        // Spent once the hand is over: the summary beneath names every
+                        // street already, so the strip is repeating the answer.
+                        if case .hero = hand.phase { streetStrip(hand) }
                         Spacer(minLength: 14)
-                        boardBlock(hand)
+                        boardBlock(hand, cardSize: tight ? 56 : 64)
                         Spacer(minLength: 14)
-                        heroBlock(hand)
+                        heroBlock(hand, cardSize: tight ? 64 : 74)
                     }
                     .padding(.horizontal, 18)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height)
@@ -231,9 +240,9 @@ struct TableView: View {
     /// The board, and directly beneath it the money it is being played for. 팟 used to
     /// sit in the opposite corner of the screen from 콜, so reading a price meant
     /// crossing the whole viewport for its other half.
-    private func boardBlock(_ hand: TableHand) -> some View {
+    private func boardBlock(_ hand: TableHand, cardSize: CGFloat) -> some View {
         VStack(spacing: 12) {
-            boardRow(hand)
+            boardRow(hand, cardSize: cardSize)
             if let toCall = hand.toCall {
                 priceStrip(pot: hand.pot, toCall: toCall)
             } else {
@@ -292,9 +301,9 @@ struct TableView: View {
             .background(fill, in: RoundedRectangle(cornerRadius: 8))
     }
 
-    private func heroBlock(_ hand: TableHand) -> some View {
+    private func heroBlock(_ hand: TableHand, cardSize: CGFloat) -> some View {
         VStack(spacing: 7) {
-            CardRow(cards: hand.hero, maxSize: 74)
+            CardRow(cards: hand.hero, maxSize: cardSize)
             Text("내 핸드 · \(hand.heroSeat.rawValue)")
                 .font(GT.semibold(10)).tracking(0.4)
                 .foregroundStyle(GT.onFelt.opacity(0.62))
@@ -337,13 +346,14 @@ struct TableView: View {
         .padding(.top, 6)
     }
 
-    private func boardRow(_ hand: TableHand) -> some View {
+    private func boardRow(_ hand: TableHand, cardSize: CGFloat) -> some View {
         HStack(spacing: 8) {
             ForEach(0..<5, id: \.self) { i in
                 if i < hand.board.count {
-                    PlayingCardView(card: hand.board[i], size: 64)
+                    PlayingCardView(card: hand.board[i], size: cardSize)
                 } else {
-                    PlayingCardView(card: Card(rank: 2, suit: 0), size: 64, faceDown: true)
+                    PlayingCardView(card: Card(rank: 2, suit: 0), size: cardSize,
+                                    faceDown: true)
                 }
             }
         }
@@ -541,8 +551,11 @@ struct TableView: View {
         _ = current
     }
 
+    /// The tallest sheet in the app — net result, a row per decision, and two actions —
+    /// so it is also the one that decides how much band the table above it gets. Its
+    /// spacings are tighter than the other sheets on purpose.
     private func summary(_ hand: TableHand, _ outcome: TableHand.Outcome) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(outcome.heroNet >= 0 ? "+\(bbText(outcome.heroNet))bb"
                                           : "\(bbText(outcome.heroNet))bb")
@@ -586,10 +599,19 @@ struct TableView: View {
                     }
                 }
             }
-            .padding(12)
+            .padding(.horizontal, 12).padding(.vertical, 10)
             .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
             PrimaryCTAButton(title: "다음 핸드") { start(vs: villainPick) }
-            SecondaryCTAButton(title: "상대 바꾸기") { hand2Picker() }
+            // Text rather than a filled secondary: it is the rarer of the two actions,
+            // and a full 50pt surface here bought nothing but height on the sheet that
+            // can least afford it. The row keeps the 44pt tap target.
+            Button { hand2Picker() } label: {
+                Text("상대 바꾸기").font(GT.semibold(13.5))
+                    .foregroundStyle(GT.inkSecondary)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(GTPress())
         }
     }
 
