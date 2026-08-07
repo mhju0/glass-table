@@ -189,6 +189,21 @@ public struct TableHand: Equatable {
         case raise
     }
 
+    /// What hero must put in to continue, or nil when nothing is owed.
+    ///
+    /// The same arithmetic `gradedOptions()` uses to label the 콜 button, exposed
+    /// because the table prices pot odds off it and `heroPutThisStreet` is private —
+    /// a view cannot derive the raise case on its own.
+    public var toCall: Double? {
+        guard case let .hero(facing) = phase else { return nil }
+        switch facing {
+        case let .open(b):      return b
+        case .checkedTo:        return nil
+        case let .bet(b):       return b
+        case let .raise(to: r): return r - heroPutThisStreet
+        }
+    }
+
     /// Legal choices in the current phase. Empty exactly when the hand is over.
     public func choices() -> [HeroChoice] {
         guard case let .hero(facing) = phase else { return [] }

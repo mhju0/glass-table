@@ -163,53 +163,168 @@ struct TableView: View {
 
     // MARK: the table
 
+    /// Three fixed zones — villain at the top, the board floating in the middle, hero
+    /// above the sheet — instead of one top-anchored column.
+    ///
+    /// The column left roughly a fifth of the screen as bare felt below the history and
+    /// above the sheet, because a `ScrollView` hands its content unbounded height and
+    /// the content simply stacked from the top. Pinning the stack to at least the
+    /// viewport height lets the spacers distribute that slack around the board, and the
+    /// scroll survives for the cases that actually need it — the largest Dynamic Type
+    /// sizes, where the zones no longer fit.
     private func table(_ hand: TableHand) -> some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("vs \(hand.villain.name)").font(GT.title(16)).foregroundStyle(GT.onFelt)
-                Spacer()
-                Text("팟 \(bbText(hand.pot))bb")
-                    .font(GT.semibold(13).monospacedDigit())
-                    .foregroundStyle(GT.onFeltSecondary)
-            }
-            .padding(.horizontal, 18).padding(.top, 6).padding(.bottom, 12)
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 6) {
-                    seatRow(hand)
-                    SectionLabel(text: "보드").padding(.top, 10)
-                    boardRow(hand)
-                    SectionLabel(text: "내 핸드 · \(hand.heroSeat.rawValue)").padding(.top, 10)
-                    CardRow(cards: hand.hero, maxSize: 74)
-                    historyBlock(hand)
+            GeometryReader { geo in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        seatRow(hand)
+                        streetStrip(hand)
+                        Spacer(minLength: 14)
+                        boardBlock(hand)
+                        Spacer(minLength: 14)
+                        heroBlock(hand)
+                    }
+                    .padding(.horizontal, 18)
+                    .frame(maxWidth: .infinity, minHeight: geo.size.height)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 18)
+                .scrollBounceBehavior(.basedOnSize)
             }
-
             ActionSheet { sheet(hand) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// Which street we are on, from `hand.street` — not parsed back out of the history
+    /// lines, which are display strings and would be the wrong thing to depend on.
+    private func streetStrip(_ hand: TableHand) -> some View {
+        let streets: [(name: String, n: Int)] =
+            [("프리플랍", 0), ("플랍", 3), ("턴", 4), ("리버", 5)]
+        return HStack(spacing: 6) {
+            ForEach(streets, id: \.n) { s in
+                let live = hand.street == s.n
+                let past = hand.street > s.n
+                Text(s.name)
+                    .font(GT.semibold(10.5))
+                    .foregroundStyle(live ? GT.mint : (past ? GT.onFeltSecondary : GT.onFeltMuted))
+                    .frame(maxWidth: .infinity, minHeight: 24)
+                    .background(live ? GT.mint.opacity(0.14) : Color.clear, in: Capsule())
+                    .overlay(Capsule().strokeBorder(live ? GT.mint.opacity(0.55) : GT.hairlineFelt,
+                                                    lineWidth: 1))
+            }
+        }
+        .padding(.top, 12)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("현재 스트리트 "
+            + (streets.first { $0.n == hand.street }?.name ?? ""))
+    }
+
+    /// The board, and directly beneath it the money it is being played for. 팟 used to
+    /// sit in the opposite corner of the screen from 콜, so reading a price meant
+    /// crossing the whole viewport for its other half.
+    private func boardBlock(_ hand: TableHand) -> some View {
+        VStack(spacing: 12) {
+            boardRow(hand)
+            if let toCall = hand.toCall {
+                priceStrip(pot: hand.pot, toCall: toCall)
+            } else {
+                // Nothing owed: no price to read, so the pot stands on its own.
+                Text("팟 \(bbText(hand.pot))bb")
+                    .font(GT.title(21).monospacedDigit()).foregroundStyle(GT.onFelt)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    /// The pot-odds shape at a glance: what is already out there against what continuing
+    /// costs, plus the equity that price demands.
+    ///
+    /// Drawn here rather than with `PriceBarView` because that one is built for the
+    /// drill — 58pt tall with stacked numerals, and typed in whole bb. The table's pots
+    /// are fractional (13.1bb, not 13bb) and its vertical budget is a strip, so it reuses
+    /// the segment *tokens* to keep one colour language and nothing else.
+    private func priceStrip(pot: Double, toCall: Double) -> some View {
+        // Round to the printed precision *first*, then do the arithmetic on the values
+        // actually on screen. Rounding each term independently let the addends disagree
+        // with their own total — 13.1 and 5.6 printed under a total of 18.8 — and a
+        // division the user cannot reproduce is the one thing this screen cannot ship.
+        let p = (pot * 10).rounded() / 10
+        let c = (toCall * 10).rounded() / 10
+        let total = p + c
+        let required = c / total * 100
+        return VStack(spacing: 8) {
+            // Widths are proportional, so the price is legible as a share of the bar
+            // before it is read as a number — the same claim `PriceBarView` makes.
+            // `layoutPriority` cannot do this: it decides who gets its ideal size
+            // first, so with two greedy segments the larger one simply took the row.
+            GeometryReader { geo in
+                HStack(spacing: 3) {
+                    segment("팟 \(bbText(p))", fill: GT.segPot,
+                            width: geo.size.width * p / total)
+                    segment("콜 \(bbText(c))", fill: GT.segCall,
+                            width: geo.size.width * c / total)
+                }
+            }
+            .frame(height: 30)
+            Text("\(bbText(c)) / \(bbText(total)) — \(pctText(required))% 이상이면 콜")
+                .font(GT.body(10.5).monospacedDigit())
+                .foregroundStyle(GT.onFeltSecondary)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("팟 \(bbText(p)) 빅블라인드, 콜 \(bbText(c)) 빅블라인드. "
+                            + "필요 에퀴티 \(pctText(required)) 퍼센트.")
+    }
+
+    private func segment(_ text: String, fill: Color, width: CGFloat) -> some View {
+        Text(text)
+            .font(GT.semibold(12).monospacedDigit()).foregroundStyle(GT.onFelt)
+            .lineLimit(1).minimumScaleFactor(0.6)
+            .frame(width: max(38, width - 3), height: 30)
+            .background(fill, in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func heroBlock(_ hand: TableHand) -> some View {
+        VStack(spacing: 7) {
+            CardRow(cards: hand.hero, maxSize: 74)
+            Text("내 핸드 · \(hand.heroSeat.rawValue)")
+                .font(GT.semibold(10)).tracking(0.4)
+                .foregroundStyle(GT.onFelt.opacity(0.62))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, 6)
+    }
+
+    /// Villain, and what has happened so far. The action log used to run as four full
+    /// lines under hero's cards; the band beside two 60pt card backs was empty, and it
+    /// holds the same lines at the same size.
     private func seatRow(_ hand: TableHand) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "\(hand.villainSeat.rawValue) · \(hand.villain.name)")
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("vs \(hand.villain.name)").font(GT.title(16)).foregroundStyle(GT.onFelt)
+                Spacer(minLength: 8)
+                // The bot's live range, always countable — the printable claim at
+                // the table (spec §4).
+                Text("레인지 \(hand.villainCombos.count)콤보")
+                    .font(GT.semibold(11).monospacedDigit())
+                    .foregroundStyle(GT.mint)
+            }
+            HStack(alignment: .top, spacing: 10) {
                 if case let .over(o) = hand.phase {
                     CardRow(cards: o.villainHand, maxSize: 60)
                 } else {
                     PlayingCardView(card: Card(rank: 2, suit: 0), size: 60, faceDown: true)
                     PlayingCardView(card: Card(rank: 2, suit: 0), size: 60, faceDown: true)
                 }
-                Spacer(minLength: 8)
-                // The bot's live range, always countable — the printable claim at
-                // the table (spec §4).
-                Text("레인지 \(hand.villainCombos.count)콤보")
-                    .font(GT.semibold(11).monospacedDigit())
-                    .foregroundStyle(GT.onFeltMuted)
+                VStack(alignment: .leading, spacing: 2) {
+                    SectionLabel(text: "\(hand.villainSeat.rawValue) · \(hand.villain.name)")
+                    ForEach(Array(hand.history.suffix(3).enumerated()), id: \.offset) { _, line in
+                        Text(line).font(GT.body(10.5)).foregroundStyle(GT.onFeltSecondary)
+                            .lineLimit(1).minimumScaleFactor(0.75)
+                    }
+                }
+                Spacer(minLength: 0)
             }
         }
+        .padding(.top, 6)
     }
 
     private func boardRow(_ hand: TableHand) -> some View {
@@ -222,15 +337,6 @@ struct TableView: View {
                 }
             }
         }
-    }
-
-    private func historyBlock(_ hand: TableHand) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            ForEach(Array(hand.history.suffix(4).enumerated()), id: \.offset) { _, line in
-                Text(line).font(GT.body(11)).foregroundStyle(GT.onFeltSecondary)
-            }
-        }
-        .padding(.top, 12)
     }
 
     // MARK: the sheet
