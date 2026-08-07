@@ -28,8 +28,8 @@ struct RecordsView: View {
                 if studied.isEmpty { emptyState } else { conceptList }
             }
             .padding(.horizontal, 18)
-            .padding(.bottom, 96)   // clears the floating tab bar
         }
+        .gtTabBarClearance()
         .background(FeltBackground())
         // Same replay the 오늘 stuck panel offers, so the subtitle's promise holds
         // wherever it appears. Seed rule mirrors TodayView's: progress-salted, off

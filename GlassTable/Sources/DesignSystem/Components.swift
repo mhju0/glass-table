@@ -431,6 +431,31 @@ struct GTChoiceButton: View {
     }
 }
 
+/// Clearance for the floating tab bar, for a tab's scrolling content.
+///
+/// The bar does **not** hand its tab an inset — verified by deleting the padding and
+/// watching 기록's concept list run off the bottom edge — so the clearance has to be
+/// supplied. It was three copies of `.padding(.bottom, 96)`, one per tab, which is
+/// three places to miss when the bar changes.
+///
+/// Two things it fixes beyond the duplication. As a `safeAreaInset` rather than trailing
+/// padding it also insets the scroll indicator, so the bar stops covering the end of the
+/// scroll track. And `@ScaledMetric` grows the gap with the user's text size, which is
+/// what the bar's own labels do — at the accessibility sizes the fixed 96 left the last
+/// row tucked under it.
+private struct TabBarClearance: ViewModifier {
+    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 96
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: height).allowsHitTesting(false)
+        }
+    }
+}
+
+extension View {
+    func gtTabBarClearance() -> some View { modifier(TabBarClearance()) }
+}
+
 /// What class of action a table button commits to — never *which one is better*.
 ///
 /// `GTChoiceButton` deliberately renders every drill answer identically so the sheet
@@ -467,18 +492,20 @@ struct GTActionButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
+            // The accent is laid out, not overlaid. As an overlay it took no part in
+            // sizing, so at the accessibility text sizes it painted straight over the
+            // price line while the button kept its compact height.
+            VStack(spacing: 3) {
                 Text(title).font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
+                    .lineLimit(1).minimumScaleFactor(0.6)
                 Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
-                    .minimumScaleFactor(0.7).lineLimit(1)
+                    .lineLimit(1).minimumScaleFactor(0.6)
+                Capsule().fill(role.accent)
+                    .frame(height: 3).padding(.horizontal, 8).padding(.top, 1)
             }
-            .padding(.horizontal, 6)
+            .padding(.horizontal, 6).padding(.vertical, 10)
             .frame(maxWidth: .infinity, minHeight: minHeight)
             .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-            .overlay(alignment: .bottom) {
-                Capsule().fill(role.accent)
-                    .frame(height: 3).padding(.horizontal, 14).padding(.bottom, 7)
-            }
             .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
                 .strokeBorder(GT.borderStrong, lineWidth: 1))
         }

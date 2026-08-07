@@ -134,8 +134,9 @@ struct TableView: View {
                 }
                 .buttonStyle(GTPress())
             }
-            .padding(.horizontal, 18).padding(.bottom, 96)
+            .padding(.horizontal, 18)
         }
+        .gtTabBarClearance()
     }
 
     private func archetypeRow(_ a: Archetype) -> some View {
@@ -189,7 +190,11 @@ struct TableView: View {
                 }
                 .scrollBounceBehavior(.basedOnSize)
             }
-            ActionSheet { sheet(hand) }
+            // The sheet is sized first and the reader takes what is left. A
+            // GeometryReader is greedy in a VStack, so without this it claimed the
+            // height the sheet needed and the action buttons clipped their price line
+            // at the accessibility text sizes.
+            ActionSheet { sheet(hand) }.layoutPriority(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -385,17 +390,18 @@ struct TableView: View {
     /// separate view. It takes the aggressive accent so the row still reads as one set.
     private func bviewButton(_ opt: GradedOption) -> some View {
         Button { act(opt.choice) } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: 3) {
                 Text(opt.headline).font(GT.title(13)).foregroundStyle(GT.ink)
+                    .lineLimit(1).minimumScaleFactor(0.6)
                 Text(opt.subline).font(GT.body(10).monospacedDigit())
                     .foregroundStyle(GT.inkMuted)
+                    .lineLimit(1).minimumScaleFactor(0.6)
+                Capsule().fill(GTActionRole.aggressive.accent)
+                    .frame(height: 3).padding(.horizontal, 8).padding(.top, 1)
             }
+            .padding(.horizontal, 6).padding(.vertical, 10)
             .frame(maxWidth: .infinity, minHeight: 56)
             .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-            .overlay(alignment: .bottom) {
-                Capsule().fill(GTActionRole.aggressive.accent)
-                    .frame(height: 3).padding(.horizontal, 14).padding(.bottom, 7)
-            }
             .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
                 .strokeBorder(GT.borderStrong, lineWidth: 1))
         }

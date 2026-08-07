@@ -29,8 +29,8 @@ struct PathView: View {
                 freePlayRow
             }
             .padding(.horizontal, 18)
-            .padding(.bottom, 96)   // clears the floating tab bar
         }
+        .gtTabBarClearance()
         .background(FeltBackground())
     }
 
