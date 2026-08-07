@@ -144,9 +144,21 @@ private struct DrillShell<Content: View, Sheet: View>: View {
             }
             .padding(.horizontal, 18).padding(.top, 6).padding(.bottom, 12)
 
-            ScrollView { content().padding(.horizontal, 18) }
+            // The spot sits in the middle of the band between header and sheet rather
+            // than stacking from the top. A ScrollView hands its content unbounded
+            // height, so every drill shorter than the viewport — which is most of them —
+            // left the slack as bare felt just above the sheet. Pinning to the viewport
+            // height gives the spacing to both ends; longer drills still scroll.
+            GeometryReader { geo in
+                ScrollView {
+                    content()
+                        .padding(.horizontal, 18)
+                        .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            }
 
-            ActionSheet { sheet() }
+            ActionSheet { sheet() }.layoutPriority(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
