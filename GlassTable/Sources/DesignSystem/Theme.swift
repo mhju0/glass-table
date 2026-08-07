@@ -117,6 +117,22 @@ enum GT {
 
     // relativeTo: .body → all text scales with the user's Dynamic Type setting.
     static func title(_ s: CGFloat) -> Font    { .custom("Pretendard-Bold", size: s, relativeTo: .body) }
+
+    /// The one face that does **not** scale, for a glyph that is part of a drawing
+    /// rather than a piece of text: the rank and suit printed on a card.
+    ///
+    /// A card is a pictogram. Its label is sized as a fraction of the card
+    /// (`size * 0.36`) and the card is sized so five of them fit a board across the
+    /// narrowest screen, so the glyph cannot grow without breaking the row. It is not
+    /// a close call: at the largest accessibility size body text scales roughly 3×,
+    /// which puts a 46pt-wide board card at ~143pt and a five-card row at ~715pt
+    /// against 393pt of screen. Even `CardRow`'s smallest rung overflows.
+    ///
+    /// So the rank stays pinned and VoiceOver carries the content instead — every card
+    /// already publishes an `accessibilityLabel` ("스페이드 A"). Scaling it produced the
+    /// opposite of accessibility: the label truncated to "…" and the whole app became
+    /// unplayable at exactly the settings that asked for help.
+    static func fixed(_ s: CGFloat) -> Font    { .custom("Pretendard-Bold", fixedSize: s) }
     static func semibold(_ s: CGFloat) -> Font { .custom("Pretendard-SemiBold", size: s, relativeTo: .body) }
     static func body(_ s: CGFloat) -> Font     { .custom("Pretendard-Regular", size: s, relativeTo: .body) }
 }

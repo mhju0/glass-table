@@ -211,6 +211,7 @@ struct TableView: View {
                 Text(s.name)
                     .font(GT.semibold(10.5))
                     .foregroundStyle(live ? GT.mint : (past ? GT.onFeltSecondary : GT.onFeltMuted))
+                    .lineLimit(1).minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: 24)
                     .background(live ? GT.mint.opacity(0.14) : Color.clear, in: Capsule())
                     .overlay(Capsule().strokeBorder(live ? GT.mint.opacity(0.55) : GT.hairlineFelt,
@@ -218,6 +219,10 @@ struct TableView: View {
             }
         }
         .padding(.top, 12)
+        // Four streets in fixed order, so this is a one-row diagram for the same reason
+        // the drills' seat strip is: 프리플랍 was breaking across two lines and taking
+        // the row's height with it.
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("현재 스트리트 "
             + (streets.first { $0.n == hand.street }?.name ?? ""))

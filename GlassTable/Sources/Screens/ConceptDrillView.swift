@@ -390,11 +390,17 @@ private struct PositionDrill: View {
             ForEach(order, id: \.self) { p in
                 Text(p.rawValue)
                     .font(GT.semibold(10)).foregroundStyle(p == mine ? GT.felt : GT.onFelt)
+                    .lineLimit(1).minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: 34)
                     .background(p == mine ? GT.mint : GT.onFelt.opacity(0.12),
                                 in: RoundedRectangle(cornerRadius: 8))
             }
         }
+        // The strip is a diagram of the eight seats in order, so it has to stay one
+        // row: reading it depends on seeing every seat at once. The labels still grow,
+        // but stop short of the accessibility sizes, where "UTG+1" was breaking into
+        // three stacked lines. VoiceOver reads the seat regardless.
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 
     private var questionText: String {
@@ -901,11 +907,14 @@ private struct RFIDrill: View {
                 Text(p.rawValue)
                     .font(GT.semibold(9.5))
                     .foregroundStyle(p == spot.seat ? GT.onCTA : GT.onFelt.opacity(0.75))
+                    .lineLimit(1).minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: 32)
                     .background(p == spot.seat ? GT.mint : GT.onFelt.opacity(0.10),
                                 in: RoundedRectangle(cornerRadius: 7))
             }
         }
+        // Same one-row constraint as the 포지션 drill's strip.
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 }
 

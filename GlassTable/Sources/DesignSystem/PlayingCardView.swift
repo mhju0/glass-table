@@ -34,7 +34,10 @@ struct PlayingCardView: View {
 
     private var face: some View {
         Text(label)
-            .font(GT.title(size * 0.36))
+            // Pinned, not scaled — see `GT.fixed`. The card's frame is fixed geometry
+            // (five must fit a board), so a scaling label had nowhere to grow into and
+            // truncated every rank to "…" at the accessibility sizes.
+            .font(GT.fixed(size * 0.36))
             .lineLimit(1)
             .minimumScaleFactor(0.5)   // "10♥" and wide ranks shrink to fit instead of wrapping vertically
             .padding(.horizontal, size * 0.08)  // breathing room — label never touches the card edge
