@@ -258,7 +258,8 @@ struct TableView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 ForEach(options.filter(\.isCompact), id: \.choice) { opt in
-                    GTChoiceButton(title: opt.label, minHeight: 52) { act(opt.choice) }
+                    GTActionButton(title: opt.actionName, price: opt.priceText,
+                                   role: opt.role) { act(opt.choice) }
                 }
             }
             let bets = options.filter { !$0.isCompact }
@@ -273,6 +274,9 @@ struct TableView: View {
         }
     }
 
+    /// A bet keeps its own emphasis order — §A puts the pro unit (% of pot) on top and
+    /// the resolved bb underneath, the reverse of `GTActionButton` — so it stays a
+    /// separate view. It takes the aggressive accent so the row still reads as one set.
     private func bviewButton(_ opt: GradedOption) -> some View {
         Button { act(opt.choice) } label: {
             VStack(spacing: 2) {
@@ -280,24 +284,32 @@ struct TableView: View {
                 Text(opt.subline).font(GT.body(10).monospacedDigit())
                     .foregroundStyle(GT.inkMuted)
             }
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .overlay(alignment: .bottom) {
+                Capsule().fill(GTActionRole.aggressive.accent)
+                    .frame(height: 3).padding(.horizontal, 14).padding(.bottom, 7)
+            }
+            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
                 .strokeBorder(GT.borderStrong, lineWidth: 1))
         }
         .buttonStyle(GTPress())
+        .accessibilityLabel("벳 \(opt.headline), \(opt.subline)")
     }
 
     /// 폴드 / 콜 3bb / 3벳 9bb. No pricing pass — the grade here is the chart.
     private func preflopButtons(_ hand: TableHand, open b: Double) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                GTChoiceButton(title: "폴드", minHeight: 52) { actPreflop(.fold, hand) }
-                GTChoiceButton(title: "콜 \(bbText(b))bb", minHeight: 52) {
+                GTActionButton(title: "폴드", price: "0bb", role: .fold) {
+                    actPreflop(.fold, hand)
+                }
+                GTActionButton(title: "콜", price: "\(bbText(b))bb", role: .passive) {
                     actPreflop(.call, hand)
                 }
-                GTChoiceButton(title: "3벳 \(bbText(b * TableHand.raiseFactor))bb",
-                               minHeight: 52) { actPreflop(.raise, hand) }
+                GTActionButton(title: "3벳",
+                               price: "\(bbText(b * TableHand.raiseFactor))bb",
+                               role: .aggressive) { actPreflop(.raise, hand) }
             }
             Text("프리플랍은 디펜드 차트로 채점해요 — 답한 뒤에 차트를 보여드려요")
                 .font(GT.body(10)).foregroundStyle(GT.inkMuted)
@@ -471,5 +483,26 @@ private extension GradedOption {
     /// The resolved amount, already in the label: "벳 5.6bb (75%)" → "5.6bb".
     var subline: String {
         label.split(separator: " ").dropFirst().first.map(String.init) ?? ""
+    }
+    /// The verb on its own — "콜 5.6bb" → "콜". The price gets its own line so the
+    /// three amounts form a column instead of hiding inside three sentences.
+    var actionName: String {
+        label.split(separator: " ").first.map(String.init) ?? label
+    }
+    /// What committing costs. 폴드 and 체크 are stated as 0bb rather than left blank:
+    /// it is the number the reveal's EV comparison is read against.
+    var priceText: String {
+        switch choice {
+        case .fold, .check: return "0bb"
+        default: return subline.isEmpty ? "0bb" : subline
+        }
+    }
+    /// Money class, not merit — see `GTActionRole`.
+    var role: GTActionRole {
+        switch choice {
+        case .fold:         return .fold
+        case .check, .call: return .passive
+        case .raise, .bet:  return .aggressive
+        }
     }
 }

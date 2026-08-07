@@ -97,6 +97,19 @@ enum GT {
     static let segBet  = Color(hex: 0x2F7352)
     static let segCall = Color(hex: 0x7A5C18)
 
+    /// Lit relatives of the two price-bar segments, for the accent rule under a table
+    /// action button. The segments themselves are sized to carry `onFelt` numerals on
+    /// felt, so as a hairline on `surface` they measure 2.79:1 (벳) and 2.54:1 (콜) —
+    /// both under WCAG 1.4.11's 3:1 for a non-text element. These are the same hues
+    /// raised until they clear it: 4.6:1 and 4.2:1 on `surface`.
+    ///
+    /// They mark **what kind of money** a button commits — the same thing the price
+    /// bar's colours mean — and never which button is better. The table grades the
+    /// choice, so an action rendered as the sheet's primary CTA would hand over the
+    /// answer before the user commits.
+    static let actionBet  = Color(hex: 0x3E9A6E)
+    static let actionCall = Color(hex: 0xA67C1F)
+
     static let suitRed = Color(hex: 0xC0392B)
     /// Ink printed on a playing card. Fixed, for the same reason as everything above.
     static let cardInk     = Color(hex: 0x1A2621)

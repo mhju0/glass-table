@@ -431,6 +431,62 @@ struct GTChoiceButton: View {
     }
 }
 
+/// What class of action a table button commits to — never *which one is better*.
+///
+/// `GTChoiceButton` deliberately renders every drill answer identically so the sheet
+/// cannot leak the grade, and the table is graded the same way. So these roles change
+/// one thing only: the hue of the rule under the price, carrying the meaning the price
+/// bar already assigns to that money. 폴드 puts nothing in the middle, so it has no
+/// segment and gets the neutral edge.
+enum GTActionRole {
+    case fold, passive, aggressive
+
+    var accent: Color {
+        switch self {
+        case .fold:       return GT.borderStrong
+        case .passive:    return GT.actionCall
+        case .aggressive: return GT.actionBet
+        }
+    }
+}
+
+/// A priced action at the table: what it is, over what it costs.
+///
+/// The old row was one string per button — "폴드" / "콜 5.6bb" / "레이즈 16.9bb" at one
+/// weight — so three different commitments read as three rows of text and the price had
+/// to be parsed out of a sentence. Splitting it puts the numbers in a column the eye can
+/// compare, which is the comparison the decision actually turns on.
+struct GTActionButton: View {
+    let title: String
+    /// Always present, 폴드 included: "0bb" is the fact that makes the EV comparison on
+    /// the next screen legible, and an empty slot here would break the column.
+    let price: String
+    let role: GTActionRole
+    var minHeight: CGFloat = 56
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Text(title).font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
+                Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
+                    .minimumScaleFactor(0.7).lineLimit(1)
+            }
+            .padding(.horizontal, 6)
+            .frame(maxWidth: .infinity, minHeight: minHeight)
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .overlay(alignment: .bottom) {
+                Capsule().fill(role.accent)
+                    .frame(height: 3).padding(.horizontal, 14).padding(.bottom, 7)
+            }
+            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .strokeBorder(GT.borderStrong, lineWidth: 1))
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel("\(title), \(price)")
+    }
+}
+
 struct EstimateStepper: View {
     let value: Int
     var step: Int = 1
