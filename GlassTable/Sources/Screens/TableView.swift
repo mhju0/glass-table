@@ -316,43 +316,96 @@ struct TableView: View {
         }
     }
 
+    /// The reveal, lesson first.
+    ///
+    /// The old order led with the score at 28pt and dropped the lesson — "최선은 폴드" —
+    /// into 12pt grey underneath, which is backwards: the number is the mark, the
+    /// sentence is the thing worth carrying to the next hand. The severity keeps its
+    /// band ink and glyph but moves to a pill beside the headline.
+    ///
+    /// §D's 최선 band is "optimal *or near-optimal*", so it can sit beside a headline
+    /// naming a different action as best. That pairing is only readable because the
+    /// cost is printed directly under it — which is what `evPrices` is for, and why it
+    /// is not optional decoration.
     private func turnReveal(_ turn: TurnRecord) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline, spacing: 9) {
-                switch turn.verdict {
-                case let .ev(loss, _):
-                    Text(loss <= 0 ? "0bb" : "\u{2212}\(bbText(loss))bb")
-                        .font(GT.title(28).monospacedDigit()).foregroundStyle(turn.band.ink)
-                    Image(systemName: turn.band.glyph)
-                        .font(.system(size: 14)).foregroundStyle(turn.band.ink)
-                    Text(turn.band.evLossLabel).font(GT.title(14)).foregroundStyle(turn.band.ink)
-                case let .chart(v):
-                    Text(v.matched ? "차트대로" : "차트는 \(v.chart.rawValue)")
-                        .font(GT.title(24)).foregroundStyle(turn.band.ink)
-                    Image(systemName: turn.band.glyph)
-                        .font(.system(size: 14)).foregroundStyle(turn.band.ink)
-                }
-                Spacer(minLength: 6)
-                Text("내 선택 · \(turn.label)")
-                    .font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                headlineText(turn).font(GT.title(20))
+                bandPill(turn)
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 13).padding(.vertical, 10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(turn.band.tint, in: RoundedRectangle(cornerRadius: 14))
-            switch turn.verdict {
-            case let .ev(loss, best) where loss > 0:
-                Text("최선은 \(best)")
-                    .font(GT.body(12)).foregroundStyle(GT.inkSecondary)
-            case .chart:
+            evPrices(turn)
+            if case .chart = turn.verdict {
                 SecondaryCTAButton(title: "차트 보기") { showChart = true }
-            default:
-                EmptyView()
             }
             PrimaryCTAButton(title: "계속") {
                 lastTurn = nil
                 if let hand { prepareOptions(for: hand) }
             }
         }
+    }
+
+    /// 은/는 attaches to 최선, a fixed word, so the opponent's action never needs a
+    /// computed particle — the reason this phrasing survived from the old reveal.
+    private func headlineText(_ turn: TurnRecord) -> Text {
+        switch turn.verdict {
+        case let .ev(loss, best):
+            if loss <= 0 { return Text("최선의 선택").foregroundStyle(GT.ink) }
+            return Text("최선은 ").foregroundStyle(GT.ink)
+                 + Text(best).foregroundStyle(GT.green)
+        case let .chart(v):
+            if v.matched { return Text("차트대로").foregroundStyle(GT.ink) }
+            return Text("차트는 ").foregroundStyle(GT.ink)
+                 + Text(v.chart.rawValue).foregroundStyle(GT.green)
+        }
+    }
+
+    private func bandPill(_ turn: TurnRecord) -> some View {
+        let word: String = {
+            if case .ev = turn.verdict { return turn.band.evLossLabel }
+            return turn.band == .spotOn ? "일치" : "불일치"
+        }()
+        return HStack(spacing: 4) {
+            Image(systemName: turn.band.glyph).font(.system(size: 10, weight: .bold))
+            Text(word).font(GT.semibold(11))
+        }
+        .foregroundStyle(turn.band.ink)
+        .padding(.horizontal, 9).padding(.vertical, 4)
+        .background(turn.band.tint, in: Capsule())
+        .accessibilityLabel("판정 \(word)")
+    }
+
+    /// Where the number came from: the best line and the chosen line, side by side.
+    /// A bare "\u{2212}4.1bb" is a verdict; the same figure against 폴드 0bb is a
+    /// subtraction the user can check, which is what the app claims to be for.
+    @ViewBuilder
+    private func evPrices(_ turn: TurnRecord) -> some View {
+        if case let .ev(loss, best) = turn.verdict, loss > 0 {
+            VStack(spacing: 8) {
+                priceRow(tag: "최선", action: best,
+                         amount: "0bb", ink: GTBand.spotOnInk)
+                Divider().overlay(GT.border)
+                priceRow(tag: "내 선택", action: turn.label,
+                         amount: "\u{2212}\(bbText(loss))bb", ink: turn.band.ink)
+                Text("숫자는 최선 대비 손실이에요")
+                    .font(GT.body(10)).foregroundStyle(GT.inkMuted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(12)
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+        }
+    }
+
+    private func priceRow(tag: String, action: String,
+                          amount: String, ink: Color) -> some View {
+        HStack(spacing: 8) {
+            Text(tag).font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
+                .frame(width: 46, alignment: .leading)
+            Text(action).font(GT.semibold(13)).foregroundStyle(GT.ink)
+            Spacer(minLength: 6)
+            Text(amount).font(GT.title(14).monospacedDigit()).foregroundStyle(ink)
+        }
+        .accessibilityElement(children: .combine)
     }
 
     private func actPreflop(_ choice: TableHand.HeroChoice, _ current: TableHand) {
