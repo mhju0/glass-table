@@ -6,6 +6,46 @@ Notable changes to the Glass Table app. Format follows
 
 ## [Unreleased]
 
+### Fixed — accessibility (2026-08-07)
+- **Card ranks truncated to "…" at the accessibility text sizes**, because the
+  face used a Dynamic-Type font inside a fixed card frame. 쇼다운 asked who won
+  above nine blank cards and the table could not be read — the app was
+  unplayable at exactly the settings that ask for help. Card faces now opt out
+  of scaling (`GT.fixed`); VoiceOver already announced each card and still does.
+  Scaling was never an option: five cards at 3× need ~715pt of a 393pt screen
+  (decisions.md §H).
+- The drills' 자리 strip and the table's 스트리트 strip stop scaling at
+  `.xxLarge` instead of breaking `UTG+1` across three lines — both are one-row
+  diagrams that only work whole.
+
+### Changed — UI review pass (2026-08-07)
+- **테이블 actions are priced and separated by kind.** Fold / call / raise were
+  one string each at one weight; the verb now sits over the amount in tabular
+  digits, so the three prices form a column. A 3pt rule under each marks *what
+  kind of money* it commits (gold call, green wager, neutral fold) and
+  deliberately never marks which is better — the screen grades that choice.
+- **The reveal leads with the lesson.** "최선은 폴드" moves from 12pt grey to the
+  headline and the severity becomes a pill; the EV loss now sits in a two-row
+  comparison against the best line, so −4.1bb is a subtraction the user can
+  check rather than a verdict.
+- **Three screens stopped stacking from the top.** 테이블, the 천천히 walkthrough
+  and `DrillShell` (shared by all 18 drills) pinned their content to the
+  viewport height, so the slack that used to pool as bare felt above the sheet
+  — measured 18–41% of the screen — is now distributed around the content.
+- **팟 moved to the board** as a proportional 팟/콜 strip with the division
+  spelled out. It also rounds to printed precision *before* dividing; the old
+  arithmetic printed 13.1 + 5.6 under a total of 18.8.
+- **길 inverted its weight.** A cleared node was the brightest, largest thing on
+  screen while the next step was a hollow ring. Cleared nodes are now small mint
+  discs on a continuous rail, only the live node keeps the full badge and a
+  glass card, mastery moved into chips, and unit headers gained a progress bar.
+  The serpentine indent is gone — it read as a dependency tree, and a unit is a
+  sequence.
+- **The streak is drawn with SF Symbols**, not 🔥/🛡 — the last two emoji used as
+  icons anywhere in the app.
+- Tab-bar clearance is one `@ScaledMetric` safe-area inset instead of four
+  copies of `.padding(.bottom, 96)`.
+
 ### Added — the revamp (branch `revamp/r1-progression-shell`, 2026-08-03/04)
 - **Progression shell (R1)**: the app became a course. Three tabs — 오늘 (one
   next step, daily set, calibration), 길 (a linear path of units and boss

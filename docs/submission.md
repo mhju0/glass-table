@@ -7,9 +7,10 @@
 > age-rating rationale below ("no betting gameplay") therefore **no longer
 > describes the app**; the Simulated Gambling answer, the review notes and
 > likely the KR rating path must be reassessed (see `open-questions.md` #11 —
-> counsel before the betting-table submission was always the plan). The
-> screenshots are also the M1 set. Descriptive metadata (subtitle, promo,
-> keywords, descriptions) has been refreshed to the current app.
+> counsel before the betting-table submission was always the plan).
+> Descriptive metadata (subtitle, promo, keywords, descriptions) has been
+> refreshed to the current app, and the screenshots were re-captured
+> 2026-08-07 — **the age rating is now the only thing blocking resumption.**
 
 Single source of truth for everything entered into App Store Connect.
 Field limits: name 30, subtitle 30, keywords 100, promotional text 170,
@@ -164,8 +165,16 @@ mathematics, aimed at Korean-speaking players (UI is Korean-first).
 ## Screenshots
 
 One iPhone 6.9" set (1320×2868, from iPhone 17 Pro Max simulator), reused for
-both locales: `docs/store-assets/ko-0[1-5]-*.png` — home, outs reveal,
-pot-odds question, stats, glossary. **Stale (M1 UI): re-capture the full set
-before resuming** — the current app's 길/오늘/테이블/기록 look nothing like
-these. `tools/uisweep.sh` on an iPhone 17 Pro Max simulator produces the raw
-frames.
+both locales: `docs/store-assets/ko-0[1-5]-*.png` — 오늘, 길, 테이블, a graded
+reveal, 기록. **Re-captured 2026-08-07** against the current UI, replacing the
+M1 set (home / outs reveal / pot-odds / stats / glossary), which was two design
+generations old.
+
+Regenerate with `GT_SIM="iPhone 17 Pro Max" tools/uisweep.sh`, then copy
+`today`, `path`, `table-hand`, `drill-evloss-call` and `records` out of the
+timestamped folder. The order is the pitch: what you open daily → the course
+behind it → the graded hand that is the differentiator → the reveal showing
+where a number came from → progress and calibration.
+
+These are raw frames with no caption layer. If App Store Connect ends up
+wanting captioned marketing shots, that is a separate pass.

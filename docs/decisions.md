@@ -183,3 +183,19 @@ Amended 2026-08-04, after measuring real pixels out of a `tools/uisweep.sh` capt
 **Brightening the glass instead was tried and rejected.** Taking it to `#566D60` clears 3:1 against the felt, but drops `inkMuted` to 2.2:1 and the three band inks to 2.6–3.3:1 — one boundary failure traded for six ink failures.
 
 **One appearance.** The two schemes measured **1.50:1 apart on the felt and 1.04:1 on every glass surface** — the same pixel. `UIUserInterfaceStyle: Dark` is set in `project.yml`; `dyn()` is gone, and `tools/uisweep.sh` makes one pass instead of two. Dark mode was never the same room at night; it was the same room.
+
+**Amended 2026-08-07 — action accents mark money, never merit.** The table's three actions shared one surface, one border and one weight, so fold, call and raise read as three rows of text. They are now separated by a 3pt rule under the price, coloured by *what kind of money the button commits*: `actionCall` `#A67C1F` for the call denominator, `actionBet` `#3E9A6E` for a wager, `borderStrong` for 폴드, which puts nothing in. The raw price-bar segments could not be reused as a hairline on `surface` — they measure **2.79:1 (벳) and 2.54:1 (콜)**, under 1.4.11's 3:1 — so these are the same hues raised until they clear it, at **4.6:1 and 4.2:1**.
+
+The colours deliberately do **not** rank the options. The table grades the choice, so an action styled as the sheet's primary CTA would hand over the answer before the user commits — the same reason `GTChoiceButton` renders every drill answer identically and only turns mint once *selected*. Any future "make the recommended action stand out" is a bug, not a polish.
+
+### H. Type scaling — **text scales with the reader; a card does not**
+
+Added 2026-08-07, after sweeping the app at the largest accessibility text size for the first time.
+
+**The bug this settles.** Every font in the app is declared `relativeTo: .body`, so it follows Dynamic Type — correct for text, and wrong for the one thing that is not text. A card's rank was drawn with `GT.title(size * 0.36)` inside a frame fixed at `size * 0.72 × size`. At the accessibility sizes the label outgrew the card and truncated: **every rank rendered as "…"**. 쇼다운 asked who won above nine blank cards, and the table could not be read at all. The setting that exists to help made the app unplayable.
+
+**A card is a pictogram, so it opts out** (`GT.fixed`, `.custom(_:fixedSize:)`). The glyph is sized as a fraction of the card, and the card is sized so five fit a board on the narrowest supported screen. This is not a close call: at `accessibility-XXXL` body text grows roughly **3×**, which puts a 46pt-wide board card at ~143pt and a five-card row at **~715pt against 393pt of screen**. Even `CardRow`'s smallest rung (48pt → 34.5pt wide) reaches ~535pt. There is no rung that fits, so there is no version of "scale the card" that works. VoiceOver already publishes each card (`"스페이드 A"`), which is where the content goes instead.
+
+**One-row diagrams clamp rather than opt out.** The drills' 자리 strip and the table's 스트리트 strip are real text in flexible chips, so they keep scaling — but stop at `.xxLarge` (`.dynamicTypeSize(...DynamicTypeSize.xxLarge)`), short of where `UTG+1` broke into three stacked lines and 프리플랍 into two. Both are diagrams whose meaning depends on seeing every entry at once; wrapping them destroys the thing they are for, and horizontal scrolling would too.
+
+**The rule, for anything added later.** Ask whether the glyph is *read* or *looked at*. Read → let it scale. Looked at, or pinned to a fixed geometric frame → `GT.fixed`, and make sure VoiceOver carries the content. A fixed frame around scaling text is the defect, and it is invisible until someone sweeps at an accessibility size — so `tools/uisweep.sh` after a `xcrun simctl ui <dev> content_size accessibility-extra-extra-extra-large` is now part of looking at the app, not an extra.

@@ -1,6 +1,6 @@
 # Glass Table
 
-iOS app that teaches serious-minded amateurs to think about No-Limit Hold'em in **ranges and EV**. Start with `CONTEXT.md` (one-page domain orientation). Design docs live in `docs/`: `product-brief.md`, `decisions.md` (§A–§G), `open-questions.md`, `risks.md`, one spec per shipped slice in `docs/specs/`, M1-era plans in `docs/plans/` (historical, like `milestone-1.md`).
+iOS app that teaches serious-minded amateurs to think about No-Limit Hold'em in **ranges and EV**. Start with `CONTEXT.md` (one-page domain orientation). Design docs live in `docs/`: `product-brief.md`, `decisions.md` (§A–§H), `open-questions.md`, `risks.md`, one spec per shipped slice in `docs/specs/`, M1-era plans in `docs/plans/` (historical, like `milestone-1.md`).
 
 Engine changes require the release-config gate (`swift test -c release --package-path GlassTableEngine`). The `.xcodeproj` is XcodeGen-generated, never committed. After UI changes, run `tools/uisweep.sh` and *look at* the screenshots.
 
