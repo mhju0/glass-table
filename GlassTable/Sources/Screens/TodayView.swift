@@ -50,23 +50,42 @@ struct TodayView: View {
         }
     }
 
+    private func streakChip(symbol: String, text: String, tint: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol).font(.system(size: 11.5, weight: .semibold))
+            Text(text).font(GT.semibold(12).monospacedDigit())
+        }
+        .foregroundStyle(tint)
+    }
+
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
                 Text("오늘").font(GT.title(24)).foregroundStyle(GT.onFelt)
                 Spacer()
-                // Same rule as everywhere else: 🔥 only with a live streak. The shield
-                // count rides along so a missed-day-yet-intact streak reads as a spent
-                // freeze rather than unexplained magic.
+                // Same rule as everywhere else: the flame only with a live streak. The
+                // shield count rides along so a missed-day-yet-intact streak reads as a
+                // spent freeze rather than unexplained magic.
+                //
+                // Symbols, not 🔥/🛡: an emoji is drawn by whichever font the OS picks,
+                // so it cannot take a token colour and it redraws itself between iOS
+                // releases. These were the only two in the app — everything else,
+                // including the tab bar beneath them, is already SF Symbols.
                 if model.state.streak.current > 0 {
-                    Text("🔥 \(model.state.streak.current)일째"
-                         + (model.state.streak.freezesRemaining > 0
-                            ? " · 🛡 \(model.state.streak.freezesRemaining)" : ""))
-                        .font(GT.semibold(12).monospacedDigit())
-                        .foregroundStyle(GT.onFeltSecondary)
-                        .accessibilityLabel("연속 \(model.state.streak.current)일째"
-                            + (model.state.streak.freezesRemaining > 0
-                               ? ", 하루 놓쳐도 지켜주는 보호 \(model.state.streak.freezesRemaining)개" : ""))
+                    HStack(spacing: 9) {
+                        streakChip(symbol: "flame.fill",
+                                   text: "\(model.state.streak.current)일째",
+                                   tint: GT.mint)
+                        if model.state.streak.freezesRemaining > 0 {
+                            streakChip(symbol: "shield.fill",
+                                       text: "\(model.state.streak.freezesRemaining)",
+                                       tint: GT.onFeltSecondary)
+                        }
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("연속 \(model.state.streak.current)일째"
+                        + (model.state.streak.freezesRemaining > 0
+                           ? ", 하루 놓쳐도 지켜주는 보호 \(model.state.streak.freezesRemaining)개" : ""))
                 }
             }
             Text(subtitleLine)
