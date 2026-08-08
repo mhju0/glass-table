@@ -7,22 +7,50 @@
 /// two completing ranks (5 and T), A234 has one (5, because the ace is already the low
 /// end), and JQKA has one.
 public func straightCompletingRanks(_ cards: [Card]) -> [Int] {
-    guard !isStraight(cards) else { return [] }
+    let mask = rankMask(cards)
+    guard !maskHasStraight(mask) else { return [] }
     var out: [Int] = []
-    for rank in 2...14 where !cards.contains(where: { $0.rank == rank }) {
-        // Suit is irrelevant to a straight, so any suit stands in for the rank.
-        if isStraight(cards + [Card(rank: rank, suit: 0)]) { out.append(rank) }
+    for rank in 2...14 where mask & (1 << rank) == 0 {
+        var m = mask | (1 << rank)
+        if rank == 14 { m |= 1 << 1 }
+        if maskHasStraight(m) { out.append(rank) }
     }
     return out
+}
+
+/// Bit `r` set for every rank present; bit 1 mirrors the ace so the wheel needs no
+/// special case downstream.
+@inline(__always)
+func rankMask(_ cards: [Card]) -> Int {
+    var m = 0
+    for c in cards { m |= 1 << c.rank }
+    if m & (1 << 14) != 0 { m |= 1 << 1 }
+    return m
+}
+
+/// Five consecutive bits anywhere in 1...14.
+@inline(__always)
+func maskHasStraight(_ mask: Int) -> Bool {
+    let m = mask & (mask >> 1) & (mask >> 2) & (mask >> 3) & (mask >> 4)
+    return m != 0
 }
 
 /// True when some five of these ranks are consecutive. The wheel counts: an ace plays
 /// low in A-2-3-4-5.
 func isStraight(_ cards: [Card]) -> Bool {
-    var present = Set(cards.map(\.rank))
-    if present.contains(14) { present.insert(1) }
-    for low in 1...10 {
-        if (low..<(low + 5)).allSatisfy({ present.contains($0) }) { return true }
+    maskHasStraight(rankMask(cards))
+}
+
+/// Whether *any* rank completes a straight — the question `drawOrAir` actually asks.
+/// Short-circuits, and never allocates the list of ranks.
+@inline(__always)
+func hasStraightDrawOrBetter(_ cards: [Card]) -> Bool {
+    let mask = rankMask(cards)
+    if maskHasStraight(mask) { return false }   // already made; not a draw
+    for rank in 2...14 where mask & (1 << rank) == 0 {
+        var m = mask | (1 << rank)
+        if rank == 14 { m |= 1 << 1 }
+        if maskHasStraight(m) { return true }
     }
     return false
 }
@@ -39,9 +67,16 @@ public enum StraightDraw: Equatable, Sendable {
 
 /// Four to a flush. Five would already be a made flush, which the hand category catches.
 public func hasFlushDraw(_ cards: [Card]) -> Bool {
-    var bySuit = [Int](repeating: 0, count: 4)
-    for c in cards { bySuit[c.suit] += 1 }
-    return bySuit.contains(4)
+    var s0 = 0, s1 = 0, s2 = 0, s3 = 0
+    for c in cards {
+        switch c.suit {
+        case 0: s0 += 1
+        case 1: s1 += 1
+        case 2: s2 += 1
+        default: s3 += 1
+        }
+    }
+    return s0 == 4 || s1 == 4 || s2 == 4 || s3 == 4
 }
 
 // MARK: - what one hand is doing on a board
@@ -83,10 +118,16 @@ public func madeHand(hand: [Card], board: [Card]) -> MadeHand {
     if brief.category == 1 {
         // Which rank is the pair? A board pair everyone shares is not *this hand's*
         // pair, so read the pair off the hand rather than off `brief`.
-        let topBoard = board.map(\.rank).max() ?? 0
-        let boardRanks = board.map(\.rank)
-        let paired = hand.filter { boardRanks.contains($0.rank) }.map(\.rank).max()
-        if let paired {
+        var topBoard = 0
+        var boardMask = 0
+        for c in board {
+            if c.rank > topBoard { topBoard = c.rank }
+            boardMask |= 1 << c.rank
+        }
+        var paired = 0
+        if boardMask & (1 << hand[0].rank) != 0 { paired = hand[0].rank }
+        if boardMask & (1 << hand[1].rank) != 0, hand[1].rank > paired { paired = hand[1].rank }
+        if paired != 0 {
             return paired == topBoard ? .topPair : .weakPair
         }
         // No hand card paired the board: either a pocket pair or the board is paired.
@@ -102,7 +143,7 @@ public func madeHand(hand: [Card], board: [Card]) -> MadeHand {
 
 private func drawOrAir(_ cards: [Card]) -> MadeHand {
     if hasFlushDraw(cards) { return .draw }
-    return straightCompletingRanks(cards).isEmpty ? .air : .draw
+    return hasStraightDrawOrBetter(cards) ? .draw : .air
 }
 
 // MARK: - the board itself
@@ -137,20 +178,31 @@ public struct BoardTexture: Equatable, Sendable {
 
 public func boardTexture(_ board: [Card]) -> BoardTexture {
     precondition((3...5).contains(board.count))
-    var bySuit = [Int](repeating: 0, count: 4)
-    for c in board { bySuit[c.suit] += 1 }
-    let ranks = board.map(\.rank)
-
-    var present = Set(ranks)
-    if present.contains(14) { present.insert(1) }
+    var bySuit = (0, 0, 0, 0)
+    var highCard = 0
+    var distinct = 0
+    var seen = 0
+    for c in board {
+        switch c.suit {
+        case 0: bySuit.0 += 1
+        case 1: bySuit.1 += 1
+        case 2: bySuit.2 += 1
+        default: bySuit.3 += 1
+        }
+        if c.rank > highCard { highCard = c.rank }
+        if seen & (1 << c.rank) == 0 { distinct += 1; seen |= 1 << c.rank }
+    }
+    let present = rankMask(board)
     var windows = 0
-    for low in 1...10 where (low..<(low + 5)).filter({ present.contains($0) }).count >= 3 {
-        windows += 1
+    for low in 1...10 {
+        var have = 0
+        for r in low..<(low + 5) where present & (1 << r) != 0 { have += 1 }
+        if have >= 3 { windows += 1 }
     }
 
-    return BoardTexture(isPaired: Set(ranks).count < ranks.count,
-                        topSuitCount: bySuit.max() ?? 0,
-                        highCard: ranks.max() ?? 0,
+    return BoardTexture(isPaired: distinct < board.count,
+                        topSuitCount: max(max(bySuit.0, bySuit.1), max(bySuit.2, bySuit.3)),
+                        highCard: highCard,
                         straightiness: windows,
                         cardCount: board.count)
 }

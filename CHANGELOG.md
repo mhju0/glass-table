@@ -6,6 +6,27 @@ Notable changes to the Glass Table app. Format follows
 
 ## [Unreleased]
 
+### Changed — engine performance (2026-08-08)
+- **`madeHand` was 5× more expensive than the evaluator it wraps** — 5.4µs
+  against `evaluate7`'s 1.0µs. `straightCompletingRanks` asked "does this
+  complete a straight" once per rank, and each ask built a fresh array and a
+  fresh `Set`; `drawOrAir` then read only `.isEmpty` off the list it allocated.
+  Straight detection is now five `AND`s on a rank bitmask, and the bucket
+  classifier is allocation-free: **47× on a flop, 15× on a river**.
+- **`eval5` packs rank multiplicities four bits at a time into one `UInt64`**,
+  which retires the 15-slot scratch buffer, its zeroing loop, and the
+  52-iteration tiebreak sweep (now one mask per multiplicity). `evaluate7` 2.9×.
+- **`exactEquityHeadsUp` built a deck it could not use on a complete board** — a
+  9-card `Set` plus a 52-card filter, to set up two evaluations. That is the
+  path `equityVsRange` walks once per villain combo, and hero's key is constant
+  across them besides. River hand-vs-range **12×**.
+- The Monte-Carlo paths reuse their card buffers instead of allocating three
+  arrays per iteration; `rangeEquity` no longer rebuilds a 48-card pool per
+  sample, ×8,000. `rangeEquity` 2.6×, `rangeOnBoard` 11×.
+- Same algorithm and the same integer keys throughout — only constant factors
+  changed. The release gate proves it: **92 engine tests 284s → 128s**, 316
+  drills tests 4.8s → 0.7s, none of them touched.
+
 ### Fixed — accessibility (2026-08-07)
 - **Card ranks truncated to "…" at the accessibility text sizes**, because the
   face used a Dynamic-Type font inside a fixed card frame. 쇼다운 asked who won

@@ -74,10 +74,20 @@ public func rangeEquity(hero: HandRange, villain: HandRange, board: [Card],
     let villainCombos = villain.combos(removing: board)
     guard !heroCombos.isEmpty, !villainCombos.isEmpty else { return 0.5 }
 
-    let known = Set(board)
-    let deck = Deck.all.filter { !known.contains($0) }
+    var known = 0 as UInt64
+    for c in board { known |= 1 << UInt64(c.rank * 4 + c.suit) }
+    let deck = Deck.all.filter { known & (1 << UInt64($0.rank * 4 + $0.suit)) == 0 }
     let need = 5 - board.count
     var rng = SplitMix64(seed: seed)
+
+    // Scratch reused across samples. The old loop allocated a fresh 48-card `pool`,
+    // a `runout`, a `board + runout` and two 7-card concatenations *per sample* —
+    // four array allocations times 8,000.
+    var pool = deck
+    var heroSeven = [Card](repeating: deck[0], count: 7)
+    var villainSeven = [Card](repeating: deck[0], count: 7)
+    for i in 0..<board.count { heroSeven[2 + i] = board[i]; villainSeven[2 + i] = board[i] }
+    let tail = 2 + board.count
 
     var score = 0.0
     var taken = 0
@@ -92,17 +102,23 @@ public func rangeEquity(hero: HandRange, villain: HandRange, board: [Card],
         let v = villainCombos[Int(rng.next() % UInt64(villainCombos.count))]
         if h[0] == v[0] || h[0] == v[1] || h[1] == v[0] || h[1] == v[1] { continue }
 
-        var runout = [Card]()
+        heroSeven[0] = h[0]; heroSeven[1] = h[1]
+        villainSeven[0] = v[0]; villainSeven[1] = v[1]
         if need > 0 {
-            var pool = deck.filter { $0 != h[0] && $0 != h[1] && $0 != v[0] && $0 != v[1] }
-            for i in 0..<need {
-                let j = Int(rng.next() % UInt64(pool.count - i)) + i
-                pool.swapAt(i, j)
+            // Compact the four dead cards out of the reused pool in place, then partial
+            // Fisher-Yates over what is left.
+            var live = 0
+            for c in deck where c != h[0] && c != h[1] && c != v[0] && c != v[1] {
+                pool[live] = c; live += 1
             }
-            runout = Array(pool[0..<need])
+            for i in 0..<need {
+                let j = Int(rng.next() % UInt64(live - i)) + i
+                pool.swapAt(i, j)
+                heroSeven[tail + i] = pool[i]
+                villainSeven[tail + i] = pool[i]
+            }
         }
-        let full = board + runout
-        let hv = evaluate7(h + full), vv = evaluate7(v + full)
+        let hv = evaluate7(heroSeven), vv = evaluate7(villainSeven)
         score += hv > vv ? 1 : (hv == vv ? 0.5 : 0)
         taken += 1
     }
