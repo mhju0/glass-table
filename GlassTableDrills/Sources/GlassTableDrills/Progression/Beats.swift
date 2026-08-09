@@ -546,8 +546,9 @@ public enum BeatScript {
     /// checkable against a published table rather than read off a black box.
     public static func actionRead(_ s: ActionReadSpot) -> [Beat] {
         let acted = s.acted
+        let full = s.full
         let bars = [BucketBar(label: "\(s.villain.name) 오픈 레인지 전체",
-                              distribution: s.full),
+                              distribution: full),
                     BucketBar(label: "\(s.action.rawValue) 이후",
                               distribution: acted.distribution)]
         // One line per bucket: what this archetype does with it when checked to.
@@ -572,7 +573,7 @@ public enum BeatScript {
                        + "\(s.actedBucketList).",
                  focus: .buckets(bars)),
             Beat("그래서", value: "페어 이상 \(pctText(acted.distribution.pairOrBetter * 100))%",
-                 detail: "전체 레인지는 \(pctText(s.full.pairOrBetter * 100))%였어요. "
+                 detail: "전체 레인지는 \(pctText(full.pairOrBetter * 100))%였어요. "
                        + "같은 레인지인데 행동 하나로 모양이 달라져요 — 이게 리드예요.",
                  focus: .buckets(bars)),
         ]

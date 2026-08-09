@@ -6,6 +6,20 @@ Notable changes to the Glass Table app. Format follows
 
 ## [Unreleased]
 
+### Changed — grading stopped computing the same answer twice (2026-08-09)
+- **`gradeHitFrequency` built the range's distribution twice** — once through
+  `pairOrBetterPct` and once for the sentence — which was half the cost of
+  grading the drill: 145µs → 78µs.
+- **`gradeActionRead` narrowed the range twice** the same way (120µs → 80µs), and
+  **`ActionReadSpotGenerator` narrowed it twice per rejected candidate**, asking
+  the spot for its percentage and then for its combo count: 85µs → 44µs.
+- The 액션 리드 walkthrough read `full` once per bar and again for its closing
+  line; 118µs → 84µs.
+- Output is unchanged, and checked rather than assumed: 1,000 generated spots
+  across 40 seeds, their narrowed distributions to twelve decimals, 6,000 grades
+  with their Korean text and 10,000 walkthrough beats are byte-identical to the
+  previous build. So are all 58 swept screens bar the showdown fade-in.
+
 ### Changed — drill screens stopped recomputing per render (2026-08-09)
 - **A `spot` held in a computed property regenerated itself on every read**, and a
   `body` reads it five to nine times. The generators are not cheap — 액션 리드

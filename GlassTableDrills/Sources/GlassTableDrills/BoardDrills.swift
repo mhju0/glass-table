@@ -37,8 +37,10 @@ public enum HitFrequencySpotGenerator {
 }
 
 public func gradeHitFrequency(estimate: Estimate, spot: HitFrequencySpot) -> EstimateReveal {
-    let correct = spot.pairOrBetterPct
+    // One pass over the range's combos, not two: `pairOrBetterPct` is a reading off
+    // this same distribution, and building it twice was half the cost of grading.
     let d = spot.distribution
+    let correct = d.pairOrBetter * 100
     return EstimateReveal(
         // Wider than the equity bands: this is a distribution read, not a calculation,
         // and nobody counts 1326 combos in their head.

@@ -68,8 +68,11 @@ public enum ActionReadSpotGenerator {
             // always 100%, LAG-체크 is exactly 약한 페어 — and 매니악-체크 is an empty
             // set. Those tells are taught in the walkthrough and named in every
             // reveal; they are not gradeable questions, so reseed past them.
-            let pct = spot.pairOrBetterPct
-            if spot.acted.combos > 0 && pct <= 99.5 && pct >= 0.5 {
+            // Narrowed once per attempt. Asking the spot for the percentage and then
+            // for the combo count walked the whole range twice on every rejection.
+            let acted = spot.acted
+            let pct = acted.distribution.pairOrBetter * 100
+            if acted.combos > 0 && pct <= 99.5 && pct >= 0.5 {
                 return spot
             }
             attempt += 1
@@ -78,9 +81,11 @@ public enum ActionReadSpotGenerator {
 }
 
 public func gradeActionRead(estimate: Estimate, spot: ActionReadSpot) -> EstimateReveal {
-    let correct = spot.pairOrBetterPct
-    let fullPct = spot.full.pairOrBetter * 100
+    // `acted` narrows the whole range combo by combo, so it is taken once and read
+    // from — `pairOrBetterPct` would have narrowed it a second time for one number.
     let a = spot.acted
+    let correct = a.distribution.pairOrBetter * 100
+    let fullPct = spot.full.pairOrBetter * 100
     // Which way the action moved the range is the sentence worth remembering; the
     // percentages are its evidence.
     let direction = correct > fullPct + 1 ? "강한 쪽으로 좁혔어요"
