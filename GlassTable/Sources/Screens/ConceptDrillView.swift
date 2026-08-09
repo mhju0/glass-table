@@ -558,8 +558,15 @@ private struct CountDrill: View {
     @State private var result: (band: GradeBand, mine: String, correct: String, why: String)?
     @State private var tappedOut: Card?
 
-    private var outsSpot: OutsSpot { OutsSpotGenerator.spot(baseSeed: seed, index: index) }
-    private var comboSpot: BlockerSpot { BlockerSpotGenerator.spot(baseSeed: seed, index: index) }
+    /// Generated per use rather than held in a computed property, and never both at
+    /// once: only the kind on screen is built, and the outs generator walks the deck
+    /// looking for a spot with a countable number of outs.
+    private func makeOutsSpot() -> OutsSpot {
+        OutsSpotGenerator.spot(baseSeed: seed, index: index)
+    }
+    private func makeComboSpot() -> BlockerSpot {
+        BlockerSpotGenerator.spot(baseSeed: seed, index: index)
+    }
 
     var body: some View {
         DrillShell(title: kind == .outs ? "아웃" : "콤보", progressText: progressText) {
@@ -567,9 +574,10 @@ private struct CountDrill: View {
                 // After the reveal the outs become tappable, so an abstract count turns
                 // into a hand you can actually see finish. Counting 9 teaches less than
                 // watching one of the nine win.
-                if result != nil { outsReveal } else { outsContent }
+                let spot = makeOutsSpot()
+                if result != nil { outsReveal(spot) } else { outsContent(spot) }
             } else {
-                comboContent
+                comboContent(makeComboSpot())
             }
         } sheet: {
             if let result {
@@ -598,30 +606,31 @@ private struct CountDrill: View {
     private func submit() {
         switch kind {
         case .outs:
-            let r = gradeOuts(estimate: value, spot: outsSpot)
-            result = (r.band, "\(value)장", "\(outsSpot.outCount)장", r.whyText)
+            let spot = makeOutsSpot()
+            let r = gradeOuts(estimate: value, spot: spot)
+            result = (r.band, "\(value)장", "\(spot.outCount)장", r.whyText)
         case .combos:
-            let r = gradeBlocker(estimate: value, spot: comboSpot)
-            result = (r.band, "\(value)개", "\(comboSpot.count)개", r.whyText)
+            let spot = makeComboSpot()
+            let r = gradeBlocker(estimate: value, spot: spot)
+            result = (r.band, "\(value)개", "\(spot.count)개", r.whyText)
         }
     }
 
-    private var outsContent: some View {
+    private func outsContent(_ spot: OutsSpot) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "상대"); CardRow(cards: outsSpot.villain, maxSize: 78)
+            SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
             SectionLabel(text: "보드 · 턴").padding(.top, 10)
-            CardRow(cards: outsSpot.board, maxSize: 70)
+            CardRow(cards: spot.board, maxSize: 70)
             SectionLabel(text: "내 핸드").padding(.top, 10)
-            CardRow(cards: outsSpot.hero, maxSize: 78)
+            CardRow(cards: spot.hero, maxSize: 78)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     /// The restored affordance from the M1 outs reveal: every out is tappable and
     /// shows the finished river hand for both players via `RiverExplainPanel`.
-    private var outsReveal: some View {
-        let spot = outsSpot
-        return VStack(alignment: .leading, spacing: 6) {
+    private func outsReveal(_ spot: OutsSpot) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
             SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 70)
             SectionLabel(text: "보드 · 턴").padding(.top, 8)
             CardRow(cards: spot.board, maxSize: 64)
@@ -663,12 +672,12 @@ private struct CountDrill: View {
         }
     }
 
-    private var comboContent: some View {
+    private func comboContent(_ spot: BlockerSpot) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionLabel(text: "상대 핸드 클래스")
-            Text(comboSpot.className).font(GT.title(26)).foregroundStyle(GT.onFelt)
+            Text(spot.className).font(GT.title(26)).foregroundStyle(GT.onFelt)
             SectionLabel(text: "보이는 카드").padding(.top, 6)
-            CardRow(cards: comboSpot.removed, maxSize: 70)
+            CardRow(cards: spot.removed, maxSize: 70)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -739,10 +748,15 @@ private struct CallFoldDrill: View {
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: CallFoldReveal?
 
-    private var spot: CallFoldSpot { CallFoldSpotGenerator.spot(baseSeed: seed, index: index) }
+    /// Bound once per render: the generator runs an exact equity per candidate spot
+    /// and rejects the lopsided ones, and `body` reads it five times.
+    private func makeSpot() -> CallFoldSpot {
+        CallFoldSpotGenerator.spot(baseSeed: seed, index: index)
+    }
 
     var body: some View {
-        DrillShell(title: "콜/폴드", progressText: progressText) {
+        let spot = makeSpot()
+        return DrillShell(title: "콜/폴드", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
                 SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
                 SectionLabel(text: "보드 · 턴").padding(.top, 10)
@@ -1039,7 +1053,12 @@ private struct RangeReadDrill: View {
     // MARK: what the user answers with
 
     private var input: some View {
-        VStack(alignment: .leading, spacing: 13) {
+        // The cut is built once and asked about four times. Each `isSaturated(atWidth:)`
+        // used to build its own, so dragging the slider re-sorted 169 classes up to
+        // eight times a frame.
+        let plain = HandRange.shaped(width: width)
+        let saturated = Set(RangeTendency.allCases.filter { $0.isSaturated(in: plain) })
+        return VStack(alignment: .leading, spacing: 13) {
             HStack(alignment: .firstTextBaseline) {
                 Text("상대는 몇 %로 \(actionVerb)했을까요?")
                     .font(GT.title(15)).foregroundStyle(GT.ink)
@@ -1053,8 +1072,8 @@ private struct RangeReadDrill: View {
                 .accessibilityValue("상위 \(pctText(width))퍼센트")
 
             SectionLabel(text: "어디에 몰려 있나요 (선택)", onDark: false)
-            chips
-            if RangeTendency.allCases.contains(where: { $0.isSaturated(atWidth: width) }) {
+            chips(saturated)
+            if !saturated.isEmpty {
                 Text("\u{2261} 표시는 이 넓이에 이미 전부 들어 있어서 모양이 바뀌지 않는다는 뜻이에요.")
                     .font(GT.body(10)).foregroundStyle(GT.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1072,12 +1091,14 @@ private struct RangeReadDrill: View {
 
     /// Two rows of two, because four chips across a mini would each be ~78pt and the
     /// longest label is 오프수트 브로드웨이.
-    private var chips: some View {
+    private func chips(_ saturated: Set<RangeTendency>) -> some View {
         let all = RangeTendency.allCases
         return VStack(spacing: 8) {
             ForEach(0..<2, id: \.self) { r in
                 HStack(spacing: 8) {
-                    ForEach(all[(r * 2)..<(r * 2 + 2)], id: \.self) { chip($0) }
+                    ForEach(all[(r * 2)..<(r * 2 + 2)], id: \.self) {
+                        chip($0, saturated: saturated.contains($0))
+                    }
                 }
             }
         }
@@ -1090,12 +1111,11 @@ private struct RangeReadDrill: View {
         t == .offsuitBroadway ? "브로드웨이" : tendencyWord(t)
     }
 
-    private func chip(_ t: RangeTendency) -> some View {
+    /// `saturated`: a category entirely inside the cut has nothing left to prefer, so
+    /// the chip genuinely does nothing at this width. Say so rather than letting it
+    /// read as a dead control. Passed in because the whole row shares one cut.
+    private func chip(_ t: RangeTendency, saturated: Bool) -> some View {
         let on = tendencies.contains(t)
-        // A category entirely inside the cut has nothing left to prefer, so the chip
-        // genuinely does nothing at this width. Say so rather than letting it read as
-        // a dead control.
-        let saturated = t.isSaturated(atWidth: width)
         return Button {
             if on { tendencies.remove(t) } else { tendencies.insert(t) }
         } label: {
@@ -1212,8 +1232,12 @@ private struct RangeAdvantageDrill: View {
     /// waiting by the time the sliders have been set. Computing it *during* the tap
     /// froze the screen for three seconds under a debug build.
     @State private var equity: Double?
+    /// The two bucket bars, computed beside the equity rather than in `body`. They
+    /// depend only on the spot, so recomputing them per render — two passes over a
+    /// whole range's combos, on the main thread — bought nothing.
+    @State private var buckets: (opener: RangeOnBoard, caller: RangeOnBoard)?
 
-    private var spot: RangeAdvantageSpot {
+    private func makeSpot() -> RangeAdvantageSpot {
         RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
     }
 
@@ -1222,11 +1246,12 @@ private struct RangeAdvantageDrill: View {
         reveal = gradeRangeAdvantage(
             estimate: Estimate(point: v, lo: max(0, v - halfWidth),
                                hi: min(100, v + halfWidth)),
-            spot: spot, openerEquityPct: equity)
+            spot: makeSpot(), openerEquityPct: equity)
     }
 
     var body: some View {
-        DrillShell(title: "레인지 어드밴티지", progressText: progressText) {
+        let spot = makeSpot()
+        return DrillShell(title: "레인지 어드밴티지", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: "보드 · 플랍")
                 CardRow(cards: spot.board, maxSize: 70)
@@ -1241,14 +1266,12 @@ private struct RangeAdvantageDrill: View {
                 .padding(.horizontal, 12).padding(.vertical, 10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
-                if reveal != nil {
+                if reveal != nil, let buckets {
                     VStack(alignment: .leading, spacing: 18) {
                         BucketBarView(label: "\(spot.openerSeat.rawValue) 오픈",
-                                      distribution: rangeOnBoard(spot.openerRange,
-                                                                 board: spot.board))
+                                      distribution: buckets.opener)
                         BucketBarView(label: "\(spot.callerSeat.rawValue) 콜",
-                                      distribution: rangeOnBoard(spot.callerRange,
-                                                                 board: spot.board))
+                                      distribution: buckets.caller)
                     }
                     .padding(.top, 8)
                 }
@@ -1256,9 +1279,16 @@ private struct RangeAdvantageDrill: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .task(id: index) {
                 let s = seed, i = index
-                equity = await Task.detached(priority: .userInitiated) {
-                    RangeAdvantageSpotGenerator.spot(baseSeed: s, index: i).openerEquityPct
+                // One detached pass produces both the sampled equity and the bars, off
+                // a single generated spot.
+                let computed = await Task.detached(priority: .userInitiated) {
+                    let sp = RangeAdvantageSpotGenerator.spot(baseSeed: s, index: i)
+                    return (sp.openerEquityPct,
+                            rangeOnBoard(sp.openerRange, board: sp.board),
+                            rangeOnBoard(sp.callerRange, board: sp.board))
                 }.value
+                equity = computed.0
+                buckets = (opener: computed.1, caller: computed.2)
                 #if DEBUG
                 // GT_DEMO_REVEAL=<point> answers with that estimate once the sampling
                 // has landed, so the bucket bars are reachable by screenshot.
@@ -1354,10 +1384,17 @@ private struct EVLossDrill: View {
 
     /// Exact, and 1ms on a river — no sampling and no off-thread dance, unlike
     /// 레인지 어드밴티지 (spec §3.2).
-    private var spot: EVLossSpot { EVLossSpotGenerator.spot(baseSeed: seed, index: index) }
+    ///
+    /// Bound once per render, never as a computed property: the generator rejects
+    /// spots until it finds a decision-worthy one, and `body` reads the spot five
+    /// times, so a computed property paid for five rejection loops per frame.
+    private func makeSpot() -> EVLossSpot {
+        EVLossSpotGenerator.spot(baseSeed: seed, index: index)
+    }
 
     var body: some View {
-        DrillShell(title: "EV 손실", progressText: progressText) {
+        let spot = makeSpot()
+        return DrillShell(title: "EV 손실", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
                 SectionLabel(text: "보드 · 리버")
                 CardRow(cards: spot.board, maxSize: 62)
@@ -1424,12 +1461,16 @@ private struct ActionReadDrill: View {
     @State private var halfWidth = 12.0
     @State private var reveal: EstimateReveal?
 
-    private var spot: ActionReadSpot {
+    /// Bound once per render — `body` reads the spot nine times, and the generator
+    /// reseeds past the archetype/action pairs whose answer is a certainty, narrowing
+    /// the range on each attempt to find out.
+    private func makeSpot() -> ActionReadSpot {
         ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
     }
 
     var body: some View {
-        DrillShell(title: "액션 리드", progressText: progressText) {
+        let spot = makeSpot()
+        return DrillShell(title: "액션 리드", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: "보드 · 플랍")
                 CardRow(cards: spot.board, maxSize: 70)

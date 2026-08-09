@@ -175,7 +175,14 @@ public extension RangeTendency {
     /// before a loose range. The UI needs this to explain why a chip has no visible
     /// effect rather than letting it look broken.
     func isSaturated(atWidth width: Double) -> Bool {
-        let plain = HandRange.shaped(width: width)
-        return HandClass.all.filter(matches).allSatisfy { plain.weight($0) > 0 }
+        isSaturated(in: HandRange.shaped(width: width))
+    }
+
+    /// The same question against a cut that has already been built. The chip row asks
+    /// it once per tendency while the width slider moves, and building a fresh
+    /// `shaped(width:)` inside each answer — four sorts of 169 classes per frame —
+    /// cost more than everything else the drag touched.
+    func isSaturated(in plain: HandRange) -> Bool {
+        HandClass.all.filter(matches).allSatisfy { plain.weight($0) > 0 }
     }
 }

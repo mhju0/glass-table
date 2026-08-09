@@ -6,6 +6,25 @@ Notable changes to the Glass Table app. Format follows
 
 ## [Unreleased]
 
+### Changed — drill screens stopped recomputing per render (2026-08-09)
+- **A `spot` held in a computed property regenerated itself on every read**, and a
+  `body` reads it five to nine times. The generators are not cheap — 액션 리드
+  narrows a range per attempt and EV 손실 prices an equity per candidate — so
+  each render ran the whole rejection loop again, on the main thread. Bound once
+  per render instead: 액션 리드 769µs → 86µs, EV 손실 758µs → 153µs, 콜/폴드
+  178µs → 36µs, 아웃 135µs → 45µs (release; a debug build is worse).
+- **레인지 어드밴티지 built both bucket bars inside `body`**, so two passes over a
+  range's combos ran on every render while the reveal was up. They depend only
+  on the spot, so they now come back from the same detached task that already
+  samples the equity — off the main thread, once per spot.
+- **레인지 리드's chip row cut a fresh range per chip.** `isSaturated(atWidth:)`
+  builds a `shaped(width:)` internally, and the row asked it up to eight times a
+  frame while the width slider moved. One cut is now shared across the row
+  (`isSaturated(in:)`): 451µs → 57µs per frame.
+- No visual change: 56 of 58 swept screens are pixel-identical to the previous
+  build, and the two that differ are a card fade-in caught mid-animation, which
+  reproduces run-to-run on an unchanged build.
+
 ### Changed — engine performance (2026-08-08)
 - **`madeHand` was 5× more expensive than the evaluator it wraps** — 5.4µs
   against `evaluate7`'s 1.0µs. `straightCompletingRanks` asked "does this
