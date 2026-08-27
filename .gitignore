@@ -9,3 +9,4 @@ build/
 GlassTable/Info.plist
 build-device/
 .uisweep/
+build-device-release/
