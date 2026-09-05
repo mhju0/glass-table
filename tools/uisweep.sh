@@ -183,7 +183,9 @@ fi
 xcrun simctl list devices available -j >"$OUT/devices.json"
 read -r TYPE RUNTIME < <(python3 - "$OUT/devices.json" "$DEVICE_NAME" <<'PYDEVICE'
 import json, sys
-for runtime, devices in reversed(list(json.load(open(sys.argv[1]))['devices'].items())):
+devices_by_runtime = json.load(open(sys.argv[1]))['devices']
+for runtime, devices in sorted(devices_by_runtime.items(),
+        key=lambda item: tuple(map(int, item[0].split('-')[1:])), reverse=True):
     for d in devices:
         if d['name'] == sys.argv[2]:
             print(d['deviceTypeIdentifier'], runtime)

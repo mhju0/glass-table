@@ -25,7 +25,8 @@ if name == 'xcodebuild':
         (derived / 'Build/Products/Debug-iphonesimulator/GlassTable.app').mkdir(parents=True, exist_ok=True)
 elif name == 'xcrun':
     if stage == 'list':
-        print(json.dumps({'devices': {'runtime': [{'name': 'iPhone 17', 'deviceTypeIdentifier': 'type'}]}}))
+        device = {'name': 'iPhone 17', 'deviceTypeIdentifier': 'type'}
+        print(json.dumps({'devices': {'iOS-26-5': [device], 'iOS-26-0': [device]}}))
     elif stage == 'create':
         print('DISPOSABLE-DEVICE')
     elif stage == 'io':
@@ -90,6 +91,8 @@ class UISweepTests(unittest.TestCase):
         installs = [c for c in self.calls() if c[:3] == ['xcrun', 'simctl', 'install']]
         self.assertEqual(len(installs), 2)
         self.assertTrue(all(c[-1].startswith(str(self.root / '.build')) for c in installs))
+        created = next(c for c in self.calls() if c[:3] == ['xcrun', 'simctl', 'create'])
+        self.assertEqual(created[-1], 'iOS-26-5', "runtime order is not a version order")
         self.assertIn(['xcrun', 'simctl', 'uninstall', 'DISPOSABLE-DEVICE',
                        'com.michaelju.glasstable'], self.calls())
         self.assertEqual(len(list((self.root / '.uisweep').glob('*/*.png'))), 2)
