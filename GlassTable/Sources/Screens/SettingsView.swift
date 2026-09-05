@@ -11,7 +11,7 @@ struct SettingsView: View {
     @State private var importingBackup = false
     @State private var pendingImport: Data?
     @State private var confirmingImport = false
-    @State private var importFailed = false
+    @State private var fileFailure: ProgressFileFailure?
     @State private var confirmingReset = false
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
@@ -46,8 +46,10 @@ struct SettingsView: View {
                     // row the recovery screen's 백업 불러오기 asks for a file the user
                     // never had a way to create.
                     Button {
-                        backup = (try? model.exportData()).map(BackupDocument.init)
-                        exportingBackup = backup != nil
+                        do {
+                            backup = BackupDocument(try model.exportData())
+                            exportingBackup = true
+                        } catch { fileFailure = .export }
                     } label: {
                         row("square.and.arrow.up", "백업 만들기",
                             "진행 기록을 JSON 파일로 저장", chevron: true)
@@ -64,12 +66,16 @@ struct SettingsView: View {
                     .buttonStyle(GTPress())
                     .fileImporter(isPresented: $importingBackup,
                                   allowedContentTypes: [.json]) { result in
-                        guard case let .success(url) = result else { return }
+                        guard case let .success(url) = result else {
+                            fileFailure = .read
+                            return
+                        }
                         let scoped = url.startAccessingSecurityScopedResource()
                         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                        pendingImport = try? Data(contentsOf: url)
-                        if pendingImport != nil { confirmingImport = true }
-                        else { importFailed = true }
+                        do {
+                            pendingImport = try Data(contentsOf: url)
+                            confirmingImport = true
+                        } catch { fileFailure = .read }
                     }
                     .confirmationDialog("지금 기록을 백업 내용으로 바꿀까요?",
                                         isPresented: $confirmingImport,
@@ -77,18 +83,15 @@ struct SettingsView: View {
                         Button("백업으로 바꾸기", role: .destructive) {
                             // importData validates before replacing; a bad file lands
                             // in the alert, never in a half-replaced store.
-                            if let data = pendingImport,
-                               (try? model.importData(data)) == nil { importFailed = true }
+                            if let data = pendingImport {
+                                do { try model.importData(data) }
+                                catch { fileFailure = .importing(error) }
+                            }
                             pendingImport = nil
                         }
                         Button("취소", role: .cancel) { pendingImport = nil }
                     } message: {
                         Text("지금까지의 진행이 백업 시점의 기록으로 돌아가요.")
-                    }
-                    .alert("백업을 열 수 없어요", isPresented: $importFailed) {
-                        Button("확인", role: .cancel) {}
-                    } message: {
-                        Text("Glass Table의 백업 만들기로 저장한 JSON 파일인지 확인해 주세요.")
                     }
                     Divider().padding(.leading, 56)
                     Button { confirmingReset = true } label: {
@@ -130,15 +133,28 @@ struct SettingsView: View {
         .sheet(isPresented: $showGlossary) { GlossaryView() }
         .fileExporter(isPresented: $exportingBackup, document: backup,
                       contentType: .json,
-                      defaultFilename: "glass-table-backup") { _ in backup = nil }
+                      defaultFilename: "glass-table-backup") { result in
+            backup = nil
+            if case let .failure(error) = result,
+               (error as NSError).code != NSUserCancelledError {
+                fileFailure = .export
+            }
+        }
         // 백업 만들기 + 백업 불러오기 make the advice real: a backup taken before this
         // genuinely restores from Settings, not only via the corrupt-store screen.
         .confirmationDialog("모든 진행 기록을 지울까요?", isPresented: $confirmingReset,
                             titleVisibility: .visible) {
-            Button("전부 지우고 처음부터", role: .destructive) { model.resetProgress() }
+            Button("전부 지우고 처음부터", role: .destructive) {
+                do { try model.resetProgress() }
+                catch { fileFailure = .reset }
+            }
             Button("취소", role: .cancel) {}
         } message: {
             Text("되돌릴 수 없어요. 남겨두고 싶으면 먼저 백업을 만들어 두세요.")
+        }
+        .alert(item: $fileFailure) { failure in
+            Alert(title: Text("기록 파일을 처리하지 못했어요"), message: Text(failure.message),
+                  dismissButton: .default(Text("확인")))
         }
         .onAppear {
             #if DEBUG
