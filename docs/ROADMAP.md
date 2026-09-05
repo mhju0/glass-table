@@ -18,12 +18,14 @@ takeover approval, confirmed correctness defects take priority before the next d
 build; new features remain NEXT.
 
 1. **Fix confirmed dogfood defects.** `[V]` 2026-09-05 source audit and reproductions.
-   Persistence safety is fixed in the working tree: visible save failures with retry,
+   Persistence safety is fixed in PR #3: visible save failures with retry,
    recovery copies before reset/import, memory changes only after replacement saves,
    and future-schema rejection on load. Store and app regression tests pass.
-   Remaining, in order: streak eligibility is checked after answers reschedule due
-   items; unit 2's six-question boss can promote an unasked concept; table dealing can
-   select hero in the small blind while still forcing villain to act first postflop.
+   The cleanup branch fixes the other three reproduced defects: credit streaks before
+   rescheduling, ask every boss concept before promotion (unit 2 now has seven questions),
+   and keep hero in position on every street. It also fixes stale range-equity reuse
+   between questions. Verification and measured performance work are recorded in
+   [`CLEANUP_AUDIT.md`](CLEANUP_AUDIT.md). Merge and dogfood these fixes next.
 2. **Use the app.** Release-config builds on the owner's iPhone via free personal-team
    provisioning; 7-day expiry means a weekly re-deploy. `[C]` Recipe in
    `PROJECT_HANDOFF.md` §9.

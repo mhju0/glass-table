@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
-import SwiftUI
+import Foundation
 import Observation
 import GlassTableEngine
 import GlassTableDrills
@@ -21,9 +21,6 @@ final class ProgressionModel {
 
     private let store: ProgressionStore
     private let scheduler = FSRSScheduler()
-    /// Bumped whenever generated content changes, so the daily set reshuffles instead
-    /// of replaying a stale puzzle.
-    static let contentVersion = 1
 
     init(store: ProgressionStore = .standard()) {
         self.store = store
@@ -59,7 +56,7 @@ final class ProgressionModel {
     }
 
     func dueConcepts(now: Date = Date()) -> [Concept] {
-        ReviewQueue.dueConcepts(in: state, at: now, scheduler: scheduler)
+        ReviewQueue.dueConcepts(in: state, at: now)
     }
 
     func needingExplainer() -> [Concept] { ReviewQueue.needingExplainer(in: state) }
@@ -114,22 +111,6 @@ final class ProgressionModel {
         save()
     }
 
-    /// Spec §7.1: a streak day needs a session that included a due item, so the
-    /// streak can't be farmed on already-mastered material.
-    func endSession(answered: [Concept], now: Date = Date()) {
-        guard unreadable == nil else { return }
-        guard ReviewQueue.sessionQualifiesForStreak(answered: answered, in: state,
-                                                    at: now, scheduler: scheduler)
-        else { return }
-        Streak.recordSession(&state.streak, on: DayKey(now))
-        save()
-    }
-
-    /// Today's practice set, seeded so it is the same for everyone on a given day.
-    func dailySet(size: Int = 5, now: Date = Date()) -> [Concept] {
-        ReviewQueue.dailySet(in: state, at: now, scheduler: scheduler, size: size)
-    }
-
     // MARK: - recovery (spec §8.2)
 
     func exportData() throws -> Data {
@@ -143,9 +124,7 @@ final class ProgressionModel {
 
     /// Explicit "start over": replacement must preserve the old bytes and save
     /// successfully before either the displayed state or recovery screen changes.
-    func discardUnreadableStore() throws { try replace(with: ProgressState()) }
-
-    func resetProgress() throws { try discardUnreadableStore() }
+    func resetProgress() throws { try replace(with: ProgressState()) }
 
     private func replace(with replacement: ProgressState) throws {
         try store.replace(with: replacement)
@@ -172,7 +151,6 @@ final class ProgressionModel {
     static func demoState() -> ProgressState {
         var s = ProgressState()
         let now = Date()
-        let scheduler = FSRSScheduler()
 
         func study(_ c: Concept, correct: Int, total: Int, tier: MasteryTier,
                    dueInDays: Double, misses: Int = 0) {
@@ -225,7 +203,6 @@ final class ProgressionModel {
 
         s.streak = StreakRecord(current: 12, longest: 12, lastSessionDay: DayKey(now),
                                 freezesRemaining: 2, lastFreezeEarnedDay: DayKey(now))
-        _ = scheduler
         return s
     }
     #endif

@@ -84,7 +84,7 @@ public struct RangeEstimate: Equatable, Sendable {
     public var range: HandRange { .shaped(width: width, tendencies: tendencies) }
 }
 
-public struct RangeReadReveal: GradedReveal {
+public struct RangeReadReveal: Equatable {
     public let band: GradeBand
     public let overlap: Double
     public let guess: HandRange

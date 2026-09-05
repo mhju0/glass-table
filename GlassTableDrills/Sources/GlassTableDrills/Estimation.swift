@@ -95,7 +95,7 @@ public enum EVCallSpotGenerator {
 
 // MARK: - grading
 
-public struct EstimateReveal: GradedReveal {
+public struct EstimateReveal: Equatable {
     public let band: GradeBand
     public let estimate: Estimate
     public let correct: Double

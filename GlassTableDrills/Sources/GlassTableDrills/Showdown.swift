@@ -46,7 +46,7 @@ public enum ShowdownSpotGenerator {
     }
 }
 
-public struct ShowdownReveal: GradedReveal {
+public struct ShowdownReveal: Equatable {
     public let band: GradeBand
     public let answer: Int
     public let winner: Int
@@ -67,7 +67,7 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot) -> ShowdownReveal {
     case 1: why = showdownWhy(winner: vName, loser: hName, spot: spot, heroWon: false)
     default: why = "둘 다 \(hName) — 보드가 그대로 플레이돼서 찹이에요."
     }
-    return ShowdownReveal(band: gradeBinary(userChose: answer == w, correct: true),
+    return ShowdownReveal(band: answer == w ? .spotOn : .off,
                           answer: answer, winner: w,
                           heroName: hName, villainName: vName, whyText: why)
 }

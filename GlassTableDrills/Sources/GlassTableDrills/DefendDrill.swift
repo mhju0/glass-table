@@ -40,7 +40,7 @@ public enum DefendSpotGenerator {
     }
 }
 
-public struct DefendReveal: GradedReveal {
+public struct DefendReveal: Equatable {
     public let band: GradeBand
     public let chosen: DefendAction
     public let correct: DefendAction

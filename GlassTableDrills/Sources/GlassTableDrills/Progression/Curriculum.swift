@@ -37,8 +37,8 @@ public enum NodeStatus: Equatable, Sendable {
 /// The path, by section: 기초 (R1) → 레인지 (R2's charts, R3's reads) → 보드 (R4-S1) →
 /// 결정 (R4-S2) → 상대 (R4-S3, R5b).
 ///
-/// Unlocking is strictly linear and not skippable — the only way past a node is the
-/// first-run diagnostic pre-clearing it (spec §6).
+/// Unlocking is strictly linear. Existing completion records remain valid even when
+/// an older version pre-cleared a node through the now-removed diagnostic.
 public enum Curriculum {
     public static let units: [CurriculumUnit] = [
         CurriculumUnit(id: "u1", title: "테이블 읽기", section: "기초", nodes: [
@@ -149,6 +149,18 @@ public enum Curriculum {
         case let .drill(c): return [c]
         case let .boss(own, mixes): return (own.map { [$0] } ?? []) + mixes
         }
+    }
+
+    /// Five blocked repetitions for a lesson; at least six mixed questions for a
+    /// boss, long enough to exercise every concept it certifies.
+    public static func sessionConcepts(for node: CurriculumNode) -> [Concept] {
+        let pool = concepts(of: node)
+        let count: Int
+        switch node.kind {
+        case .drill: count = 5
+        case .boss: count = max(6, pool.count)
+        }
+        return (0..<count).map { pool[$0 % pool.count] }
     }
 
     /// The concept a node *introduces*, as opposed to the ones it revisits.

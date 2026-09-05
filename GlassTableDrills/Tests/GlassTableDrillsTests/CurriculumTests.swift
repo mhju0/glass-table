@@ -2,6 +2,20 @@ import XCTest
 @testable import GlassTableDrills
 
 final class CurriculumTests: XCTestCase {
+    func testCompletedSessionsPracticeEveryConceptTheyCanPromote() {
+        for node in Curriculum.allNodes {
+            let session = Curriculum.sessionConcepts(for: node)
+            XCTAssertEqual(Set(session), Set(Curriculum.concepts(of: node)), node.id)
+            switch node.kind {
+            case .drill:
+                XCTAssertEqual(session.count, 5, node.id)
+                XCTAssertEqual(Set(session).count, 1, "first exposure stays blocked")
+            case .boss:
+                XCTAssertGreaterThanOrEqual(session.count, 6, node.id)
+            }
+        }
+    }
+
     /// Spec §4.1 wants units of 5–8 nodes, for the goal-gradient reason that more
     /// visible completions per hour sustain a long course. The final unit is bounded
     /// by how much content exists rather than by that rule: u3 is three nodes because

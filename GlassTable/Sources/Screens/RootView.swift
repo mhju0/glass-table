@@ -147,7 +147,7 @@ struct StoreRecoveryView: View {
                 .fixedSize(horizontal: false, vertical: true)
             FeltCTAButton(title: "백업 불러오기") { importing = true }
             Button("새로 시작하기") {
-                do { try model.discardUnreadableStore() }
+                do { try model.resetProgress() }
                 catch { fileFailure = .reset }
             }
                 .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)

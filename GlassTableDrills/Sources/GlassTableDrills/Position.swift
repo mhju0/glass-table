@@ -80,7 +80,7 @@ public enum PositionSpotGenerator {
     }
 }
 
-public struct PositionReveal: GradedReveal {
+public struct PositionReveal: Equatable {
     public let band: GradeBand
     public let answer: Int
     public let correct: Int
@@ -101,6 +101,6 @@ public func gradePosition(answer: Int, spot: PositionSpot) -> PositionReveal {
         let later = correct == 1 ? b : a
         why = "\(later.rawValue)가 더 늦게 행동해요 — 정보를 더 보고 결정할 수 있어요."
     }
-    return PositionReveal(band: gradeBinary(userChose: answer == correct, correct: true),
+    return PositionReveal(band: answer == correct ? .spotOn : .off,
                           answer: answer, correct: correct, whyText: why)
 }

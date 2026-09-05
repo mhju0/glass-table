@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import GlassTableEngine
 
-public struct OutsReveal: GradedReveal {
+public struct OutsReveal: Equatable {
     public let band: GradeBand
     public let estimate: Int
     public let outs: [Card]

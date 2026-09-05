@@ -58,7 +58,7 @@ private extension String {
     func duplicated() -> String { self + self }
 }
 
-public struct RangeNotationReveal: GradedReveal {
+public struct RangeNotationReveal: Equatable {
     public let band: GradeBand
     public let estimate: Int
     public let count: Int
@@ -68,7 +68,7 @@ public struct RangeNotationReveal: GradedReveal {
 public func gradeRangeNotation(estimate: Int, spot: RangeNotationSpot) -> RangeNotationReveal {
     let parts = spot.range.classes.map { "\($0.description) \($0.comboCount)" }
     return RangeNotationReveal(
-        band: gradeBinary(userChose: estimate == spot.comboCount, correct: true),
+        band: estimate == spot.comboCount ? .spotOn : .off,
         estimate: estimate, count: spot.comboCount,
         whyText: "\(parts.joined(separator: " + ")) = \(spot.comboCount) 콤보. "
                + "페어 6개, 수티드 4개, 오프수트 12개예요.")
@@ -110,7 +110,7 @@ public enum RFISpotGenerator {
     }
 }
 
-public struct RFIReveal: GradedReveal {
+public struct RFIReveal: Equatable {
     public let band: GradeBand
     public let userOpens: Bool
     public let correctOpens: Bool
@@ -129,6 +129,6 @@ public func gradeRFI(userOpens: Bool, spot: RFISpot) -> RFIReveal {
     } else {
         why += " \(h.description)는 어느 자리에서도 열지 않아요."
     }
-    return RFIReveal(band: gradeBinary(userChose: userOpens, correct: spot.opens),
+    return RFIReveal(band: userOpens == spot.opens ? .spotOn : .off,
                      userOpens: userOpens, correctOpens: spot.opens, whyText: why)
 }

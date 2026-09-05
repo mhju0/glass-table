@@ -309,4 +309,16 @@ final class TableTests: XCTestCase {
             XCTAssertEqual(TableDealer.deal(baseSeed: 1, index: 0, villain: a).villain, a)
         }
     }
+
+    func testHeroActsAfterTheOpenerOnEveryStreet() {
+        for archetype in Archetype.allCases {
+            for index in 0..<32 {
+                let hand = TableDealer.deal(baseSeed: 9, index: index, villain: archetype)
+                XCTAssertLessThan(hand.heroSeat.playersBehind(preflop: true),
+                                  hand.villainSeat.playersBehind(preflop: true))
+                XCTAssertTrue(hand.heroSeat.actsAfter(hand.villainSeat),
+                              "\(archetype) #\(index): \(hand.heroSeat) cannot act last against \(hand.villainSeat)")
+            }
+        }
+    }
 }

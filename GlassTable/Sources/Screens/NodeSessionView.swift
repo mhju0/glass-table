@@ -16,35 +16,25 @@ struct NodeSessionView: View {
 
     @State private var index = 0
     @State private var missed = 0
-    @State private var answered: [Concept] = []
     @State private var finished = false
     @State private var stage: Stage = .solo
     @State private var showHint = false
+    @State private var sessionSeed: UInt64?
 
     /// Spec §5.1 — every new concept opens the same way: watch it worked, do it with
     /// the scaffolding, then do it alone. Grading starts at `.solo` and only there.
     enum Stage { case show, together, solo }
 
-    /// Blocked first exposure is 5; a boss is 6 mixed items (spec §4.1).
-    private var itemCount: Int { if case .boss = node.kind { return 6 } else { return 5 } }
+    private var concepts: [Concept] { Curriculum.sessionConcepts(for: node) }
+    private var itemCount: Int { concepts.count }
 
     /// Seeded from the node id so a node's items are stable within a session but a
     /// *re-run* draws fresh spots — the generators make that free.
     private var baseSeed: UInt64 {
+        if let sessionSeed { return sessionSeed }
         var hash: UInt64 = 0xcbf2_9ce4_8422_2325
         for byte in node.id.utf8 { hash ^= UInt64(byte); hash &*= 0x0000_0100_0000_01b3 }
-        return hash &+ UInt64(model.record(for: conceptFor(0)).total)
-    }
-
-    /// A drill node repeats its own concept; a boss cycles its mix so consecutive
-    /// items are deliberately different (interleaving is the point of the node).
-    private func conceptFor(_ i: Int) -> Concept {
-        switch node.kind {
-        case let .drill(c): return c
-        case let .boss(own, mixes):
-            let pool = (own.map { [$0] } ?? []) + mixes
-            return pool[i % pool.count]
-        }
+        return hash &+ UInt64(model.record(for: concepts[0]).total)
     }
 
     var body: some View {
@@ -56,6 +46,8 @@ struct NodeSessionView: View {
         .background(FeltBackground())
         .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
         .onAppear {
+            guard sessionSeed == nil else { return }
+            sessionSeed = baseSeed
             // First exposure to the concept this node teaches opens with the
             // walkthrough. A node the user has already met goes straight to drilling,
             // and 천천히 stays available from 기록 either way (spec §5.1).
@@ -75,7 +67,7 @@ struct NodeSessionView: View {
     }
 
     /// The concept this node introduces — what the teaching stages are about.
-    private var taughtConcept: Concept { Curriculum.taughtConcept(of: node) ?? conceptFor(0) }
+    private var taughtConcept: Concept { Curriculum.taughtConcept(of: node) ?? concepts[0] }
 
     @ViewBuilder
     private var teaching: some View {
@@ -129,17 +121,15 @@ struct NodeSessionView: View {
     private var current: some View {
         // Indices 0 and 1 are reserved for 보여주기 and 함께 풀기, so the graded items
         // are never a spot the user has already been walked through.
-        ConceptDrillView(concept: conceptFor(index),
+        ConceptDrillView(concept: concepts[index],
                          seed: baseSeed, index: index + 2,
                          progressText: "\(index + 1)/\(itemCount)") { band in
-            model.record(concept: conceptFor(index), band: band.band,
+            model.record(concept: concepts[index], band: band.band,
                          interval: band.interval, evLoss: band.evLoss)
-            answered.append(conceptFor(index))
             if band.band != .spotOn { missed += 1 }
             if index + 1 >= itemCount {
                 finished = true
                 model.completeNode(node, cleanRun: missed == 0)
-                model.endSession(answered: answered)
             } else {
                 index += 1
             }
@@ -184,7 +174,6 @@ struct FreePlayView: View {
     /// Progress-salted at pick time, the same fresh-spots rule as a node re-run
     /// (§4.2): a fixed seed replayed the identical question sequence every visit.
     @State private var seed: UInt64 = 0x5EED
-    @State private var answered: [Concept] = []
 
     var body: some View {
         Group {
@@ -193,11 +182,6 @@ struct FreePlayView: View {
                                  progressText: title) { result in
                     model.record(concept: concept, band: result.band,
                                  interval: result.interval, evLoss: result.evLoss)
-                    answered.append(concept)
-                    // Same rule as a node session (spec §7.1): clearing the review
-                    // queue from here must be able to earn the streak day. Safe to
-                    // call per answer — recordSession is same-day idempotent.
-                    model.endSession(answered: answered)
                     index += 1
                 }
             } else {

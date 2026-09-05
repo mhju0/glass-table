@@ -12,12 +12,13 @@ xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
   -destination 'platform=iOS Simulator,name=iPhone 17' CODE_SIGNING_ALLOWED=NO test
 swift test --package-path GlassTableDrills
 swift test -c release --package-path GlassTableEngine
-tools/uisweep.sh --no-build  # inspect screenshots after a successful app build
+tools/uisweep.sh --screen today  # omit --screen for the full sweep; --list lists names
 ```
 
 Engine changes require the **release** test gate; debug is impractically slow.
-No linter is configured. The screenshot sweep uses debug
-`GT_DEMO_*` hooks; `GT_SIM` overrides its default `iPhone 17` simulator.
+No linter is configured. The screenshot sweep uses debug `GT_DEMO_*` hooks on a
+disposable simulator; `GT_SIM` selects a device/runtime by existing simulator name.
+`--no-build` reuses only a matching build from a prior sweep in this checkout.
 
 - `project.yml` owns the generated, gitignored `GlassTable.xcodeproj/` and
   `GlassTable/Info.plist`. Edit the YAML, not those outputs.
