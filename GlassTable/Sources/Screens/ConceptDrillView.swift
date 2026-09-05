@@ -1278,6 +1278,8 @@ private struct RangeAdvantageDrill: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .task(id: index) {
+                equity = nil
+                buckets = nil
                 let s = seed, i = index
                 // One detached pass produces both the sampled equity and the bars, off
                 // a single generated spot.
@@ -1287,6 +1289,7 @@ private struct RangeAdvantageDrill: View {
                             rangeOnBoard(sp.openerRange, board: sp.board),
                             rangeOnBoard(sp.callerRange, board: sp.board))
                 }.value
+                guard !Task.isCancelled else { return }
                 equity = computed.0
                 buckets = (opener: computed.1, caller: computed.2)
                 #if DEBUG
@@ -1305,6 +1308,10 @@ private struct RangeAdvantageDrill: View {
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
                                  ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                    // Disable submission synchronously before the next spot appears;
+                    // its task must supply its own equity, not reuse this answer's.
+                    equity = nil
+                    buckets = nil
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 50; halfWidth = 10
                 }

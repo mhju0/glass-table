@@ -1,58 +1,26 @@
 #!/bin/bash
-# Copyright (c) 2026 Michael Ju (github.com/mhju0)
-#
-# Capture every significant screen into one folder.
-#
-# The point is to make *looking at the app* cheap enough to do after every UI
-# change. Synthetic taps never reach Simulator content, so each screen is reached
-# by a GT_DEMO_* launch hook instead of by driving the UI — see RootView.
-#
-#   tools/uisweep.sh              # build, install, sweep to a timestamped folder
-#   tools/uisweep.sh --no-build   # reuse the current build
-#
-# Every capture is a fresh launch, so screens never leak state into each other.
+# Capture DEBUG demo hooks on a disposable simulator. Never touches a user's app data.
+# tools/uisweep.sh [--no-build] [--screen NAME ...] | --list
+# GT_SIM selects an available device name (default: iPhone 17).
 set -euo pipefail
-
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE=com.michaelju.glasstable
-SCHEME=GlassTable
 DEVICE_NAME="${GT_SIM:-iPhone 17}"
 BUILD=1
-
+LIST=0
+SELECTED=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --no-build) BUILD=0 ;;
+    --list) LIST=1 ;;
+    --screen)
+      [ $# -ge 2 ] || { echo "--screen needs a name" >&2; exit 2; }
+      SELECTED+=("$2"); shift ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
   shift
 done
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/.uisweep/$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$OUT"
-
-DEV=$(xcrun simctl list devices available \
-      | grep "$DEVICE_NAME (" | head -1 \
-      | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
-[ -n "$DEV" ] || { echo "no available simulator named '$DEVICE_NAME'" >&2; exit 1; }
-
-if [ "$BUILD" = 1 ]; then
-  echo "building…"
-  xcodebuild -project "$ROOT/GlassTable.xcodeproj" -scheme "$SCHEME" \
-    -destination "platform=iOS Simulator,id=$DEV" CODE_SIGNING_ALLOWED=NO build \
-    2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
-fi
-
-APP=$(find ~/Library/Developer/Xcode/DerivedData/GlassTable-*/Build/Products/Debug-iphonesimulator \
-      -maxdepth 1 -name "$SCHEME.app" 2>/dev/null | head -1)
-[ -n "$APP" ] || { echo "no built .app found" >&2; exit 1; }
-
-xcrun simctl boot "$DEV" 2>/dev/null || true
-xcrun simctl bootstatus "$DEV" -b >/dev/null 2>&1 || true
-xcrun simctl install "$DEV" "$APP"
-
-# name : GT_DEMO env, space separated. Seeded runs show a populated app; the
-# unseeded ones are what a brand-new user actually sees, which is the state
-# most easily broken and least often looked at.
 SCREENS=(
   "today-empty:GT_DEMO_TAB=today"
   "path-empty:GT_DEMO_TAB=path"
@@ -126,10 +94,90 @@ SCREENS=(
   "table-summary:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=10:24"
 )
 
-# One pass, not two. The app pins UIUserInterfaceStyle to Dark, so the light run was
-# capturing the same pixels — the two schemes measured 1.04:1 apart on glass.
-# Entry format: name:envs[:sleep] — the optional third field replaces the default
-# settle time, for screens that compute before they can be photographed.
+if [ "$LIST" = 1 ]; then
+  for entry in "${SCREENS[@]}"; do echo "${entry%%:*}"; done
+  exit 0
+fi
+if [ ${#SELECTED[@]} -gt 0 ]; then
+  captures=()
+  for selected in "${SELECTED[@]}"; do
+    found=0
+    for entry in "${SCREENS[@]}"; do
+      if [ "${entry%%:*}" = "$selected" ]; then captures+=("$entry"); found=1; break; fi
+    done
+    [ "$found" = 1 ] || { echo "unknown screen: $selected (see --list)" >&2; exit 2; }
+  done
+  SCREENS=("${captures[@]}")
+fi
+
+mkdir -p "$ROOT/.uisweep"
+OUT=$(mktemp -d "$ROOT/.uisweep/$(date +%Y%m%d-%H%M%S)-XXXXXX")
+DERIVED="$ROOT/.build/uisweep"
+APP="$DERIVED/Build/Products/Debug-iphonesimulator/GlassTable.app"
+DEV=""
+cleanup() {
+  if [ -n "$DEV" ]; then
+    xcrun simctl shutdown "$DEV" >>"$OUT/simulator.log" 2>&1 || true
+    xcrun simctl delete "$DEV" >>"$OUT/simulator.log" 2>&1 || true
+  fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'echo "Sweep failed; logs: $OUT" >&2' ERR
+
+# A local artifact and content fingerprint prevent stale screenshots after edits or
+# when several checkouts have generated apps with the same scheme name.
+fingerprint=$(python3 - "$ROOT" <<'PYHASH'
+import hashlib, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+files = [root / 'project.yml']
+for package in ('GlassTableEngine', 'GlassTableDrills'):
+    files.append(root / package / 'Package.swift')
+for folder in ('GlassTable/Sources', 'GlassTable/Resources',
+               'GlassTableEngine/Sources', 'GlassTableDrills/Sources'):
+    files.extend(p for p in (root / folder).rglob('*') if p.is_file())
+h = hashlib.sha256()
+for p in sorted(files):
+    h.update(str(p.relative_to(root)).encode() + b'\0' + p.read_bytes())
+print(h.hexdigest())
+PYHASH
+)
+xcodebuild -version >"$OUT/xcode.txt"
+fingerprint="$fingerprint $(shasum -a 256 "$OUT/xcode.txt" | cut -d' ' -f1)"
+if [ "$BUILD" = 1 ]; then
+  echo "Building; log: $OUT/build.log"
+  (cd "$ROOT" && xcodegen generate) >"$OUT/build.log" 2>&1
+  xcodebuild -project "$ROOT/GlassTable.xcodeproj" -scheme GlassTable \
+    -configuration Debug -destination 'generic/platform=iOS Simulator' \
+    -derivedDataPath "$DERIVED" CODE_SIGNING_ALLOWED=NO build >>"$OUT/build.log" 2>&1
+  echo "$fingerprint" >"$DERIVED/source-fingerprint"
+else
+  if [ ! -d "$APP" ] || [ ! -f "$DERIVED/source-fingerprint" ] || \
+     [ "$(cat "$DERIVED/source-fingerprint")" != "$fingerprint" ]; then
+    echo "No matching sweep build for this source/Xcode. Run tools/uisweep.sh without --no-build." >&2
+    exit 1
+  fi
+fi
+
+# Clone only the device configuration, not its installed apps or data.
+xcrun simctl list devices available -j >"$OUT/devices.json"
+read -r TYPE RUNTIME < <(python3 - "$OUT/devices.json" "$DEVICE_NAME" <<'PYDEVICE'
+import json, sys
+for runtime, devices in reversed(list(json.load(open(sys.argv[1]))['devices'].items())):
+    for d in devices:
+        if d['name'] == sys.argv[2]:
+            print(d['deviceTypeIdentifier'], runtime)
+            sys.exit(0)
+print('No available simulator named ' + sys.argv[2], file=sys.stderr)
+sys.exit(1)
+PYDEVICE
+)
+DEV=$(xcrun simctl create "GlassTable sweep $(basename "$OUT")" "$TYPE" "$RUNTIME")
+printf 'device=%s\nruntime=%s\nsource=%s\n' "$DEV" "$RUNTIME" "$fingerprint" >"$OUT/run.txt"
+xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
+xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1
+
 for entry in "${SCREENS[@]}"; do
   name="${entry%%:*}"
   rest="${entry#*:}"
@@ -137,13 +185,17 @@ for entry in "${SCREENS[@]}"; do
   if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=2.2; fi
   args=()
   for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
-  xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
-  env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
+  # Uninstall clears progress written by the preceding demo. Empty-state captures
+  # remain empty regardless of the requested order.
+  if [ -f "$OUT/installed" ]; then
+    xcrun simctl uninstall "$DEV" "$BUNDLE" >>"$OUT/simulator.log" 2>&1
+  fi
+  xcrun simctl install "$DEV" "$APP" >>"$OUT/simulator.log" 2>&1
+  touch "$OUT/installed"
+  env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$OUT/$name.log" 2>&1
   sleep "$slp"
-  xcrun simctl io "$DEV" screenshot "$OUT/$name.png" >/dev/null 2>&1 || true
-  printf '.'
+  xcrun simctl io "$DEV" screenshot "$OUT/$name.png" >>"$OUT/$name.log" 2>&1
+  echo "$name" | tee -a "$OUT/captured.txt"
 done
-echo
-
-xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
+rm "$OUT/installed"
 echo "$OUT"

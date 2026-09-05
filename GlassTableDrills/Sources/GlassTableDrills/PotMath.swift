@@ -82,7 +82,7 @@ public enum PotMathSpotGenerator {
     }
 }
 
-public struct PotMathReveal: GradedReveal {
+public struct PotMathReveal: Equatable {
     public let band: GradeBand
     public let answer: Int
     public let correct: Int
@@ -99,7 +99,7 @@ public func gradePotMath(answer: Int, spot: PotMathSpot) -> PotMathReveal {
     case let .fractionOfPot(f):
         why = "팟 \(spot.pot)bb × \(Int((f * 100).rounded()))% = \(correct)bb"
     }
-    return PotMathReveal(band: gradeBinary(userChose: answer == correct, correct: true),
+    return PotMathReveal(band: answer == correct ? .spotOn : .off,
                          answer: answer, correct: correct, pot: spot.pot, whyText: why)
 }
 

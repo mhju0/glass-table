@@ -169,7 +169,7 @@ public enum EVLossSpotGenerator {
     }
 }
 
-public struct EVLossReveal: GradedReveal {
+public struct EVLossReveal: Equatable {
     public let band: GradeBand
     public let grade: EVLossGrade
     public let equityPct: Double

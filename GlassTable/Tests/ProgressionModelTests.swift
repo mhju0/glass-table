@@ -102,7 +102,7 @@ final class ProgressionModelTests: XCTestCase {
         let model = ProgressionModel(store: store)
 
         try withReadOnlyDirectory {
-            XCTAssertThrowsError(try model.discardUnreadableStore())
+            XCTAssertThrowsError(try model.resetProgress())
             XCTAssertThrowsError(try model.importData(JSONEncoder().encode(ProgressState())))
             XCTAssertNotNil(model.unreadable)
             XCTAssertEqual(try store.exportData(), bytes)
@@ -114,14 +114,16 @@ final class ProgressionModelTests: XCTestCase {
         try bytes.write(to: store.url)
         let model = ProgressionModel(store: store)
 
-        try model.discardUnreadableStore()
+        try model.resetProgress()
 
         XCTAssertNil(model.unreadable)
         XCTAssertNil(model.saveError)
         XCTAssertEqual(model.state, ProgressState())
         XCTAssertEqual(ProgressionModel(store: store).state, model.state)
         let recovery = try XCTUnwrap(FileManager.default.contentsOfDirectory(
-            at: dir, includingPropertiesForKeys: nil).first { $0 != store.url })
+            at: dir, includingPropertiesForKeys: nil).first {
+                $0.lastPathComponent != store.url.lastPathComponent
+            })
         XCTAssertEqual(try Data(contentsOf: recovery), bytes)
     }
 
@@ -156,13 +158,53 @@ final class ProgressionModelTests: XCTestCase {
 
         model.record(concept: .outs, band: .spotOn)
         model.completeNode(try XCTUnwrap(Curriculum.node(id: "u1-showdown")), cleanRun: true)
-        model.endSession(answered: [.outs])
         model.retrySave()
 
         XCTAssertNotNil(model.unreadable)
         XCTAssertNil(model.saveError)
         XCTAssertEqual(model.state, ProgressState())
         XCTAssertEqual(try store.exportData(), bytes)
+    }
+
+    func testDueAnswerPersistsStreakCreditWithTheAnswer() throws {
+        let now = Date(timeIntervalSince1970: 1_785_000_000)
+        var original = ProgressState()
+        for concept in [Concept.outs, .combos] {
+            original.updateRecord(for: concept) {
+                $0.total = 5
+                $0.review = ReviewState(stability: 5, difficulty: 5,
+                    lastReview: now.addingTimeInterval(-172800),
+                    due: now.addingTimeInterval(-86400), reps: 2)
+            }
+        }
+        try store.save(original)
+        let model = ProgressionModel(store: store)
+
+        model.record(concept: .outs, band: .spotOn, now: now)
+
+        XCTAssertEqual(model.state.streak.current, 1)
+        XCTAssertEqual(model.dueConcepts(now: now), [.combos])
+        XCTAssertEqual(ProgressionModel(store: store).state, model.state)
+    }
+
+    func testUnitTwoBossPracticesPositionBeforeAwardingMastery() throws {
+        let now = Date(timeIntervalSince1970: 1_785_000_000)
+        var original = ProgressState()
+        original.updateRecord(for: .position) {
+            $0.total = 5; $0.correct = 5; $0.tier = .proficient
+            $0.proficientAt = now.addingTimeInterval(-86400)
+        }
+        try store.save(original)
+        let model = ProgressionModel(store: store)
+        let boss = try XCTUnwrap(Curriculum.node(id: "u2-boss"))
+        let concepts = Curriculum.sessionConcepts(for: boss)
+        XCTAssertEqual(concepts.count, 7)
+        XCTAssertEqual(concepts.first, .callFold)
+        for concept in concepts { model.record(concept: concept, band: .spotOn, now: now) }
+        model.completeNode(boss, cleanRun: true, now: now)
+
+        XCTAssertEqual(model.record(for: .position).total, 6)
+        XCTAssertEqual(model.record(for: .position).tier, .mastered)
     }
 
     private func withReadOnlyDirectory(_ body: () throws -> Void) throws {

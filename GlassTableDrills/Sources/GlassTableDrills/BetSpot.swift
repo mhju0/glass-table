@@ -30,7 +30,7 @@ public enum BetSpotGenerator {
 }
 
 /// Shared reveal for the two percent-estimate drills (팟 오즈, MDF).
-public struct PercentReveal: GradedReveal {
+public struct PercentReveal: Equatable {
     public let band: GradeBand
     public let answerPct: Int
     public let correctPct: Double

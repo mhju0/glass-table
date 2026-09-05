@@ -738,6 +738,22 @@ against 3:1. **Ink never flips.**
 
 ---
 
+### D44 · Progression credit must correspond to actual practice
+**Status: IMPLEMENTED — 2026-09-05 cleanup branch.**
+
+- Award the study day when an answer is recorded, using the due queue **before**
+  rescheduling. Any due answer qualifies, including a miss; when nothing is due, new
+  practice qualifies. Finishing a whole node is not required. Answer, schedule and
+  streak persist together, replacing the separate end-session write.
+- Boss sessions ask at least six questions and cover their whole concept pool before
+  awarding mastery. Unit 2 needs seven; the fixed six-question run promoted position
+  without testing it. Regular drill nodes remain five blocked questions.
+- Evidence: review-queue regressions, curriculum coverage and app persistence tests.
+  This amends R1's fixed six-question boss/session-completion wording, preserving its
+  anti-farming rule and mastery-by-demonstrated-practice intent.
+
+---
+
 # Open / unresolved
 
 ### D41 · The age-rating answer for a build that now contains a betting table

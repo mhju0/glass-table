@@ -13,8 +13,3 @@ public func gradeEstimate(user: Double, correct: Double,
     if err <= closeWithin { return .close }
     return .off
 }
-
-/// Band a binary decision (e.g. call/fold): correct -> spotOn, wrong -> off.
-public func gradeBinary(userChose: Bool, correct: Bool) -> GradeBand {
-    userChose == correct ? .spotOn : .off
-}

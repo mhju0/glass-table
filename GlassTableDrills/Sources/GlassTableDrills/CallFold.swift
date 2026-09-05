@@ -46,7 +46,7 @@ public enum CallFoldSpotGenerator {
     }
 }
 
-public struct CallFoldReveal: GradedReveal {
+public struct CallFoldReveal: Equatable {
     public let band: GradeBand
     public let userCalls: Bool
     public let correctIsCall: Bool
@@ -59,7 +59,7 @@ public struct CallFoldReveal: GradedReveal {
 public func gradeCallFold(userCalls: Bool, spot: CallFoldSpot) -> CallFoldReveal {
     let correct = spot.correctIsCall
     return CallFoldReveal(
-        band: gradeBinary(userChose: userCalls, correct: correct),
+        band: userCalls == correct ? .spotOn : .off,
         userCalls: userCalls, correctIsCall: correct,
         equityPct: spot.equityPct, requiredPct: spot.requiredPct,
         whyText: "에퀴티 \(pctText(spot.equityPct))% vs 필요 \(pctText(spot.requiredPct))% → \(correct ? "콜" : "폴드")")
