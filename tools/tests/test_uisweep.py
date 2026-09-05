@@ -77,6 +77,13 @@ class UISweepTests(unittest.TestCase):
                 self.assertEqual(self.calls()[-1], ['xcrun', 'simctl', 'delete', 'DISPOSABLE-DEVICE'])
                 self.assertFalse(list((self.root / '.uisweep').glob('*/captured.txt')))
 
+    def test_failed_boot_retries_once_then_cleans_up(self):
+        result = self.run_sweep('--screen', 'today', fail='bootstatus')
+        self.assertNotEqual(result.returncode, 0)
+        boots = [c for c in self.calls() if c[:3] == ['xcrun', 'simctl', 'bootstatus']]
+        self.assertEqual(len(boots), 2)
+        self.assertEqual(self.calls()[-1], ['xcrun', 'simctl', 'delete', 'DISPOSABLE-DEVICE'])
+
     def test_each_capture_starts_with_fresh_data_and_this_checkouts_app(self):
         result = self.run_sweep('--screen', 'today', '--screen', 'today-empty')
         self.assertEqual(result.returncode, 0, result.stderr)

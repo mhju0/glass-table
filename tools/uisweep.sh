@@ -126,6 +126,25 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'echo "Sweep failed; logs: $OUT" >&2' ERR
 
+# CoreSimulator can stall on first boot or leave a launch pending before a process
+# exists. Bound those waits; a failed command must not leave an unattended sweep hung.
+run_with_timeout() {
+  python3 - "$@" <<'PYTIMEOUT'
+import subprocess, sys
+try:
+    sys.exit(subprocess.run(sys.argv[2:], timeout=int(sys.argv[1])).returncode)
+except subprocess.TimeoutExpired:
+    print('Timed out: ' + ' '.join(sys.argv[2:]), file=sys.stderr)
+    sys.exit(124)
+PYTIMEOUT
+}
+
+restart_device() {
+  xcrun simctl shutdown "$DEV" >>"$OUT/simulator.log" 2>&1
+  xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
+  run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1
+}
+
 # A local artifact and content fingerprint prevent stale screenshots after edits or
 # when several checkouts have generated apps with the same scheme name.
 fingerprint=$(python3 - "$ROOT" <<'PYHASH'
@@ -174,9 +193,13 @@ sys.exit(1)
 PYDEVICE
 )
 DEV=$(xcrun simctl create "GlassTable sweep $(basename "$OUT")" "$TYPE" "$RUNTIME")
+echo "Starting disposable simulator; logs and captures: $OUT"
 printf 'device=%s\nruntime=%s\nsource=%s\n' "$DEV" "$RUNTIME" "$fingerprint" >"$OUT/run.txt"
 xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
-xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1
+if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1; then
+  echo "First boot stalled; restarting the disposable device once."
+  restart_device
+fi
 
 for entry in "${SCREENS[@]}"; do
   name="${entry%%:*}"
@@ -192,7 +215,11 @@ for entry in "${SCREENS[@]}"; do
   fi
   xcrun simctl install "$DEV" "$APP" >>"$OUT/simulator.log" 2>&1
   touch "$OUT/installed"
-  env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$OUT/$name.log" 2>&1
+  if ! run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$OUT/$name.log" 2>&1; then
+    echo "Launch failed for $name; restarting the disposable device once."
+    restart_device
+    run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$OUT/$name.log" 2>&1
+  fi
   sleep "$slp"
   xcrun simctl io "$DEV" screenshot "$OUT/$name.png" >>"$OUT/$name.log" 2>&1
   echo "$name" | tee -a "$OUT/captured.txt"

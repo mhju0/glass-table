@@ -25,8 +25,9 @@ Baseline: `61f0b51`, the head of takeover PR #3. No Claude configuration was mig
 - **Verification tooling:** the screenshot sweep generates/builds this checkout,
   retains logs, propagates failures, rejects stale `--no-build` artifacts, and creates
   and deletes its own simulator. Each capture starts with a fresh app container.
-  Individual screens are selectable. Five failure-path tests cover build/launch/
-  capture failures, cleanup, artifact isolation, stale reuse and invalid screen names.
+  Individual screens are selectable. Startup waits are bounded with one restart on
+  failure. Six failure-path tests cover boot/build/launch/capture failures, cleanup,
+  artifact isolation, stale reuse and invalid screen names.
 - **CI:** run the release engine gate on engine PRs, not only after merge; test the
   screenshot tool; let app tests perform the Debug build instead of building twice;
   print the complete Xcode log on failure.
@@ -58,7 +59,7 @@ tools/uisweep.sh --screen drill-rangeadv --screen drill-rangeadv-reveal
 ## Verification
 
 - 311 drill tests, 91 release engine tests (including exhaustive enumeration and the
-  frozen independent oracle), 12 iOS app tests, and five screenshot-tool tests pass.
+  frozen independent oracle), 12 iOS app tests, and six screenshot-tool tests pass.
 - XcodeGen generation and unsigned Debug/Release simulator builds succeed.
 - Native simulator interaction confirmed unit 2 starts at `1/7` and consecutive
   range-advantage questions reveal their own answers (59.1%, then 73%).
