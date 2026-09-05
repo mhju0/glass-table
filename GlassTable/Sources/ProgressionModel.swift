@@ -16,6 +16,8 @@ final class ProgressionModel {
     /// Set when the store exists but will not parse. The UI must offer recovery rather
     /// than silently starting the user over (spec §8.2).
     private(set) var unreadable: String?
+    /// Failed ordinary saves keep the latest answers in memory for retry or export.
+    private(set) var saveError: String?
 
     private let store: ProgressionStore
     private let scheduler = FSRSScheduler()
@@ -40,7 +42,7 @@ final class ProgressionModel {
             // persist once so the next launch takes the .loaded path.
             state = LegacyMigration.migrate(from: store.url.deletingLastPathComponent(),
                                             into: ProgressState())
-            try? store.save(state)
+            save()
         case let .loaded(loaded):
             state = loaded
         case let .unreadable(reason):
@@ -85,6 +87,7 @@ final class ProgressionModel {
     /// One graded answer: counts, miss streak, FSRS schedule, calibration log.
     func record(concept: Concept, band: GradeBand, interval: IntervalAnswer? = nil,
                 evLoss: Double? = nil, now: Date = Date()) {
+        guard unreadable == nil else { return }
         ReviewQueue.recordReview(&state, concept: concept, rating: .forBand(band),
                                  interval: interval, now: now, scheduler: scheduler,
                                  evLoss: evLoss)
@@ -94,6 +97,7 @@ final class ProgressionModel {
     /// Marks a node cleared and promotes every concept it exercised. `cleanRun` is
     /// what separates 익숙 from 능숙; `viaBoss` is the only route to 숙달.
     func completeNode(_ node: CurriculumNode, cleanRun: Bool, now: Date = Date()) {
+        guard unreadable == nil else { return }
         var record = state.nodes[node.id] ?? NodeRecord()
         record.attempts += 1
         record.cleared = true
@@ -113,6 +117,7 @@ final class ProgressionModel {
     /// Spec §7.1: a streak day needs a session that included a due item, so the
     /// streak can't be farmed on already-mastered material.
     func endSession(answered: [Concept], now: Date = Date()) {
+        guard unreadable == nil else { return }
         guard ReviewQueue.sessionQualifiesForStreak(answered: answered, in: state,
                                                     at: now, scheduler: scheduler)
         else { return }
@@ -127,27 +132,39 @@ final class ProgressionModel {
 
     // MARK: - recovery (spec §8.2)
 
-    func exportData() throws -> Data { try store.exportData() }
+    func exportData() throws -> Data {
+        if unreadable != nil { return try store.exportData() }
+        return try store.exportData(state)
+    }
 
     func importData(_ data: Data) throws {
-        state = try store.importData(data)
-        try store.save(state)
-        unreadable = nil
+        try replace(with: store.importData(data))
     }
 
-    /// Explicit "start over": the unreadable file is moved aside, never deleted.
-    func discardUnreadableStore() {
-        try? store.quarantineCorruptFile()
-        state = ProgressState()
+    /// Explicit "start over": replacement must preserve the old bytes and save
+    /// successfully before either the displayed state or recovery screen changes.
+    func discardUnreadableStore() throws { try replace(with: ProgressState()) }
+
+    func resetProgress() throws { try discardUnreadableStore() }
+
+    private func replace(with replacement: ProgressState) throws {
+        try store.replace(with: replacement)
+        state = replacement
         unreadable = nil
-        save()
+        saveError = nil
     }
 
-    /// Settings' 진행 초기화 — the same move-aside-and-fresh as the recovery screen's
-    /// "새로 시작하기", reused so there is exactly one way progress is ever replaced.
-    func resetProgress() { discardUnreadableStore() }
+    func retrySave() { save() }
 
-    private func save() { try? store.save(state) }
+    private func save() {
+        guard unreadable == nil else { return }
+        do {
+            try store.save(state)
+            saveError = nil
+        } catch {
+            saveError = String(describing: error)
+        }
+    }
 
     #if DEBUG
     /// Mid-path demo state: unit 1 cleared, unit 2 started, two concepts due for

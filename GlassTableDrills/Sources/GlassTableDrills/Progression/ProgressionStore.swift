@@ -26,15 +26,13 @@ public struct ProgressionStore {
     public static func standard() -> ProgressionStore {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory,
                                            in: .userDomainMask)[0]
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return ProgressionStore(url: dir.appendingPathComponent("progression.json"))
     }
 
     public func load() -> StoreLoad {
         guard FileManager.default.fileExists(atPath: url.path) else { return .fresh }
         do {
-            let state = try JSONDecoder().decode(ProgressState.self,
-                                                 from: Data(contentsOf: url))
+            let state = try importData(Data(contentsOf: url))
             return .loaded(state)
         } catch {
             return .unreadable(String(describing: error))
@@ -45,24 +43,42 @@ public struct ProgressionStore {
     /// to a sibling temp file and renames, and rename is atomic on APFS. Throws rather
     /// than swallowing, because a save that silently fails is how progress disappears.
     public func save(_ state: ProgressState) throws {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]   // stable bytes → readable diffs
-        try encoder.encode(state).write(to: url, options: [.atomic])
+        try write(exportData(state))
     }
 
-    /// Moves an unreadable file aside and returns where it went, so "start fresh" is
-    /// an explicit user choice that still preserves the bytes for recovery.
+    /// Preserve the existing bytes before an explicit reset or import. Copy rather
+    /// than move: if the replacement write fails (or the app exits), the live file
+    /// still contains the original progress. A failed copy must abort replacement.
     @discardableResult
-    public func quarantineCorruptFile() throws -> URL {
-        let stamp = Int(Date().timeIntervalSince1970)
-        let dest = url.deletingPathExtension()
-            .appendingPathExtension("corrupt-\(stamp).json")
-        try FileManager.default.moveItem(at: url, to: dest)
-        return dest
+    public func replace(with state: ProgressState) throws -> URL? {
+        let data = try exportData(state)
+        var recovery: URL?
+        if FileManager.default.fileExists(atPath: url.path) {
+            let destination = url.deletingPathExtension()
+                .appendingPathExtension("recovery-\(UUID().uuidString).json")
+            try FileManager.default.copyItem(at: url, to: destination)
+            recovery = destination
+        }
+        try write(data)
+        return recovery
+    }
+
+    private func write(_ data: Data) throws {
+        // Retry directory creation too: first-launch storage may have been unavailable.
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
+                                                 withIntermediateDirectories: true)
+        try data.write(to: url, options: [.atomic])
     }
 
     /// The store file *is* the export format (spec §8.1), so this is a straight read.
     public func exportData() throws -> Data { try Data(contentsOf: url) }
+
+    /// Encode in-memory progress too, including answers awaiting a successful save.
+    public func exportData(_ state: ProgressState) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        return try encoder.encode(state)
+    }
 
     /// Validates before returning; the caller decides whether to `save` the result.
     public func importData(_ data: Data) throws -> ProgressState {

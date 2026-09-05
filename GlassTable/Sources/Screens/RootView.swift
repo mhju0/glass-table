@@ -64,11 +64,14 @@ struct RootView: View {
             .tag(Tab.records)
         }
         .sheet(item: $openNode) { node in
-            NavigationStack { NodeSessionView(node: node) }
-                .environment(model)
+            NavigationStack {
+                NodeSessionView(node: node).modifier(ProgressSaveNotice())
+            }.environment(model)
         }
         .sheet(isPresented: $showFreePlay) {
-            NavigationStack { FreePlayView() }.environment(model)
+            NavigationStack {
+                FreePlayView().modifier(ProgressSaveNotice())
+            }.environment(model)
         }
         // 오늘's 복습 card used to dump the user on the 길 tab to hunt for the due
         // concepts themselves; this is the same free-play player narrowed to them.
@@ -78,6 +81,7 @@ struct RootView: View {
                              blurb: "지금 복습 시점이 된 개념이에요. 몇 문제든 풀면 다음 복습이 뒤로 밀려요.",
                              concepts: model.dueConcepts(),
                              emptyText: "오늘 복습을 다 끝냈어요. 다음 복습은 내일 이후에 돌아와요.")
+                    .modifier(ProgressSaveNotice())
             }
             .environment(model)
         }
@@ -87,7 +91,9 @@ struct RootView: View {
         // Settings every time, which read as the tab bar being dead. Presenting it as
         // a sheet also covers the tab bar, which is what a full-screen detail should do.
         .sheet(isPresented: $showSettings) {
-            NavigationStack { SettingsView() }.environment(model)
+            NavigationStack {
+                SettingsView().modifier(ProgressSaveNotice())
+            }.environment(model)
         }
         .onAppear {
             #if DEBUG
@@ -119,7 +125,7 @@ struct RootView: View {
 private struct RootChrome: ViewModifier {
     @Binding var showSettings: Bool
     func body(content: Content) -> some View {
-        content.gtChrome(.topBarTrailing) {
+        content.modifier(ProgressSaveNotice()).gtChrome(.topBarTrailing) {
             ChromeButton(symbol: "gearshape.fill", spoken: "설정") { showSettings = true }
         }
     }
@@ -130,16 +136,20 @@ private struct RootChrome: ViewModifier {
 struct StoreRecoveryView: View {
     @Environment(ProgressionModel.self) private var model
     @State private var importing = false
+    @State private var fileFailure: ProgressFileFailure?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("기록을 열 수 없어요").font(GT.title(20)).foregroundStyle(GT.onFelt)
-            Text("저장된 파일이 손상됐어요. 파일은 지우지 않고 그대로 두었어요. "
+            Text("저장된 파일을 읽을 수 없거나 더 새로운 앱 버전이 필요해요. 파일은 그대로 두었어요. "
                  + "백업이 있으면 불러오고, 없으면 새로 시작할 수 있어요.")
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             FeltCTAButton(title: "백업 불러오기") { importing = true }
-            Button("새로 시작하기") { model.discardUnreadableStore() }
+            Button("새로 시작하기") {
+                do { try model.discardUnreadableStore() }
+                catch { fileFailure = .reset }
+            }
                 .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)
             Spacer()
@@ -148,10 +158,21 @@ struct StoreRecoveryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(FeltBackground())
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
-            guard case let .success(url) = result else { return }
+            guard case let .success(url) = result else {
+                fileFailure = .read
+                return
+            }
             let scoped = url.startAccessingSecurityScopedResource()
             defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-            if let data = try? Data(contentsOf: url) { try? model.importData(data) }
+            let data: Data
+            do { data = try Data(contentsOf: url) }
+            catch { fileFailure = .read; return }
+            do { try model.importData(data) }
+            catch { fileFailure = .importing(error) }
+        }
+        .alert(item: $fileFailure) { failure in
+            Alert(title: Text("기록 파일을 처리하지 못했어요"), message: Text(failure.message),
+                  dismissButton: .default(Text("확인")))
         }
     }
 }

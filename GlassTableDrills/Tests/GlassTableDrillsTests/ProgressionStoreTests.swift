@@ -54,15 +54,14 @@ final class ProgressionStoreTests: XCTestCase {
         guard case .unreadable = s.load() else { return XCTFail("expected .unreadable") }
     }
 
-    func testQuarantineMovesTheBadFileAsideSoTheNextLoadIsFresh() throws {
+    func testReplacementPreservesUnreadableBytesAndSavesFreshProgress() throws {
         let s = store()
         let url = dir.appendingPathComponent("progress.json")
         try Data("{ bad".utf8).write(to: url)
-        let moved = try s.quarantineCorruptFile()
-        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
-        XCTAssertTrue(FileManager.default.fileExists(atPath: moved.path))
-        XCTAssertEqual(try Data(contentsOf: moved), Data("{ bad".utf8))
-        guard case .fresh = s.load() else { return XCTFail("expected .fresh after quarantine") }
+        let recovery = try XCTUnwrap(s.replace(with: ProgressState()))
+        XCTAssertEqual(try Data(contentsOf: recovery), Data("{ bad".utf8))
+        guard case let .loaded(state) = s.load() else { return XCTFail("expected .loaded") }
+        XCTAssertEqual(state, ProgressState())
     }
 
     func testSaveIsAtomicSoAFailedWriteLeavesThePreviousFileIntact() throws {
@@ -70,11 +69,69 @@ final class ProgressionStoreTests: XCTestCase {
         var good = ProgressState()
         good.streak.current = 9
         try s.save(good)
-        // Writing to a path whose parent does not exist must throw, not truncate.
-        let bad = ProgressionStore(url: dir.appendingPathComponent("nope/progress.json"))
-        XCTAssertThrowsError(try bad.save(ProgressState()))
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: dir.path)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dir.path)
+        }
+        XCTAssertThrowsError(try s.save(ProgressState()))
         guard case let .loaded(back) = s.load() else { return XCTFail("expected .loaded") }
         XCTAssertEqual(back.streak.current, 9)
+    }
+
+    func testReplacementAbortsWhenRecoveryCopyCannotBeWritten() throws {
+        let s = store()
+        let original = Data("{ damaged but recoverable".utf8)
+        try original.write(to: s.url)
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: dir.path)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dir.path)
+        }
+
+        XCTAssertThrowsError(try s.replace(with: ProgressState()))
+        XCTAssertEqual(try Data(contentsOf: s.url), original)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: dir.path), ["progress.json"])
+    }
+
+    func testRepeatedReplacementsKeepDistinctRecoveryCopies() throws {
+        let s = store()
+        var first = ProgressState()
+        first.streak.current = 3
+        try s.save(first)
+        let firstBytes = try s.exportData()
+        let firstCopy = try XCTUnwrap(s.replace(with: ProgressState()))
+        let secondBytes = try s.exportData()
+        let secondCopy = try XCTUnwrap(s.replace(with: first))
+
+        XCTAssertNotEqual(firstCopy, secondCopy)
+        XCTAssertEqual(try Data(contentsOf: firstCopy), firstBytes)
+        XCTAssertEqual(try Data(contentsOf: secondCopy), secondBytes)
+    }
+
+    func testFailedReplacementWriteKeepsTheLiveFileAndRecoveryCopy() throws {
+        let s = store()
+        let bytes = Data("{ damaged but recoverable".utf8)
+        try bytes.write(to: s.url)
+        // A locked live file can be copied, but atomic replacement must fail.
+        try FileManager.default.setAttributes([.immutable: true], ofItemAtPath: s.url.path)
+        defer {
+            for file in (try? FileManager.default.contentsOfDirectory(
+                at: dir, includingPropertiesForKeys: nil)) ?? [] {
+                try? FileManager.default.setAttributes([.immutable: false], ofItemAtPath: file.path)
+            }
+        }
+
+        XCTAssertThrowsError(try s.replace(with: ProgressState()))
+
+        XCTAssertEqual(try Data(contentsOf: s.url), bytes)
+        let recovery = try XCTUnwrap(FileManager.default.contentsOfDirectory(
+            at: dir, includingPropertiesForKeys: nil).first { $0 != s.url })
+        XCTAssertEqual(try Data(contentsOf: recovery), bytes)
+    }
+
+    func testReplacementWorksWhenThereIsNoPreviousFile() throws {
+        let s = store()
+        XCTAssertNil(try s.replace(with: ProgressState()))
+        guard case .loaded = s.load() else { return XCTFail("expected saved progress") }
     }
 
     func testExportProducesTheStoreBytesAndImportValidates() throws {
@@ -101,5 +158,18 @@ final class ProgressionStoreTests: XCTestCase {
                 found: ProgressState.currentSchemaVersion + 1,
                 supported: ProgressState.currentSchemaVersion))
         }
+    }
+
+    func testLoadRejectsAFutureSchemaVersionWithoutChangingTheFile() throws {
+        let s = store()
+        var future = ProgressState()
+        future.schemaVersion = ProgressState.currentSchemaVersion + 1
+        let data = try JSONEncoder().encode(future)
+        try data.write(to: s.url)
+
+        guard case .unreadable = s.load() else {
+            return XCTFail("disk loads must validate the same schema as imports")
+        }
+        XCTAssertEqual(try Data(contentsOf: s.url), data)
     }
 }
