@@ -166,7 +166,7 @@ mathematics, aimed at Korean-speaking players (UI is Korean-first).
 
 The historical iPhone 6.9" set (1320×2868, from iPhone 17 Pro Max simulator), reused for
 both locales: `docs/store-assets/ko-0[1-5]-*.png` — 오늘, 길, 테이블, a graded
-reveal, 기록. **Re-captured 2026-08-07** against the current UI, replacing the
+reveal, 기록. **Captured 2026-08-07** against the pre-revamp UI, replacing the
 M1 set (home / outs reveal / pot-odds / stats / glossary), which was two design
 generations old.
 
@@ -175,6 +175,8 @@ Regenerate with `GT_SIM="iPhone 17 Pro Max" tools/uisweep.sh`, then copy
 timestamped folder. The order is the pitch: what you open daily → the course
 behind it → the graded hand that is the differentiator → the reveal showing
 where a number came from → progress and calibration.
+
+The 2026-09-14 verification sweep and refreshed README images document the revamp; the store set above remains historical and must be replaced after user feedback.
 
 These are raw frames with no caption layer. If App Store Connect ends up
 wanting captioned marketing shots, that is a separate pass.
