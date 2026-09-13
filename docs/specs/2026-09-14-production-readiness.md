@@ -57,6 +57,19 @@ entitlements remain unverified.
 - A dedicated Release smoke scheme avoids the Debug-only unit test module's
   `@testable` build requirement without changing the distribution configuration.
 
+The frozen implementation `422cf9e1628d7b968accb62a930f7dd764d83e91` received
+independent final security/persistence approval with no actionable blocker.
+Both Release smoke tests then passed; responsive launch averaged **1.529 s**
+across three simulator samples (1.514, 1.500, 1.573 s), without a device baseline.
+
+Manual simulator verification exercised recovery → original-file sharing →
+Save to Files. The exported 34-byte damaged fixture matched its original exactly.
+Reimport through the real Files picker displayed the expected Korean error and
+kept recovery available. Settings' license entry and document opening were also
+visually checked. This was a disposable simulator fixture, not user progress.
+Screenshots are in `.build/production-evidence/`; XCTest results remain in
+`.build/production-tests/Logs/Test/` and `.build/release-smoke/Logs/Test/`.
+
 ## Performance evidence
 
 Reproducible harness: `swift run -c release --package-path tools/performance-audit GTPerf`.
