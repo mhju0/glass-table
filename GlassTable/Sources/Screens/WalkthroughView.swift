@@ -10,11 +10,10 @@ import GlassTableDrills
 /// beats read as a comparison, and dead cards strike through **in place** rather than
 /// disappearing — seeing what was removed and why is the lesson.
 ///
-/// **No flashing.** WCAG 2.3.1 caps flashing at three per second as a seizure risk, so
-/// the highlight is a slow ~1.9s breathe that stops entirely under Reduce Motion,
-/// where the dimming alone carries the same information.
+/// Highlights are stable. A beat change moves only the card or value that changed.
 struct WalkthroughView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let title: String
     let beats: [Beat]
     /// Card rows to show for `.table` beats: (label, cards), top to bottom.
@@ -23,33 +22,42 @@ struct WalkthroughView: View {
     let onSkip: () -> Void
 
     @State private var index = 0
-    @State private var pulsing = false
 
     private var beat: Beat { beats[min(index, beats.count - 1)] }
     private var isLast: Bool { index >= beats.count - 1 }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            // Same shape the table had: a top-anchored column in a ScrollView, so a
-            // beat shorter than the viewport left the slack as bare felt above the
-            // sheet — around 40% of the screen on the outs grid. Pinning to the
-            // viewport height centres the beat in the band between header and sheet,
-            // and long beats still scroll.
-            GeometryReader { geo in
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
                 ScrollView {
-                    content
-                        .padding(.horizontal, 18).padding(.top, 6)
-                        .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                    VStack(alignment: .leading, spacing: GT.Space.section) {
+                        header
+                        content.frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: GT.Space.related) { sheet }
+                            .padding(18)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .gtCard(radius: GT.Radius.panel)
+                    }
+                    .padding(.horizontal, 18).padding(.bottom, 28)
                 }
-                .scrollBounceBehavior(.basedOnSize)
+            } else {
+                VStack(spacing: 0) {
+                    header
+                    GeometryReader { geo in
+                        ScrollView {
+                            content
+                                .padding(.horizontal, 18).padding(.vertical, GT.Space.related)
+                                .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                        }
+                        .scrollBounceBehavior(.basedOnSize)
+                    }
+                    ActionSheet { sheet }.layoutPriority(1)
+                }
             }
-            ActionSheet { sheet }.layoutPriority(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(FeltBackground())
         .onAppear {
-            if !reduceMotion { pulsing = true }
             #if DEBUG
             // GT_DEMO_BEAT=<n> opens on beat n — synthetic taps never reach Simulator
             // content, so the highlight/strike states are otherwise unverifiable.
@@ -70,11 +78,11 @@ struct WalkthroughView: View {
     private var header: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("\(title) · 천천히").font(GT.semibold(12))
+                Text("\(title) · 천천히").font(GT.semibold(14))
                     .foregroundStyle(GT.onFeltSecondary)
                 Spacer()
                 Text("\(index + 1)/\(beats.count)")
-                    .font(GT.semibold(12).monospacedDigit())
+                    .font(GT.semibold(14).monospacedDigit())
                     .foregroundStyle(GT.onFeltSecondary)
             }
             GeometryReader { geo in
@@ -103,7 +111,7 @@ struct WalkthroughView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Spacer(minLength: 24)
                 Text(beat.value ?? beat.caption)
-                    .font(GT.title(34)).foregroundStyle(GT.onFelt)
+                    .font(GT.title(40)).foregroundStyle(GT.onFelt)
                     .minimumScaleFactor(0.5)
                     .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.numericText())
@@ -134,15 +142,14 @@ struct WalkthroughView: View {
                             .fill(i == lit ? GT.mint : GT.onFelt.opacity(0.35))
                             .frame(width: i == lit ? 7 : 4, height: i == lit ? 7 : 4)
                         Text(line)
-                            .font(i == lit ? GT.title(17) : GT.semibold(16))
+                            .font(i == lit ? GT.title(19) : GT.semibold(17))
                             .foregroundStyle(i == lit ? GT.onFelt : GT.onFeltSecondary)
                     }
                 }
             }
-            .padding(15)
+            .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
-            .padding(.top, 90)
         case let .buckets(bars):
             VStack(alignment: .leading, spacing: 18) {
                 ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
@@ -206,19 +213,15 @@ struct WalkthroughView: View {
                 if lit {
                     RoundedRectangle(cornerRadius: size * 0.17)
                         .stroke(GT.mint, lineWidth: 3)
-                        .shadow(color: GT.mint.opacity(pulsing ? 0.9 : 0.45), radius: 9)
+                        .shadow(color: GT.mint.opacity(0.5), radius: 8)
                 }
             }
             // Lifted rather than merely outlined, so emphasis reads even at a glance
             // now that the unhighlighted cards stay legible.
             .scaleEffect(lit ? 1.06 : 1)
-            .animation(reduceMotion ? nil : .easeInOut(duration: 1.9).repeatForever(autoreverses: true),
-                       value: pulsing)
-            .animation(reduceMotion ? .easeOut(duration: 0.01)
-                                    : .spring(response: 0.55, dampingFraction: 0.72),
-                       value: down)
-            .animation(.easeOut(duration: 0.22), value: lit)
-            .animation(.easeOut(duration: 0.25), value: index)
+            .animation(reduceMotion ? nil : GT.Motion.change, value: down)
+            .animation(reduceMotion ? nil : GT.Motion.change, value: lit)
+            .animation(reduceMotion ? nil : GT.Motion.change, value: index)
             .accessibilityLabel(accessibilityText(card, lit: lit, dead: dead))
     }
 
@@ -236,33 +239,30 @@ struct WalkthroughView: View {
         VStack(alignment: .leading, spacing: 8) {
             if let value = beat.value, beat.focus != .none {
                 Text(beat.caption)
-                    .font(GT.semibold(11)).tracking(0.5)
+                    .font(GT.semibold(13)).tracking(0.3)
                     .foregroundStyle(GT.inkMuted)
-                Text(value)
-                    .font(GT.title(30)).foregroundStyle(GT.ink)
-                    .minimumScaleFactor(0.6).lineLimit(2)
+                Text(value).font(GT.title(32)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.numericText())
             } else if beat.focus == .none {
                 // The payload is already large on the felt. Repeating it here is the
                 // same sentence twice; only its label belongs in the sheet.
                 if beat.value != nil {
-                    Text(beat.caption).font(GT.semibold(13)).foregroundStyle(GT.inkMuted)
+                    Text(beat.caption).font(GT.semibold(15)).foregroundStyle(GT.inkMuted)
                 }
             } else {
-                Text(beat.caption).font(GT.title(19)).foregroundStyle(GT.ink)
+                Text(beat.caption).font(GT.title(21)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let detail = beat.detail {
-                Text(detail).font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                Text(detail).font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             PrimaryCTAButton(title: isLast ? "이해했어요" : "다음") {
                 if isLast { onFinish() }
-                else { withAnimation(.easeOut(duration: 0.25)) { index += 1 } }
+                else { withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 } }
             }
         }
-        .accessibilityElement(children: .combine)
     }
 }
 

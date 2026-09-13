@@ -23,12 +23,26 @@ struct ConceptDrillView: View {
     let seed: UInt64
     let index: Int
     let progressText: String
+    let onCommit: (DrillOutcome) -> Void
     let onAnswer: (DrillOutcome) -> Void
+
+    init(concept: Concept, seed: UInt64, index: Int, progressText: String,
+         onCommit: @escaping (DrillOutcome) -> Void = { _ in },
+         onAnswer: @escaping (DrillOutcome) -> Void) {
+        self.concept = concept
+        self.seed = seed
+        self.index = index
+        self.progressText = progressText
+        self.onCommit = onCommit
+        self.onAnswer = onAnswer
+    }
 
     var body: some View {
         // One key set here instead of a `term:` threaded through eighteen drills —
         // the reveal sheets read it back to draw their 용어 chip.
-        drill.environment(\.glossaryTerm, Self.glossaryTerm(for: concept))
+        drill
+            .environment(\.glossaryTerm, Self.glossaryTerm(for: concept))
+            .environment(\.drillCommit, onCommit)
     }
 
     /// The glossary entry a confused user most likely needs mid-drill. Values must
@@ -112,10 +126,19 @@ private struct GlossaryTermKey: EnvironmentKey {
     static let defaultValue: String? = nil
 }
 
+private struct DrillCommitKey: EnvironmentKey {
+    static let defaultValue: (DrillOutcome) -> Void = { _ in }
+}
+
 extension EnvironmentValues {
     fileprivate var glossaryTerm: String? {
         get { self[GlossaryTermKey.self] }
         set { self[GlossaryTermKey.self] = newValue }
+    }
+
+    fileprivate var drillCommit: (DrillOutcome) -> Void {
+        get { self[DrillCommitKey.self] }
+        set { self[DrillCommitKey.self] = newValue }
     }
 }
 
@@ -129,63 +152,82 @@ private func gradeHaptic(_ band: GradeBand) {
 
 /// Every drill shares the same skeleton: felt content zone, cream answer sheet.
 private struct DrillShell<Content: View, Sheet: View>: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let title: String
     let progressText: String
     @ViewBuilder var content: () -> Content
     @ViewBuilder var sheet: () -> Sheet
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(title).font(GT.title(16)).foregroundStyle(GT.onFelt)
-                Spacer()
-                Text(progressText).font(GT.semibold(12).monospacedDigit())
-                    .foregroundStyle(GT.onFeltSecondary)
-            }
-            .padding(.horizontal, 18).padding(.top, 6).padding(.bottom, 12)
-
-            // The spot sits in the middle of the band between header and sheet rather
-            // than stacking from the top. A ScrollView hands its content unbounded
-            // height, so every drill shorter than the viewport — which is most of them —
-            // left the slack as bare felt just above the sheet. Pinning to the viewport
-            // height gives the spacing to both ends; longer drills still scroll.
-            GeometryReader { geo in
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
                 ScrollView {
-                    content()
-                        .padding(.horizontal, 18)
-                        .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                    VStack(alignment: .leading, spacing: GT.Space.section) {
+                        header
+                        content().frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
+                            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+                            .gtCard(radius: GT.Radius.panel)
+                    }
+                    .padding(.horizontal, 18).padding(.bottom, 28)
                 }
-                .scrollBounceBehavior(.basedOnSize)
+            } else {
+                VStack(spacing: 0) {
+                    header.padding(.horizontal, 18)
+                    GeometryReader { geo in
+                        ScrollView {
+                            content()
+                                .padding(.horizontal, 18)
+                                .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                        }
+                        .scrollBounceBehavior(.basedOnSize)
+                    }
+                    ActionSheet { sheet() }.layoutPriority(1)
+                }
             }
-
-            ActionSheet { sheet() }.layoutPriority(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var header: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title).font(GT.title(19)).foregroundStyle(GT.onFelt)
+            Spacer(minLength: 12)
+            Text(progressText).font(GT.semibold(14).monospacedDigit())
+                .foregroundStyle(GT.onFeltSecondary)
+        }
+        .padding(.top, 6).padding(.bottom, 12)
     }
 }
 
 /// Reveal panel shared by every drill: verdict, the "why", then advance.
 private struct RevealSheet: View {
     @Environment(\.glossaryTerm) private var term
+    @Environment(\.drillCommit) private var onCommit
     let band: GradeBand
     let mine: String
     let correct: String
     let why: String
+    var interval: IntervalAnswer? = nil
+    var evLoss: Double? = nil
     let onNext: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VerdictRow(band: band, mine: mine, correct: correct)
-            Text(why).font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
-                .padding(13)
+            Text(why).font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(GT.border, lineWidth: 1))
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                                             style: .continuous))
                 .fixedSize(horizontal: false, vertical: true)
             if let term { GlossaryChip(term: term) }
             PrimaryCTAButton(title: "다음 문제", action: onNext)
         }
-        .onAppear { gradeHaptic(band) }
+        .onAppear {
+            onCommit(DrillOutcome(band: band, interval: interval, evLoss: evLoss))
+            gradeHaptic(band)
+        }
     }
 }
 
@@ -206,16 +248,30 @@ private struct IntervalInput: View {
                 Text("\(fmt(point))\(unit)")
                     .font(GT.title(20).monospacedDigit()).foregroundStyle(GT.ink)
             }
-            Slider(value: $point, in: range, step: step).tint(GT.cta)
+            HStack(spacing: 10) {
+                Slider(value: $point, in: range, step: step).tint(GT.cta)
+                AdjustmentButtons(label: "추정값",
+                                  decrement: { point = max(range.lowerBound, point - step) },
+                                  increment: { point = min(range.upperBound, point + step) })
+            }
             HStack {
                 Text("90% 구간").font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
                 Spacer()
                 Text("\(fmt(max(range.lowerBound, point - halfWidth)))–\(fmt(min(range.upperBound, point + halfWidth)))\(unit)")
                     .font(GT.semibold(14).monospacedDigit()).foregroundStyle(GT.inkSecondary)
             }
-            Slider(value: $halfWidth, in: step...(range.upperBound - range.lowerBound) / 2,
-                   step: step).tint(GT.inkMuted)
-            Text("좁을수록 점수가 좋아요. 다만 정답이 구간을 벗어나면 크게 깎여요.")
+            HStack(spacing: 10) {
+                Slider(value: $halfWidth,
+                       in: step...(range.upperBound - range.lowerBound) / 2,
+                       step: step).tint(GT.inkMuted)
+                AdjustmentButtons(label: "구간 너비",
+                                  decrement: { halfWidth = max(step, halfWidth - step) },
+                                  increment: {
+                                      halfWidth = min((range.upperBound - range.lowerBound) / 2,
+                                                      halfWidth + step)
+                                  })
+            }
+            Text("정답이 들어갈 범위를 잡아요. 10번 중 약 9번 포함된다고 생각하는 구간이에요.")
                 .font(GT.body(10.5)).foregroundStyle(GT.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -470,7 +526,8 @@ private struct EquitySenseDrill: View {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                            interval: reveal.intervalAnswer) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 50; halfWidth = 10
                 }
@@ -523,7 +580,8 @@ private struct EVCallDrill: View {
                 RevealSheet(band: reveal.band,
                             mine: "\(pctText(reveal.estimate.point))bb",
                             correct: "\(pctText(reveal.correct))bb",
-                            why: reveal.whyText) {
+                            why: reveal.whyText,
+                            interval: reveal.intervalAnswer) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 0; halfWidth = 1
                 }
@@ -654,7 +712,7 @@ private struct CountDrill: View {
                   alignment: .leading, spacing: 8) {
             ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
                 Button {
-                    withAnimation(.easeOut(duration: 0.2)) {
+                    withAnimation(GT.Motion.change) {
                         tappedOut = tappedOut == card ? nil : card
                     }
                 } label: {
@@ -965,7 +1023,7 @@ private struct RangeReadDrill: View {
                 RangeGridView(range: reveal?.truth ?? estimate.range,
                               outline: reveal?.guess)
                     .frame(maxWidth: 250)
-                    .animation(.easeOut(duration: 0.18), value: width)
+                    .animation(GT.Motion.change, value: width)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .onAppear {
@@ -1070,6 +1128,9 @@ private struct RangeReadDrill: View {
             Slider(value: $width, in: 3...80, step: 1).tint(GT.cta)
                 .accessibilityLabel("범위 넓이")
                 .accessibilityValue("상위 \(pctText(width))퍼센트")
+            AdjustmentButtons(label: "범위 넓이",
+                              decrement: { width = max(3, width - 1) },
+                              increment: { width = min(80, width + 1) })
 
             SectionLabel(text: "어디에 몰려 있나요 (선택)", onDark: false)
             chips(saturated)
@@ -1197,7 +1258,8 @@ private struct HitFrequencyDrill: View {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                            interval: reveal.intervalAnswer) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 35; halfWidth = 12
                 }
@@ -1307,7 +1369,8 @@ private struct RangeAdvantageDrill: View {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                            interval: reveal.intervalAnswer) {
                     // Disable submission synchronously before the next spot appears;
                     // its task must supply its own equity, not reuse this answer's.
                     equity = nil
@@ -1343,6 +1406,7 @@ private struct RangeAdvantageDrill: View {
 /// one thing, so a verdict pill at the top would contradict the lesson underneath it.
 private struct EVLossRevealSheet: View {
     @Environment(\.glossaryTerm) private var term
+    @Environment(\.drillCommit) private var onCommit
     let reveal: EVLossReveal
     let onNext: () -> Void
 
@@ -1380,7 +1444,11 @@ private struct EVLossRevealSheet: View {
             PrimaryCTAButton(title: "다음 문제", action: onNext)
         }
         .accessibilityElement(children: .contain)
-        .onAppear { gradeHaptic(reveal.band) }
+        .onAppear {
+            onCommit(DrillOutcome(band: reveal.band, interval: nil,
+                                  evLoss: reveal.grade.loss))
+            gradeHaptic(reveal.band)
+        }
     }
 }
 
@@ -1525,7 +1593,8 @@ private struct ActionReadDrill: View {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                            interval: reveal.intervalAnswer) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 40; halfWidth = 12
                 }

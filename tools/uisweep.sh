@@ -2,6 +2,7 @@
 # Capture DEBUG demo hooks on a disposable simulator. Never touches a user's app data.
 # tools/uisweep.sh [--no-build] [--screen NAME ...] | --list
 # GT_SIM selects an available device name (default: iPhone 17).
+# GT_CONTENT_SIZE selects a Dynamic Type category (default: large).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE=com.michaelju.glasstable
@@ -30,14 +31,20 @@ SCREENS=(
   "records:GT_DEMO_SEED=1 GT_DEMO_TAB=records"
   "settings:GT_DEMO_SEED=1 GT_DEMO_SETTINGS=1"
   "glossary:GT_DEMO_SEED=1 GT_DEMO_SETTINGS=1 GT_DEMO_GLOSSARY=1"
+  "guide:GT_DEMO_SETTINGS=1 GT_DEMO_GUIDE=1"
+  "guide-question:GT_DEMO_SETTINGS=1 GT_DEMO_GUIDE=1 GT_DEMO_GUIDE_PAGE=4"
   "freeplay:GT_DEMO_SEED=1 GT_DEMO_FREEPLAY=1"
   "review:GT_DEMO_SEED=1 GT_DEMO_REVIEW=1"
+  "review-complete:GT_DEMO_SEED=1 GT_DEMO_REVIEW=1 GT_DEMO_REVIEW_COMPLETE=1"
+  "lesson-complete:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds GT_DEMO_SESSION_COMPLETE=1"
+  "guided-potodds:GT_DEMO_NODE=u2-potOdds GT_DEMO_STAGE=together"
   "replay:GT_DEMO_SEED=1 GT_DEMO_REPLAY=potOdds"
   "drill-showdown:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-showdown"
   "drill-potmath:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-potMath"
   "drill-position:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-position"
   "drill-combos:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-combos"
   "drill-potodds:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds"
+  "drill-mdf:GT_DEMO_NODE=u9-mdf"
   "drill-outs:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-outs"
   "drill-equity:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-equitySense"
   "drill-ev:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-evCall"
@@ -202,6 +209,11 @@ if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.lo
   echo "First boot stalled; restarting the disposable device once."
   restart_device
 fi
+
+xcrun simctl ui "$DEV" content_size "${GT_CONTENT_SIZE:-large}" >>"$OUT/simulator.log" 2>&1
+xcrun simctl status_bar "$DEV" override --time '9:41' --batteryState charged --batteryLevel 100 >>"$OUT/simulator.log" 2>&1
+# First-boot system announcements can cover the first app frame.
+sleep 8
 
 for entry in "${SCREENS[@]}"; do
   name="${entry%%:*}"

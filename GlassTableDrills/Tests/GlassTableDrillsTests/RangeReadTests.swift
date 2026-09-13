@@ -255,8 +255,7 @@ final class RangeReadCurriculumTests: XCTestCase {
     func testEveryConceptWithANodeIsReachableFromThePath() {
         let onPath = Set(Curriculum.allNodes.flatMap(Curriculum.concepts(of:)))
         XCTAssertTrue(onPath.contains(.rangeRead))
-        // mdf is the documented exception (Concept.swift): shipped drill, no R1 node.
-        XCTAssertEqual(Set(Concept.allCases).subtracting(onPath), [.mdf])
+        XCTAssertTrue(Set(Concept.allCases).subtracting(onPath).isEmpty)
     }
 }
 

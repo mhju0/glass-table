@@ -1,4 +1,5 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
+import GlassTableEngine
 
 /// What a node asks the user to do.
 public enum NodeKind: Equatable, Sendable {
@@ -134,6 +135,16 @@ public enum Curriculum {
                                        mixes: [.defend, .rfi, .rangeNotation, .combos]),
                            title: "프리플랍 종합"),
         ]),
+        // MDF is a simplified defense-frequency baseline under a declared single-bet
+        // model. It teaches the aggregate frequency, not which individual hands must
+        // continue, so its boss reconnects price, board, and action evidence.
+        CurriculumUnit(id: "u9", title: "방어 빈도 점검", section: "결정", nodes: [
+            CurriculumNode(id: "u9-mdf", kind: .drill(.mdf), title: "최소 방어 빈도"),
+            CurriculumNode(id: "u9-boss",
+                           kind: .boss(own: nil,
+                                       mixes: [.mdf, .potOdds, .rangeAdvantage, .actionRead]),
+                           title: "빈도와 핸드 구분"),
+        ]),
     ]
 
     /// Flattened in path order — this ordering *is* the unlock order.
@@ -153,14 +164,37 @@ public enum Curriculum {
 
     /// Five blocked repetitions for a lesson; at least six mixed questions for a
     /// boss, long enough to exercise every concept it certifies.
-    public static func sessionConcepts(for node: CurriculumNode) -> [Concept] {
+    public static func sessionConcepts(for node: CurriculumNode, seed: UInt64 = 0) -> [Concept] {
         let pool = concepts(of: node)
-        let count: Int
         switch node.kind {
-        case .drill: count = 5
-        case .boss: count = max(6, pool.count)
+        case .drill:
+            return Array(repeating: pool[0], count: 5)
+        case .boss:
+            let count = max(6, pool.count)
+            var rng = SplitMix64(seed: seed)
+            var bag: [Concept] = []
+            while bag.count < count {
+                var round = pool
+                round.shuffle(using: &rng)
+                bag.append(contentsOf: round.prefix(count - bag.count))
+            }
+            return bag
         }
-        return (0..<count).map { pool[$0 % pool.count] }
+    }
+
+    /// Checks the frozen bag's shape without reconstructing its seed or order.
+    public static func isValidSession(_ scheduled: [Concept], for node: CurriculumNode) -> Bool {
+        let pool = concepts(of: node)
+        switch node.kind {
+        case .drill:
+            return scheduled == Array(repeating: pool[0], count: 5)
+        case .boss:
+            guard scheduled.count == max(6, pool.count), Set(scheduled) == Set(pool) else {
+                return false
+            }
+            let counts = Dictionary(grouping: scheduled, by: { $0 }).values.map(\.count)
+            return (counts.max() ?? 0) - (counts.min() ?? 0) <= 1
+        }
     }
 
     /// The concept a node *introduces*, as opposed to the ones it revisits.

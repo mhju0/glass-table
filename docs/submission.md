@@ -1,16 +1,10 @@
-# App Store submission — v1.0 (1)
+# App Store preparation: v1.0 (2)
 
-> **Status (2026-08-04): stale in one load-bearing place — re-review before
-> resuming.** This doc was written for the M1 five-drill build and submission
-> is paused for dogfood. The revamp added the 테이블: simulated betting
-> gameplay with bb stakes (no real money, no purchasable currency). The
-> age-rating rationale below ("no betting gameplay") therefore **no longer
-> describes the app**; the Simulated Gambling answer, the review notes and
-> likely the KR rating path must be reassessed (see `open-questions.md` #11 —
-> counsel before the betting-table submission was always the plan).
-> Descriptive metadata (subtitle, promo, keywords, descriptions) has been
-> refreshed to the current app, and the screenshots were re-captured
-> 2026-08-07 — **the age rating is now the only thing blocking resumption.**
+> **2026-09-14: preparation for user testing, not submitted.** The research-led
+> revamp is under verification. User feedback, signed-device testing, current
+> screenshots, App Store Connect metadata, age-rating answers and regional
+> distribution requirements still need final review. The practice table depicts
+> simulated betting with bb stakes, without real money or purchasable currency.
 
 Single source of truth for everything entered into App Store Connect.
 Field limits: name 30, subtitle 30, keywords 100, promotional text 170,
@@ -25,7 +19,7 @@ description 4000 characters.
 | Bundle ID | com.michaelju.glasstable |
 | SKU | glass-table-ios |
 | Price | Free |
-| Availability | All territories |
+| Availability | Decide after current regional-rating review; not yet confirmed |
 | Category | Education (primary), Games – Card (secondary) |
 | Support URL | https://github.com/mhju0/glass-table |
 | Privacy policy URL | https://mhju0.github.io/glass-table/privacy-policy.html |
@@ -47,11 +41,11 @@ Glass Table은 노리밋 홀덤을 레인지(range)와 EV로 생각하는 법을
 
 길 — 단계별 코스:
 
-8개 단원, 18개 개념. 쇼다운 읽기와 팟 계산에서 시작해 팟 오즈, 아웃,
+9개 단원, 18개 개념. 쇼다운 읽기와 팟 계산에서 시작해 팟 오즈, 아웃,
 에퀴티 감각, EV, 콤보, 레인지 표기법, RFI 차트, 레인지 리드, 보드 텍스처,
-히트 프리퀀시, 레인지 어드밴티지, EV 손실, 액션 리드, 디펜드 차트까지.
+히트 프리퀀시, 레인지 어드밴티지, EV 손실, 액션 리드, 디펜드 차트, 최소 방어 빈도까지.
 새 개념은 언제나 천천히(단계별 풀이)로 시작하고, 복습은 간격 반복으로
-자동 예약됩니다.
+자동 예약됩니다. 한 번의 복습은 최대 5개 개념을 한 문제씩 풀어요.
 
 테이블 — 전략이 공개된 상대:
 
@@ -62,7 +56,7 @@ Nit · TAG · LAG · 콜링 스테이션 · 매니악 중 상대를 골라 헤�
 
 모든 문제는 "결정 → 공개 → 채점" 루프로 진행됩니다. 먼저 스스로 답을
 정하고, 그다음 정확한 수치와 그 출처를 확인하세요. 추정 문제는 90% 구간을
-함께 답해 과신 여부(캘리브레이션)까지 추적합니다.
+함께 답해 그 구간에 정답이 들어온 비율과 답변 수를 확인합니다.
 
 이런 분을 위해 만들었습니다:
 • 감이 아니라 근거로 결정하고 싶은 진지한 아마추어
@@ -92,11 +86,11 @@ big blinds.
 Glass Table is a free study app that trains you to think about No-Limit
 Hold'em in ranges and EV.
 
-The course: 8 units, 18 concepts — from reading a showdown through pot odds,
+The course: 9 units, 18 concepts — from reading a showdown through pot odds,
 outs, equity sense, EV, combos, range notation, opening charts, range reads,
 board texture, hit frequency, range advantage, EV-loss decisions, action
-reads and the defend chart. New concepts open with a step-by-step worked
-example; review is scheduled by spaced repetition.
+reads, the defend chart and minimum defense frequency. New concepts open with a step-by-step worked
+example; review is scheduled by spaced repetition. Each review session asks one question for up to five due concepts.
 
 The table: play heads-up hands against a chosen archetype (Nit, TAG, LAG,
 calling station, maniac). The opponent's strategy is a published table, its
@@ -105,8 +99,8 @@ range visibly narrows as it acts, and every decision is priced in big blinds
 
 Every spot runs a decide → reveal → grade loop: commit to your answer first,
 then see the exact numbers and where they came from. Estimation questions
-also take a 90% interval, so the app tracks whether you're overconfident —
-not just whether you're right.
+also take a 90% interval. Records show how often those intervals contained the
+answer and how many responses contributed to the measurement.
 
 Built for:
 • Serious-minded amateurs who want reasons, not vibes
@@ -121,31 +115,34 @@ Features:
 
 Glass Table is a study tool. It contains no real-money gambling.
 
-## Age rating questionnaire (answers of record)
+## Age rating questionnaire (must be completed on the final build)
 
-Strategy per `decisions.md` §7: honest answers, study-tool build, expected
-12+/KR-15 or lower on the self-rating track. (Apple's revised global
-age-rating tiers read 13+/16+/18+ — if the live questionnaire shows those,
-"12+" here means the lowest non-18+ tier and "17+" means 18+/top tier.)
+Use the live [Apple questionnaire](https://developer.apple.com/help/app-store-connect/manage-app-information/set-an-app-age-rating)
+and [current regional definitions](https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions).
+Do not translate old age tiers into new ones or select answers to target a lower rating.
+The educational purpose does not remove the table's simulated betting content.
 
 | Question | Answer | Rationale |
 |---|---|---|
 | Violence (cartoon/realistic), horror, sexual content, nudity, profanity, drugs/alcohol/tobacco, medical info | None | Absent from the app |
-| Simulated Gambling | **Infrequent/Mild** *(M1 answer — MUST be reassessed: the 테이블 adds simulated betting gameplay with bb stakes, no real money)* | M1 rationale ("no betting gameplay") no longer holds. Honest re-answer required; likely Frequent/Intense → higher tier. See the status banner and `open-questions.md` #11 |
+| Simulated Gambling | **Pending final-build assessment** | The table repeatedly depicts betting. The historic M1 Infrequent/Mild answer is obsolete. |
 | Real-money gambling / contests | No | Free study tool, no money in or out |
 | Unrestricted web access | No | No networking at all |
 | User-generated content / communication | No | None |
 | In-app purchases | No | None |
 
-**Record after answering:** actual computed rating = ____ (expected 12+ /
-KR-15 or lower). If 17+/KR-19: STOP before submitting; trigger the
-contingency in spec §4 (GRAC direct review follow-up).
+**Record after answering:** actual global rating = ____; Korean regional rating
+and any registration requirement = ____; approved distribution territories = ____.
+Do not submit while those decisions are unresolved.
 
 ## App Privacy (nutrition label)
 
 **Data Not Collected** — answer "No, we do not collect data from this app."
-True because: no networking, no analytics, no accounts; progress JSON never
-leaves the device.
+There is no automatic progress transmission, networking SDK, analytics or account.
+The user can deliberately export a backup through Files or compose feedback in
+their mail app. The privacy manifest declares no tracking, no collected data,
+and no directly used required-reason API categories found in the source scan.
+Validate the signed archive's privacy report before uploading.
 
 ## Review notes (entered at submission)
 
@@ -160,11 +157,14 @@ mathematics, aimed at Korean-speaking players (UI is Korean-first).
   table does depict betting; describe it honestly at resubmission.)*
 - Fully offline: no account, no login, no in-app purchases, no ads, no data
   collection.
-- No demo account is needed; all content is available on first launch.
+- No demo account is needed. The course unlocks as lessons are completed;
+  every drill is also available through 자유 연습 without those gates.
+- Preflop grading uses declared training charts. Postflop EV uses the disclosed
+  checkdown approximation. This is not a full-game solver or live-play assistant.
 
 ## Screenshots
 
-One iPhone 6.9" set (1320×2868, from iPhone 17 Pro Max simulator), reused for
+The historical iPhone 6.9" set (1320×2868, from iPhone 17 Pro Max simulator), reused for
 both locales: `docs/store-assets/ko-0[1-5]-*.png` — 오늘, 길, 테이블, a graded
 reveal, 기록. **Re-captured 2026-08-07** against the current UI, replacing the
 M1 set (home / outs reveal / pot-odds / stats / glossary), which was two design

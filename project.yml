@@ -22,6 +22,9 @@ targets:
     info:
       path: GlassTable/Info.plist
       properties:
+        CFBundleDisplayName: Glass Table
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "2"
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
@@ -46,6 +49,7 @@ targets:
     scheme:
       testTargets:
         - GlassTableTests
+        - GlassTableUITests
   GlassTableTests:
     type: bundle.unit-test
     platform: iOS
@@ -58,3 +62,15 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: "5.9"
+  GlassTableUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - GlassTable/UITests
+    dependencies:
+      - target: GlassTable
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.9"
+        TEST_TARGET_NAME: GlassTable

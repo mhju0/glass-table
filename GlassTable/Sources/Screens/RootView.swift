@@ -73,15 +73,10 @@ struct RootView: View {
                 FreePlayView().modifier(ProgressSaveNotice())
             }.environment(model)
         }
-        // 오늘's 복습 card used to dump the user on the 길 tab to hunt for the due
-        // concepts themselves; this is the same free-play player narrowed to them.
+        // Snapshot the five most-overdue concepts and ask one question for each.
         .sheet(isPresented: $showReview) {
             NavigationStack {
-                FreePlayView(title: "복습",
-                             blurb: "지금 복습 시점이 된 개념이에요. 몇 문제든 풀면 다음 복습이 뒤로 밀려요.",
-                             concepts: model.dueConcepts(),
-                             emptyText: "오늘 복습을 다 끝냈어요. 다음 복습은 내일 이후에 돌아와요.")
-                    .modifier(ProgressSaveNotice())
+                ReviewSessionView().modifier(ProgressSaveNotice())
             }
             .environment(model)
         }
@@ -112,6 +107,7 @@ struct RootView: View {
             default: break
             }
             if env["GT_DEMO_TABLE"] != nil { tab = .table }
+            if env["GT_DEMO_REPLAY"] != nil { tab = .records }
             if let id = env["GT_DEMO_NODE"] { openNode = Curriculum.node(id: id) }
             if env["GT_DEMO_FREEPLAY"] != nil { showFreePlay = true }
             if env["GT_DEMO_REVIEW"] != nil { showReview = true }

@@ -11,6 +11,7 @@ import GlassTableDrills
 /// copy the moment a decision node appears, and the buttons wait for it — the same
 /// pattern 레인지 어드밴티지 uses for its sampling.
 struct TableView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var hand: TableHand?
     @State private var options: [GradedOption]?
     @State private var lastTurn: TurnRecord?
@@ -18,6 +19,12 @@ struct TableView: View {
     @State private var baseSeed = UInt64.random(in: 0..<UInt64.max)
     @State private var handIndex = 0
     @State private var villainPick: Archetype?
+    @State private var pickerSelection: OpponentSelection?
+
+    private enum OpponentSelection: Equatable {
+        case archetype(Archetype)
+        case random
+    }
 
     /// One graded hero decision, kept for the pill and the summary. Postflop
     /// decisions carry a bb price; the preflop one carries the chart verdict —
@@ -112,45 +119,65 @@ struct TableView: View {
 
     private var picker: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("테이블").font(GT.title(24)).foregroundStyle(GT.onFelt)
+            VStack(alignment: .leading, spacing: GT.Space.related) {
+                Text("연습 테이블").font(GT.title(30)).foregroundStyle(GT.onFelt)
                     .padding(.top, 14)
-                Text("선언된 상대와 한 핸드씩. 모든 결정을 bb로 채점해요.")
-                    .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+                Text("상대를 한 명 고른 뒤, 한 핸드의 결정을 차례로 풀어요.")
+                    .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                     .padding(.bottom, 8)
                 ForEach(Archetype.allCases, id: \.self) { a in
-                    Button { start(vs: a) } label: { archetypeRow(a) }
+                    Button { pickerSelection = .archetype(a) } label: {
+                        archetypeRow(a, selected: pickerSelection == .archetype(a))
+                    }
                         .buttonStyle(GTPress())
                 }
-                Button { start(vs: nil) } label: {
+                Button { pickerSelection = .random } label: {
                     HStack {
-                        Text("랜덤 상대").font(GT.title(13.5)).foregroundStyle(GT.ink)
+                        Text("랜덤 상대").font(GT.title(16)).foregroundStyle(GT.onFelt)
                         Spacer(minLength: 0)
-                        Image(systemName: "dice.fill")
-                            .font(.system(size: 13)).foregroundStyle(GT.inkMuted)
+                        Image(systemName: pickerSelection == .random ? "checkmark.circle.fill" : "dice.fill")
+                            .font(.system(size: 17)).foregroundStyle(GT.mint)
                     }
-                    .padding(14).frame(maxWidth: .infinity)
-                    .gtCard(radius: 14)
+                    .padding(16).frame(maxWidth: .infinity)
+                    .gtPanel()
                 }
                 .buttonStyle(GTPress())
             }
             .padding(.horizontal, 18)
         }
-        .gtTabBarClearance()
+        .safeAreaInset(edge: .bottom) {
+            if let pickerSelection {
+                FeltCTAButton(title: "핸드 시작") {
+                    switch pickerSelection {
+                    case let .archetype(archetype): start(vs: archetype)
+                    case .random: start(vs: nil)
+                    }
+                }
+                .padding(.horizontal, 18).padding(.vertical, 10)
+                .background(GT.felt)
+            }
+        }
+        .gtTabBarClearance(20)
     }
 
-    private func archetypeRow(_ a: Archetype) -> some View {
+    private func archetypeRow(_ a: Archetype, selected: Bool) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(a.name).font(GT.title(13.5)).foregroundStyle(GT.ink)
-                Text(a.blurb).font(GT.body(11)).foregroundStyle(GT.inkMuted).lineLimit(1)
+                Text(a.name).font(GT.title(16)).foregroundStyle(GT.onFelt)
+                Text(a.blurb).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            Text("VPIP \(Int(a.vpip)) · PFR \(Int(a.pfr))")
-                .font(GT.semibold(10).monospacedDigit()).foregroundStyle(GT.inkMuted)
+            if selected {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 17)).foregroundStyle(GT.mint)
+            } else {
+                Text("VPIP \(Int(a.vpip)) · PFR \(Int(a.pfr))")
+                    .font(GT.semibold(11).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
+            }
         }
-        .padding(14).frame(maxWidth: .infinity)
-        .gtCard(radius: 14)
+        .padding(16).frame(maxWidth: .infinity)
+        .gtPanel()
     }
 
     private func start(vs villain: Archetype?) {
@@ -174,8 +201,24 @@ struct TableView: View {
     /// scroll survives for the cases that actually need it — the largest Dynamic Type
     /// sizes, where the zones no longer fit.
     private func table(_ hand: TableHand) -> some View {
-        VStack(spacing: 0) {
-            GeometryReader { geo in
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                ScrollView {
+                    VStack(spacing: GT.Space.section) {
+                        seatRow(hand)
+                        if case .hero = hand.phase { streetStrip(hand) }
+                        boardBlock(hand, cardSize: 50)
+                        heroBlock(hand, cardSize: 58)
+                        VStack(alignment: .leading, spacing: GT.Space.related) { sheet(hand) }
+                            .padding(18)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .gtCard(radius: GT.Radius.panel)
+                    }
+                    .padding(.horizontal, 18).padding(.bottom, 28)
+                }
+            } else {
+                VStack(spacing: 0) {
+                    GeometryReader { geo in
                 // Card sizes follow the band the layout actually got rather than the
                 // device model, because the same phone hands the table a much shorter
                 // band on the summary — where the sheet carries a whole EV ledger —
@@ -198,12 +241,10 @@ struct TableView: View {
                     .frame(maxWidth: .infinity, minHeight: geo.size.height)
                 }
                 .scrollBounceBehavior(.basedOnSize)
+                    }
+                    ActionSheet { sheet(hand) }.layoutPriority(1)
+                }
             }
-            // The sheet is sized first and the reader takes what is left. A
-            // GeometryReader is greedy in a VStack, so without this it claimed the
-            // height the sheet needed and the action buttons clipped their price line
-            // at the accessibility text sizes.
-            ActionSheet { sheet(hand) }.layoutPriority(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -337,7 +378,9 @@ struct TableView: View {
                     SectionLabel(text: "\(hand.villainSeat.rawValue) · \(hand.villain.name)")
                     ForEach(Array(hand.history.suffix(3).enumerated()), id: \.offset) { _, line in
                         Text(line).font(GT.body(10.5)).foregroundStyle(GT.onFeltSecondary)
-                            .lineLimit(1).minimumScaleFactor(0.75)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                            .minimumScaleFactor(0.75)
+                            .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
                     }
                 }
                 Spacer(minLength: 0)
@@ -395,8 +438,9 @@ struct TableView: View {
                     ForEach(bets, id: \.choice) { opt in bviewButton(opt) }
                 }
             }
-            Text("채점은 이 스트리트 이후 베팅이 없다고 가정해요")
-                .font(GT.body(10)).foregroundStyle(GT.inkMuted)
+            Text("체크다운 근사 · 이 스트리트 뒤에는 추가 베팅이 없고 레이크는 제외해요")
+                .font(GT.body(11)).foregroundStyle(GT.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -438,8 +482,9 @@ struct TableView: View {
                                price: "\(bbText(b * TableHand.raiseFactor))bb",
                                role: .aggressive) { actPreflop(.raise, hand) }
             }
-            Text("프리플랍은 디펜드 차트로 채점해요 — 답한 뒤에 차트를 보여드려요")
-                .font(GT.body(10)).foregroundStyle(GT.inkMuted)
+            Text("프리플랍은 앱에 공개된 디펜드 차트와 비교해요. 실제 최적 전략을 뜻하지 않아요.")
+                .font(GT.body(11)).foregroundStyle(GT.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -570,6 +615,25 @@ struct TableView: View {
                 if case let .ev(loss, _) = $1.verdict { return $0 + loss }
                 return $0
             }
+            let highestCost = decisions.compactMap { decision -> (TurnRecord, Double)? in
+                guard case let .ev(loss, _) = decision.verdict else { return nil }
+                return (decision, loss)
+            }.max { $0.1 < $1.1 }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("결과와 결정은 따로 봐요").font(GT.title(15)).foregroundStyle(GT.ink)
+                Text("이번 결과는 \(resultLine(outcome)) · \(outcome.heroNet >= 0 ? "+" : "")\(bbText(outcome.heroNet))bb예요. "
+                     + "결정 기록의 EV 손실은 \(bbText(lost))bb예요.")
+                    .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let highestCost, highestCost.1 > 0 {
+                    Text("가장 큰 비용 · \(highestCost.0.street) \(highestCost.0.label), −\(bbText(highestCost.1))bb")
+                        .font(GT.semibold(12.5)).foregroundStyle(highestCost.0.band.ink)
+                }
+            }
+            .padding(12)
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                                         style: .continuous))
             VStack(alignment: .leading, spacing: 5) {
                 ForEach(Array(decisions.enumerated()), id: \.offset) { _, d in
                     HStack {

@@ -1,5 +1,18 @@
 # Glass Table — Domain Context
 
+## Revival update (2026-09-14)
+
+The current revamp follows [DESIGN.md](DESIGN.md) and the
+[research foundation](docs/specs/2026-09-13-revamp-research.md). The course now
+has 9 units and includes all 18 concepts. Review sessions snapshot at most
+five due concepts. Lesson completion is separate from per-concept performance
+promotion; mixed checkpoints use a balanced seeded order. Guided help is
+ungraded. Existing schema-1 progress and historical tiers remain intact.
+
+The older orientation below describes the pre-revival baseline where it
+conflicts with the current implementation. Store submission remains after
+user testing and final distribution checks.
+
 One page of orientation for anyone (human or agent) about to work in this repo.
 Deeper reasoning lives in `docs/decisions.md` (§A–§H) and one spec per shipped
 slice under `docs/specs/`.

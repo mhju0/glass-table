@@ -8,6 +8,8 @@ import GlassTableEngine
 /// gets a freshly generated one from the seeded generators — the structural advantage
 /// over a flashcard app, which can only replay the card it saved.
 public enum ReviewQueue {
+    public static let sessionLimit = 5
+
     /// Studied concepts whose review date has passed, most overdue first.
     ///
     /// Untouched concepts are excluded: never having been taught is not the same as
@@ -24,6 +26,12 @@ public enum ReviewQueue {
             }
             .sorted { $0.1 < $1.1 }      // earliest due date = most overdue
             .map(\.0)
+    }
+
+    /// A review session is a fixed snapshot: at most one question for each of the
+    /// five most-overdue eligible concepts. Later schedule changes cannot extend it.
+    public static func sessionConcepts(in state: ProgressState, at now: Date) -> [Concept] {
+        Array(dueConcepts(in: state, at: now).prefix(sessionLimit))
     }
 
     /// Concepts that have failed too often to keep drilling. The app owes these an

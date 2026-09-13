@@ -22,7 +22,8 @@ final class ProgressionModel {
     private let store: ProgressionStore
     private let scheduler = FSRSScheduler()
 
-    init(store: ProgressionStore = .standard()) {
+    init(store: ProgressionStore? = nil) {
+        let store = store ?? Self.launchStore()
         self.store = store
         #if DEBUG
         // GT_DEMO_SEED=1 — a representative mid-path state for screenshot runs.
@@ -47,6 +48,18 @@ final class ProgressionModel {
         }
     }
 
+    private static func launchStore() -> ProgressionStore {
+        #if DEBUG
+        if let raw = ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"],
+           let id = UUID(uuidString: raw) {
+            let standard = ProgressionStore.standard().url
+            return ProgressionStore(url: standard.deletingLastPathComponent()
+                .appendingPathComponent("progression-test-\(id.uuidString).json"))
+        }
+        #endif
+        return .standard()
+    }
+
     // MARK: - reads
 
     var nextNode: CurriculumNode? { Curriculum.nextNode(in: state) }
@@ -57,6 +70,10 @@ final class ProgressionModel {
 
     func dueConcepts(now: Date = Date()) -> [Concept] {
         ReviewQueue.dueConcepts(in: state, at: now)
+    }
+
+    func reviewSessionConcepts(now: Date = Date()) -> [Concept] {
+        ReviewQueue.sessionConcepts(in: state, at: now)
     }
 
     func needingExplainer() -> [Concept] { ReviewQueue.needingExplainer(in: state) }
@@ -91,10 +108,14 @@ final class ProgressionModel {
         save()
     }
 
-    /// Marks a node cleared and promotes every concept it exercised. `cleanRun` is
-    /// what separates 익숙 from 능숙; `viaBoss` is the only route to 숙달.
-    func completeNode(_ node: CurriculumNode, cleanRun: Bool, now: Date = Date()) {
-        guard unreadable == nil else { return }
+    /// Marks a fully answered node cleared, then evaluates each concept against only
+    /// its own current-session evidence. Missing or extra evidence changes nothing.
+    @discardableResult
+    func completeNode(_ node: CurriculumNode, scheduled: [Concept],
+                      evidence: [Concept: SessionEvidence], now: Date = Date()) -> Bool {
+        guard unreadable == nil, Curriculum.isValidSession(scheduled, for: node),
+              SessionEvidence.validates(evidence, scheduled: scheduled)
+        else { return false }
         var record = state.nodes[node.id] ?? NodeRecord()
         record.attempts += 1
         record.cleared = true
@@ -103,11 +124,21 @@ final class ProgressionModel {
 
         let viaBoss: Bool
         if case .boss = node.kind { viaBoss = true } else { viaBoss = false }
-        for concept in Curriculum.concepts(of: node) {
+        for concept in Set(scheduled) {
+            guard let conceptEvidence = evidence[concept] else { continue }
             state.updateRecord(for: concept) {
-                Mastery.promote(&$0, cleanRun: cleanRun, viaBoss: viaBoss, now: now)
+                Mastery.promote(&$0, evidence: conceptEvidence, viaBoss: viaBoss, now: now)
             }
         }
+        save()
+        return true
+    }
+
+    /// A finished walkthrough releases the stuck-state guard without fabricating a
+    /// graded attempt, review schedule, streak credit, or mastery evidence.
+    func completeWalkthrough(concept: Concept) {
+        guard unreadable == nil else { return }
+        Mastery.completeWalkthrough(&state, concept: concept)
         save()
     }
 

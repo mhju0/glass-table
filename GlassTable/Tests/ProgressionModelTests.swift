@@ -157,7 +157,10 @@ final class ProgressionModelTests: XCTestCase {
         let model = ProgressionModel(store: store)
 
         model.record(concept: .outs, band: .spotOn)
-        model.completeNode(try XCTUnwrap(Curriculum.node(id: "u1-showdown")), cleanRun: true)
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        let scheduled = Curriculum.sessionConcepts(for: node)
+        model.completeNode(node, scheduled: scheduled,
+                           evidence: [.showdown: SessionEvidence(attempted: 5, spotOn: 5)])
         model.retrySave()
 
         XCTAssertNotNil(model.unreadable)
@@ -197,14 +200,125 @@ final class ProgressionModelTests: XCTestCase {
         try store.save(original)
         let model = ProgressionModel(store: store)
         let boss = try XCTUnwrap(Curriculum.node(id: "u2-boss"))
-        let concepts = Curriculum.sessionConcepts(for: boss)
+        let concepts = Curriculum.sessionConcepts(for: boss, seed: 7)
         XCTAssertEqual(concepts.count, 7)
-        XCTAssertEqual(concepts.first, .callFold)
-        for concept in concepts { model.record(concept: concept, band: .spotOn, now: now) }
-        model.completeNode(boss, cleanRun: true, now: now)
+        XCTAssertTrue(concepts.contains(.callFold))
+        var evidence: [Concept: SessionEvidence] = [:]
+        for concept in concepts {
+            model.record(concept: concept, band: .spotOn, now: now)
+            evidence[concept, default: SessionEvidence()].record(spotOn: true)
+        }
+        model.completeNode(boss, scheduled: concepts, evidence: evidence, now: now)
 
         XCTAssertEqual(model.record(for: .position).total, 6)
         XCTAssertEqual(model.record(for: .position).tier, .mastered)
+    }
+
+    func testCompletedAllWrongLessonClearsWithoutClaimingProficiency() throws {
+        let model = ProgressionModel(store: store)
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        let scheduled = Curriculum.sessionConcepts(for: node)
+        for _ in scheduled { model.record(concept: .showdown, band: .off) }
+
+        XCTAssertTrue(model.completeNode(node, scheduled: scheduled,
+                                         evidence: [.showdown: SessionEvidence(
+                                            attempted: scheduled.count, spotOn: 0)]))
+        XCTAssertEqual(model.status(of: node), .cleared)
+        XCTAssertEqual(model.record(for: .showdown).tier, .attempted)
+    }
+
+    func testIncompleteEvidenceCannotClearNode() throws {
+        let model = ProgressionModel(store: store)
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        let scheduled = Curriculum.sessionConcepts(for: node)
+
+        XCTAssertFalse(model.completeNode(node, scheduled: scheduled, evidence: [:]))
+        XCTAssertEqual(model.status(of: node), .available)
+        XCTAssertNil(model.state.nodes[node.id])
+    }
+
+    func testMixedBossPromotesOnlyTheSpotOnConcept() throws {
+        let now = Date(timeIntervalSince1970: 1_785_000_000)
+        var original = ProgressState()
+        for concept in [Concept.showdown, .potMath, .position, .combos] {
+            original.updateRecord(for: concept) {
+                $0.tier = .proficient
+                $0.correct = 10
+                $0.total = 10
+                $0.proficientAt = now.addingTimeInterval(-86400)
+            }
+        }
+        try store.save(original)
+        let model = ProgressionModel(store: store)
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        let scheduled = Curriculum.sessionConcepts(for: boss, seed: 2)
+        var evidence: [Concept: SessionEvidence] = [:]
+        for concept in scheduled {
+            let exact = concept == .showdown
+            model.record(concept: concept, band: exact ? .spotOn : .close, now: now)
+            evidence[concept, default: SessionEvidence()].record(spotOn: exact)
+        }
+
+        XCTAssertTrue(model.completeNode(boss, scheduled: scheduled,
+                                         evidence: evidence, now: now))
+        XCTAssertEqual(model.record(for: .showdown).tier, .mastered)
+        XCTAssertEqual(model.record(for: .potMath).tier, .proficient)
+        XCTAssertEqual(model.record(for: .position).tier, .proficient)
+        XCTAssertEqual(model.record(for: .combos).tier, .proficient)
+    }
+
+    func testCompleteWalkthroughPersistsOnlyMissReset() throws {
+        var original = ProgressState()
+        original.updateRecord(for: .outs) {
+            $0.correct = 2; $0.total = 10; $0.consecutiveMisses = 8
+            $0.review.due = Date(timeIntervalSince1970: 1_785_000_000)
+        }
+        try store.save(original)
+        let model = ProgressionModel(store: store)
+        let before = model.record(for: .outs)
+
+        model.completeWalkthrough(concept: .outs)
+
+        let after = model.record(for: .outs)
+        XCTAssertEqual(after.consecutiveMisses, 0)
+        XCTAssertEqual(after.correct, before.correct)
+        XCTAssertEqual(after.total, before.total)
+        XCTAssertEqual(after.review, before.review)
+        XCTAssertTrue(model.state.answers.isEmpty)
+        XCTAssertEqual(ProgressionModel(store: store).record(for: .outs), after)
+    }
+
+    func testAttemptLedgerRequiresCommitAndRejectsDuplicateCommitAndAdvance() {
+        var ledger = SessionAttemptLedger()
+        let first = SessionAttemptID(concept: .showdown, seed: 9, index: 2)
+        let second = SessionAttemptID(concept: .showdown, seed: 9, index: 3)
+
+        XCTAssertFalse(ledger.advance(first), "Next before reveal commit must be ignored")
+        XCTAssertTrue(ledger.commit(first))
+        XCTAssertFalse(ledger.commit(first))
+        XCTAssertTrue(ledger.advance(first))
+        XCTAssertFalse(ledger.advance(first), "Repeated Next must not skip a question")
+        XCTAssertTrue(ledger.commit(second), "The next spot of the same concept is distinct")
+        XCTAssertTrue(ledger.advance(second))
+        XCTAssertEqual(ledger.committed.count, 2)
+        XCTAssertEqual(ledger.advanced.count, 2)
+    }
+
+    func testCommittedFinalAnswerPersistsBeforeNodeCompletion() throws {
+        let model = ProgressionModel(store: store)
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        let scheduled = Curriculum.sessionConcepts(for: node)
+
+        model.record(concept: .showdown, band: .spotOn)
+
+        XCTAssertEqual(ProgressionModel(store: store).record(for: .showdown).total, 1)
+        XCTAssertEqual(model.status(of: node), .available)
+        XCTAssertNil(model.state.nodes[node.id])
+
+        XCTAssertFalse(model.completeNode(node, scheduled: scheduled,
+                                          evidence: [.showdown: SessionEvidence(
+                                            attempted: 1, spotOn: 1)]))
+        XCTAssertEqual(model.status(of: node), .available)
     }
 
     private func withReadOnlyDirectory(_ body: () throws -> Void) throws {

@@ -40,6 +40,15 @@ final class ReviewQueueTests: XCTestCase {
                        [.combos, .potOdds, .outs])
     }
 
+    func testReviewSessionSnapshotsAtMostFiveConceptsOnceEach() {
+        let concepts = Array(Concept.allCases.prefix(7))
+        let s = state(due: concepts.enumerated().map { ($0.element, -Double($0.offset + 1)) })
+        let session = ReviewQueue.sessionConcepts(in: s, at: t0)
+        XCTAssertEqual(session.count, 5)
+        XCTAssertEqual(Set(session).count, session.count)
+        XCTAssertEqual(session, Array(concepts.reversed().prefix(5)))
+    }
+
     /// Spec §4.6: a concept past the stop-drilling threshold must leave the queue —
     /// it needs an explainer, not another rep.
     func testConceptsPastTheStopDrillingThresholdAreWithheld() {

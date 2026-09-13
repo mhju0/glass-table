@@ -9,19 +9,22 @@ final class MasteryTests: XCTestCase {
 
     func testUnderSeventyPercentStaysAttempted() {
         var r = ConceptRecord(correct: 6, total: 10)
-        Mastery.promote(&r, cleanRun: false, viaBoss: false, now: t0)
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 1, spotOn: 0),
+                        viaBoss: false, now: t0)
         XCTAssertEqual(r.tier, .attempted)
     }
 
     func testSeventyPercentReachesFamiliar() {
         var r = ConceptRecord(correct: 7, total: 10)
-        Mastery.promote(&r, cleanRun: false, viaBoss: false, now: t0)
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 1, spotOn: 0),
+                        viaBoss: false, now: t0)
         XCTAssertEqual(r.tier, .familiar)
     }
 
     func testACleanRunReachesProficientAndStampsTheTime() {
         var r = ConceptRecord(correct: 9, total: 10)
-        Mastery.promote(&r, cleanRun: true, viaBoss: false, now: t0)
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 5, spotOn: 5),
+                        viaBoss: false, now: t0)
         XCTAssertEqual(r.tier, .proficient)
         XCTAssertEqual(r.proficientAt, t0)
     }
@@ -30,7 +33,7 @@ final class MasteryTests: XCTestCase {
     func testBlockedPracticeCanNeverReachMasteredNoMatterHowPerfect() {
         var r = ConceptRecord(correct: 500, total: 500, proficientAt: t0)
         for i in 0..<50 {
-            Mastery.promote(&r, cleanRun: true, viaBoss: false,
+            Mastery.promote(&r, evidence: SessionEvidence(attempted: 5, spotOn: 5), viaBoss: false,
                             now: t0.addingTimeInterval(hours(Double(i * 24))))
         }
         XCTAssertEqual(r.tier, .proficient)
@@ -39,14 +42,15 @@ final class MasteryTests: XCTestCase {
 
     func testBossAfterTheTwelveHourCooldownAwardsMastered() {
         var r = ConceptRecord(tier: .proficient, correct: 20, total: 20, proficientAt: t0)
-        Mastery.promote(&r, cleanRun: true, viaBoss: true, now: t0.addingTimeInterval(hours(12)))
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 1, spotOn: 1),
+                        viaBoss: true, now: t0.addingTimeInterval(hours(12)))
         XCTAssertEqual(r.tier, .mastered)
         XCTAssertEqual(r.masteredAt, t0.addingTimeInterval(hours(12)))
     }
 
     func testBossBeforeTheCooldownDoesNotAwardMastered() {
         var r = ConceptRecord(tier: .proficient, correct: 20, total: 20, proficientAt: t0)
-        Mastery.promote(&r, cleanRun: true, viaBoss: true,
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 1, spotOn: 1), viaBoss: true,
                         now: t0.addingTimeInterval(hours(11.9)))
         XCTAssertEqual(r.tier, .proficient)
         XCTAssertNil(r.masteredAt)
@@ -54,7 +58,7 @@ final class MasteryTests: XCTestCase {
 
     func testBossCannotSkipStraightToMasteredFromFamiliar() {
         var r = ConceptRecord(tier: .familiar, correct: 8, total: 10)
-        Mastery.promote(&r, cleanRun: false, viaBoss: true,
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 1, spotOn: 0), viaBoss: true,
                         now: t0.addingTimeInterval(hours(48)))
         XCTAssertLessThan(r.tier, .mastered)
     }
@@ -62,7 +66,8 @@ final class MasteryTests: XCTestCase {
     func testTierNeverRegresses() {
         var r = ConceptRecord(tier: .mastered, correct: 1, total: 10,
                               proficientAt: t0, masteredAt: t0)
-        Mastery.promote(&r, cleanRun: false, viaBoss: false, now: t0.addingTimeInterval(hours(99)))
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 1, spotOn: 0),
+                        viaBoss: false, now: t0.addingTimeInterval(hours(99)))
         XCTAssertEqual(r.tier, .mastered, "a bad session must not demote earned mastery")
     }
 
@@ -99,5 +104,75 @@ final class MasteryTests: XCTestCase {
         let iv = IntervalAnswer(point: 40, lo: 35, hi: 45, truth: 52)
         Mastery.record(&s, concept: .equitySense, correct: false, interval: iv, now: t0)
         XCTAssertEqual(s.answers.first?.interval, iv)
+    }
+
+    func testFailedBossCannotGrantMasteryAfterCooldown() {
+        var r = ConceptRecord(tier: .proficient, correct: 20, total: 20, proficientAt: t0)
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 1, spotOn: 0),
+                        viaBoss: true, now: t0.addingTimeInterval(hours(24)))
+        XCTAssertEqual(r.tier, .proficient)
+        XCTAssertNil(r.masteredAt)
+    }
+
+    func testBossCannotGrantMasteryWithoutExistingProficiency() {
+        var r = ConceptRecord(tier: .familiar, correct: 20, total: 20)
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 1, spotOn: 1),
+                        viaBoss: true, now: t0.addingTimeInterval(hours(24)))
+        XCTAssertEqual(r.tier, .proficient)
+        XCTAssertNil(r.masteredAt)
+    }
+
+    func testCloseAnswersCanSupportFamiliarButNotProficient() {
+        var r = ConceptRecord(correct: 7, total: 10)
+        Mastery.promote(&r, evidence: SessionEvidence(attempted: 5, spotOn: 4),
+                        viaBoss: false, now: t0)
+        XCTAssertEqual(r.tier, .familiar)
+        XCTAssertNil(r.proficientAt)
+    }
+
+    func testMissingOrEmptyEvidenceCannotPromote() {
+        var r = ConceptRecord(correct: 10, total: 10)
+        Mastery.promote(&r, evidence: SessionEvidence(), viaBoss: false, now: t0)
+        XCTAssertEqual(r.tier, .attempted)
+    }
+
+    func testSessionEvidenceMustCoverTheExactSchedule() {
+        let scheduled: [Concept] = [.outs, .outs, .potOdds]
+        XCTAssertTrue(SessionEvidence.validates([
+            .outs: SessionEvidence(attempted: 2, spotOn: 2),
+            .potOdds: SessionEvidence(attempted: 1, spotOn: 0),
+        ], scheduled: scheduled))
+        XCTAssertFalse(SessionEvidence.validates([
+            .outs: SessionEvidence(attempted: 1, spotOn: 1),
+            .potOdds: SessionEvidence(attempted: 1, spotOn: 1),
+        ], scheduled: scheduled))
+        XCTAssertFalse(SessionEvidence.validates([:], scheduled: scheduled))
+        XCTAssertFalse(SessionEvidence.validates([
+            .outs: SessionEvidence(attempted: 2, spotOn: 2),
+            .potOdds: SessionEvidence(attempted: 1, spotOn: 1),
+            .showdown: SessionEvidence(attempted: 1, spotOn: 1),
+        ], scheduled: scheduled))
+    }
+
+    func testCompletedWalkthroughOnlyResetsConsecutiveMisses() {
+        var state = ProgressState()
+        state.updateRecord(for: .outs) {
+            $0.tier = .familiar
+            $0.correct = 3
+            $0.total = 9
+            $0.consecutiveMisses = 8
+            $0.review.due = t0
+        }
+        let before = state.record(for: .outs)
+
+        Mastery.completeWalkthrough(&state, concept: .outs)
+
+        let after = state.record(for: .outs)
+        XCTAssertEqual(after.consecutiveMisses, 0)
+        XCTAssertEqual(after.tier, before.tier)
+        XCTAssertEqual(after.correct, before.correct)
+        XCTAssertEqual(after.total, before.total)
+        XCTAssertEqual(after.review, before.review)
+        XCTAssertTrue(state.answers.isEmpty)
     }
 }

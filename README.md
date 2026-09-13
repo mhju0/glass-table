@@ -7,7 +7,7 @@ Hold'em. Free, fully offline, no ads, no accounts.
 [![Engine gate](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml)
 ![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
 
-Glass Table teaches serious-minded amateurs to think about poker in **ranges
+Glass Table helps learners think about poker in **ranges
 and EV** instead of hunches. Every spot runs the same loop: **decide → reveal →
 grade** — commit to your answer first, then see the exact numbers and where they
 came from. The opponents are rule-based archetypes whose strategies are
@@ -20,24 +20,36 @@ than handed down by a black box.
 
 ## What's inside
 
-- **길** — a linear course of 8 units / 18 concepts, from reading a showdown to
+- **길** — a course of 9 units / 18 concepts, from reading a showdown to
   defending against an open: pot odds, outs, equity sense, EV, combos, range
   notation, RFI charts, range reads, board texture, hit frequency, range
-  advantage, EV-loss decisions, action reads, and the defend chart. Every new
+  advantage, EV-loss decisions, action reads, the defend chart, and minimum defense frequency. Every new
   concept opens with a step-by-step worked example (천천히); mastery and review
-  run on FSRS spaced repetition.
+  use spaced review. Mixed checkpoints use balanced seeded question ordering;
+  completing a lesson and earning a proficiency stage are separate.
+- **오늘** — one recommended action: a short review of up to five due concepts,
+  or the next lesson. **시작 안내** explains the game and study methods with
+  ungraded understanding checks.
 - **테이블** — play a heads-up hand against a chosen archetype (Nit / TAG / LAG /
   콜링 스테이션 / 매니악). The bot's pre- and postflop strategy is a printable
   table, its live range narrows on screen as it acts, and every decision comes
   back priced in big blinds — with the hand summary showing *net result* and
   *EV burned* side by side.
 - **Calibration** — estimation drills collect a point estimate plus a 90%
-  interval, scored by a proper scoring rule (Winkler), so the app can tell you
-  whether you're overconfident — not just whether you're right.
+  interval, scored with the Winkler interval score. Records show observed
+  coverage and sample count without diagnosing confidence from a few answers.
 - **자유 연습** — every drill, unlimited, no gates.
 
 Progress is stored on-device only — the app has zero networking.
+You can deliberately export a backup through Files. Completing the course is
+not a claim of professional skill; the charts and table grades are conditional
+on the app's disclosed training models.
 See the [privacy policy](https://mhju0.github.io/glass-table/privacy-policy.html).
+
+The revival's teaching and interface decisions are documented in the
+[research foundation](docs/specs/2026-09-13-revamp-research.md) and
+[design direction](DESIGN.md). App Store submission follows user testing;
+see the [preparation notes](docs/submission.md) for remaining distribution work.
 
 ## Architecture
 

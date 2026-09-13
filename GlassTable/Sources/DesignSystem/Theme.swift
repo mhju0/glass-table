@@ -22,6 +22,24 @@ import SwiftUI
 /// The opaque value below is where that stack already landed (#38473E measured off a
 /// real screenshot), so the app looks the same and the boundary is now controllable.
 enum GT {
+    enum Space {
+        static let compact: CGFloat = 8
+        static let related: CGFloat = 12
+        static let section: CGFloat = 20
+        static let screen: CGFloat = 24
+    }
+
+    enum Radius {
+        static let control: CGFloat = 14
+        static let panel: CGFloat = 20
+        static let sheet: CGFloat = 28
+    }
+
+    enum Motion {
+        static let press = Animation.interactiveSpring(response: 0.22, dampingFraction: 0.9)
+        static let change = Animation.interactiveSpring(response: 0.34, dampingFraction: 0.9)
+    }
+
     // MARK: felt — the table
 
     static let felt         = Color(hex: 0x0F211A)
@@ -63,7 +81,7 @@ enum GT {
     /// Ink on glass. Light, because the surface under it is dark.
     static let ink          = Color(hex: 0xF7F4EC)
     static let inkSecondary = Color(hex: 0xC2CBC3)
-    static let inkMuted     = Color(hex: 0x98A79E)
+    static let inkMuted     = Color(hex: 0xADB9B0)
 
     /// Edges. **The edge is the boundary now**, not the material — a surface that is
     /// only 1.8:1 off its background is not a boundary no matter how it was made.

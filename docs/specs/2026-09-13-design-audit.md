@@ -14,7 +14,7 @@ Baseline: `5c181d0`. Read-only source audit on 2026-09-13, before UI edits. Comp
 
 Recommend **Warm**: friendly Korean 해요체 for explanations, direct and nonjudgmental correction, brief success acknowledgment. Preserve precision in probability and EV language. Warmth affects tone; motion remains restrained and functional. Proposed dials: energy 1, rhythm 2, motion 1. Felt and playing cards provide poker identity; neither a mascot nor casino spectacle is needed.
 
-Temperature confirmation is pending. The user's design prompt explicitly requests this checkpoint. No interface changes have been applied.
+Warm was approved on 2026-09-14, with autonomous remaining design decisions and relevant skill usage. This document records the pre-change audit; implementation follows [DESIGN.md](../../DESIGN.md).
 
 ## Violation inventory
 

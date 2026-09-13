@@ -6,6 +6,8 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProgressionModel.self) private var model
     @State private var showGlossary = false
+    @State private var showGuide = false
+    @State private var showLicense = false
     @State private var backup: BackupDocument?
     @State private var exportingBackup = false
     @State private var importingBackup = false
@@ -29,6 +31,11 @@ struct SettingsView: View {
                 Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
                 VStack(spacing: 0) {
+                    Button { showGuide = true } label: {
+                        row("rectangle.stack", "시작 안내", "게임의 흐름과 공부하는 방법", chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
                     // A sheet, not a push — the same way the 용어 chip in a reveal opens
                     // it. Pushing gave the glossary a system back button, the one piece
                     // of chrome the app cannot draw itself.
@@ -52,7 +59,7 @@ struct SettingsView: View {
                         } catch { fileFailure = .export }
                     } label: {
                         row("square.and.arrow.up", "백업 만들기",
-                            "진행 기록을 JSON 파일로 저장", chevron: true)
+                            "진행 기록을 파일로 보관해요", chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -61,7 +68,7 @@ struct SettingsView: View {
                     // a new phone had no way back in — review finding on e059ec6.
                     Button { importingBackup = true } label: {
                         row("square.and.arrow.down", "백업 불러오기",
-                            "백업 JSON으로 기록을 되돌려요", chevron: true)
+                            "저장한 파일에서 기록을 가져와요", chevron: true)
                     }
                     .buttonStyle(GTPress())
                     .fileImporter(isPresented: $importingBackup,
@@ -114,6 +121,11 @@ struct SettingsView: View {
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
+                    Button { showLicense = true } label: {
+                        row("textformat", "서체 라이선스", "Pretendard · SIL Open Font License", chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
                     HStack(spacing: 14) {
                         Image(systemName: "info.circle")
                             .font(.system(size: 16, weight: .semibold))
@@ -131,6 +143,8 @@ struct SettingsView: View {
         }
         .background(FeltBackground())
         .sheet(isPresented: $showGlossary) { GlossaryView() }
+        .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
+        .sheet(isPresented: $showLicense) { NavigationStack { FontLicenseView() } }
         .fileExporter(isPresented: $exportingBackup, document: backup,
                       contentType: .json,
                       defaultFilename: "glass-table-backup") { result in
@@ -163,6 +177,9 @@ struct SettingsView: View {
             if ProcessInfo.processInfo.environment["GT_DEMO_GLOSSARY"] != nil {
                 showGlossary = true
             }
+            if ProcessInfo.processInfo.environment["GT_DEMO_GUIDE"] != nil {
+                showGuide = true
+            }
             #endif
         }
         // Leading, like every other 닫기 — it used to sit trailing, so dismissing a sheet
@@ -189,6 +206,29 @@ struct SettingsView: View {
         }
         .padding(16)
         .contentShape(Rectangle())
+    }
+}
+
+private struct FontLicenseView: View {
+    @Environment(\.dismiss) private var dismiss
+    private var license: String {
+        guard let url = Bundle.main.url(forResource: "Pretendard-LICENSE", withExtension: "txt"),
+              let text = try? String(contentsOf: url, encoding: .utf8) else {
+            return "서체 라이선스를 열 수 없어요. 설정의 피드백으로 알려주세요."
+        }
+        return text
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("서체 라이선스").font(GT.title(26)).foregroundStyle(GT.onFelt)
+                Text(license).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                    .textSelection(.enabled)
+            }.padding(24)
+        }
+        .background(FeltBackground())
+        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
     }
 }
 

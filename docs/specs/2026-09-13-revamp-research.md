@@ -1,6 +1,6 @@
 # Glass Table: research foundation for the revival
 
-Research date: 2026-09-13. Baseline: `5c181d0`. Status: research and proposed design, not implemented. The user will test the completed revamp before Store submission.
+Research date: 2026-09-13. Baseline: `5c181d0`. This document records the research and proposed design that preceded implementation. Warm and autonomous implementation were approved on 2026-09-14. The user will test the revamp before Store submission; implementation evidence belongs in the delivery report.
 
 ## Product judgment
 
