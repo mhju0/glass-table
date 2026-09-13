@@ -74,6 +74,7 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(fold.waitForExistence(timeout: 10))
         fold.tap()
         XCTAssertTrue(app.buttons["다음 핸드"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "EV 손실은 측정하지 않았어요.")).firstMatch.exists)
         XCTAssertFalse(app.buttons["핸드 시작"].exists)
     }
 

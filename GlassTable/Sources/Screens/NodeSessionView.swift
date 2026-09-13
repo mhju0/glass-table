@@ -23,6 +23,20 @@ struct SessionAttemptLedger {
     }
 }
 
+enum NodeSessionSeed {
+    static func make(nodeID: String, conceptTotals: [Int]) -> UInt64 {
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for byte in nodeID.utf8 {
+            hash ^= UInt64(byte)
+            hash &*= 0x0000_0100_0000_01b3
+        }
+        let aggregate = conceptTotals.reduce(into: UInt64.zero) {
+            $0 &+= UInt64($1)
+        }
+        return hash &+ aggregate
+    }
+}
+
 /// Runs one node: a fixed number of spots, then a summary that reports the result
 /// back to the progression model.
 ///
@@ -52,12 +66,6 @@ struct NodeSessionView: View {
 
     /// Seeded from the node id so a node's items are stable within a session but a
     /// *re-run* draws fresh spots — the generators make that free.
-    private static func baseSeed(nodeID: String, progress: Int) -> UInt64 {
-        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
-        for byte in nodeID.utf8 { hash ^= UInt64(byte); hash &*= 0x0000_0100_0000_01b3 }
-        return hash &+ UInt64(progress)
-    }
-
     private var baseSeed: UInt64 { sessionSeed ?? 0 }
 
     var body: some View {
@@ -71,8 +79,8 @@ struct NodeSessionView: View {
         .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
         .onAppear {
             guard sessionSeed == nil else { return }
-            let first = Curriculum.concepts(of: node)[0]
-            let seed = Self.baseSeed(nodeID: node.id, progress: model.record(for: first).total)
+            let totals = Curriculum.concepts(of: node).map { model.record(for: $0).total }
+            let seed = NodeSessionSeed.make(nodeID: node.id, conceptTotals: totals)
             sessionSeed = seed
             sessionConcepts = Curriculum.sessionConcepts(for: node, seed: seed)
             // First exposure to the concept this node teaches opens with the

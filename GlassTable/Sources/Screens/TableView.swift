@@ -611,21 +611,27 @@ struct TableView: View {
             }
             // Result and decision quality, side by side — the gap between them is
             // the thing poker teaches slowest (spec §4).
-            let lost = decisions.reduce(0.0) {
-                if case let .ev(loss, _) = $1.verdict { return $0 + loss }
-                return $0
-            }
-            let highestCost = decisions.compactMap { decision -> (TurnRecord, Double)? in
+            let evDecisions = decisions.compactMap { decision -> (TurnRecord, Double)? in
                 guard case let .ev(loss, _) = decision.verdict else { return nil }
                 return (decision, loss)
-            }.max { $0.1 < $1.1 }
+            }
+            let lost = evDecisions.reduce(0.0) { $0 + $1.1 }
+            let highestCost = evDecisions.max { $0.1 < $1.1 }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("결과와 결정은 따로 봐요").font(GT.title(15)).foregroundStyle(GT.ink)
-                Text("이번 결과는 \(resultLine(outcome)) · \(outcome.heroNet >= 0 ? "+" : "")\(bbText(outcome.heroNet))bb예요. "
-                     + "결정 기록의 EV 손실은 \(bbText(lost))bb예요.")
+                Text("이번 결과는 \(resultLine(outcome)) · \(outcome.heroNet >= 0 ? "+" : "")\(bbText(outcome.heroNet))bb예요.")
                     .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+                if evDecisions.isEmpty {
+                    Text("프리플랍 결정은 공개된 디펜드 차트와 비교했어요. EV 손실은 측정하지 않았어요.")
+                        .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("포스트플랍 체크다운 근사로 측정한 EV 손실은 \(bbText(lost))bb예요.")
+                        .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 if let highestCost, highestCost.1 > 0 {
                     Text("가장 큰 비용 · \(highestCost.0.street) \(highestCost.0.label), −\(bbText(highestCost.1))bb")
                         .font(GT.semibold(12.5)).foregroundStyle(highestCost.0.band.ink)

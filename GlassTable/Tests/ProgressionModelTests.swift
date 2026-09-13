@@ -304,6 +304,27 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(ledger.advanced.count, 2)
     }
 
+    func testInterruptedBossAnswerChangesRestartSeedAndShuffledPrefix() throws {
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        let beforeSeed = NodeSessionSeed.make(nodeID: boss.id,
+                                              conceptTotals: [10, 0, 0, 0])
+        let before = Curriculum.sessionConcepts(for: boss, seed: beforeSeed)
+        XCTAssertEqual(before, [.potMath, .position, .combos,
+                                .showdown, .position, .combos])
+        let answered = try XCTUnwrap(before.first)
+        let concepts = Curriculum.concepts(of: boss)
+        let afterTotals = concepts.map { concept in
+            concept == answered ? 1 + (concept == .showdown ? 10 : 0)
+                                : (concept == .showdown ? 10 : 0)
+        }
+        let afterSeed = NodeSessionSeed.make(nodeID: boss.id, conceptTotals: afterTotals)
+        let after = Curriculum.sessionConcepts(for: boss, seed: afterSeed)
+
+        XCTAssertNotEqual(beforeSeed, afterSeed)
+        XCTAssertNotEqual(Array(before.prefix(3)), Array(after.prefix(3)),
+                          "Restarting after a committed prefix must not expose the same prefix")
+    }
+
     func testCommittedFinalAnswerPersistsBeforeNodeCompletion() throws {
         let model = ProgressionModel(store: store)
         let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
