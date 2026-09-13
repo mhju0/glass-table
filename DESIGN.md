@@ -6,6 +6,14 @@ Approved 2026-09-14: Warm temperature, autonomous revamp decisions, relevant ski
 
 Help a learner make one poker decision, understand its reason, and retrieve that skill again later. This is a Korean-first offline study product. Its visual identity comes from a quiet felt table and readable playing cards, not casino rewards or artificial competition.
 
+## Learner perspective
+
+Judge each flow from the learner's starting knowledge and intent. A person should
+understand the situation, act without guessing how the interface works, learn why
+the answer was right or wrong, and apply that reasoning to a different hand.
+Consider confusion, interruption, accessibility and returning after a long break.
+Completion counts and visual polish are supporting evidence, not proof of learning.
+
 ## Structure and behavior
 
 Use the user's Toss principles for structure: one screen goal, one primary navigation action, minimal required input, vertical flow, and visible controls. Use Apple principles for behavior: immediate press feedback, native interruptible springs, stable spatial relationships, Dynamic Type and reduced motion. When elaborate motion conflicts with a simple flow, choose the simple flow.

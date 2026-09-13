@@ -172,4 +172,124 @@ final class ProgressionStoreTests: XCTestCase {
         }
         XCTAssertEqual(try Data(contentsOf: s.url), data)
     }
+
+    func testImportRejectsSemanticallyUnsafeProgress() throws {
+        let s = store()
+        var cases: [ProgressState] = []
+
+        var badSchema = ProgressState()
+        badSchema.schemaVersion = -1
+        cases.append(badSchema)
+
+        var badCount = ProgressState()
+        badCount.concepts["retired-concept"] = ConceptRecord(correct: -1, total: Int.max)
+        cases.append(badCount)
+
+        var badReview = ProgressState()
+        badReview.concepts[Concept.outs.rawValue] = ConceptRecord(
+            review: ReviewState(stability: 1e100, difficulty: 5,
+                                lastReview: Date(), due: Date(), reps: 1),
+            correct: 1, total: 1)
+        cases.append(badReview)
+
+        var badInterval = ProgressState()
+        badInterval.answers = [AnswerRecord(concept: .equitySense, at: Date(), correct: true,
+            interval: IntervalAnswer(point: 50, lo: 70, hi: 30, truth: 50))]
+        cases.append(badInterval)
+
+        for state in cases {
+            XCTAssertThrowsError(try s.importData(JSONEncoder().encode(state))) { error in
+                XCTAssertEqual(error as? StoreError, .invalidProgress)
+            }
+        }
+    }
+
+    func testImportAcceptsConservativeLifetimeBoundsAndUnknownKeys() throws {
+        let s = store()
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        var state = ProgressState()
+        state.concepts["retired-concept"] = ConceptRecord(
+            tier: .mastered,
+            review: ReviewState(stability: 36_500, difficulty: 10,
+                                lastReview: now, due: now.addingTimeInterval(86_400),
+                                reps: 1_000_000, lapses: 500_000),
+            correct: 900_000, total: 1_000_000, consecutiveMisses: 0,
+            proficientAt: now, masteredAt: now)
+        state.nodes["retired-node"] = NodeRecord(cleared: true, clearedAt: now,
+                                                   attempts: 1_000_000)
+
+        let imported = try s.importData(JSONEncoder().encode(state))
+
+        XCTAssertEqual(imported, state)
+        XCTAssertNotNil(imported.concepts["retired-concept"])
+        XCTAssertNotNil(imported.nodes["retired-node"])
+    }
+
+    func testNegativeEVCallIntervalRoundTrips() throws {
+        let s = store()
+        let reveal = gradeEVCall(
+            estimate: Estimate(point: -4, lo: -5, hi: -3),
+            spot: EVCallSpot(pot: 10, bet: 10, equityPct: 20, didWin: false))
+        var state = ProgressState()
+        state.answers = [AnswerRecord(concept: .evCall, at: Date(), correct: true,
+                                      interval: reveal.intervalAnswer)]
+
+        XCTAssertEqual(try s.importData(s.exportData(state)), state)
+    }
+
+    func testImportAndDiskLoadRejectOversizedFilesWithoutChangingBytes() throws {
+        let s = store()
+        let bytes = Data(repeating: 0x20, count: ProgressionStore.maximumFileBytes + 1)
+
+        XCTAssertThrowsError(try s.importData(bytes)) { error in
+            XCTAssertEqual(error as? StoreError,
+                           .fileTooLarge(maximumBytes: ProgressionStore.maximumFileBytes))
+        }
+
+        try bytes.write(to: s.url)
+        guard case .unreadable = s.load() else {
+            return XCTFail("an oversized disk store must remain recoverable")
+        }
+        XCTAssertEqual(try FileManager.default.attributesOfItem(atPath: s.url.path)[.size] as? Int,
+                       bytes.count)
+    }
+
+    func testCanonicalExportDoesNotInflateSlashHeavyImportedKeys() throws {
+        let s = store()
+        var state = ProgressState()
+        state.nodes[String(repeating: "/", count: 3_000_000)] = NodeRecord()
+        let encoder = JSONEncoder()
+        if #available(macOS 10.15, *) {
+            encoder.outputFormatting = [.withoutEscapingSlashes]
+        }
+        let incoming = try encoder.encode(state)
+        XCTAssertLessThan(incoming.count, ProgressionStore.maximumFileBytes)
+
+        let imported = try s.importData(incoming)
+        let exported = try s.exportData(imported)
+
+        XCTAssertLessThanOrEqual(exported.count, ProgressionStore.maximumFileBytes)
+        XCTAssertEqual(try s.importData(exported), imported)
+    }
+
+    func testOversizedEncodedReplacementKeepsOriginalAndCreatesNoRecoveryCopy() throws {
+        let s = store()
+        var original = ProgressState()
+        original.streak.current = 3
+        original.streak.longest = 3
+        try s.save(original)
+        let originalBytes = try s.exportData()
+        var oversized = ProgressState()
+        oversized.nodes[String(repeating: "x", count: ProgressionStore.maximumFileBytes)] =
+            NodeRecord()
+
+        XCTAssertThrowsError(try s.replace(with: oversized)) { error in
+            XCTAssertEqual(error as? StoreError,
+                           .fileTooLarge(maximumBytes: ProgressionStore.maximumFileBytes))
+        }
+        XCTAssertEqual(try s.exportData(), originalBytes)
+        let files = try FileManager.default.contentsOfDirectory(
+            at: dir, includingPropertiesForKeys: nil)
+        XCTAssertEqual(files.map(\.lastPathComponent), [s.url.lastPathComponent])
+    }
 }

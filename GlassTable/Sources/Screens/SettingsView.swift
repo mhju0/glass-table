@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
 import UniformTypeIdentifiers
+import GlassTableDrills
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -11,7 +12,10 @@ struct SettingsView: View {
     @State private var backup: BackupDocument?
     @State private var exportingBackup = false
     @State private var importingBackup = false
-    @State private var pendingImport: Data?
+    @State private var pendingImport: PreparedProgressImport?
+    @State private var importTask: Task<Void, Never>?
+    @State private var importRequestID: UUID?
+    @State private var isReadingImport = false
     @State private var confirmingImport = false
     @State private var fileFailure: ProgressFileFailure?
     @State private var confirmingReset = false
@@ -66,32 +70,35 @@ struct SettingsView: View {
                     // Without this row a backup was write-only: the recovery importer
                     // only appears once the store is *corrupt*, so a healthy reset or
                     // a new phone had no way back in — review finding on e059ec6.
-                    Button { importingBackup = true } label: {
+                    Button {
+                        pendingImport = nil
+                        importingBackup = true
+                    } label: {
                         row("square.and.arrow.down", "백업 불러오기",
-                            "저장한 파일에서 기록을 가져와요", chevron: true)
+                            isReadingImport ? "파일을 확인하고 있어요" : "저장한 파일에서 기록을 가져와요",
+                            chevron: true)
                     }
                     .buttonStyle(GTPress())
+                    .disabled(isReadingImport)
                     .fileImporter(isPresented: $importingBackup,
                                   allowedContentTypes: [.json]) { result in
-                        guard case let .success(url) = result else {
-                            fileFailure = .read
-                            return
+                        switch result {
+                        case let .success(url):
+                            readImport(url)
+                        case let .failure(error):
+                            if !ProgressFileFailure.isCancellation(error) {
+                                fileFailure = .read
+                            }
                         }
-                        let scoped = url.startAccessingSecurityScopedResource()
-                        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                        do {
-                            pendingImport = try Data(contentsOf: url)
-                            confirmingImport = true
-                        } catch { fileFailure = .read }
                     }
                     .confirmationDialog("지금 기록을 백업 내용으로 바꿀까요?",
                                         isPresented: $confirmingImport,
                                         titleVisibility: .visible) {
                         Button("백업으로 바꾸기", role: .destructive) {
-                            // importData validates before replacing; a bad file lands
+                            // Replacement is atomic; an unsuccessful write lands
                             // in the alert, never in a half-replaced store.
-                            if let data = pendingImport {
-                                do { try model.importData(data) }
+                            if let prepared = pendingImport {
+                                do { try model.importPrepared(prepared) }
                                 catch { fileFailure = .importing(error) }
                             }
                             pendingImport = nil
@@ -106,6 +113,7 @@ struct SettingsView: View {
                             "모든 기록을 지우고 처음부터", chevron: true, destructive: true)
                     }
                     .buttonStyle(GTPress())
+                    .disabled(isReadingImport)
                 }
                 .gtCard(radius: 20)
                 VStack(spacing: 0) {
@@ -122,7 +130,7 @@ struct SettingsView: View {
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
                     Button { showLicense = true } label: {
-                        row("textformat", "서체 라이선스", "Pretendard · SIL Open Font License", chevron: true)
+                        row("doc.plaintext", "오픈소스 라이선스", "Pretendard · FSRS", chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -144,7 +152,7 @@ struct SettingsView: View {
         .background(FeltBackground())
         .sheet(isPresented: $showGlossary) { GlossaryView() }
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
-        .sheet(isPresented: $showLicense) { NavigationStack { FontLicenseView() } }
+        .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }
         .fileExporter(isPresented: $exportingBackup, document: backup,
                       contentType: .json,
                       defaultFilename: "glass-table-backup") { result in
@@ -170,6 +178,11 @@ struct SettingsView: View {
             Alert(title: Text("기록 파일을 처리하지 못했어요"), message: Text(failure.message),
                   dismissButton: .default(Text("확인")))
         }
+        .onDisappear {
+            importRequestID = nil
+            importTask?.cancel()
+            importTask = nil
+        }
         .onAppear {
             #if DEBUG
             // GT_DEMO_SETTINGS=1 GT_DEMO_GLOSSARY=1 — same reason as every other hook:
@@ -185,6 +198,28 @@ struct SettingsView: View {
         // Leading, like every other 닫기 — it used to sit trailing, so dismissing a sheet
         // meant looking in a different corner depending on which sheet you were in.
         .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+    }
+
+    private func readImport(_ url: URL) {
+        importTask?.cancel()
+        let requestID = UUID()
+        importRequestID = requestID
+        isReadingImport = true
+        importTask = Task {
+            do {
+                let prepared = try await ProgressFileReader.readAndValidate(url)
+                guard importRequestID == requestID else { return }
+                pendingImport = prepared
+                confirmingImport = true
+            } catch {
+                guard importRequestID == requestID,
+                      !ProgressFileFailure.isCancellation(error) else { return }
+                fileFailure = error is StoreError ? .importing(error) : .read
+            }
+            guard importRequestID == requestID else { return }
+            isReadingImport = false
+            importTask = nil
+        }
     }
 
     private func row(_ icon: String, _ title: String, _ sub: String?,
@@ -209,12 +244,12 @@ struct SettingsView: View {
     }
 }
 
-private struct FontLicenseView: View {
+private struct OpenSourceLicenseView: View {
     @Environment(\.dismiss) private var dismiss
-    private var license: String {
-        guard let url = Bundle.main.url(forResource: "Pretendard-LICENSE", withExtension: "txt"),
+    private func license(named name: String) -> String {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "txt"),
               let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return "서체 라이선스를 열 수 없어요. 설정의 피드백으로 알려주세요."
+            return "라이선스 문서를 열 수 없어요. 설정의 피드백으로 알려주세요."
         }
         return text
     }
@@ -222,8 +257,14 @@ private struct FontLicenseView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("서체 라이선스").font(GT.title(26)).foregroundStyle(GT.onFelt)
-                Text(license).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                Text("오픈소스 라이선스").font(GT.title(26)).foregroundStyle(GT.onFelt)
+                Text("Pretendard").font(GT.semibold(17)).foregroundStyle(GT.onFelt)
+                Text(license(named: "Pretendard-LICENSE"))
+                    .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                    .textSelection(.enabled)
+                Text("FSRS").font(GT.semibold(17)).foregroundStyle(GT.onFelt)
+                Text(license(named: "FSRS-LICENSE"))
+                    .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                     .textSelection(.enabled)
             }.padding(24)
         }

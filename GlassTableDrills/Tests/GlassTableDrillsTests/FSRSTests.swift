@@ -3,6 +3,12 @@ import GlassTableEngine
 @testable import GlassTableDrills
 
 final class FSRSTests: XCTestCase {
+    func testHugeFiniteStabilityClampsBeforeIntegerConversion() {
+        let scheduler = FSRSScheduler(maximumInterval: 36_500)
+        XCTAssertEqual(scheduler.nextInterval(stability: 1e100), 36_500)
+        XCTAssertEqual(scheduler.nextInterval(stability: -1e100), 1)
+        XCTAssertEqual(scheduler.nextInterval(stability: .nan), 1)
+    }
     private let s = FSRSScheduler()
     private let t0 = Date(timeIntervalSince1970: 1_785_000_000)
     private func days(_ n: Double) -> Date { t0.addingTimeInterval(n * 86400) }

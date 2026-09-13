@@ -1,7 +1,7 @@
 # App Store preparation: v1.0 (2)
 
 > **2026-09-14: preparation for user testing, not submitted.** The research-led
-> revamp is under verification. User feedback, signed-device testing, current
+> revamp has passed simulator testing; production hardening is under final verification. User feedback, signed-device testing, current
 > screenshots, App Store Connect metadata, age-rating answers and regional
 > distribution requirements still need final review. The practice table depicts
 > simulated betting with bb stakes, without real money or purchasable currency.
@@ -131,6 +131,10 @@ The educational purpose does not remove the table's simulated betting content.
 | User-generated content / communication | No | None |
 | In-app purchases | No | None |
 
+For South Korea, Apple currently requires a **Rating Classification Number (RCN)**
+for frequent/intense simulated gambling. Confirm the final questionnaire and
+territories before scheduling release; education categorization does not waive this.
+
 **Record after answering:** actual global rating = ____; Korean regional rating
 and any registration requirement = ____; approved distribution territories = ____.
 Do not submit while those decisions are unresolved.
@@ -180,3 +184,14 @@ The 2026-09-14 verification sweep and refreshed README images document the revam
 
 These are raw frames with no caption layer. If App Store Connect ends up
 wanting captioned marketing shots, that is a separate pass.
+
+## Distribution gates
+
+- Install a signed Release candidate on a physical iPhone and test interrupted
+  lessons, backup import/export, relaunch, Dynamic Type and VoiceOver.
+- Validate the signed archive and privacy report in Xcode Organizer. The local
+  unsigned archive checks do not validate distribution entitlements or App Review.
+- Publish the reviewed privacy policy draft: the live policy was reachable on
+  2026-09-14 but still showed the older July text.
+- Review third-party notices (Pretendard OFL and FSRS MIT) in Settings and archive.
+- Korean is the declared app language; English metadata does not imply an English UI.

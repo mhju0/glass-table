@@ -22,6 +22,13 @@ final class ProgressionModel {
     private let store: ProgressionStore
     private let scheduler = FSRSScheduler()
 
+    var recoveryFileURL: URL? {
+        guard unreadable != nil, FileManager.default.fileExists(atPath: store.url.path) else {
+            return nil
+        }
+        return store.url
+    }
+
     init(store: ProgressionStore? = nil) {
         let store = store ?? Self.launchStore()
         self.store = store
@@ -151,6 +158,10 @@ final class ProgressionModel {
 
     func importData(_ data: Data) throws {
         try replace(with: store.importData(data))
+    }
+
+    func importPrepared(_ prepared: PreparedProgressImport) throws {
+        try replace(with: prepared.state)
     }
 
     /// Explicit "start over": replacement must preserve the old bytes and save

@@ -93,6 +93,22 @@ swift test --package-path GlassTableDrills          # app logic — fast
 swift test -c release --package-path GlassTableEngine   # math gate — release config, slower
 ```
 
+Additional release checks:
+
+```sh
+python3 -m unittest discover -s tools/tests
+swift run -c release --package-path tools/performance-audit GTPerf
+xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+  -configuration Release -destination 'generic/platform=iOS' \
+  -derivedDataPath .build/release CODE_SIGNING_ALLOWED=NO build
+python3 tools/verify_release.py .build/release/Build/Products/Release-iphoneos/GlassTable.app
+```
+
+`GlassTableReleaseSmoke` runs `ReleaseSmokeTests` without demo hooks under the
+Release configuration (use `-only-testing:GlassTableUITests/ReleaseSmokeTests`).
+The bundle gate checks resources, privacy declarations and absence of debug hooks;
+it does not replace signed-device testing or App Store validation.
+
 ## License
 
 Copyright (c) 2026 Michael Ju. All rights reserved.

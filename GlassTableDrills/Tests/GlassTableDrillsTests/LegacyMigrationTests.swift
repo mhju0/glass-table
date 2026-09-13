@@ -89,4 +89,17 @@ final class LegacyMigrationTests: XCTestCase {
         XCTAssertEqual(s.record(for: .potOdds).total, 5)
     }
 
+    func testUnsafeLegacyNumbersAreSkippedAndOriginalBytesRemain() throws {
+        try writeLegacy("outs", streak: Int.max, correct: Int.max, total: Int.max)
+        try writeLegacy("potodds", streak: -1, correct: -1, total: 5)
+        let outsURL = dir.appendingPathComponent("outs-progress.json")
+        let original = try Data(contentsOf: outsURL)
+
+        let migrated = LegacyMigration.migrate(from: dir, into: ProgressState())
+
+        XCTAssertNil(migrated.concepts[Concept.outs.rawValue])
+        XCTAssertNil(migrated.concepts[Concept.potOdds.rawValue])
+        XCTAssertEqual(try Data(contentsOf: outsURL), original)
+    }
+
 }

@@ -5,6 +5,7 @@ import Foundation
 ///
 /// Old files are read and retained for recovery. The current app never writes them.
 public enum LegacyMigration {
+    private static let maximumLegacyFileBytes = 64 * 1024
     /// Keys are the drill slugs shipped in M1.
     /// `blockers` → `combos` is the rename from spec §3.2: the drill was always
     /// combinatorics, so its history belongs to 콤보.
@@ -23,9 +24,13 @@ public enum LegacyMigration {
         // Sorted so the migration is deterministic regardless of dictionary order.
         for (key, concept) in drillKeyToConcept.sorted(by: { $0.key < $1.key }) {
             let url = directory.appendingPathComponent("\(key)-progress.json")
-            guard let data = try? Data(contentsOf: url),
+            guard let data = try? ProgressionStore.readData(
+                    at: url, maximumBytes: maximumLegacyFileBytes),
                   let legacy = try? JSONDecoder().decode(LegacyProgress.self, from: data),
-                  legacy.total > 0                       // never played → nothing to carry
+                  legacy.total > 0,
+                  legacy.total <= ProgressionStore.maximumStoredCount,
+                  (0...legacy.total).contains(legacy.correct),
+                  (0...ProgressionStore.maximumStoredCount).contains(legacy.streak)
             else { continue }
             bestStreak = max(bestStreak, legacy.streak)
             // Never clobber state the app has already written for this concept.

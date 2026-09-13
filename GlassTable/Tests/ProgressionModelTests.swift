@@ -151,6 +151,86 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(try model.exportData(), bytes)
     }
 
+    func testSemanticallyInvalidImportLeavesHealthyProgressAndBytesUnchanged() throws {
+        var original = ProgressState()
+        original.streak.current = 4
+        original.streak.longest = 4
+        try store.save(original)
+        let originalBytes = try store.exportData()
+        let model = ProgressionModel(store: store)
+        var invalid = ProgressState()
+        invalid.concepts[Concept.outs.rawValue] = ConceptRecord(
+            review: ReviewState(stability: 1e100, difficulty: 5,
+                                lastReview: Date(), due: Date(), reps: 1),
+            correct: 1, total: 1)
+
+        XCTAssertThrowsError(try model.importData(JSONEncoder().encode(invalid))) { error in
+            XCTAssertEqual(error as? StoreError, .invalidProgress)
+        }
+        XCTAssertEqual(model.state, original)
+        XCTAssertEqual(try store.exportData(), originalBytes)
+        XCTAssertFalse(try FileManager.default.contentsOfDirectory(
+            at: dir, includingPropertiesForKeys: nil).contains {
+                $0.lastPathComponent.contains("recovery-")
+            })
+    }
+
+    func testProgressFileReaderReadsSmallFileOffTheViewCallback() async throws {
+        let url = dir.appendingPathComponent("backup.json")
+        let bytes = try JSONEncoder().encode(ProgressState())
+        try bytes.write(to: url)
+
+        let prepared = try await ProgressFileReader.readAndValidate(url)
+        let target = ProgressionModel(store: store)
+        try target.importPrepared(prepared)
+        XCTAssertEqual(target.state, ProgressState())
+    }
+
+    func testProgressFileReaderRejectsOversizedFile() async throws {
+        let url = dir.appendingPathComponent("oversized.json")
+        try Data(repeating: 0, count: ProgressionStore.maximumFileBytes + 1).write(to: url)
+
+        do {
+            _ = try await ProgressFileReader.readAndValidate(url)
+            XCTFail("oversized imports must be rejected before decoding")
+        } catch {
+            XCTAssertEqual(error as? StoreError,
+                           .fileTooLarge(maximumBytes: ProgressionStore.maximumFileBytes))
+        }
+    }
+
+    func testPreparedImportDoesNotChangeMemoryWhenReplacementWriteFails() async throws {
+        var replacement = ProgressState()
+        replacement.streak.current = 9
+        replacement.streak.longest = 9
+        let source = dir.appendingPathComponent("prepared-backup.json")
+        try JSONEncoder().encode(replacement).write(to: source)
+        let prepared = try await ProgressFileReader.readAndValidate(source)
+        let model = ProgressionModel(store: store)
+        let original = model.state
+
+        try withReadOnlyDirectory {
+            XCTAssertThrowsError(try model.importPrepared(prepared))
+            XCTAssertEqual(model.state, original)
+        }
+    }
+
+    func testFilePickerCancellationIsNotPresentedAsFailure() {
+        let cancellation = NSError(domain: NSCocoaErrorDomain, code: NSUserCancelledError)
+        XCTAssertTrue(ProgressFileFailure.isCancellation(cancellation))
+        XCTAssertTrue(ProgressFileFailure.isCancellation(CancellationError()))
+    }
+
+    func testUnreadableStoreExposesOriginalFileForRecoveryExport() throws {
+        let bytes = Data("{ damaged".utf8)
+        try bytes.write(to: store.url)
+
+        let model = ProgressionModel(store: store)
+
+        XCTAssertEqual(model.recoveryFileURL, store.url)
+        XCTAssertEqual(try Data(contentsOf: try XCTUnwrap(model.recoveryFileURL)), bytes)
+    }
+
     func testOrdinaryWritesCannotOverwriteAnUnreadableStore() throws {
         let bytes = Data("{ damaged".utf8)
         try bytes.write(to: store.url)
@@ -271,7 +351,10 @@ final class ProgressionModelTests: XCTestCase {
         var original = ProgressState()
         original.updateRecord(for: .outs) {
             $0.correct = 2; $0.total = 10; $0.consecutiveMisses = 8
-            $0.review.due = Date(timeIntervalSince1970: 1_785_000_000)
+            let due = Date(timeIntervalSince1970: 1_785_000_000)
+            $0.review = ReviewState(stability: 5, difficulty: 5,
+                                    lastReview: due.addingTimeInterval(-86_400),
+                                    due: due, reps: 1)
         }
         try store.save(original)
         let model = ProgressionModel(store: store)

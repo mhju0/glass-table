@@ -39,12 +39,22 @@ struct ProgressFileFailure: Identifiable {
     static let export = Self(message: "백업 파일을 저장하지 못했어요. 저장 공간과 저장 위치를 확인한 뒤 다시 시도해 주세요.")
     static let reset = Self(message: "기존 기록을 보관하거나 새 기록을 저장하지 못해 초기화하지 않았어요. 저장 공간을 확인한 뒤 다시 시도해 주세요.")
 
+    static func isCancellation(_ error: Error) -> Bool {
+        let cocoa = error as NSError
+        return error is CancellationError
+            || (cocoa.domain == NSCocoaErrorDomain && cocoa.code == NSUserCancelledError)
+    }
+
     static func importing(_ error: Error) -> Self {
         switch error as? StoreError {
         case .notDecodable:
             return Self(message: "Glass Table의 백업 만들기로 저장한 JSON 파일인지 확인해 주세요. 현재 기록은 바뀌지 않았어요.")
         case .unsupportedSchemaVersion:
             return Self(message: "더 새로운 버전에서 만든 백업이에요. 앱을 업데이트한 뒤 다시 불러와 주세요. 현재 기록은 바뀌지 않았어요.")
+        case .invalidProgress:
+            return Self(message: "백업 안의 기록 값이 올바르지 않아요. 다른 백업을 선택해 주세요. 현재 기록은 바뀌지 않았어요.")
+        case let .fileTooLarge(maximumBytes):
+            return Self(message: "백업 파일이 너무 커요. Glass Table 백업은 \(maximumBytes / 1_048_576)MB 이하여야 해요. 현재 기록은 바뀌지 않았어요.")
         case nil:
             return Self(message: "백업을 저장하지 못해 기록을 바꾸지 않았어요. 저장 공간을 확인한 뒤 다시 시도해 주세요.")
         }
