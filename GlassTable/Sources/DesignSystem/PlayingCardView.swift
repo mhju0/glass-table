@@ -46,7 +46,7 @@ struct PlayingCardView: View {
                 .font(GT.fixed(size * 0.34))
                 .lineLimit(1)
                 .fixedSize()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
             Image(systemName: suitSymbol)
                 .symbolRenderingMode(.monochrome)
                 .font(.system(size: size * 0.38, weight: .semibold))
