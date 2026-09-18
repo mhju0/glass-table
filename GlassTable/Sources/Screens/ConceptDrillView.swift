@@ -985,7 +985,7 @@ private struct RFIDrill: View {
     @ViewBuilder
     private var seatStrip: some View {
         if dynamicTypeSize.isAccessibilitySize {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4),
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 2),
                       spacing: 6) {
                 ForEach(Position.preflopOrder, id: \.self) { seatChip($0, compact: false) }
             }
