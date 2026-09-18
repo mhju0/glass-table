@@ -65,11 +65,39 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot) -> ShowdownReveal {
     switch w {
     case 0: why = showdownWhy(winner: hName, loser: vName, spot: spot, heroWon: true)
     case 1: why = showdownWhy(winner: vName, loser: hName, spot: spot, heroWon: false)
-    default: why = "둘 다 \(KO.copula(hName)) 공용 카드 다섯 장이 가장 강해서 비겨요."
+    default: why = showdownTieWhy(spot)
     }
     return ShowdownReveal(band: answer == w ? .spotOn : .off,
                           answer: answer, winner: w,
                           heroName: hName, villainName: vName, whyText: why)
+}
+
+/// A tie means the two exact best-five strengths match. It does not necessarily
+/// mean the board plays: two players can use different hole cards to make the same
+/// straight, flush, or kicked hand.
+func showdownTieWhy(_ spot: ShowdownSpot) -> String {
+    let name = handName(spot.heroBest)
+    if showdownBoardPlays(spot) {
+        return "공용 카드 다섯 장이 두 사람의 가장 강한 패라서 비겨요. 완성한 패는 둘 다 \(KO.copula(name))"
+    }
+    return "두 사람이 가장 강한 다섯 장으로 만든 패의 세기가 같아서 비겨요. 완성한 패는 둘 다 \(KO.copula(name))"
+}
+
+/// `HandBrief` omits kickers, so identifying a board-play tie also compares the
+/// ranks in the exact five cards selected by the evaluator.
+func showdownBoardPlays(_ spot: ShowdownSpot) -> Bool {
+    let boardFive = bestFiveCards(spot.board)
+    let boardBrief = bestHandOfAny(boardFive)
+    let boardRanks = boardFive.map(\.rank).sorted(by: >)
+
+    func matchesBoard(_ cards: [Card]) -> Bool {
+        let five = bestFiveCards(cards)
+        return bestHandOfAny(five) == boardBrief
+            && five.map(\.rank).sorted(by: >) == boardRanks
+    }
+
+    return matchesBoard(spot.hero + spot.board)
+        && matchesBoard(spot.villain + spot.board)
 }
 
 /// When both hands share a name — two players on the same trips, say — "3 트리플이 3

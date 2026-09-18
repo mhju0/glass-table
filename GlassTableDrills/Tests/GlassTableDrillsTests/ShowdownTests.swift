@@ -40,7 +40,21 @@ final class ShowdownTests: XCTestCase {
         // Broadway on the board; both players' hole cards are irrelevant.
         let s = spot("2c3c", "4d5d", "AsKsQhJhTc")
         XCTAssertEqual(s.winner, 2)
-        XCTAssertTrue(gradeShowdown(answer: 2, spot: s).whyText.contains("비겨요"))
+        XCTAssertTrue(showdownBoardPlays(s))
+        let explanation = gradeShowdown(answer: 2, spot: s).whyText
+        XCTAssertTrue(explanation.contains("공용 카드 다섯 장이"), explanation)
+        XCTAssertTrue(explanation.contains("비겨요"), explanation)
+    }
+
+    func testChopCanRequireBothPlayersHoleCards() {
+        // Both players use A-K with Q-J-10 to make the same ace-high straight.
+        // The board alone is only queen-high, so calling this a board-play tie is false.
+        let s = spot("AsKd", "AhKc", "QsJdTc3h2c")
+        XCTAssertEqual(s.winner, 2)
+        XCTAssertFalse(showdownBoardPlays(s))
+        let explanation = gradeShowdown(answer: 2, spot: s).whyText
+        XCTAssertTrue(explanation.contains("패의 세기가 같아서"), explanation)
+        XCTAssertFalse(explanation.contains("공용 카드 다섯 장이"), explanation)
     }
 
     func testCounterfeitedTwoPairLosesToTheBoard() {

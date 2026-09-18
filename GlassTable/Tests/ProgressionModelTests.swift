@@ -38,6 +38,24 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(ProgressionModel(store: store).state.firstLessonCompleted, true)
     }
 
+    func testFailedFirstLessonCompletionKeepsSavedProgressAndCanRetry() throws {
+        let model = ProgressionModel(store: store)
+        let savedBefore = try store.exportData()
+
+        try withReadOnlyDirectory {
+            model.completeFirstLesson()
+
+            XCTAssertEqual(model.state.firstLessonCompleted, true)
+            XCTAssertNotNil(model.saveError)
+            XCTAssertEqual(try store.exportData(), savedBefore)
+        }
+
+        model.retrySave()
+
+        XCTAssertNil(model.saveError)
+        XCTAssertEqual(ProgressionModel(store: store).state.firstLessonCompleted, true)
+    }
+
     func testHistoricalProgressSkipsFirstLessonWithoutRewritingIt() throws {
         var historical = ProgressState()
         historical.concepts["retired-concept"] = ConceptRecord()
@@ -45,6 +63,19 @@ final class ProgressionModelTests: XCTestCase {
 
         let model = ProgressionModel(store: store)
 
+        XCTAssertFalse(model.shouldPresentFirstLesson)
+        XCTAssertNil(model.state.firstLessonCompleted)
+    }
+
+    func testLegacyMigratedTotalsSkipFirstLesson() throws {
+        let legacy = try JSONSerialization.data(withJSONObject: [
+            "streak": 2, "correct": 4, "total": 6,
+        ])
+        try legacy.write(to: dir.appendingPathComponent("outs-progress.json"))
+
+        let model = ProgressionModel(store: store)
+
+        XCTAssertEqual(model.record(for: .outs).total, 6)
         XCTAssertFalse(model.shouldPresentFirstLesson)
         XCTAssertNil(model.state.firstLessonCompleted)
     }

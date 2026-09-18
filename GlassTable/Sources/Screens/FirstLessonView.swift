@@ -168,11 +168,6 @@ struct FirstLessonView: View {
                     .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(isTransfer
-                     ? "10 원 페어가 8 원 페어보다 높아요."
-                     : "A 원 페어가 K 원 페어보다 높아요.")
-                    .font(GT.semibold(14)).foregroundStyle(GT.ink)
-                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(18).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)

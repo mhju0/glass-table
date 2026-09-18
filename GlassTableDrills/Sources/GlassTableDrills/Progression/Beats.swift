@@ -127,8 +127,10 @@ public enum BeatScript {
                                   detail: showdownWhy(winner: villainName, loser: heroName,
                                                       spot: s, heroWon: false),
                                   focus: .table, highlight: villainRiver))
-        default: beats.append(Beat("찹이에요", detail: "둘 다 \(KO.copula(heroName)) 공용 카드가 그대로 플레이돼요.",
-                                   focus: .table, highlight: s.board))
+        default:
+            let boardPlays = showdownBoardPlays(s)
+            beats.append(Beat("찹이에요", detail: showdownTieWhy(s),
+                              focus: .table, highlight: boardPlays ? s.board : []))
         }
         return beats
     }

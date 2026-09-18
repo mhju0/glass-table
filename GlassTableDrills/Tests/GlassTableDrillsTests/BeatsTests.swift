@@ -142,6 +142,22 @@ final class BeatsTests: XCTestCase {
         }
     }
 
+    func testShowdownTieHighlightOnlyUsesTheBoardWhenTheBoardPlays() {
+        let boardTie = ShowdownSpot(hero: Card.parse("2c3c")!, villain: Card.parse("4d5d")!,
+                                    board: Card.parse("AsKsQhJhTc")!)
+        let boardConclusion = BeatScript.showdown(boardTie).last!
+        XCTAssertEqual(Set(boardConclusion.highlight), Set(boardTie.board))
+        XCTAssertTrue(text(boardConclusion).contains("공용 카드 다섯 장이"))
+
+        let holeCardTie = ShowdownSpot(hero: Card.parse("AsKd")!, villain: Card.parse("AhKc")!,
+                                       board: Card.parse("QsJdTc3h2c")!)
+        let holeCardConclusion = BeatScript.showdown(holeCardTie).last!
+        XCTAssertTrue(holeCardConclusion.highlight.isEmpty,
+                      "A board-only highlight would misteach this hole-card tie")
+        XCTAssertTrue(text(holeCardConclusion).contains("패의 세기가 같아서"))
+        XCTAssertFalse(text(holeCardConclusion).contains("공용 카드 다섯 장이"))
+    }
+
     /// A hand that changes on the river must say so, and one that does not must not.
     func testRiverRereadNamesTheChangeOnlyWhenThereIsOne() {
         // Board 2-7-9-J then 4: neither pocket pair improves, so both are unchanged.

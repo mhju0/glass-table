@@ -38,7 +38,7 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["어느 쪽이 이길까요?"].exists)
     }
 
-    func testFirstLessonCanBeReplayedFromSettingsWithoutChangingProgress() {
+    func testFirstLessonCanBeOpenedAndClosedFromSettings() {
         let app = firstLessonApp()
         app.launch()
         XCTAssertTrue(app.buttons["건너뛰기"].waitForExistence(timeout: 15))
