@@ -219,7 +219,7 @@ struct WalkthroughView: View {
             .opacity(dead ? 0.5 : (dim ? 0.62 : 1))
             .overlay {
                 if lit {
-                    RoundedRectangle(cornerRadius: size * 0.17)
+                    RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: size))
                         .strokeBorder(GT.mint, lineWidth: 3)
                 }
             }

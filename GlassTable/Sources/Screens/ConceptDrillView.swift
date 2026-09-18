@@ -720,7 +720,7 @@ private struct CountDrill: View {
                     PlayingCardView(card: card, dead: dead)
                         .overlay {
                             if tappedOut == card {
-                                RoundedRectangle(cornerRadius: PlayingCardView.canonicalSize * 0.17)
+                                RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: PlayingCardView.canonicalSize))
                                     .strokeBorder(GT.mint, lineWidth: 3)
                             }
                         }

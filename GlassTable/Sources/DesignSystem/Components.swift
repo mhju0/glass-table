@@ -34,7 +34,7 @@ struct CardRow: View {
                 PlayingCardView(card: card, size: size, dead: dead)
                     .overlay {
                         if lit {
-                            RoundedRectangle(cornerRadius: size * 0.17)
+                            RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: size))
                                 .strokeBorder(GT.mint, lineWidth: 3)
                         }
                     }
@@ -223,7 +223,7 @@ struct RiverExplainPanel: View {
             HStack(spacing: 10) {
                 SectionLabel(text: "리버")
                 PlayingCardView(card: river)
-                    .overlay(RoundedRectangle(cornerRadius: PlayingCardView.canonicalSize * 0.17)
+                    .overlay(RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: PlayingCardView.canonicalSize))
                         .strokeBorder(GT.mint, lineWidth: 2.5))
             }
             Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(GT.onFelt)

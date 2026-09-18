@@ -18,6 +18,23 @@ struct RootView: View {
 
     var body: some View {
         Group {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["GT_DEMO_CARD_DECK"] != nil {
+                PlayingCardDeckSpecimen()
+            } else {
+                rootContent
+            }
+            #else
+            rootContent
+            #endif
+        }
+        .environment(model)
+        .tint(GT.onFelt)
+    }
+
+    @ViewBuilder
+    private var rootContent: some View {
+        Group {
             if model.unreadable != nil {
                 // Spec §8.2: a store that exists but will not parse must never be
                 // silently replaced with empty progress.
@@ -33,8 +50,6 @@ struct RootView: View {
                 tabs
             }
         }
-        .environment(model)
-        .tint(GT.onFelt)
     }
 
 
