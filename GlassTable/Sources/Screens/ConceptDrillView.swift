@@ -370,7 +370,7 @@ private struct PotMathDrill: View {
                 .padding(14).frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.onFelt.opacity(0.08),
                             in: RoundedRectangle(cornerRadius: GT.Radius.control))
-                Text("스몰 블라인드(SB) 1칩 · 빅 블라인드(BB) 2칩으로 계산해요.")
+                Text("스몰 블라인드(SB): 1칩\n빅 블라인드(BB): 2칩")
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                 Text("칩이 더 들어오지 않는 폴드는 생략했어요. 여기까지 들어온 칩만 세며, 이후 행동은 포함하지 않아요.")
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)

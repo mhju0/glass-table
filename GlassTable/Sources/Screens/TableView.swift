@@ -219,15 +219,16 @@ struct TableView: View {
             } else {
                 VStack(spacing: 0) {
                     GeometryReader { geo in
+                let compactHeight = geo.size.height < 430
                 ScrollView {
                     VStack(spacing: 0) {
                         seatRow(hand)
                         // Spent once the hand is over: the summary beneath names every
                         // street already, so the strip is repeating the answer.
                         if case .hero = hand.phase { streetStrip(hand) }
-                        Spacer(minLength: 14)
+                        Spacer(minLength: compactHeight ? 6 : 14)
                         boardBlock(hand)
-                        Spacer(minLength: 14)
+                        Spacer(minLength: compactHeight ? 6 : 14)
                         heroBlock(hand)
                     }
                     .padding(.horizontal, 18)
@@ -261,7 +262,7 @@ struct TableView: View {
                                                     lineWidth: 1))
             }
         }
-        .padding(.top, 12)
+        .padding(.top, 8)
         // Four streets in fixed order, so this is a one-row diagram for the same reason
         // the drills' seat strip is: 프리플랍 was breaking across two lines and taking
         // the row's height with it.
@@ -287,7 +288,7 @@ struct TableView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
+        .padding(.vertical, 6)
         .overlay(alignment: .bottom) {
             Rectangle().fill(GT.hairlineFelt).frame(height: 1)
         }
@@ -342,8 +343,8 @@ struct TableView: View {
 
     private func heroBlock(_ hand: TableHand) -> some View {
         VStack(spacing: 7) {
+            SectionLabel(text: "내 카드 · \(hand.heroSeat.rawValue)")
             CardRow(cards: hand.hero)
-            SectionLabel(text: "내 핸드 · \(hand.heroSeat.rawValue)")
         }
         .frame(maxWidth: .infinity)
         .padding(.bottom, 16)
@@ -352,9 +353,10 @@ struct TableView: View {
     /// Opponent cards stay centered as the first of the table's three reading regions.
     /// The action history remains directly below so it does not compete with ownership.
     private func seatRow(_ hand: TableHand) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
-                Text("상대 · \(hand.villain.name)").font(GT.title(16)).foregroundStyle(GT.onFelt)
+                Text("상대 카드 · \(hand.villainSeat.rawValue) · \(hand.villain.name)")
+                    .font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Spacer(minLength: 8)
                 // The bot's live range, always countable — the printable claim at
                 // the table (spec §4).
@@ -362,8 +364,7 @@ struct TableView: View {
                     .font(GT.semibold(14).monospacedDigit())
                     .foregroundStyle(GT.mint)
             }
-            VStack(spacing: 9) {
-                SectionLabel(text: "상대 카드 · \(hand.villainSeat.rawValue)")
+            VStack(spacing: 0) {
                 if case let .over(o) = hand.phase {
                     CardRow(cards: o.villainHand)
                 } else {
@@ -383,7 +384,7 @@ struct TableView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 8)
+        .padding(.top, 4).padding(.bottom, 6)
         .overlay(alignment: .bottom) {
             Rectangle().fill(GT.hairlineFelt).frame(height: 1)
         }

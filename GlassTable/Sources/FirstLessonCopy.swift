@@ -29,7 +29,7 @@ enum FirstLessonCopy {
     static let transferPrompt = String(localized: "firstLesson.transfer.prompt",
                                        defaultValue: "카드만 바뀌었어요. 더 높은 원 페어를 찾아보세요.")
     static let pairRule = String(localized: "firstLesson.example.rule",
-                                 defaultValue: "같은 숫자 두 장을 원 페어라고 해요. A는 K보다 높아요.")
+                                 defaultValue: "같은 숫자 두 장은 원 페어예요.\nA는 K보다 높아요.")
     static let sharedCards = String(localized: "firstLesson.label.sharedCards",
                                     defaultValue: "공용 카드")
     static let heroCards = String(localized: "firstLesson.label.heroCards",
