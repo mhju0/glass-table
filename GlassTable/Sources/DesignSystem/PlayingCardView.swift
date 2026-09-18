@@ -39,7 +39,7 @@ struct PlayingCardView: View {
         HStack(spacing: size * 0.015) {
             Text(rank)
                 .font(GT.fixed(size * 0.25))
-                .frame(width: size * 0.31, alignment: .trailing)
+                .fixedSize()
             Image(systemName: Self.suitSymbols[card.suit])
                 .symbolRenderingMode(.monochrome)
                 .font(.system(size: size * 0.19, weight: .semibold))
