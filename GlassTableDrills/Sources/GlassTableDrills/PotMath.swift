@@ -162,7 +162,8 @@ func potBreakdown(_ spot: PotMathSpot) -> String {
 }
 
 private func decimalChipText(_ value: Double) -> String {
-    String(format: "%.2f", value)
-        .replacingOccurrences(of: #"\.00$"#, with: "", options: .regularExpression)
-        .replacingOccurrences(of: #"0$"#, with: "", options: .regularExpression)
+    var result = String(format: "%.2f", value)
+    while result.last == "0" { result.removeLast() }
+    if result.last == "." { result.removeLast() }
+    return result
 }

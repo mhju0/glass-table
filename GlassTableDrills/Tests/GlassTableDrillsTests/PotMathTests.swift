@@ -145,4 +145,20 @@ final class PotMathTests: XCTestCase {
         XCTAssertTrue(why.contains("13 × 50% = 6.5칩 → 7칩"), why)
         XCTAssertFalse(why.contains("13 × 50% = 7칩"), why)
     }
+
+    func testFractionRevealPreservesWholeChipMagnitudes() {
+        let cases: [(pot: Int, expected: String)] = [
+            (20, "20 × 100% = 20칩 → 20칩"),
+            (100, "100 × 100% = 100칩 → 100칩"),
+            (0, "0 × 100% = 0칩 → 0칩"),
+        ]
+        for item in cases {
+            let actions: [PotMathSpot.Action] = item.pot == 0
+                ? []
+                : [.bet(actor: .opener, amount: item.pot)]
+            let spot = PotMathSpot(actions: actions, question: .fractionOfPot(1))
+            let why = gradePotMath(answer: item.pot, spot: spot).whyText
+            XCTAssertTrue(why.contains(item.expected), why)
+        }
+    }
 }
