@@ -33,7 +33,7 @@ struct GlossaryView: View {
              definition: "핸드 클래스의 구체적 조합 수. 페어 6개, 수티드 4개, 오프수트 12개."),
         Term(korean: "레인지", english: "Range",
              definition: "한 손이 아니라, 이 상황에서 가질 수 있는 모든 핸드의 집합으로 생각합니다."),
-        Term(korean: "정확 · 근접 · 빗나감", english: "Spot-on · Close · Off",
+        Term(korean: "정확 · 근접 · 다시 살펴볼까요?", english: "Spot-on · Close · Review",
              definition: "추정 오차 등급. 정답 맞추기가 아니라 감각을 보정(캘리브레이션)하는 훈련입니다."),
         // The revamp's vocabulary — VPIP/PFR sit on the 테이블 picker, 3벳 and bb on
         // every priced screen, so the glossary owes each a sentence.
@@ -45,6 +45,8 @@ struct GlossaryView: View {
              definition: "오픈 레이즈에 다시 레이즈하는 것. 블라인드가 첫 벳, 오픈이 두 번째라서 3벳입니다."),
         Term(korean: "bb", english: "Big blind",
              definition: "빅 블라인드를 1로 두는 금액 단위. 스택과 팟 크기를 블라인드 레벨과 무관하게 비교할 수 있습니다."),
+        Term(korean: "칩", english: "Chip",
+             definition: "팟 계산 연습에서 쓰는 정수 단위. 이 연습은 SB 1칩, BB 2칩으로 시작합니다."),
     ]
 
     private func row(_ term: Term) -> some View {

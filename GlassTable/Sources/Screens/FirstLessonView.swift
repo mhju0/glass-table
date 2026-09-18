@@ -104,7 +104,7 @@ struct FirstLessonView: View {
                     .font(GT.title(28)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(guided ? FirstLessonCopy.examplePrompt : FirstLessonCopy.transferPrompt)
-                    .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -122,11 +122,11 @@ struct FirstLessonView: View {
     }
 
     private func board(_ cards: [Card]) -> some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .center, spacing: 9) {
             SectionLabel(text: FirstLessonCopy.sharedCards)
-            CardRow(cards: cards, maxSize: 68)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            CardRow(cards: cards)
         }
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
     }
 
@@ -146,13 +146,13 @@ struct FirstLessonView: View {
                 if dynamicTypeSize.isAccessibilitySize {
                     VStack(alignment: .leading, spacing: 10) {
                         handChoiceLabel(title)
-                        CardRow(cards: cards, maxSize: 55)
+                        CardRow(cards: cards)
                     }
                 } else {
                     HStack(spacing: 14) {
                         handChoiceLabel(title)
                         Spacer(minLength: 6)
-                        CardRow(cards: cards, maxSize: 55)
+                        CardRow(cards: cards)
                     }
                 }
             }
@@ -188,7 +188,7 @@ struct FirstLessonView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text(FirstLessonCopy.explanationTitle).font(GT.title(18)).foregroundStyle(GT.ink)
                 Text(reveal.whyText)
-                    .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -265,13 +265,13 @@ struct FirstLessonView: View {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 10) {
                     resultLabel(title: title, wins: wins)
-                    CardRow(cards: cards, maxSize: 55, highlight: wins ? cards : [])
+                    CardRow(cards: cards, highlight: wins ? cards : [])
                 }
             } else {
                 HStack(spacing: 14) {
                     resultLabel(title: title, wins: wins)
                     Spacer(minLength: 6)
-                    CardRow(cards: cards, maxSize: 55, highlight: wins ? cards : [])
+                    CardRow(cards: cards, highlight: wins ? cards : [])
                 }
             }
         }

@@ -54,6 +54,40 @@ final class AccessibilityFlowTests: XCTestCase {
                       "Completing all seven beats should reach guided practice.")
     }
 
+    func testGuidedHintFloatsWithoutMovingTheQuestionAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_NODE": "u1-showdown",
+            "GT_DEMO_STAGE": "together",
+        ])
+
+        let title = app.staticTexts["쇼다운"].firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 15))
+        let frameBeforeHint = title.frame
+
+        let hint = app.buttons["힌트"]
+        XCTAssertTrue(hint.waitForExistence(timeout: 5))
+        XCTAssertTrue(hint.isHittable)
+        hint.tap()
+
+        XCTAssertTrue(app.staticTexts["풀이 순서"].waitForExistence(timeout: 5))
+        let closeHint = app.buttons["힌트 닫기"]
+        XCTAssertTrue(closeHint.waitForExistence(timeout: 5))
+        XCTAssertTrue(closeHint.isHittable)
+        closeHint.tap()
+
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        XCTAssertEqual(title.frame.origin.x, frameBeforeHint.origin.x, accuracy: 1)
+        XCTAssertEqual(title.frame.origin.y, frameBeforeHint.origin.y, accuracy: 1,
+                       "Opening and closing a hint must not push the drill header")
+
+        let answer = app.buttons["내가 이김"]
+        XCTAssertTrue(scrollUntilHittable(answer, in: app),
+                      "The answer area must remain reachable after dismissing the hint")
+        answer.tap()
+        XCTAssertTrue(scrollUntilHittable(app.buttons["다음 문제"], in: app))
+    }
+
     func testTableFoldReachesSummaryAtAccessibilityXXXL() {
         let app = launch(environment: [
             "GT_TEST_STORE_ID": UUID().uuidString,
@@ -110,7 +144,7 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The introduction and course entry must remain reachable at AX XXXL.")
         beginCourse.tap()
 
-        XCTAssertTrue(app.staticTexts["쇼다운 · 천천히"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["쇼다운 · 따라 배우기"].waitForExistence(timeout: 10))
     }
 
     private func launch(environment: [String: String]) -> XCUIApplication {

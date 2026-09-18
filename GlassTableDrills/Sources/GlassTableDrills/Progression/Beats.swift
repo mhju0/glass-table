@@ -129,7 +129,7 @@ public enum BeatScript {
                                   focus: .table, highlight: villainRiver))
         default:
             let boardPlays = showdownBoardPlays(s)
-            beats.append(Beat("찹이에요", detail: showdownTieWhy(s),
+            beats.append(Beat("무승부예요", detail: showdownTieWhy(s),
                               focus: .table, highlight: boardPlays ? s.board : []))
         }
         return beats
@@ -200,35 +200,38 @@ public enum BeatScript {
 
     public static func potMath(_ s: PotMathSpot) -> [Beat] {
         var running = 0
-        var beats: [Beat] = [Beat("팟은 들어간 칩을 더한 값이에요",
-                                  detail: "한 줄씩 더해볼게요.")]
+        var beats: [Beat] = [Beat("\(s.participantCount)명이 낸 칩을 세어봐요",
+                                  detail: "스몰 블라인드(SB) 1칩 · 빅 블라인드(BB) 2칩으로 시작해요. 칩이 더 들어오지 않는 폴드는 생략해요.")]
         for action in s.actions {
             let before = running
             switch action {
             case let .blinds(sb, bb):
                 running += sb + bb
-                beats.append(Beat("블라인드 \(sb) + \(bb)", detail: "팟 \(running)bb"))
-            case let .bet(n):
+                beats.append(Beat("SB \(sb)칩 + BB \(bb)칩", detail: "팟 \(running)칩"))
+            case let .bet(actor, n):
                 running += n
-                beats.append(Beat("벳 \(n)bb", detail: "\(before) + \(n) = \(running)bb"))
-            case let .call(n):
+                beats.append(Beat("\(actor.rawValue) 벳 +\(n)칩",
+                                  detail: "\(before) + \(n) = \(running)칩"))
+            case let .call(actor, n):
                 running += n
-                beats.append(Beat("콜 \(n)bb", detail: "\(before) + \(n) = \(running)bb"))
-            case let .raiseTo(to, from):
+                beats.append(Beat("\(actor.rawValue) 콜 +\(n)칩",
+                                  detail: "\(before) + \(n) = \(running)칩"))
+            case let .raiseTo(actor, to, from):
                 running += to - from
-                beats.append(from == 0
-                    ? Beat("레이즈 \(to)bb", detail: "\(before) + \(to) = \(running)bb")
-                    : Beat("\(to)bb로 레이즈",
-                           detail: "이미 넣은 \(from)은 다시 세지 않아요. "
-                                 + "\(before) − \(from) + \(to) = \(running)bb"))
+                let added = to - from
+                beats.append(Beat("\(actor.rawValue) 총 \(to)칩으로 레이즈",
+                                  detail: from == 0
+                                      ? "새로 \(added)칩을 넣어요. \(before) + \(added) = \(running)칩"
+                                      : "이미 낸 \(from)칩은 다시 세지 않아요. 추가 \(added)칩: "
+                                        + "\(before) + \(added) = \(running)칩"))
             }
         }
         switch s.question {
         case .potNow:
-            beats.append(Beat("그래서 팟은", value: "\(s.pot)bb"))
+            beats.append(Beat("그래서 팟은", value: "\(s.pot)칩"))
         case let .fractionOfPot(f):
-            beats.append(Beat("팟의 \(Int((f * 100).rounded()))%", value: "\(s.correctAnswer)bb",
-                              detail: "\(s.pot) × \(Int((f * 100).rounded()))%"))
+            beats.append(Beat("현재 팟의 \(Int((f * 100).rounded()))%", value: "\(s.correctAnswer)칩",
+                              detail: "\(s.pot) × \(Int((f * 100).rounded()))% · 가장 가까운 한 칩으로 반올림해요."))
         }
         return beats
     }

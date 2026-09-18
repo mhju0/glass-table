@@ -77,6 +77,9 @@ struct NodeSessionView: View {
         }
         .background(FeltBackground())
         .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+        .gtChrome(.topBarTrailing) {
+            if stage == .together { hintButton }
+        }
         .onAppear {
             guard sessionSeed == nil else { return }
             let totals = Curriculum.concepts(of: node).map { model.record(for: $0).total }
@@ -127,17 +130,9 @@ struct NodeSessionView: View {
             // 함께 풀기: a *different* spot, the user answers, and the full reasoning
             // is one tap away via 힌트 — which is never penalised because nothing here
             // is graded. Only .solo records anything (spec §5.1).
-            VStack(spacing: 0) {
-                HStack {
-                    Spacer()
-                    hintButton
-                }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 6)
-                ConceptDrillView(concept: taughtConcept, seed: baseSeed, index: 1,
-                                 progressText: "함께 풀기") { _ in
-                    stage = .solo
-                }
+            ConceptDrillView(concept: taughtConcept, seed: baseSeed, index: 1,
+                             progressText: "함께 풀기") { _ in
+                stage = .solo
             }
         case .solo:
             EmptyView()
@@ -152,13 +147,13 @@ struct NodeSessionView: View {
             }
             .foregroundStyle(GT.felt)
             .padding(.horizontal, 13).padding(.vertical, 9)
+            .frame(minHeight: 44)
             .background(GT.mint, in: Capsule())
         }
         .buttonStyle(GTPress())
-        .sheet(isPresented: $showHint) {
-            NavigationStack {
-                GuidedHintView(concept: taughtConcept) { showHint = false }
-            }
+        .popover(isPresented: $showHint, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+            GuidedHintView(concept: taughtConcept) { showHint = false }
+                .presentationCompactAdaptation(.popover)
         }
     }
 
@@ -220,17 +215,39 @@ private struct GuidedHintView: View {
     let onClose: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("풀이 순서").font(GT.title(22)).foregroundStyle(GT.onFelt)
-            Text(cue).font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer()
-            FeltCTAButton(title: "문제로 돌아가기") {
-                onClose()
-                dismiss()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .center) {
+                    Text("풀이 순서")
+                        .font(GT.title(GT.Typography.resultSize))
+                        .foregroundStyle(GT.onFelt)
+                    Spacer(minLength: 12)
+                    Button {
+                        onClose()
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(GT.onFelt)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(GTPress())
+                    .accessibilityLabel("힌트 닫기")
+                }
+                Text(cue)
+                    .font(GT.body(GT.Typography.explanationSize))
+                    .foregroundStyle(GT.onFeltSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
+                FeltCTAButton(title: "문제로 돌아가기") {
+                    onClose()
+                    dismiss()
+                }
             }
+            .padding(20)
         }
-        .padding(20)
+        .frame(idealWidth: 330, idealHeight: 280)
         .background(FeltBackground())
     }
 

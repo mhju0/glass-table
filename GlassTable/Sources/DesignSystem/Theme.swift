@@ -45,6 +45,10 @@ enum GT {
         /// which would fight Dynamic Type. SwiftUI adds this value between lines.
         static let bodyLineSpacing: CGFloat = 3
         static let explanationLineSpacing: CGFloat = 4
+        static let questionSize: CGFloat = 18
+        static let explanationSize: CGFloat = 16
+        static let buttonSize: CGFloat = 17
+        static let resultSize: CGFloat = 22
     }
 
     // MARK: felt — the table

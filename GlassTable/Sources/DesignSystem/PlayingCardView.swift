@@ -4,18 +4,20 @@ import GlassTableEngine
 import GlassTableDrills
 
 struct PlayingCardView: View {
+    static let canonicalSize: CGFloat = 68
     let card: Card
-    var size: CGFloat = 42
+    var size: CGFloat = canonicalSize
     var dead: Bool = false   // "looks like an out but loses" — dimmed + struck
     /// Not dealt yet. Occupies the same footprint so the row never reflows when the
     /// card lands — the eye should follow the card, not the layout.
     var faceDown: Bool = false
 
-    private static let suits = ["♣", "♦", "♥", "♠"]
+    private static let suitSymbols = ["suit.club.fill", "suit.diamond.fill",
+                                      "suit.heart.fill", "suit.spade.fill"]
     private static let suitNames = ["클럽", "다이아", "하트", "스페이드"]
     private static let ranks = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"]
     private var isRed: Bool { card.suit == 1 || card.suit == 2 }
-    private var label: String { "\(Self.ranks[card.rank - 2])\(Self.suits[card.suit])" }
+    private var rank: String { Self.ranks[card.rank - 2] }
 
     var body: some View {
         if faceDown { back } else { face }
@@ -34,14 +36,15 @@ struct PlayingCardView: View {
     }
 
     private var face: some View {
-        Text(label)
-            // Pinned, not scaled — see `GT.fixed`. The card's frame is fixed geometry
-            // (five must fit a board), so a scaling label had nowhere to grow into and
-            // truncated every rank to "…" at the accessibility sizes.
-            .font(GT.fixed(size * 0.36))
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)   // "10♥" and wide ranks shrink to fit instead of wrapping vertically
-            .padding(.horizontal, size * 0.08)  // breathing room — label never touches the card edge
+        HStack(spacing: size * 0.015) {
+            Text(rank)
+                .font(GT.fixed(size * 0.25))
+                .frame(width: size * 0.31, alignment: .trailing)
+            Image(systemName: Self.suitSymbols[card.suit])
+                .symbolRenderingMode(.monochrome)
+                .font(.system(size: size * 0.19, weight: .semibold))
+                .frame(width: size * 0.19, alignment: .center)
+        }
             .foregroundStyle(isRed ? GT.cardSuitRed : GT.cardInk)
             .frame(width: size * 0.72, height: size)
             .background(GT.cardFace, in: RoundedRectangle(cornerRadius: size * 0.17))
@@ -52,7 +55,6 @@ struct PlayingCardView: View {
                 }
             }
             .opacity(dead ? 0.55 : 1)
-            .shadow(color: .black.opacity(0.22), radius: 3, y: 2)
             .accessibilityLabel("\(card.spokenKorean)\(dead ? ", 제외" : "")")
     }
 }

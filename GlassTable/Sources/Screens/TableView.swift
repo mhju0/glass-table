@@ -207,8 +207,8 @@ struct TableView: View {
                     VStack(spacing: GT.Space.section) {
                         seatRow(hand)
                         if case .hero = hand.phase { streetStrip(hand) }
-                        boardBlock(hand, cardSize: 50)
-                        heroBlock(hand, cardSize: 58)
+                        boardBlock(hand)
+                        heroBlock(hand)
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet(hand) }
                             .padding(18)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -219,13 +219,6 @@ struct TableView: View {
             } else {
                 VStack(spacing: 0) {
                     GeometryReader { geo in
-                // Card sizes follow the band the layout actually got rather than the
-                // device model, because the same phone hands the table a much shorter
-                // band on the summary — where the sheet carries a whole EV ledger —
-                // than it does mid-hand. On a 12 mini that band is ~320pt and the
-                // full-size zones need ~335, which pushed hero's cards under the sheet
-                // at exactly the moment the screen exists to compare two hands.
-                let tight = geo.size.height < 380
                 ScrollView {
                     VStack(spacing: 0) {
                         seatRow(hand)
@@ -233,9 +226,9 @@ struct TableView: View {
                         // street already, so the strip is repeating the answer.
                         if case .hero = hand.phase { streetStrip(hand) }
                         Spacer(minLength: 14)
-                        boardBlock(hand, cardSize: tight ? 56 : 64)
+                        boardBlock(hand)
                         Spacer(minLength: 14)
-                        heroBlock(hand, cardSize: tight ? 64 : 74)
+                        heroBlock(hand)
                     }
                     .padding(.horizontal, 18)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height)
@@ -281,9 +274,10 @@ struct TableView: View {
     /// The board, and directly beneath it the money it is being played for. 팟 used to
     /// sit in the opposite corner of the screen from 콜, so reading a price meant
     /// crossing the whole viewport for its other half.
-    private func boardBlock(_ hand: TableHand, cardSize: CGFloat) -> some View {
+    private func boardBlock(_ hand: TableHand) -> some View {
         VStack(spacing: 12) {
-            boardRow(hand, cardSize: cardSize)
+            SectionLabel(text: "공용 카드")
+            boardRow(hand)
             if let toCall = hand.toCall {
                 priceStrip(pot: hand.pot, toCall: toCall)
             } else {
@@ -293,6 +287,10 @@ struct TableView: View {
             }
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(GT.hairlineFelt).frame(height: 1)
+        }
     }
 
     /// The pot-odds shape at a glance: what is already out there against what continuing
@@ -326,7 +324,7 @@ struct TableView: View {
             }
             .frame(height: 30)
             Text("\(bbText(c)) / \(bbText(total)) · 필요 에퀴티 \(pctText(required))%")
-                .font(GT.body(12).monospacedDigit())
+                .font(GT.body(14).monospacedDigit())
                 .foregroundStyle(GT.onFeltSecondary)
         }
         .accessibilityElement(children: .ignore)
@@ -336,26 +334,23 @@ struct TableView: View {
 
     private func segment(_ text: String, fill: Color, width: CGFloat) -> some View {
         Text(text)
-            .font(GT.semibold(12).monospacedDigit()).foregroundStyle(GT.onFelt)
+            .font(GT.semibold(14).monospacedDigit()).foregroundStyle(GT.onFelt)
             .lineLimit(1).minimumScaleFactor(0.8)
             .frame(width: max(38, width - 3), height: 30)
             .background(fill, in: RoundedRectangle(cornerRadius: 8))
     }
 
-    private func heroBlock(_ hand: TableHand, cardSize: CGFloat) -> some View {
+    private func heroBlock(_ hand: TableHand) -> some View {
         VStack(spacing: 7) {
-            CardRow(cards: hand.hero, maxSize: cardSize)
-            Text("내 핸드 · \(hand.heroSeat.rawValue)")
-                .font(GT.semibold(10)).tracking(0.4)
-                .foregroundStyle(GT.onFelt.opacity(0.62))
+            CardRow(cards: hand.hero)
+            SectionLabel(text: "내 핸드 · \(hand.heroSeat.rawValue)")
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, 6)
+        .padding(.bottom, 16)
     }
 
-    /// Villain, and what has happened so far. The action log used to run as four full
-    /// lines under hero's cards; the band beside two 60pt card backs was empty, and it
-    /// holds the same lines at the same size.
+    /// Opponent cards stay centered as the first of the table's three reading regions.
+    /// The action history remains directly below so it does not compete with ownership.
     private func seatRow(_ hand: TableHand) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
@@ -364,39 +359,43 @@ struct TableView: View {
                 // The bot's live range, always countable — the printable claim at
                 // the table (spec §4).
                 Text("레인지 \(hand.villainCombos.count)콤보")
-                    .font(GT.semibold(11).monospacedDigit())
+                    .font(GT.semibold(14).monospacedDigit())
                     .foregroundStyle(GT.mint)
             }
-            HStack(alignment: .top, spacing: 10) {
+            VStack(spacing: 9) {
+                SectionLabel(text: "상대 카드 · \(hand.villainSeat.rawValue)")
                 if case let .over(o) = hand.phase {
-                    CardRow(cards: o.villainHand, maxSize: 60)
+                    CardRow(cards: o.villainHand)
                 } else {
-                    PlayingCardView(card: Card(rank: 2, suit: 0), size: 60, faceDown: true)
-                    PlayingCardView(card: Card(rank: 2, suit: 0), size: 60, faceDown: true)
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    SectionLabel(text: "\(hand.villainSeat.rawValue) · \(hand.villain.name)")
-                    ForEach(Array(hand.history.suffix(3).enumerated()), id: \.offset) { _, line in
-                        Text(line).font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
-                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                            .minimumScaleFactor(0.85)
-                            .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
+                    HStack(spacing: 8) {
+                        PlayingCardView(card: Card(rank: 2, suit: 0), faceDown: true)
+                        PlayingCardView(card: Card(rank: 2, suit: 0), faceDown: true)
                     }
                 }
-                Spacer(minLength: 0)
             }
+            .frame(maxWidth: .infinity)
+            VStack(alignment: .leading, spacing: 3) {
+                ForEach(Array(hand.history.suffix(3).enumerated()), id: \.offset) { _, line in
+                    Text(line).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                        .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.top, 6)
+        .padding(.vertical, 8)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(GT.hairlineFelt).frame(height: 1)
+        }
     }
 
-    private func boardRow(_ hand: TableHand, cardSize: CGFloat) -> some View {
+    private func boardRow(_ hand: TableHand) -> some View {
         HStack(spacing: 8) {
             ForEach(0..<5, id: \.self) { i in
                 if i < hand.board.count {
-                    PlayingCardView(card: hand.board[i], size: cardSize)
+                    PlayingCardView(card: hand.board[i])
                 } else {
-                    PlayingCardView(card: Card(rank: 2, suit: 0), size: cardSize,
-                                    faceDown: true)
+                    PlayingCardView(card: Card(rank: 2, suit: 0), faceDown: true)
                 }
             }
         }
@@ -439,7 +438,7 @@ struct TableView: View {
                 }
             }
             Text("체크다운 근사 · 이 스트리트 뒤에는 추가 베팅이 없고 레이크는 제외해요")
-                .font(GT.body(11)).foregroundStyle(GT.inkMuted)
+                .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -450,9 +449,9 @@ struct TableView: View {
     private func bviewButton(_ opt: GradedOption) -> some View {
         Button { act(opt.choice) } label: {
             VStack(spacing: 3) {
-                Text(opt.headline).font(GT.title(13)).foregroundStyle(GT.ink)
+                Text(opt.headline).font(GT.title(15)).foregroundStyle(GT.ink)
                     .lineLimit(1).minimumScaleFactor(0.8)
-                Text(opt.subline).font(GT.body(11).monospacedDigit())
+                Text(opt.subline).font(GT.body(14).monospacedDigit())
                     .foregroundStyle(GT.inkMuted)
                     .lineLimit(1).minimumScaleFactor(0.8)
                 Capsule().fill(GTActionRole.aggressive.accent)

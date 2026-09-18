@@ -98,8 +98,11 @@ final class BeatsTests: XCTestCase {
     }
 
     func testPotMathScriptEndsOnTheAnswerAndShowsEveryAction() {
-        let spot = PotMathSpot(actions: [.blinds(sb: 1, bb: 2), .raiseTo(5, from: 0),
-                                         .call(5), .raiseTo(15, from: 2), .call(10)],
+        let spot = PotMathSpot(actions: [.blinds(sb: 1, bb: 2),
+                                         .raiseTo(actor: .opener, total: 5, alreadyIn: 0),
+                                         .call(actor: .caller1, amount: 5),
+                                         .raiseTo(actor: .bb, total: 15, alreadyIn: 2),
+                                         .call(actor: .opener, amount: 10)],
                                question: .potNow)
         let beats = BeatScript.potMath(spot)
         // intro + one per action + conclusion
@@ -107,6 +110,9 @@ final class BeatsTests: XCTestCase {
         XCTAssertTrue(text(beats.last!).contains("36"))
         // The replace step must be explained, not silently applied.
         XCTAssertTrue(text(beats).contains("다시 세지 않아요"))
+        XCTAssertTrue(text(beats).contains("BB 총 15칩"))
+        XCTAssertTrue(text(beats).contains("추가 13칩"))
+        XCTAssertTrue(text(beats).contains("플레이어 A 콜 +10칩"))
     }
 
     /// The showdown script replays the street progression: turn, both hands as they

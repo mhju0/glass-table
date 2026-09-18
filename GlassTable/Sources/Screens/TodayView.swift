@@ -132,7 +132,7 @@ struct TodayView: View {
             }
             .accessibilityElement(children: .combine)
         } else if !model.needingExplainer().isEmpty {
-            Text("막힌 개념은 기록에서 천천히 다시 볼 수 있어요.")
+            Text("막힌 개념은 기록에서 따라 배우기로 다시 볼 수 있어요.")
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
         }
     }

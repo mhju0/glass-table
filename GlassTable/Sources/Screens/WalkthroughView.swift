@@ -78,7 +78,7 @@ struct WalkthroughView: View {
     private var header: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("\(title) · 천천히").font(GT.semibold(14))
+                Text("\(title) · 따라 배우기").font(GT.semibold(14))
                     .foregroundStyle(GT.onFeltSecondary)
                 Spacer()
                 Text("\(index + 1)/\(beats.count)")
@@ -119,13 +119,21 @@ struct WalkthroughView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         case .table:
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                    SectionLabel(text: row.0)
-                    cardRow(row.1)
+            VStack(spacing: 0) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { offset, row in
+                    VStack(spacing: 9) {
+                        SectionLabel(text: row.0)
+                        cardRow(row.1)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    if offset < rows.count - 1 {
+                        Rectangle().fill(GT.hairlineFelt).frame(height: 1)
+                            .padding(.horizontal, 10)
+                    }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity)
         case let .rangeGrid(range, highlight):
             RangeGridView(range: range, highlight: highlight)
                 .frame(maxWidth: 330)
@@ -166,7 +174,7 @@ struct WalkthroughView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
                       alignment: .leading, spacing: 8) {
                 ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
-                    cardView(card, size: 58)
+                    cardView(card, size: PlayingCardView.canonicalSize)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -176,7 +184,7 @@ struct WalkthroughView: View {
     private func cardRow(_ cards: [Card]) -> some View {
         HStack(spacing: 7) {
             ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
-                cardView(card, size: 58)
+                cardView(card, size: PlayingCardView.canonicalSize)
             }
         }
     }
@@ -212,13 +220,9 @@ struct WalkthroughView: View {
             .overlay {
                 if lit {
                     RoundedRectangle(cornerRadius: size * 0.17)
-                        .stroke(GT.mint, lineWidth: 3)
-                        .shadow(color: GT.mint.opacity(0.5), radius: 8)
+                        .strokeBorder(GT.mint, lineWidth: 3)
                 }
             }
-            // Lifted rather than merely outlined, so emphasis reads even at a glance
-            // now that the unhighlighted cards stay legible.
-            .scaleEffect(lit ? 1.06 : 1)
             .animation(reduceMotion ? nil : GT.Motion.change, value: down)
             .animation(reduceMotion ? nil : GT.Motion.change, value: lit)
             .animation(reduceMotion ? nil : GT.Motion.change, value: index)
@@ -241,7 +245,7 @@ struct WalkthroughView: View {
                 Text(beat.caption)
                     .font(GT.semibold(13)).tracking(0.3)
                     .foregroundStyle(GT.inkMuted)
-                Text(value).font(GT.title(32)).foregroundStyle(GT.ink)
+                Text(value).font(GT.title(26)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.numericText())
             } else if beat.focus == .none {
@@ -251,11 +255,11 @@ struct WalkthroughView: View {
                     Text(beat.caption).font(GT.semibold(15)).foregroundStyle(GT.inkMuted)
                 }
             } else {
-                Text(beat.caption).font(GT.title(21)).foregroundStyle(GT.ink)
+                Text(beat.caption).font(GT.title(GT.Typography.resultSize)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let detail = beat.detail {
-                Text(detail).font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                Text(detail).font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -277,21 +281,21 @@ enum Walkthrough {
         case .showdown:
             let s = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.showdown(s),
-                    [("상대", s.villain), ("보드", s.board), ("내 핸드", s.hero)])
+                    [("상대 카드", s.villain), ("공용 카드", s.board), ("내 카드", s.hero)])
         case .outs:
             let s = OutsSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.outs(s),
-                    [("상대", s.villain), ("보드 · 턴", s.board), ("내 핸드", s.hero)])
+                    [("상대 카드", s.villain), ("공용 카드 · 턴", s.board), ("내 카드", s.hero)])
         case .equitySense:
             let s = EquitySenseSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.equitySense(s),
-                    [("상대", s.villain),
-                     (s.board.count == 3 ? "보드 · 플랍" : "보드 · 턴", s.board),
-                     ("내 핸드", s.hero)])
+                    [("상대 카드", s.villain),
+                     (s.board.count == 3 ? "공용 카드 · 플랍" : "공용 카드 · 턴", s.board),
+                     ("내 카드", s.hero)])
         case .callFold:
             let s = CallFoldSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.callFold(s),
-                    [("상대", s.villain), ("보드 · 턴", s.board), ("내 핸드", s.hero)])
+                    [("상대 카드", s.villain), ("공용 카드 · 턴", s.board), ("내 카드", s.hero)])
         case .combos:
             let s = BlockerSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.combos(s), [("보이는 카드", s.removed)])
@@ -310,26 +314,26 @@ enum Walkthrough {
                 RangeNotationSpotGenerator.spot(baseSeed: seed, index: index)), [])
         case .rfi:
             let s = RFISpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.rfi(s), [("내 핸드", s.hand)])
+            return (BeatScript.rfi(s), [("내 카드", s.hand)])
         case .rangeRead:
             // No card rows on purpose: seeing no cards *is* the drill.
             return (BeatScript.rangeRead(
                 RangeReadSpotGenerator.spot(baseSeed: seed, index: index)), [])
         case .hitFrequency:
             let s = HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.hitFrequency(s), [("보드 · 플랍", s.board)])
+            return (BeatScript.hitFrequency(s), [("공용 카드 · 플랍", s.board)])
         case .rangeAdvantage:
             let s = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.rangeAdvantage(s), [("보드 · 플랍", s.board)])
+            return (BeatScript.rangeAdvantage(s), [("공용 카드 · 플랍", s.board)])
         case .evLoss:
             let s = EVLossSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.evLoss(s), [("보드 · 리버", s.board), ("내 핸드", s.hero)])
+            return (BeatScript.evLoss(s), [("공용 카드 · 리버", s.board), ("내 카드", s.hero)])
         case .actionRead:
             let s = ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.actionRead(s), [("보드 · 플랍", s.board)])
+            return (BeatScript.actionRead(s), [("공용 카드 · 플랍", s.board)])
         case .defend:
             let s = DefendSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.defend(s), [("내 핸드", s.hand)])
+            return (BeatScript.defend(s), [("내 카드", s.hand)])
         }
     }
 }

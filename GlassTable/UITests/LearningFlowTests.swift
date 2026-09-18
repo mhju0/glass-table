@@ -20,7 +20,7 @@ final class LearningFlowTests: XCTestCase {
         app.buttons["앱 둘러보기"].tap()
         XCTAssertTrue(app.staticTexts["이렇게 한 결정씩 배워요"].waitForExistence(timeout: 5))
         app.buttons["첫 레슨 시작"].tap()
-        XCTAssertTrue(app.staticTexts["쇼다운 · 천천히"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["쇼다운 · 따라 배우기"].waitForExistence(timeout: 10))
     }
 
     func testSkippingFirstLessonDoesNotShowItAgain() {
@@ -104,6 +104,36 @@ final class LearningFlowTests: XCTestCase {
         }
         XCTAssertTrue(app.buttons["길로 돌아가기"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["다음 문제"].exists)
+    }
+
+    func testPotMathTimelineNamesPlayersAndRevealsStepwiseArithmetic() {
+        let app = XCUIApplication()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@", "플레이어 A · 총"
+        )).firstMatch.waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@", "명이 낸 칩"
+        )).firstMatch.exists)
+
+        let submit = app.buttons["확인"]
+        XCTAssertTrue(submit.waitForExistence(timeout: 5))
+        submit.tap()
+
+        let arithmetic = app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@ AND label CONTAINS %@",
+            "블라인드: 1 + 2 = 3칩", "플레이어 A 레이즈:"
+        )).firstMatch
+        XCTAssertTrue(arithmetic.waitForExistence(timeout: 5))
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        attachment.name = "pot-math-stepwise-reveal"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 5))
     }
 
     func testDueReviewIsFiniteAndMovesBetweenConcepts() {

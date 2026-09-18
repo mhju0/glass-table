@@ -17,19 +17,12 @@ struct GTPress: ButtonStyle {
     }
 }
 
-/// A row of cards at the largest ladder size that fits the width — big cards on
-/// today's heads-up spots, graceful shrink when future spots put more cards in a row.
+/// A row of cards at the app's canonical size. When a screen cannot fit the row,
+/// its container reflows or scrolls instead of teaching a second card geometry.
 struct CardRow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let cards: [Card]
     var dead: Bool = false
-    /// Caps the ladder for callers that must leave room for something else.
-    ///
-    /// The top rung is sized so a five-card board still fits the narrowest supported
-    /// screen: at 78pt a card is 78 × 0.72 ≈ 56pt wide, so five plus four 8pt gaps is
-    /// ≈ 313pt against the 12 mini's 339pt of usable width. Everything larger than a
-    /// mini simply gets the top rung, which is the point — cards read as cards.
-    var maxSize: CGFloat = 78
     /// Cards to call out — the winning five on a reveal, say. Everything else steps
     /// back rather than disappearing, so the row still reads as a whole hand.
     var highlight: [Card] = []
@@ -42,21 +35,54 @@ struct CardRow: View {
                     .overlay {
                         if lit {
                             RoundedRectangle(cornerRadius: size * 0.17)
-                                .stroke(GT.mint, lineWidth: 3)
-                                .shadow(color: GT.mint.opacity(0.85), radius: 9)
+                                .strokeBorder(GT.mint, lineWidth: 3)
                         }
                     }
-                    .scaleEffect(lit ? 1.06 : 1)
                     .opacity(dim ? 0.62 : 1)
                     .animation(reduceMotion ? nil : GT.Motion.change, value: highlight)
             }
         }
     }
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            row(min(maxSize, 78)); row(min(maxSize, 68))
-            row(min(maxSize, 58)); row(min(maxSize, 48))
+        row(PlayingCardView.canonicalSize)
+    }
+}
+
+/// The stable reading order for a poker decision. Every region uses the same card
+/// geometry; quiet rules separate ownership without turning the table into panels.
+struct ThreeRegionCardTable: View {
+    let opponent: [Card]
+    let board: [Card]
+    let hero: [Card]
+    var opponentTitle = "상대 카드"
+    var heroTitle = "내 카드"
+    var highlight: [Card] = []
+
+    var body: some View {
+        VStack(spacing: 0) {
+            region(opponentTitle, cards: opponent)
+            boundary
+            region("공용 카드", cards: board)
+            boundary
+            region(heroTitle, cards: hero)
         }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func region(_ title: String, cards: [Card]) -> some View {
+        VStack(spacing: 9) {
+            SectionLabel(text: title)
+            CardRow(cards: cards, highlight: highlight)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 11)
+        .accessibilityElement(children: .contain)
+    }
+
+    private var boundary: some View {
+        Rectangle().fill(GT.hairlineFelt).frame(height: 1)
+            .padding(.horizontal, 10)
+            .accessibilityHidden(true)
     }
 }
 
@@ -64,14 +90,18 @@ struct SectionLabel: View {
     let text: String
     var onDark: Bool = true
     var body: some View {
-        Text(text).font(GT.semibold(10)).tracking(0.4)
+        Text(text).font(GT.semibold(13)).tracking(0.3)
             .foregroundStyle(onDark ? GT.onFelt.opacity(0.62) : GT.inkMuted)
     }
 }
 
 extension GradeBand {
     var label: String {
-        switch self { case .spotOn: return "정확"; case .close: return "근접"; case .off: return "빗나감" }
+        switch self {
+        case .spotOn: return "정확"
+        case .close: return "근접"
+        case .off: return "다시 살펴볼까요?"
+        }
     }
     /// Three shapes, not three colors. WCAG 1.4.1: color can never be the only channel, and
     /// red/green is the worst possible pair for deuteranopia (~6% of men). ± reads as
@@ -144,7 +174,7 @@ struct VerdictRow: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 7) {
-                    Text(band.label).font(GT.title(17)).foregroundStyle(band.ink)
+                    Text(band.label).font(GT.title(18)).foregroundStyle(band.ink)
                     if let delta {
                         Text(delta).font(GT.semibold(12)).foregroundStyle(band.ink.opacity(0.85))
                     }
@@ -189,14 +219,12 @@ struct RiverExplainPanel: View {
     var body: some View {
         let ex = explainRiver(spot: spot, river: river)
         VStack(alignment: .leading, spacing: 9) {
-            HStack(spacing: 6) {
-                ForEach(Array(spot.board.enumerated()), id: \.offset) {
-                    PlayingCardView(card: $0.element, size: 40)
-                }
-                Text("+").font(GT.title(16)).foregroundStyle(GT.onFelt.opacity(0.7))
-                PlayingCardView(card: river, size: 40)
-                    .overlay(RoundedRectangle(cornerRadius: 40 * 0.17)
-                        .stroke(GT.mint, lineWidth: 2.5))
+            CardRow(cards: spot.board)
+            HStack(spacing: 10) {
+                SectionLabel(text: "리버")
+                PlayingCardView(card: river)
+                    .overlay(RoundedRectangle(cornerRadius: PlayingCardView.canonicalSize * 0.17)
+                        .strokeBorder(GT.mint, lineWidth: 2.5))
             }
             Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(GT.onFelt)
             Text("상대 · \(handName(ex.villain))")
@@ -370,7 +398,6 @@ struct ActionSheet<Content: View>: View {
                                                           style: .continuous))
                 .ignoresSafeArea(edges: .bottom)
         }
-        .shadow(color: .black.opacity(0.55), radius: 22, y: -10)
     }
 }
 
@@ -382,7 +409,7 @@ struct PrimaryCTAButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(GT.title(16))
+            Text(title).font(GT.title(GT.Typography.buttonSize))
                 .foregroundStyle(isEnabled ? GT.onCTA : GT.inkMuted)
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, minHeight: 54)
@@ -399,7 +426,7 @@ struct SecondaryCTAButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(GT.semibold(15)).foregroundStyle(GT.inkSecondary)
+            Text(title).font(GT.semibold(GT.Typography.buttonSize)).foregroundStyle(GT.inkSecondary)
                 .frame(maxWidth: .infinity, minHeight: 50)
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                             style: .continuous))
@@ -417,7 +444,7 @@ struct FeltCTAButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).font(GT.title(16))
+            Text(title).font(GT.title(GT.Typography.buttonSize))
                 .foregroundStyle(isEnabled ? GT.onCTA : GT.inkMuted)
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, minHeight: 54)
@@ -440,7 +467,8 @@ struct GTChoiceButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(selected ? GT.title(16) : GT.semibold(16))
+                .font(selected ? GT.title(GT.Typography.buttonSize)
+                               : GT.semibold(GT.Typography.buttonSize))
                 .foregroundStyle(selected ? GT.onCTA : GT.ink)
                 .frame(maxWidth: .infinity, minHeight: minHeight)
                 .background(selected ? AnyShapeStyle(GT.cta) : AnyShapeStyle(GT.surface),

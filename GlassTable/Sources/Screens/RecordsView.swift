@@ -201,14 +201,14 @@ struct RecordsView: View {
         if stuck {
             Button { replay = concept } label: { line.contentShape(Rectangle()) }
                 .buttonStyle(GTPress())
-                .accessibilityHint("천천히 다시 보기 열기")
+                .accessibilityHint("따라 배우기 열기")
         } else {
             line
         }
     }
 
     private func subtitle(_ r: ConceptRecord, stuck: Bool) -> String {
-        if stuck { return "\(r.consecutiveMisses)번 놓침 · 천천히 다시 보기" }
+        if stuck { return "\(r.consecutiveMisses)번 놓침 · 따라 배우기" }
         let accepted = Int((r.accuracy * 100).rounded())
         guard let due = r.review.due else { return "\(r.total)문제 · 정확·근접 \(accepted)%" }
         let days = Calendar.current.dateComponents([.day], from: Date(), to: due).day ?? 0
