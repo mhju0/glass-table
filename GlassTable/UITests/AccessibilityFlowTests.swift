@@ -76,6 +76,43 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The complete hand summary must remain scrollable at AX XXXL.")
     }
 
+    func testFirstLessonReachesCourseAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_TEST_FIRST_LESSON": "1",
+        ])
+
+        XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 15))
+        let exampleAnswer = firstButton(prefix: "내 카드", in: app)
+        XCTAssertTrue(scrollUntilHittable(exampleAnswer, in: app),
+                      "The guided hand choice must remain reachable at AX XXXL.")
+        exampleAnswer.tap()
+
+        let tryTransfer = app.buttons["다른 카드로 풀어보기"]
+        XCTAssertTrue(scrollUntilHittable(tryTransfer, in: app),
+                      "The first explanation and transfer action must remain reachable at AX XXXL.")
+        tryTransfer.tap()
+
+        XCTAssertTrue(app.staticTexts["같은 규칙으로 골라보세요"].waitForExistence(timeout: 10))
+        let transferAnswer = firstButton(prefix: "상대 카드", in: app)
+        XCTAssertTrue(scrollUntilHittable(transferAnswer, in: app),
+                      "The transfer hand choice must remain reachable at AX XXXL.")
+        transferAnswer.tap()
+
+        let seeIntroduction = app.buttons["앱 둘러보기"]
+        XCTAssertTrue(scrollUntilHittable(seeIntroduction, in: app),
+                      "The transfer explanation must remain scrollable at AX XXXL.")
+        seeIntroduction.tap()
+
+        XCTAssertTrue(app.staticTexts["이렇게 한 결정씩 배워요"].waitForExistence(timeout: 10))
+        let beginCourse = app.buttons["첫 레슨 시작"]
+        XCTAssertTrue(scrollUntilHittable(beginCourse, in: app),
+                      "The introduction and course entry must remain reachable at AX XXXL.")
+        beginCourse.tap()
+
+        XCTAssertTrue(app.staticTexts["쇼다운 · 천천히"].waitForExistence(timeout: 10))
+    }
+
     private func launch(environment: [String: String]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = accessibilityXXXL
@@ -92,5 +129,9 @@ final class AccessibilityFlowTests: XCTestCase {
             app.swipeUp()
         }
         return element.exists && element.isHittable
+    }
+
+    private func firstButton(prefix: String, in app: XCUIApplication) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
     }
 }
