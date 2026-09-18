@@ -68,3 +68,28 @@ metadata must explicitly describe the Korean-language lessons until full English
 content is implemented and reviewed.
 
 Build and test behavior, then inspect rendered screens on normal and compact iPhones and at accessibility text sizes. Exercise the real UI with XCTest, not only screenshot launch hooks. Preserve prior JSON progress and recovery behavior. An independent frozen-candidate review is required for progression integrity changes. Store submission follows the user's own testing and feedback.
+
+### Physical-device feedback, approved 2026-09-19
+
+The opponent's cards, shared board, and learner's cards occupy centered upper,
+middle, and lower regions. Subtle boundaries identify ownership without requiring
+the learner to repeatedly read labels. Use 상대 카드 / 공용 카드 / 내 카드.
+
+Card faces use consistent geometry across teaching and practice: separate rank and
+monochrome suit areas, one rank size including 10, and consistent suit placement.
+Highlight with an inset border and contrast, not scale. Card ownership is not a
+reason to enlarge a hand relative to the board.
+
+Hints belong to stable header chrome. Opening a hint must not reflow the question
+or cards. Reserve real space for answers and explanations; scroll when needed,
+never cover the learner's cards or shrink teaching text to make it fit.
+
+Pot calculation identifies the participants and each action's actor. Distinguish
+the total raised to from the chips added now. Show the actual stopping point in
+the action sequence, and explain the calculation in readable steps after the
+learner answers. Do not expose the resulting pot before commitment.
+
+Use 따라 배우기 for a worked guide and 무승부 for a tied answer. Questions and
+explanations align left; short answer labels and action buttons align centrally.
+Share title/body styles, spacing, and button geometry across guide and practice
+panels. Validate on the iPhone 12 mini and with accessibility text sizes.
