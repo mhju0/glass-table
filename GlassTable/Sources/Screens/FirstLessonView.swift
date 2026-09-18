@@ -48,22 +48,45 @@ struct FirstLessonView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(FirstLessonCopy.title)
-                    .font(GT.title(22)).foregroundStyle(GT.onFelt)
-                Text(progressText)
-                    .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 2) {
+                    headerTitle
+                    HStack {
+                        Spacer(minLength: 0)
+                        headerAction
+                    }
+                }
+            } else {
+                HStack(alignment: .center) {
+                    headerTitle
+                    Spacer(minLength: 12)
+                    headerAction
+                }
             }
-            Spacer(minLength: 12)
-            Button(context == .firstRun ? FirstLessonCopy.skip : FirstLessonCopy.close,
-                   action: onSkip)
-                .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-                .frame(minWidth: 44, minHeight: 44)
-                .accessibilityIdentifier(context == .firstRun
-                                         ? "firstLesson.skip" : "firstLesson.close")
         }
         .padding(.horizontal, 18).padding(.vertical, 10)
+    }
+
+    private var headerTitle: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(FirstLessonCopy.title)
+                .font(GT.title(22)).foregroundStyle(GT.onFelt)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(progressText)
+                .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var headerAction: some View {
+        Button(context == .firstRun ? FirstLessonCopy.skip : FirstLessonCopy.close,
+               action: onSkip)
+            .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+            .frame(minWidth: 44, minHeight: 44)
+            .accessibilityIdentifier(context == .firstRun
+                                     ? "firstLesson.skip" : "firstLesson.close")
     }
 
     private var progressText: String {
