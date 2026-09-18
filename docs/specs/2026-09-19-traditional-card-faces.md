@@ -58,3 +58,14 @@ An unsigned iPhone Release build also passed; `tools/verify_release.py` passed o
 that bundle, including absence of DEBUG launch hooks. Signing and installation
 were not performed for this preview. Release log:
 `/tmp/gt-traditional-cards-release.log`.
+
+## Superseded by user feedback
+
+The user rejected this illustrated/pip design after preview. The replacement uses
+one top-left rank (23.12pt at the canonical size) and one centered suit below
+(25.84pt), identical across all ranks. Repeated indices, pip patterns, court
+rendering and the 12 unused assets/license notice were removed. Simulator build
+passed and compact showdown/first-lesson renders were reviewed under
+`.build/simple-card-visuals/`. Build log: `/tmp/gt-simple-cards-build.log`.
+Earlier interaction checks above belong to the previous candidate, not a new
+full test run. Card identity/accessibility and interaction logic are unchanged.

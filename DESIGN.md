@@ -108,3 +108,11 @@ Keep lesson cards separate and upright. Overlap and perspective from casino apps
 would make direct card comparisons harder. Do not enlarge the card footprint to
 compensate for weak internal hierarchy. Render and inspect representative lessons
 at compact iPhone size before delivery.
+
+### Simplified card faces, revised 2026-09-19
+
+The user rejected pip patterns, court illustrations and mirrored indices after
+seeing the rendered app. Superseding the previous card-face direction, show one
+large top-left rank and one large centered suit below. All ranks, including 10
+and J/Q/K, share the same fixed font size and layout. Keep card dimensions and
+red/black suit encoding consistent. No repeated suit decorations or artwork.
