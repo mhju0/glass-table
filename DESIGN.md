@@ -93,3 +93,18 @@ Use 따라 배우기 for a worked guide and 무승부 for a tied answer. Questio
 explanations align left; short answer labels and action buttons align centrally.
 Share title/body styles, spacing, and button geometry across guide and practice
 panels. Validate on the iPhone 12 mini and with accessibility text sizes.
+
+### Familiar card faces, approved 2026-09-19
+
+Use full upright playing-card faces with large corner rank/suit indices and an
+inverted opposite-corner index. Familiar pip patterns and court artwork connect
+the lesson to a physical deck; larger indices make recognition the first task,
+without asking a beginner to count pips. Preserve identical card footprints across
+ownership regions and a single index font size including 10. Keep red/black suit
+encoding and the warm paper surface. Central artwork must leave the indices clear.
+This supersedes the small centered horizontal rank/suit treatment above.
+
+Keep lesson cards separate and upright. Overlap and perspective from casino apps
+would make direct card comparisons harder. Do not enlarge the card footprint to
+compensate for weak internal hierarchy. Render and inspect representative lessons
+at compact iPhone size before delivery.
