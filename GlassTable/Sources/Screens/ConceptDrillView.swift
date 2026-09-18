@@ -1442,7 +1442,7 @@ private struct EVLossRevealSheet: View {
                 // alone — the same three-channel rule VerdictRow follows.
                 Image(systemName: reveal.band.glyph)
                     .font(.system(size: 15)).foregroundStyle(reveal.band.ink)
-                Text(reveal.band.evLossLabel)
+                Text(evLossLabel(loss: reveal.grade.loss))
                     .font(GT.title(15)).foregroundStyle(reveal.band.ink)
                 Spacer(minLength: 6)
                 Text("내 선택 · \(reveal.grade.chosen.label)")

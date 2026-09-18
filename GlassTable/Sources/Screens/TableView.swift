@@ -495,10 +495,8 @@ struct TableView: View {
     /// sentence is the thing worth carrying to the next hand. The severity keeps its
     /// band ink and glyph but moves to a pill beside the headline.
     ///
-    /// §D's 최선 band is "optimal *or near-optimal*", so it can sit beside a headline
-    /// naming a different action as best. That pairing is only readable because the
-    /// cost is printed directly under it — which is what `evPrices` is for, and why it
-    /// is not optional decoration.
+    /// Exact and near-best choices share a progression band, while the pill names the
+    /// distinction directly. The cost below remains the evidence for that judgment.
     private func turnReveal(_ turn: TurnRecord) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -534,7 +532,7 @@ struct TableView: View {
 
     private func bandPill(_ turn: TurnRecord) -> some View {
         let word: String = {
-            if case .ev = turn.verdict { return turn.band.evLossLabel }
+            if case let .ev(loss, _) = turn.verdict { return evLossLabel(loss: loss) }
             return turn.band == .spotOn ? "일치" : "불일치"
         }()
         return HStack(spacing: 4) {

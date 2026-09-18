@@ -23,6 +23,17 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertTrue(model.shouldPresentFirstLesson)
     }
 
+    func testDemoStateRoundTripsThroughTheProductionStore() throws {
+        let demo = ProgressionModel.demoState()
+
+        try store.save(demo)
+
+        guard case let .loaded(reloaded) = store.load() else {
+            return XCTFail("The seeded demo state must be valid persisted progress")
+        }
+        XCTAssertEqual(reloaded, demo)
+    }
+
     func testCompletingFirstLessonPersistsOnlyItsMarker() throws {
         let model = ProgressionModel(store: store)
         let before = model.state

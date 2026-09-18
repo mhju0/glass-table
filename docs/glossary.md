@@ -39,4 +39,4 @@ usage (pokergosu, CoinPoker KR glossary, namu.wiki).
 | 3벳 | 3-bet | action | digit + Hangul per decisions.md §F |
 | bb | big blind | unit | Latin lowercase, the app's money unit |
 | 디펜드 차트 | defend chart | concept | vs an open: 3벳/콜/폴드 bands |
-| 최선 / 부정확 / 실수 | optimal / inaccuracy / mistake | grade band | EV-loss severity (decisions.md §D), distinct from 정확/근접/빗나감 |
+| 최선 / 거의 최선 / 부정확 / 실수 | best / near-best / inaccuracy / mistake | EV-loss display | 0bb is 최선; a positive loss up to 0.5bb is 거의 최선; the first two share the best progression band |

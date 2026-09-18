@@ -228,14 +228,19 @@ final class ProgressionModel {
 
         func study(_ c: Concept, correct: Int, total: Int, tier: MasteryTier,
                    dueInDays: Double, misses: Int = 0) {
+            let due = now.addingTimeInterval(86400 * dueInDays)
+            // Due concepts still need a legal review chronology. The old fixed
+            // `now - 2 days` value landed after the demo's three-days-overdue date,
+            // so every answer save from a seeded screenshot state was rejected.
+            let lastReview = min(now.addingTimeInterval(-86400 * 2),
+                                 due.addingTimeInterval(-86400))
             s.updateRecord(for: c) {
                 $0.correct = correct; $0.total = total; $0.tier = tier
                 $0.consecutiveMisses = misses
                 $0.proficientAt = tier >= .proficient ? now.addingTimeInterval(-86400 * 3) : nil
                 $0.masteredAt = tier == .mastered ? now.addingTimeInterval(-86400 * 2) : nil
                 $0.review = ReviewState(stability: 6, difficulty: 5,
-                                        lastReview: now.addingTimeInterval(-86400 * 2),
-                                        due: now.addingTimeInterval(86400 * dueInDays),
+                                        lastReview: lastReview, due: due,
                                         reps: 3)
             }
         }
