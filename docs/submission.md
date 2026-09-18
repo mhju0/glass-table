@@ -1,9 +1,10 @@
 # App Store preparation: v1.0 (2)
 
-> **2026-09-14: preparation for user testing, not submitted.** The research-led
-> revamp has passed simulator testing; production hardening is under final verification. User feedback, signed-device testing, current
-> screenshots, App Store Connect metadata, age-rating answers and regional
-> distribution requirements still need final review. The practice table depicts
+> **2026-09-18: preparation for user testing, not submitted.** The benchmark
+> refinements passed the full app/UI suite and unsigned device Release bundle
+> checks. See [delivery evidence](specs/2026-09-18-benchmark-delivery.md). User
+> feedback, signed-device testing, current store screenshots, App Store Connect
+> metadata, age-rating answers and regional requirements remain release gates. The practice table depicts
 > simulated betting with bb stakes, without real money or purchasable currency.
 
 Single source of truth for everything entered into App Store Connect.
