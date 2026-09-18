@@ -20,7 +20,7 @@ final class AccessibilityFlowTests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["쇼다운까지 갔을 때 내가 이길 확률은?"]
             .waitForExistence(timeout: 15))
-        XCTAssertTrue(app.staticTexts["상대"].exists)
+        XCTAssertTrue(app.staticTexts["상대 카드"].exists)
 
         let submit = app.buttons["확인"]
         XCTAssertTrue(scrollUntilHittable(submit, in: app),
