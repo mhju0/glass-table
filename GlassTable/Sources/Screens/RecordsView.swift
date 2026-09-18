@@ -25,6 +25,7 @@ struct RecordsView: View {
                 headline
                 Text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실제 포커 실력을 인증하지 않아요.")
                     .font(GT.body(12.5)).foregroundStyle(GT.onFeltSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
                 calibrationCard
                 evLossCard
@@ -81,9 +82,9 @@ struct RecordsView: View {
     private var calibrationCard: some View {
         let sampleCount = model.state.answers.filter { $0.interval != nil }.count
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(text: "캘리브레이션", onDark: false)
+            SectionLabel(text: "확신 점검", onDark: false)
             if let rate = model.calibrationHitRate {
-                Text("내가 잡은 90% 구간에 정답이 들어온 비율")
+                Text("정답이 내가 예상한 90% 범위에 들어온 비율")
                     .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(Int((rate * 100).rounded()))%")
@@ -106,9 +107,10 @@ struct RecordsView: View {
                 .frame(height: 11)
                 Text(calibrationDescription(count: sampleCount))
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("아웃 · 에퀴티 감각 · EV 계산에서 구간을 답하면 여기에 쌓여요")
+                Text("아웃, 에퀴티 감각, EV 계산에서 예상 범위를 답하면 여기에 기록돼요.")
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -137,6 +139,7 @@ struct RecordsView: View {
                 }
                 Text("이 값은 공개된 체크다운 가정으로 채점한 연습 기록이에요.")
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(18)
@@ -146,7 +149,7 @@ struct RecordsView: View {
     }
 
     private func calibrationDescription(count: Int) -> String {
-        "지금까지의 포함 비율을 그대로 보여줘요. \(count)개 표본만으로 확신의 크기나 실력을 판단하지 않아요."
+        "지금까지 답한 \(count)개 문제의 결과예요. 표본이 적을 때는 이 수치만으로 실력을 판단하지 않아요."
     }
 
     private var emptyState: some View {

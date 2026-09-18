@@ -111,8 +111,8 @@ struct WalkthroughView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Spacer(minLength: 24)
                 Text(beat.value ?? beat.caption)
-                    .font(GT.title(40)).foregroundStyle(GT.onFelt)
-                    .minimumScaleFactor(0.5)
+                    .font(GT.title(34)).foregroundStyle(GT.onFelt)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
                     .contentTransition(.numericText())
                 Spacer(minLength: 0)
@@ -256,6 +256,7 @@ struct WalkthroughView: View {
             }
             if let detail = beat.detail {
                 Text(detail).font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
             PrimaryCTAButton(title: isLast ? "이해했어요" : "다음") {

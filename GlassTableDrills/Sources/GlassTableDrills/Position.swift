@@ -95,11 +95,11 @@ public func gradePosition(answer: Int, spot: PositionSpot) -> PositionReveal {
         let order = preflop ? Position.preflopOrder : Position.postflopOrder
         let after = order.drop(while: { $0 != p }).dropFirst()
         why = after.isEmpty
-            ? "\(p.rawValue)는 \(preflop ? "프리플랍" : "플랍 이후") 마지막이에요 — 뒤에 아무도 없어요."
-            : "\(p.rawValue) 뒤: \(after.map(\.rawValue).joined(separator: " · ")) — \(correct)명."
+            ? "\(p.rawValue)는 \(preflop ? "프리플랍" : "플랍 이후") 마지막이에요. 뒤에 아무도 없어요."
+            : "\(p.rawValue) 뒤에는 \(after.map(\.rawValue).joined(separator: " · ")), 모두 \(correct)명이에요."
     case let .whichIsLater(a, b):
         let later = correct == 1 ? b : a
-        why = "\(later.rawValue)가 더 늦게 행동해요 — 정보를 더 보고 결정할 수 있어요."
+        why = "\(later.rawValue)가 더 늦게 행동해요. 앞선 행동을 더 보고 결정할 수 있어요."
     }
     return PositionReveal(band: answer == correct ? .spotOn : .off,
                           answer: answer, correct: correct, whyText: why)

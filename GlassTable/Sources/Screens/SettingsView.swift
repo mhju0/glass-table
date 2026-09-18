@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Environment(ProgressionModel.self) private var model
     @State private var showGlossary = false
     @State private var showGuide = false
+    @State private var showFirstLesson = false
     @State private var showLicense = false
     @State private var backup: BackupDocument?
     @State private var exportingBackup = false
@@ -35,8 +36,15 @@ struct SettingsView: View {
                 Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
                 VStack(spacing: 0) {
+                    Button { showFirstLesson = true } label: {
+                        row("suit.spade.fill", "첫 포커 결정 다시 보기",
+                            "두 패를 비교하며 기본 규칙을 익혀요", chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
                     Button { showGuide = true } label: {
-                        row("rectangle.stack", "시작 안내", "게임의 흐름과 공부하는 방법", chevron: true)
+                        row("rectangle.stack", "공부 방법",
+                            "레슨과 복습이 이어지는 방식을 알아봐요", chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -153,6 +161,11 @@ struct SettingsView: View {
         .sheet(isPresented: $showGlossary) { GlossaryView() }
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
         .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }
+        .fullScreenCover(isPresented: $showFirstLesson) {
+            FirstLessonView(context: .replay,
+                            onFinish: { showFirstLesson = false },
+                            onSkip: { showFirstLesson = false })
+        }
         .fileExporter(isPresented: $exportingBackup, document: backup,
                       contentType: .json,
                       defaultFilename: "glass-table-backup") { result in
@@ -230,7 +243,11 @@ struct SettingsView: View {
                 .foregroundStyle(destructive ? GT.suitRed : GT.green).frame(width: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(GT.semibold(15)).foregroundStyle(GT.ink)
-                if let sub { Text(sub).font(GT.body(12)).foregroundStyle(GT.inkMuted) }
+                if let sub {
+                    Text(sub).font(GT.body(12)).foregroundStyle(GT.inkMuted)
+                        .lineSpacing(GT.Typography.bodyLineSpacing)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer()
             if chevron || external {

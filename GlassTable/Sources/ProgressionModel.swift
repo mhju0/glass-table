@@ -98,6 +98,30 @@ final class ProgressionModel {
         calibrationHitRate.map { Calibration.verdict(hitRate: $0) }
     }
 
+    /// A legacy or imported learner should land where they left off. Unknown concept
+    /// and node keys count too because they can be valid history from another build.
+    var shouldPresentFirstLesson: Bool {
+        guard unreadable == nil else { return false }
+        guard state.firstLessonCompleted != true else { return false }
+        #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        if environment["GT_TEST_FIRST_LESSON"] == "1"
+            || environment["GT_DEMO_FIRST_LESSON"] != nil { return true }
+        if environment["GT_TEST_FIRST_LESSON"] == "0"
+            || environment.keys.contains(where: { $0.hasPrefix("GT_DEMO_") }) {
+            return false
+        }
+        #endif
+        return !hasHistoricalActivity
+    }
+
+    private var hasHistoricalActivity: Bool {
+        !state.concepts.isEmpty || !state.nodes.isEmpty || !state.answers.isEmpty
+            || state.streak.current > 0 || state.streak.longest > 0
+            || state.streak.lastSessionDay != nil
+            || state.streak.lastFreezeEarnedDay != nil
+    }
+
     /// Spec §4.6: three misses in a row means the explanation didn't land.
     func shouldOfferWalkthrough(_ concept: Concept) -> Bool {
         Mastery.shouldOfferWalkthrough(state.record(for: concept))
@@ -146,6 +170,14 @@ final class ProgressionModel {
     func completeWalkthrough(concept: Concept) {
         guard unreadable == nil else { return }
         Mastery.completeWalkthrough(&state, concept: concept)
+        save()
+    }
+
+    /// The introduction is practice, not assessment. Completing or skipping it writes
+    /// only this marker: no answer, streak, review date, node, or mastery changes.
+    func completeFirstLesson() {
+        guard unreadable == nil else { return }
+        state.firstLessonCompleted = true
         save()
     }
 

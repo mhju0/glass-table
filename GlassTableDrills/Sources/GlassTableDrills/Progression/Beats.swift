@@ -127,7 +127,7 @@ public enum BeatScript {
                                   detail: showdownWhy(winner: villainName, loser: heroName,
                                                       spot: s, heroWon: false),
                                   focus: .table, highlight: villainRiver))
-        default: beats.append(Beat("찹이에요", detail: "둘 다 \(heroName) — 보드가 그대로 플레이돼요.",
+        default: beats.append(Beat("찹이에요", detail: "둘 다 \(KO.copula(heroName)) 공용 카드가 그대로 플레이돼요.",
                                    focus: .table, highlight: s.board))
         }
         return beats
@@ -188,7 +188,7 @@ public enum BeatScript {
         }
 
         beats.append(Beat("진짜 아웃", value: "\(s.outCount)장",
-                          detail: "남은 \(unseen)장 중 \(s.outCount)장 — 룰 오브 2로 약 "
+                          detail: "남은 \(unseen)장 중 \(s.outCount)장이에요. 룰 오브 2로 약 "
                                 + "\(Int(s.improvementPct))%예요.",
                           focus: .grid(s.outs.sorted(by: byRank))))
         return beats
@@ -217,7 +217,7 @@ public enum BeatScript {
                 beats.append(from == 0
                     ? Beat("레이즈 \(to)bb", detail: "\(before) + \(to) = \(running)bb")
                     : Beat("\(to)bb로 레이즈",
-                           detail: "이미 넣은 \(from)은 다시 세지 않아요 — "
+                           detail: "이미 넣은 \(from)은 다시 세지 않아요. "
                                  + "\(before) − \(from) + \(to) = \(running)bb"))
             }
         }
@@ -440,7 +440,7 @@ public enum BeatScript {
             Beat("그래서 이 모양", value: "\(truth.classes.count)개 핸드",
                  detail: raising
                     ? "점수 순으로 위에서 \(pctText(truth.percent))%까지."
-                    : "레이즈 범위를 빼고 남은 띠예요 — 놀 만하지만 올리긴 아까운 패들.",
+                    : "레이즈 범위를 빼고 남은 띠예요. 플레이할 수 있지만 올리기에는 아까운 패들이에요.",
                  focus: .rangeGrid(truth, highlight: nil)),
         ]
         // The shape is the second half of a read, so name whichever category this
@@ -511,7 +511,7 @@ public enum BeatScript {
                  detail: "먼저 들어온 쪽은 좁고 센 범위예요.",
                  focus: .rangeGrid(s.openerRange, highlight: nil)),
             Beat("콜러의 레인지", value: "상위 \(pctText(s.callerRange.percent))%",
-                 detail: "\(s.caller.name)가 콜만 하는 구간 — 올리긴 아까운 패들이에요. "
+                 detail: "\(s.caller.name)가 콜만 하는 구간이에요. 올리기에는 아까운 패들이에요. "
                        + "\(s.caller.blurb).",
                  focus: .rangeGrid(s.callerRange, highlight: nil)),
             // The bucket that actually separates them, not a fixed one — on many
@@ -520,8 +520,8 @@ public enum BeatScript {
                  detail: "같은 보드인데 만든 게 달라요. 이 차이가 어드밴티지예요.",
                  focus: .buckets(bars)),
             Beat("그래서 에퀴티", value: "오프너 \(pctText(eq))%",
-                 detail: eq > 52 ? "오프너가 앞서요 — 그래서 오프너가 벳할 수 있어요."
-                       : (eq < 48 ? "콜러가 앞서요 — 오프너가 함부로 벳하면 안 되는 보드예요."
+                 detail: eq > 52 ? "오프너가 앞서서 벳하기 좋은 보드예요."
+                       : (eq < 48 ? "콜러가 앞서서 오프너가 신중하게 벳해야 하는 보드예요."
                                   : "거의 반반이에요."),
                  focus: .buckets(bars)),
         ]
@@ -557,7 +557,7 @@ public enum BeatScript {
         }
         return [
             Beat("상황", value: "\(s.villainSeat.rawValue) 오픈 → \(s.actionLine)",
-                 detail: "\(s.villain.name) — \(s.villain.blurb). "
+                 detail: "\(s.villain.name): \(s.villain.blurb). "
                        + "\(s.texture.summary).",
                  focus: .table, highlight: s.board),
             Beat("상대 레인지", value: "상위 \(pctText(s.range.percent))%",
@@ -566,7 +566,7 @@ public enum BeatScript {
                  focus: .rangeGrid(s.range, highlight: nil)),
             Beat("이 성향의 규칙", value: "\(s.villain.name)의 플랍",
                  detail: "실제 상대는 섞어서 쳐요. 이 표는 성향을 규칙으로 단순화한 거예요 "
-                       + "— 대신 규칙이라서 뒤집어 읽을 수 있어요.",
+                       + "이 규칙을 이용하면 행동에서 남은 패를 거꾸로 읽을 수 있어요.",
                  focus: .actionList(ruleLines, lit: nil)),
             Beat("행동이 지우는 것", value: "\(acted.combos)콤보 남음",
                  detail: "\(KO.subject(s.action.rawValue)) 남기는 건 딱 이 버킷들이에요: "
@@ -574,7 +574,7 @@ public enum BeatScript {
                  focus: .buckets(bars)),
             Beat("그래서", value: "페어 이상 \(pctText(acted.distribution.pairOrBetter * 100))%",
                  detail: "전체 레인지는 \(pctText(full.pairOrBetter * 100))%였어요. "
-                       + "같은 레인지인데 행동 하나로 모양이 달라져요 — 이게 리드예요.",
+                       + "같은 시작 레인지도 행동 하나로 모양이 달라져요. 이 변화를 읽는 연습이에요.",
                  focus: .buckets(bars)),
         ]
     }

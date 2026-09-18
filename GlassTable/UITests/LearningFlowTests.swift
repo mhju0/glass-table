@@ -6,6 +6,73 @@ final class LearningFlowTests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testFirstLessonTeachesThenTransfersBeforeOpeningTheCourse() {
+        let app = firstLessonApp()
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 15))
+        firstButton(prefix: "내 카드", in: app).tap()
+        XCTAssertTrue(app.staticTexts["맞았어요"].waitForExistence(timeout: 5))
+        app.buttons["다른 카드로 풀어보기"].tap()
+        XCTAssertTrue(app.staticTexts["같은 규칙으로 골라보세요"].waitForExistence(timeout: 5))
+        firstButton(prefix: "상대 카드", in: app).tap()
+        XCTAssertTrue(app.staticTexts["방금 배운 규칙을 다른 카드에도 적용했어요."].waitForExistence(timeout: 5))
+        app.buttons["앱 둘러보기"].tap()
+        XCTAssertTrue(app.staticTexts["이렇게 한 결정씩 배워요"].waitForExistence(timeout: 5))
+        app.buttons["첫 레슨 시작"].tap()
+        XCTAssertTrue(app.staticTexts["쇼다운 · 천천히"].waitForExistence(timeout: 10))
+    }
+
+    func testSkippingFirstLessonDoesNotShowItAgain() {
+        let app = firstLessonApp()
+        let environment = app.launchEnvironment
+        app.launch()
+        XCTAssertTrue(app.buttons["건너뛰기"].waitForExistence(timeout: 15))
+        app.buttons["건너뛰기"].tap()
+        XCTAssertTrue(app.buttons["설정"].waitForExistence(timeout: 10))
+
+        app.terminate()
+        app.launchEnvironment = environment
+        app.launch()
+        XCTAssertTrue(app.buttons["설정"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["어느 쪽이 이길까요?"].exists)
+    }
+
+    func testFirstLessonCanBeReplayedFromSettingsWithoutChangingProgress() {
+        let app = firstLessonApp()
+        app.launch()
+        XCTAssertTrue(app.buttons["건너뛰기"].waitForExistence(timeout: 15))
+        app.buttons["건너뛰기"].tap()
+        app.buttons["설정"].tap()
+        let replay = app.buttons.matching(NSPredicate(
+            format: "label CONTAINS %@", "첫 포커 결정 다시 보기"
+        )).firstMatch
+        XCTAssertTrue(replay.waitForExistence(timeout: 5))
+        replay.tap()
+        XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 5))
+        app.buttons["firstLesson.close"].tap()
+        XCTAssertTrue(replay.waitForExistence(timeout: 5))
+    }
+
+    func testInterruptedFirstLessonRestartsWithoutRecordingAnAnswer() {
+        let app = firstLessonApp()
+        let environment = app.launchEnvironment
+        app.launch()
+        XCTAssertTrue(firstButton(prefix: "내 카드", in: app).waitForExistence(timeout: 15))
+        firstButton(prefix: "내 카드", in: app).tap()
+        XCTAssertTrue(app.staticTexts["맞았어요"].waitForExistence(timeout: 5))
+        app.terminate()
+
+        app.launchEnvironment = environment
+        app.launch()
+        XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 10))
+        app.buttons["건너뛰기"].tap()
+        app.tabBars.buttons["기록"].tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "아직 기록이 없어요"
+        )).firstMatch.waitForExistence(timeout: 10))
+    }
+
     func testGuideRequiresRetrievalBeforeExplanation() {
         let app = XCUIApplication()
         app.launchEnvironment = ["GT_DEMO_SETTINGS": "1", "GT_DEMO_GUIDE": "1",
@@ -143,5 +210,16 @@ final class LearningFlowTests: XCTestCase {
             format: "label BEGINSWITH %@ AND label CONTAINS %@", title + ".", "1문제"
         )).firstMatch
         XCTAssertTrue(recorded.waitForExistence(timeout: 10), "The revealed answer must be saved before Next.")
+    }
+
+    private func firstLessonApp() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_TEST_FIRST_LESSON": "1"]
+        return app
+    }
+
+    private func firstButton(prefix: String, in app: XCUIApplication) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
     }
 }

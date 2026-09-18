@@ -20,6 +20,9 @@ than handed down by a black box.
 
 ## What's inside
 
+- **첫 문제 풀어보기** — new learners compare two complete hands, see why one
+  pair wins, then try different cards before the app introduction. Skip or replay
+  from Settings; these practice choices never award mastery or review credit.
 - **길** — a course of 9 units / 18 concepts, from reading a showdown to
   defending against an open: pot odds, outs, equity sense, EV, combos, range
   notation, RFI charts, range reads, board texture, hit frequency, range
@@ -28,7 +31,7 @@ than handed down by a black box.
   use spaced review. Mixed checkpoints use balanced seeded question ordering;
   completing a lesson and earning a proficiency stage are separate.
 - **오늘** — one recommended action: a short review of up to five due concepts,
-  or the next lesson. **시작 안내** explains the game and study methods with
+  or the next lesson. **공부 방법** explains the game and study methods with
   ungraded understanding checks.
 - **테이블** — play a heads-up hand against a chosen archetype (Nit / TAG / LAG /
   콜링 스테이션 / 매니악). The bot's pre- and postflop strategy is a printable

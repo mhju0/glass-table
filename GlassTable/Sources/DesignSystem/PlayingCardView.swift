@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
 import GlassTableEngine
+import GlassTableDrills
 
 struct PlayingCardView: View {
     let card: Card
@@ -52,7 +53,7 @@ struct PlayingCardView: View {
             }
             .opacity(dead ? 0.55 : 1)
             .shadow(color: .black.opacity(0.22), radius: 3, y: 2)
-            .accessibilityLabel("\(Self.suitNames[card.suit]) \(Self.ranks[card.rank - 2])\(dead ? ", 제외" : "")")
+            .accessibilityLabel("\(card.spokenKorean)\(dead ? ", 제외" : "")")
     }
 }
 

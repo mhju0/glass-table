@@ -40,7 +40,7 @@ final class ShowdownTests: XCTestCase {
         // Broadway on the board; both players' hole cards are irrelevant.
         let s = spot("2c3c", "4d5d", "AsKsQhJhTc")
         XCTAssertEqual(s.winner, 2)
-        XCTAssertTrue(gradeShowdown(answer: 2, spot: s).whyText.contains("찹"))
+        XCTAssertTrue(gradeShowdown(answer: 2, spot: s).whyText.contains("비겨요"))
     }
 
     func testCounterfeitedTwoPairLosesToTheBoard() {

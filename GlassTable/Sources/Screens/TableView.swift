@@ -325,8 +325,8 @@ struct TableView: View {
                 }
             }
             .frame(height: 30)
-            Text("\(bbText(c)) / \(bbText(total)) — \(pctText(required))% 이상이면 콜")
-                .font(GT.body(10.5).monospacedDigit())
+            Text("\(bbText(c)) / \(bbText(total)) · 필요 에퀴티 \(pctText(required))%")
+                .font(GT.body(12).monospacedDigit())
                 .foregroundStyle(GT.onFeltSecondary)
         }
         .accessibilityElement(children: .ignore)
@@ -337,7 +337,7 @@ struct TableView: View {
     private func segment(_ text: String, fill: Color, width: CGFloat) -> some View {
         Text(text)
             .font(GT.semibold(12).monospacedDigit()).foregroundStyle(GT.onFelt)
-            .lineLimit(1).minimumScaleFactor(0.6)
+            .lineLimit(1).minimumScaleFactor(0.8)
             .frame(width: max(38, width - 3), height: 30)
             .background(fill, in: RoundedRectangle(cornerRadius: 8))
     }
@@ -359,7 +359,7 @@ struct TableView: View {
     private func seatRow(_ hand: TableHand) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
-                Text("vs \(hand.villain.name)").font(GT.title(16)).foregroundStyle(GT.onFelt)
+                Text("상대 · \(hand.villain.name)").font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Spacer(minLength: 8)
                 // The bot's live range, always countable — the printable claim at
                 // the table (spec §4).
@@ -377,9 +377,9 @@ struct TableView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     SectionLabel(text: "\(hand.villainSeat.rawValue) · \(hand.villain.name)")
                     ForEach(Array(hand.history.suffix(3).enumerated()), id: \.offset) { _, line in
-                        Text(line).font(GT.body(10.5)).foregroundStyle(GT.onFeltSecondary)
+                        Text(line).font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
                             .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                            .minimumScaleFactor(0.75)
+                            .minimumScaleFactor(0.85)
                             .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
                     }
                 }
@@ -451,10 +451,10 @@ struct TableView: View {
         Button { act(opt.choice) } label: {
             VStack(spacing: 3) {
                 Text(opt.headline).font(GT.title(13)).foregroundStyle(GT.ink)
-                    .lineLimit(1).minimumScaleFactor(0.6)
-                Text(opt.subline).font(GT.body(10).monospacedDigit())
+                    .lineLimit(1).minimumScaleFactor(0.8)
+                Text(opt.subline).font(GT.body(11).monospacedDigit())
                     .foregroundStyle(GT.inkMuted)
-                    .lineLimit(1).minimumScaleFactor(0.6)
+                    .lineLimit(1).minimumScaleFactor(0.8)
                 Capsule().fill(GTActionRole.aggressive.accent)
                     .frame(height: 3).padding(.horizontal, 8).padding(.top, 1)
             }

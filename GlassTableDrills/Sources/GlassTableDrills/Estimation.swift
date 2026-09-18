@@ -115,7 +115,7 @@ public func gradeEquitySense(estimate: Estimate, spot: EquitySenseSpot) -> Estim
                             closeWithin: 10, spotOnWithin: 4),
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
-        whyText: "남은 \(unseen)장으로 가능한 모든 보드를 세어 계산한 값이에요 — "
+        whyText: "남은 \(unseen)장으로 가능한 모든 보드를 세어 계산했어요. "
                + "\(pctText(correct))%. 근사가 아니라 정확한 수치예요.")
 }
 

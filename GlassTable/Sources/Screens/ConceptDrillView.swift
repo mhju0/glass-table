@@ -216,6 +216,7 @@ private struct RevealSheet: View {
         VStack(alignment: .leading, spacing: 12) {
             VerdictRow(band: band, mine: mine, correct: correct)
             Text(why).font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                .lineSpacing(GT.Typography.explanationLineSpacing)
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
@@ -857,6 +858,7 @@ private struct CallFoldDrill: View {
 // MARK: - 레인지 표기법
 
 private struct RangeNotationDrill: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var value = 12
@@ -873,7 +875,10 @@ private struct RangeNotationDrill: View {
                 if reveal != nil {
                     Text(spot.notation)
                         .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
-                        .minimumScaleFactor(0.5).lineLimit(2)
+                        .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.8)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 3)
+                        .fixedSize(horizontal: false,
+                                   vertical: dynamicTypeSize.isAccessibilitySize)
                     SectionLabel(text: "표에서 보면").padding(.top, 6)
                     RangeGridView(range: spot.range)
                         .frame(maxWidth: 320)
@@ -885,8 +890,11 @@ private struct RangeNotationDrill: View {
                     // counting.
                     Spacer(minLength: 60)
                     Text(spot.notation)
-                        .font(GT.title(44).monospaced()).foregroundStyle(GT.onFelt)
-                        .minimumScaleFactor(0.4).lineLimit(3)
+                        .font(GT.title(38).monospaced()).foregroundStyle(GT.onFelt)
+                        .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.8)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 4)
+                        .fixedSize(horizontal: false,
+                                   vertical: dynamicTypeSize.isAccessibilitySize)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
                     Text("페어 6 · 수티드 4 · 오프수트 12")
@@ -924,6 +932,7 @@ private struct RangeNotationDrill: View {
 // MARK: - RFI 차트
 
 private struct RFIDrill: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: RFIReveal?
@@ -973,20 +982,29 @@ private struct RFIDrill: View {
         }
     }
 
+    @ViewBuilder
     private var seatStrip: some View {
-        HStack(spacing: 4) {
-            ForEach(Position.preflopOrder, id: \.self) { p in
-                Text(p.rawValue)
-                    .font(GT.semibold(9.5))
-                    .foregroundStyle(p == spot.seat ? GT.onCTA : GT.onFelt.opacity(0.75))
-                    .lineLimit(1).minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 32)
-                    .background(p == spot.seat ? GT.mint : GT.onFelt.opacity(0.10),
-                                in: RoundedRectangle(cornerRadius: 7))
+        if dynamicTypeSize.isAccessibilitySize {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4),
+                      spacing: 6) {
+                ForEach(Position.preflopOrder, id: \.self) { seatChip($0, compact: false) }
             }
+        } else {
+            HStack(spacing: 4) {
+                ForEach(Position.preflopOrder, id: \.self) { seatChip($0, compact: true) }
+            }
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         }
-        // Same one-row constraint as the 포지션 drill's strip.
-        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+    }
+
+    private func seatChip(_ position: Position, compact: Bool) -> some View {
+        Text(position.rawValue)
+            .font(GT.semibold(compact ? 9.5 : 12))
+            .foregroundStyle(position == spot.seat ? GT.onCTA : GT.onFelt.opacity(0.75))
+            .lineLimit(1).minimumScaleFactor(compact ? 0.8 : 1)
+            .frame(maxWidth: .infinity, minHeight: compact ? 32 : 44)
+            .background(position == spot.seat ? GT.mint : GT.onFelt.opacity(0.10),
+                        in: RoundedRectangle(cornerRadius: 7))
     }
 }
 

@@ -78,8 +78,8 @@ struct TodayView: View {
     /// Only claims the screen can keep: the old "N문제 · 약 X분" promised a daily set
     /// no button ever played.
     private var subtitleLine: String {
-        if !due.isEmpty { return "복습 \(due.count)개가 기다리고 있어요" }
-        if model.nextNode == nil { return "기초 완주 · 복습으로 감각을 유지해요" }
+        if !due.isEmpty { return "다시 풀어볼 문제 \(due.count)개가 있어요" }
+        if model.nextNode == nil { return "모든 레슨 완료 · 복습으로 감각을 유지해요" }
         return model.state.nodes.isEmpty ? "첫 단계부터 시작해요" : "다음 단계를 이어가요"
     }
 
@@ -88,18 +88,21 @@ struct TodayView: View {
         VStack(alignment: .leading, spacing: GT.Space.related) {
             SectionLabel(text: "지금 할 일", onDark: false)
             if !due.isEmpty {
-                Text("기억을 꺼내 볼 때예요").font(GT.title(24)).foregroundStyle(GT.ink)
+                Text("배운 내용을 다시 풀어봐요").font(GT.title(24)).foregroundStyle(GT.ink)
                 Text(due.prefix(3).map(conceptTitle).joined(separator: " · "))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             } else if let node = model.nextNode {
                 Text(node.title).font(GT.title(24)).foregroundStyle(GT.ink)
                 Text(nodeBlurb(node)).font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("기초 코스를 마쳤어요").font(GT.title(24)).foregroundStyle(GT.ink)
+                Text("모든 레슨을 마쳤어요").font(GT.title(24)).foregroundStyle(GT.ink)
                 Text("새 복습이 생기면 오늘의 추천으로 다시 알려드릴게요.")
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -164,15 +167,15 @@ func conceptBlurb(_ c: Concept) -> String {
     case .potOdds:     return "낼 가격을 필요 에퀴티로 바꿔요"
     case .outs:        return "이기는 카드를 세서 확률로 바꿔요"
     case .equitySense: return "이길 확률을 눈대중으로 맞춰요"
-    case .evCall:      return "이 콜이 얼마를 버는지 계산해요"
+    case .evCall:      return "콜했을 때의 기대값을 계산해요"
     case .callFold:    return "이길 확률과 낼 가격을 비교해요"
     case .rangeNotation: return "핸드 묶음이 몇 콤보인지 세요"
     case .rfi:           return "이 자리에서 열 핸드인지 판단해요"
-    case .rangeRead:     return "행동만 보고 상대 패의 범위를 읽어요"
+    case .rangeRead:     return "상대의 행동을 보고 가능한 패를 좁혀요"
     case .hitFrequency:  return "이 보드가 레인지의 몇 %를 맞혔는지 세요"
     case .rangeAdvantage: return "이 보드가 누구에게 유리한지 판단해요"
     case .evLoss:      return "고른 쪽이 몇 bb를 버렸는지 확인해요"
-    case .actionRead:  return "벳과 체크가 레인지를 어떻게 좁히는지 읽어요"
+    case .actionRead:  return "벳과 체크 뒤에 남는 패의 범위를 읽어요"
     case .defend:      return "오픈에 맞서 폴드·콜·3벳을 판단해요"
     case .mdf:         return "얼마나 자주 지켜야 하는지 계산해요"
     }

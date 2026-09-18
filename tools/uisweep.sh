@@ -23,6 +23,11 @@ while [ $# -gt 0 ]; do
 done
 
 SCREENS=(
+  "first-lesson:GT_DEMO_FIRST_LESSON=example"
+  "first-lesson-answer:GT_DEMO_FIRST_LESSON=example-answer"
+  "first-lesson-transfer:GT_DEMO_FIRST_LESSON=transfer"
+  "first-lesson-transfer-answer:GT_DEMO_FIRST_LESSON=transfer-answer"
+  "first-lesson-intro:GT_DEMO_FIRST_LESSON=intro"
   "today-empty:GT_DEMO_TAB=today"
   "path-empty:GT_DEMO_TAB=path"
   "records-empty:GT_DEMO_TAB=records"

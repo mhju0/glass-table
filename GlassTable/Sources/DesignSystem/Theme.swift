@@ -40,6 +40,13 @@ enum GT {
         static let change = Animation.interactiveSpring(response: 0.34, dampingFraction: 0.9)
     }
 
+    enum Typography {
+        /// Korean body copy needs visible breathing room without fixed line heights,
+        /// which would fight Dynamic Type. SwiftUI adds this value between lines.
+        static let bodyLineSpacing: CGFloat = 3
+        static let explanationLineSpacing: CGFloat = 4
+    }
+
     // MARK: felt — the table
 
     static let felt         = Color(hex: 0x0F211A)

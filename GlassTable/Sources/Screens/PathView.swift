@@ -28,8 +28,9 @@ struct PathView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("배움의 길").font(GT.title(30)).foregroundStyle(GT.onFelt)
-            Text("한 단원씩 이해하고, 직접 꺼내 보고, 섞어서 확인해요.")
+            Text("한 개념씩 배우고 문제를 푼 뒤, 마지막에 섞어서 확인해요.")
                 .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
+                .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.top, 14)
@@ -45,6 +46,7 @@ struct PathView: View {
                     Text("자유 연습").font(GT.title(17)).foregroundStyle(GT.onFelt)
                     Text("원하는 개념을 횟수 제한 없이 연습해요")
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                        .lineSpacing(GT.Typography.bodyLineSpacing)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
@@ -125,6 +127,7 @@ struct PathView: View {
                         .foregroundStyle(status == .locked ? GT.onFeltMuted : GT.onFelt)
                     Text(boss ? "단원에서 배운 개념을 섞어서 풀어요" : nodeBlurb(node))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                        .lineSpacing(GT.Typography.bodyLineSpacing)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 4)

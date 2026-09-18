@@ -43,4 +43,28 @@ See [research foundation](docs/specs/2026-09-13-revamp-research.md) and [baselin
 
 ## Verification
 
+### Copy and typography refinement, 2026-09-18
+
+The first experience is a short, real card decision before an explanation of the
+app. Give enough context to answer, explain the compared hands after commitment,
+then offer a different example. Skipping and replay remain available. Guided
+onboarding does not establish proficiency or mastery.
+
+Write calm, direct Korean 해요체. Lead with the situation and action; introduce
+technical terms beside their meaning. Feedback identifies the cards or reasoning
+that matter. Buttons state their action. Review generated explanations, errors,
+empty states and accessibility labels as carefully as headings.
+
+At standard text sizes, revise copy or available width to remove awkward dangling
+words and make short headings feel balanced. Do not justify paragraphs by stretching
+spaces, shrink body text, or truncate teaching content to fit a preferred shape.
+Use deliberate line breaks sparingly for short static headings; dynamic values and
+accessibility sizes must reflow naturally. Keep shared leading edges, consistent
+text/icon baselines, semantic line spacing and distinct paragraph spacing.
+
+The approved store naming is 포커 배우기 — Glass Table in Korean and Poker Lessons —
+Glass Table in English metadata. The Home Screen name stays Glass Table. English
+metadata must explicitly describe the Korean-language lessons until full English
+content is implemented and reviewed.
+
 Build and test behavior, then inspect rendered screens on normal and compact iPhones and at accessibility text sizes. Exercise the real UI with XCTest, not only screenshot launch hooks. Preserve prior JSON progress and recovery behavior. An independent frozen-candidate review is required for progression integrity changes. Store submission follows the user's own testing and feedback.

@@ -17,6 +17,57 @@ final class ProgressionModelTests: XCTestCase {
         try? FileManager.default.removeItem(at: dir)
     }
 
+    func testFreshProgressPresentsFirstLesson() {
+        let model = ProgressionModel(store: store)
+
+        XCTAssertTrue(model.shouldPresentFirstLesson)
+    }
+
+    func testCompletingFirstLessonPersistsOnlyItsMarker() throws {
+        let model = ProgressionModel(store: store)
+        let before = model.state
+
+        model.completeFirstLesson()
+
+        XCTAssertFalse(model.shouldPresentFirstLesson)
+        XCTAssertEqual(model.state.firstLessonCompleted, true)
+        XCTAssertEqual(model.state.concepts, before.concepts)
+        XCTAssertEqual(model.state.nodes, before.nodes)
+        XCTAssertEqual(model.state.answers, before.answers)
+        XCTAssertEqual(model.state.streak, before.streak)
+        XCTAssertEqual(ProgressionModel(store: store).state.firstLessonCompleted, true)
+    }
+
+    func testHistoricalProgressSkipsFirstLessonWithoutRewritingIt() throws {
+        var historical = ProgressState()
+        historical.concepts["retired-concept"] = ConceptRecord()
+        try store.save(historical)
+
+        let model = ProgressionModel(store: store)
+
+        XCTAssertFalse(model.shouldPresentFirstLesson)
+        XCTAssertNil(model.state.firstLessonCompleted)
+    }
+
+    func testImportedHistoricalProgressSkipsFirstLesson() throws {
+        let model = ProgressionModel(store: store)
+        var imported = ProgressState()
+        imported.answers.append(AnswerRecord(concept: .showdown, at: Date(), correct: true))
+
+        try model.importData(JSONEncoder().encode(imported))
+
+        XCTAssertFalse(model.shouldPresentFirstLesson)
+        XCTAssertNil(model.state.firstLessonCompleted)
+    }
+
+    func testUnreadableStoreStillRequiresRecoveryBeforeFirstLesson() throws {
+        try Data("{ damaged".utf8).write(to: store.url)
+        let model = ProgressionModel(store: store)
+
+        XCTAssertNotNil(model.unreadable)
+        XCTAssertFalse(model.shouldPresentFirstLesson)
+    }
+
     func testFailedImportLeavesDisplayedProgressUnchanged() throws {
         var original = ProgressState()
         original.streak.current = 7

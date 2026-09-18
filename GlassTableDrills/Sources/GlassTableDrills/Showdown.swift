@@ -65,7 +65,7 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot) -> ShowdownReveal {
     switch w {
     case 0: why = showdownWhy(winner: hName, loser: vName, spot: spot, heroWon: true)
     case 1: why = showdownWhy(winner: vName, loser: hName, spot: spot, heroWon: false)
-    default: why = "둘 다 \(hName) — 보드가 그대로 플레이돼서 찹이에요."
+    default: why = "둘 다 \(KO.copula(hName)) 공용 카드 다섯 장이 가장 강해서 비겨요."
     }
     return ShowdownReveal(band: answer == w ? .spotOn : .off,
                           answer: answer, winner: w,
@@ -86,8 +86,8 @@ func showdownWhy(winner: String, loser: String, spot: ShowdownSpot, heroWon: Boo
     // Highest-first, first differing rank is the one that broke the tie.
     let w = winFive.map(\.rank).sorted(by: >), l = loseFive.map(\.rank).sorted(by: >)
     if let i = w.indices.first(where: { $0 < l.count && w[$0] != l[$0] }) {
-        return "둘 다 \(KO.copula(winner)) 키커가 갈랐어요 — "
-             + "\(side) \(rankLabel(w[i])) vs \(other) \(rankLabel(l[i])). \(side) 쪽이 이겨요."
+        return "둘 다 \(KO.copula(winner)) 키커가 승부를 갈랐어요. "
+             + "\(side) \(rankLabel(w[i])), \(other) \(rankLabel(l[i]))라서 \(side) 쪽이 이겨요."
     }
     return "둘 다 \(KO.copula(winner))"
 }

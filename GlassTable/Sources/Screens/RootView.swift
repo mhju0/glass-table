@@ -22,6 +22,13 @@ struct RootView: View {
                 // Spec §8.2: a store that exists but will not parse must never be
                 // silently replaced with empty progress.
                 StoreRecoveryView()
+            } else if model.shouldPresentFirstLesson {
+                FirstLessonView(context: .firstRun,
+                                onFinish: {
+                                    model.completeFirstLesson()
+                                    openNode = model.nextNode
+                                },
+                                onSkip: { model.completeFirstLesson() })
             } else {
                 tabs
             }
@@ -143,6 +150,7 @@ struct StoreRecoveryView: View {
             Text("저장된 파일을 읽을 수 없거나 더 새로운 앱 버전이 필요해요. 파일은 그대로 두었어요. "
                  + "백업이 있으면 불러오고, 없으면 새로 시작할 수 있어요.")
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                .lineSpacing(GT.Typography.explanationLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
             FeltCTAButton(title: isReadingImport ? "파일 확인 중" : "백업 불러오기") {
                 importing = true
