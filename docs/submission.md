@@ -1,16 +1,12 @@
 # App Store submission — v1.0 (1)
 
-> **Status (2026-08-04): stale in one load-bearing place — re-review before
-> resuming.** This doc was written for the M1 five-drill build and submission
-> is paused for dogfood. The revamp added the 테이블: simulated betting
-> gameplay with bb stakes (no real money, no purchasable currency). The
-> age-rating rationale below ("no betting gameplay") therefore **no longer
-> describes the app**; the Simulated Gambling answer, the review notes and
-> likely the KR rating path must be reassessed (see `open-questions.md` #11 —
-> counsel before the betting-table submission was always the plan).
-> Descriptive metadata (subtitle, promo, keywords, descriptions) has been
-> refreshed to the current app, and the screenshots were re-captured
-> 2026-08-07 — **the age rating is now the only thing blocking resumption.**
+> **Status (2026-09-19 audit): not submitted; dogfood remains the current phase.**
+> This checklist describes the current R1–R5b app on `main`, including the
+> simulated betting table with bb stakes (no real money or purchasable currency).
+> The Simulated Gambling answer and Korean rating path still require an honest
+> reassessment before submission. Metadata is current for the present app and
+> screenshots were re-captured 2026-08-07; the age-rating decision remains the
+> principal unresolved submission gate.
 
 Single source of truth for everything entered into App Store Connect.
 Field limits: name 30, subtitle 30, keywords 100, promotional text 170,
