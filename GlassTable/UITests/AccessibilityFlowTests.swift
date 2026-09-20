@@ -175,6 +175,12 @@ final class AccessibilityFlowTests: XCTestCase {
         )).firstMatch
         XCTAssertTrue(scrollUntilHittable(equation, in: app),
                       "The chosen and best EVs must remain readable as a subtraction at AX XXXL.")
+        let chosenLabel = app.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "내 선택 ·"
+        )).firstMatch
+        XCTAssertTrue(chosenLabel.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(chosenLabel.frame.width, chosenLabel.frame.height * 1.5,
+                             "The chosen-action label must read horizontally, not one syllable per line.")
         let equationAttachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         equationAttachment.name = "ev-loss-equation-ax5"
         equationAttachment.lifetime = .keepAlways

@@ -1422,6 +1422,7 @@ private struct RangeAdvantageDrill: View {
 private struct EVLossRevealSheet: View {
     @Environment(\.glossaryTerm) private var term
     @Environment(\.drillCommit) private var onCommit
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let reveal: EVLossReveal
     let onNext: () -> Void
 
@@ -1495,15 +1496,28 @@ private struct EVLossRevealSheet: View {
     }
 
     private func evRow(tag: String, option: DecisionOption, ink: Color) -> some View {
-        HStack(spacing: 8) {
-            Text(tag).font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
-                .frame(width: 46, alignment: .leading)
-            Text(option.label).font(GT.semibold(13)).foregroundStyle(GT.ink)
-            Spacer(minLength: 6)
-            Text("\(bbText(option.ev))bb")
-                .font(GT.title(14).monospacedDigit()).foregroundStyle(ink)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(tag) · \(option.label)")
+                        .font(GT.semibold(11))
+                        .foregroundStyle(GT.inkMuted)
+                    Text("\(bbText(option.ev))bb")
+                        .font(GT.title(14).monospacedDigit())
+                        .foregroundStyle(ink)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    Text(tag).font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
+                        .frame(width: 46, alignment: .leading)
+                    Text(option.label).font(GT.semibold(13)).foregroundStyle(GT.ink)
+                    Spacer(minLength: 6)
+                    Text("\(bbText(option.ev))bb")
+                        .font(GT.title(14).monospacedDigit()).foregroundStyle(ink)
+                }
+                .accessibilityElement(children: .combine)
+            }
         }
-        .accessibilityElement(children: .combine)
     }
 }
 
