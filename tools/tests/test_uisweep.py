@@ -54,6 +54,7 @@ class UISweepTests(unittest.TestCase):
             path.chmod(0o755)
         self.env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}',
                         FAKE_ROOT=str(self.root), GT_SIM='iPhone 17')
+        self.env.pop('GT_CONTENT_SIZE', None)
 
     def run_sweep(self, *args, fail=''):
         return subprocess.run(['bash', str(self.root / 'tools/uisweep.sh'), *args],
@@ -71,7 +72,7 @@ class UISweepTests(unittest.TestCase):
                 self.assertFalse(any(c[0] == 'xcrun' for c in self.calls()))
 
     def test_launch_and_capture_failures_delete_only_the_disposable_device(self):
-        for stage in ('launch', 'io'):
+        for stage in ('ui', 'launch', 'io'):
             with self.subTest(stage=stage):
                 result = self.run_sweep('--screen', 'today', fail=stage)
                 self.assertNotEqual(result.returncode, 0)
@@ -89,13 +90,39 @@ class UISweepTests(unittest.TestCase):
         result = self.run_sweep('--screen', 'today', '--screen', 'today-empty')
         self.assertEqual(result.returncode, 0, result.stderr)
         installs = [c for c in self.calls() if c[:3] == ['xcrun', 'simctl', 'install']]
-        self.assertEqual(len(installs), 2)
+        self.assertEqual(len(installs), 4)
         self.assertTrue(all(c[-1].startswith(str(self.root / '.build')) for c in installs))
         created = next(c for c in self.calls() if c[:3] == ['xcrun', 'simctl', 'create'])
         self.assertEqual(created[-1], 'iOS-26-5', "runtime order is not a version order")
         self.assertIn(['xcrun', 'simctl', 'uninstall', 'DISPOSABLE-DEVICE',
                        'com.michaelju.glasstable'], self.calls())
-        self.assertEqual(len(list((self.root / '.uisweep').glob('*/*.png'))), 2)
+        self.assertEqual(len(list((self.root / '.uisweep').rglob('*.png'))), 4)
+
+    def test_default_captures_normal_and_ax5_in_separate_directories(self):
+        result = self.run_sweep('--screen', 'today')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        sizes = [c[-1] for c in self.calls() if 'content_size' in c]
+        self.assertEqual(sizes, ['large', 'accessibility-extra-extra-extra-large'])
+        output = Path(result.stdout.strip().splitlines()[-1])
+        for size in sizes:
+            self.assertTrue((output / size / 'today.png').is_file())
+            self.assertIn(f'{size}/today', (output / 'captured.txt').read_text())
+            self.assertIn(size, (output / 'run.txt').read_text())
+
+    def test_explicit_content_size_runs_only_that_category(self):
+        self.env['GT_CONTENT_SIZE'] = 'extra-large'
+        result = self.run_sweep('--screen', 'today')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        sizes = [c[-1] for c in self.calls() if 'content_size' in c]
+        self.assertEqual(sizes, ['extra-large'])
+        self.assertEqual(len(list((self.root / '.uisweep').rglob('*.png'))), 1)
+
+    def test_invalid_content_size_fails_before_building(self):
+        self.env['GT_CONTENT_SIZE'] = '../outside'
+        result = self.run_sweep('--screen', 'today')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('unknown content size', result.stderr)
+        self.assertEqual(self.calls(), [])
 
     def test_no_build_reuses_matching_artifact_and_rejects_edits(self):
         self.assertEqual(self.run_sweep('--screen', 'today').returncode, 0)

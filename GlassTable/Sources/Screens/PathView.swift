@@ -8,21 +8,27 @@ struct PathView: View {
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenFreePlay: () -> Void
     @State private var expandedUnitIDs: Set<String> = []
+    @State private var didScrollToCurrentNode = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: GT.Space.section) {
-                header
-                freePlay
-                ForEach(Array(Curriculum.units.enumerated()), id: \.element.id) { index, unit in
-                    unitSection(unit, index: index)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: GT.Space.section) {
+                    header
+                    freePlay
+                    ForEach(Array(Curriculum.units.enumerated()), id: \.element.id) { index, unit in
+                        unitSection(unit, index: index)
+                    }
                 }
+                .padding(.horizontal, 18)
             }
-            .padding(.horizontal, 18)
+            .gtTabBarClearance()
+            .background(FeltBackground())
+            .onAppear {
+                expandCurrentUnit()
+                scrollToCurrentNodeOnce(using: proxy)
+            }
         }
-        .gtTabBarClearance()
-        .background(FeltBackground())
-        .onAppear { expandCurrentUnit() }
     }
 
     private var header: some View {
@@ -110,10 +116,27 @@ struct PathView: View {
 
     private func expandCurrentUnit() {
         guard expandedUnitIDs.isEmpty,
+              let node = currentNode,
               let unit = Curriculum.units.first(where: {
-                  $0.nodes.contains { model.status(of: $0) == .available }
+                  $0.nodes.contains(where: { $0.id == node.id })
               }) else { return }
         expandedUnitIDs.insert(unit.id)
+    }
+
+    private func scrollToCurrentNodeOnce(using proxy: ScrollViewProxy) {
+        guard !didScrollToCurrentNode, let node = currentNode
+        else { return }
+        didScrollToCurrentNode = true
+        // The row enters the hierarchy only after expanding its unit. Defer the one
+        // initial scroll until that state has produced the row; subsequent renders do
+        // not move the learner away from where they scrolled.
+        DispatchQueue.main.async {
+            proxy.scrollTo(node.id, anchor: .center)
+        }
+    }
+
+    private var currentNode: CurriculumNode? {
+        return Curriculum.allNodes.first(where: { model.status(of: $0) == .available })
     }
 
     private func nodeRow(_ node: CurriculumNode) -> some View {
@@ -143,6 +166,7 @@ struct PathView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(GTPress()).disabled(status == .locked)
+        .id(node.id)
         .accessibilityLabel("\(node.title), \(statusLabel(status))"
                             + (practiceLabel(node).map { ", \($0)" } ?? ""))
     }

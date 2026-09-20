@@ -30,9 +30,23 @@ final class ProgressionModel {
     }
 
     init(store: ProgressionStore? = nil) {
+        let hasInjectedStore = store != nil
         let store = store ?? Self.launchStore()
         self.store = store
         #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        if !hasInjectedStore,
+           environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+           let nodeID = environment["GT_TEST_PATH_CURRENT_NODE"],
+           let index = Curriculum.allNodes.firstIndex(where: { $0.id == nodeID }) {
+            var fixture = ProgressState()
+            fixture.firstLessonCompleted = true
+            for node in Curriculum.allNodes[..<index] {
+                fixture.nodes[node.id] = NodeRecord(cleared: true, clearedAt: Date(), attempts: 1)
+            }
+            state = fixture
+            return
+        }
         // GT_DEMO_SEED=1 — a representative mid-path state for screenshot runs.
         // Built through the real types rather than a hand-written JSON fixture, so it
         // can never encode a shape the store would reject.

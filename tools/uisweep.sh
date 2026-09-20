@@ -2,11 +2,19 @@
 # Capture DEBUG demo hooks on a disposable simulator. Never touches a user's app data.
 # tools/uisweep.sh [--no-build] [--screen NAME ...] | --list
 # GT_SIM selects an available device name (default: iPhone 17).
-# GT_CONTENT_SIZE selects a Dynamic Type category (default: large).
+# Default: capture large and AX5. GT_CONTENT_SIZE selects a single category instead.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE=com.michaelju.glasstable
 DEVICE_NAME="${GT_SIM:-iPhone 17}"
+CONTENT_SIZES=(large accessibility-extra-extra-extra-large)
+if [ -n "${GT_CONTENT_SIZE:-}" ]; then CONTENT_SIZES=("$GT_CONTENT_SIZE"); fi
+for content_size in "${CONTENT_SIZES[@]}"; do
+  case "$content_size" in
+    extra-small|small|medium|large|extra-large|extra-extra-large|extra-extra-extra-large|accessibility-medium|accessibility-large|accessibility-extra-large|accessibility-extra-extra-large|accessibility-extra-extra-extra-large) ;;
+    *) echo "unknown content size: $content_size" >&2; exit 2 ;;
+  esac
+done
 BUILD=1
 LIST=0
 SELECTED=()
@@ -78,9 +86,9 @@ SCREENS=(
   "teach-rangeadv-buckets:GT_DEMO_NODE=u5-rangeAdvantage GT_DEMO_BEAT=3"
   # R4-S2. Both sides of the reveal, because the headline differs: one of these is a
   # 0bb choice and the other is what it cost to take the other one.
-  "drill-evloss:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss"
-  "drill-evloss-call:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=1"
-  "drill-evloss-fold:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=0"
+  "drill-evloss:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss:8"
+  "drill-evloss-call:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=1:8"
+  "drill-evloss-fold:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=0:8"
   "teach-evloss-range:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=1"
   "teach-evloss-cost:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=5"
   # R4-S3. The reveal swaps the grid for before/after bars — both states need looking
@@ -99,6 +107,7 @@ SCREENS=(
   "table-picker:GT_DEMO_TAB=table"
   # R5: the hand now opens at the preflop decision — chart-graded, no pricing wait.
   "table-preflop:GT_DEMO_TABLE=tag"
+  "table-policy:GT_DEMO_TABLE=tag GT_DEMO_TABLE_POLICY=1"
   "table-preflop-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1:6"
   "table-chart:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CHART=1:6"
   "table-hand:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CONTINUE=1:12"
@@ -209,39 +218,45 @@ PYDEVICE
 DEV=$(xcrun simctl create "GlassTable sweep $(basename "$OUT")" "$TYPE" "$RUNTIME")
 echo "Starting disposable simulator; logs and captures: $OUT"
 printf 'device=%s\nruntime=%s\nsource=%s\n' "$DEV" "$RUNTIME" "$fingerprint" >"$OUT/run.txt"
+printf 'content_size=%s\n' "${CONTENT_SIZES[@]}" >>"$OUT/run.txt"
 xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
 if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1; then
   echo "First boot stalled; restarting the disposable device once."
   restart_device
 fi
 
-xcrun simctl ui "$DEV" content_size "${GT_CONTENT_SIZE:-large}" >>"$OUT/simulator.log" 2>&1
 xcrun simctl status_bar "$DEV" override --time '9:41' --batteryState charged --batteryLevel 100 >>"$OUT/simulator.log" 2>&1
 # First-boot system announcements can cover the first app frame.
 sleep 8
 
-for entry in "${SCREENS[@]}"; do
-  name="${entry%%:*}"
-  rest="${entry#*:}"
-  slp="${rest##*:}"
-  if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=2.2; fi
-  args=()
-  for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
-  # Uninstall clears progress written by the preceding demo. Empty-state captures
-  # remain empty regardless of the requested order.
-  if [ -f "$OUT/installed" ]; then
-    xcrun simctl uninstall "$DEV" "$BUNDLE" >>"$OUT/simulator.log" 2>&1
-  fi
-  xcrun simctl install "$DEV" "$APP" >>"$OUT/simulator.log" 2>&1
-  touch "$OUT/installed"
-  if ! run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$OUT/$name.log" 2>&1; then
-    echo "Launch failed for $name; restarting the disposable device once."
-    restart_device
-    run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$OUT/$name.log" 2>&1
-  fi
-  sleep "$slp"
-  xcrun simctl io "$DEV" screenshot "$OUT/$name.png" >>"$OUT/$name.log" 2>&1
-  echo "$name" | tee -a "$OUT/captured.txt"
+for content_size in "${CONTENT_SIZES[@]}"; do
+  capture_dir="$OUT/$content_size"
+  mkdir -p "$capture_dir"
+  xcrun simctl ui "$DEV" content_size "$content_size" >>"$OUT/simulator.log" 2>&1
+  for entry in "${SCREENS[@]}"; do
+    name="${entry%%:*}"
+    rest="${entry#*:}"
+    slp="${rest##*:}"
+    if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=2.2; fi
+    args=()
+    for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
+    # Uninstall clears progress written by the preceding demo. Empty-state captures
+    # remain empty regardless of the requested order.
+    if [ -f "$OUT/installed" ]; then
+      xcrun simctl uninstall "$DEV" "$BUNDLE" >>"$OUT/simulator.log" 2>&1
+    fi
+    xcrun simctl install "$DEV" "$APP" >>"$OUT/simulator.log" 2>&1
+    touch "$OUT/installed"
+    if ! run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$capture_dir/$name.log" 2>&1; then
+      echo "Launch failed for $name; restarting the disposable device once."
+      restart_device
+      xcrun simctl ui "$DEV" content_size "$content_size" >>"$OUT/simulator.log" 2>&1
+      run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$capture_dir/$name.log" 2>&1
+    fi
+    sleep "$slp"
+    xcrun simctl io "$DEV" screenshot "$capture_dir/$name.png" >>"$capture_dir/$name.log" 2>&1
+    echo "$content_size/$name" | tee -a "$OUT/captured.txt"
+  done
 done
 rm "$OUT/installed"
 echo "$OUT"

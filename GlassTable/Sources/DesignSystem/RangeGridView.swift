@@ -37,12 +37,21 @@ struct RangeGridView: View {
                             cell(for: RangeGrid.classAt(row: row, col: col), side: side)
                         }
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(accessibilityRow(row))
                 }
             }
         }
         .aspectRatio(1, contentMode: .fit)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilitySummary)
+        .accessibilityElement(children: .contain)
+        .overlay(alignment: .topLeading) {
+            // Keep the quick total before the 13 navigable rows. VoiceOver users can
+            // hear the range size/comparison without traversing all 169 cells, then
+            // inspect any row when they need the underlying evidence.
+            Color.clear.frame(width: 1, height: 1)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(accessibilitySummary)
+        }
     }
 
     private func cell(for h: HandClass, side: CGFloat) -> some View {
@@ -79,6 +88,30 @@ struct RangeGridView: View {
                     .strokeBorder(GT.ink, lineWidth: max(1, side * 0.09))
             }
         }
+        .accessibilityHidden(true)
+    }
+
+    private func accessibilityRow(_ row: Int) -> String {
+        let cells = RangeGrid.ranks.map { col in
+            let hand = RangeGrid.classAt(row: row, col: col)
+            let truth = range.weight(hand) > 0
+            let compared = (outline?.weight(hand) ?? 0) > 0
+            let state: String
+            if outline != nil {
+                switch (truth, compared) {
+                case (true, true): state = "정답과 내 답에 포함"
+                case (true, false): state = "정답에만 포함"
+                case (false, true): state = "내 답에만 포함"
+                case (false, false): state = "제외"
+                }
+            } else {
+                state = truth ? "포함" : "제외"
+            }
+            let selected = highlight == hand ? ", 선택한 핸드" : ""
+            return "\(hand.description) \(state)\(selected)"
+        }
+        let rank = String(RangeGrid.classAt(row: row, col: row).description.prefix(1))
+        return "\(rank) 행. " + cells.joined(separator: ", ")
     }
 
     private var accessibilitySummary: String {
@@ -89,8 +122,8 @@ struct RangeGridView: View {
             return "레인지 비교 표. 정답 상위 \(pct)%. "
                  + "놓친 콤보 \(missed)개, 넣지 않았어야 할 콤보 \(over)개."
         }
-        guard let h = highlight else { return "레인지 표, 상위 \(pct)%" }
-        let inside = range.weight(h) > 0
-        return "레인지 표, 상위 \(pct)%. \(h.description)는 \(inside ? "포함" : "제외")."
+        guard let highlight else { return "레인지 표, 상위 \(pct)%" }
+        let inside = range.weight(highlight) > 0
+        return "레인지 표, 상위 \(pct)%. \(highlight.description)는 \(inside ? "포함" : "제외")."
     }
 }

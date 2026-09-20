@@ -110,7 +110,7 @@ struct RecordsView: View {
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("아웃, 에퀴티 감각, EV 계산에서 예상 범위를 답하면 여기에 기록돼요.")
+                Text("에퀴티 감각, EV 계산처럼 예상 범위를 답하는 문제의 기록이 여기에 쌓여요.")
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

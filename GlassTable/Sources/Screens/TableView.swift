@@ -46,6 +46,7 @@ struct TableView: View {
         }
     }
     @State private var showChart = false
+    @State private var showPolicyReference = false
 
     var body: some View {
         Group {
@@ -72,6 +73,11 @@ struct TableView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(FeltBackground())
+            }
+        }
+        .sheet(isPresented: $showPolicyReference) {
+            if let hand {
+                TablePolicyReferenceView(hand: hand) { showPolicyReference = false }
             }
         }
         .onAppear {
@@ -109,6 +115,7 @@ struct TableView: View {
                 if steps > 0, case .hero = h.phase { lastTurn = decisions.last }
                 if env["GT_DEMO_TABLE_CONTINUE"] != nil { lastTurn = nil }
                 if env["GT_DEMO_TABLE_CHART"] != nil { showChart = true }
+                if env["GT_DEMO_TABLE_POLICY"] != nil { showPolicyReference = true }
                 prepareOptions(for: h)
             }
             #endif
@@ -279,7 +286,9 @@ struct TableView: View {
         VStack(spacing: 12) {
             SectionLabel(text: "공용 카드")
             boardRow(hand)
-            if let toCall = hand.toCall {
+            if let toCall = hand.toCall, hand.street == 0 {
+                preflopPriceReference(pot: hand.pot, toCall: toCall)
+            } else if let toCall = hand.toCall {
                 priceStrip(pot: hand.pot, toCall: toCall)
             } else {
                 // Nothing owed: no price to read, so the pot stands on its own.
@@ -292,6 +301,24 @@ struct TableView: View {
         .overlay(alignment: .bottom) {
             Rectangle().fill(GT.hairlineFelt).frame(height: 1)
         }
+    }
+
+    /// Preflop choices are graded by the published defend chart, not by raw pot odds.
+    /// Keep the actual chips visible while withholding a threshold that would read as
+    /// a second recommendation beside the chart verdict.
+    private func preflopPriceReference(pot: Double, toCall: Double) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Text("참고")
+                .font(GT.semibold(11)).foregroundStyle(GT.mint)
+                .padding(.horizontal, 7).padding(.vertical, 3)
+                .background(GT.mint.opacity(0.14), in: Capsule())
+            Text("현재 팟 \(bbText(pot))bb · 콜 \(bbText(toCall))bb")
+                .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("참고. 현재 팟 \(bbText(pot)) 빅블라인드, 콜 \(bbText(toCall)) 빅블라인드. "
+                            + "프리플랍 판정은 디펜드 차트 기준.")
     }
 
     /// The pot-odds shape at a glance: what is already out there against what continuing
@@ -348,6 +375,8 @@ struct TableView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.bottom, 16)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("table-hero-cards")
     }
 
     /// Opponent cards stay centered as the first of the table's three reading regions.
@@ -360,9 +389,19 @@ struct TableView: View {
                 Spacer(minLength: 8)
                 // The bot's live range, always countable — the printable claim at
                 // the table (spec §4).
-                Text("레인지 \(hand.villainCombos.count)콤보")
-                    .font(GT.semibold(14).monospacedDigit())
+                Button { showPolicyReference = true } label: {
+                    HStack(spacing: 4) {
+                        Text("레인지 \(hand.villainCombos.count)콤보")
+                            .font(GT.semibold(14).monospacedDigit())
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
                     .foregroundStyle(GT.mint)
+                }
+                .buttonStyle(GTPress())
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+                .accessibilityLabel("상대 전략과 레인지 보기, 현재 \(hand.villainCombos.count)콤보")
             }
             VStack(spacing: 0) {
                 if case let .over(o) = hand.phase {

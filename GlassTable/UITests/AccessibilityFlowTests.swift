@@ -110,6 +110,128 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The complete hand summary must remain scrollable at AX XXXL.")
     }
 
+    func testTableHeroCardsCanBeFullyExposedAboveTabBarAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_TABLE": "tag",
+        ])
+
+        let hero = app.otherElements["table-hero-cards"]
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(hero.waitForExistence(timeout: 15))
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
+        XCTAssertTrue(scrollUntilFullyVisible(hero, above: tabBar, in: app),
+                      "Both fixed-size hero cards must fit wholly above the real tab bar at AX XXXL.")
+        XCTAssertGreaterThanOrEqual(hero.frame.minY, app.frame.minY)
+        XCTAssertLessThanOrEqual(hero.frame.maxY, tabBar.frame.minY)
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        attachment.name = "table-hero-cards-fully-visible-ax5"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    func testDefendRevealExposesSelectedEvidenceAndChartRowsAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_NODE": "u8-defend",
+            "GT_DEMO_REVEAL": "1",
+        ])
+
+        let evidence = app.descendants(matching: .any)["defend-selected-evidence"]
+        XCTAssertTrue(evidence.waitForExistence(timeout: 15))
+        XCTAssertTrue(scrollUntilHittable(evidence, in: app),
+                      "The hand and its chart action must be reachable before the full grid at AX XXXL.")
+        let chartRow = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label BEGINSWITH %@ AND label CONTAINS %@", "A 행.", "AKs"
+        )).firstMatch
+        XCTAssertTrue(chartRow.waitForExistence(timeout: 5),
+                      "VoiceOver must receive the chart's hand-by-hand actions, not one generic label.")
+    }
+
+    func testEVRevealLeadsWithRangeEvidenceAndLossEquationAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_NODE": "u6-evLoss",
+            "GT_DEMO_REVEAL": "1",
+        ])
+
+        let summary = app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@ AND label CONTAINS %@", "오픈 ·", "콤보"
+        )).firstMatch
+        XCTAssertTrue(scrollUntilHittable(summary, in: app),
+                      "The exact opponent range used for grading must be readable at AX XXXL.")
+        let disclaimer = app.staticTexts["리버에서 어떻게 좁혔는지는 아직 안 따져요"]
+        XCTAssertTrue(scrollUntilHittable(disclaimer, in: app))
+        let gridRow = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label BEGINSWITH %@ AND label CONTAINS %@", "A 행.", "AKs"
+        )).firstMatch
+        XCTAssertTrue(gridRow.waitForExistence(timeout: 5))
+        let evidenceAttachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        evidenceAttachment.name = "ev-range-evidence-ax5"
+        evidenceAttachment.lifetime = .keepAlways
+        add(evidenceAttachment)
+        let equation = app.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@ AND label CONTAINS %@", "최선 EV", "= 손실"
+        )).firstMatch
+        XCTAssertTrue(scrollUntilHittable(equation, in: app),
+                      "The chosen and best EVs must remain readable as a subtraction at AX XXXL.")
+        let equationAttachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        equationAttachment.name = "ev-loss-equation-ax5"
+        equationAttachment.lifetime = .keepAlways
+        add(equationAttachment)
+    }
+
+    func testCountKeypadCanOpenAndCollapseAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_NODE": "u2-outs",
+        ])
+
+        let answer = app.buttons["답 입력"]
+        XCTAssertTrue(scrollUntilHittable(answer, in: app))
+        answer.tap()
+        let zero = app.buttons["숫자 0"]
+        XCTAssertTrue(scrollForwardUntilMaterializedAndHittable(zero, in: app))
+        zero.tap()
+        let done = app.buttons["입력 완료"]
+        XCTAssertTrue(scrollForwardUntilMaterializedAndHittable(done, in: app))
+        let expandedAttachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        expandedAttachment.name = "count-keypad-expanded-ax5"
+        expandedAttachment.lifetime = .keepAlways
+        add(expandedAttachment)
+        done.tap()
+
+        let hero = app.descendants(matching: .any)["three-region-hero-cards"]
+        XCTAssertTrue(scrollBackwardUntilHittable(hero, in: app))
+        XCTAssertTrue(app.buttons["0장"].exists)
+        let collapsedAttachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        collapsedAttachment.name = "count-entry-collapsed-after-done-ax5"
+        collapsedAttachment.lifetime = .keepAlways
+        add(collapsedAttachment)
+    }
+
+    func testPolicyReferenceCaveatsRemainReachableAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_TABLE": "tag",
+            "GT_DEMO_TABLE_POLICY": "1",
+        ])
+
+        XCTAssertTrue(app.navigationBars["TAG 전략과 레인지"].waitForExistence(timeout: 15))
+        let limits = app.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "벳은 남은 스택보다"
+        )).firstMatch
+        XCTAssertTrue(scrollForwardUntilMaterializedAndHittable(limits, in: app))
+        let preflop = app.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "프리플랍은 이 표와 별개예요"
+        )).firstMatch
+        XCTAssertTrue(scrollForwardUntilMaterializedAndHittable(preflop, in: app))
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        attachment.name = "table-policy-caveats-ax5"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     func testFirstLessonReachesCourseAtAccessibilityXXXL() {
         let app = launch(environment: [
             "GT_TEST_STORE_ID": UUID().uuidString,
@@ -161,6 +283,39 @@ final class AccessibilityFlowTests: XCTestCase {
         for _ in 0...maximumSwipes {
             if element.exists, element.isHittable { return true }
             app.swipeUp()
+        }
+        return element.exists && element.isHittable
+    }
+
+    private func scrollUntilFullyVisible(_ element: XCUIElement, above obstruction: XCUIElement,
+                                         in app: XCUIApplication,
+                                         maximumSwipes: Int = 12) -> Bool {
+        for _ in 0...maximumSwipes {
+            let frame = element.frame
+            if frame.minY >= app.frame.minY, frame.maxY <= obstruction.frame.minY {
+                return true
+            }
+            app.swipeUp()
+        }
+        let frame = element.frame
+        return frame.minY >= app.frame.minY && frame.maxY <= obstruction.frame.minY
+    }
+
+    private func scrollForwardUntilMaterializedAndHittable(_ element: XCUIElement,
+                                                            in app: XCUIApplication,
+                                                            maximumSwipes: Int = 12) -> Bool {
+        for _ in 0...maximumSwipes {
+            if element.exists, element.isHittable { return true }
+            app.swipeUp()
+        }
+        return element.exists && element.isHittable
+    }
+
+    private func scrollBackwardUntilHittable(_ element: XCUIElement, in app: XCUIApplication,
+                                              maximumSwipes: Int = 12) -> Bool {
+        for _ in 0...maximumSwipes {
+            if element.exists, element.isHittable { return true }
+            app.swipeDown()
         }
         return element.exists && element.isHittable
     }

@@ -167,12 +167,113 @@ final class LearningFlowTests: XCTestCase {
         let start = app.buttons["핸드 시작"]
         XCTAssertTrue(start.waitForExistence(timeout: 5))
         start.tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@", "프리플랍 판정은 디펜드 차트 기준"
+        )).firstMatch.exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@", "필요 에퀴티"
+        )).firstMatch.exists)
+        let policy = app.buttons.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "상대 전략과 레인지 보기"
+        )).firstMatch
+        XCTAssertTrue(policy.waitForExistence(timeout: 5))
+        policy.tap()
+        XCTAssertTrue(app.navigationBars["TAG 전략과 레인지"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["table-policy-range-summary"].exists)
+        XCTAssertTrue(app.staticTexts["포스트플랍 기본 · 상대가 먼저 행동할 때"].exists)
+        app.buttons["닫기"].tap()
         let fold = app.buttons["폴드, 0bb"]
         XCTAssertTrue(fold.waitForExistence(timeout: 10))
         fold.tap()
         XCTAssertTrue(app.buttons["다음 핸드"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "EV 손실은 측정하지 않았어요.")).firstMatch.exists)
         XCTAssertFalse(app.buttons["핸드 시작"].exists)
+    }
+
+    func testDefendRevealShowsTheSelectedHandBeforeTheFullChart() {
+        let app = XCUIApplication()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_NODE": "u8-defend",
+                                 "GT_DEMO_REVEAL": "1"]
+        app.launch()
+
+        let evidence = app.descendants(matching: .any)["defend-selected-evidence"]
+        XCTAssertTrue(evidence.waitForExistence(timeout: 15))
+        XCTAssertTrue(evidence.isHittable,
+                      "The selected hand and action should lead the reveal at normal text size.")
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "label IN %@", ["차트와 일치해요", "차트와 달라요"]
+        )).firstMatch.exists)
+        XCTAssertFalse(app.staticTexts["근접"].exists,
+                       "Chart adjacency may affect progression internally, but must not imply low EV cost.")
+    }
+
+    func testCountDrillRequiresAnIntentionalNumberIncludingZero() {
+        let app = XCUIApplication()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_NODE": "u1-combos"]
+        app.launch()
+
+        let submit = app.buttons["확인"]
+        XCTAssertTrue(submit.waitForExistence(timeout: 15))
+        XCTAssertFalse(submit.isEnabled)
+        XCTAssertFalse(app.staticTexts["8개"].exists)
+        app.buttons["답 입력"].tap()
+        app.buttons["숫자 1"].tap()
+        app.buttons["숫자 2"].tap()
+        XCTAssertTrue(app.staticTexts["12개"].exists)
+        app.buttons["마지막 숫자 지우기"].tap()
+        app.buttons["마지막 숫자 지우기"].tap()
+        XCTAssertTrue(app.staticTexts["숫자를 입력하세요"].exists)
+        app.buttons["숫자 0"].tap()
+        app.buttons["입력 완료"].tap()
+        XCTAssertTrue(app.buttons["확인"].isEnabled)
+        submit.tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@", "내 답 0개"
+        )).firstMatch.waitForExistence(timeout: 5))
+        app.buttons["다음 문제"].tap()
+        XCTAssertTrue(app.buttons["답 입력"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["확인"].isEnabled)
+    }
+
+    func testOutsHeroCardsAreFullyVisibleBeforeOpeningNumberEntry() {
+        let app = XCUIApplication()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_NODE": "u2-outs"]
+        app.launch()
+
+        let hero = app.descendants(matching: .any)["three-region-hero-cards"]
+        let question = app.staticTexts["리버에 나를 이기게 해주는 카드는 몇 장인가요?"]
+        XCTAssertTrue(hero.waitForExistence(timeout: 15))
+        XCTAssertTrue(question.waitForExistence(timeout: 5))
+        XCTAssertLessThanOrEqual(hero.frame.maxY, question.frame.minY,
+                                 "The collapsed number input must leave both hero cards fully above the action sheet.")
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        attachment.name = "outs-collapsed-count-entry-hero-cards-visible"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    func testPathOpensAtRequestedLateCurrentNode() {
+        let app = XCUIApplication()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_TAB": "path",
+                                 "GT_TEST_PATH_CURRENT_NODE": "u8-defend"]
+        app.launch()
+
+        let node = app.buttons.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "디펜드 차트"
+        )).firstMatch
+        XCTAssertTrue(node.waitForExistence(timeout: 15))
+        XCTAssertTrue(node.isHittable,
+                      "Opening the path should expand and scroll to a late current lesson once.")
+        for _ in 0..<10 { app.swipeDown() }
+        XCTAssertTrue(app.staticTexts["배움의 길"].isHittable)
+        app.tabBars.buttons["오늘"].tap()
+        app.tabBars.buttons["길"].tap()
+        XCTAssertTrue(app.staticTexts["배움의 길"].isHittable,
+                      "Returning to the path must preserve the learner's scroll position instead of jumping again.")
     }
 
     func testExactAnswerSurvivesRelaunchBeforeNext() {

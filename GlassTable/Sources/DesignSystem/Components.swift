@@ -77,6 +77,8 @@ struct ThreeRegionCardTable: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 11)
         .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(title.hasPrefix("내 카드")
+                                 ? "three-region-hero-cards" : "card-region-\(title)")
     }
 
     private var boundary: some View {
