@@ -1,5 +1,8 @@
 # Chessmate-inspired refinement delivery
 
+Later verified work: [2026-09-20 learner-trust audit](2026-09-20-learner-trust-audit.md).
+This report retains its original candidate-specific evidence below.
+
 ## Scope
 
 This local implementation follows the [benchmark proposal](2026-09-18-chessmate-benchmark.md): a hands-on introduction, clearer Korean teaching copy, typography/layout refinements and approved store naming. Purchases, accounts, English lessons and App Store submission are separate phases.

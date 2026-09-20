@@ -1,5 +1,33 @@
 # Glass Table — Project Handoff
 
+## 2026-09-20 — Learner-trust fixes verified on the revamp
+
+Current runtime candidate: `4a499974afb1d164fde3d90ac5bf179833ad27d3`, built on
+revamp baseline `069ddf1`, not old main. Read the
+[audit and delivery record](specs/2026-09-20-learner-trust-audit.md) before repeating
+Claude's audit or reopening its claims. It contains the full dispositions,
+commands, evidence paths, retained screenshots, review findings and limitations.
+
+- Changed: accessible reveal evidence, lesson-first EV arithmetic, explicit
+  preflop reference pricing, a Table policy reference, intentional count entry,
+  current-lesson Path scrolling, calibration copy and a default normal+AX5 sweep.
+- Why: make the evidence used to grade a learner reachable and the wording match
+  the actual model. Preserve grading, curriculum and production persistence.
+- Verified: 335 Drills, 91 Engine Release, 14 tooling and 63 full Debug app tests;
+  subsequent copy/AX layout deltas passed focused tests, final Release smoke
+  passed 2 tests, and final affected screenshots were inspected. The linked
+  record distinguishes exact candidate coverage; no full-suite rerun is claimed
+  after the final two focused deltas.
+- Still open: physical-device/VoiceOver and minimum-iOS-17 checks, signed release
+  and store requirements. Recovery retention UI and broad preflop spacing changes
+  remain deferred; no recovery data was deleted.
+- Next: dogfood this revamp candidate on-device. Work is local; no push or upload.
+
+## Historical snapshot — 2026-09-04
+
+The original handoff below is retained as dated history. Its “right now”, test
+counts and implementation descriptions refer to that snapshot, not this delivery.
+
 Written 2026-09-04 as a clean-slate handoff for a new agent/toolchain. It describes
 **what the project actually is right now**, not what any earlier plan said it would be.
 

@@ -19,6 +19,12 @@ Engine changes require the **release** test gate; debug is impractically slow.
 No linter is configured. The screenshot sweep uses debug `GT_DEMO_*` hooks on a
 disposable simulator; `GT_SIM` selects a device/runtime by existing simulator name.
 `--no-build` reuses only a matching build from a prior sweep in this checkout.
+The sweep defaults to normal (`large`) and AX5 text sizes; `GT_CONTENT_SIZE`
+selects one size for a focused check. Inspect both sets of affected screenshots
+and run relevant UI interactions: an initial frame cannot prove scroll reachability.
+Before reopening learner-trust audit findings, read
+`docs/specs/2026-09-20-learner-trust-audit.md` for branch scope, resolved claims,
+regressions and verification limits. Current handoff: `docs/PROJECT_HANDOFF.md`.
 
 - `project.yml` owns the generated, gitignored `GlassTable.xcodeproj/` and
   `GlassTable/Info.plist`. Edit the YAML, not those outputs.

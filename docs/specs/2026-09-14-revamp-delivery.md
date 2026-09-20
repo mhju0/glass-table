@@ -1,5 +1,8 @@
 # Revamp delivery and verification
 
+Later verified work: [2026-09-20 learner-trust audit](2026-09-20-learner-trust-audit.md).
+The candidate and test results below remain the historical revamp delivery evidence.
+
 This is a local candidate for Michael's testing, not an App Store release.
 
 ## What changed

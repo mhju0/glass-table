@@ -34,10 +34,10 @@ than handed down by a black box.
   or the next lesson. **공부 방법** explains the game and study methods with
   ungraded understanding checks.
 - **테이블** — play a heads-up hand against a chosen archetype (Nit / TAG / LAG /
-  콜링 스테이션 / 매니악). The bot's pre- and postflop strategy is a printable
-  table, its live range narrows on screen as it acts, and every decision comes
-  back priced in big blinds — with the hand summary showing *net result* and
-  *EV burned* side by side.
+  콜링 스테이션 / 매니악). Tap the range count to inspect the opponent's policy
+  and its limitations. Preflop decisions are compared with the published defend
+  chart; postflop decisions are priced in big blinds under the disclosed model.
+  The hand summary separates *net result* from measured *EV burned*.
 - **Calibration** — estimation drills collect a point estimate plus a 90%
   interval, scored with the Winkler interval score. Records show observed
   coverage and sample count without diagnosing confidence from a few answers.
@@ -53,6 +53,9 @@ The revival's teaching and interface decisions are documented in the
 [research foundation](docs/specs/2026-09-13-revamp-research.md) and
 [design direction](DESIGN.md). App Store submission follows user testing;
 see the [preparation notes](docs/submission.md) for remaining distribution work.
+The [learner-trust audit and verified fixes](docs/specs/2026-09-20-learner-trust-audit.md)
+record which older findings still applied to the revamp, completed changes,
+retained screenshots, regression coverage and deferred work.
 
 ## Architecture
 
@@ -87,7 +90,11 @@ xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
 ```
 
 `tools/uisweep.sh` screenshots every significant screen via launch-argument
-hooks — the cheap way to *look at* the app after a UI change.
+hooks — the cheap way to *look at* the app after a UI change. It defaults to
+normal (`large`) and Accessibility XXXL text sizes, writing separate directories
+under `.uisweep/<run>/<content-size>/`. Use `--screen` to select affected screens
+or `GT_CONTENT_SIZE` for one focused size. Inspect the images and exercise
+scrolling/answer entry with UI tests; screenshot generation alone is not approval.
 
 ## Testing
 
