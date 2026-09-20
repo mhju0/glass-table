@@ -218,6 +218,9 @@ final class AccessibilityFlowTests: XCTestCase {
         ])
 
         XCTAssertTrue(app.navigationBars["TAG 전략과 레인지"].waitForExistence(timeout: 15))
+        let rangeSummary = app.descendants(matching: .any)["table-policy-range-summary"]
+        XCTAssertTrue(rangeSummary.waitForExistence(timeout: 5))
+        XCTAssertTrue(rangeSummary.label.contains("내 3벳에 상대가 폴드했다면 폴드 직전의 레인지를 유지해요"))
         let limits = app.staticTexts.matching(NSPredicate(
             format: "label BEGINSWITH %@", "벳은 남은 스택보다"
         )).firstMatch

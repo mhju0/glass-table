@@ -65,8 +65,8 @@ struct TablePolicyReferenceView: View {
             Text("\(hand.villainCombos.count)콤보")
                 .font(GT.title(28).monospacedDigit()).foregroundStyle(GT.onFelt)
             Text("\(hand.villainSeat.rawValue) 오픈 레인지에서 내 카드와 공개된 보드를 빼고, "
-                 + "상대가 핸드에 남은 동안에는 지금까지 본 상대 행동과 맞는 조합만 남긴 수예요. "
-                 + "폴드로 핸드가 끝났다면 마지막 결정 전까지 추적한 수이며, 폴드 레인지는 역으로 추정하지 않아요.")
+                 + "지금까지 본 상대 행동과 맞는 조합만 남긴 수예요. "
+                 + "단, 프리플랍에서 내 3벳에 상대가 폴드했다면 폴드 직전의 레인지를 유지해요.")
                 .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                 .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
