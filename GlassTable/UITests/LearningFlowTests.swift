@@ -141,6 +141,11 @@ final class LearningFlowTests: XCTestCase {
         app.launchEnvironment = ["GT_DEMO_SEED": "1", "GT_DEMO_REVIEW": "1"]
         app.launch()
         XCTAssertTrue(app.staticTexts["복습 1/2"].waitForExistence(timeout: 10))
+        if app.buttons["답 입력"].exists {
+            app.buttons["답 입력"].tap()
+            app.buttons["숫자 0"].tap()
+            app.buttons["입력 완료"].tap()
+        }
         app.buttons["확인"].tap()
         let next = app.buttons["다음 문제"]
         XCTAssertTrue(next.waitForExistence(timeout: 5))

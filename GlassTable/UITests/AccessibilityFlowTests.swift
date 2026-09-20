@@ -226,6 +226,7 @@ final class AccessibilityFlowTests: XCTestCase {
             format: "label BEGINSWITH %@", "프리플랍은 이 표와 별개예요"
         )).firstMatch
         XCTAssertTrue(scrollForwardUntilMaterializedAndHittable(preflop, in: app))
+        XCTAssertTrue(preflop.label.contains("상대가 폴드하면 폴드 레인지를 따로 추정하지 않아요"))
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = "table-policy-caveats-ax5"
         attachment.lifetime = .keepAlways

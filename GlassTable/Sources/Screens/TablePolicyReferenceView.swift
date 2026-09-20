@@ -35,7 +35,9 @@ struct TablePolicyReferenceView: View {
                             .lineSpacing(GT.Typography.bodyLineSpacing)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    Text("프리플랍은 이 표와 별개예요. 상대의 자리별 오픈 레인지에서 시작하고, 내 3벳에는 그 상대의 3벳 콜 레인지로 다시 좁혀요.")
+                    Text("프리플랍은 이 표와 별개예요. 상대의 자리별 오픈 레인지에서 시작하고, "
+                         + "내 3벳에 상대가 콜하면 그 상대의 3벳 콜 레인지로 좁혀요. "
+                         + "상대가 폴드하면 폴드 레인지를 따로 추정하지 않아요.")
                         .font(GT.body(12.5)).foregroundStyle(GT.onFeltSecondary)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                         .fixedSize(horizontal: false, vertical: true)
@@ -62,7 +64,9 @@ struct TablePolicyReferenceView: View {
             SectionLabel(text: "현재 상대 레인지")
             Text("\(hand.villainCombos.count)콤보")
                 .font(GT.title(28).monospacedDigit()).foregroundStyle(GT.onFelt)
-            Text("\(hand.villainSeat.rawValue) 오픈 레인지에서 내 카드와 공개된 보드를 빼고, 지금까지 본 상대 행동과 맞는 조합만 남긴 수예요.")
+            Text("\(hand.villainSeat.rawValue) 오픈 레인지에서 내 카드와 공개된 보드를 빼고, "
+                 + "상대가 핸드에 남은 동안에는 지금까지 본 상대 행동과 맞는 조합만 남긴 수예요. "
+                 + "폴드로 핸드가 끝났다면 마지막 결정 전까지 추적한 수이며, 폴드 레인지는 역으로 추정하지 않아요.")
                 .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                 .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
