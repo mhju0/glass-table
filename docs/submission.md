@@ -1,11 +1,15 @@
 # App Store preparation: v1.0 (2)
 
-> **2026-09-18: preparation for user testing, not submitted.** The benchmark
-> refinements passed the full app/UI suite and unsigned device Release bundle
-> checks. See [delivery evidence](specs/2026-09-18-benchmark-delivery.md). User
-> feedback, signed-device testing, current store screenshots, App Store Connect
-> metadata, age-rating answers and regional requirements remain release gates. The practice table depicts
-> simulated betting with bb stakes, without real money or purchasable currency.
+> **2026-09-22: physical-iPhone testing in progress, not submitted.** The revamp
+> Release build was installed and launched on the owner's iPhone 12 mini on
+> 2026-09-20 without uninstalling the app. This is launch evidence, not completed
+> acceptance or distribution testing. See the
+> [learner-trust audit](specs/2026-09-20-learner-trust-audit.md). User feedback,
+> full VoiceOver/minimum-OS checks, signed distribution validation, current store
+> screenshots, App Store Connect metadata, age-rating answers and regional
+> requirements remain release gates. The table depicts simulated betting with bb
+> stakes, without real money or purchasable currency; the Korean rating path
+> still needs review.
 
 Single source of truth for everything entered into App Store Connect.
 Field limits: name 30, subtitle 30, keywords 100, promotional text 170,

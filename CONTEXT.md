@@ -78,7 +78,10 @@ and checkable by the user. Loop everywhere: **decide → reveal → grade**.
   numbers say so; simplifications (checkdown, seat-insensitive defense, no
   4-bets) are stated on screen, not smuggled.
 
-## Historical baseline (2026-08-07)
+## Historical baseline (old main, audited 2026-09-19)
+
+The dated account below predates the research-led revamp. Its screenshot dates
+and test counts describe that older branch, not the current nine-unit app.
 
 M1 (five math drills) shipped 2026-07-23; the revamp R1–R5b rebuilt the app as
 a course (길, 8 units) plus the 테이블 (graded hands vs archetypes, preflop
@@ -87,9 +90,17 @@ fixed zones and a pot-odds strip at the board, its reveal now leads with the
 lesson rather than the score, 길 runs on a rail with the *live* node heaviest,
 and the last two emoji icons became SF Symbols. The same pass found and fixed a
 critical accessibility bug — card ranks truncated to "…" at large text sizes,
-which made the app unplayable at exactly those settings (§H).
+which made the app unplayable at exactly those settings (§H). The 2026-08-08/09
+performance work made engine hot paths allocation-free, stopped drill screens
+and graders from repeating work, and preserved outputs; it did not change the
+UI or learning model. The current branch also documents the Xcode 26 requirement
+and XcodeGen installation step because `sharedBackgroundVisibility` is compiled
+against the newer SDK.
 
 Store submission is paused for dogfood; the age-rating answers need
 reassessment before resuming (`docs/submission.md` banner). Screenshots in
-`docs/store-assets/` and `docs/readme-assets/` are current as of 2026-08-07.
+`docs/store-assets/` and `docs/readme-assets/` are current as of 2026-08-07;
+the later performance-only changes did not alter their UI. On this audit of
+`main`, `swift test --package-path GlassTableDrills` passes 316 tests and
+`swift test -c release --package-path GlassTableEngine` passes 92 tests.
 Known deferred work is listed at the end of each spec's scope-out section.

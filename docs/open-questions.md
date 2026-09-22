@@ -1,8 +1,10 @@
 # Glass Table — Open Questions
 
-What still needs the developer's input or outside research, prioritized. P1 blocks or shapes Milestone 1; P2 is needed before Range Read / Table; P3 can wait.
+What still needs the developer's input or outside research, prioritized. M1 and
+R1–R5b are implemented on `main`; the remaining questions below shape release,
+dogfood, or later scope rather than block the shipped learning loop.
 
-## P1 — needed for Milestone 1 (Math Drills)
+## P1 — release and current product decisions
 
 1. **Korean terminology glossary.** *Convention confirmed* against real Korean sources — actions/streets → Hangul; acronyms/positions → English; TAG/LAG → Latin; a few concept terms bilingual (`decisions.md` §F, `product-brief.md` Localization). *Remaining:* finalize the full term-by-term glossary during UI-copy work (developer-owned).
 2. ~~**Reference oracle for correctness fixtures.**~~ **RESOLVED: two independent oracles — eval7 (Python, MIT) primary + OMPEval (C++, ISC) anchor.** Dev-time only, never shipped. Golden vectors hard-coded from published matchups (AA/KK 82.4/17.6, etc.). See `decisions.md` §10.
