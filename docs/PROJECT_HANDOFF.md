@@ -1,5 +1,10 @@
 # Glass Table — Project Handoff
 
+Current session and publication status: [agent handoff](agent-handoff.md).
+The September 20 entry below records the delivery before GitHub publication;
+its no-push status is historical. The Release app was subsequently installed and
+launched on the owner's iPhone 12 mini, and hands-on testing remains in progress.
+
 ## 2026-09-20 — Learner-trust fixes verified on the revamp
 
 Current runtime candidate: `4a499974afb1d164fde3d90ac5bf179833ad27d3`, built on
