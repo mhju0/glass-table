@@ -150,15 +150,14 @@ final class EVLossTests: XCTestCase {
         XCTAssertEqual(KO.subject("폴드"), "폴드가")
     }
 
-    /// A 0.2bb leak bands as .spotOn. Labelling that 정확 next to "the other option was
-    /// better" is the contradiction `evLossLabel` exists to avoid.
-    func testDecisionSeverityWordsAreNotTheAnswerWords() {
-        XCTAssertEqual(evLossBand(bb: 0.2).evLossLabel, "최선")
-        XCTAssertEqual(evLossBand(bb: 1.0).evLossLabel, "부정확")
-        XCTAssertEqual(evLossBand(bb: 5.0).evLossLabel, "실수")
-        for b in [GradeBand.spotOn, .close, .off] {
-            XCTAssertNotEqual(b.evLossLabel, b.rawValue)
-        }
+    /// Exact and near-best choices share a progression band, but the display must not
+    /// call a 0.2bb leak "best" beside a sentence that names the better option.
+    func testDecisionSeverityWordsDistinguishExactFromNearBest() {
+        XCTAssertEqual(evLossLabel(loss: 0), "최선")
+        XCTAssertEqual(evLossLabel(loss: 0.2), "거의 최선")
+        XCTAssertEqual(evLossLabel(loss: 0.5), "거의 최선")
+        XCTAssertEqual(evLossLabel(loss: 0.5001), "부정확")
+        XCTAssertEqual(evLossLabel(loss: 5.0), "실수")
     }
 
     func testBBTextDoesNotPrintASignedZero() {

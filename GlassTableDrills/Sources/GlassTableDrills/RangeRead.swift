@@ -84,7 +84,7 @@ public struct RangeEstimate: Equatable, Sendable {
     public var range: HandRange { .shaped(width: width, tendencies: tendencies) }
 }
 
-public struct RangeReadReveal: GradedReveal {
+public struct RangeReadReveal: Equatable {
     public let band: GradeBand
     public let overlap: Double
     public let guess: HandRange
@@ -120,10 +120,10 @@ func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot) -> String 
 
     // A fifth off in width is the line where width, rather than shape, is the story.
     if gw > tw * 1.2 {
-        return head + " 너무 넓게 봤어요 — \(spot.archetype.blurb)."
+        return head + " 너무 넓게 봤어요. \(spot.archetype.blurb)."
     }
     if gw < tw * 0.8 {
-        return head + " 너무 좁게 봤어요 — \(spot.archetype.blurb)."
+        return head + " 너무 좁게 봤어요. \(spot.archetype.blurb)."
     }
     // Similar widths: whichever category the truth leans on hardest that the guess
     // does not is the thing that was actually misread.
@@ -132,7 +132,7 @@ func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot) -> String 
             < (truth.tendencyShare($1) - guess.tendencyShare($1))
     }
     if let t = worst, truth.tendencyShare(t) - guess.tendencyShare(t) > 0.08 {
-        return head + " 넓이는 비슷한데 모양이 달라요 — \(tendencyWord(t))가 더 많아요."
+        return head + " 넓이는 비슷한데 모양이 달라요. \(tendencyWord(t))가 더 많아요."
     }
     return head + " 모양도 비슷해요."
 }

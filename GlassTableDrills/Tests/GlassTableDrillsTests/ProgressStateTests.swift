@@ -9,6 +9,7 @@ final class ProgressStateTests: XCTestCase {
         XCTAssertTrue(s.concepts.isEmpty)
         XCTAssertTrue(s.nodes.isEmpty)
         XCTAssertTrue(s.answers.isEmpty)
+        XCTAssertNil(s.firstLessonCompleted)
         XCTAssertEqual(s.streak.current, 0)
         XCTAssertEqual(s.streak.freezesRemaining, 2)   // spec §7.1: two auto freezes
     }
@@ -46,6 +47,7 @@ final class ProgressStateTests: XCTestCase {
 
     func testRoundTripsThroughCodable() throws {
         var s = ProgressState()
+        s.firstLessonCompleted = true
         s.updateRecord(for: .equitySense) {
             $0.tier = .proficient
             $0.total = 12; $0.correct = 10; $0.consecutiveMisses = 1
@@ -59,6 +61,15 @@ final class ProgressStateTests: XCTestCase {
         let decoded = try JSONDecoder().decode(
             ProgressState.self, from: JSONEncoder().encode(s))
         XCTAssertEqual(decoded, s)
+    }
+
+    func testSchemaOneStateWithoutFirstLessonMarkerStillDecodes() throws {
+        let json = Data(#"{"schemaVersion":1,"concepts":{},"nodes":{},"streak":{"current":0,"longest":0,"freezesRemaining":2},"answers":[]}"#.utf8)
+
+        let state = try JSONDecoder().decode(ProgressState.self, from: json)
+
+        XCTAssertNil(state.firstLessonCompleted)
+        XCTAssertEqual(state.schemaVersion, 1)
     }
 
     func testIntervalKnowsWhetherItContainedTheTruth() {
@@ -79,7 +90,9 @@ final class ProgressStateTests: XCTestCase {
             "someRetiredConcept": {"tier":"mastered","review":\(review),
                      "correct":9,"total":9,"consecutiveMisses":0}
           },
-          "nodes": {},
+          "nodes": {
+            "retired-node": {"cleared":true,"attempts":3,"clearedAt":1000}
+          },
           "streak": {"current":0,"longest":0,"freezesRemaining":2},
           "answers": []
         }
@@ -88,5 +101,13 @@ final class ProgressStateTests: XCTestCase {
         XCTAssertEqual(s.record(for: .outs).tier, .familiar)
         XCTAssertEqual(s.concepts.count, 2)                 // the unknown key is preserved
         XCTAssertNotNil(s.concepts["someRetiredConcept"])
+        XCTAssertEqual(s.nodes["retired-node"]?.attempts, 3)
+
+        let roundTripped = try JSONDecoder().decode(
+            ProgressState.self, from: JSONEncoder().encode(s))
+        XCTAssertEqual(roundTripped, s)
+        XCTAssertEqual(roundTripped.concepts["someRetiredConcept"]?.tier, .mastered)
+        XCTAssertEqual(roundTripped.nodes["retired-node"]?.clearedAt,
+                       Date(timeIntervalSinceReferenceDate: 1000))
     }
 }

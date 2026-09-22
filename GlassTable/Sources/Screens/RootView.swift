@@ -18,16 +18,38 @@ struct RootView: View {
 
     var body: some View {
         Group {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["GT_DEMO_CARD_DECK"] != nil {
+                PlayingCardDeckSpecimen()
+            } else {
+                rootContent
+            }
+            #else
+            rootContent
+            #endif
+        }
+        .environment(model)
+        .tint(GT.onFelt)
+    }
+
+    @ViewBuilder
+    private var rootContent: some View {
+        Group {
             if model.unreadable != nil {
                 // Spec §8.2: a store that exists but will not parse must never be
                 // silently replaced with empty progress.
                 StoreRecoveryView()
+            } else if model.shouldPresentFirstLesson {
+                FirstLessonView(context: .firstRun,
+                                onFinish: {
+                                    model.completeFirstLesson()
+                                    openNode = model.nextNode
+                                },
+                                onSkip: { model.completeFirstLesson() })
             } else {
                 tabs
             }
         }
-        .environment(model)
-        .tint(GT.onFelt)
     }
 
 
@@ -73,15 +95,10 @@ struct RootView: View {
                 FreePlayView().modifier(ProgressSaveNotice())
             }.environment(model)
         }
-        // 오늘's 복습 card used to dump the user on the 길 tab to hunt for the due
-        // concepts themselves; this is the same free-play player narrowed to them.
+        // Snapshot the five most-overdue concepts and ask one question for each.
         .sheet(isPresented: $showReview) {
             NavigationStack {
-                FreePlayView(title: "복습",
-                             blurb: "지금 복습 시점이 된 개념이에요. 몇 문제든 풀면 다음 복습이 뒤로 밀려요.",
-                             concepts: model.dueConcepts(),
-                             emptyText: "오늘 복습을 다 끝냈어요. 다음 복습은 내일 이후에 돌아와요.")
-                    .modifier(ProgressSaveNotice())
+                ReviewSessionView().modifier(ProgressSaveNotice())
             }
             .environment(model)
         }
@@ -112,6 +129,7 @@ struct RootView: View {
             default: break
             }
             if env["GT_DEMO_TABLE"] != nil { tab = .table }
+            if env["GT_DEMO_REPLAY"] != nil { tab = .records }
             if let id = env["GT_DEMO_NODE"] { openNode = Curriculum.node(id: id) }
             if env["GT_DEMO_FREEPLAY"] != nil { showFreePlay = true }
             if env["GT_DEMO_REVIEW"] != nil { showReview = true }
@@ -137,6 +155,9 @@ struct StoreRecoveryView: View {
     @Environment(ProgressionModel.self) private var model
     @State private var importing = false
     @State private var fileFailure: ProgressFileFailure?
+    @State private var importTask: Task<Void, Never>?
+    @State private var importRequestID: UUID?
+    @State private var isReadingImport = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -144,35 +165,71 @@ struct StoreRecoveryView: View {
             Text("저장된 파일을 읽을 수 없거나 더 새로운 앱 버전이 필요해요. 파일은 그대로 두었어요. "
                  + "백업이 있으면 불러오고, 없으면 새로 시작할 수 있어요.")
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                .lineSpacing(GT.Typography.explanationLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
-            FeltCTAButton(title: "백업 불러오기") { importing = true }
+            FeltCTAButton(title: isReadingImport ? "파일 확인 중" : "백업 불러오기") {
+                importing = true
+            }
+            .disabled(isReadingImport)
+            if let source = model.recoveryFileURL {
+                ShareLink(item: source) {
+                    Label("원본 파일 내보내기", systemImage: "square.and.arrow.up")
+                        .font(GT.semibold(13))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .foregroundStyle(GT.onFelt)
+            }
             Button("새로 시작하기") {
-                do { try model.discardUnreadableStore() }
+                do { try model.resetProgress() }
                 catch { fileFailure = .reset }
             }
                 .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)
+                .disabled(isReadingImport)
             Spacer()
         }
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(FeltBackground())
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
-            guard case let .success(url) = result else {
-                fileFailure = .read
-                return
+            switch result {
+            case let .success(url):
+                readImport(url)
+            case let .failure(error):
+                if !ProgressFileFailure.isCancellation(error) {
+                    fileFailure = .read
+                }
             }
-            let scoped = url.startAccessingSecurityScopedResource()
-            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-            let data: Data
-            do { data = try Data(contentsOf: url) }
-            catch { fileFailure = .read; return }
-            do { try model.importData(data) }
-            catch { fileFailure = .importing(error) }
         }
         .alert(item: $fileFailure) { failure in
             Alert(title: Text("기록 파일을 처리하지 못했어요"), message: Text(failure.message),
                   dismissButton: .default(Text("확인")))
+        }
+        .onDisappear {
+            importRequestID = nil
+            importTask?.cancel()
+            importTask = nil
+        }
+    }
+
+    private func readImport(_ url: URL) {
+        importTask?.cancel()
+        let requestID = UUID()
+        importRequestID = requestID
+        isReadingImport = true
+        importTask = Task {
+            do {
+                let prepared = try await ProgressFileReader.readAndValidate(url)
+                guard importRequestID == requestID else { return }
+                try model.importPrepared(prepared)
+            } catch {
+                guard importRequestID == requestID,
+                      !ProgressFileFailure.isCancellation(error) else { return }
+                fileFailure = error is StoreError ? .importing(error) : .read
+            }
+            guard importRequestID == requestID else { return }
+            isReadingImport = false
+            importTask = nil
         }
     }
 }

@@ -6,6 +6,15 @@ Notable changes to the Glass Table app. Format follows
 
 ## [Unreleased]
 
+### Changed — research-led learning and Warm interface (2026-09-14)
+- Rebuilt Today around one recommended lesson or a review of up to five due concepts; simplified the course, records, walkthroughs and table flow.
+- Added an eight-part start guide with retrieval questions, poker foundations, model assumptions and a continuing study path.
+- Added minimum defense frequency as the ninth unit, preserving every existing node ID and progress schema.
+- Separated lesson completion from per-concept proficiency. Mixed checkpoints are balanced and deterministic; mastery requires fresh perfect evidence after a delay.
+- Save assessed answers when their explanation appears, including interval and EV questions. Advancing cannot record the answer twice; guided examples do not award assessed progress.
+- Added large-text scrolling layouts, visible slider adjustment buttons, higher-contrast secondary text and reduced-motion-aware press feedback.
+- Added a privacy manifest, bundled font license and revised distribution preparation notes. No App Store submission has occurred.
+
 ### Changed — grading stopped computing the same answer twice (2026-08-09)
 - **`gradeHitFrequency` built the range's distribution twice** — once through
   `pairOrBetterPct` and once for the sentence — which was half the cost of

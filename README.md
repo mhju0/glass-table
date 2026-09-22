@@ -1,87 +1,102 @@
 # Glass Table
 
-**레인지와 EV로 생각하는 홀덤 훈련** — a Korean-first iOS trainer for No-Limit
-Hold'em. Free, fully offline, no ads, no accounts.
+**레인지와 EV로 생각하는 홀덤 훈련**
+
+Glass Table is a Korean-first iPhone app for learning No-Limit Hold'em through
+ranges, equity, and expected value. A learner commits to a decision before the
+app reveals the benchmark, the calculation, and the reason behind the grade.
 
 [![CI](https://github.com/mhju0/glass-table/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/ci.yml)
 [![Engine gate](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml)
 ![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
 
-Glass Table teaches serious-minded amateurs to think about poker in **ranges
-and EV** instead of hunches. Every spot runs the same loop: **decide → reveal →
-grade** — commit to your answer first, then see the exact numbers and where they
-came from. The opponents are rule-based archetypes whose strategies are
-**published inside the app**, so every grade is computable and checkable rather
-than handed down by a black box.
+> Status: active user testing. The app has not been released on the App Store.
 
-| 길 — the course | Decide → reveal | 테이블 — a graded hand | The chart, derived |
-|---|---|---|---|
-| ![Path](docs/readme-assets/readme-01-path.png) | ![Reveal](docs/readme-assets/readme-02-reveal.png) | ![Table](docs/readme-assets/readme-03-table.png) | ![Defend chart](docs/readme-assets/readme-04-chart.png) |
+| Start with a real decision | Follow the course |
+|---|---|
+| ![First-hand lesson with simplified playing cards](docs/readme-assets/readme-01-first-hand.png) | ![Course path with the current lesson highlighted](docs/readme-assets/readme-02-course.png) |
+| Compare complete hands before the product introduction. | Nine units move from reading the table to range and EV decisions. |
 
-## What's inside
+| Inspect the cost of a choice | Inspect the opponent model |
+|---|---|
+| ![EV-loss feedback showing best and chosen actions](docs/readme-assets/readme-03-ev-feedback.png) | ![TAG policy reference derived from the table model](docs/readme-assets/readme-04-policy.png) |
+| Feedback shows the best EV, chosen EV, subtraction, and range used for grading. | The table publishes each archetype's policy and the limits of its range estimate. |
 
-- **길** — a linear course of 8 units / 18 concepts, from reading a showdown to
-  defending against an open: pot odds, outs, equity sense, EV, combos, range
-  notation, RFI charts, range reads, board texture, hit frequency, range
-  advantage, EV-loss decisions, action reads, and the defend chart. Every new
-  concept opens with a step-by-step worked example (천천히); mastery and review
-  run on FSRS spaced repetition.
-- **테이블** — play a heads-up hand against a chosen archetype (Nit / TAG / LAG /
-  콜링 스테이션 / 매니악). The bot's pre- and postflop strategy is a printable
-  table, its live range narrows on screen as it acts, and every decision comes
-  back priced in big blinds — with the hand summary showing *net result* and
-  *EV burned* side by side.
-- **Calibration** — estimation drills collect a point estimate plus a 90%
-  interval, scored by a proper scoring rule (Winkler), so the app can tell you
-  whether you're overconfident — not just whether you're right.
-- **자유 연습** — every drill, unlimited, no gates.
+## Product
 
-Progress is stored on-device only — the app has zero networking.
-See the [privacy policy](https://mhju0.github.io/glass-table/privacy-policy.html).
+The course combines worked examples, independent retrieval, explanatory
+feedback, delayed review, and mixed checkpoints. Daily study recommends either
+a due review or the next lesson. Free practice keeps every drill available
+without changing course gates.
 
-## Architecture
+The table mode plays a heads-up hand against one of five rule-based archetypes.
+Preflop choices use the published defend chart. Postflop choices are priced in
+big blinds under the approximation disclosed in the reveal. The app presents
+these results as conditional training feedback, not universal poker advice.
 
-```
-GlassTableEngine   pure poker math (evaluator, equity, ranges, board texture)
-      ↑            — correctness-proven, release-mode test gate
-GlassTableDrills   spot generators, grading, archetype policies, the table hand
-      ↑            machine, curriculum & spaced repetition — plain Swift, fast tests
-GlassTable         thin SwiftUI app (screens + design system)
+Glass Table is fully offline. It has no accounts, analytics, ads, purchases, or
+real-money wagering. Progress stays on device and can be exported or imported
+through Files. Atomic writes, explicit unreadable-file recovery, and preserved
+recovery bytes protect the local record.
+
+## Engineering
+
+```text
+GlassTable        native SwiftUI screens and design system
+      ↓
+GlassTableDrills  pure Swift generators, grading, curriculum, review, persistence
+      ↓
+GlassTableEngine  pure Swift evaluator, equity, ranges, and board texture
 ```
 
-The heavy lifting lives in two Swift packages so nearly everything is testable
-without a simulator. Zero third-party dependencies. Design docs live in
-[`docs/`](docs/): the product brief, the decisions log (`docs/decisions.md`),
-and one spec per shipped slice under [`docs/specs/`](docs/specs/).
+The UI is a thin client over two Swift packages that do not import UIKit or
+SwiftUI. Seeded generators keep a question, its grade, and its explanation on
+the same deterministic spot. The archetype policy and surviving range are data
+the learner can inspect inside the app instead of an undisclosed bot decision.
 
-## Building
+Verification is split by boundary: package tests cover poker math and drill
+logic, XCTest exercises real navigation and input, and `tools/uisweep.sh`
+captures normal and Accessibility XXXL layouts on a disposable simulator. A
+screenshot is visual evidence only; interaction tests separately cover scrolling
+and reachable controls.
 
-Requires **Xcode 26**. The nav chrome calls `sharedBackgroundVisibility`, and
-`#available` guards runtime rather than compile, so an older SDK fails to find
-the symbol — the deployment target is still iOS 17.
+## Build and test
 
-The Xcode project is generated by [XcodeGen](https://github.com/yonaskolb/XcodeGen)
-and not committed:
+Requires macOS, Xcode 26 or newer, and
+[XcodeGen](https://github.com/yonaskolb/XcodeGen). The deployment target is iOS
+17. The generated Xcode project is intentionally not committed.
 
 ```sh
-brew install xcodegen   # once
+brew install xcodegen
 xcodegen generate
 xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+
+swift test --package-path GlassTableDrills
+swift test -c release --package-path GlassTableEngine
+xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
   -destination 'platform=iOS Simulator,name=iPhone 17' \
-  CODE_SIGNING_ALLOWED=NO build
+  CODE_SIGNING_ALLOWED=NO test
 ```
 
-`tools/uisweep.sh` screenshots every significant screen via launch-argument
-hooks — the cheap way to *look at* the app after a UI change.
+The engine gate runs in Release because its exhaustive checks are impractically
+slow in Debug. Use `tools/uisweep.sh --list` to inspect the available visual
+fixtures, or run the full normal and accessibility sweep with
+`tools/uisweep.sh`.
 
-## Testing
+## Project notes
 
-```sh
-swift test --package-path GlassTableDrills          # app logic — fast
-swift test -c release --package-path GlassTableEngine   # math gate — release config, slower
-```
+- [Design direction](DESIGN.md)
+- [Research foundation](docs/specs/2026-09-13-revamp-research.md)
+- [Learner-trust audit and verification limits](docs/specs/2026-09-20-learner-trust-audit.md)
+- [App Store preparation status](docs/submission.md)
+- [Privacy policy](docs/privacy-policy.md)
+- [License](#license)
 
 ## License
 
 Copyright (c) 2026 Michael Ju. All rights reserved.
-No license is granted for use, copying, modification, or distribution of this code as of 2026-07-30. This repository is public for portfolio review purposes only.
+
+No license is granted for use, copying, modification, or distribution of this
+code as of 2026-07-30. This repository is public for portfolio review purposes
+only.

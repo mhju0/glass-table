@@ -290,8 +290,10 @@ non-skippable** unlocking.
   honest rather than a demoralising binary — mapped to three soft bands. For estimation,
   grade on **error bands (정확 / 근접 / 빗나감)** rather than 정답/오답, so estimating
   feels like calibration, not pass/fail.
-- **Two vocabularies, never mixed:** 최선 / 부정확 / 실수 at 0.5 / 2.0 bb for EV-loss
-  severity; 정확 / 근접 / 빗나감 for estimation bands. `CONTEXT.md` states this as a rule.
+- **Two vocabularies, never mixed:** EV loss shows 최선 at exactly 0 bb, 거의 최선 up
+  to 0.5 bb, then 부정확 / 실수 at 2.0 bb; exact and near-best choices share the
+  best progression band. Estimation uses 정확 / 근접 / 빗나감. `CONTEXT.md` states
+  this separation as a rule.
 - **Why "decide first, then reveal" is defensible in-app:** active recall + progressive
   disclosure (Nielsen / NN-group) — the transparency thesis made explicit.
 - **Current state:** ACTIVE. The bb thresholds are **EXPERIMENTAL** — see D28.
@@ -735,6 +737,22 @@ against 3:1. **Ink never flips.**
   changing memory, and ignored quarantine failures overwriting recovery bytes. Fix
   these before the next dogfood build. Evidence: `ProgressionStoreTests` and
   `GlassTable/Tests/ProgressionModelTests.swift`.
+
+---
+
+### D44 · Progression credit must correspond to actual practice
+**Status: IMPLEMENTED — 2026-09-05 cleanup branch.**
+
+- Award the study day when an answer is recorded, using the due queue **before**
+  rescheduling. Any due answer qualifies, including a miss; when nothing is due, new
+  practice qualifies. Finishing a whole node is not required. Answer, schedule and
+  streak persist together, replacing the separate end-session write.
+- Boss sessions ask at least six questions and cover their whole concept pool before
+  awarding mastery. Unit 2 needs seven; the fixed six-question run promoted position
+  without testing it. Regular drill nodes remain five blocked questions.
+- Evidence: review-queue regressions, curriculum coverage and app persistence tests.
+  This amends R1's fixed six-question boss/session-completion wording, preserving its
+  anti-farming rule and mastery-by-demonstrated-practice intent.
 
 ---
 

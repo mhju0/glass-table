@@ -1,15 +1,22 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
 import UniformTypeIdentifiers
+import GlassTableDrills
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProgressionModel.self) private var model
     @State private var showGlossary = false
+    @State private var showGuide = false
+    @State private var showFirstLesson = false
+    @State private var showLicense = false
     @State private var backup: BackupDocument?
     @State private var exportingBackup = false
     @State private var importingBackup = false
-    @State private var pendingImport: Data?
+    @State private var pendingImport: PreparedProgressImport?
+    @State private var importTask: Task<Void, Never>?
+    @State private var importRequestID: UUID?
+    @State private var isReadingImport = false
     @State private var confirmingImport = false
     @State private var fileFailure: ProgressFileFailure?
     @State private var confirmingReset = false
@@ -29,6 +36,18 @@ struct SettingsView: View {
                 Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
                 VStack(spacing: 0) {
+                    Button { showFirstLesson = true } label: {
+                        row("suit.spade.fill", "첫 포커 결정 다시 보기",
+                            "두 패를 비교하며 기본 규칙을 익혀요", chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
+                    Button { showGuide = true } label: {
+                        row("rectangle.stack", "공부 방법",
+                            "레슨과 복습이 이어지는 방식을 알아봐요", chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
                     // A sheet, not a push — the same way the 용어 chip in a reveal opens
                     // it. Pushing gave the glossary a system back button, the one piece
                     // of chrome the app cannot draw itself.
@@ -52,39 +71,42 @@ struct SettingsView: View {
                         } catch { fileFailure = .export }
                     } label: {
                         row("square.and.arrow.up", "백업 만들기",
-                            "진행 기록을 JSON 파일로 저장", chevron: true)
+                            "진행 기록을 파일로 보관해요", chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
                     // Without this row a backup was write-only: the recovery importer
                     // only appears once the store is *corrupt*, so a healthy reset or
                     // a new phone had no way back in — review finding on e059ec6.
-                    Button { importingBackup = true } label: {
+                    Button {
+                        pendingImport = nil
+                        importingBackup = true
+                    } label: {
                         row("square.and.arrow.down", "백업 불러오기",
-                            "백업 JSON으로 기록을 되돌려요", chevron: true)
+                            isReadingImport ? "파일을 확인하고 있어요" : "저장한 파일에서 기록을 가져와요",
+                            chevron: true)
                     }
                     .buttonStyle(GTPress())
+                    .disabled(isReadingImport)
                     .fileImporter(isPresented: $importingBackup,
                                   allowedContentTypes: [.json]) { result in
-                        guard case let .success(url) = result else {
-                            fileFailure = .read
-                            return
+                        switch result {
+                        case let .success(url):
+                            readImport(url)
+                        case let .failure(error):
+                            if !ProgressFileFailure.isCancellation(error) {
+                                fileFailure = .read
+                            }
                         }
-                        let scoped = url.startAccessingSecurityScopedResource()
-                        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                        do {
-                            pendingImport = try Data(contentsOf: url)
-                            confirmingImport = true
-                        } catch { fileFailure = .read }
                     }
                     .confirmationDialog("지금 기록을 백업 내용으로 바꿀까요?",
                                         isPresented: $confirmingImport,
                                         titleVisibility: .visible) {
                         Button("백업으로 바꾸기", role: .destructive) {
-                            // importData validates before replacing; a bad file lands
+                            // Replacement is atomic; an unsuccessful write lands
                             // in the alert, never in a half-replaced store.
-                            if let data = pendingImport {
-                                do { try model.importData(data) }
+                            if let prepared = pendingImport {
+                                do { try model.importPrepared(prepared) }
                                 catch { fileFailure = .importing(error) }
                             }
                             pendingImport = nil
@@ -99,6 +121,7 @@ struct SettingsView: View {
                             "모든 기록을 지우고 처음부터", chevron: true, destructive: true)
                     }
                     .buttonStyle(GTPress())
+                    .disabled(isReadingImport)
                 }
                 .gtCard(radius: 20)
                 VStack(spacing: 0) {
@@ -111,6 +134,11 @@ struct SettingsView: View {
                     Link(destination: Self.privacyURL) {
                         // arrow.up.right = leaves the app (Safari), unlike chevron rows.
                         row("doc.text", "개인정보 처리방침", nil, chevron: false, external: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
+                    Button { showLicense = true } label: {
+                        row("doc.plaintext", "오픈소스 라이선스", "Pretendard · FSRS", chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -131,6 +159,13 @@ struct SettingsView: View {
         }
         .background(FeltBackground())
         .sheet(isPresented: $showGlossary) { GlossaryView() }
+        .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
+        .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }
+        .fullScreenCover(isPresented: $showFirstLesson) {
+            FirstLessonView(context: .replay,
+                            onFinish: { showFirstLesson = false },
+                            onSkip: { showFirstLesson = false })
+        }
         .fileExporter(isPresented: $exportingBackup, document: backup,
                       contentType: .json,
                       defaultFilename: "glass-table-backup") { result in
@@ -156,6 +191,11 @@ struct SettingsView: View {
             Alert(title: Text("기록 파일을 처리하지 못했어요"), message: Text(failure.message),
                   dismissButton: .default(Text("확인")))
         }
+        .onDisappear {
+            importRequestID = nil
+            importTask?.cancel()
+            importTask = nil
+        }
         .onAppear {
             #if DEBUG
             // GT_DEMO_SETTINGS=1 GT_DEMO_GLOSSARY=1 — same reason as every other hook:
@@ -163,11 +203,36 @@ struct SettingsView: View {
             if ProcessInfo.processInfo.environment["GT_DEMO_GLOSSARY"] != nil {
                 showGlossary = true
             }
+            if ProcessInfo.processInfo.environment["GT_DEMO_GUIDE"] != nil {
+                showGuide = true
+            }
             #endif
         }
         // Leading, like every other 닫기 — it used to sit trailing, so dismissing a sheet
         // meant looking in a different corner depending on which sheet you were in.
         .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+    }
+
+    private func readImport(_ url: URL) {
+        importTask?.cancel()
+        let requestID = UUID()
+        importRequestID = requestID
+        isReadingImport = true
+        importTask = Task {
+            do {
+                let prepared = try await ProgressFileReader.readAndValidate(url)
+                guard importRequestID == requestID else { return }
+                pendingImport = prepared
+                confirmingImport = true
+            } catch {
+                guard importRequestID == requestID,
+                      !ProgressFileFailure.isCancellation(error) else { return }
+                fileFailure = error is StoreError ? .importing(error) : .read
+            }
+            guard importRequestID == requestID else { return }
+            isReadingImport = false
+            importTask = nil
+        }
     }
 
     private func row(_ icon: String, _ title: String, _ sub: String?,
@@ -178,7 +243,11 @@ struct SettingsView: View {
                 .foregroundStyle(destructive ? GT.suitRed : GT.green).frame(width: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(GT.semibold(15)).foregroundStyle(GT.ink)
-                if let sub { Text(sub).font(GT.body(12)).foregroundStyle(GT.inkMuted) }
+                if let sub {
+                    Text(sub).font(GT.body(12)).foregroundStyle(GT.inkMuted)
+                        .lineSpacing(GT.Typography.bodyLineSpacing)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer()
             if chevron || external {
@@ -189,6 +258,35 @@ struct SettingsView: View {
         }
         .padding(16)
         .contentShape(Rectangle())
+    }
+}
+
+private struct OpenSourceLicenseView: View {
+    @Environment(\.dismiss) private var dismiss
+    private func license(named name: String) -> String {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "txt"),
+              let text = try? String(contentsOf: url, encoding: .utf8) else {
+            return "라이선스 문서를 열 수 없어요. 설정의 피드백으로 알려주세요."
+        }
+        return text
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("오픈소스 라이선스").font(GT.title(26)).foregroundStyle(GT.onFelt)
+                Text("Pretendard").font(GT.semibold(17)).foregroundStyle(GT.onFelt)
+                Text(license(named: "Pretendard-LICENSE"))
+                    .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                    .textSelection(.enabled)
+                Text("FSRS").font(GT.semibold(17)).foregroundStyle(GT.onFelt)
+                Text(license(named: "FSRS-LICENSE"))
+                    .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                    .textSelection(.enabled)
+            }.padding(24)
+        }
+        .background(FeltBackground())
+        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
     }
 }
 

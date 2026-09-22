@@ -27,11 +27,14 @@ Bands, from §D:
 
 | loss (bb) | band | Korean |
 |---|---|---|
-| ≤ 0.5 | `.spotOn` | 최선 |
-| ≤ 2.0 | `.close` | 부정확 |
+| = 0 | `.spotOn` | 최선 |
+| > 0 and ≤ 0.5 | `.spotOn` | 거의 최선 |
+| > 0.5 and ≤ 2.0 | `.close` | 부정확 |
 | > 2.0 | `.off` | 실수 |
 
-**Reusing `GradeBand` is deliberate.** Mastery, FSRS scheduling, streaks and the review
+**Reusing `GradeBand` is deliberate.** 최선 and 거의 최선 share `.spotOn`; the label
+keeps a small loss from being called literally best without changing progression.
+Mastery, FSRS scheduling, streaks and the review
 queue are all written against those three cases; a fourth grading vocabulary would fork
 every one of them. The band is plumbing — **the number is what the user is shown.**
 
@@ -91,9 +94,9 @@ decision.
 
 **Marginal spots are not preferred.** The instinct is to filter for close decisions,
 since that is where EV-loss grading beats right/wrong. That would be wrong: if every
-spot is marginal, every answer scores 최선 and the bands never move. The mix of clear
-folds, clear calls and genuinely close spots is what teaches that the grade is
-continuous.
+spot is marginal, every answer stays in the best band and the bands never move. The
+mix of clear folds, clear calls and genuinely close spots is what teaches that the
+grade is continuous.
 
 ## 4. What the reveal says
 

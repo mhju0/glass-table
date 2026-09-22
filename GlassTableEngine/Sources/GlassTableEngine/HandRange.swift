@@ -128,10 +128,15 @@ public extension HandRange {
     /// instead of a shape with holes punched in it. That matters because the grid is
     /// shown while the slider moves — an incoherent range would be visibly wrong.
     static func shaped(width: Double, tendencies: Set<RangeTendency> = []) -> HandRange {
-        let ranked = HandClass.all.sorted { a, b in
-            let sa = Chen.score(a) + tendencies.reduce(0) { $0 + ($1.matches(a) ? $1.bonus : 0) }
-            let sb = Chen.score(b) + tendencies.reduce(0) { $0 + ($1.matches(b) ? $1.bonus : 0) }
-            if sa != sb { return sa > sb }
+        if tendencies.isEmpty { return topByChen(percent: width) }
+        // Score each class once; slider changes used to repeat the same work for
+        // both operands of every comparison in the sort.
+        let ranked = HandClass.all.map { h in
+            (hand: h, score: Chen.score(h)
+                + tendencies.reduce(0) { $0 + ($1.matches(h) ? $1.bonus : 0) })
+        }.sorted { lhs, rhs in
+            if lhs.score != rhs.score { return lhs.score > rhs.score }
+            let a = lhs.hand, b = rhs.hand
             if a.isPair != b.isPair { return a.isPair }
             if a.suited != b.suited { return a.suited }
             if a.gap != b.gap { return a.gap < b.gap }
@@ -140,7 +145,7 @@ public extension HandRange {
         let target = Double(HandClass.totalCombos) * width / 100
         var taken: [HandClass] = []
         var running = 0.0
-        for h in ranked {
+        for (h, _) in ranked {
             if running >= target { break }
             taken.append(h)
             running += Double(h.comboCount)

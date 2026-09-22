@@ -17,18 +17,19 @@ public enum Mastery {
     public static let missesBeforeWalkthroughOffer = 3
     public static let missesBeforeStopDrilling = 8
 
-    /// - Parameters:
-    ///   - cleanRun: the concept's own drill was completed with no misses.
-    ///   - viaBoss: this promotion is being evaluated at a mixed boss node. The
-    ///     *only* route to 숙달, because blocked practice proves fluency, not transfer.
-    public static func promote(_ r: inout ConceptRecord, cleanRun: Bool,
+    /// Promotion uses only this concept's answers from the completed session. The
+    /// lifetime aggregate still includes `.close` answers for the familiar tier and
+    /// scheduling, but a proficiency claim requires every current answer to be spot-on.
+    public static func promote(_ r: inout ConceptRecord, evidence: SessionEvidence,
                                viaBoss: Bool, now: Date) {
+        guard evidence.isComplete else { return }
+        let wasProficient = r.tier >= .proficient
         var earned: MasteryTier = r.accuracy >= familiarThreshold ? .familiar : .attempted
 
-        if cleanRun, earned >= .familiar { earned = .proficient }
+        if evidence.isPerfect, earned >= .familiar { earned = .proficient }
 
-        if viaBoss, r.tier >= .proficient || earned >= .proficient,
-           let since = r.proficientAt ?? (earned >= .proficient ? now : nil),
+        if viaBoss, evidence.isPerfect, wasProficient,
+           let since = r.proficientAt,
            now.timeIntervalSince(since) >= masteryCooldown {
             earned = .mastered
         }
@@ -66,5 +67,44 @@ public enum Mastery {
     /// gap, not a desirable difficulty — grinding it harder is the wrong response.
     public static func shouldStopDrilling(_ r: ConceptRecord) -> Bool {
         r.consecutiveMisses >= missesBeforeStopDrilling
+    }
+
+    /// Completing the full explainer releases a concept from the stop-drilling state.
+    /// It is study support, not a graded attempt, so no other field changes.
+    public static func completeWalkthrough(_ state: inout ProgressState, concept: Concept) {
+        state.updateRecord(for: concept) { $0.consecutiveMisses = 0 }
+    }
+}
+
+/// Ephemeral, per-concept evidence from one node session. This deliberately stays
+/// outside `ProgressState`, preserving the schema-1 file format and old records.
+public struct SessionEvidence: Equatable, Sendable {
+    public var attempted: Int
+    public var spotOn: Int
+
+    public init(attempted: Int = 0, spotOn: Int = 0) {
+        self.attempted = attempted
+        self.spotOn = spotOn
+    }
+
+    public var isComplete: Bool { attempted > 0 && spotOn >= 0 && spotOn <= attempted }
+    public var isPerfect: Bool { isComplete && spotOn == attempted }
+
+    public mutating func record(spotOn: Bool) {
+        attempted += 1
+        if spotOn { self.spotOn += 1 }
+    }
+
+    /// Requires exactly one recorded answer for every scheduled entry, with no
+    /// missing or extra concepts. Clearing and promotion share this gate.
+    public static func validates(_ evidence: [Concept: SessionEvidence],
+                                 scheduled: [Concept]) -> Bool {
+        guard !scheduled.isEmpty else { return false }
+        let expected = Dictionary(grouping: scheduled, by: { $0 }).mapValues(\.count)
+        guard evidence.count == expected.count else { return false }
+        return expected.allSatisfy { concept, count in
+            guard let item = evidence[concept] else { return false }
+            return item.isComplete && item.attempted == count
+        }
     }
 }

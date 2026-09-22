@@ -98,6 +98,6 @@ public func gradeActionRead(estimate: Estimate, spot: ActionReadSpot) -> Estimat
         intervalAnswer: estimate.answer(truth: correct),
         whyText: "\(spot.villain.name)의 \(spot.action.rawValue) 레인지는 \(spot.actedBucketList). "
                + "\(a.combos)콤보 중 \(pctText(correct))%가 페어 이상이에요. "
-               + "전체 레인지는 \(pctText(fullPct))% — \(KO.subject(spot.action.rawValue)) "
+               + "전체 레인지는 \(pctText(fullPct))%예요. \(KO.subject(spot.action.rawValue)) "
                + "레인지를 \(direction).")
 }

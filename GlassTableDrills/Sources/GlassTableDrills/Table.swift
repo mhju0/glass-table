@@ -414,12 +414,13 @@ public extension TableHand {
     /// river and turn, fixed-seed Monte Carlo on the flop where exact enumeration is
     /// a debug-build freeze. Deterministic per hand.
     func comboEquities() -> [Double] {
-        villainCombos.enumerated().map { i, combo in
+        let visible = board
+        return villainCombos.enumerated().map { i, combo in
             street >= 4
                 // River: one comparison. Turn: 44 rivers. Both exact and cheap.
-                ? exactEquityHeadsUp(hero: hero, villain: combo, board: board).equity
+                ? exactEquityHeadsUp(hero: hero, villain: combo, board: visible).equity
                 : monteCarloEquityHeadsUp(
-                    hero: hero, villain: combo, board: board, iterations: 200,
+                    hero: hero, villain: combo, board: visible, iterations: 200,
                     seed: handSeed &+ UInt64(street) &* 0x9E37 &+ UInt64(i)).equity
         }
     }
@@ -436,9 +437,10 @@ public extension TableHand {
 
         // Grading must see the same buckets the bot acts on — bucket(of:), not the
         // raw classification, or a river grade would price a bluff the bot cannot make.
+        let buckets = villainCombos.map { bucket(of: $0) }
         func mean(_ f: (Double, MadeHand) -> Double) -> Double {
-            zip(eq, villainCombos).reduce(0) { acc, pair in
-                acc + f(pair.0, bucket(of: pair.1))
+            zip(eq, buckets).reduce(0) { acc, pair in
+                acc + f(pair.0, pair.1)
             } / n
         }
 
@@ -519,15 +521,18 @@ public enum TableDealer {
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         let archetype = villain ?? Archetype.allCases.randomElement(using: &rng)!
 
-        // Villain opens, someone must act behind him; hero sits behind (spec §1).
+        // Hero must act after the opener both preflop and postflop. Blinds act last
+        // preflop but first postflop, so preflop order alone cannot establish position.
+        func canDefend(_ hero: Position, against opener: Position) -> Bool {
+            hero.playersBehind(preflop: true) < opener.playersBehind(preflop: true)
+                && hero.actsAfter(opener)
+        }
         let openers = RFIChart.seats.filter { seat in
-            RFIChart.seats.contains {
-                $0.playersBehind(preflop: true) < seat.playersBehind(preflop: true)
-            }
+            RFIChart.seats.contains { canDefend($0, against: seat) }
         }
         let vSeat = openers.randomElement(using: &rng)!
         let hSeat = RFIChart.seats.filter {
-            $0.playersBehind(preflop: true) < vSeat.playersBehind(preflop: true)
+            canDefend($0, against: vSeat)
         }.randomElement(using: &rng)!
 
         var full = Deck.all

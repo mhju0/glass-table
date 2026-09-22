@@ -1,59 +1,41 @@
 #!/bin/bash
-# Copyright (c) 2026 Michael Ju (github.com/mhju0)
-#
-# Capture every significant screen into one folder.
-#
-# The point is to make *looking at the app* cheap enough to do after every UI
-# change. Synthetic taps never reach Simulator content, so each screen is reached
-# by a GT_DEMO_* launch hook instead of by driving the UI — see RootView.
-#
-#   tools/uisweep.sh              # build, install, sweep to a timestamped folder
-#   tools/uisweep.sh --no-build   # reuse the current build
-#
-# Every capture is a fresh launch, so screens never leak state into each other.
+# Capture DEBUG demo hooks on a disposable simulator. Never touches a user's app data.
+# tools/uisweep.sh [--no-build] [--screen NAME ...] | --list
+# GT_SIM selects an available device name (default: iPhone 17).
+# Default: capture large and AX5. GT_CONTENT_SIZE selects a single category instead.
 set -euo pipefail
-
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE=com.michaelju.glasstable
-SCHEME=GlassTable
 DEVICE_NAME="${GT_SIM:-iPhone 17}"
+CONTENT_SIZES=(large accessibility-extra-extra-extra-large)
+if [ -n "${GT_CONTENT_SIZE:-}" ]; then CONTENT_SIZES=("$GT_CONTENT_SIZE"); fi
+for content_size in "${CONTENT_SIZES[@]}"; do
+  case "$content_size" in
+    extra-small|small|medium|large|extra-large|extra-extra-large|extra-extra-extra-large|accessibility-medium|accessibility-large|accessibility-extra-large|accessibility-extra-extra-large|accessibility-extra-extra-extra-large) ;;
+    *) echo "unknown content size: $content_size" >&2; exit 2 ;;
+  esac
+done
 BUILD=1
-
+LIST=0
+SELECTED=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --no-build) BUILD=0 ;;
+    --list) LIST=1 ;;
+    --screen)
+      [ $# -ge 2 ] || { echo "--screen needs a name" >&2; exit 2; }
+      SELECTED+=("$2"); shift ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
   shift
 done
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/.uisweep/$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$OUT"
-
-DEV=$(xcrun simctl list devices available \
-      | grep "$DEVICE_NAME (" | head -1 \
-      | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
-[ -n "$DEV" ] || { echo "no available simulator named '$DEVICE_NAME'" >&2; exit 1; }
-
-if [ "$BUILD" = 1 ]; then
-  echo "building…"
-  xcodebuild -project "$ROOT/GlassTable.xcodeproj" -scheme "$SCHEME" \
-    -destination "platform=iOS Simulator,id=$DEV" CODE_SIGNING_ALLOWED=NO build \
-    2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
-fi
-
-APP=$(find ~/Library/Developer/Xcode/DerivedData/GlassTable-*/Build/Products/Debug-iphonesimulator \
-      -maxdepth 1 -name "$SCHEME.app" 2>/dev/null | head -1)
-[ -n "$APP" ] || { echo "no built .app found" >&2; exit 1; }
-
-xcrun simctl boot "$DEV" 2>/dev/null || true
-xcrun simctl bootstatus "$DEV" -b >/dev/null 2>&1 || true
-xcrun simctl install "$DEV" "$APP"
-
-# name : GT_DEMO env, space separated. Seeded runs show a populated app; the
-# unseeded ones are what a brand-new user actually sees, which is the state
-# most easily broken and least often looked at.
 SCREENS=(
+  "first-lesson:GT_DEMO_FIRST_LESSON=example"
+  "first-lesson-answer:GT_DEMO_FIRST_LESSON=example-answer"
+  "first-lesson-transfer:GT_DEMO_FIRST_LESSON=transfer"
+  "first-lesson-transfer-answer:GT_DEMO_FIRST_LESSON=transfer-answer"
+  "first-lesson-intro:GT_DEMO_FIRST_LESSON=intro"
   "today-empty:GT_DEMO_TAB=today"
   "path-empty:GT_DEMO_TAB=path"
   "records-empty:GT_DEMO_TAB=records"
@@ -62,14 +44,20 @@ SCREENS=(
   "records:GT_DEMO_SEED=1 GT_DEMO_TAB=records"
   "settings:GT_DEMO_SEED=1 GT_DEMO_SETTINGS=1"
   "glossary:GT_DEMO_SEED=1 GT_DEMO_SETTINGS=1 GT_DEMO_GLOSSARY=1"
+  "guide:GT_DEMO_SETTINGS=1 GT_DEMO_GUIDE=1"
+  "guide-question:GT_DEMO_SETTINGS=1 GT_DEMO_GUIDE=1 GT_DEMO_GUIDE_PAGE=4"
   "freeplay:GT_DEMO_SEED=1 GT_DEMO_FREEPLAY=1"
   "review:GT_DEMO_SEED=1 GT_DEMO_REVIEW=1"
+  "review-complete:GT_DEMO_SEED=1 GT_DEMO_REVIEW=1 GT_DEMO_REVIEW_COMPLETE=1"
+  "lesson-complete:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds GT_DEMO_SESSION_COMPLETE=1"
+  "guided-potodds:GT_DEMO_NODE=u2-potOdds GT_DEMO_STAGE=together"
   "replay:GT_DEMO_SEED=1 GT_DEMO_REPLAY=potOdds"
   "drill-showdown:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-showdown"
   "drill-potmath:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-potMath"
   "drill-position:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-position"
   "drill-combos:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-combos"
   "drill-potodds:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds"
+  "drill-mdf:GT_DEMO_NODE=u9-mdf"
   "drill-outs:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-outs"
   "drill-equity:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-equitySense"
   "drill-ev:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-evCall"
@@ -98,9 +86,9 @@ SCREENS=(
   "teach-rangeadv-buckets:GT_DEMO_NODE=u5-rangeAdvantage GT_DEMO_BEAT=3"
   # R4-S2. Both sides of the reveal, because the headline differs: one of these is a
   # 0bb choice and the other is what it cost to take the other one.
-  "drill-evloss:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss"
-  "drill-evloss-call:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=1"
-  "drill-evloss-fold:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=0"
+  "drill-evloss:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss:8"
+  "drill-evloss-call:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=1:8"
+  "drill-evloss-fold:GT_DEMO_SEED=1 GT_DEMO_NODE=u6-evLoss GT_DEMO_REVEAL=0:8"
   "teach-evloss-range:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=1"
   "teach-evloss-cost:GT_DEMO_NODE=u6-evLoss GT_DEMO_BEAT=5"
   # R4-S3. The reveal swaps the grid for before/after bars — both states need looking
@@ -119,6 +107,7 @@ SCREENS=(
   "table-picker:GT_DEMO_TAB=table"
   # R5: the hand now opens at the preflop decision — chart-graded, no pricing wait.
   "table-preflop:GT_DEMO_TABLE=tag"
+  "table-policy:GT_DEMO_TABLE=tag GT_DEMO_TABLE_POLICY=1"
   "table-preflop-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1:6"
   "table-chart:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CHART=1:6"
   "table-hand:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CONTINUE=1:12"
@@ -126,24 +115,148 @@ SCREENS=(
   "table-summary:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=10:24"
 )
 
-# One pass, not two. The app pins UIUserInterfaceStyle to Dark, so the light run was
-# capturing the same pixels — the two schemes measured 1.04:1 apart on glass.
-# Entry format: name:envs[:sleep] — the optional third field replaces the default
-# settle time, for screens that compute before they can be photographed.
-for entry in "${SCREENS[@]}"; do
-  name="${entry%%:*}"
-  rest="${entry#*:}"
-  slp="${rest##*:}"
-  if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=2.2; fi
-  args=()
-  for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
-  xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
-  env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
-  sleep "$slp"
-  xcrun simctl io "$DEV" screenshot "$OUT/$name.png" >/dev/null 2>&1 || true
-  printf '.'
-done
-echo
+if [ "$LIST" = 1 ]; then
+  for entry in "${SCREENS[@]}"; do echo "${entry%%:*}"; done
+  exit 0
+fi
+if [ ${#SELECTED[@]} -gt 0 ]; then
+  captures=()
+  for selected in "${SELECTED[@]}"; do
+    found=0
+    for entry in "${SCREENS[@]}"; do
+      if [ "${entry%%:*}" = "$selected" ]; then captures+=("$entry"); found=1; break; fi
+    done
+    [ "$found" = 1 ] || { echo "unknown screen: $selected (see --list)" >&2; exit 2; }
+  done
+  SCREENS=("${captures[@]}")
+fi
 
-xcrun simctl terminate "$DEV" "$BUNDLE" >/dev/null 2>&1 || true
+mkdir -p "$ROOT/.uisweep"
+OUT=$(mktemp -d "$ROOT/.uisweep/$(date +%Y%m%d-%H%M%S)-XXXXXX")
+DERIVED="$ROOT/.build/uisweep"
+APP="$DERIVED/Build/Products/Debug-iphonesimulator/GlassTable.app"
+DEV=""
+cleanup() {
+  if [ -n "$DEV" ]; then
+    xcrun simctl shutdown "$DEV" >>"$OUT/simulator.log" 2>&1 || true
+    xcrun simctl delete "$DEV" >>"$OUT/simulator.log" 2>&1 || true
+  fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'echo "Sweep failed; logs: $OUT" >&2' ERR
+
+# CoreSimulator can stall on first boot or leave a launch pending before a process
+# exists. Bound those waits; a failed command must not leave an unattended sweep hung.
+run_with_timeout() {
+  python3 - "$@" <<'PYTIMEOUT'
+import subprocess, sys
+try:
+    sys.exit(subprocess.run(sys.argv[2:], timeout=int(sys.argv[1])).returncode)
+except subprocess.TimeoutExpired:
+    print('Timed out: ' + ' '.join(sys.argv[2:]), file=sys.stderr)
+    sys.exit(124)
+PYTIMEOUT
+}
+
+restart_device() {
+  xcrun simctl shutdown "$DEV" >>"$OUT/simulator.log" 2>&1
+  xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
+  run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1
+}
+
+# A local artifact and content fingerprint prevent stale screenshots after edits or
+# when several checkouts have generated apps with the same scheme name.
+fingerprint=$(python3 - "$ROOT" <<'PYHASH'
+import hashlib, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+files = [root / 'project.yml']
+for package in ('GlassTableEngine', 'GlassTableDrills'):
+    files.append(root / package / 'Package.swift')
+for folder in ('GlassTable/Sources', 'GlassTable/Resources',
+               'GlassTableEngine/Sources', 'GlassTableDrills/Sources'):
+    files.extend(p for p in (root / folder).rglob('*') if p.is_file())
+h = hashlib.sha256()
+for p in sorted(files):
+    h.update(str(p.relative_to(root)).encode() + b'\0' + p.read_bytes())
+print(h.hexdigest())
+PYHASH
+)
+xcodebuild -version >"$OUT/xcode.txt"
+fingerprint="$fingerprint $(shasum -a 256 "$OUT/xcode.txt" | cut -d' ' -f1)"
+if [ "$BUILD" = 1 ]; then
+  echo "Building; log: $OUT/build.log"
+  (cd "$ROOT" && xcodegen generate) >"$OUT/build.log" 2>&1
+  xcodebuild -project "$ROOT/GlassTable.xcodeproj" -scheme GlassTable \
+    -configuration Debug -destination 'generic/platform=iOS Simulator' \
+    -derivedDataPath "$DERIVED" CODE_SIGNING_ALLOWED=NO build >>"$OUT/build.log" 2>&1
+  echo "$fingerprint" >"$DERIVED/source-fingerprint"
+else
+  if [ ! -d "$APP" ] || [ ! -f "$DERIVED/source-fingerprint" ] || \
+     [ "$(cat "$DERIVED/source-fingerprint")" != "$fingerprint" ]; then
+    echo "No matching sweep build for this source/Xcode. Run tools/uisweep.sh without --no-build." >&2
+    exit 1
+  fi
+fi
+
+# Clone only the device configuration, not its installed apps or data.
+xcrun simctl list devices available -j >"$OUT/devices.json"
+read -r TYPE RUNTIME < <(python3 - "$OUT/devices.json" "$DEVICE_NAME" <<'PYDEVICE'
+import json, sys
+devices_by_runtime = json.load(open(sys.argv[1]))['devices']
+for runtime, devices in sorted(devices_by_runtime.items(),
+        key=lambda item: tuple(map(int, item[0].split('-')[1:])), reverse=True):
+    for d in devices:
+        if d['name'] == sys.argv[2]:
+            print(d['deviceTypeIdentifier'], runtime)
+            sys.exit(0)
+print('No available simulator named ' + sys.argv[2], file=sys.stderr)
+sys.exit(1)
+PYDEVICE
+)
+DEV=$(xcrun simctl create "GlassTable sweep $(basename "$OUT")" "$TYPE" "$RUNTIME")
+echo "Starting disposable simulator; logs and captures: $OUT"
+printf 'device=%s\nruntime=%s\nsource=%s\n' "$DEV" "$RUNTIME" "$fingerprint" >"$OUT/run.txt"
+printf 'content_size=%s\n' "${CONTENT_SIZES[@]}" >>"$OUT/run.txt"
+xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
+if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1; then
+  echo "First boot stalled; restarting the disposable device once."
+  restart_device
+fi
+
+xcrun simctl status_bar "$DEV" override --time '9:41' --batteryState charged --batteryLevel 100 >>"$OUT/simulator.log" 2>&1
+# First-boot system announcements can cover the first app frame.
+sleep 8
+
+for content_size in "${CONTENT_SIZES[@]}"; do
+  capture_dir="$OUT/$content_size"
+  mkdir -p "$capture_dir"
+  xcrun simctl ui "$DEV" content_size "$content_size" >>"$OUT/simulator.log" 2>&1
+  for entry in "${SCREENS[@]}"; do
+    name="${entry%%:*}"
+    rest="${entry#*:}"
+    slp="${rest##*:}"
+    if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=2.2; fi
+    args=()
+    for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
+    # Uninstall clears progress written by the preceding demo. Empty-state captures
+    # remain empty regardless of the requested order.
+    if [ -f "$OUT/installed" ]; then
+      xcrun simctl uninstall "$DEV" "$BUNDLE" >>"$OUT/simulator.log" 2>&1
+    fi
+    xcrun simctl install "$DEV" "$APP" >>"$OUT/simulator.log" 2>&1
+    touch "$OUT/installed"
+    if ! run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$capture_dir/$name.log" 2>&1; then
+      echo "Launch failed for $name; restarting the disposable device once."
+      restart_device
+      xcrun simctl ui "$DEV" content_size "$content_size" >>"$OUT/simulator.log" 2>&1
+      run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$capture_dir/$name.log" 2>&1
+    fi
+    sleep "$slp"
+    xcrun simctl io "$DEV" screenshot "$capture_dir/$name.png" >>"$capture_dir/$name.log" 2>&1
+    echo "$content_size/$name" | tee -a "$OUT/captured.txt"
+  done
+done
+rm "$OUT/installed"
 echo "$OUT"

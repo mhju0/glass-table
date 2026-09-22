@@ -62,7 +62,7 @@ public enum BlockerSpotGenerator {
     }
 }
 
-public struct BlockerReveal: GradedReveal {
+public struct BlockerReveal: Equatable {
     public let band: GradeBand
     public let estimate: Int
     public let count: Int

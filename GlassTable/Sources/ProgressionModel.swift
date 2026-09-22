@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
-import SwiftUI
+import Foundation
 import Observation
 import GlassTableEngine
 import GlassTableDrills
@@ -21,13 +21,32 @@ final class ProgressionModel {
 
     private let store: ProgressionStore
     private let scheduler = FSRSScheduler()
-    /// Bumped whenever generated content changes, so the daily set reshuffles instead
-    /// of replaying a stale puzzle.
-    static let contentVersion = 1
 
-    init(store: ProgressionStore = .standard()) {
+    var recoveryFileURL: URL? {
+        guard unreadable != nil, FileManager.default.fileExists(atPath: store.url.path) else {
+            return nil
+        }
+        return store.url
+    }
+
+    init(store: ProgressionStore? = nil) {
+        let hasInjectedStore = store != nil
+        let store = store ?? Self.launchStore()
         self.store = store
         #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        if !hasInjectedStore,
+           environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+           let nodeID = environment["GT_TEST_PATH_CURRENT_NODE"],
+           let index = Curriculum.allNodes.firstIndex(where: { $0.id == nodeID }) {
+            var fixture = ProgressState()
+            fixture.firstLessonCompleted = true
+            for node in Curriculum.allNodes[..<index] {
+                fixture.nodes[node.id] = NodeRecord(cleared: true, clearedAt: Date(), attempts: 1)
+            }
+            state = fixture
+            return
+        }
         // GT_DEMO_SEED=1 — a representative mid-path state for screenshot runs.
         // Built through the real types rather than a hand-written JSON fixture, so it
         // can never encode a shape the store would reject.
@@ -50,6 +69,18 @@ final class ProgressionModel {
         }
     }
 
+    private static func launchStore() -> ProgressionStore {
+        #if DEBUG
+        if let raw = ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"],
+           let id = UUID(uuidString: raw) {
+            let standard = ProgressionStore.standard().url
+            return ProgressionStore(url: standard.deletingLastPathComponent()
+                .appendingPathComponent("progression-test-\(id.uuidString).json"))
+        }
+        #endif
+        return .standard()
+    }
+
     // MARK: - reads
 
     var nextNode: CurriculumNode? { Curriculum.nextNode(in: state) }
@@ -59,7 +90,11 @@ final class ProgressionModel {
     }
 
     func dueConcepts(now: Date = Date()) -> [Concept] {
-        ReviewQueue.dueConcepts(in: state, at: now, scheduler: scheduler)
+        ReviewQueue.dueConcepts(in: state, at: now)
+    }
+
+    func reviewSessionConcepts(now: Date = Date()) -> [Concept] {
+        ReviewQueue.sessionConcepts(in: state, at: now)
     }
 
     func needingExplainer() -> [Concept] { ReviewQueue.needingExplainer(in: state) }
@@ -75,6 +110,30 @@ final class ProgressionModel {
 
     var calibrationVerdict: Calibration.Verdict? {
         calibrationHitRate.map { Calibration.verdict(hitRate: $0) }
+    }
+
+    /// A legacy or imported learner should land where they left off. Unknown concept
+    /// and node keys count too because they can be valid history from another build.
+    var shouldPresentFirstLesson: Bool {
+        guard unreadable == nil else { return false }
+        guard state.firstLessonCompleted != true else { return false }
+        #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        if environment["GT_TEST_FIRST_LESSON"] == "1"
+            || environment["GT_DEMO_FIRST_LESSON"] != nil { return true }
+        if environment["GT_TEST_FIRST_LESSON"] == "0"
+            || environment.keys.contains(where: { $0.hasPrefix("GT_DEMO_") }) {
+            return false
+        }
+        #endif
+        return !hasHistoricalActivity
+    }
+
+    private var hasHistoricalActivity: Bool {
+        !state.concepts.isEmpty || !state.nodes.isEmpty || !state.answers.isEmpty
+            || state.streak.current > 0 || state.streak.longest > 0
+            || state.streak.lastSessionDay != nil
+            || state.streak.lastFreezeEarnedDay != nil
     }
 
     /// Spec §4.6: three misses in a row means the explanation didn't land.
@@ -94,10 +153,14 @@ final class ProgressionModel {
         save()
     }
 
-    /// Marks a node cleared and promotes every concept it exercised. `cleanRun` is
-    /// what separates 익숙 from 능숙; `viaBoss` is the only route to 숙달.
-    func completeNode(_ node: CurriculumNode, cleanRun: Bool, now: Date = Date()) {
-        guard unreadable == nil else { return }
+    /// Marks a fully answered node cleared, then evaluates each concept against only
+    /// its own current-session evidence. Missing or extra evidence changes nothing.
+    @discardableResult
+    func completeNode(_ node: CurriculumNode, scheduled: [Concept],
+                      evidence: [Concept: SessionEvidence], now: Date = Date()) -> Bool {
+        guard unreadable == nil, Curriculum.isValidSession(scheduled, for: node),
+              SessionEvidence.validates(evidence, scheduled: scheduled)
+        else { return false }
         var record = state.nodes[node.id] ?? NodeRecord()
         record.attempts += 1
         record.cleared = true
@@ -106,28 +169,30 @@ final class ProgressionModel {
 
         let viaBoss: Bool
         if case .boss = node.kind { viaBoss = true } else { viaBoss = false }
-        for concept in Curriculum.concepts(of: node) {
+        for concept in Set(scheduled) {
+            guard let conceptEvidence = evidence[concept] else { continue }
             state.updateRecord(for: concept) {
-                Mastery.promote(&$0, cleanRun: cleanRun, viaBoss: viaBoss, now: now)
+                Mastery.promote(&$0, evidence: conceptEvidence, viaBoss: viaBoss, now: now)
             }
         }
         save()
+        return true
     }
 
-    /// Spec §7.1: a streak day needs a session that included a due item, so the
-    /// streak can't be farmed on already-mastered material.
-    func endSession(answered: [Concept], now: Date = Date()) {
+    /// A finished walkthrough releases the stuck-state guard without fabricating a
+    /// graded attempt, review schedule, streak credit, or mastery evidence.
+    func completeWalkthrough(concept: Concept) {
         guard unreadable == nil else { return }
-        guard ReviewQueue.sessionQualifiesForStreak(answered: answered, in: state,
-                                                    at: now, scheduler: scheduler)
-        else { return }
-        Streak.recordSession(&state.streak, on: DayKey(now))
+        Mastery.completeWalkthrough(&state, concept: concept)
         save()
     }
 
-    /// Today's practice set, seeded so it is the same for everyone on a given day.
-    func dailySet(size: Int = 5, now: Date = Date()) -> [Concept] {
-        ReviewQueue.dailySet(in: state, at: now, scheduler: scheduler, size: size)
+    /// The introduction is practice, not assessment. Completing or skipping it writes
+    /// only this marker: no answer, streak, review date, node, or mastery changes.
+    func completeFirstLesson() {
+        guard unreadable == nil else { return }
+        state.firstLessonCompleted = true
+        save()
     }
 
     // MARK: - recovery (spec §8.2)
@@ -141,11 +206,13 @@ final class ProgressionModel {
         try replace(with: store.importData(data))
     }
 
+    func importPrepared(_ prepared: PreparedProgressImport) throws {
+        try replace(with: prepared.state)
+    }
+
     /// Explicit "start over": replacement must preserve the old bytes and save
     /// successfully before either the displayed state or recovery screen changes.
-    func discardUnreadableStore() throws { try replace(with: ProgressState()) }
-
-    func resetProgress() throws { try discardUnreadableStore() }
+    func resetProgress() throws { try replace(with: ProgressState()) }
 
     private func replace(with replacement: ProgressState) throws {
         try store.replace(with: replacement)
@@ -172,18 +239,22 @@ final class ProgressionModel {
     static func demoState() -> ProgressState {
         var s = ProgressState()
         let now = Date()
-        let scheduler = FSRSScheduler()
 
         func study(_ c: Concept, correct: Int, total: Int, tier: MasteryTier,
                    dueInDays: Double, misses: Int = 0) {
+            let due = now.addingTimeInterval(86400 * dueInDays)
+            // Due concepts still need a legal review chronology. The old fixed
+            // `now - 2 days` value landed after the demo's three-days-overdue date,
+            // so every answer save from a seeded screenshot state was rejected.
+            let lastReview = min(now.addingTimeInterval(-86400 * 2),
+                                 due.addingTimeInterval(-86400))
             s.updateRecord(for: c) {
                 $0.correct = correct; $0.total = total; $0.tier = tier
                 $0.consecutiveMisses = misses
                 $0.proficientAt = tier >= .proficient ? now.addingTimeInterval(-86400 * 3) : nil
                 $0.masteredAt = tier == .mastered ? now.addingTimeInterval(-86400 * 2) : nil
                 $0.review = ReviewState(stability: 6, difficulty: 5,
-                                        lastReview: now.addingTimeInterval(-86400 * 2),
-                                        due: now.addingTimeInterval(86400 * dueInDays),
+                                        lastReview: lastReview, due: due,
                                         reps: 3)
             }
         }
@@ -225,7 +296,6 @@ final class ProgressionModel {
 
         s.streak = StreakRecord(current: 12, longest: 12, lastSessionDay: DayKey(now),
                                 freezesRemaining: 2, lastFreezeEarnedDay: DayKey(now))
-        _ = scheduler
         return s
     }
     #endif

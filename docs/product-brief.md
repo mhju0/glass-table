@@ -1,5 +1,10 @@
 # Glass Table — Product Brief
 
+> Historical product rationale. This document retains the original competitive
+> positioning and proposed behavior; it is not a current feature or competitor
+> audit. For the implemented app and testing status, read [README](../README.md)
+> and the [learner-trust delivery](specs/2026-09-20-learner-trust-audit.md).
+
 > An iOS app that teaches serious-minded amateurs to think about No-Limit Texas Hold'em in **ranges and EV**, not in hands and hunches.
 
 ## Thesis: transparency
@@ -73,7 +78,7 @@ Build order: **Math Drills → Range Read → Table.** Each is independently shi
 - **Milestone 2 — Range Read.** Adds the archetype range data + the 13×13 grid + betting-action playback. The strongest differentiator; needs no post-flop bot brain.
 - **Milestone 3 — Table.** Needs everything above plus the post-flop bot. The long pole; sequenced last on purpose.
 
-**Status (2026-08-04): all three modes are built.** M1 shipped 2026-07-23; the
+**Status (2026-09-19 audit of `main`): all three modes are built.** M1 shipped 2026-07-23; the
 revamp (slices R1–R5b, one spec each under `docs/specs/`) then rebuilt the app
 around a guided curriculum (길: 8 units / 18 concepts, FSRS review, interval
 calibration) and delivered Range Read (R3) and the Table (R4–R5) on top of it.
@@ -82,6 +87,10 @@ printable bucket table, deterministic so an observed action *inverts* into the
 exact surviving range, with decisions priced in bb under a disclosed checkdown
 model. Remaining Table depth (hero-seat-sensitive defense, blind play, slowplay
 rows) is tracked in the R4/R5 specs' scope-out sections.
+
+The current local gates pass 316 `GlassTableDrills` tests and 92 release-mode
+`GlassTableEngine` tests. Store submission remains paused for dogfood; rating,
+signed-device, and final storefront verification are separate release gates.
 
 Sit In Their Seat, Run It 1000 Times, and Lab remain post-v1, built on the same spine.
 

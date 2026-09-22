@@ -128,14 +128,20 @@ public struct ProgressState: Codable, Equatable, Sendable {
     public var nodes: [String: NodeRecord]
     public var streak: StreakRecord
     public var answers: [AnswerRecord]
+    /// `nil` means this file predates the hands-on introduction. It stays optional so
+    /// existing schema-1 backups decode without a migration; historical activity is
+    /// handled by the app and also suppresses the introduction.
+    public var firstLessonCompleted: Bool?
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
                 nodes: [String: NodeRecord] = [:],
                 streak: StreakRecord = StreakRecord(),
-                answers: [AnswerRecord] = []) {
+                answers: [AnswerRecord] = [],
+                firstLessonCompleted: Bool? = nil) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
         self.nodes = nodes; self.streak = streak; self.answers = answers
+        self.firstLessonCompleted = firstLessonCompleted
     }
 
     public func record(for concept: Concept) -> ConceptRecord {

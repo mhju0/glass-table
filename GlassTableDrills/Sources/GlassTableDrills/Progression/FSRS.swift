@@ -25,6 +25,9 @@ public enum FSRS {
     public static let minDifficulty = 1.0
     public static let maxDifficulty = 10.0
     public static let minStability = 0.001
+    /// Far beyond the scheduler's 100-year interval cap, while keeping every FSRS
+    /// formula and conversion in a safe numeric range for restored data.
+    public static let maxStability = 1_000_000_000.0
 
     /// How FSRS grades one review. Glass Table never emits `.easy`: it has no signal
     /// that separates "right" from "effortlessly right". Adding one later (a tight
@@ -50,6 +53,7 @@ public struct FSRSScheduler: Sendable {
                 desiredRetention: Double = 0.9,
                 maximumInterval: Int = 36500) {
         precondition(parameters.count == 21, "FSRS-6 takes 21 parameters")
+        precondition(maximumInterval >= 1, "maximum interval must be positive")
         self.parameters = parameters
         self.desiredRetention = desiredRetention
         self.maximumInterval = maximumInterval
@@ -69,14 +73,23 @@ public struct FSRSScheduler: Sendable {
     /// sub-day interval would mean re-drilling a concept inside the same session.
     public func nextInterval(stability: Double) -> Int {
         let raw = (stability / factor) * (pow(desiredRetention, 1 / decay) - 1)
-        guard raw.isFinite else { return maximumInterval }
-        return min(max(Int(raw.rounded()), 1), maximumInterval)
+        guard raw.isFinite else { return raw.isNaN || raw < 0 ? 1 : maximumInterval }
+        let rounded = raw.rounded()
+        guard rounded > 1 else { return 1 }
+        guard rounded < Double(maximumInterval) else { return maximumInterval }
+        return Int(rounded)
     }
 
     // MARK: - the update
 
     /// Advances a concept's memory state by one graded review.
     public func review(_ state: inout ReviewState, rating: FSRS.Rating, now: Date) {
+        state.reps = max(0, state.reps)
+        state.lapses = min(max(0, state.lapses), state.reps)
+        state.stability = state.stability.isFinite
+            ? clampStability(state.stability) : FSRS.minStability
+        state.difficulty = state.difficulty.isFinite
+            ? clampDifficulty(state.difficulty) : 5
         if state.reps == 0 || state.lastReview == nil {
             state.stability = initialStability(rating)
             state.difficulty = initialDifficulty(rating)
@@ -94,8 +107,8 @@ public struct FSRSScheduler: Sendable {
             state.difficulty = nextD
         }
 
-        if rating == .again { state.lapses += 1 }
-        state.reps += 1
+        if rating == .again, state.lapses < Int.max { state.lapses += 1 }
+        if state.reps < Int.max { state.reps += 1 }
         state.lastReview = now
         state.due = Calendar.current.date(byAdding: .day,
                                           value: nextInterval(stability: state.stability),
@@ -169,7 +182,9 @@ public struct FSRSScheduler: Sendable {
     private func clampDifficulty(_ d: Double) -> Double {
         min(max(d, FSRS.minDifficulty), FSRS.maxDifficulty)
     }
-    private func clampStability(_ s: Double) -> Double { max(s, FSRS.minStability) }
+    private func clampStability(_ s: Double) -> Double {
+        min(max(s, FSRS.minStability), FSRS.maxStability)
+    }
 }
 
 // MARK: - Glass Table's grades → FSRS ratings

@@ -98,8 +98,11 @@ final class BeatsTests: XCTestCase {
     }
 
     func testPotMathScriptEndsOnTheAnswerAndShowsEveryAction() {
-        let spot = PotMathSpot(actions: [.blinds(sb: 1, bb: 2), .raiseTo(5, from: 0),
-                                         .call(5), .raiseTo(15, from: 2), .call(10)],
+        let spot = PotMathSpot(actions: [.blinds(sb: 1, bb: 2),
+                                         .raiseTo(actor: .opener, total: 5, alreadyIn: 0),
+                                         .call(actor: .caller1, amount: 5),
+                                         .raiseTo(actor: .bb, total: 15, alreadyIn: 2),
+                                         .call(actor: .opener, amount: 10)],
                                question: .potNow)
         let beats = BeatScript.potMath(spot)
         // intro + one per action + conclusion
@@ -107,6 +110,9 @@ final class BeatsTests: XCTestCase {
         XCTAssertTrue(text(beats.last!).contains("36"))
         // The replace step must be explained, not silently applied.
         XCTAssertTrue(text(beats).contains("다시 세지 않아요"))
+        XCTAssertTrue(text(beats).contains("BB 총 15칩"))
+        XCTAssertTrue(text(beats).contains("추가 13칩"))
+        XCTAssertTrue(text(beats).contains("플레이어 A 콜 +10칩"))
     }
 
     /// The showdown script replays the street progression: turn, both hands as they
@@ -140,6 +146,22 @@ final class BeatsTests: XCTestCase {
                                          "beat \"\(b.caption)\" highlighted \(b.highlight.count) cards")
             }
         }
+    }
+
+    func testShowdownTieHighlightOnlyUsesTheBoardWhenTheBoardPlays() {
+        let boardTie = ShowdownSpot(hero: Card.parse("2c3c")!, villain: Card.parse("4d5d")!,
+                                    board: Card.parse("AsKsQhJhTc")!)
+        let boardConclusion = BeatScript.showdown(boardTie).last!
+        XCTAssertEqual(Set(boardConclusion.highlight), Set(boardTie.board))
+        XCTAssertTrue(text(boardConclusion).contains("공용 카드 다섯 장이"))
+
+        let holeCardTie = ShowdownSpot(hero: Card.parse("AsKd")!, villain: Card.parse("AhKc")!,
+                                       board: Card.parse("QsJdTc3h2c")!)
+        let holeCardConclusion = BeatScript.showdown(holeCardTie).last!
+        XCTAssertTrue(holeCardConclusion.highlight.isEmpty,
+                      "A board-only highlight would misteach this hole-card tie")
+        XCTAssertTrue(text(holeCardConclusion).contains("패의 세기가 같아서"))
+        XCTAssertFalse(text(holeCardConclusion).contains("공용 카드 다섯 장이"))
     }
 
     /// A hand that changes on the river must say so, and one that does not must not.

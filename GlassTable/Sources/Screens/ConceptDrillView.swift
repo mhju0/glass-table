@@ -23,12 +23,26 @@ struct ConceptDrillView: View {
     let seed: UInt64
     let index: Int
     let progressText: String
+    let onCommit: (DrillOutcome) -> Void
     let onAnswer: (DrillOutcome) -> Void
+
+    init(concept: Concept, seed: UInt64, index: Int, progressText: String,
+         onCommit: @escaping (DrillOutcome) -> Void = { _ in },
+         onAnswer: @escaping (DrillOutcome) -> Void) {
+        self.concept = concept
+        self.seed = seed
+        self.index = index
+        self.progressText = progressText
+        self.onCommit = onCommit
+        self.onAnswer = onAnswer
+    }
 
     var body: some View {
         // One key set here instead of a `term:` threaded through eighteen drills —
         // the reveal sheets read it back to draw their 용어 chip.
-        drill.environment(\.glossaryTerm, Self.glossaryTerm(for: concept))
+        drill
+            .environment(\.glossaryTerm, Self.glossaryTerm(for: concept))
+            .environment(\.drillCommit, onCommit)
     }
 
     /// The glossary entry a confused user most likely needs mid-drill. Values must
@@ -36,7 +50,8 @@ struct ConceptDrillView: View {
     private static func glossaryTerm(for concept: Concept) -> String? {
         switch concept {
         case .showdown, .position: return nil   // no matching glossary entry
-        case .potMath, .evLoss:    return "bb"
+        case .potMath:             return "칩"
+        case .evLoss:              return "bb"
         case .equitySense, .evCall, .rangeAdvantage: return "에퀴티"
         case .combos, .rangeNotation: return "콤보"
         case .outs:     return "아웃"
@@ -112,10 +127,19 @@ private struct GlossaryTermKey: EnvironmentKey {
     static let defaultValue: String? = nil
 }
 
+private struct DrillCommitKey: EnvironmentKey {
+    static let defaultValue: (DrillOutcome) -> Void = { _ in }
+}
+
 extension EnvironmentValues {
     fileprivate var glossaryTerm: String? {
         get { self[GlossaryTermKey.self] }
         set { self[GlossaryTermKey.self] = newValue }
+    }
+
+    fileprivate var drillCommit: (DrillOutcome) -> Void {
+        get { self[DrillCommitKey.self] }
+        set { self[DrillCommitKey.self] = newValue }
     }
 }
 
@@ -129,63 +153,83 @@ private func gradeHaptic(_ band: GradeBand) {
 
 /// Every drill shares the same skeleton: felt content zone, cream answer sheet.
 private struct DrillShell<Content: View, Sheet: View>: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let title: String
     let progressText: String
     @ViewBuilder var content: () -> Content
     @ViewBuilder var sheet: () -> Sheet
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(title).font(GT.title(16)).foregroundStyle(GT.onFelt)
-                Spacer()
-                Text(progressText).font(GT.semibold(12).monospacedDigit())
-                    .foregroundStyle(GT.onFeltSecondary)
-            }
-            .padding(.horizontal, 18).padding(.top, 6).padding(.bottom, 12)
-
-            // The spot sits in the middle of the band between header and sheet rather
-            // than stacking from the top. A ScrollView hands its content unbounded
-            // height, so every drill shorter than the viewport — which is most of them —
-            // left the slack as bare felt just above the sheet. Pinning to the viewport
-            // height gives the spacing to both ends; longer drills still scroll.
-            GeometryReader { geo in
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
                 ScrollView {
-                    content()
-                        .padding(.horizontal, 18)
-                        .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                    VStack(alignment: .leading, spacing: GT.Space.section) {
+                        header
+                        content().frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
+                            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+                            .gtCard(radius: GT.Radius.panel)
+                    }
+                    .padding(.horizontal, 18).padding(.bottom, 28)
                 }
-                .scrollBounceBehavior(.basedOnSize)
+            } else {
+                VStack(spacing: 0) {
+                    header.padding(.horizontal, 18)
+                    GeometryReader { geo in
+                        ScrollView {
+                            content()
+                                .padding(.horizontal, 18)
+                                .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                        }
+                        .scrollBounceBehavior(.basedOnSize)
+                    }
+                    ActionSheet { sheet() }.layoutPriority(1)
+                }
             }
-
-            ActionSheet { sheet() }.layoutPriority(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var header: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title).font(GT.title(19)).foregroundStyle(GT.onFelt)
+            Spacer(minLength: 12)
+            Text(progressText).font(GT.semibold(14).monospacedDigit())
+                .foregroundStyle(GT.onFeltSecondary)
+        }
+        .padding(.top, 6).padding(.bottom, 12)
     }
 }
 
 /// Reveal panel shared by every drill: verdict, the "why", then advance.
 private struct RevealSheet: View {
     @Environment(\.glossaryTerm) private var term
+    @Environment(\.drillCommit) private var onCommit
     let band: GradeBand
     let mine: String
     let correct: String
     let why: String
+    var interval: IntervalAnswer? = nil
+    var evLoss: Double? = nil
     let onNext: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VerdictRow(band: band, mine: mine, correct: correct)
-            Text(why).font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
-                .padding(13)
+            Text(why).font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                .lineSpacing(GT.Typography.explanationLineSpacing)
+                .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(GT.border, lineWidth: 1))
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                                             style: .continuous))
                 .fixedSize(horizontal: false, vertical: true)
             if let term { GlossaryChip(term: term) }
             PrimaryCTAButton(title: "다음 문제", action: onNext)
         }
-        .onAppear { gradeHaptic(band) }
+        .onAppear {
+            onCommit(DrillOutcome(band: band, interval: interval, evLoss: evLoss))
+            gradeHaptic(band)
+        }
     }
 }
 
@@ -206,16 +250,30 @@ private struct IntervalInput: View {
                 Text("\(fmt(point))\(unit)")
                     .font(GT.title(20).monospacedDigit()).foregroundStyle(GT.ink)
             }
-            Slider(value: $point, in: range, step: step).tint(GT.cta)
+            HStack(spacing: 10) {
+                Slider(value: $point, in: range, step: step).tint(GT.cta)
+                AdjustmentButtons(label: "추정값",
+                                  decrement: { point = max(range.lowerBound, point - step) },
+                                  increment: { point = min(range.upperBound, point + step) })
+            }
             HStack {
                 Text("90% 구간").font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
                 Spacer()
                 Text("\(fmt(max(range.lowerBound, point - halfWidth)))–\(fmt(min(range.upperBound, point + halfWidth)))\(unit)")
                     .font(GT.semibold(14).monospacedDigit()).foregroundStyle(GT.inkSecondary)
             }
-            Slider(value: $halfWidth, in: step...(range.upperBound - range.lowerBound) / 2,
-                   step: step).tint(GT.inkMuted)
-            Text("좁을수록 점수가 좋아요. 다만 정답이 구간을 벗어나면 크게 깎여요.")
+            HStack(spacing: 10) {
+                Slider(value: $halfWidth,
+                       in: step...(range.upperBound - range.lowerBound) / 2,
+                       step: step).tint(GT.inkMuted)
+                AdjustmentButtons(label: "구간 너비",
+                                  decrement: { halfWidth = max(step, halfWidth - step) },
+                                  increment: {
+                                      halfWidth = min((range.upperBound - range.lowerBound) / 2,
+                                                      halfWidth + step)
+                                  })
+            }
+            Text("정답이 들어갈 범위를 잡아요. 10번 중 약 9번 포함된다고 생각하는 구간이에요.")
                 .font(GT.body(10.5)).foregroundStyle(GT.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -242,35 +300,30 @@ private struct ShowdownDrill: View {
         switch reveal.winner {
         case 0: return bestFiveCards(spot.hero + spot.board)
         case 1: return bestFiveCards(spot.villain + spot.board)
-        default: return spot.board
+        default: return []
         }
     }
 
     var body: some View {
         DrillShell(title: "쇼다운", progressText: progressText) {
-            VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: reveal == nil ? "상대" : (reveal!.winner == 1 ? "상대 · 승" : "상대"))
-                CardRow(cards: spot.villain, maxSize: 78, highlight: winningFive)
-                SectionLabel(text: "보드").padding(.top, 10)
-                CardRow(cards: spot.board, maxSize: 70, highlight: winningFive)
-                SectionLabel(text: reveal == nil ? "내 핸드" : (reveal!.winner == 0 ? "내 핸드 · 승" : "내 핸드"))
-                    .padding(.top, 10)
-                CardRow(cards: spot.hero, maxSize: 78, highlight: winningFive)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            ThreeRegionCardTable(
+                opponent: spot.villain, board: spot.board, hero: spot.hero,
+                opponentTitle: reveal?.winner == 1 ? "상대 카드 · 승" : "상대 카드",
+                heroTitle: reveal?.winner == 0 ? "내 카드 · 승" : "내 카드",
+                highlight: winningFive)
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: ["내가 이김", "상대가 이김", "찹"][reveal.answer],
-                            correct: ["내가 이김", "상대가 이김", "찹"][reveal.winner],
+                            mine: ["내가 이김", "상대가 이김", "무승부"][reveal.answer],
+                            correct: ["내가 이김", "상대가 이김", "무승부"][reveal.winner],
                             why: reveal.whyText) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil
                 }
             } else {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("누가 이겼나요?").font(GT.title(15)).foregroundStyle(GT.ink)
-                    ForEach(Array(["내가 이김", "상대가 이김", "찹"].enumerated()), id: \.offset) { i, label in
+                    Text("누가 이겼나요?").font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
+                    ForEach(Array(["내가 이김", "상대가 이김", "무승부"].enumerated()), id: \.offset) { i, label in
                         GTChoiceButton(title: label) {
                             reveal = gradeShowdown(answer: i, spot: spot)
                         }
@@ -293,33 +346,55 @@ private struct PotMathDrill: View {
 
     private var question: String {
         switch spot.question {
-        case .potNow: return "지금 팟은 몇 bb인가요?"
-        case let .fractionOfPot(f): return "팟의 \(Int((f * 100).rounded()))%는 몇 bb인가요?"
+        case .potNow: return "지금 팟은 몇 칩인가요?"
+        case let .fractionOfPot(f): return "현재 팟의 \(Int((f * 100).rounded()))%는 몇 칩인가요?"
         }
     }
 
     var body: some View {
         DrillShell(title: "팟 계산", progressText: progressText) {
-            VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "액션")
-                ForEach(Array(actionLines.enumerated()), id: \.offset) { _, line in
-                    Text(line).font(GT.body(13)).foregroundStyle(GT.onFelt)
+            VStack(alignment: .leading, spacing: 12) {
+                SectionLabel(text: "\(spot.participantCount)명이 낸 칩 · 액션 순서")
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(Array(actionLines.enumerated()), id: \.offset) { index, line in
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text("\(index + 1)")
+                                .font(GT.semibold(12).monospacedDigit())
+                                .foregroundStyle(GT.onFeltSecondary)
+                                .frame(width: 20, alignment: .trailing)
+                            Text(line).font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFelt)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                 }
+                .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                .background(GT.onFelt.opacity(0.08),
+                            in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                Text("스몰 블라인드(SB): 1칩\n빅 블라인드(BB): 2칩")
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
+                Text("칩이 더 들어오지 않는 폴드는 생략했어요. 여기까지 들어온 칩만 세며, 이후 행동은 포함하지 않아요.")
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
             if let reveal {
-                RevealSheet(band: reveal.band, mine: "\(reveal.answer)bb",
-                            correct: "\(reveal.correct)bb", why: reveal.whyText) {
+                RevealSheet(band: reveal.band, mine: "\(reveal.answer)칩",
+                            correct: "\(reveal.correct)칩", why: reveal.whyText) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil; value = 10
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(question).font(GT.title(15)).foregroundStyle(GT.ink)
+                    Text(question).font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
+                    if case .fractionOfPot = spot.question {
+                        Text("계산 결과는 가장 가까운 한 칩으로 반올림해요.")
+                        .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                    }
                     HStack {
                         Spacer()
-                        EstimateStepper(value: value, suffix: "bb") {
+                        EstimateStepper(value: value, suffix: "칩") {
                             value = max(0, value + $0)
                         }
                         Spacer()
@@ -335,11 +410,11 @@ private struct PotMathDrill: View {
     private var actionLines: [String] {
         spot.actions.map { action in
             switch action {
-            case let .blinds(sb, bb): return "블라인드 \(sb) / \(bb)"
-            case let .bet(n): return "벳 \(n)bb"
-            case let .call(n): return "콜 \(n)bb"
-            case let .raiseTo(to, from):
-                return from == 0 ? "레이즈 \(to)bb" : "레이즈 \(to)bb (이미 \(from) 넣음)"
+            case let .blinds(sb, bb): return "SB \(sb)칩 · BB \(bb)칩"
+            case let .bet(actor, n): return "\(actor.rawValue) · 벳 +\(n)칩"
+            case let .call(actor, n): return "\(actor.rawValue) · 콜 +\(n)칩"
+            case let .raiseTo(actor, to, from):
+                return "\(actor.rawValue) · 총 \(to)칩으로 레이즈 (추가 \(to - from)칩)"
             }
         }
     }
@@ -370,7 +445,7 @@ private struct PositionDrill: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(questionText).font(GT.title(15)).foregroundStyle(GT.ink)
+                    Text(questionText).font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     answerControls
                 }
@@ -456,28 +531,21 @@ private struct EquitySenseDrill: View {
 
     var body: some View {
         DrillShell(title: "에퀴티 감각", progressText: progressText) {
-            VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
-                SectionLabel(text: spot.board.count == 3 ? "보드 · 플랍" : "보드 · 턴")
-                    .padding(.top, 10)
-                CardRow(cards: spot.board, maxSize: 70)
-                SectionLabel(text: "내 핸드").padding(.top, 10)
-                CardRow(cards: spot.hero, maxSize: 78)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                            interval: reveal.intervalAnswer) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 50; halfWidth = 10
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("쇼다운까지 갔을 때 내가 이길 확률은?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: 1, unit: "%")
                     PrimaryCTAButton(title: "확인") {
@@ -523,14 +591,15 @@ private struct EVCallDrill: View {
                 RevealSheet(band: reveal.band,
                             mine: "\(pctText(reveal.estimate.point))bb",
                             correct: "\(pctText(reveal.correct))bb",
-                            why: reveal.whyText) {
+                            why: reveal.whyText,
+                            interval: reveal.intervalAnswer) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 0; halfWidth = 1
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("이 콜의 EV는 몇 bb인가요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: -20...20, step: 0.5, unit: "bb")
                     PrimaryCTAButton(title: "확인") {
@@ -554,7 +623,7 @@ private struct CountDrill: View {
     let kind: Kind
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
-    @State private var value = 8
+    @State private var countEntry = ""
     @State private var result: (band: GradeBand, mine: String, correct: String, why: String)?
     @State private var tappedOut: Card?
 
@@ -584,26 +653,24 @@ private struct CountDrill: View {
                 RevealSheet(band: result.band, mine: result.mine,
                             correct: result.correct, why: result.why) {
                     onAnswer(DrillOutcome(band: result.band, interval: nil))
-                    self.result = nil; value = 8; tappedOut = nil
+                    self.result = nil; countEntry = ""; tappedOut = nil
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(kind == .outs ? "리버에 나를 이기게 해주는 카드는 몇 장인가요?"
                                        : "상대가 이 핸드를 가질 수 있는 콤보는 몇 개인가요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
-                    HStack { Spacer()
-                        EstimateStepper(value: value, suffix: kind == .outs ? "장" : "개") {
-                            value = max(0, value + $0)
-                        }
-                        Spacer() }
-                    PrimaryCTAButton(title: "확인", action: submit)
+                    CountEntryView(entry: $countEntry,
+                                   suffix: kind == .outs ? "장" : "개",
+                                   onSubmit: submit)
                 }
             }
         }
     }
 
     private func submit() {
+        guard let value = countValue else { return }
         switch kind {
         case .outs:
             let spot = makeOutsSpot()
@@ -616,25 +683,19 @@ private struct CountDrill: View {
         }
     }
 
+    private var countValue: Int? {
+        countEntry.isEmpty ? nil : Int(countEntry)
+    }
+
     private func outsContent(_ spot: OutsSpot) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
-            SectionLabel(text: "보드 · 턴").padding(.top, 10)
-            CardRow(cards: spot.board, maxSize: 70)
-            SectionLabel(text: "내 핸드").padding(.top, 10)
-            CardRow(cards: spot.hero, maxSize: 78)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
     }
 
     /// The restored affordance from the M1 outs reveal: every out is tappable and
     /// shows the finished river hand for both players via `RiverExplainPanel`.
     private func outsReveal(_ spot: OutsSpot) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 70)
-            SectionLabel(text: "보드 · 턴").padding(.top, 8)
-            CardRow(cards: spot.board, maxSize: 64)
-            SectionLabel(text: "내 핸드").padding(.top, 8); CardRow(cards: spot.hero, maxSize: 70)
+            ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
 
             SectionLabel(text: "리버 아웃 · \(spot.outCount)장 · 눌러서 확인").padding(.top, 12)
             outsGrid(spot.outs, dead: false)
@@ -654,15 +715,15 @@ private struct CountDrill: View {
                   alignment: .leading, spacing: 8) {
             ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
                 Button {
-                    withAnimation(.easeOut(duration: 0.2)) {
+                    withAnimation(GT.Motion.change) {
                         tappedOut = tappedOut == card ? nil : card
                     }
                 } label: {
-                    PlayingCardView(card: card, size: 58, dead: dead)
+                    PlayingCardView(card: card, dead: dead)
                         .overlay {
                             if tappedOut == card {
-                                RoundedRectangle(cornerRadius: 58 * 0.17)
-                                    .stroke(GT.mint, lineWidth: 3)
+                                RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: PlayingCardView.canonicalSize))
+                                    .strokeBorder(GT.mint, lineWidth: 3)
                             }
                         }
                 }
@@ -677,7 +738,7 @@ private struct CountDrill: View {
             SectionLabel(text: "상대 핸드 클래스")
             Text(spot.className).font(GT.title(26)).foregroundStyle(GT.onFelt)
             SectionLabel(text: "보이는 카드").padding(.top, 6)
-            CardRow(cards: spot.removed, maxSize: 70)
+            CardRow(cards: spot.removed)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -710,7 +771,7 @@ private struct PercentDrill: View {
                 // drill's job. MDF's bar needs no caption at all.
                 if !isMDF {
                     Text("콜 \(spot.bet)bb는 아직 내지 않은 돈이라 점선이에요")
-                        .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                        .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -725,7 +786,7 @@ private struct PercentDrill: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(isMDF ? "이 벳에 최소 몇 %를 지켜야 하나요?"
                                : "콜하려면 최소 몇 %의 에퀴티가 필요한가요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     HStack { Spacer()
                         EstimateStepper(value: value, step: 5, suffix: "%") {
@@ -758,11 +819,7 @@ private struct CallFoldDrill: View {
         let spot = makeSpot()
         return DrillShell(title: "콜/폴드", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: "상대"); CardRow(cards: spot.villain, maxSize: 78)
-                SectionLabel(text: "보드 · 턴").padding(.top, 10)
-                CardRow(cards: spot.board, maxSize: 70)
-                SectionLabel(text: "내 핸드").padding(.top, 10)
-                CardRow(cards: spot.hero, maxSize: 78)
+                ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
                 Text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb")
                     .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
             }
@@ -779,7 +836,7 @@ private struct CallFoldDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("콜인가요, 폴드인가요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     HStack(spacing: 10) {
                         // Equal weight on both, so the layout carries no bias toward
                         // calling — the same rule the M1 screen already followed.
@@ -799,6 +856,7 @@ private struct CallFoldDrill: View {
 // MARK: - 레인지 표기법
 
 private struct RangeNotationDrill: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var value = 12
@@ -815,7 +873,10 @@ private struct RangeNotationDrill: View {
                 if reveal != nil {
                     Text(spot.notation)
                         .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
-                        .minimumScaleFactor(0.5).lineLimit(2)
+                        .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.8)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 3)
+                        .fixedSize(horizontal: false,
+                                   vertical: dynamicTypeSize.isAccessibilitySize)
                     SectionLabel(text: "표에서 보면").padding(.top, 6)
                     RangeGridView(range: spot.range)
                         .frame(maxWidth: 320)
@@ -827,8 +888,11 @@ private struct RangeNotationDrill: View {
                     // counting.
                     Spacer(minLength: 60)
                     Text(spot.notation)
-                        .font(GT.title(44).monospaced()).foregroundStyle(GT.onFelt)
-                        .minimumScaleFactor(0.4).lineLimit(3)
+                        .font(GT.title(38).monospaced()).foregroundStyle(GT.onFelt)
+                        .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.8)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 4)
+                        .fixedSize(horizontal: false,
+                                   vertical: dynamicTypeSize.isAccessibilitySize)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
                     Text("페어 6 · 수티드 4 · 오프수트 12")
@@ -848,7 +912,7 @@ private struct RangeNotationDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("이 레인지는 몇 콤보인가요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     HStack { Spacer()
                         EstimateStepper(value: value, suffix: "") {
                             value = max(0, value + $0)
@@ -866,6 +930,7 @@ private struct RangeNotationDrill: View {
 // MARK: - RFI 차트
 
 private struct RFIDrill: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: RFIReveal?
@@ -876,7 +941,7 @@ private struct RFIDrill: View {
         DrillShell(title: "RFI 차트", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: "내 핸드")
-                CardRow(cards: spot.hand, maxSize: 78)
+                CardRow(cards: spot.hand)
                 SectionLabel(text: "내 자리").padding(.top, 8)
                 seatStrip
                 if reveal != nil {
@@ -902,7 +967,7 @@ private struct RFIDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("\(spot.seat.rawValue)에서 이 핸드, 오픈인가요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     HStack(spacing: 10) {
                         ForEach([("폴드", false), ("오픈", true)], id: \.0) { label, opens in
                             GTChoiceButton(title: label, minHeight: 56) {
@@ -915,20 +980,29 @@ private struct RFIDrill: View {
         }
     }
 
+    @ViewBuilder
     private var seatStrip: some View {
-        HStack(spacing: 4) {
-            ForEach(Position.preflopOrder, id: \.self) { p in
-                Text(p.rawValue)
-                    .font(GT.semibold(9.5))
-                    .foregroundStyle(p == spot.seat ? GT.onCTA : GT.onFelt.opacity(0.75))
-                    .lineLimit(1).minimumScaleFactor(0.7)
-                    .frame(maxWidth: .infinity, minHeight: 32)
-                    .background(p == spot.seat ? GT.mint : GT.onFelt.opacity(0.10),
-                                in: RoundedRectangle(cornerRadius: 7))
+        if dynamicTypeSize.isAccessibilitySize {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 2),
+                      spacing: 6) {
+                ForEach(Position.preflopOrder, id: \.self) { seatChip($0, compact: false) }
             }
+        } else {
+            HStack(spacing: 4) {
+                ForEach(Position.preflopOrder, id: \.self) { seatChip($0, compact: true) }
+            }
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         }
-        // Same one-row constraint as the 포지션 drill's strip.
-        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+    }
+
+    private func seatChip(_ position: Position, compact: Bool) -> some View {
+        Text(position.rawValue)
+            .font(GT.semibold(compact ? 9.5 : 12))
+            .foregroundStyle(position == spot.seat ? GT.onCTA : GT.onFelt.opacity(0.75))
+            .lineLimit(1).minimumScaleFactor(compact ? 0.8 : 1)
+            .frame(maxWidth: .infinity, minHeight: compact ? 32 : 44)
+            .background(position == spot.seat ? GT.mint : GT.onFelt.opacity(0.10),
+                        in: RoundedRectangle(cornerRadius: 7))
     }
 }
 
@@ -965,7 +1039,7 @@ private struct RangeReadDrill: View {
                 RangeGridView(range: reveal?.truth ?? estimate.range,
                               outline: reveal?.guess)
                     .frame(maxWidth: 250)
-                    .animation(.easeOut(duration: 0.18), value: width)
+                    .animation(GT.Motion.change, value: width)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .onAppear {
@@ -1061,7 +1135,7 @@ private struct RangeReadDrill: View {
         return VStack(alignment: .leading, spacing: 13) {
             HStack(alignment: .firstTextBaseline) {
                 Text("상대는 몇 %로 \(actionVerb)했을까요?")
-                    .font(GT.title(15)).foregroundStyle(GT.ink)
+                    .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                 Spacer(minLength: 8)
                 Text("\(pctText(width))%")
                     .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
@@ -1070,6 +1144,9 @@ private struct RangeReadDrill: View {
             Slider(value: $width, in: 3...80, step: 1).tint(GT.cta)
                 .accessibilityLabel("범위 넓이")
                 .accessibilityValue("상위 \(pctText(width))퍼센트")
+            AdjustmentButtons(label: "범위 넓이",
+                              decrement: { width = max(3, width - 1) },
+                              increment: { width = min(80, width + 1) })
 
             SectionLabel(text: "어디에 몰려 있나요 (선택)", onDark: false)
             chips(saturated)
@@ -1163,7 +1240,7 @@ private struct HitFrequencyDrill: View {
         DrillShell(title: "히트 프리퀀시", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: "보드 · 플랍")
-                CardRow(cards: spot.board, maxSize: 70)
+                CardRow(cards: spot.board)
                 Text(spot.texture.summary)
                     .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                 SectionLabel(text: "상대 레인지").padding(.top, 8)
@@ -1197,14 +1274,15 @@ private struct HitFrequencyDrill: View {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                            interval: reveal.intervalAnswer) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 35; halfWidth = 12
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("이 레인지의 몇 %가 페어 이상을 만들었을까요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: 1, unit: "%")
@@ -1254,7 +1332,7 @@ private struct RangeAdvantageDrill: View {
         return DrillShell(title: "레인지 어드밴티지", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: "보드 · 플랍")
-                CardRow(cards: spot.board, maxSize: 70)
+                CardRow(cards: spot.board)
                 Text(spot.texture.summary)
                     .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                 SectionLabel(text: "액션").padding(.top, 8)
@@ -1278,6 +1356,8 @@ private struct RangeAdvantageDrill: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .task(id: index) {
+                equity = nil
+                buckets = nil
                 let s = seed, i = index
                 // One detached pass produces both the sampled equity and the bars, off
                 // a single generated spot.
@@ -1287,6 +1367,7 @@ private struct RangeAdvantageDrill: View {
                             rangeOnBoard(sp.openerRange, board: sp.board),
                             rangeOnBoard(sp.callerRange, board: sp.board))
                 }.value
+                guard !Task.isCancelled else { return }
                 equity = computed.0
                 buckets = (opener: computed.1, caller: computed.2)
                 #if DEBUG
@@ -1304,14 +1385,19 @@ private struct RangeAdvantageDrill: View {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                            interval: reveal.intervalAnswer) {
+                    // Disable submission synchronously before the next spot appears;
+                    // its task must supply its own equity, not reuse this answer's.
+                    equity = nil
+                    buckets = nil
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 50; halfWidth = 10
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("쇼다운까지 가면 오프너의 승률은 몇 %일까요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: 1, unit: "%")
@@ -1329,51 +1415,109 @@ private struct RangeAdvantageDrill: View {
 
 // MARK: - EV 손실
 
-/// The bb is the headline, not the band.
+/// Lead with the better action, then make the EV subtraction inspectable.
 ///
-/// Every other reveal in the app can lead with 정확/근접/빗나감 because every other
-/// answer is either right or not. This concept exists to say that being wrong is not
-/// one thing, so a verdict pill at the top would contradict the lesson underneath it.
+/// The progression band remains visible as a small severity label, while the selected
+/// and best lines carry the teaching claim. A near-best choice never reads as best.
 private struct EVLossRevealSheet: View {
     @Environment(\.glossaryTerm) private var term
+    @Environment(\.drillCommit) private var onCommit
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let reveal: EVLossReveal
     let onNext: () -> Void
 
-    private var headline: String {
-        reveal.grade.loss <= 0 ? "0bb" : "\u{2212}\(bbText(reveal.grade.loss))bb"
+    private var lesson: String {
+        reveal.grade.loss <= 0
+            ? "\(KO.subject(reveal.grade.chosen.label)) 최선이에요"
+            : "최선은 \(reveal.grade.best.label)"
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 9) {
-                Text(headline)
-                    .font(GT.title(32).monospacedDigit())
-                    .foregroundStyle(reveal.band.ink)
-                // Shape and word beside the number, so the verdict never rests on hue
-                // alone — the same three-channel rule VerdictRow follows.
-                Image(systemName: reveal.band.glyph)
-                    .font(.system(size: 15)).foregroundStyle(reveal.band.ink)
-                Text(reveal.band.evLossLabel)
-                    .font(GT.title(15)).foregroundStyle(reveal.band.ink)
+                Text(lesson)
+                    .font(GT.title(20))
+                    .foregroundStyle(GT.ink)
                 Spacer(minLength: 6)
-                Text("내 선택 · \(reveal.grade.chosen.label)")
-                    .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
+                Image(systemName: reveal.band.glyph)
+                    .font(.system(size: 11, weight: .bold)).foregroundStyle(reveal.band.ink)
+                Text(evLossLabel(loss: reveal.grade.loss))
+                    .font(GT.semibold(12)).foregroundStyle(reveal.band.ink)
             }
-            .padding(.horizontal, 13).padding(.vertical, 11)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(reveal.band.tint, in: RoundedRectangle(cornerRadius: 14))
+            evComparison
 
-            Text(reveal.whyText).font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
-                .padding(13)
+            Text(reveal.whyText)
+                .font(GT.body(GT.Typography.explanationSize))
+                .foregroundStyle(GT.inkSecondary)
+                .lineSpacing(GT.Typography.explanationLineSpacing)
+                .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(GT.border, lineWidth: 1))
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control)
+                    .strokeBorder(GT.border, lineWidth: 1))
                 .fixedSize(horizontal: false, vertical: true)
             if let term { GlossaryChip(term: term) }
             PrimaryCTAButton(title: "다음 문제", action: onNext)
         }
         .accessibilityElement(children: .contain)
-        .onAppear { gradeHaptic(reveal.band) }
+        .onAppear {
+            onCommit(DrillOutcome(band: reveal.band, interval: nil,
+                                  evLoss: reveal.grade.loss))
+            gradeHaptic(reveal.band)
+        }
+    }
+
+    private var evComparison: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            evRow(tag: "최선", option: reveal.grade.best, ink: GTBand.spotOnInk)
+            Divider().overlay(GT.border)
+            evRow(tag: "내 선택", option: reveal.grade.chosen, ink: reveal.band.ink)
+            HStack {
+                Text("최선 대비 손실")
+                    .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
+                Spacer(minLength: 8)
+                Text("\(bbText(reveal.grade.loss))bb")
+                    .font(GT.title(15).monospacedDigit()).foregroundStyle(reveal.band.ink)
+            }
+            .accessibilityElement(children: .combine)
+            Text(lossEquation)
+                .font(GT.body(11).monospacedDigit()).foregroundStyle(GT.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(12)
+        .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+    }
+
+    private var lossEquation: String {
+        let best = bbText(reveal.grade.best.ev)
+        let chosen = bbText(reveal.grade.chosen.ev)
+        let chosenTerm = reveal.grade.chosen.ev < 0 ? "(\(chosen))" : chosen
+        return "최선 EV \(best)bb − 내 선택 EV \(chosenTerm)bb = 손실 \(bbText(reveal.grade.loss))bb"
+    }
+
+    private func evRow(tag: String, option: DecisionOption, ink: Color) -> some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(tag) · \(option.label)")
+                        .font(GT.semibold(11))
+                        .foregroundStyle(GT.inkMuted)
+                    Text("\(bbText(option.ev))bb")
+                        .font(GT.title(14).monospacedDigit())
+                        .foregroundStyle(ink)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    Text(tag).font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
+                        .frame(width: 46, alignment: .leading)
+                    Text(option.label).font(GT.semibold(13)).foregroundStyle(GT.ink)
+                    Spacer(minLength: 6)
+                    Text("\(bbText(option.ev))bb")
+                        .font(GT.title(14).monospacedDigit()).foregroundStyle(ink)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
     }
 }
 
@@ -1396,25 +1540,21 @@ private struct EVLossDrill: View {
         let spot = makeSpot()
         return DrillShell(title: "EV 손실", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
+                if reveal != nil {
+                    evRangeEvidence(spot)
+                        .padding(.bottom, 10)
+                }
                 SectionLabel(text: "보드 · 리버")
-                CardRow(cards: spot.board, maxSize: 62)
+                CardRow(cards: spot.board)
                 SectionLabel(text: "내 핸드").padding(.top, 10)
-                CardRow(cards: spot.hero, maxSize: 78)
+                CardRow(cards: spot.hero)
                 // The range is stated, never guessed (spec §3.1). Printing it as the
                 // premise is the difference between this and 콜/폴드, where the
                 // villain's two cards are face up.
-                SectionLabel(text: "상대 레인지").padding(.top, 10)
-                Text(spot.rangeLabel)
-                    .font(GT.title(15)).foregroundStyle(GT.onFelt)
-                Text("리버에서 어떻게 좁혔는지는 아직 안 따져요")
-                    .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
-                // Drawn, not just named. A stated range the user cannot see is still a
-                // number handed down — showing the 169 cells the equity came from is
-                // the whole transparency claim (spec §3.1), and it is what the felt
-                // below the cards was empty for.
-                RangeGridView(range: spot.villainRange)
-                    .frame(height: 230)
-                    .padding(.top, 8)
+                if reveal == nil {
+                    evRangeEvidence(spot)
+                        .padding(.top, 10)
+                }
                 Text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb")
                     .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
             }
@@ -1429,7 +1569,7 @@ private struct EVLossDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("콜인가요, 폴드인가요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     HStack(spacing: 10) {
                         ForEach([("폴드", false), ("콜", true)], id: \.0) { label, calls in
                             GTChoiceButton(title: label, minHeight: 56) {
@@ -1449,6 +1589,24 @@ private struct EVLossDrill: View {
                 }
             }
         }
+    }
+
+    private func evRangeEvidence(_ spot: EVLossSpot) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            SectionLabel(text: reveal == nil ? "상대 레인지" : "채점에 사용한 상대 레인지")
+            Text("\(spot.rangeLabel) · \(Int(spot.villainRange.comboCount))콤보")
+                .font(GT.title(15)).foregroundStyle(GT.onFelt)
+            Text("리버에서 어떻게 좁혔는지는 아직 안 따져요")
+                .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+            // Drawn, not just named. A stated range the user cannot see is still a
+            // number handed down — showing the 169 cells the equity came from is the
+            // whole transparency claim (spec §3.1).
+            RangeGridView(range: spot.villainRange)
+                .frame(height: 230)
+                .padding(.top, 8)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("ev-range-evidence")
     }
 }
 
@@ -1473,7 +1631,7 @@ private struct ActionReadDrill: View {
         return DrillShell(title: "액션 리드", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: "보드 · 플랍")
-                CardRow(cards: spot.board, maxSize: 70)
+                CardRow(cards: spot.board)
                 Text(spot.texture.summary)
                     .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                 SectionLabel(text: "행동").padding(.top, 8)
@@ -1518,14 +1676,15 @@ private struct ActionReadDrill: View {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
                             correct: "\(pctText(reveal.correct))%",
                             why: reveal.whyText + (reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.")) {
+                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                            interval: reveal.intervalAnswer) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: reveal.intervalAnswer))
                     self.reveal = nil; point = 40; halfWidth = 12
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("\(KO.subject(spot.action.rawValue)) 남긴 레인지의 몇 %가 페어 이상일까요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: 1, unit: "%")
@@ -1553,20 +1712,21 @@ private struct DefendDrill: View {
     var body: some View {
         DrillShell(title: "디펜드 차트", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
+                if reveal != nil {
+                    // Lead with the evidence used to grade this exact hand. On a
+                    // compact screen the full 13×13 chart can extend below the fold;
+                    // the selected cell and its action must not.
+                    DefendGridView(opener: spot.opener, highlight: spot.handClass)
+                        .frame(maxWidth: 320)
+                        .padding(.bottom, 10)
+                }
                 SectionLabel(text: "내 핸드")
-                CardRow(cards: spot.hand, maxSize: 78)
+                CardRow(cards: spot.hand)
                 SectionLabel(text: "상황").padding(.top, 8)
                 Text("\(spot.opener.rawValue)가 3bb 오픈했어요")
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                 Text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요")
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
-                if reveal != nil {
-                    // The chart the verdict came from, hand ringed — same grid the
-                    // 테이블's 차트 보기 uses, so they can never disagree.
-                    DefendGridView(opener: spot.opener, highlight: spot.handClass)
-                        .frame(maxWidth: 320)
-                        .padding(.top, 10)
-                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .onAppear {
@@ -1582,17 +1742,14 @@ private struct DefendDrill: View {
             }
         } sheet: {
             if let reveal {
-                RevealSheet(band: reveal.band,
-                            mine: reveal.chosen.rawValue,
-                            correct: reveal.correct.rawValue,
-                            why: reveal.whyText) {
+                DefendRevealSheet(reveal: reveal) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("이 핸드로 어떻게 맞서나요?")
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                        .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     HStack(spacing: 10) {
                         ForEach(DefendAction.allCases.reversed(), id: \.self) { a in
                             GTChoiceButton(title: a.rawValue, minHeight: 56) {
@@ -1602,6 +1759,60 @@ private struct DefendDrill: View {
                     }
                 }
             }
+        }
+    }
+}
+
+/// Defend grading retains the chart's ordinal progression bands, but the learner-facing
+/// claim is only whether their action agrees with this published teaching chart. A
+/// one-band miss is not evidence that the monetary mistake was small.
+private struct DefendRevealSheet: View {
+    @Environment(\.glossaryTerm) private var term
+    @Environment(\.drillCommit) private var onCommit
+    let reveal: DefendReveal
+    let onNext: () -> Void
+
+    private var matched: Bool { reveal.chosen == reveal.correct }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(matched ? "차트와 일치해요" : "차트와 달라요")
+                    .font(GT.title(18))
+                    .foregroundStyle(matched ? GTBand.spotOnInk : GTBand.offInk)
+                if matched {
+                    Text("차트 판정 · \(reveal.correct.rawValue)")
+                        .font(GT.title(15)).foregroundStyle(GT.ink)
+                } else {
+                    HStack(spacing: 6) {
+                        Text("내 선택 \(reveal.chosen.rawValue)")
+                            .font(GT.body(13)).foregroundStyle(GT.inkMuted)
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 10, weight: .bold)).foregroundStyle(GT.inkMuted)
+                        Text("차트 \(reveal.correct.rawValue)")
+                            .font(GT.title(15)).foregroundStyle(GT.ink)
+                    }
+                }
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background((matched ? GTBand.spotOnTint : GTBand.offTint),
+                        in: RoundedRectangle(cornerRadius: 16))
+            .accessibilityElement(children: .combine)
+
+            Text(reveal.whyText)
+                .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                .lineSpacing(GT.Typography.explanationLineSpacing)
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                .fixedSize(horizontal: false, vertical: true)
+            if let term { GlossaryChip(term: term) }
+            PrimaryCTAButton(title: "다음 문제", action: onNext)
+        }
+        .onAppear {
+            onCommit(DrillOutcome(band: reveal.band, interval: nil))
+            gradeHaptic(reveal.band)
         }
     }
 }

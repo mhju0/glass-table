@@ -1,4 +1,5 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
+import GlassTableEngine
 
 /// What a node asks the user to do.
 public enum NodeKind: Equatable, Sendable {
@@ -37,8 +38,8 @@ public enum NodeStatus: Equatable, Sendable {
 /// The path, by section: 기초 (R1) → 레인지 (R2's charts, R3's reads) → 보드 (R4-S1) →
 /// 결정 (R4-S2) → 상대 (R4-S3, R5b).
 ///
-/// Unlocking is strictly linear and not skippable — the only way past a node is the
-/// first-run diagnostic pre-clearing it (spec §6).
+/// Unlocking is strictly linear. Existing completion records remain valid even when
+/// an older version pre-cleared a node through the now-removed diagnostic.
 public enum Curriculum {
     public static let units: [CurriculumUnit] = [
         CurriculumUnit(id: "u1", title: "테이블 읽기", section: "기초", nodes: [
@@ -134,6 +135,16 @@ public enum Curriculum {
                                        mixes: [.defend, .rfi, .rangeNotation, .combos]),
                            title: "프리플랍 종합"),
         ]),
+        // MDF is a simplified defense-frequency baseline under a declared single-bet
+        // model. It teaches the aggregate frequency, not which individual hands must
+        // continue, so its boss reconnects price, board, and action evidence.
+        CurriculumUnit(id: "u9", title: "방어 빈도 점검", section: "결정", nodes: [
+            CurriculumNode(id: "u9-mdf", kind: .drill(.mdf), title: "최소 방어 빈도"),
+            CurriculumNode(id: "u9-boss",
+                           kind: .boss(own: nil,
+                                       mixes: [.mdf, .potOdds, .rangeAdvantage, .actionRead]),
+                           title: "빈도와 핸드 구분"),
+        ]),
     ]
 
     /// Flattened in path order — this ordering *is* the unlock order.
@@ -148,6 +159,41 @@ public enum Curriculum {
         switch node.kind {
         case let .drill(c): return [c]
         case let .boss(own, mixes): return (own.map { [$0] } ?? []) + mixes
+        }
+    }
+
+    /// Five blocked repetitions for a lesson; at least six mixed questions for a
+    /// boss, long enough to exercise every concept it certifies.
+    public static func sessionConcepts(for node: CurriculumNode, seed: UInt64 = 0) -> [Concept] {
+        let pool = concepts(of: node)
+        switch node.kind {
+        case .drill:
+            return Array(repeating: pool[0], count: 5)
+        case .boss:
+            let count = max(6, pool.count)
+            var rng = SplitMix64(seed: seed)
+            var bag: [Concept] = []
+            while bag.count < count {
+                var round = pool
+                round.shuffle(using: &rng)
+                bag.append(contentsOf: round.prefix(count - bag.count))
+            }
+            return bag
+        }
+    }
+
+    /// Checks the frozen bag's shape without reconstructing its seed or order.
+    public static func isValidSession(_ scheduled: [Concept], for node: CurriculumNode) -> Bool {
+        let pool = concepts(of: node)
+        switch node.kind {
+        case .drill:
+            return scheduled == Array(repeating: pool[0], count: 5)
+        case .boss:
+            guard scheduled.count == max(6, pool.count), Set(scheduled) == Set(pool) else {
+                return false
+            }
+            let counts = Dictionary(grouping: scheduled, by: { $0 }).values.map(\.count)
+            return (counts.max() ?? 0) - (counts.min() ?? 0) <= 1
         }
     }
 

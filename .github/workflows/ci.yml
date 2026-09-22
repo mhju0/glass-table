@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: macos-15
@@ -23,18 +26,39 @@ jobs:
         run: brew install xcodegen
       - name: Generate project
         run: xcodegen generate
-      - name: Build app (simulator, unsigned)
-        run: |
-          set -o pipefail
-          xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
-            -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO build | tail -20
+      - name: Screenshot tool failure-path tests
+        run: python3 -m unittest discover -s tools/tests
       - name: Drills package tests
         run: swift test --package-path GlassTableDrills
-      - name: App persistence tests
+      # Testing builds the app as well; a separate Debug build repeats that work.
+      - name: Build app and run unit and learner-flow tests
         run: |
           set -o pipefail
           test_simulator=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; print(next(d["udid"] for devices in json.load(sys.stdin)["devices"].values() for d in devices if d["name"].startswith("iPhone")))')
           xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
             -destination "platform=iOS Simulator,id=$test_simulator" \
-            CODE_SIGNING_ALLOWED=NO test | tail -30
+            CODE_SIGNING_ALLOWED=NO test > app-tests.log 2>&1 || { cat app-tests.log; exit 1; }
+          tail -30 app-tests.log
+      - name: Exercise Release launch without demo hooks
+        run: |
+          test_simulator=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; print(next(d["udid"] for devices in json.load(sys.stdin)["devices"].values() for d in devices if d["name"].startswith("iPhone")))')
+          xcodebuild -project GlassTable.xcodeproj -scheme GlassTableReleaseSmoke \
+            -configuration Release -destination "platform=iOS Simulator,id=$test_simulator" \
+            -derivedDataPath .build/ci-release-smoke -only-testing:GlassTableUITests/ReleaseSmokeTests \
+            ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO test > release-smoke.log 2>&1 || { tail -100 release-smoke.log; exit 1; }
+          tail -30 release-smoke.log
+      - name: Build device Release and verify distributable contents
+        run: |
+          xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -derivedDataPath .build/ci-release CODE_SIGNING_ALLOWED=NO build > release-build.log 2>&1 || { tail -100 release-build.log; exit 1; }
+          python3 tools/verify_release.py .build/ci-release/Build/Products/Release-iphoneos/GlassTable.app
+      - name: Retain failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-logs
+          path: |
+            app-tests.log
+            release-build.log
+            release-smoke.log

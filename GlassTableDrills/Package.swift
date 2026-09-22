@@ -15,5 +15,7 @@ let package = Package(
             dependencies: [.product(name: "GlassTableEngine", package: "GlassTableEngine")]
         ),
         .testTarget(name: "GlassTableDrillsTests", dependencies: ["GlassTableDrills"]),
+        .executableTarget(name: "DrillBenchmarks", dependencies: ["GlassTableDrills"],
+                          path: "Benchmarks"),
     ]
 )

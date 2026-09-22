@@ -2,6 +2,37 @@ import XCTest
 @testable import GlassTableDrills
 
 final class CurriculumTests: XCTestCase {
+    func testCompletedSessionsPracticeEveryConceptTheyCanPromote() {
+        for node in Curriculum.allNodes {
+            let session = Curriculum.sessionConcepts(for: node)
+            XCTAssertEqual(Set(session), Set(Curriculum.concepts(of: node)), node.id)
+            switch node.kind {
+            case .drill:
+                XCTAssertEqual(session.count, 5, node.id)
+                XCTAssertEqual(Set(session).count, 1, "first exposure stays blocked")
+            case .boss:
+                XCTAssertGreaterThanOrEqual(session.count, 6, node.id)
+            }
+        }
+    }
+
+    func testBossBagIsBalancedDeterministicAndSeedShuffled() throws {
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        let first = Curriculum.sessionConcepts(for: boss, seed: 41)
+        let again = Curriculum.sessionConcepts(for: boss, seed: 41)
+        let other = Curriculum.sessionConcepts(for: boss, seed: 42)
+
+        XCTAssertEqual(first, again)
+        XCTAssertNotEqual(first, other)
+        XCTAssertEqual(first.count, 6)
+        XCTAssertEqual(Set(first), Set(Curriculum.concepts(of: boss)))
+        let counts = Dictionary(grouping: first, by: { $0 }).values.map(\.count)
+        XCTAssertLessThanOrEqual((counts.max() ?? 0) - (counts.min() ?? 0), 1)
+        XCTAssertTrue(Curriculum.isValidSession(first, for: boss))
+        XCTAssertFalse(Curriculum.isValidSession(Array(first.dropLast()), for: boss))
+        XCTAssertFalse(Curriculum.isValidSession(Array(repeating: .showdown, count: 6), for: boss))
+    }
+
     /// Spec §4.1 wants units of 5–8 nodes, for the goal-gradient reason that more
     /// visible completions per hour sustain a long course. The final unit is bounded
     /// by how much content exists rather than by that rule: u3 is three nodes because
@@ -56,14 +87,14 @@ final class CurriculumTests: XCTestCase {
         XCTAssertNil(Curriculum.node(id: "nope"))
     }
 
-    /// Spec §3.2: MDF is parked out of the path but keeps a concept for 자유 연습.
-    /// Every other concept must be introduced by exactly one node — including
-    /// callFold, which unit 2's boss introduces rather than merely revisiting.
-    func testMdfHasNoNodeButEveryOtherConceptIsTaughtExactlyOnce() {
+    /// Every concept is introduced exactly once, including callFold at its boss and
+    /// MDF in the final unit. Existing node identifiers and order remain unchanged.
+    func testEveryConceptIsTaughtExactlyOnce() {
         let taught = Curriculum.allNodes.compactMap(Curriculum.taughtConcept)
-        XCTAssertFalse(taught.contains(.mdf))
-        XCTAssertEqual(Set(taught), Set(Concept.allCases).subtracting([.mdf]))
+        XCTAssertEqual(Set(taught), Set(Concept.allCases))
         XCTAssertEqual(taught.count, Set(taught).count, "no concept is introduced twice")
+        XCTAssertEqual(Curriculum.node(id: "u9-mdf")?.kind, .drill(.mdf))
+        XCTAssertEqual(Curriculum.allNodes.dropLast(2).last?.id, "u8-boss")
     }
 
     /// Spec §4.1: a boss mixes its own unit with 2-3 earlier units.

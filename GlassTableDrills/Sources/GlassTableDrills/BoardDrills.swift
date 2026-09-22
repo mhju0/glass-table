@@ -123,7 +123,7 @@ public func gradeRangeAdvantage(estimate: Estimate, spot: RangeAdvantageSpot,
                             closeWithin: 10, spotOnWithin: 4),
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
-        whyText: "\(spot.texture.summary). \(who) — 오프너 \(pctText(correct))%. "
+        whyText: "\(spot.texture.summary). \(who). 오프너 \(pctText(correct))%. "
                + widestGapSentence(opener: o, caller: c) + " "
                + "표본 추출로 계산한 값이라 ±1% 정도 오차가 있어요.")
 }
@@ -139,6 +139,6 @@ func widestGapSentence(opener: RangeOnBoard, caller: RangeOnBoard) -> String {
         abs(opener.share($0) - caller.share($0)) < abs(opener.share($1) - caller.share($1))
     } ?? .strong
     let a = opener.share(bucket) * 100, b = caller.share(bucket) * 100
-    return "가장 크게 갈리는 건 \(bucket.korean) — "
+    return "가장 크게 갈리는 건 \(KO.copula(bucket.korean)) "
          + "오프너 \(pctText(a))% 대 콜러 \(pctText(b))%."
 }

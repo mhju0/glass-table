@@ -11,6 +11,7 @@ import GlassTableDrills
 /// copy the moment a decision node appears, and the buttons wait for it — the same
 /// pattern 레인지 어드밴티지 uses for its sampling.
 struct TableView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var hand: TableHand?
     @State private var options: [GradedOption]?
     @State private var lastTurn: TurnRecord?
@@ -18,6 +19,12 @@ struct TableView: View {
     @State private var baseSeed = UInt64.random(in: 0..<UInt64.max)
     @State private var handIndex = 0
     @State private var villainPick: Archetype?
+    @State private var pickerSelection: OpponentSelection?
+
+    private enum OpponentSelection: Equatable {
+        case archetype(Archetype)
+        case random
+    }
 
     /// One graded hero decision, kept for the pill and the summary. Postflop
     /// decisions carry a bb price; the preflop one carries the chart verdict —
@@ -39,6 +46,7 @@ struct TableView: View {
         }
     }
     @State private var showChart = false
+    @State private var showPolicyReference = false
 
     var body: some View {
         Group {
@@ -65,6 +73,11 @@ struct TableView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(FeltBackground())
+            }
+        }
+        .sheet(isPresented: $showPolicyReference) {
+            if let hand {
+                TablePolicyReferenceView(hand: hand) { showPolicyReference = false }
             }
         }
         .onAppear {
@@ -102,6 +115,7 @@ struct TableView: View {
                 if steps > 0, case .hero = h.phase { lastTurn = decisions.last }
                 if env["GT_DEMO_TABLE_CONTINUE"] != nil { lastTurn = nil }
                 if env["GT_DEMO_TABLE_CHART"] != nil { showChart = true }
+                if env["GT_DEMO_TABLE_POLICY"] != nil { showPolicyReference = true }
                 prepareOptions(for: h)
             }
             #endif
@@ -112,45 +126,65 @@ struct TableView: View {
 
     private var picker: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("테이블").font(GT.title(24)).foregroundStyle(GT.onFelt)
+            VStack(alignment: .leading, spacing: GT.Space.related) {
+                Text("연습 테이블").font(GT.title(30)).foregroundStyle(GT.onFelt)
                     .padding(.top, 14)
-                Text("선언된 상대와 한 핸드씩. 모든 결정을 bb로 채점해요.")
-                    .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+                Text("상대를 한 명 고른 뒤, 한 핸드의 결정을 차례로 풀어요.")
+                    .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                     .padding(.bottom, 8)
                 ForEach(Archetype.allCases, id: \.self) { a in
-                    Button { start(vs: a) } label: { archetypeRow(a) }
+                    Button { pickerSelection = .archetype(a) } label: {
+                        archetypeRow(a, selected: pickerSelection == .archetype(a))
+                    }
                         .buttonStyle(GTPress())
                 }
-                Button { start(vs: nil) } label: {
+                Button { pickerSelection = .random } label: {
                     HStack {
-                        Text("랜덤 상대").font(GT.title(13.5)).foregroundStyle(GT.ink)
+                        Text("랜덤 상대").font(GT.title(16)).foregroundStyle(GT.onFelt)
                         Spacer(minLength: 0)
-                        Image(systemName: "dice.fill")
-                            .font(.system(size: 13)).foregroundStyle(GT.inkMuted)
+                        Image(systemName: pickerSelection == .random ? "checkmark.circle.fill" : "dice.fill")
+                            .font(.system(size: 17)).foregroundStyle(GT.mint)
                     }
-                    .padding(14).frame(maxWidth: .infinity)
-                    .gtCard(radius: 14)
+                    .padding(16).frame(maxWidth: .infinity)
+                    .gtPanel()
                 }
                 .buttonStyle(GTPress())
             }
             .padding(.horizontal, 18)
         }
-        .gtTabBarClearance()
+        .safeAreaInset(edge: .bottom) {
+            if let pickerSelection {
+                FeltCTAButton(title: "핸드 시작") {
+                    switch pickerSelection {
+                    case let .archetype(archetype): start(vs: archetype)
+                    case .random: start(vs: nil)
+                    }
+                }
+                .padding(.horizontal, 18).padding(.vertical, 10)
+                .background(GT.felt)
+            }
+        }
+        .gtTabBarClearance(20)
     }
 
-    private func archetypeRow(_ a: Archetype) -> some View {
+    private func archetypeRow(_ a: Archetype, selected: Bool) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(a.name).font(GT.title(13.5)).foregroundStyle(GT.ink)
-                Text(a.blurb).font(GT.body(11)).foregroundStyle(GT.inkMuted).lineLimit(1)
+                Text(a.name).font(GT.title(16)).foregroundStyle(GT.onFelt)
+                Text(a.blurb).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            Text("VPIP \(Int(a.vpip)) · PFR \(Int(a.pfr))")
-                .font(GT.semibold(10).monospacedDigit()).foregroundStyle(GT.inkMuted)
+            if selected {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 17)).foregroundStyle(GT.mint)
+            } else {
+                Text("VPIP \(Int(a.vpip)) · PFR \(Int(a.pfr))")
+                    .font(GT.semibold(11).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
+            }
         }
-        .padding(14).frame(maxWidth: .infinity)
-        .gtCard(radius: 14)
+        .padding(16).frame(maxWidth: .infinity)
+        .gtPanel()
     }
 
     private func start(vs villain: Archetype?) {
@@ -174,36 +208,44 @@ struct TableView: View {
     /// scroll survives for the cases that actually need it — the largest Dynamic Type
     /// sizes, where the zones no longer fit.
     private func table(_ hand: TableHand) -> some View {
-        VStack(spacing: 0) {
-            GeometryReader { geo in
-                // Card sizes follow the band the layout actually got rather than the
-                // device model, because the same phone hands the table a much shorter
-                // band on the summary — where the sheet carries a whole EV ledger —
-                // than it does mid-hand. On a 12 mini that band is ~320pt and the
-                // full-size zones need ~335, which pushed hero's cards under the sheet
-                // at exactly the moment the screen exists to compare two hands.
-                let tight = geo.size.height < 380
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                ScrollView {
+                    VStack(spacing: GT.Space.section) {
+                        seatRow(hand)
+                        if case .hero = hand.phase { streetStrip(hand) }
+                        boardBlock(hand)
+                        heroBlock(hand)
+                        VStack(alignment: .leading, spacing: GT.Space.related) { sheet(hand) }
+                            .padding(18)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .gtCard(radius: GT.Radius.panel)
+                    }
+                    .padding(.horizontal, 18).padding(.bottom, 28)
+                }
+            } else {
+                VStack(spacing: 0) {
+                    GeometryReader { geo in
+                let compactHeight = geo.size.height < 430
                 ScrollView {
                     VStack(spacing: 0) {
                         seatRow(hand)
                         // Spent once the hand is over: the summary beneath names every
                         // street already, so the strip is repeating the answer.
                         if case .hero = hand.phase { streetStrip(hand) }
-                        Spacer(minLength: 14)
-                        boardBlock(hand, cardSize: tight ? 56 : 64)
-                        Spacer(minLength: 14)
-                        heroBlock(hand, cardSize: tight ? 64 : 74)
+                        Spacer(minLength: compactHeight ? 6 : 14)
+                        boardBlock(hand)
+                        Spacer(minLength: compactHeight ? 6 : 14)
+                        heroBlock(hand)
                     }
                     .padding(.horizontal, 18)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height)
                 }
                 .scrollBounceBehavior(.basedOnSize)
+                    }
+                    ActionSheet { sheet(hand) }.layoutPriority(1)
+                }
             }
-            // The sheet is sized first and the reader takes what is left. A
-            // GeometryReader is greedy in a VStack, so without this it claimed the
-            // height the sheet needed and the action buttons clipped their price line
-            // at the accessibility text sizes.
-            ActionSheet { sheet(hand) }.layoutPriority(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -227,7 +269,7 @@ struct TableView: View {
                                                     lineWidth: 1))
             }
         }
-        .padding(.top, 12)
+        .padding(.top, 8)
         // Four streets in fixed order, so this is a one-row diagram for the same reason
         // the drills' seat strip is: 프리플랍 was breaking across two lines and taking
         // the row's height with it.
@@ -240,10 +282,13 @@ struct TableView: View {
     /// The board, and directly beneath it the money it is being played for. 팟 used to
     /// sit in the opposite corner of the screen from 콜, so reading a price meant
     /// crossing the whole viewport for its other half.
-    private func boardBlock(_ hand: TableHand, cardSize: CGFloat) -> some View {
+    private func boardBlock(_ hand: TableHand) -> some View {
         VStack(spacing: 12) {
-            boardRow(hand, cardSize: cardSize)
-            if let toCall = hand.toCall {
+            SectionLabel(text: "공용 카드")
+            boardRow(hand)
+            if let toCall = hand.toCall, hand.street == 0 {
+                preflopPriceReference(pot: hand.pot, toCall: toCall)
+            } else if let toCall = hand.toCall {
                 priceStrip(pot: hand.pot, toCall: toCall)
             } else {
                 // Nothing owed: no price to read, so the pot stands on its own.
@@ -252,6 +297,28 @@ struct TableView: View {
             }
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(GT.hairlineFelt).frame(height: 1)
+        }
+    }
+
+    /// Preflop choices are graded by the published defend chart, not by raw pot odds.
+    /// Keep the actual chips visible while withholding a threshold that would read as
+    /// a second recommendation beside the chart verdict.
+    private func preflopPriceReference(pot: Double, toCall: Double) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Text("참고")
+                .font(GT.semibold(11)).foregroundStyle(GT.mint)
+                .padding(.horizontal, 7).padding(.vertical, 3)
+                .background(GT.mint.opacity(0.14), in: Capsule())
+            Text("현재 팟 \(bbText(pot))bb · 콜 \(bbText(toCall))bb")
+                .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("참고. 현재 팟 \(bbText(pot)) 빅블라인드, 콜 \(bbText(toCall)) 빅블라인드. "
+                            + "프리플랍 판정은 디펜드 차트 기준.")
     }
 
     /// The pot-odds shape at a glance: what is already out there against what continuing
@@ -284,8 +351,8 @@ struct TableView: View {
                 }
             }
             .frame(height: 30)
-            Text("\(bbText(c)) / \(bbText(total)) — \(pctText(required))% 이상이면 콜")
-                .font(GT.body(10.5).monospacedDigit())
+            Text("\(bbText(c)) / \(bbText(total)) · 필요 에퀴티 \(pctText(required))%")
+                .font(GT.body(14).monospacedDigit())
                 .foregroundStyle(GT.onFeltSecondary)
         }
         .accessibilityElement(children: .ignore)
@@ -295,65 +362,80 @@ struct TableView: View {
 
     private func segment(_ text: String, fill: Color, width: CGFloat) -> some View {
         Text(text)
-            .font(GT.semibold(12).monospacedDigit()).foregroundStyle(GT.onFelt)
-            .lineLimit(1).minimumScaleFactor(0.6)
+            .font(GT.semibold(14).monospacedDigit()).foregroundStyle(GT.onFelt)
+            .lineLimit(1).minimumScaleFactor(0.8)
             .frame(width: max(38, width - 3), height: 30)
             .background(fill, in: RoundedRectangle(cornerRadius: 8))
     }
 
-    private func heroBlock(_ hand: TableHand, cardSize: CGFloat) -> some View {
+    private func heroBlock(_ hand: TableHand) -> some View {
         VStack(spacing: 7) {
-            CardRow(cards: hand.hero, maxSize: cardSize)
-            Text("내 핸드 · \(hand.heroSeat.rawValue)")
-                .font(GT.semibold(10)).tracking(0.4)
-                .foregroundStyle(GT.onFelt.opacity(0.62))
+            SectionLabel(text: "내 카드 · \(hand.heroSeat.rawValue)")
+            CardRow(cards: hand.hero)
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, 6)
+        .padding(.bottom, 16)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("table-hero-cards")
     }
 
-    /// Villain, and what has happened so far. The action log used to run as four full
-    /// lines under hero's cards; the band beside two 60pt card backs was empty, and it
-    /// holds the same lines at the same size.
+    /// Opponent cards stay centered as the first of the table's three reading regions.
+    /// The action history remains directly below so it does not compete with ownership.
     private func seatRow(_ hand: TableHand) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
-                Text("vs \(hand.villain.name)").font(GT.title(16)).foregroundStyle(GT.onFelt)
+                Text("상대 카드 · \(hand.villainSeat.rawValue) · \(hand.villain.name)")
+                    .font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Spacer(minLength: 8)
                 // The bot's live range, always countable — the printable claim at
                 // the table (spec §4).
-                Text("레인지 \(hand.villainCombos.count)콤보")
-                    .font(GT.semibold(11).monospacedDigit())
+                Button { showPolicyReference = true } label: {
+                    HStack(spacing: 4) {
+                        Text("레인지 \(hand.villainCombos.count)콤보")
+                            .font(GT.semibold(14).monospacedDigit())
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
                     .foregroundStyle(GT.mint)
-            }
-            HStack(alignment: .top, spacing: 10) {
-                if case let .over(o) = hand.phase {
-                    CardRow(cards: o.villainHand, maxSize: 60)
-                } else {
-                    PlayingCardView(card: Card(rank: 2, suit: 0), size: 60, faceDown: true)
-                    PlayingCardView(card: Card(rank: 2, suit: 0), size: 60, faceDown: true)
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    SectionLabel(text: "\(hand.villainSeat.rawValue) · \(hand.villain.name)")
-                    ForEach(Array(hand.history.suffix(3).enumerated()), id: \.offset) { _, line in
-                        Text(line).font(GT.body(10.5)).foregroundStyle(GT.onFeltSecondary)
-                            .lineLimit(1).minimumScaleFactor(0.75)
+                .buttonStyle(GTPress())
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+                .accessibilityLabel("상대 전략과 레인지 보기, 현재 \(hand.villainCombos.count)콤보")
+            }
+            VStack(spacing: 0) {
+                if case let .over(o) = hand.phase {
+                    CardRow(cards: o.villainHand)
+                } else {
+                    HStack(spacing: 8) {
+                        PlayingCardView(card: Card(rank: 2, suit: 0), faceDown: true)
+                        PlayingCardView(card: Card(rank: 2, suit: 0), faceDown: true)
                     }
                 }
-                Spacer(minLength: 0)
             }
+            .frame(maxWidth: .infinity)
+            VStack(alignment: .leading, spacing: 3) {
+                ForEach(Array(hand.history.suffix(3).enumerated()), id: \.offset) { _, line in
+                    Text(line).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                        .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.top, 6)
+        .padding(.top, 4).padding(.bottom, 6)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(GT.hairlineFelt).frame(height: 1)
+        }
     }
 
-    private func boardRow(_ hand: TableHand, cardSize: CGFloat) -> some View {
+    private func boardRow(_ hand: TableHand) -> some View {
         HStack(spacing: 8) {
             ForEach(0..<5, id: \.self) { i in
                 if i < hand.board.count {
-                    PlayingCardView(card: hand.board[i], size: cardSize)
+                    PlayingCardView(card: hand.board[i])
                 } else {
-                    PlayingCardView(card: Card(rank: 2, suit: 0), size: cardSize,
-                                    faceDown: true)
+                    PlayingCardView(card: Card(rank: 2, suit: 0), faceDown: true)
                 }
             }
         }
@@ -395,8 +477,9 @@ struct TableView: View {
                     ForEach(bets, id: \.choice) { opt in bviewButton(opt) }
                 }
             }
-            Text("채점은 이 스트리트 이후 베팅이 없다고 가정해요")
-                .font(GT.body(10)).foregroundStyle(GT.inkMuted)
+            Text("체크다운 근사 · 이 스트리트 뒤에는 추가 베팅이 없고 레이크는 제외해요")
+                .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -406,11 +489,11 @@ struct TableView: View {
     private func bviewButton(_ opt: GradedOption) -> some View {
         Button { act(opt.choice) } label: {
             VStack(spacing: 3) {
-                Text(opt.headline).font(GT.title(13)).foregroundStyle(GT.ink)
-                    .lineLimit(1).minimumScaleFactor(0.6)
-                Text(opt.subline).font(GT.body(10).monospacedDigit())
+                Text(opt.headline).font(GT.title(15)).foregroundStyle(GT.ink)
+                    .lineLimit(1).minimumScaleFactor(0.8)
+                Text(opt.subline).font(GT.body(14).monospacedDigit())
                     .foregroundStyle(GT.inkMuted)
-                    .lineLimit(1).minimumScaleFactor(0.6)
+                    .lineLimit(1).minimumScaleFactor(0.8)
                 Capsule().fill(GTActionRole.aggressive.accent)
                     .frame(height: 3).padding(.horizontal, 8).padding(.top, 1)
             }
@@ -438,8 +521,9 @@ struct TableView: View {
                                price: "\(bbText(b * TableHand.raiseFactor))bb",
                                role: .aggressive) { actPreflop(.raise, hand) }
             }
-            Text("프리플랍은 디펜드 차트로 채점해요 — 답한 뒤에 차트를 보여드려요")
-                .font(GT.body(10)).foregroundStyle(GT.inkMuted)
+            Text("프리플랍은 앱에 공개된 디펜드 차트와 비교해요. 실제 최적 전략을 뜻하지 않아요.")
+                .font(GT.body(11)).foregroundStyle(GT.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -450,10 +534,8 @@ struct TableView: View {
     /// sentence is the thing worth carrying to the next hand. The severity keeps its
     /// band ink and glyph but moves to a pill beside the headline.
     ///
-    /// §D's 최선 band is "optimal *or near-optimal*", so it can sit beside a headline
-    /// naming a different action as best. That pairing is only readable because the
-    /// cost is printed directly under it — which is what `evPrices` is for, and why it
-    /// is not optional decoration.
+    /// Exact and near-best choices share a progression band, while the pill names the
+    /// distinction directly. The cost below remains the evidence for that judgment.
     private func turnReveal(_ turn: TurnRecord) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -489,7 +571,7 @@ struct TableView: View {
 
     private func bandPill(_ turn: TurnRecord) -> some View {
         let word: String = {
-            if case .ev = turn.verdict { return turn.band.evLossLabel }
+            if case let .ev(loss, _) = turn.verdict { return evLossLabel(loss: loss) }
             return turn.band == .spotOn ? "일치" : "불일치"
         }()
         return HStack(spacing: 4) {
@@ -566,10 +648,35 @@ struct TableView: View {
             }
             // Result and decision quality, side by side — the gap between them is
             // the thing poker teaches slowest (spec §4).
-            let lost = decisions.reduce(0.0) {
-                if case let .ev(loss, _) = $1.verdict { return $0 + loss }
-                return $0
+            let evDecisions = decisions.compactMap { decision -> (TurnRecord, Double)? in
+                guard case let .ev(loss, _) = decision.verdict else { return nil }
+                return (decision, loss)
             }
+            let lost = evDecisions.reduce(0.0) { $0 + $1.1 }
+            let highestCost = evDecisions.max { $0.1 < $1.1 }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("결과와 결정은 따로 봐요").font(GT.title(15)).foregroundStyle(GT.ink)
+                Text("이번 결과는 \(resultLine(outcome)) · \(outcome.heroNet >= 0 ? "+" : "")\(bbText(outcome.heroNet))bb예요.")
+                    .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if evDecisions.isEmpty {
+                    Text("프리플랍 결정은 공개된 디펜드 차트와 비교했어요. EV 손실은 측정하지 않았어요.")
+                        .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("포스트플랍 체크다운 근사로 측정한 EV 손실은 \(bbText(lost))bb예요.")
+                        .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if let highestCost, highestCost.1 > 0 {
+                    Text("가장 큰 비용 · \(highestCost.0.street) \(highestCost.0.label), −\(bbText(highestCost.1))bb")
+                        .font(GT.semibold(12.5)).foregroundStyle(highestCost.0.band.ink)
+                }
+            }
+            .padding(12)
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                                         style: .continuous))
             VStack(alignment: .leading, spacing: 5) {
                 ForEach(Array(decisions.enumerated()), id: \.offset) { _, d in
                     HStack {

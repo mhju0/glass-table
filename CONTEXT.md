@@ -1,5 +1,18 @@
 # Glass Table — Domain Context
 
+## Revival update (2026-09-14)
+
+The current revamp follows [DESIGN.md](DESIGN.md) and the
+[research foundation](docs/specs/2026-09-13-revamp-research.md). The course now
+has 9 units and includes all 18 concepts. Review sessions snapshot at most
+five due concepts. Lesson completion is separate from per-concept performance
+promotion; mixed checkpoints use a balanced seeded order. Guided help is
+ungraded. Existing schema-1 progress and historical tiers remain intact.
+
+The older orientation below describes the pre-revival baseline where it
+conflicts with the current implementation. Store submission remains after
+user testing and final distribution checks.
+
 One page of orientation for anyone (human or agent) about to work in this repo.
 Deeper reasoning lives in `docs/decisions.md` (§A–§H) and one spec per shipped
 slice under `docs/specs/`.
@@ -24,18 +37,23 @@ and checkable by the user. Loop everywhere: **decide → reveal → grade**.
 - **Concept** — the unit of mastery/review (18 of them), not a drill or node.
 - **Node / unit / boss** — the path's structure; a boss is the only route to 숙달.
 - **Estimation concept** — answered with a point + 90% interval, Winkler-scored,
-  feeds **calibration**.
+  feeds **calibration**: equity sense, EV call, hit frequency, range advantage,
+  and action read. Outs and combos are exact-count questions, not interval evidence.
 - **Archetype** — Nit/TAG/LAG/콜링 스테이션/매니악, defined by VPIP/PFR (§C) and
   a **postflop policy**: bet/call/raise rows over the five **made-hand buckets**
   (노페어 · 드로우 · 약한 페어 · 탑 페어 · 투페어 이상). Deterministic on
   purpose — an observed action *inverts* into the surviving range (narrowing).
+  The table's exception is an opponent folding to a preflop 3-bet: the displayed
+  count retains the preceding tracked range, not an inferred fold-only range.
 - **Checkdown model** — the disclosed grading assumption at the table: after the
   current street settles, no further betting. Exact on the river.
 - **EV-loss grade** — a decision priced as `bestEV − chosenEV` in bb; severity
-  최선/부정확/실수 at 0.5/2.0bb (§D). Distinct vocabulary from the estimation
-  bands 정확/근접/빗나감 — never mix them.
+  최선 at zero, 거의 최선 for a positive loss up to 0.5bb, 부정확 through 2.0bb,
+  and 실수 above that. Exact and near-best share a progression band, not a claim
+  of equal EV. Distinct from the estimation bands 정확/근접/빗나감.
 - **Defend chart** — vs an open: 3벳/콜/폴드 bands derived from the opener's
-  width (top 0.30× / to 0.75×, by Chen).
+  width (top 0.30× / to 0.75×, by Chen). Chart match/mismatch is not an estimate
+  of how many big blinds a decision costs.
 
 ## Conventions that bite
 
@@ -53,13 +71,17 @@ and checkable by the user. Loop everywhere: **decide → reveal → grade**.
 - **Never rank the answer**: at the table and in every drill, the choice buttons
   are visually identical until *selected*. Accent colour marks the kind of money
   a button commits, never which one is correct (§G, amended).
-- **Screenshot verification**: synthetic taps don't reach simulator content;
-  every screen is reached via `GT_DEMO_*` launch-env hooks (`tools/uisweep.sh`).
+- **Screenshot verification**: captures use `GT_DEMO_*` launch-env fixtures
+  (`tools/uisweep.sh`); XCTest UI flows separately exercise real answer entry,
+  scrolling and navigation. A captured frame alone does not prove reachability.
 - **Grading honesty**: every reveal shows where its number came from; sampled
   numbers say so; simplifications (checkdown, seat-insensitive defense, no
   4-bets) are stated on screen, not smuggled.
 
-## Where things stand (2026-08-07)
+## Historical baseline (old main, audited 2026-09-19)
+
+The dated account below predates the research-led revamp. Its screenshot dates
+and test counts describe that older branch, not the current nine-unit app.
 
 M1 (five math drills) shipped 2026-07-23; the revamp R1–R5b rebuilt the app as
 a course (길, 8 units) plus the 테이블 (graded hands vs archetypes, preflop
@@ -68,9 +90,17 @@ fixed zones and a pot-odds strip at the board, its reveal now leads with the
 lesson rather than the score, 길 runs on a rail with the *live* node heaviest,
 and the last two emoji icons became SF Symbols. The same pass found and fixed a
 critical accessibility bug — card ranks truncated to "…" at large text sizes,
-which made the app unplayable at exactly those settings (§H).
+which made the app unplayable at exactly those settings (§H). The 2026-08-08/09
+performance work made engine hot paths allocation-free, stopped drill screens
+and graders from repeating work, and preserved outputs; it did not change the
+UI or learning model. The current branch also documents the Xcode 26 requirement
+and XcodeGen installation step because `sharedBackgroundVisibility` is compiled
+against the newer SDK.
 
 Store submission is paused for dogfood; the age-rating answers need
 reassessment before resuming (`docs/submission.md` banner). Screenshots in
-`docs/store-assets/` and `docs/readme-assets/` are current as of 2026-08-07.
+`docs/store-assets/` and `docs/readme-assets/` are current as of 2026-08-07;
+the later performance-only changes did not alter their UI. On this audit of
+`main`, `swift test --package-path GlassTableDrills` passes 316 tests and
+`swift test -c release --package-path GlassTableEngine` passes 92 tests.
 Known deferred work is listed at the end of each spec's scope-out section.

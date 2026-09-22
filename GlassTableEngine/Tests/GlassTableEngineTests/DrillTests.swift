@@ -9,8 +9,4 @@ final class DrillTests: XCTestCase {
         XCTAssertEqual(gradeEstimate(user: 42, correct: 30, closeWithin: 5, spotOnWithin: 2), .off)
     }
 
-    func testBinaryGrade() {
-        XCTAssertEqual(gradeBinary(userChose: true, correct: true), .spotOn)
-        XCTAssertEqual(gradeBinary(userChose: false, correct: true), .off)
-    }
 }

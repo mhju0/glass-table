@@ -36,20 +36,14 @@ public func evLossBand(bb loss: Double) -> GradeBand {
     return .off
 }
 
-public extension GradeBand {
-    /// The severity names `decisions.md` §D uses for a *decision*, as opposed to
-    /// 정확/근접/빗나감, which describe an *answer*.
-    ///
-    /// They cannot be shared. A 0.2bb leak bands as `.spotOn`, and printing 정확 beside
-    /// a sentence saying the other option was better asks the user to hold two
-    /// contradictory claims at once. 최선 covers §D's "optimal/near-optimal" band, with
-    /// the exact cost printed next to it.
-    var evLossLabel: String {
-        switch self {
-        case .spotOn: return "최선"
-        case .close:  return "부정확"
-        case .off:    return "실수"
-        }
+/// Human label for an EV loss. Exact and near-best choices share the `.spotOn`
+/// progression band, but the words stay honest about whether another option was better.
+public func evLossLabel(loss: Double) -> String {
+    if loss <= 0 { return "최선" }
+    switch evLossBand(bb: loss) {
+    case .spotOn: return "거의 최선"
+    case .close:  return "부정확"
+    case .off:    return "실수"
     }
 }
 
@@ -169,7 +163,7 @@ public enum EVLossSpotGenerator {
     }
 }
 
-public struct EVLossReveal: GradedReveal {
+public struct EVLossReveal: Equatable {
     public let band: GradeBand
     public let grade: EVLossGrade
     public let equityPct: Double

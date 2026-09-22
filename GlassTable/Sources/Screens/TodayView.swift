@@ -4,50 +4,29 @@ import GlassTableDrills
 
 /// 오늘 — home. One screen answering exactly one question: what do I do right now?
 ///
-/// Free play is deliberately *not* here (spec §9). A grid of every exercise is the
-/// choice paralysis the path exists to remove; 자유 연습 lives one tap down under 길.
 struct TodayView: View {
     @Environment(ProgressionModel.self) private var model
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenReview: () -> Void
-    @State private var replay: Concept?
-
     private var due: [Concept] { model.dueConcepts() }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: GT.Space.screen) {
                 header
-                nextCard
-                if !due.isEmpty { reviewCard }
-                calibrationPanel
-                if !model.needingExplainer().isEmpty { stuckPanel }
+                recommendation
+                context
             }
             .padding(.horizontal, 18)
         }
-        .gtTabBarClearance()
+        .safeAreaInset(edge: .bottom) {
+            primaryAction
+                .padding(.horizontal, 18).padding(.vertical, 10)
+                .background(GT.felt)
+        }
+        .gtTabBarClearance(20)
         .background(FeltBackground())
-        .onAppear {
-            #if DEBUG
-            // GT_DEMO_REPLAY=<concept raw value> opens the 천천히 replay sheet — same
-            // reason as every other hook: synthetic taps never reach Simulator content.
-            if let raw = ProcessInfo.processInfo.environment["GT_DEMO_REPLAY"] {
-                replay = Concept(rawValue: raw)
-            }
-            #endif
-        }
-        .sheet(item: $replay) { concept in
-            // Progress-salted like a node re-run (§4.2's fresh-spots rule), on a base
-            // distinct from free play's 0x5EED — the walkthrough narrates its spot's
-            // answer, so the replayed spot must never double as review question 1.
-            let w = Walkthrough.make(concept: concept,
-                                     seed: 0x7EAC &+ UInt64(model.record(for: concept).total),
-                                     index: 0)
-            NavigationStack {
-                WalkthroughView(title: conceptTitle(concept), beats: w.beats, rows: w.rows,
-                                onFinish: { replay = nil }, onSkip: { replay = nil })
-            }
-        }
     }
 
     private func streakChip(symbol: String, text: String, tint: Color) -> some View {
@@ -60,166 +39,102 @@ struct TodayView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("오늘").font(GT.title(24)).foregroundStyle(GT.onFelt)
-                Spacer()
-                // Same rule as everywhere else: the flame only with a live streak. The
-                // shield count rides along so a missed-day-yet-intact streak reads as a
-                // spent freeze rather than unexplained magic.
-                //
-                // Symbols, not 🔥/🛡: an emoji is drawn by whichever font the OS picks,
-                // so it cannot take a token colour and it redraws itself between iOS
-                // releases. These were the only two in the app — everything else,
-                // including the tab bar beneath them, is already SF Symbols.
+            if dynamicTypeSize.isAccessibilitySize {
+                Text("오늘").font(GT.title(30)).foregroundStyle(GT.onFelt)
                 if model.state.streak.current > 0 {
-                    HStack(spacing: 9) {
-                        streakChip(symbol: "flame.fill",
-                                   text: "\(model.state.streak.current)일째",
-                                   tint: GT.mint)
-                        if model.state.streak.freezesRemaining > 0 {
-                            streakChip(symbol: "shield.fill",
-                                       text: "\(model.state.streak.freezesRemaining)",
-                                       tint: GT.onFeltSecondary)
-                        }
+                    streakSummary(includeFreezeVisual: false)
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("오늘").font(GT.title(30)).foregroundStyle(GT.onFelt)
+                    Spacer()
+                    if model.state.streak.current > 0 {
+                        streakSummary(includeFreezeVisual: true)
                     }
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("연속 \(model.state.streak.current)일째"
-                        + (model.state.streak.freezesRemaining > 0
-                           ? ", 하루 놓쳐도 지켜주는 보호 \(model.state.streak.freezesRemaining)개" : ""))
                 }
             }
-            Text(subtitleLine)
-                .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+            Text(subtitleLine).font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
         }
         .padding(.top, 14)
+    }
+
+    private func streakSummary(includeFreezeVisual: Bool) -> some View {
+        HStack(spacing: 9) {
+            streakChip(symbol: "flame.fill",
+                       text: "\(model.state.streak.current)일째",
+                       tint: GT.mint)
+            if includeFreezeVisual, model.state.streak.freezesRemaining > 0 {
+                streakChip(symbol: "shield.fill",
+                           text: "\(model.state.streak.freezesRemaining)",
+                           tint: GT.onFeltSecondary)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("연속 \(model.state.streak.current)일째"
+            + (model.state.streak.freezesRemaining > 0
+               ? ", 하루 놓쳐도 지켜주는 보호 \(model.state.streak.freezesRemaining)개" : ""))
     }
 
     /// Only claims the screen can keep: the old "N문제 · 약 X분" promised a daily set
     /// no button ever played.
     private var subtitleLine: String {
-        if !due.isEmpty { return "복습 \(due.count)개가 기다리고 있어요" }
-        if model.nextNode == nil { return "기초 완주 · 복습으로 감각을 유지해요" }
+        if !due.isEmpty { return "다시 풀어볼 문제 \(due.count)개가 있어요" }
+        if model.nextNode == nil { return "모든 레슨 완료 · 복습으로 감각을 유지해요" }
         return model.state.nodes.isEmpty ? "첫 단계부터 시작해요" : "다음 단계를 이어가요"
     }
 
     @ViewBuilder
-    private var nextCard: some View {
-        if let node = model.nextNode {
-            Button { onOpenNode(node) } label: {
-                VStack(alignment: .leading, spacing: 0) {
-                    SectionLabel(text: "다음 단계", onDark: false)
-                    Text(node.title).font(GT.title(20)).foregroundStyle(GT.ink)
-                        .padding(.top, 6)
-                    Text(nodeBlurb(node)).font(GT.body(12))
-                        .foregroundStyle(GT.inkSecondary)
-                        .padding(.top, 3)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text("이어서 하기").font(GT.title(14)).foregroundStyle(GT.onCTA)
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(GT.cta, in: RoundedRectangle(cornerRadius: 12))
-                        .padding(.top, 14)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .gtCard(radius: 18)
-            }
-            .buttonStyle(GTPress())
-            .accessibilityLabel("다음 단계 \(node.title). \(nodeBlurb(node))")
-        } else {
-            VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(text: "길", onDark: false)
-                Text("기초를 모두 끝냈어요").font(GT.title(17)).foregroundStyle(GT.ink)
-                Text("복습으로 감각을 유지해요. 다음 단원은 준비 중이에요.")
-                    .font(GT.body(12)).foregroundStyle(GT.inkSecondary)
+    private var recommendation: some View {
+        VStack(alignment: .leading, spacing: GT.Space.related) {
+            SectionLabel(text: "지금 할 일", onDark: false)
+            if !due.isEmpty {
+                Text("배운 내용을 다시 풀어봐요").font(GT.title(24)).foregroundStyle(GT.ink)
+                Text(due.prefix(3).map(conceptTitle).joined(separator: " · "))
+                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if let node = model.nextNode {
+                Text(node.title).font(GT.title(24)).foregroundStyle(GT.ink)
+                Text(nodeBlurb(node)).font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("모든 레슨을 마쳤어요").font(GT.title(24)).foregroundStyle(GT.ink)
+                Text("새 복습이 생기면 오늘의 추천으로 다시 알려드릴게요.")
+                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .gtCard(radius: 18)
         }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .gtCard(radius: GT.Radius.panel)
     }
 
-    private var reviewCard: some View {
-        Button(action: onOpenReview) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("복습 \(due.count)개").font(GT.title(14)).foregroundStyle(GT.ink)
-                    Text(due.prefix(3).map(conceptTitle).joined(separator: " · "))
-                        .font(GT.body(11)).foregroundStyle(GT.inkMuted)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 0)
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(GT.green)
-            }
-            .padding(14)
-            .frame(maxWidth: .infinity)
-            .gtCard(radius: 18)
-        }
-        .buttonStyle(GTPress())
-    }
-
-    /// The hero stat, on the felt rather than in a card — it is a standing fact about
-    /// the user, not an action (spec §7.1).
     @ViewBuilder
-    private var calibrationPanel: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            SectionLabel(text: "캘리브레이션")
-            if let rate = model.calibrationHitRate, let verdict = model.calibrationVerdict {
-                Text("90% 구간 적중률 \(Int((rate * 100).rounded()))%")
-                    .font(GT.title(14)).foregroundStyle(GT.onFelt)
-                Text(verdictLine(verdict))
-                    .font(GT.body(11.5)).foregroundStyle(GT.onFeltSecondary)
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(GT.hairlineFelt).frame(height: 4)
-                        Capsule().fill(GT.mint)
-                            .frame(width: geo.size.width * rate, height: 4)
-                    }
-                }
-                .frame(height: 4)
-                .padding(.top, 2)
-            } else {
-                Text("추정 문제를 풀면 여기에 나와요")
-                    .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+    private var primaryAction: some View {
+        if !due.isEmpty {
+            FeltCTAButton(title: "복습 \(min(5, due.count))개 시작") { onOpenReview() }
+        } else if let node = model.nextNode {
+            FeltCTAButton(title: model.state.nodes.isEmpty ? "첫 레슨 시작" : "이어서 배우기") {
+                onOpenNode(node)
             }
-        }
-        .padding(.top, 4)
-        .accessibilityElement(children: .combine)
-    }
-
-    private func verdictLine(_ v: Calibration.Verdict) -> String {
-        switch v {
-        case .overconfident:  return "구간을 좁게 잡고 있어요 — 아직 과신하고 있어요"
-        case .underconfident: return "구간이 넓어요 — 조금 더 좁혀도 돼요"
-        case .calibrated:     return "잘 맞고 있어요"
         }
     }
 
-    /// Spec §4.6: past the stop-drilling threshold the app owes an explanation, not
-    /// another rep — so the row *is* the explanation's door, not a caption about one.
-    private var stuckPanel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "막힌 개념")
-            ForEach(model.needingExplainer(), id: \.self) { c in
-                Button { replay = c } label: {
-                    HStack(spacing: 6) {
-                        Text("\(conceptTitle(c)) · 천천히 다시 보기")
-                            .font(GT.semibold(12)).foregroundStyle(GT.onFelt)
-                        Image(systemName: "play.circle.fill")
-                            .font(.system(size: 12)).foregroundStyle(GT.mint)
-                    }
-                    // Full-width 44pt target — the app's documented floor
-                    // (ChromeButton), owed most to the user this panel exists for.
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(GTPress())
-                .accessibilityLabel("\(conceptTitle(c)) 천천히 다시 보기")
+    @ViewBuilder
+    private var context: some View {
+        if !due.isEmpty, let node = model.nextNode {
+            VStack(alignment: .leading, spacing: 5) {
+                SectionLabel(text: "그다음")
+                Text(node.title).font(GT.title(18)).foregroundStyle(GT.onFelt)
+                Text(nodeBlurb(node)).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
             }
+            .accessibilityElement(children: .combine)
+        } else if !model.needingExplainer().isEmpty {
+            Text("막힌 개념은 기록에서 따라 배우기로 다시 볼 수 있어요.")
+                .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
         }
-        .padding(.top, 6)
     }
 }
 
@@ -252,15 +167,15 @@ func conceptBlurb(_ c: Concept) -> String {
     case .potOdds:     return "낼 가격을 필요 에퀴티로 바꿔요"
     case .outs:        return "이기는 카드를 세서 확률로 바꿔요"
     case .equitySense: return "이길 확률을 눈대중으로 맞춰요"
-    case .evCall:      return "이 콜이 얼마를 버는지 계산해요"
+    case .evCall:      return "콜했을 때의 기대값을 계산해요"
     case .callFold:    return "이길 확률과 낼 가격을 비교해요"
     case .rangeNotation: return "핸드 묶음이 몇 콤보인지 세요"
     case .rfi:           return "이 자리에서 열 핸드인지 판단해요"
-    case .rangeRead:     return "행동만 보고 상대 패의 범위를 읽어요"
+    case .rangeRead:     return "상대의 행동을 보고 가능한 패를 좁혀요"
     case .hitFrequency:  return "이 보드가 레인지의 몇 %를 맞혔는지 세요"
     case .rangeAdvantage: return "이 보드가 누구에게 유리한지 판단해요"
     case .evLoss:      return "고른 쪽이 몇 bb를 버렸는지 확인해요"
-    case .actionRead:  return "벳과 체크가 레인지를 어떻게 좁히는지 읽어요"
+    case .actionRead:  return "벳과 체크 뒤에 남는 패의 범위를 읽어요"
     case .defend:      return "오픈에 맞서 폴드·콜·3벳을 판단해요"
     case .mdf:         return "얼마나 자주 지켜야 하는지 계산해요"
     }

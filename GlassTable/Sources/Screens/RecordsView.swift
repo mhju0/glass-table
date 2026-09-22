@@ -19,10 +19,14 @@ struct RecordsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                Text("기록").font(GT.title(24)).foregroundStyle(GT.onFelt)
+            VStack(alignment: .leading, spacing: GT.Space.section) {
+                Text("학습 기록").font(GT.title(30)).foregroundStyle(GT.onFelt)
                     .padding(.top, 14)
                 headline
+                Text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실제 포커 실력을 인증하지 않아요.")
+                    .font(GT.body(12.5)).foregroundStyle(GT.onFeltSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
                 calibrationCard
                 evLossCard
                 if studied.isEmpty { emptyState } else { conceptList }
@@ -31,6 +35,13 @@ struct RecordsView: View {
         }
         .gtTabBarClearance()
         .background(FeltBackground())
+        .onAppear {
+            #if DEBUG
+            if let raw = ProcessInfo.processInfo.environment["GT_DEMO_REPLAY"] {
+                replay = Concept(rawValue: raw)
+            }
+            #endif
+        }
         // Same replay the 오늘 stuck panel offers, so the subtitle's promise holds
         // wherever it appears. Seed rule mirrors TodayView's: progress-salted, off
         // free play's base, so the narrated answer never doubles as a review question.
@@ -40,7 +51,11 @@ struct RecordsView: View {
                                      index: 0)
             NavigationStack {
                 WalkthroughView(title: conceptTitle(concept), beats: w.beats, rows: w.rows,
-                                onFinish: { replay = nil }, onSkip: { replay = nil })
+                                onFinish: {
+                                    model.completeWalkthrough(concept: concept)
+                                    replay = nil
+                                },
+                                onSkip: { replay = nil })
             }
         }
     }
@@ -59,23 +74,23 @@ struct RecordsView: View {
             Text(label).font(GT.semibold(10)).foregroundStyle(GT.inkMuted)
                 .lineLimit(1).minimumScaleFactor(0.8)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 13)
-        .gtCard(radius: 15)
+        .frame(maxWidth: .infinity).padding(.vertical, 10)
         .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder
     private var calibrationCard: some View {
+        let sampleCount = model.state.answers.filter { $0.interval != nil }.count
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(text: "캘리브레이션", onDark: false)
-            if let rate = model.calibrationHitRate, let verdict = model.calibrationVerdict {
-                Text("90% 구간이 정답을 담은 비율")
-                    .font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
+            SectionLabel(text: "확신 점검", onDark: false)
+            if let rate = model.calibrationHitRate {
+                Text("정답이 내가 예상한 90% 범위에 들어온 비율")
+                    .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(Int((rate * 100).rounded()))%")
-                        .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
-                    Text("· 목표 90%").font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
+                        .font(GT.title(28).monospacedDigit()).foregroundStyle(GT.ink)
+                    Text("\(sampleCount)개 답변 · 기준 90%")
+                        .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
                 }
                 // The target sits as a mark on the track, so being under it is a
                 // visible distance rather than a number to interpret.
@@ -90,18 +105,19 @@ struct RecordsView: View {
                     }
                 }
                 .frame(height: 11)
-                Text(verdictLine(verdict))
-                    .font(GT.body(11.5)).foregroundStyle(GT.inkSecondary)
+                Text(calibrationDescription(count: sampleCount))
+                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("아웃 · 에퀴티 감각 · EV 계산에서 구간을 답하면 여기에 쌓여요")
-                    .font(GT.body(12)).foregroundStyle(GT.inkSecondary)
+                Text("에퀴티 감각, EV 계산처럼 예상 범위를 답하는 문제의 기록이 여기에 쌓여요.")
+                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(15)
+        .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .gtCard(radius: 18)
+        .gtCard(radius: GT.Radius.panel)
     }
 
     /// decisions.md §D asks for a rolling EV-loss-per-hand alongside accuracy. Shown
@@ -110,40 +126,35 @@ struct RecordsView: View {
     @ViewBuilder
     private var evLossCard: some View {
         if let mean = meanEVLoss(in: model.state) {
+            let count = model.state.answers.filter { $0.evLoss != nil }.count
             VStack(alignment: .leading, spacing: 6) {
                 SectionLabel(text: "결정", onDark: false)
-                Text("핸드당 버린 EV").font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
+                Text("기록된 결정의 평균 EV 손실")
+                    .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(bbText(mean))bb")
-                        .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
-                    Text("· 낮을수록 좋아요").font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
+                        .font(GT.title(28).monospacedDigit()).foregroundStyle(GT.ink)
+                    Text("\(count)개 결정 · 낮을수록 좋아요")
+                        .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
                 }
-                Text(mean <= 0.5 ? "고를 때마다 거의 최선을 고르고 있어요."
-                     : (mean <= 2 ? "큰 실수는 없지만 조금씩 새고 있어요."
-                                  : "가끔 크게 버리고 있어요. 가격을 먼저 확인해 보세요."))
-                    .font(GT.body(11.5)).foregroundStyle(GT.inkSecondary)
+                Text("이 값은 공개된 체크다운 가정으로 채점한 연습 기록이에요.")
+                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(15)
+            .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .gtCard(radius: 18)
+            .gtCard(radius: GT.Radius.panel)
         }
     }
 
-    private func verdictLine(_ v: Calibration.Verdict) -> String {
-        switch v {
-        case .overconfident:
-            return "구간을 너무 좁게 잡고 있어요. 확신이 실제 실력보다 앞서 있어요."
-        case .underconfident:
-            return "구간이 넓어요. 조금 더 좁혀도 정답을 담을 수 있어요."
-        case .calibrated:
-            return "구간이 잘 맞고 있어요. 이 감각을 유지해요."
-        }
+    private func calibrationDescription(count: Int) -> String {
+        "지금까지 답한 \(count)개 문제의 결과예요. 표본이 적을 때는 이 수치만으로 실력을 판단하지 않아요."
     }
 
     private var emptyState: some View {
-        Text("아직 기록이 없어요. 오늘 한 문제만 풀어도 여기부터 채워져요.")
-            .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+        Text("아직 기록이 없어요. 한 문제를 풀면 답변 수와 다음 복습 시점이 여기에 쌓여요.")
+            .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
             .padding(.top, 4)
     }
 
@@ -158,8 +169,7 @@ struct RecordsView: View {
                     }
                 }
             }
-            .padding(.horizontal, 14)
-            .gtCard(radius: 18)
+            .padding(.horizontal, 4)
         }
     }
 
@@ -169,41 +179,41 @@ struct RecordsView: View {
         let stuck = model.shouldOfferWalkthrough(concept)
         let line = HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(conceptTitle(concept)).font(GT.title(13)).foregroundStyle(GT.ink)
+                Text(conceptTitle(concept)).font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Text(subtitle(r, stuck: stuck))
-                    .font(GT.body(10.5))
-                    .foregroundStyle(stuck ? GT.suitRed : GT.inkMuted)
-                    .lineLimit(1)
+                    .font(GT.body(12.5))
+                    .foregroundStyle(stuck ? GTBand.offInk : GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
             // The subtitle advertises 천천히 다시 보기, so a stuck row must be a door,
             // not a caption — the glyph marks the one row here that acts on a tap.
             if stuck {
                 Image(systemName: "play.circle.fill")
-                    .font(.system(size: 14)).foregroundStyle(GT.suitRed)
+                    .font(.system(size: 17)).foregroundStyle(GTBand.offInk)
             }
             pips(r.tier)
         }
-        .padding(.vertical, 11)
+        .padding(.vertical, 13)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(conceptTitle(concept)). \(tierWord(r.tier)). \(subtitle(r, stuck: stuck))")
 
         if stuck {
             Button { replay = concept } label: { line.contentShape(Rectangle()) }
                 .buttonStyle(GTPress())
-                .accessibilityHint("천천히 다시 보기 열기")
+                .accessibilityHint("따라 배우기 열기")
         } else {
             line
         }
     }
 
     private func subtitle(_ r: ConceptRecord, stuck: Bool) -> String {
-        if stuck { return "\(r.consecutiveMisses)번 놓침 · 천천히 다시 보기" }
-        let accuracy = Int((r.accuracy * 100).rounded())
-        guard let due = r.review.due else { return "\(r.total)문제 · \(accuracy)%" }
+        if stuck { return "\(r.consecutiveMisses)번 놓침 · 따라 배우기" }
+        let accepted = Int((r.accuracy * 100).rounded())
+        guard let due = r.review.due else { return "\(r.total)문제 · 정확·근접 \(accepted)%" }
         let days = Calendar.current.dateComponents([.day], from: Date(), to: due).day ?? 0
         let when = days <= 0 ? "지금 복습" : "\(days)일 후 복습"
-        return "\(tierWord(r.tier)) · \(when)"
+        return "\(r.total)문제 · 정확·근접 \(accepted)% · \(when)"
     }
 
     /// Four filled pips, so the tier survives greyscale and reads without the word.
@@ -221,10 +231,10 @@ struct RecordsView: View {
 
     private func tierWord(_ t: MasteryTier) -> String {
         switch t {
-        case .attempted:  return "시도"
-        case .familiar:   return "익숙"
-        case .proficient: return "능숙"
-        case .mastered:   return "숙달"
+        case .attempted:  return "기록 시작"
+        case .familiar:   return "반복 중"
+        case .proficient: return "능숙 단계"
+        case .mastered:   return "숙달 단계"
         }
     }
 }

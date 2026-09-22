@@ -7,6 +7,7 @@ import GlassTableDrills
 /// red 3벳, green 콜, grey 폴드. Bands come straight from `DefendChart`, so the grid
 /// can never drift from what the table actually graded against.
 struct DefendGridView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let opener: Position
     var highlight: HandClass?
 
@@ -26,6 +27,9 @@ struct DefendGridView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            if let highlight {
+                selectedHandSummary(highlight)
+            }
             // Colour never alone: the legend names each band next to its swatch.
             HStack(spacing: 12) {
                 ForEach(DefendAction.allCases, id: \.self) { a in
@@ -45,13 +49,67 @@ struct DefendGridView: View {
                                 cell(RangeGrid.classAt(row: row, col: col), side: side)
                             }
                         }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(accessibilityRow(row))
                     }
                 }
             }
             .aspectRatio(1, contentMode: .fit)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(opener.rawValue) 오픈에 대한 디펜드 차트")
+        .accessibilityElement(children: .contain)
+        .overlay(alignment: .topLeading) {
+            Color.clear.frame(width: 1, height: 1)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(chartAccessibilitySummary)
+        }
+    }
+
+    private func selectedHandSummary(_ hand: HandClass) -> some View {
+        let verdict = action(hand)
+        return HStack(spacing: 12) {
+            if !dynamicTypeSize.isAccessibilitySize {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8).fill(fill(verdict))
+                    Text(hand.description)
+                        .font(GT.title(17))
+                        .foregroundStyle(verdict == .fold ? GT.ink : GT.onCTA)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+                .padding(.horizontal, 9)
+                .frame(minWidth: 54, minHeight: 44)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("내 핸드 \(hand.description) · \(verdict.rawValue)")
+                    .font(GT.title(15)).foregroundStyle(GT.ink)
+                Text("테두리로 강조한 칸이 차트 속 내 핸드 위치예요")
+                    .font(GT.body(11)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(GT.surface, in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("내 핸드 \(hand.description), 디펜드 차트 판정 \(verdict.rawValue)")
+        .accessibilityIdentifier("defend-selected-evidence")
+    }
+
+    private func accessibilityRow(_ row: Int) -> String {
+        let cells = RangeGrid.ranks.map { col in
+            let hand = RangeGrid.classAt(row: row, col: col)
+            return "\(hand.description) \(action(hand).rawValue)"
+        }
+        let rank = String(RangeGrid.classAt(row: row, col: row).description.prefix(1))
+        return "\(rank) 행. " + cells.joined(separator: ", ")
+    }
+
+    private var chartAccessibilitySummary: String {
+        guard let highlight else {
+            return "\(opener.rawValue) 오픈에 대한 디펜드 차트. 3벳, 콜, 폴드 밴드."
+        }
+        return "\(opener.rawValue) 오픈에 대한 디펜드 차트. "
+             + "내 핸드 \(highlight.description), 판정 \(action(highlight).rawValue)."
     }
 
     private func cell(_ h: HandClass, side: CGFloat) -> some View {
@@ -71,5 +129,6 @@ struct DefendGridView: View {
                     .strokeBorder(GT.ink, lineWidth: 2)
             }
         }
+        .accessibilityHidden(true)
     }
 }

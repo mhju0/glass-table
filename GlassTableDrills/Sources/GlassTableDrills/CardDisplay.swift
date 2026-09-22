@@ -13,6 +13,10 @@ public extension Card {
     /// Korean suit name, for prose that talks about a suit rather than a card.
     var suitKorean: String { Card.suitNames[suit] }
 
+    /// VoiceOver-facing name without relying on a suit glyph being pronounced
+    /// consistently by every locale or speech voice.
+    var spokenKorean: String { "\(suitKorean) \(Card.displayRanks[rank - 2])" }
+
     internal static let displayRanks =
         ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
     internal static let displaySuits = ["♣", "♦", "♥", "♠"]
