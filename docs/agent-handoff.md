@@ -43,3 +43,20 @@
 - Next step: Finish publication verification and record new device feedback
   against `specs/2026-09-20-learner-trust-audit.md`; do not repeat that audit without
   checking its existing dispositions and evidence first.
+
+### Publication completed
+
+- [PR #5](https://github.com/mhju0/glass-table/pull/5) merged as `38fb164` after
+  independent review and successful hosted CI + Engine gate on `424d982`.
+  Fresh local verification also passed 63 Debug app tests, 2 Release smoke tests
+  and unsigned device-bundle checks, in addition to the package/tooling gates above.
+- The primary checkout was fast-forwarded to main and its Xcode project regenerated.
+  Removed the three redundant revamp/audit/publication worktrees, five merged local
+  branches and three merged remote branches. All commit history remains reachable
+  from main. Raw captures, logs and XCTest result bundles remain in the local archive.
+- GitHub now has the current README, four fresh screenshots and a concise About
+  description. No open issues or PRs remained after integration. The final handoff
+  update is documentation-only; post-push workflow results remain visible in Actions.
+- Next: collect the owner's ongoing iPhone feedback. The physical-device and
+  App Store limitations above remain open; no installation or progress reset was
+  performed during publication.
