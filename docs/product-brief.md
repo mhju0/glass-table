@@ -1,5 +1,10 @@
 # Glass Table — Product Brief
 
+> Historical product rationale. This document retains the original competitive
+> positioning and proposed behavior; it is not a current feature or competitor
+> audit. For the implemented app and testing status, read [README](../README.md)
+> and the [learner-trust delivery](specs/2026-09-20-learner-trust-audit.md).
+
 > An iOS app that teaches serious-minded amateurs to think about No-Limit Texas Hold'em in **ranges and EV**, not in hands and hunches.
 
 ## Thesis: transparency

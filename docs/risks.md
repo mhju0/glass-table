@@ -1,5 +1,11 @@
 # Glass Table — Risks
 
+> Historical risk register. Earlier rating tiers, timing estimates, performance
+> budgets and test counts below are not current verified claims. Use the
+> [submission checklist](submission.md) for unresolved distribution gates and the
+> [learner-trust audit](specs/2026-09-20-learner-trust-audit.md) for current app
+> evidence. Physical-iPhone user testing is ongoing; no App Store release is claimed.
+
 Each risk with a concrete mitigation. Severity is relative to a solo, full-time, free, on-device project.
 
 ## Technical

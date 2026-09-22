@@ -1,8 +1,13 @@
 # Glass Table — Open Questions
 
-What still needs the developer's input or outside research, prioritized. M1 and
-R1–R5b are implemented on `main`; the remaining questions below shape release,
-dogfood, or later scope rather than block the shipped learning loop.
+Current follow-up is physical-device user feedback and the unresolved gates in
+the [submission checklist](submission.md). The [learner-trust audit](specs/2026-09-20-learner-trust-audit.md)
+records the latest implemented fixes and deliberate deferrals. Store naming is
+documented in `submission.md`; the course now has nine units and eighteen concepts.
+
+The numbered register below is retained as historical planning context. Its
+original names, thresholds and curriculum proposals are not current requirements;
+use `CONTEXT.md`, `DESIGN.md` and the linked delivery records when they differ.
 
 ## P1 — release and current product decisions
 
