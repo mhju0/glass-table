@@ -234,7 +234,9 @@ final class LearningFlowTests: XCTestCase {
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_TAB": "records"]
         app.launch()
         let record = app.descendants(matching: .any).matching(NSPredicate(
-            format: "label BEGINSWITH %@ AND label CONTAINS %@", "팟 계산.", "1문제"
+            // GT_DEMO_SEED starts 팟 계산 at 16 answers. This committed choice must
+            // add exactly one before Next, not reset the fixture or record twice.
+            format: "label BEGINSWITH %@ AND label CONTAINS %@", "팟 계산.", "17문제"
         )).firstMatch
         XCTAssertTrue(record.waitForExistence(timeout: 10))
     }
