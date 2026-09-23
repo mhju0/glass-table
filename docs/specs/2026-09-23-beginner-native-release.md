@@ -33,8 +33,8 @@ The [learner-trust audit](2026-09-20-learner-trust-audit.md) and
   Large text has larger cells rather than one opaque accessibility label.
 - **Learning sessions.** Why/how introductions, worked steps and guided practice
   precede independent work. Five-question practice, course and review preserve
-  drafts and committed reveals across relaunch. Resume does not regrade a saved
-  answer. Count entry starts empty and accepts direct input; the approved pot
+  drafts and committed reveals across relaunch. Resume does not record or award
+  credit for the same answer again. Count entry starts empty and accepts direct input; the approved pot
   replay retains three choices and optional arithmetic.
 - **Progress.** Exact, near and missed answers remain distinct. Daily and
   non-overlapping seven-day comparisons use matching concept, mode, answer
