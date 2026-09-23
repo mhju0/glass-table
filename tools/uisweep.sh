@@ -250,7 +250,7 @@ for content_size in "${CONTENT_SIZES[@]}"; do
     name="${entry%%:*}"
     rest="${entry#*:}"
     slp="${rest##*:}"
-    if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=2.2; fi
+    if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=4; fi
     args=()
     for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
     # Uninstall clears progress written by the preceding demo. Empty-state captures
