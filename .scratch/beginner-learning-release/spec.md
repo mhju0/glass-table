@@ -1,6 +1,6 @@
 # Beginner learning release
 
-Status: approved for combined native implementation; verification pending
+Status: native implementation and technical verification complete; human acceptance and store gates open
 Baseline: `dd2f7e3e5a57ffb1139398f39fdd21207a6f8603`
 Date: 2026-09-23
 
@@ -18,6 +18,12 @@ nor evidence that the future four-player engine, migration or statistics work.
 This file records the approved scope. [audit.md](audit.md) covers current-source
 findings. [prototype/README.md](prototype/README.md) describes the review build.
 Individual implementation tickets live in [issues/](issues/).
+
+The completed native delivery is recorded in
+[`docs/specs/2026-09-23-beginner-native-release.md`](../../docs/specs/2026-09-23-beginner-native-release.md).
+Release 1.0 (4) runs on the owner's iPhone 12 mini with prior progress preserved
+across schema migration and relaunch. The scope below records the approved plan;
+remaining human checks are in [issue 07](issues/07-integrated-release.md).
 
 ## Combined release: starting point and open access
 
@@ -85,7 +91,9 @@ replace Korean-string glossary routing. Persistent concept IDs do not change.
 
 Coverage includes generated feedback, numbers, plurals, help, recovery and spoken
 labels. English metadata may describe English lessons only after complete support
-is implemented and reviewed. The current Korean-only metadata claim stays until then.
+is implemented and reviewed. The Korean-only metadata sentence was the pre-build
+gate; the complete language implementation and current draft metadata are recorded
+in the delivery spec and `docs/submission.md`.
 
 ## Practice and honest progress
 
@@ -169,7 +177,8 @@ Versioned assignment heuristic for this release:
   40–70%, above 70%. A 95% Wilson interval must fit wholly within each assigned band.
 - Four supported outer corners produce four labels. Supported combinations involving
   a middle band produce Mixed. An interval straddling a boundary stays unassigned.
-- Recompute after 20 new hands and when evidence expires. Show denominators and dates
+- Recompute the eligible current window after each completed hand and when the
+  report renders, including when evidence expires. Show denominators and dates
   immediately even before assignment; old-policy data is not pooled silently.
 
 These cutoffs and nicknames are authored product heuristics, not research-validated
@@ -201,7 +210,9 @@ intelligence, personality, profitability or overall skill from these statistics.
    with progress preservation. Native VoiceOver audio, iOS 17 and distribution/App
    Store gates remain separate from simulator/browser success.
 
-Ship as one complete release after these gates. No partial English promise, new
+The combined native implementation and technical gates are complete. Physical
+VoiceOver, iOS 17, adult-beginner comprehension and signed distribution/App Store
+checks remain separate. No partial English promise, new
 analytics, accounts, gambling, social comparison, countdown pressure or public
 release is implied by the first-milestone prototype.
 

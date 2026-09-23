@@ -5,6 +5,12 @@
 > [submission checklist](submission.md) for unresolved distribution gates and the
 > [learner-trust audit](specs/2026-09-20-learner-trust-audit.md) for current app
 > evidence. Physical-iPhone user testing is ongoing; no App Store release is claimed.
+> The [2026-09-23 combined delivery](specs/2026-09-23-beginner-native-release.md)
+> supersedes old test counts and built/unbuilt feature claims. Release 1.0 (4)
+> runs on the owner's iPhone 12 mini with schema-1 progress preserved. Remaining
+> risks include beginner comprehension, physical VoiceOver, minimum iOS 17,
+> distribution validation, age rating and current store materials. Four-seat
+> play produces a factual review; it is not the older graded heads-up exercise.
 
 Each risk with a concrete mitigation. Severity is relative to a solo, full-time, free, on-device project.
 

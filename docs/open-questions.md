@@ -1,8 +1,11 @@
 # Glass Table — Open Questions
 
-Current follow-up is physical-device user feedback and the unresolved gates in
+The combined beginner release is implemented and installed in place on the iPhone
+12 mini as 1.0 (4). See the [delivery record](specs/2026-09-23-beginner-native-release.md).
+Current follow-up is adult-beginner comprehension, physical VoiceOver, iOS 17,
+and the unresolved distribution gates in
 the [submission checklist](submission.md). The [learner-trust audit](specs/2026-09-20-learner-trust-audit.md)
-records the latest implemented fixes and deliberate deferrals. Store naming is
+records the earlier revamp fixes and deferrals. Store naming is
 documented in `submission.md`; the course now has nine units and eighteen concepts.
 
 The numbered register below is retained as historical planning context. Its
@@ -11,8 +14,8 @@ use `CONTEXT.md`, `DESIGN.md` and the linked delivery records when they differ.
 
 ## P1 — release and current product decisions
 
-1. **Korean terminology glossary.** *Convention confirmed* against real Korean sources — actions/streets → Hangul; acronyms/positions → English; TAG/LAG → Latin; a few concept terms bilingual (`decisions.md` §F, `product-brief.md` Localization). *Remaining:* finalize the full term-by-term glossary during UI-copy work (developer-owned).
-2. ~~**Reference oracle for correctness fixtures.**~~ **RESOLVED: two independent oracles — eval7 (Python, MIT) primary + OMPEval (C++, ISC) anchor.** Dev-time only, never shipped. Golden vectors hard-coded from published matchups (AA/KK 82.4/17.6, etc.). See `decisions.md` §10.
+1. **Korean terminology glossary.** *Convention confirmed* against real Korean sources — actions/streets → Hangul; acronyms/positions → English; TAG/LAG → Latin; a few concept terms bilingual (`decisions.md` §F, `product-brief.md` Localization). The in-app Korean/English glossary and plain-language opponent presentation are implemented. Continue to revise terms from observed beginner comprehension; this is not a blocker for the technical delivery.
+2. ~~**Reference oracle for correctness fixtures.**~~ **RESOLVED in implementation: eval7 (Python, MIT) fixtures.** The original plan proposed OMPEval (C++, ISC) as a second anchor, but it was never used. The frozen fixture generator is eval7-only; neither library ships in the app. See `decisions.md` D05 and `tools/gen_fixtures.py`.
 3. ~~**Perfect-hash evaluator: port vs. write, and license.**~~ **RESOLVED: written from scratch in Swift.** No third-party evaluator shipped ⇒ no external-license concern. Studying perfect-hash designs as algorithm references only.
 4. ~~**Fixed bet-sizing UX & values.**~~ **RESOLVED: preset % -pot buttons — pro unit on top (% pot postflop, bb preflop), resolved chips as a dim sub-label; no slider.** Engine menu 33/50/75/100/150% + all-in; "Pot" and "All-in" as words. See `decisions.md` §A. *(Remaining: confirm the exact menu values — the proposed set is the default.)*
 5. ~~**Determinism strategy.**~~ **RESOLVED: compute on the fly, deterministically** (enumeration or fixed-seed MC). No pre-stored benchmark data model.
@@ -36,6 +39,6 @@ counsel before the betting-table milestone.
 
 12. **App name / branding in Korean.** Keep the English "Glass Table," use a Korean name (유리 테이블?), or a bilingual lockup. Store listing language.
 13. ~~**Design/visual tone.**~~ **RESOLVED: the felt/glass/paper system** — dark table felt, opaque "glass" surfaces, paper card faces; one pinned appearance; every boundary measured to WCAG 3:1. See `decisions.md` §G.
-14. **6-max option.** Ship an optional 6-max table size after 8-max Table lands? Cheap, but confirm demand.
-15. ~~**Curriculum unlock specifics.**~~ **RESOLVED (R1): strictly linear path, boss nodes as the only route to 숙달, first-run diagnostic can pre-clear.** See `docs/specs/2026-08-03-r1-progression-shell-design.md`.
+14. **6-max option.** Historical question for the graded heads-up/table concept. The current separate Play table is four-seat; any larger layout now needs a new design and demand check.
+15. ~~**Curriculum unlock specifics.**~~ **RESOLVED, amended 2026-09-23:** R1 originally chose a strictly linear path; the combined release opens all nine units and eighteen concepts, with recommendation rather than a lock. Optional offline placement suggests a starting point without credit. See D45 and the combined delivery spec.
 16. **Puzzle sharing format.** `.glasstable` file schema and/or URL-encoded share string for Lab puzzles.

@@ -4,6 +4,11 @@
 > positioning and proposed behavior; it is not a current feature or competitor
 > audit. For the implemented app and testing status, read [README](../README.md)
 > and the [learner-trust delivery](specs/2026-09-20-learner-trust-audit.md).
+> The 2026-09-23 [combined delivery](specs/2026-09-23-beginner-native-release.md)
+> supersedes the old audience wording, mode scope, path count and store gates below.
+> The app remains an adult learning tool, now with everyday language, Korean and
+> English, an open nine-unit/eighteen-concept path, and a separate four-seat
+> factual practice table. The historical thesis and proposed modes stay below.
 
 > An iOS app that teaches serious-minded amateurs to think about No-Limit Texas Hold'em in **ranges and EV**, not in hands and hunches.
 
@@ -107,3 +112,9 @@ Glass Table will **not**, at launch or by design:
 - Charge money or show ads. Free forever.
 - Compete with GTO Wizard on equilibrium/solver depth. Different axis (read-and-exploit, transparency).
 - Give the launch bot multi-street planning. Post-flop is single-street-lookahead heuristics; deeper planning is deferred.
+
+The continuous-sizing non-goal above describes the graded heads-up model. The
+four-seat chip-practice rules support legal integer-chip actions; those hands are
+reviewed factually and do not inherit the heads-up EV grade. The original
+"free forever" and "iPhone only forever" statements were founding positions,
+not new distribution or pricing commitments.

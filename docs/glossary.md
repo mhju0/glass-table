@@ -4,9 +4,16 @@ The canonical term table promised by decision F (`decisions.md`) — built durin
 UI-copy pass, applied to all UI strings from here on. Confirmed against real Korean
 usage (pokergosu, CoinPoker KR glossary, namu.wiki).
 
+The 2026-09-23 beginner release keeps these spellings for technical detail, but
+introduces ideas in everyday Korean/English before abbreviations. VPIP/PFR and
+Nit/TAG/LAG/Calling Station/Maniac are optional details in Play's opponent sheet,
+not the five choice titles. The glossary supplements plain explanations in both
+languages. See [D45](decisions.md) and the
+[combined delivery](specs/2026-09-23-beginner-native-release.md).
+
 ## Rules
 
-1. **Actions & streets: always Hangul.** 콜 · 레이즈 · 폴드 · 체크 · 벳 · 올인 ·
+1. **Korean locale actions & streets: Hangul.** 콜 · 레이즈 · 폴드 · 체크 · 벳 · 올인 ·
    프리플랍 · 플랍 · 턴 · 리버. Use **플랍**, not 플롭. **3벳/4벳** = digit + Hangul.
 2. **Acronyms & positions: always Latin.** GTO · EV · MDF · SB · BB · UTG · HJ · CO ·
    BTN. **TAG/LAG stay Latin** (태그/래그 collide with everyday "tag"/"lag").
@@ -38,7 +45,8 @@ usage (pokergosu, CoinPoker KR glossary, namu.wiki).
 | 정확 / 근접 / 다시 살펴볼까요? | spot-on / close / off | grade band | display labels; no grading change |
 | 따라 배우기 | worked guide | learning mode | replaces 천천히 in mode labels |
 | 무승부 | tie / chop | outcome | plain-language answer label |
-| VPIP / PFR | voluntarily put in pot / preflop raise | acronym | Latin; archetype stats on the 테이블 picker |
+| VPIP / PFR | voluntarily put money in pot / preflop raise | acronym | Optional authored opponent-policy detail, not a measured skill or aggression rank. In plain language: how often they choose to join / raise before shared cards. |
+| 신중형 / 선별형 / 공격형 / 콜 위주형 / 매우 공격형 | Cautious / Selective / Aggressive / Caller / Very aggressive | opponent choice | Five stationary Play rows. Entry and preflop-raise tendencies are explained separately; the names do not form one simple strength ladder. |
 | 3벳 | 3-bet | action | digit + Hangul per decisions.md §F |
 | bb | big blind | unit | Latin lowercase; one big blind, never label a 1/2 chip blind structure as 1/2bb |
 | 칩 | chips | unit | Pot calculation counts whole chips with 1-chip SB / 2-chip BB; fraction answers round to a whole chip |

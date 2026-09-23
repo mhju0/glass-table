@@ -1,6 +1,6 @@
 # Review beginner language and interaction mocks
 
-Status: needs-info
+Status: implemented
 Type: prototype
 
 Own the browser review build, not native production code. Implement the six flows
@@ -27,3 +27,6 @@ review. Owner approval is the dependency for tickets 02–06, not implied by tes
   five vertical rows at every width and a selected-opponent bottom sheet. A
   targeted 72-state matrix, all five selection/dismissal flows and large-text
   sheet scrolling passed; see [verification](../verification.md).
+- 2026-09-23: owner approved the combined direction and native implementation.
+  The prototype served its review purpose; native evidence and remaining human
+  acceptance are in the [delivery record](../../../docs/specs/2026-09-23-beginner-native-release.md).

@@ -1,5 +1,28 @@
 # Glass Table — Roadmap
 
+> **Current delivery, 2026-09-23:** The combined beginner release is implemented and
+> installed in place as Release 1.0 (4) on the owner's iPhone 12 mini. Learn, Play and
+> Progress now contain an open nine-unit/eighteen-concept path, optional untimed
+> starting-point check, complete Korean/English interface, five-question practice,
+> and a separate four-seat chip practice table. The previous NOW/NEXT/LATER sections
+> below record the 2026-09-05 plan; they are historical, including the locked path,
+> absent resume, Today tab and unbuilt four-player table claims. Exact tests, migration
+> checks and remaining acceptance work are in the
+> [combined delivery](specs/2026-09-23-beginner-native-release.md).
+
+## Current next work
+
+1. Observe adult beginners using the revised path, explanations and table. Run a
+   physical VoiceOver pass and check the minimum iOS 17 target. The iPhone 12 mini
+   install and simulator AX5 sweeps do not answer those questions.
+2. Complete signed distribution/archive checks, current App Store screenshots,
+   metadata review, age-rating/territory decisions and privacy-policy publication
+   before any store submission. See [submission.md](submission.md).
+3. Use actual answers to assess the absolute EV-loss bands and the bot's usefulness.
+   Combo-selection MDF, deeper betting models and authoring tools remain deferred.
+
+---
+
 Written 2026-09-04 from the repo, git history, the specs' scope-out sections, and prior
 agent-session memory; NOW updated after the 2026-09-05 takeover audit. It separates
 verified implementation (including labeled working-tree changes) from discussion.

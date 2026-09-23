@@ -1,5 +1,27 @@
 # Glass Table — Domain Context
 
+## Current native baseline (2026-09-23)
+
+The combined beginner release is implemented and installed for dogfood as
+1.0 (4), not submitted to the App Store. Read the
+[delivery and verification record](docs/specs/2026-09-23-beginner-native-release.md)
+before reopening its work. Older updates below retain their historical scope.
+
+- Learn / Play / Progress replace the four-tab navigation. Learn recommends
+  unfinished work, review or a lesson while all 9 units / 18 concepts stay open.
+- The optional offline starting-point check is untimed and skippable. It changes
+  recommendations, never grants completion, mastery or review credit.
+- Korean and English can be switched in-app without losing the current activity.
+  Everyday wording leads; canonical poker terms remain available in context.
+- Play is a four-seat integer-chip practice table with public bot policies and
+  factual hand reviews. The original graded heads-up exercise remains separate;
+  its chart/checkdown assumptions do not grade the four-seat game.
+- Schema 2 stores resumable lessons, drafts/reveals, daily practice and recent
+  table evidence. Schema-1 records survive migration with a raw backup. Never
+  discard old history or recovery bytes to simplify a save/import/reset change.
+- No accounts, network service, analytics, ads, purchases or real-money wagering.
+  This is an adult learning app with accessible language, not a child audience.
+
 ## Revival update (2026-09-14)
 
 The current revamp follows [DESIGN.md](DESIGN.md) and the
@@ -24,17 +46,18 @@ slice under `docs/specs/`.
 
 ## What this is
 
-A Korean-first iOS trainer that teaches No-Limit Hold'em in **ranges and EV**.
+A Korean/English iOS trainer that teaches No-Limit Hold'em from basics to **ranges and EV**.
 The thesis is *transparency*: opponents are rule-based archetypes whose
 strategies are published in-app, so every grade is computed from declared data
-and checkable by the user. Loop everywhere: **decide → reveal → grade**.
+and checkable by the user. Graded learning uses **decide → reveal → grade**;
+four-player practice uses **play → factual hand review**, without an EV grade.
 
 ## Modules
 
 | Module | Owns | Test posture |
 |---|---|---|
 | `GlassTableEngine` | Pure poker math: evaluator, equity (exact + fixed-seed MC), hand classes/ranges, Chen scores, board texture, made-hand buckets | Release-config gate (`swift test -c release`), oracle-cross-checked, CI weekly + on engine paths |
-| `GlassTableDrills` | Everything decidable without UI: spot generators, grading, archetypes and their pre/postflop policies, the defend chart, `TableHand` (the hand state machine), curriculum, FSRS review, calibration, persistence | Fast plain-Swift tests; must never import UIKit/SwiftUI |
+| `GlassTableDrills` | Everything decidable without UI: spot generators, grading, archetypes and their policies, defend chart, graded `TableHand`, four-seat `PracticeTableState`, curriculum, FSRS review, calibration, persistence | Fast plain-Swift tests; must never import UIKit/SwiftUI |
 | `GlassTable` | Thin SwiftUI app: screens + design system. `.xcodeproj` is **generated** (`xcodegen generate`), never committed | Simulator build + `tools/uisweep.sh` screenshot sweep |
 
 ## Vocabulary (use these; the app's Korean is canonical)
@@ -44,13 +67,15 @@ and checkable by the user. Loop everywhere: **decide → reveal → grade**.
 - **Estimation concept** — answered with a point + 90% interval, Winkler-scored,
   feeds **calibration**: equity sense, EV call, hit frequency, range advantage,
   and action read. Outs and combos are exact-count questions, not interval evidence.
-- **Archetype** — Nit/TAG/LAG/콜링 스테이션/매니악, defined by VPIP/PFR (§C) and
+- **Archetype** — casual labels 신중형/선별형/공격형/콜 위주형/매우 공격형 map to
+  Nit/TAG/LAG/콜링 스테이션/매니악. Entry and raise habits are separate scales,
+  not a single difficulty ladder. The graded heads-up model is defined by VPIP/PFR (§C) and
   a **postflop policy**: bet/call/raise rows over the five **made-hand buckets**
   (노페어 · 드로우 · 약한 페어 · 탑 페어 · 투페어 이상). Deterministic on
   purpose — an observed action *inverts* into the surviving range (narrowing).
   The table's exception is an opponent folding to a preflop 3-bet: the displayed
   count retains the preceding tracked range, not an inferred fold-only range.
-- **Checkdown model** — the disclosed grading assumption at the table: after the
+- **Checkdown model** — the disclosed grading assumption in the heads-up exercise: after the
   current street settles, no further betting. Exact on the river.
 - **EV-loss grade** — a decision priced as `bestEV − chosenEV` in bb; severity
   최선 at zero, 거의 최선 for a positive loss up to 0.5bb, 부정확 through 2.0bb,

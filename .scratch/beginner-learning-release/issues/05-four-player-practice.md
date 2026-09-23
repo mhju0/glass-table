@@ -1,8 +1,8 @@
 # Build four-player practice and factual hand review
 
-Status: needs-info
+Status: implemented
 Type: task
-Blocked by: 01 owner approval, 03
+Original dependencies (satisfied): 01 owner approval, 03
 Risk: Class 3
 
 Separate integer-chip rules engine and blinded bots from the existing graded
@@ -23,3 +23,13 @@ compact/AX5 table/review and interrupted-play checks. No unvalidated action grad
 Check all five opponents, both scale values against the published policy and
 sheet scrolling, focus and dismissal at compact/AX5 and wide sizes.
 Independent Class-3 frozen-candidate review required before integration.
+
+## Delivery, 2026-09-23
+
+The pure-Swift four-seat rules, blinded authored bots, carried/refilled stacks,
+atomic hand resume and factual replay are implemented separately from the graded
+heads-up lesson. Betting, short-all-in reopening, side pots, refunds, ties and
+replay were exercised by package and native UI tests. The Class-3 frozen-code
+review accepted the candidate. Phone play and novice comprehension still need
+human acceptance. See the
+[delivery record](../../../docs/specs/2026-09-23-beginner-native-release.md).

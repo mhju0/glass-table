@@ -1,10 +1,11 @@
 # Glass Table
 
-**레인지와 EV로 생각하는 홀덤 훈련**
+**기초부터 레인지와 EV까지, 직접 판단하며 배우는 홀덤**
 
-Glass Table is a Korean-first iPhone app for learning No-Limit Hold'em through
-ranges, equity, and expected value. A learner commits to a decision before the
-app reveals the benchmark, the calculation, and the reason behind the grade.
+Glass Table is an offline iPhone learning app for No-Limit Hold'em, in Korean
+and English. It combines a recommended learning path, freely available practice,
+and a four-player computer table. Start with reading cards; build toward ranges,
+probability, and the cost of a decision.
 
 [![CI](https://github.com/mhju0/glass-table/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/ci.yml)
 [![Engine gate](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml)
@@ -12,32 +13,39 @@ app reveals the benchmark, the calculation, and the reason behind the grade.
 
 > Status: active user testing. The app has not been released on the App Store.
 
-| Start with a real decision | Follow the course |
+| Follow a recommendation—or choose | Understand your opponent |
 |---|---|
-| ![First-hand lesson with simplified playing cards](docs/readme-assets/readme-01-first-hand.png) | ![Course path with the current lesson highlighted](docs/readme-assets/readme-02-course.png) |
-| Compare complete hands before the product introduction. | Nine units move from reading the table to range and EV decisions. |
+| ![Learn tab with a recommended next activity](docs/readme-assets/readme-01-learn.png) | ![Opponent details with separate entry and raise habits](docs/readme-assets/readme-02-opponent.png) |
+| Nine units and 18 concepts stay open; an optional starting-point check suggests where to begin. | Everyday names lead; numbers and technical terms are optional detail. |
 
-| Inspect the cost of a choice | Inspect the opponent model |
+| Practice a complete hand | Explore the chart |
 |---|---|
-| ![EV-loss feedback showing best and chosen actions](docs/readme-assets/readme-03-ev-feedback.png) | ![TAG policy reference derived from the table model](docs/readme-assets/readme-04-policy.png) |
-| Feedback shows the best EV, chosen EV, subtraction, and range used for grading. | The table publishes each archetype's policy and the limits of its range estimate. |
+| ![Four-player practice table with public actions and chip counts](docs/readme-assets/readme-03-play.png) | ![Defend chart highlighting the learner's hand](docs/readme-assets/readme-04-chart.png) |
+| Four seats, local computer opponents, and a factual review of the chips and cards. | A compact hand summary leaves room for the chart and its enlarged explorer. |
 
 ## Product
 
-The course combines worked examples, independent retrieval, explanatory
-feedback, delayed review, and mixed checkpoints. Daily study recommends either
-a due review or the next lesson. Free practice keeps every drill available
-without changing course gates.
+Learn combines brief introductions, worked examples, five-question practice,
+delayed review, and mixed checkpoints. It recommends a next activity without
+locking advanced lessons. The optional, untimed starting-point check changes
+the recommendation—not completed lessons or earned mastery.
 
-The table mode plays a heads-up hand against one of five rule-based archetypes.
-Preflop choices use the published defend chart. Postflop choices are priced in
-big blinds under the approximation disclosed in the reveal. The app presents
-these results as conditional training feedback, not universal poker advice.
+Play offers four-player hands with 100 starting chips, carried stacks, and
+explicit refills when a player runs out. Its review reports what happened; it
+does not pretend to calculate a strategy grade. A separate heads-up exercise
+grades preflop choices against a published chart and postflop choices under a
+disclosed checkdown approximation—not universal poker advice.
+
+Progress separates exact answers, near answers, and mistakes. Comparable
+practice history and optional response times show change without rewarding
+speed over accuracy. Recent table habits appear only after enough evidence;
+they describe these practice hands, not personality or professional ability.
 
 Glass Table is fully offline. It has no accounts, analytics, ads, purchases, or
 real-money wagering. Progress stays on device and can be exported or imported
-through Files. Atomic writes, explicit unreadable-file recovery, and preserved
-recovery bytes protect the local record.
+through Files. Saved sessions resume across relaunches. Atomic writes, visible
+save failures, validation, and preserved migration/recovery bytes protect the
+local record. Language and appearance can be changed inside the app.
 
 ## Engineering
 
@@ -59,6 +67,11 @@ logic, XCTest exercises real navigation and input, and `tools/uisweep.sh`
 captures normal and Accessibility XXXL layouts on a disposable simulator. A
 screenshot is visual evidence only; interaction tests separately cover scrolling
 and reachable controls.
+
+The combined release is installed for testing on an iPhone 12 mini. Automated
+checks and migration readback are recorded in the [delivery report](docs/specs/2026-09-23-beginner-native-release.md);
+physical VoiceOver, novice comprehension, minimum-OS and distribution checks
+remain separate release gates.
 
 ## Build and test
 
@@ -88,6 +101,7 @@ fixtures, or run the full normal and accessibility sweep with
 
 - [Design direction](DESIGN.md)
 - [Research foundation](docs/specs/2026-09-13-revamp-research.md)
+- [Combined beginner release and verification](docs/specs/2026-09-23-beginner-native-release.md)
 - [Learner-trust audit and verification limits](docs/specs/2026-09-20-learner-trust-audit.md)
 - [App Store preparation status](docs/submission.md)
 - [Privacy policy](docs/privacy-policy.md)

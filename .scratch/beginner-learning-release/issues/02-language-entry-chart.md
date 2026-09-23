@@ -1,8 +1,8 @@
 # Localize and simplify all lesson surfaces
 
-Status: needs-info
+Status: implemented
 Type: task
-Blocked by: 01 owner approval
+Original dependency (satisfied): 01 owner approval
 
 Implement complete semantic Korean/English copy, stable glossary IDs, replayable
 intros and chart hierarchy per [spec](../spec.md). Settings language changes must
@@ -17,3 +17,12 @@ messages covered; no Korean fallback in English; compact/AX5 interactions and
 screenshots in both appearances/languages; selected chart cell and readable detail
 reachable without pre-answer disclosure. Existing progression IDs remain intact.
 Verify each old Today entry point still has a discoverable route from Learn.
+
+## Delivery, 2026-09-23
+
+The native Learn/Play/Progress navigation, open path, optional placement,
+Korean/English content, stable glossary routing, replayable intros and larger
+chart explorer are implemented. All eighteen concepts were checked in both
+languages, with compact/AX5 screenshot coverage and UI interactions. Physical
+VoiceOver and adult-beginner comprehension remain [human acceptance](07-integrated-release.md).
+See the [delivery record](../../../docs/specs/2026-09-23-beginner-native-release.md).

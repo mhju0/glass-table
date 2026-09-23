@@ -218,14 +218,14 @@ forever; fully free, on-device, no backend; audience is 20s–30s Korean home-ga
 - **Evidence:** `docs/milestone-1.md` status banner; commit `7daef48`.
 
 ### D12 · Curriculum order: fundamentals → ranges → exploitation, gated but skippable `[was §8]`
-**Status: SUPERSEDED** by the current 8-unit course with **strictly linear,
-non-skippable** unlocking.
+**Status: SUPERSEDED** first by the 2026-08-03 linear course described below,
+then by D45's open nine-unit path on 2026-09-23.
 
 - **Decided (original):** a 12-step ladder (equity intuition → outs → pot odds →
   position/preflop ranges → ranges as a concept → equity vs a range → board texture →
   value vs bluff → MDF & blockers → fold equity → exploit deviations → multi-street
   planning), with **light and skippable** gating so a curious user can jump ahead.
-- **Current state:** 8 units / 17 path concepts (18 overall; MDF is free-play-only),
+- **2026-08 state:** 8 units / 17 path concepts (18 overall; MDF is free-play-only),
   ordered 기초 → 레인지 → 보드 → 결정 → 상대, with **strictly linear unlocking and no
   skipping**. The first-run diagnostic could pre-clear nodes but was later deleted
   (D30). 자유 연습 offers every drill, unlimited, ungated, off the path.
@@ -759,7 +759,9 @@ against 3:1. **Ink never flips.**
 # Open / unresolved
 
 ### D41 · The age-rating answer for a build that now contains a betting table
-**Status: UNKNOWN — and it is the only thing blocking store resumption.**
+**Status: UNKNOWN.** The combined release adds a four-seat chip table. Its final
+questionnaire, regional path and the other distribution gates in
+`docs/submission.md` remain open.
 
 - **Answer of record (M1):** Simulated Gambling = **Infrequent/Mild**, on the rationale
   that there was no betting gameplay. That rationale **no longer describes the app**.
@@ -767,8 +769,10 @@ against 3:1. **Ink never flips.**
   no purchasable currency). An honest re-answer is plausibly Frequent/Intense → 17+/KR-19,
   which is barred from Apple's self-rating track in Korea and triggers the GRAC
   direct-review contingency.
-- **Also stale in the same document:** the review notes' "no simulated betting gameplay"
-  phrasing was removed but not replaced with a final wording.
+- **2026-09-05 document state:** the review notes' "no simulated betting gameplay"
+  phrasing had been removed without final replacement. The 2026-09-23
+  `docs/submission.md` draft now describes both simulated-betting modes;
+  App Store Connect review notes still need final submission review.
 - **Standing instruction:** if the computed rating comes back 17+/KR-19, **stop before
   submitting** and treat the GRAC direct review as its own sub-project.
 - **Evidence:** `docs/submission.md:3-13`, `:124-142`; `open-questions.md` #11.
@@ -796,3 +800,42 @@ planning for the bot.
 
 Each has a named back-burner trigger in `docs/risks.md`. **Revisit only on evidence, not
 vibes.**
+
+This paragraph records the pre-2026-09-23 scope. D45 narrows the continuous
+bet-sizing non-goal to the graded model, and its open path replaces the old lock.
+
+---
+
+# 2026-09-23 · Combined native release
+
+### D45 · Open learning path with optional offline placement and separate table practice
+**Status: ACTIVE — 2026-09-23 combined native release.**
+
+- Keep all nine units and eighteen concepts open. Recommend the next lesson and
+  resume unfinished work from Learn; opening an advanced lesson grants no earlier
+  completion. The optional untimed self-report and three-question check suggests a
+  starting point without awarding mastery or review credit. This supersedes D12's
+  strict unlock and D30's abandoned first-run diagnostic.
+- Use Learn, Play and Progress as the three main tabs. Fold the former Today
+  recommendation into Learn. Keep the full path, individual practice, reviews and
+  calibration available. Every concept has a replayable why/how/example intro;
+  guided and independent attempts remain distinct.
+- Support Korean and English across the app with an immediate Settings switch
+  that keeps the active activity. Five stationary opponent rows use everyday
+  names; selected details explain separate entry and preflop-raise tendencies.
+  VPIP/PFR remain optional policy parameters, never measured user statistics.
+- Add a distinct four-seat, offline table with one learner and three bots, 100
+  starting chips each, fixed 1/2 blinds, carried stacks, explicit busted-seat
+  refills and a factual hand review. The older heads-up table remains the graded
+  chart/checkdown exercise. Four-seat decisions receive no action EV grade or
+  FSRS credit. Legal integer-chip bets there coexist with D13's fixed menu for
+  the graded model. The older blanket continuous-sizing non-goal was too broad.
+- Schema 2 preserves prior progress with a byte-identical schema-1 migration
+  copy. Persist drafts, committed answers/reveals and table hands atomically;
+  show save failures. Progress compares like-for-like outcomes, with optional
+  eligible response time after accuracy. Recent table habits use disclosed
+  evidence thresholds and describe observed play, not personality or skill.
+- **Evidence:** [combined delivery](specs/2026-09-23-beginner-native-release.md).
+  Release 1.0 (4) was installed in place on iPhone 12 mini; existing nine answers,
+  two concepts, one node and streak survived migration and relaunch. Physical
+  VoiceOver, iOS 17, novice comprehension and distribution remain open.
