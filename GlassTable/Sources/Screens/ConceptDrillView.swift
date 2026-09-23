@@ -927,6 +927,7 @@ private struct PositionDrill: View {
 // MARK: - 에퀴티 감각
 
 private struct EquitySenseDrill: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
@@ -938,7 +939,23 @@ private struct EquitySenseDrill: View {
 
     var body: some View {
         DrillShell(title: "에퀴티 감각", progressText: progressText) {
-            ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
+            if dynamicTypeSize.isAccessibilitySize {
+                ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
+            } else {
+                VStack(spacing: 14) {
+                    HStack(alignment: .top, spacing: 12) {
+                        compactRegion(language.text("내 카드", "My cards"),
+                                      cards: spot.hero, identifier: "equity-hero-cards")
+                        compactRegion(language.text("상대 카드", "Opponent's cards"),
+                                      cards: spot.villain, identifier: "equity-opponent-cards")
+                    }
+                    Rectangle().fill(GT.hairlineFelt).frame(height: 1)
+                        .accessibilityHidden(true)
+                    compactRegion(language.text("공용 카드", "Shared cards"),
+                                  cards: spot.board, identifier: "equity-board-cards")
+                }
+                .frame(maxWidth: .infinity)
+            }
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
@@ -969,6 +986,16 @@ private struct EquitySenseDrill: View {
             }
         }
         .modifier(IntervalDraftModifier(point: $point, halfWidth: $halfWidth))
+    }
+
+    private func compactRegion(_ title: String, cards: [Card], identifier: String) -> some View {
+        VStack(spacing: 9) {
+            SectionLabel(text: title)
+            CardRow(cards: cards)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(identifier)
     }
 }
 

@@ -177,4 +177,28 @@ final class BeginnerReleaseTests: XCTestCase {
             format: "identifier BEGINSWITH %@", "drill-question-callFold/"
         )).firstMatch.exists)
     }
+
+    func testEquityCardsFitAboveAnswerSheetOnCompactPhone() {
+        let app = app()
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launchEnvironment["GT_DEMO_LANGUAGE"] = "en"
+        app.launchEnvironment["GT_DEMO_CONCEPT"] = "equitySense"
+        app.launch()
+
+        let hero = app.otherElements["equity-hero-cards"]
+        let opponent = app.otherElements["equity-opponent-cards"]
+        let board = app.otherElements["equity-board-cards"]
+        let question = app.staticTexts["If both hands reach the end, how often do you win?"]
+        XCTAssertTrue(app.buttons["Check answer"].waitForExistence(timeout: 15))
+        XCTAssertTrue(hero.exists && opponent.exists && board.exists && question.exists)
+        // ActionSheet places its question 12 + 4 + 13 points below the sheet edge.
+        let answerSheetTop = question.frame.minY - 29
+        for region in [hero, opponent, board] {
+            XCTAssertTrue(region.isHittable, "\(region.identifier) must be visible before answering")
+            XCTAssertLessThan(region.frame.maxY, answerSheetTop,
+                              "\(region.identifier) must stay above the answer sheet")
+        }
+        XCTAssertLessThanOrEqual(board.frame.maxX, app.frame.maxX)
+        XCTAssertGreaterThanOrEqual(board.frame.minX, app.frame.minX)
+    }
 }
