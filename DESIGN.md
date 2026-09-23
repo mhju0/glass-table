@@ -28,8 +28,8 @@ Energy 1 / rhythm 2 / motion 1. Use strong hierarchy and purposeful spacing. Dif
 
 ## Decision rationale
 
-- Dark felt retains the physical poker-table context and keeps card faces prominent; this is a deliberate single appearance, with system sheets matching it.
-- One mint accent identifies the next action and selected state. Correctness additionally uses words and symbols.
+- Green felt identifies the poker table; surrounding panels adapt between warm paper and charcoal. System is the default appearance, with Light and Dark overrides in Settings.
+- Amber identifies the next action and selected state. Correctness has separate semantic colors, words and symbols; answer choices remain equal-weight before commitment.
 - Paper cards remain distinct from app panels because the cards are the object of study.
 - Retain the bundled Pretendard Korean fonts for continuity and legibility; ordinary text scales, card-face drawings remain fixed-size with spoken labels.
 - Use semantic spacing/radius/motion tokens. Flatten supporting content; reserve raised surfaces for an active task or answer area.
@@ -116,3 +116,72 @@ seeing the rendered app. Superseding the previous card-face direction, show one
 large top-center rank and one large centered suit below. All ranks, including 10
 and J/Q/K, share the same fixed font size and layout. Keep card dimensions and
 red/black suit encoding consistent. No repeated suit decorations or artwork.
+
+### Beginner-accessible depth, approved 2026-09-23
+
+Welcome people who do not yet know poker's vocabulary or table sequence, while
+retaining serious ranges, EV and advanced concepts as the learning destination.
+Do not promise that completing the app makes someone a professional player.
+Introduce a term beside its plain meaning; abbreviations alone are insufficient
+on a beginner's first encounter. Brief, replayable lesson introductions explain
+why the skill matters and what the learner will do. Returning learners get a
+short reminder and direct access to practice, not a repeated mandatory lecture.
+
+For pot calculation, pursue a table-led layout with integrated player contribution
+areas and a user-paced action sequence. Keep amounts inside the table boundary,
+distinguish amounts added from totals raised to, and retain folded players' paid
+chips. Verify different participant counts rather than tuning only one fixture.
+At large text sizes, readable ordered contributions take precedence over squeezing
+every seat into a fixed diagram.
+
+Use plausible calculation errors to construct incorrect options, but do not infer
+the learner's reasoning from the selected number. Default feedback states the
+correct result neutrally and offers the actual calculation on demand. This does
+not remove explanations or the requirement that grading be inspectable.
+
+The table/tray hybrid is currently a local mock under
+`.scratch/pot-calculation-redesign/hybrid.html`, pending visual critique. This
+direction does not establish app-wide introductions or native delivery.
+
+### Pot replay simplification, approved 2026-09-23
+
+Limit the current mock to three or four players. Show one question and one short
+action caption inside the active seat, alongside its cumulative contribution.
+Remove the separate context paragraph, clockwise transcript and action counter.
+Progress marks and previous/next controls carry sequence; introductions and help
+carry terminology. Keep the stopping point distinct from a settled betting round.
+
+For this mock, motion 2 is a narrow functional exception: a 220ms chip movement
+connects a pointer-triggered contribution to the center. Never move the numbers
+or magnify the seat. Keyboard and reduced-motion use static updates. This is a
+local prototype refinement, not a change to the installed app.
+
+### Palette comparison, under review 2026-09-23
+
+The owner found the mock's green-on-green hierarchy difficult to read and asked
+for researched alternatives. The local mock now compares charcoal/amber,
+slate/blue and paper/pine with semantic surface, text, action and feedback roles.
+Chip totals remain neutral; green no longer fills the entire recommended screen.
+Charcoal/amber is the agent recommendation, not an approved app-wide replacement.
+Research and measured contrast are in
+`.scratch/pot-calculation-redesign/palette-research.md`. Native styling is unchanged.
+
+### Native pot lesson and adaptive appearance, delivered 2026-09-23
+
+This supersedes the pending-native and palette-review status above. The approved
+green-table/amber direction is implemented with warm neutral light surfaces and
+charcoal dark surfaces. Keep table/card colors fixed and pair adaptive text with
+its actual background. Light mode uses darker amber for white button labels;
+dark mode uses pale amber with dark labels. See the
+[delivery record](docs/specs/2026-09-23-pot-appearance.md) for verified coverage.
+
+The native pot lesson uses three/four-player trays, one active-seat action caption,
+previous/next controls and three shuffled answers. A first-entry introduction
+explains why, how, and SB/BB; calculation help stays available. Larger text uses
+ordered contribution rows and stacked answers in one scrolling lesson. A correct
+answer never receives advance visual emphasis. Feedback offers the actual
+arithmetic without claiming to know why an incorrect option was chosen.
+
+The 220ms chip movement is decorative: amounts update immediately, backward/fold
+steps stay static, and Reduce Motion suppresses the flight. Broader lesson-intro
+coverage remains future work, not a consequence of shipping the pot introduction.

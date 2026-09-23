@@ -9,6 +9,11 @@ five due concepts. Lesson completion is separate from per-concept performance
 promotion; mixed checkpoints use a balanced seeded order. Guided help is
 ungraded. Existing schema-1 progress and historical tiers remain intact.
 
+The September 23 native update adds a beginner pot-math introduction, three/four
+player contribution replay and three answer choices. App appearance now follows
+System by default, with Light/Dark overrides. For behavior, evidence and remaining
+limits, read [the delivery record](docs/specs/2026-09-23-pot-appearance.md).
+
 The older orientation below describes the pre-revival baseline where it
 conflicts with the current implementation. Store submission remains after
 user testing and final distribution checks.
@@ -61,8 +66,9 @@ and checkable by the user. Loop everywhere: **decide → reveal → grade**.
   in generators — everything is seeded (`SplitMix64`), same seed → same spot.
 - **Korean copy**: particles are computed (`KO.subject/object/topic/copula`),
   never baked into format strings. Terminology per `docs/glossary.md` and §F.
-- **Design system**: felt/glass/paper, one pinned (dark) appearance, opaque
-  surfaces, boundaries ≥3:1 measured off screenshots (§G). Ink never flips.
+- **Design system**: neutral adaptive panels, fixed green poker tables and paper
+  cards, amber actions. System/Light/Dark use paired semantic ink/surface tokens;
+  fixed poker objects retain their own ink. Check both appearances and AX5.
 - **Type scaling**: text follows Dynamic Type; a **card face does not** (§H).
   A fixed frame around scaling text is the defect — it truncated every rank to
   "…" at the accessibility sizes and went unseen until the app was swept at

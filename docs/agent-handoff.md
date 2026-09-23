@@ -60,3 +60,91 @@
 - Next: collect the owner's ongoing iPhone feedback. The physical-device and
   App Store limitations above remain open; no installation or progress reset was
   performed during publication.
+
+## 2026-09-22 — Pot calculation mockups, awaiting owner critique
+
+- Created three local interactive proposals in
+  `.scratch/pot-calculation-redesign/index.html`: Table replay, Contribution trays,
+  and One decision. The last is guided practice, not equivalent independent
+  counting. Each includes first/returning introductions, three choices,
+  misconception feedback, retry and a half-pot follow-up.
+- Verified the existing stepper/input problem against current code and fresh
+  normal/AX5 simulator captures. Research, exact fixture arithmetic and scope are
+  recorded in that folder's `spec.md`; browser/contrast evidence is in
+  `verification.md`. This records exploration, not an approved product decision.
+- No production app, scoring, progress, physical iPhone, GitHub or deployment
+  changes. Mockups remain local and uncommitted; the local review server uses
+  port 8767 while this session remains available.
+- Next: owner critiques/selects the visual and teaching direction before any
+  native implementation. App-wide lesson introductions are proposed, not shipped.
+
+## 2026-09-23 — Approved direction and revised pot-calculation mock
+
+- Owner approved beginner-accessible teaching while retaining ranges/EV depth,
+  table plus integrated contribution trays, clear action chronology, brief
+  first/returning introductions, and neutral answer correction with optional
+  calculation detail. Recorded in DESIGN.md; this is direction, not app delivery.
+- Built `.scratch/pot-calculation-redesign/hybrid.html`, preserving the original
+  three mocks. Three/six-player examples and explicit SB folding are authored
+  mock coverage beyond the current native generator. No production changes.
+- Verification: persistent `hybrid.test.cjs` passes all four scenarios, prefix
+  math, legal turn/raise order and retained folded chips. Browser checks exercised
+  introductions, replay, correct/wrong answers, disclosure, retry/new example and
+  keyboard help. All four counts passed 375×812 normal/200% geometry checks with
+  no clipped app content or out-of-table seats. Details in `hybrid-verification.md`.
+- Next: owner critiques the revised hybrid before native implementation. The
+  local review server remains on port 8767. No commit, push, phone installation
+  or progress reset; native accessibility and learning efficacy remain open.
+
+## 2026-09-23 — Simplified three/four-player pot replay mock
+
+- Owner requested fewer words and a maximum of four players for this mock.
+  Revised hybrid.html to one in-seat action caption, progress marks, previous/next
+  and brief stopping cue. Removed redundant context/order/action panels.
+- Added 220ms pointer-only decorative chip movement, with keyboard and reduced
+  motion using static updates. Kept contributions, fold retention, neutral
+  feedback and optional calculation. Original three-direction mock is untouched.
+- Verification: hybrid.test.cjs passes model, every-frame rendering and stubbed
+  motion checks. Browser three/four-player normal/200% matrix passes at 375×812;
+  feedback, help, keyboard and reduced-motion controls exercised. Evidence and
+  frozen hash are appended to hybrid-verification.md. Mid-flight animation feel
+  and native accessibility remain unverified.
+- Next: owner critiques the local mock on port 8767 before native implementation.
+  No app/phone/progress changes, commit or push. DESIGN.md records the local scope.
+
+## 2026-09-23 — Researched palette comparison
+
+- Owner liked the mock interaction but rejected excessive green across its
+  layers. Added charcoal/amber (recommended), slate/blue and paper/pine selectors
+  to the same mock, with neutral totals and separate active/feedback color roles.
+- Research: Atlassian neutral/semantic roles, Radix gray/accent scales and WCAG
+  contrast. Custom values, rationale, frozen hash and evidence are recorded in
+  `.scratch/pot-calculation-redesign/palette-research.md`.
+- Verification: existing hybrid tests plus 75 contrast pairs pass. Browser checks
+  cover all palettes, three/four players, normal/200% text, answer feedback, help,
+  palette state preservation and keyboard selection. No captured console errors.
+- Next: owner compares palettes before choosing any native/app-wide theme change.
+  Recommended mock remains on port 8767. No native, phone, progress, GitHub,
+  commit or push changes; color preference and physical-device comfort remain open.
+
+## 2026-09-23: Native pot lesson, appearance and iPhone delivery
+
+- Implemented the approved three/four-player table/tray replay, beginner pot
+  introduction, three shuffled choices, neutral correction and optional arithmetic.
+  Pot content scrolls together; large text uses ordered trays and stacked choices.
+- Added System (default), Light and Dark in 설정 → 화면 모드. Neutral surfaces,
+  fixed green tables/cards and amber actions replace the green-on-green layering.
+  Updated contrast, sheet behavior, privacy declaration and screenshot tooling.
+- Runtime `ae64143` passed independent review. Engine Release 91, Drills 341,
+  tooling 17, app XCTest 33 and appearance Swift Testing 6 passed. Debug UI had
+  one seeded-count test expectation corrected and rerun successfully; remaining
+  34 tests passed in the full run. Both actual Release smoke tests passed.
+- Installed and launched Release 1.0 (3) on the owner's iPhone 12 mini in place.
+  Progress was byte-identical before installation, after installation and launch.
+  No uninstall/reset, schema change, GitHub push or App Store submission.
+- Evidence and limits: `specs/2026-09-23-pot-appearance.md`. Local test bundles,
+  screenshots and device-preservation copies remain in `.build/pot-appearance-native/`.
+  Earlier mock notes are retained; their pending-native status is historical now.
+- Next: collect phone feedback on the pot flow and both appearances. Physical
+  VoiceOver, minimum-iOS-17 and distribution checks remain open. Other lesson
+  introductions and five/six-player diagrams are not part of this delivery.
