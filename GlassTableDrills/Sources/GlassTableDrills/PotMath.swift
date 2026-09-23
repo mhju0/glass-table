@@ -35,9 +35,14 @@ public struct PotMathSpot: Equatable {
 
     public let actions: [Action]
     public let question: Question
+    /// Players who left the hand without adding chips. Their earlier contribution
+    /// stays in the pot and is therefore still visible in the table replay.
+    public let foldedActors: Set<Actor>
 
-    public init(actions: [Action], question: Question) {
-        self.actions = actions; self.question = question
+    public init(actions: [Action], question: Question, foldedActors: Set<Actor> = []) {
+        self.actions = actions
+        self.question = question
+        self.foldedActors = foldedActors
     }
 
     /// Chips in the middle after the whole sequence.
@@ -65,45 +70,192 @@ public struct PotMathSpot: Equatable {
         return actors.count
     }
 
+    /// Seats in clockwise table order. Generated spots deliberately stop at four
+    /// players so names and chip totals stay legible on a compact phone.
+    public var actors: [Actor] {
+        let present = Set(actions.flatMap { action -> [Actor] in
+            switch action {
+            case .blinds: return [.sb, .bb]
+            case let .bet(actor, _), let .call(actor, _), let .raiseTo(actor, _, _):
+                return [actor]
+            }
+        })
+        return [Actor.sb, .bb, .opener, .caller1, .caller2].filter(present.contains)
+    }
+
     public var correctAnswer: Int {
         switch question {
         case .potNow: return pot
         case let .fractionOfPot(f): return Int((Double(pot) * f).rounded())
         }
     }
+
+
+    /// The question's three equal-weight choices. Wrong values represent useful
+    /// arithmetic checks, but feedback never claims which mistake the learner made.
+    public var answerChoices: [Int] {
+        let correct = correctAnswer
+        var lower: [Int] = []
+        var higher: [Int] = []
+
+        func appendCandidate(_ value: Int) {
+            guard value >= 0, value != correct else { return }
+            if value < correct, !lower.contains(value) { lower.append(value) }
+            if value > correct, !higher.contains(value) { higher.append(value) }
+        }
+
+        switch question {
+        case .potNow:
+            let finalAddition = replaySteps.last(where: { $0.addedChips > 0 })?.addedChips ?? 1
+            // Missing the folded blind or the final call produces lower checks.
+            appendCandidate(pot - 1)
+            appendCandidate(pot - finalAddition)
+            // Counting the BB post twice or using the full raise target for the
+            // opener's final call produces higher checks.
+            appendCandidate(pot + 2)
+            let openingTotal = actions.compactMap { action -> Int? in
+                guard case let .raiseTo(actor, total, _) = action, actor == .opener else { return nil }
+                return total
+            }.first ?? 1
+            appendCandidate(pot + openingTotal)
+        case let .fractionOfPot(fraction):
+            let raw = Double(pot) * fraction
+            appendCandidate(Int(raw.rounded(.down)))
+            appendCandidate(Int((Double(max(0, pot - 3)) * fraction).rounded()))
+            appendCandidate(pot)
+            appendCandidate(correct + max(1, Int((Double(pot) * 0.25).rounded())))
+        }
+
+        let lowerTarget = min(2, correct)
+        var distance = 1
+        while lower.count < lowerTarget || higher.count < 2 {
+            appendCandidate(correct + distance)
+            appendCandidate(correct - distance)
+            distance += 1
+        }
+
+        let pattern = (pot + questionSalt) % 3
+        let distractors: [Int]
+        if pattern == 0, lower.count >= 2 {
+            distractors = Array(lower.prefix(2))
+        } else if pattern == 1 || lower.isEmpty {
+            distractors = Array(higher.prefix(2))
+        } else {
+            distractors = [lower[0], higher[0]]
+        }
+        var rng = SplitMix64(seed: choiceSeed)
+        return ([correct] + distractors).shuffled(using: &rng)
+    }
+
+    /// One replay step per visible action. Blind posts are separate so a beginner
+    /// can associate each compulsory chip with the seat that paid it.
+    public var replaySteps: [PotMathReplayStep] {
+        var result: [PotMathReplayStep] = []
+        var contributions: [Actor: Int] = [:]
+        var insertedFolds: Set<Actor> = []
+
+        func add(_ actor: Actor, _ amount: Int, _ kind: PotMathReplayStep.Kind) {
+            contributions[actor, default: 0] += amount
+            result.append(PotMathReplayStep(actor: actor, kind: kind,
+                                            addedChips: amount,
+                                            totalContribution: contributions[actor, default: 0]))
+        }
+
+        func insertFolds() {
+            for actor in actors where foldedActors.contains(actor) && !insertedFolds.contains(actor) {
+                result.append(PotMathReplayStep(actor: actor, kind: .fold,
+                                                addedChips: 0,
+                                                totalContribution: contributions[actor, default: 0]))
+                insertedFolds.insert(actor)
+            }
+        }
+
+        for action in actions {
+            switch action {
+            case let .blinds(sb, bb):
+                add(.sb, sb, .post)
+                add(.bb, bb, .post)
+            case let .bet(actor, amount):
+                add(actor, amount, .bet)
+            case let .call(actor, amount):
+                add(actor, amount, .call)
+            case let .raiseTo(actor, total, alreadyIn):
+                if actor == .bb { insertFolds() }
+                add(actor, total - alreadyIn, .raiseTo(total))
+            }
+        }
+        insertFolds()
+        return result
+    }
+
+    public func contribution(of actor: Actor, throughReplayStep stepIndex: Int) -> Int {
+        guard stepIndex >= 0 else { return 0 }
+        return replaySteps.prefix(stepIndex + 1)
+            .filter { $0.actor == actor }
+            .last?.totalContribution ?? 0
+    }
+
+    private var questionSalt: Int {
+        switch question {
+        case .potNow: return 0
+        case let .fractionOfPot(f): return Int((f * 100).rounded())
+        }
+    }
+
+    private var choiceSeed: UInt64 {
+        var fingerprint = UInt64(pot) &* 0x9E37_79B9_7F4A_7C15
+        fingerprint ^= UInt64(questionSalt) &* 0xBF58_476D_1CE4_E5B9
+        for step in replaySteps {
+            fingerprint = (fingerprint ^ UInt64(step.addedChips + 1))
+                &* 0x94D0_49BB_1331_11EB
+            fingerprint ^= UInt64(step.totalContribution + 1)
+        }
+        return fingerprint
+    }
+}
+
+public struct PotMathReplayStep: Equatable {
+    public enum Kind: Equatable {
+        case post
+        case bet
+        case call
+        case raiseTo(Int)
+        case fold
+    }
+
+    public let actor: PotMathSpot.Actor
+    public let kind: Kind
+    public let addedChips: Int
+    public let totalContribution: Int
 }
 
 public enum PotMathSpotGenerator {
-    /// decisions.md §A sizing menu, minus all-in (which needs a stack to mean anything).
-    static let fractions = [0.33, 0.5, 0.75, 1.0]
+    /// decisions.md §A sizing menu, minus all-in and pot-sized, which would make a
+    /// fraction question indistinguishable from the already practised pot total.
+    static let fractions = [0.33, 0.5, 0.75]
 
     public static func spot(baseSeed: UInt64, index: Int) -> PotMathSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
 
         var actions: [PotMathSpot.Action] = [.blinds(sb: 1, bb: 2)]
-        // The opener is a non-blind seat, so nothing of theirs is replaced.
         let open = [4, 5, 6].randomElement(using: &rng)!
         actions.append(.raiseTo(actor: .opener, total: open, alreadyIn: 0))
 
-        let callers = Int.random(in: 1...2, using: &rng)
-        let callerActors: [PotMathSpot.Actor] = [.caller1, .caller2]
-        for actor in callerActors.prefix(callers) {
-            actions.append(.call(actor: actor, amount: open))
-        }
-
+        // Three seats keep the compact table readable; a fourth caller appears on
+        // half the seeds. The BB raise exercises the important total-versus-added
+        // distinction on every generated spot.
         if Bool.random(using: &rng) {
-            // The BB 3-bets, so their existing 2 *is* replaced — the one action shape
-            // where the arithmetic is not a plain addition.
-            let threeBet = open * [3, 4].randomElement(using: &rng)!
-            actions.append(.raiseTo(actor: .bb, total: threeBet, alreadyIn: 2))
-            actions.append(.call(actor: .opener, amount: threeBet - open))
+            actions.append(.call(actor: .caller1, amount: open))
         }
+        let threeBet = open * 3
+        actions.append(.raiseTo(actor: .bb, total: threeBet, alreadyIn: 2))
+        actions.append(.call(actor: .opener, amount: threeBet - open))
 
-        let question: PotMathSpot.Question = Bool.random(using: &rng)
+        let question: PotMathSpot.Question = index <= 2 || Bool.random(using: &rng)
             ? .potNow
             : .fractionOfPot(fractions.randomElement(using: &rng)!)
-        return PotMathSpot(actions: actions, question: question)
+        return PotMathSpot(actions: actions, question: question, foldedActors: [.sb])
     }
 }
 
@@ -151,6 +303,9 @@ func potBreakdown(_ spot: PotMathSpot) -> String {
             running += n
             parts.append("\(actor.rawValue) 콜: \(before) + \(n) = \(running)칩")
         case let .raiseTo(actor, to, from):
+            if actor == .bb, spot.foldedActors.contains(.sb) {
+                parts.append("SB 폴드: 이미 낸 칩은 팟에 남아요")
+            }
             let before = running
             let added = to - from
             running += added

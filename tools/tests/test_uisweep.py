@@ -55,6 +55,7 @@ class UISweepTests(unittest.TestCase):
         self.env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}',
                         FAKE_ROOT=str(self.root), GT_SIM='iPhone 17')
         self.env.pop('GT_CONTENT_SIZE', None)
+        self.env.pop('GT_APPEARANCE', None)
 
     def run_sweep(self, *args, fail=''):
         return subprocess.run(['bash', str(self.root / 'tools/uisweep.sh'), *args],
@@ -122,6 +123,22 @@ class UISweepTests(unittest.TestCase):
         result = self.run_sweep('--screen', 'today')
         self.assertEqual(result.returncode, 2)
         self.assertIn('unknown content size', result.stderr)
+        self.assertEqual(self.calls(), [])
+
+    def test_light_appearance_is_applied_and_recorded(self):
+        self.env['GT_APPEARANCE'] = 'light'
+        result = self.run_sweep('--screen', 'today')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(['xcrun', 'simctl', 'ui', 'DISPOSABLE-DEVICE',
+                       'appearance', 'light'], self.calls())
+        output = Path(result.stdout.strip().splitlines()[-1])
+        self.assertIn('appearance=light', (output / 'run.txt').read_text())
+
+    def test_invalid_appearance_fails_before_building(self):
+        self.env['GT_APPEARANCE'] = 'sepia'
+        result = self.run_sweep('--screen', 'today')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('unknown appearance', result.stderr)
         self.assertEqual(self.calls(), [])
 
     def test_no_build_reuses_matching_artifact_and_rejects_edits(self):

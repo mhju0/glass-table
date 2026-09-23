@@ -145,10 +145,10 @@ struct NodeSessionView: View {
                 Image(systemName: "lightbulb.fill").font(.system(size: 11))
                 Text("힌트").font(GT.semibold(12))
             }
-            .foregroundStyle(GT.felt)
+            .foregroundStyle(GT.onCTA)
             .padding(.horizontal, 13).padding(.vertical, 9)
             .frame(minHeight: 44)
-            .background(GT.mint, in: Capsule())
+            .background(GT.cta, in: Capsule())
         }
         .buttonStyle(GTPress())
         .popover(isPresented: $showHint, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {

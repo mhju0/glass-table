@@ -339,10 +339,47 @@ private struct ShowdownDrill: View {
 private struct PotMathDrill: View {
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
-    @State private var value = 10
+    private let spot: PotMathSpot
+    private let introKey: String
+    @State private var showingIntro: Bool
+    @State private var showingHelp = false
+    @State private var stepIndex: Int
     @State private var reveal: PotMathReveal?
 
-    private var spot: PotMathSpot { PotMathSpotGenerator.spot(baseSeed: seed, index: index) }
+    init(seed: UInt64, index: Int, progressText: String,
+         onAnswer: @escaping (DrillOutcome) -> Void) {
+        self.seed = seed
+        self.index = index
+        self.progressText = progressText
+        self.onAnswer = onAnswer
+
+        #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        #else
+        let environment: [String: String] = [:]
+        #endif
+        let spot = Self.makeSpot(seed: seed, index: index, environment: environment)
+        self.spot = spot
+        _stepIndex = State(initialValue: max(0, spot.replaySteps.count - 1))
+
+        #if DEBUG
+        let storeSuffix = environment["GT_TEST_STORE_ID"] ?? "shared"
+        #else
+        let storeSuffix = "shared"
+        #endif
+        let introKey = "potMath.introSeen.v1.\(storeSuffix)"
+        self.introKey = introKey
+        #if DEBUG
+        let forcedIntro = environment["GT_DEMO_POT_STATE"] == "intro"
+        let bypassIntro = environment["GT_DEMO_POT_STATE"] == "question"
+            || environment["GT_DEMO_POT_STATE"] == "reveal"
+        #else
+        let forcedIntro = false
+        let bypassIntro = false
+        #endif
+        _showingIntro = State(initialValue: forcedIntro
+                              || (!bypassIntro && !UserDefaults.standard.bool(forKey: introKey)))
+    }
 
     private var question: String {
         switch spot.question {
@@ -352,70 +389,173 @@ private struct PotMathDrill: View {
     }
 
     var body: some View {
-        DrillShell(title: "팟 계산", progressText: progressText) {
-            VStack(alignment: .leading, spacing: 12) {
-                SectionLabel(text: "\(spot.participantCount)명이 낸 칩 · 액션 순서")
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(Array(actionLines.enumerated()), id: \.offset) { index, line in
-                        HStack(alignment: .firstTextBaseline, spacing: 10) {
-                            Text("\(index + 1)")
-                                .font(GT.semibold(12).monospacedDigit())
-                                .foregroundStyle(GT.onFeltSecondary)
-                                .frame(width: 20, alignment: .trailing)
-                            Text(line).font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFelt)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-                .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.onFelt.opacity(0.08),
-                            in: RoundedRectangle(cornerRadius: GT.Radius.control))
-                Text("스몰 블라인드(SB): 1칩\n빅 블라인드(BB): 2칩")
-                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
-                Text("칩이 더 들어오지 않는 폴드는 생략했어요. 여기까지 들어온 칩만 세며, 이후 행동은 포함하지 않아요.")
-                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
-                    .lineSpacing(GT.Typography.bodyLineSpacing)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        } sheet: {
-            if let reveal {
-                RevealSheet(band: reveal.band, mine: "\(reveal.answer)칩",
-                            correct: "\(reveal.correct)칩", why: reveal.whyText) {
-                    onAnswer(DrillOutcome(band: reveal.band, interval: nil))
-                    self.reveal = nil; value = 10
-                }
+        Group {
+            if showingIntro {
+                PotMathIntroView(onStart: finishIntro)
             } else {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(question).font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
-                    if case .fractionOfPot = spot.question {
-                        Text("계산 결과는 가장 가까운 한 칩으로 반올림해요.")
-                        .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
-                    }
-                    HStack {
-                        Spacer()
-                        EstimateStepper(value: value, suffix: "칩") {
-                            value = max(0, value + $0)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: GT.Space.section) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("팟 계산")
+                                .font(GT.title(19))
+                                .foregroundStyle(GT.ink)
+                            Spacer(minLength: 12)
+                            Text(progressText)
+                                .font(GT.semibold(14).monospacedDigit())
+                                .foregroundStyle(GT.inkSecondary)
                         }
-                        Spacer()
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(question)
+                                .font(GT.title(GT.Typography.questionSize))
+                                .foregroundStyle(GT.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if case .fractionOfPot = spot.question {
+                                Text("가장 가까운 한 칩으로 반올림해요.")
+                                    .font(GT.body(14))
+                                    .foregroundStyle(GT.inkSecondary)
+                            }
+                        }
+
+                        PotMathReplayView(spot: spot, stepIndex: $stepIndex) {
+                            showingHelp = true
+                        }
+
+                        if let reveal {
+                            PotMathRevealSheet(reveal: reveal) {
+                                onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                                self.reveal = nil
+                            }
+                        } else {
+                            PotMathChoicesView(spot: spot, stepIndex: stepIndex) { choice in
+                                reveal = gradePotMath(answer: choice, spot: spot)
+                            }
+                        }
                     }
-                    PrimaryCTAButton(title: "확인") {
-                        reveal = gradePotMath(answer: value, spot: spot)
-                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 6)
+                    .padding(.bottom, 32)
                 }
+                .scrollBounceBehavior(.basedOnSize)
+            }
+        }
+        .sheet(isPresented: $showingHelp) {
+            NavigationStack {
+                PotMathIntroView { showingHelp = false }
+                    .navigationTitle("계산 방법")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .gtChrome(.topBarTrailing) { ChromeButton.close { showingHelp = false } }
+            }
+        }
+        .onChange(of: index) { _, _ in
+            stepIndex = max(0, spot.replaySteps.count - 1)
+            reveal = nil
+        }
+        .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["GT_DEMO_POT_STATE"] == "reveal",
+               reveal == nil {
+                reveal = gradePotMath(answer: spot.correctAnswer, spot: spot)
+            }
+            #endif
+        }
+    }
+
+    private func finishIntro() {
+        UserDefaults.standard.set(true, forKey: introKey)
+        stepIndex = 0
+        showingIntro = false
+    }
+
+    private static func makeSpot(seed: UInt64, index: Int,
+                                 environment: [String: String]) -> PotMathSpot {
+        let generated = PotMathSpotGenerator.spot(baseSeed: seed, index: index)
+        #if DEBUG
+        guard let rawCount = environment["GT_DEMO_POT_PLAYERS"],
+              let count = Int(rawCount), (3...4).contains(count),
+              generated.participantCount != count else { return generated }
+        for candidate in (index + 1)...(index + 64) {
+            let spot = PotMathSpotGenerator.spot(baseSeed: seed, index: candidate)
+            if spot.participantCount == count { return spot }
+        }
+        #endif
+        return generated
+    }
+}
+
+private struct PotMathChoicesView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let spot: PotMathSpot
+    let stepIndex: Int
+    let onChoose: (Int) -> Void
+
+    private var reachedLastAction: Bool { stepIndex >= spot.replaySteps.count - 1 }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if !reachedLastAction {
+                Text("마지막 행동까지 넘기면 답을 고를 수 있어요.")
+                    .font(GT.body(14))
+                    .foregroundStyle(GT.inkSecondary)
+            }
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 8) { choices }
+            } else {
+                HStack(spacing: 8) { choices }
             }
         }
     }
 
-    private var actionLines: [String] {
-        spot.actions.map { action in
-            switch action {
-            case let .blinds(sb, bb): return "SB \(sb)칩 · BB \(bb)칩"
-            case let .bet(actor, n): return "\(actor.rawValue) · 벳 +\(n)칩"
-            case let .call(actor, n): return "\(actor.rawValue) · 콜 +\(n)칩"
-            case let .raiseTo(actor, to, from):
-                return "\(actor.rawValue) · 총 \(to)칩으로 레이즈 (추가 \(to - from)칩)"
+    @ViewBuilder
+    private var choices: some View {
+        ForEach(spot.answerChoices, id: \.self) { choice in
+            GTChoiceButton(title: "\(choice)칩", minHeight: 52) {
+                onChoose(choice)
             }
+            .accessibilityIdentifier("pot-answer-\(choice)")
+            .disabled(!reachedLastAction)
+        }
+    }
+}
+
+private struct PotMathRevealSheet: View {
+    @Environment(\.glossaryTerm) private var term
+    @Environment(\.drillCommit) private var onCommit
+    let reveal: PotMathReveal
+    let onNext: () -> Void
+    @State private var calculationExpanded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(reveal.band == .spotOn ? "맞았어요" : "정답은 \(reveal.correct)칩이에요")
+                .font(GT.title(GT.Typography.resultSize))
+                .foregroundStyle(reveal.band == .spotOn ? GTBand.spotOnInk : GTBand.offInk)
+            if reveal.band != .spotOn {
+                Text("각 자리가 실제로 더 낸 칩만 한 번씩 세어요.")
+                    .font(GT.body(GT.Typography.explanationSize))
+                    .foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            DisclosureGroup("계산 보기", isExpanded: $calculationExpanded) {
+                Text(reveal.whyText)
+                    .font(GT.body(15).monospacedDigit())
+                    .foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
+                    .padding(.top, 8)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .font(GT.semibold(15))
+            .foregroundStyle(GT.ink)
+            .padding(14)
+            .background(GT.surface,
+                        in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                             style: .continuous))
+            if let term { GlossaryChip(term: term) }
+            PrimaryCTAButton(title: "다음 문제", action: onNext)
+        }
+        .onAppear {
+            onCommit(DrillOutcome(band: reveal.band, interval: nil))
+            gradeHaptic(reveal.band)
         }
     }
 }
@@ -464,10 +604,10 @@ private struct PositionDrill: View {
         return HStack(spacing: 5) {
             ForEach(order, id: \.self) { p in
                 Text(p.rawValue)
-                    .font(GT.semibold(10)).foregroundStyle(p == mine ? GT.felt : GT.onFelt)
+                    .font(GT.semibold(10)).foregroundStyle(p == mine ? GT.onCTA : GT.onFelt)
                     .lineLimit(1).minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: 34)
-                    .background(p == mine ? GT.mint : GT.onFelt.opacity(0.12),
+                    .background(p == mine ? GT.cta : GT.onFelt.opacity(0.12),
                                 in: RoundedRectangle(cornerRadius: 8))
             }
         }
@@ -1001,7 +1141,7 @@ private struct RFIDrill: View {
             .foregroundStyle(position == spot.seat ? GT.onCTA : GT.onFelt.opacity(0.75))
             .lineLimit(1).minimumScaleFactor(compact ? 0.8 : 1)
             .frame(maxWidth: .infinity, minHeight: compact ? 32 : 44)
-            .background(position == spot.seat ? GT.mint : GT.onFelt.opacity(0.10),
+            .background(position == spot.seat ? GT.cta : GT.onFelt.opacity(0.10),
                         in: RoundedRectangle(cornerRadius: 7))
     }
 }

@@ -93,7 +93,7 @@ struct SectionLabel: View {
     var onDark: Bool = true
     var body: some View {
         Text(text).font(GT.semibold(13)).tracking(0.3)
-            .foregroundStyle(onDark ? GT.onFelt.opacity(0.62) : GT.inkMuted)
+            .foregroundStyle(onDark ? GT.onFeltMuted : GT.inkMuted)
     }
 }
 
@@ -233,7 +233,7 @@ struct RiverExplainPanel: View {
                 .font(GT.semibold(13)).foregroundStyle(GT.onFelt.opacity(0.85))
             Text(ex.heroWins ? "→ 내가 이겨요" : "→ 완성해도 상대가 더 강해요")
                 .font(GT.title(13))
-                .foregroundStyle(Color(hex: ex.heroWins ? 0xA5F3CB : 0xFFB9B9))
+                .foregroundStyle(ex.heroWins ? GTBand.spotOnInk : GTBand.offInk)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -267,13 +267,7 @@ struct GlossaryChip: View {
 
 // MARK: - surfaces and controls
 
-/// The glass recipe, in one place: a green fill and an edge that reads as the lip of a
-/// raised surface. No blur — `FeltBackground` is a flat fill, so the material was
-/// paying for an offscreen pass to arrive at a solid tint (see `GT.glass`).
-///
-/// The edge is what separates the surface from the felt, so it is `borderStrong` and
-/// not the quiet `border` it used to be — measured 1.19:1 for a card against the felt
-/// in the old build, which is no boundary at all.
+/// Opaque panels use an explicit boundary so grouping survives either appearance.
 private struct GlassBackground<S: InsettableShape>: View {
     let shape: S
     var litEdge: Bool = true
@@ -287,13 +281,12 @@ private struct GlassBackground<S: InsettableShape>: View {
 }
 
 extension View {
-    /// An elevated glass surface on the felt. Separation comes from the material and
-    /// the elevation — a blurred, lit, floating plane — not from a drawn line.
+    /// A grouped surface. The border supplies separation without dark shadows
+    /// accumulating between panels in the light appearance.
     func gtCard(radius: CGFloat = 20) -> some View {
         self.background {
             GlassBackground(shape: RoundedRectangle(cornerRadius: radius, style: .continuous),
                             litEdge: false)
-                .shadow(color: .black.opacity(0.34), radius: 14, y: 6)
         }
     }
 
@@ -450,7 +443,7 @@ struct FeltCTAButton: View {
                 .foregroundStyle(isEnabled ? GT.onCTA : GT.inkMuted)
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, minHeight: 54)
-                .background(isEnabled ? GT.mint : GT.surface,
+                .background(isEnabled ? GT.cta : GT.surface,
                             in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                  style: .continuous))
         }

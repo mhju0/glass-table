@@ -33,10 +33,10 @@ struct PlayingCardView: View {
         RoundedRectangle(cornerRadius: Self.cornerRadius(for: size))
             .fill(GT.feltDeep)
             .overlay(RoundedRectangle(cornerRadius: Self.cornerRadius(for: size))
-                .strokeBorder(GT.hairlineFelt, lineWidth: 1.5))
+                .strokeBorder(GT.tableHairline, lineWidth: 1.5))
             .overlay(Image(systemName: "suit.spade.fill")
                 .font(.system(size: size * 0.28))
-                .foregroundStyle(GT.onFelt.opacity(0.22)))
+                .foregroundStyle(GT.onTable.opacity(0.32)))
             .frame(width: size * 0.72, height: size)
     }
 
@@ -57,7 +57,7 @@ struct PlayingCardView: View {
         .padding(.bottom, size * 0.08)
         .foregroundStyle(ink)
         .frame(width: size * 0.72, height: size)
-        .background(Color(hex: 0xFDFEEE), in: RoundedRectangle(cornerRadius: Self.cornerRadius(for: size)))
+        .background(GT.cardFace, in: RoundedRectangle(cornerRadius: Self.cornerRadius(for: size)))
         .overlay {
             RoundedRectangle(cornerRadius: Self.cornerRadius(for: size))
                 .strokeBorder(GT.cardInk.opacity(0.18), lineWidth: 0.6)

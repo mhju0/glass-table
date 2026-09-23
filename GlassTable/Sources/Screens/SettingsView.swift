@@ -6,6 +6,7 @@ import GlassTableDrills
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProgressionModel.self) private var model
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @State private var showGlossary = false
     @State private var showGuide = false
     @State private var showFirstLesson = false
@@ -35,6 +36,35 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("화면 모드").font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    Text("기기 설정에 맞추거나 직접 골라요")
+                        .font(GT.body(12)).foregroundStyle(GT.inkMuted)
+                    VStack(spacing: 0) {
+                        ForEach(AppAppearance.allCases) { mode in
+                            if mode != .system { Divider() }
+                            Button { appearance = mode } label: {
+                                HStack(spacing: 12) {
+                                    Text(mode.title)
+                                        .font(GT.semibold(15))
+                                        .foregroundStyle(GT.ink)
+                                    Spacer()
+                                    Image(systemName: appearance == mode
+                                          ? "checkmark.circle.fill" : "circle")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundStyle(appearance == mode ? GT.cta : GT.inkMuted)
+                                }
+                                .frame(minHeight: 48)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(GTPress())
+                            .accessibilityIdentifier("appearance-\(mode.rawValue)")
+                            .accessibilityAddTraits(appearance == mode ? .isSelected : [])
+                        }
+                    }
+                }
+                .padding(16)
+                .gtCard(radius: 20)
                 VStack(spacing: 0) {
                     Button { showFirstLesson = true } label: {
                         row("suit.spade.fill", "첫 포커 결정 다시 보기",
@@ -158,6 +188,9 @@ struct SettingsView: View {
             .padding(.horizontal, 18)
         }
         .background(FeltBackground())
+        // A presented sheet owns its UIKit trait environment. Applying the saved
+        // choice here makes the sheet update immediately, not only its presenter.
+        .preferredColorScheme(appearance.colorScheme)
         .sheet(isPresented: $showGlossary) { GlossaryView() }
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
         .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }

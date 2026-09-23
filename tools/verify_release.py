@@ -28,8 +28,12 @@ def verify(bundle: Path) -> list[str]:
     if manifest_path.exists():
         manifest = plistlib.loads(manifest_path.read_bytes())
         require(manifest.get('NSPrivacyTracking') is False, 'Tracking declaration changed')
-        for field in ('NSPrivacyTrackingDomains', 'NSPrivacyCollectedDataTypes', 'NSPrivacyAccessedAPITypes'):
+        for field in ('NSPrivacyTrackingDomains', 'NSPrivacyCollectedDataTypes'):
             require(manifest.get(field) == [], f'{field} requires privacy review')
+        require(manifest.get('NSPrivacyAccessedAPITypes') == [{
+            'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults',
+            'NSPrivacyAccessedAPITypeReasons': ['CA92.1'],
+        }], 'Expected app-only preferences declaration; other API uses require privacy review')
     else:
         failures.append('Privacy manifest missing')
     for filename, notice in (

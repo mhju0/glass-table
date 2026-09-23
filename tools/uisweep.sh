@@ -3,10 +3,16 @@
 # tools/uisweep.sh [--no-build] [--screen NAME ...] | --list
 # GT_SIM selects an available device name (default: iPhone 17).
 # Default: capture large and AX5. GT_CONTENT_SIZE selects a single category instead.
+# GT_APPEARANCE selects light or dark (default: dark).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE=com.michaelju.glasstable
 DEVICE_NAME="${GT_SIM:-iPhone 17}"
+APPEARANCE="${GT_APPEARANCE:-dark}"
+case "$APPEARANCE" in
+  light|dark) ;;
+  *) echo "unknown appearance: $APPEARANCE" >&2; exit 2 ;;
+esac
 CONTENT_SIZES=(large accessibility-extra-extra-extra-large)
 if [ -n "${GT_CONTENT_SIZE:-}" ]; then CONTENT_SIZES=("$GT_CONTENT_SIZE"); fi
 for content_size in "${CONTENT_SIZES[@]}"; do
@@ -53,7 +59,11 @@ SCREENS=(
   "guided-potodds:GT_DEMO_NODE=u2-potOdds GT_DEMO_STAGE=together"
   "replay:GT_DEMO_SEED=1 GT_DEMO_REPLAY=potOdds"
   "drill-showdown:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-showdown"
-  "drill-potmath:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-potMath"
+  "drill-potmath:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-potMath GT_DEMO_POT_STATE=question"
+  "potmath-intro:GT_DEMO_NODE=u1-potMath GT_DEMO_POT_STATE=intro:4"
+  "potmath-three:GT_DEMO_NODE=u1-potMath GT_DEMO_POT_STATE=question GT_DEMO_POT_PLAYERS=3:4"
+  "potmath-four:GT_DEMO_NODE=u1-potMath GT_DEMO_POT_STATE=question GT_DEMO_POT_PLAYERS=4:4"
+  "potmath-reveal:GT_DEMO_NODE=u1-potMath GT_DEMO_POT_STATE=reveal GT_DEMO_POT_PLAYERS=4:4"
   "drill-position:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-position"
   "drill-combos:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-combos"
   "drill-potodds:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds"
@@ -164,6 +174,7 @@ restart_device() {
   xcrun simctl shutdown "$DEV" >>"$OUT/simulator.log" 2>&1
   xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
   run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1
+  xcrun simctl ui "$DEV" appearance "$APPEARANCE" >>"$OUT/simulator.log" 2>&1
 }
 
 # A local artifact and content fingerprint prevent stale screenshots after edits or
@@ -219,12 +230,14 @@ DEV=$(xcrun simctl create "GlassTable sweep $(basename "$OUT")" "$TYPE" "$RUNTIM
 echo "Starting disposable simulator; logs and captures: $OUT"
 printf 'device=%s\nruntime=%s\nsource=%s\n' "$DEV" "$RUNTIME" "$fingerprint" >"$OUT/run.txt"
 printf 'content_size=%s\n' "${CONTENT_SIZES[@]}" >>"$OUT/run.txt"
+printf 'appearance=%s\n' "$APPEARANCE" >>"$OUT/run.txt"
 xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
 if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1; then
   echo "First boot stalled; restarting the disposable device once."
   restart_device
 fi
 
+xcrun simctl ui "$DEV" appearance "$APPEARANCE" >>"$OUT/simulator.log" 2>&1
 xcrun simctl status_bar "$DEV" override --time '9:41' --batteryState charged --batteryLevel 100 >>"$OUT/simulator.log" 2>&1
 # First-boot system announcements can cover the first app frame.
 sleep 8

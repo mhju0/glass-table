@@ -29,7 +29,10 @@ class ReleaseBundleTests(unittest.TestCase):
         (self.bundle / 'FSRS-LICENSE.txt').write_text('Copyright (c) 2022 Open Spaced Repetition')
         (self.bundle / 'PrivacyInfo.xcprivacy').write_bytes(plistlib.dumps({
             'NSPrivacyTracking': False, 'NSPrivacyTrackingDomains': [],
-            'NSPrivacyCollectedDataTypes': [], 'NSPrivacyAccessedAPITypes': [],
+            'NSPrivacyCollectedDataTypes': [], 'NSPrivacyAccessedAPITypes': [{
+                'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults',
+                'NSPrivacyAccessedAPITypeReasons': ['CA92.1'],
+            }],
         }))
 
     def write_info(self):
@@ -37,6 +40,17 @@ class ReleaseBundleTests(unittest.TestCase):
 
     def test_expected_device_bundle_passes(self):
         self.assertEqual(release.verify(self.bundle), [])
+
+    def test_missing_or_expanded_preference_declarations_are_rejected(self):
+        path = self.bundle / 'PrivacyInfo.xcprivacy'
+        manifest = plistlib.loads(path.read_bytes())
+        for declarations in ([], [{
+            'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults',
+            'NSPrivacyAccessedAPITypeReasons': ['1C8F.1'],
+        }]):
+            manifest['NSPrivacyAccessedAPITypes'] = declarations
+            path.write_bytes(plistlib.dumps(manifest))
+            self.assertEqual(len(release.verify(self.bundle)), 1)
 
     def test_debug_hook_and_test_plugin_are_rejected(self):
         (self.bundle / 'GlassTable').write_bytes(b'binary GT_TEST_STORE_ID')

@@ -63,15 +63,22 @@ final class PotMathTests: XCTestCase {
         for i in 0..<400 {
             let s = PotMathSpotGenerator.spot(baseSeed: 21, index: i)
             XCTAssertGreaterThan(s.pot, 0)
-            XCTAssertTrue((4...5).contains(s.participantCount))
+            XCTAssertTrue((3...4).contains(s.participantCount))
             guard case let .raiseTo(actor, total, alreadyIn) = s.actions[1] else {
                 return XCTFail("generated sequence must begin with a non-blind open")
             }
             XCTAssertEqual(actor, .opener)
             XCTAssertGreaterThanOrEqual(total, 4)
             XCTAssertEqual(alreadyIn, 0)
+            XCTAssertEqual(s.foldedActors, [.sb])
+            XCTAssertTrue(s.actions.contains { action in
+                guard case let .raiseTo(actor, _, alreadyIn) = action else { return false }
+                return actor == .bb && alreadyIn == 2
+            })
             XCTAssertGreaterThan(s.correctAnswer, 0, "every question has a positive answer")
             XCTAssertEqual(gradePotMath(answer: s.correctAnswer, spot: s).band, .spotOn)
+            XCTAssertEqual(Set(s.answerChoices).count, 3)
+            XCTAssertTrue(s.answerChoices.contains(s.correctAnswer))
         }
     }
 
@@ -101,6 +108,87 @@ final class PotMathTests: XCTestCase {
         }
         XCTAssertGreaterThan(potNow, 0)
         XCTAssertGreaterThan(fraction, 0)
+    }
+
+    func testGeneratorProducesThreeAndFourSeatTables() {
+        var counts: Set<Int> = []
+        for i in 0..<200 {
+            counts.insert(PotMathSpotGenerator.spot(baseSeed: 21, index: i).participantCount)
+        }
+        XCTAssertEqual(counts, [3, 4])
+    }
+
+    func testReplaySplitsBlindPostsAndKeepsFoldedChipsInThePot() {
+        let spot = PotMathSpot(actions: [.blinds(sb: 1, bb: 2),
+                                         .raiseTo(actor: .opener, total: 6, alreadyIn: 0),
+                                         .raiseTo(actor: .bb, total: 18, alreadyIn: 2),
+                                         .call(actor: .opener, amount: 12)],
+                               question: .potNow,
+                               foldedActors: [.sb])
+        let steps = spot.replaySteps
+
+        XCTAssertEqual(steps.count, 6)
+        XCTAssertEqual(steps[0], PotMathReplayStep(actor: .sb, kind: .post,
+                                                   addedChips: 1, totalContribution: 1))
+        XCTAssertEqual(steps[1], PotMathReplayStep(actor: .bb, kind: .post,
+                                                   addedChips: 2, totalContribution: 2))
+        XCTAssertEqual(steps[3], PotMathReplayStep(actor: .sb, kind: .fold,
+                                                   addedChips: 0, totalContribution: 1))
+        XCTAssertEqual(steps[4], PotMathReplayStep(actor: .bb, kind: .raiseTo(18),
+                                                   addedChips: 16, totalContribution: 18))
+        XCTAssertEqual(spot.contribution(of: .sb, throughReplayStep: 5), 1)
+        XCTAssertEqual(spot.contribution(of: .bb, throughReplayStep: 5), 18)
+        XCTAssertEqual(spot.contribution(of: .opener, throughReplayStep: 5), 18)
+        XCTAssertEqual(spot.pot, 37)
+    }
+
+    func testFourSeatFixtureStopsBeforeTheEarlierCallerRespondsAgain() {
+        let spot = PotMathSpot(actions: [.blinds(sb: 1, bb: 2),
+                                         .raiseTo(actor: .opener, total: 6, alreadyIn: 0),
+                                         .call(actor: .caller1, amount: 6),
+                                         .raiseTo(actor: .bb, total: 18, alreadyIn: 2),
+                                         .call(actor: .opener, amount: 12)],
+                               question: .potNow,
+                               foldedActors: [.sb])
+        XCTAssertEqual(spot.pot, 43)
+        XCTAssertEqual(spot.contribution(of: .caller1,
+                                         throughReplayStep: spot.replaySteps.count - 1), 6)
+        XCTAssertEqual(spot.replaySteps.last?.actor, .opener)
+    }
+
+    func testAnswerChoicesAreUniqueIncludeTheAnswerAndVaryItsPosition() {
+        var correctPositions: Set<Int> = []
+        var correctRanks: Set<Int> = []
+        for i in 0..<200 {
+            let spot = PotMathSpotGenerator.spot(baseSeed: 5, index: i)
+            XCTAssertEqual(spot.answerChoices.count, 3)
+            XCTAssertEqual(Set(spot.answerChoices).count, 3)
+            XCTAssertTrue(spot.answerChoices.allSatisfy { $0 >= 0 })
+            correctPositions.insert(spot.answerChoices.firstIndex(of: spot.correctAnswer)!)
+            correctRanks.insert(spot.answerChoices.sorted().firstIndex(of: spot.correctAnswer)!)
+        }
+        XCTAssertEqual(correctPositions, [0, 1, 2],
+                       "Seeded ordering must use every answer position")
+        XCTAssertEqual(correctRanks, [0, 1, 2],
+                       "The correct value must not always be the smallest, middle, or largest choice")
+    }
+
+    func testFirstPracticeIndicesAskForThePotBeforeIntroducingFractions() {
+        for index in 0...2 {
+            XCTAssertEqual(PotMathSpotGenerator.spot(baseSeed: 91, index: index).question,
+                           .potNow)
+        }
+    }
+
+    func testAnswerChoicesTerminateForZeroAndOneChipLegacySpots() {
+        let zero = PotMathSpot(actions: [], question: .potNow)
+        let one = PotMathSpot(actions: [.bet(actor: .opener, amount: 1)], question: .potNow)
+        XCTAssertEqual(zero.answerChoices.count, 3)
+        XCTAssertEqual(one.answerChoices.count, 3)
+        XCTAssertEqual(Set(zero.answerChoices).count, 3)
+        XCTAssertEqual(Set(one.answerChoices).count, 3)
+        XCTAssertTrue(zero.answerChoices.contains(0))
+        XCTAssertTrue(one.answerChoices.contains(1))
     }
 
     /// The pot must always equal the sum of what players actually put in, so the

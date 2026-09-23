@@ -3,7 +3,12 @@ import SwiftUI
 
 @main
 struct GlassTableApp: App {
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
+
     var body: some Scene {
-        WindowGroup { RootView() }
+        WindowGroup {
+            RootView()
+                .preferredColorScheme(appearance.colorScheme)
+        }
     }
 }

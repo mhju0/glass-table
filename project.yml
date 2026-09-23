@@ -27,7 +27,7 @@ targets:
         CFBundleLocalizations: [ko]
         CFBundleDisplayName: Glass Table
         CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "2"
+        CFBundleVersion: "3"
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
@@ -35,11 +35,6 @@ targets:
           - Pretendard-Regular.otf
           - Pretendard-SemiBold.otf
           - Pretendard-Bold.otf
-        # One appearance. The two schemes measured 1.50:1 apart on the felt and 1.04:1
-        # on every glass surface — the same pixel — so the second one was maintenance
-        # without a product. Pinning here rather than with .preferredColorScheme also
-        # keeps system UI (sheets, keyboards, alerts) in the same room.
-        UIUserInterfaceStyle: Dark
         # Drill layout (green zone + bottom sheet) is portrait-designed; lock it.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false

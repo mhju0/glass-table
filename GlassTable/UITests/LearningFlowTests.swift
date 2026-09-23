@@ -106,23 +106,44 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["다음 문제"].exists)
     }
 
-    func testPotMathTimelineNamesPlayersAndRevealsStepwiseArithmetic() {
+    func testPotMathTableRequiresTheFullReplayThenRevealsOptionalArithmetic() {
         let app = XCUIApplication()
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_DEMO_SEED": "1",
-                                 "GT_DEMO_NODE": "u1-potMath"]
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question",
+                                 "GT_DEMO_POT_PLAYERS": "4"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
-            format: "label CONTAINS %@", "플레이어 A · 총"
-        )).firstMatch.waitForExistence(timeout: 15))
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
-            format: "label CONTAINS %@", "명이 낸 칩"
+        let table = app.descendants(matching: .any)["pot-table-replay"]
+        XCTAssertTrue(table.waitForExistence(timeout: 15))
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@", "플레이어 A"
         )).firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@", "플레이어 B"
+        )).firstMatch.exists)
+        app.buttons["이전 행동"].tap()
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@", "총"
+        )).firstMatch.exists,
+                      "The active seat should distinguish a raise target from chips added now.")
+        let choices = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "pot-answer-"
+        ))
+        XCTAssertEqual(choices.count, 3)
+        XCTAssertFalse(choices.firstMatch.isEnabled)
+        XCTAssertTrue(app.staticTexts["마지막 행동까지 넘기면 답을 고를 수 있어요."].exists)
+        app.buttons["다음 행동"].tap()
+        XCTAssertTrue(choices.firstMatch.isEnabled)
+        choices.firstMatch.tap()
 
-        let submit = app.buttons["확인"]
-        XCTAssertTrue(submit.waitForExistence(timeout: 5))
-        submit.tap()
+        let calculation = app.buttons["계산 보기"]
+        XCTAssertTrue(calculation.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@", "블라인드: 1 + 2"
+        )).firstMatch.exists)
+        calculation.tap()
 
         let arithmetic = app.staticTexts.matching(NSPredicate(
             format: "label CONTAINS %@ AND label CONTAINS %@",
@@ -134,6 +155,88 @@ final class LearningFlowTests: XCTestCase {
         attachment.lifetime = .keepAlways
         add(attachment)
         XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 5))
+    }
+
+    func testPotMathFirstEntryExplainsWhyHowAndBlindRoles() {
+        let app = XCUIApplication()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "intro",
+                                 "GT_DEMO_POT_PLAYERS": "3"]
+        app.launch()
+
+        XCTAssertTrue(app.descendants(matching: .any)["pot-math-intro"]
+            .waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["왜 배우나요?"].exists)
+        XCTAssertTrue(app.staticTexts["어떻게 푸나요?"].exists)
+        XCTAssertTrue(app.staticTexts["SB와 BB"].exists)
+        app.buttons["문제 풀기"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["pot-table-replay"]
+            .waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "pot-answer-"
+        )).firstMatch.isEnabled,
+                       "The first entry begins at the blind posts instead of exposing the final state.")
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@", "1칩 먼저 내요"
+        )).firstMatch.exists)
+    }
+
+    func testPotMathAX5CanReachChoiceRevealAndNextAction() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-UIPreferredContentSizeCategoryName",
+                               "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question",
+                                 "GT_DEMO_POT_PLAYERS": "4"]
+        app.launch()
+
+        XCTAssertTrue(app.descendants(matching: .any)["pot-table-replay"]
+            .waitForExistence(timeout: 15))
+        let choice = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "pot-answer-"
+        )).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 5))
+        for _ in 0..<8 where !choice.isHittable { app.swipeUp() }
+        XCTAssertTrue(choice.isHittable, "AX5 must be able to scroll from the full seat list to an answer.")
+        choice.tap()
+
+        let calculation = app.buttons["계산 보기"]
+        for _ in 0..<8 where !calculation.isHittable { app.swipeUp() }
+        XCTAssertTrue(calculation.isHittable)
+        calculation.tap()
+        let next = app.buttons["다음 문제"]
+        for _ in 0..<8 where !next.isHittable { app.swipeUp() }
+        XCTAssertTrue(next.isHittable, "The expanded arithmetic must not trap the next action below the viewport.")
+    }
+
+    func testPotMathChoiceCommitsExactlyOnceBeforeNext() {
+        let app = XCUIApplication()
+        let storeID = UUID().uuidString
+        app.launchEnvironment = ["GT_TEST_STORE_ID": storeID,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question",
+                                 "GT_DEMO_POT_PLAYERS": "3"]
+        app.launch()
+        let choice = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "pot-answer-"
+        )).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 15))
+        choice.tap()
+        XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 5))
+
+        app.terminate()
+        app.launchArguments = []
+        app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_TAB": "records"]
+        app.launch()
+        let record = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label BEGINSWITH %@ AND label CONTAINS %@", "팟 계산.", "1문제"
+        )).firstMatch
+        XCTAssertTrue(record.waitForExistence(timeout: 10))
     }
 
     func testDueReviewIsFiniteAndMovesBetweenConcepts() {

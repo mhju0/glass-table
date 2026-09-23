@@ -6,8 +6,8 @@ import GlassTableDrills
 ///
 /// The bar is the lesson made visible: required equity *is* the 콜 segment's share of
 /// the whole bar, so the price can be read as a proportion before it is computed as a
-/// number. The segment colours are the M1 tokens (`GT.segPot/segBet/segCall`, measured
-/// 7.1/4.9/5.4:1 under `onFelt` numerals); 콜 is a different hue because the
+/// number. The segment colours are the M1 tokens (`GT.segPot/segBet/segCall`); 콜 is a
+/// different hue because the
 /// denominator is the term beginners miss, and it is drawn dashed because it is
 /// hypothetical money — not in the middle yet.
 struct PriceBarView: View {
@@ -50,17 +50,17 @@ struct PriceBarView: View {
 
     private func segmentView(_ seg: Segment, width: CGFloat) -> some View {
         VStack(spacing: 2) {
-            Text(seg.label).font(GT.semibold(11)).foregroundStyle(GT.onFeltSecondary)
-            Text("\(seg.bb)").font(GT.title(17).monospacedDigit()).foregroundStyle(GT.onFelt)
+            Text(seg.label).font(GT.semibold(11)).foregroundStyle(GT.onTable)
+            Text("\(seg.bb)").font(GT.title(17).monospacedDigit()).foregroundStyle(GT.onTable)
         }
         .minimumScaleFactor(0.6)
         .frame(width: width, height: 58)
-        .background(seg.fill.opacity(seg.hypothetical ? 0.55 : 1),
+        .background(seg.fill,
                     in: RoundedRectangle(cornerRadius: 10))
         .overlay {
             if seg.hypothetical {
                 RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(GT.onFelt.opacity(0.55),
+                    .strokeBorder(GT.onTable,
                                   style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
             }
         }

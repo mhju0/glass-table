@@ -362,7 +362,7 @@ struct TableView: View {
 
     private func segment(_ text: String, fill: Color, width: CGFloat) -> some View {
         Text(text)
-            .font(GT.semibold(14).monospacedDigit()).foregroundStyle(GT.onFelt)
+            .font(GT.semibold(14).monospacedDigit()).foregroundStyle(GT.onTable)
             .lineLimit(1).minimumScaleFactor(0.8)
             .frame(width: max(38, width - 3), height: 30)
             .background(fill, in: RoundedRectangle(cornerRadius: 8))

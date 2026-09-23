@@ -177,7 +177,7 @@ struct PathView: View {
             .foregroundStyle(status == .cleared ? GT.onCTA
                              : (status == .available ? GT.mint : GT.onFeltMuted))
             .frame(width: 30, height: 30)
-            .background(status == .cleared ? GT.mint : GT.feltDeep, in: Circle())
+            .background(status == .cleared ? GT.cta : GT.surface, in: Circle())
             .overlay(Circle().stroke(status == .available ? GT.mint : GT.hairlineFelt,
                                      lineWidth: status == .available ? 2 : 1))
             .accessibilityHidden(true)

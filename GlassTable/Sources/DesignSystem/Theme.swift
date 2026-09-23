@@ -1,26 +1,43 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import UIKit
 
-/// Three materials, and only three.
+/// The appearance applied to the app and to system-presented UI.
 ///
-/// - **Felt** — the table. Dark, matte, always.
-/// - **Glass** — every elevated surface: sheets, cards, panels. Green, lit along its
-///   top edge, floating on a shadow.
-/// - **Paper** — playing-card faces, and nothing else.
+/// This preference is deliberately independent of poker progress. It lives in
+/// `UserDefaults` through `AppStorage`, so importing or resetting a progress backup
+/// never changes how the app looks.
+enum AppAppearance: String, CaseIterable, Identifiable {
+    static let storageKey = "appAppearance"
+
+    case system
+    case light
+    case dark
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .system: "시스템"
+        case .light: "라이트"
+        case .dark: "다크"
+        }
+    }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
+        }
+    }
+}
+
+/// Semantic design tokens for both app appearances.
 ///
-/// **The rule: ink never flips, because the surface under it never flips.**
-///
-/// The app is pinned to the dark appearance (`UIUserInterfaceStyle` in project.yml),
-/// so there is no second set of values to keep in step. It used to ship two, and they
-/// measured 1.50:1 apart on the felt and **1.04:1 on every glass surface** — the same
-/// pixel. Two schemes were being maintained and one was being shipped.
-///
-/// **Glass is a colour, not a material.** It was `.ultraThinMaterial` under a tint and
-/// an ivory veil. But `FeltBackground` is a flat fill plus a spade at 3.5% opacity, so
-/// the blur had nothing to blur: it cost an offscreen pass per surface to arrive at a
-/// solid tint, and it forced `.dark` onto the material to stop the system flipping it.
-/// The opaque value below is where that stack already landed (#38473E measured off a
-/// real screenshot), so the app looks the same and the boundary is now controllable.
+/// Neutral surfaces follow the selected appearance. The poker table, playing cards,
+/// and their ink stay fixed because they are objects inside the interface, not page
+/// chrome. Amber is reserved for actions and selection; green reports success.
 enum GT {
     enum Space {
         static let compact: CGFloat = 8
@@ -41,8 +58,6 @@ enum GT {
     }
 
     enum Typography {
-        /// Korean body copy needs visible breathing room without fixed line heights,
-        /// which would fight Dynamic Type. SwiftUI adds this value between lines.
         static let bodyLineSpacing: CGFloat = 3
         static let explanationLineSpacing: CGFloat = 4
         static let questionSize: CGFloat = 18
@@ -51,135 +66,99 @@ enum GT {
         static let resultSize: CGFloat = 22
     }
 
-    // MARK: felt — the table
+    // MARK: Adaptive app surfaces
 
-    static let felt         = Color(hex: 0x0F211A)
-    static let feltDeep     = Color(hex: 0x0A1811)
-    static let hairlineFelt = Color(hex: 0x244134)
+    /// Compatibility names used throughout the app. These now describe the page,
+    /// not the poker table; new table UI uses the explicit fixed roles below.
+    static let felt = Color.adaptive(light: 0xF2EEE5, dark: 0x17191C)
+    static let onFelt = Color.adaptive(light: 0x222C29, dark: 0xF4F0E6)
+    static let onFeltSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8)
+    static let onFeltMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8)
+    static let hairlineFelt = Color.adaptive(light: 0xC4BCB0, dark: 0x4A4F55)
 
-    /// Ink on felt. Fixed.
-    static let onFelt          = Color(hex: 0xF2EFE7)
-    static let onFeltSecondary = Color(hex: 0x9DB3A6)
-    static let onFeltMuted     = Color(hex: 0x7E978A)
+    static let glass = Color.adaptive(light: 0xFFFDF7, dark: 0x24272B)
+    static let glassEdge = Color.adaptive(light: 0x817A70, dark: 0x757A81)
+    static let surface = Color.adaptive(light: 0xE7E1D6, dark: 0x1D2024)
 
-    // MARK: glass — every elevated surface
+    static let ink = Color.adaptive(light: 0x222C29, dark: 0xF4F0E6)
+    static let inkSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8)
+    static let inkMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8)
 
-    /// Every elevated surface. Deliberately kept dark: brightening it to clear 3:1
-    /// against the felt takes it to #566D60, where `inkMuted` falls to 2.2:1 and the
-    /// three band inks to 2.6–3.3:1. That trades one boundary failure for six ink
-    /// failures, so the boundary is carried by `borderStrong` instead.
-    ///
-    /// Measured on this value: ink 8.6:1, inkSecondary 5.7:1, green 5.2:1,
-    /// 정확 6.3:1, 근접 5.6:1, 빗나감 4.7:1 — all clear WCAG AA.
-    static let glass = Color(hex: 0x3B4941)
-    /// The lit edge that sells elevation — light catching the lip of a raised surface.
-    static let glassEdge = Color(hex: 0x6FD3A0).opacity(0.40)
+    static let border = Color.adaptive(light: 0xC4BCB0, dark: 0x4A4F55)
+    static let borderStrong = Color.adaptive(light: 0x746E65, dark: 0x989DA4)
 
-    /// Playing-card faces stay **paper**. It is the one surface in the app that is not
-    /// glass, and that is the point of the metaphor — measured 7.7:1 against the felt,
-    /// the highest contrast anywhere in the app and the fastest thing to read.
-    static let cardFace = Color(hex: 0xEFEBE0)
+    // MARK: Fixed poker-table object
 
-    /// Inset block inside glass — the "why" panel, stepper keys, unfilled pips, a
-    /// choice that is not selected.
-    ///
-    /// Recessed: a well cut **down** toward the table, not a smudge of ivory laid on
-    /// top. Direction is forced, not chosen. White ink cannot survive two 3:1 steps up
-    /// from the felt — the second one puts the fill at #A8AEA6, where `ink` is 1.9:1 —
-    /// so an inset that must be distinguishable has nowhere to go but down.
-    static let surface  = Color(hex: 0x16261E)
+    static let tableFelt = Color(hex: 0x153D33)
+    static let tableFeltDeep = Color(hex: 0x102A23)
+    static let tableHairline = Color(hex: 0x547A70)
+    static let onTable = Color(hex: 0xF4F0E6)
+    static let onTableSecondary = Color(hex: 0xC8D6D0)
+    static let onTableMuted = Color(hex: 0xA8BBB4)
+    static let tableAccent = Color(hex: 0xEDC17F)
+    static let onTableAccent = Color(hex: 0x241B0E)
 
-    /// Ink on glass. Light, because the surface under it is dark.
-    static let ink          = Color(hex: 0xF7F4EC)
-    static let inkSecondary = Color(hex: 0xC2CBC3)
-    static let inkMuted     = Color(hex: 0xADB9B0)
+    /// Existing card backs remain part of the fixed table object.
+    static let feltDeep = tableFeltDeep
 
-    /// Edges. **The edge is the boundary now**, not the material — a surface that is
-    /// only 1.8:1 off its background is not a boundary no matter how it was made.
-    ///
-    /// `borderStrong` is **opaque**, unlike every edge before it. `strokeBorder` insets
-    /// and paints over the shape's own fill, so a translucent edge resolves against
-    /// whatever it happens to be drawn on: at 43% ivory it came out #8C938B on a card
-    /// and #777F77 on a recessed choice button, and only the first cleared 3:1 against
-    /// the surface behind it. A fixed value is the same edge everywhere.
-    ///
-    /// Measured 3.0:1 against the glass and 5.3:1 against the felt or a recessed
-    /// inset — clears WCAG 1.4.11 on both sides. The old 26% ivory managed 2.49:1 and
-    /// 1.86:1, which is why three choice buttons read as three rows of text.
-    static let border       = Color(hex: 0xF7F4EC).opacity(0.16)
-    static let borderStrong = Color(hex: 0x8C938B)
+    // MARK: Action and feedback
 
-    // MARK: actions
+    /// Amber marks the action or selection under the user's control. The light
+    /// appearance uses a deeper amber so the token remains legible as text.
+    static let cta = Color.adaptive(light: 0x8A5500, dark: 0xEDC17F)
+    static let onCTA = Color.adaptive(light: 0xFFFFFF, dark: 0x241B0E)
+    static let mint = cta
 
-    /// Primary action on glass: mint fill, dark lettering.
-    static let cta   = Color(hex: 0x6FD3A0)
-    static let onCTA = Color(hex: 0x10261C)
-    /// Accent for icons and live values on glass.
-    static let green = Color(hex: 0x6FD3A0)
-    /// Accents drawn on felt.
-    static let mint  = Color(hex: 0x6FD3A0)
+    /// Green is a result/status color, not the primary action color.
+    static let green = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4)
 
-    /// Price-bar segments, on felt, with `onFelt` numerals inside. Measured against
-    /// `onFelt` at 7.1 / 4.9 / 5.4:1 — all clear WCAG AA. 콜 is a different hue
-    /// because the denominator is the term beginners miss.
-    static let segPot  = Color(hex: 0x24593F)
-    static let segBet  = Color(hex: 0x2F7352)
+    /// Price-bar colors retain their poker meaning on the fixed table.
+    static let segPot = Color(hex: 0x24593F)
+    static let segBet = Color(hex: 0x2F7352)
     static let segCall = Color(hex: 0x7A5C18)
+    static let actionBet = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4)
+    static let actionCall = Color.adaptive(light: 0x8A5500, dark: 0xEDC17F)
 
-    /// Lit relatives of the two price-bar segments, for the accent rule under a table
-    /// action button. The segments themselves are sized to carry `onFelt` numerals on
-    /// felt, so as a hairline on `surface` they measure 2.79:1 (벳) and 2.54:1 (콜) —
-    /// both under WCAG 1.4.11's 3:1 for a non-text element. These are the same hues
-    /// raised until they clear it: 4.6:1 and 4.2:1 on `surface`.
-    ///
-    /// They mark **what kind of money** a button commits — the same thing the price
-    /// bar's colours mean — and never which button is better. The table grades the
-    /// choice, so an action rendered as the sheet's primary CTA would hand over the
-    /// answer before the user commits.
-    static let actionBet  = Color(hex: 0x3E9A6E)
-    static let actionCall = Color(hex: 0xA67C1F)
+    static let suitRed = Color.adaptive(light: 0x9B332D, dark: 0xF0A39A)
 
-    static let suitRed = Color(hex: 0xC0392B)
-    /// Ink printed on a playing card. Fixed, for the same reason as everything above.
-    static let cardInk     = Color(hex: 0x1A2621)
+    // MARK: Playing cards
+
+    static let cardFace = Color(hex: 0xEFEBE0)
+    static let cardInk = Color(hex: 0x1A2621)
     static let cardSuitRed = Color(hex: 0xC0392B)
 
-    // relativeTo: .body → all text scales with the user's Dynamic Type setting.
-    static func title(_ s: CGFloat) -> Font    { .custom("Pretendard-Bold", size: s, relativeTo: .body) }
+    // relativeTo: .body makes ordinary text follow Dynamic Type.
+    static func title(_ s: CGFloat) -> Font {
+        .custom("Pretendard-Bold", size: s, relativeTo: .body)
+    }
 
-    /// The one face that does **not** scale, for a glyph that is part of a drawing
-    /// rather than a piece of text: the rank and suit printed on a card.
-    ///
-    /// A card is a pictogram. Its label is sized as a fraction of the card
-    /// (`size * 0.36`) and the card is sized so five of them fit a board across the
-    /// narrowest screen, so the glyph cannot grow without breaking the row. It is not
-    /// a close call: at the largest accessibility size body text scales roughly 3×,
-    /// which puts a 46pt-wide board card at ~143pt and a five-card row at ~715pt
-    /// against 393pt of screen. Even `CardRow`'s smallest rung overflows.
-    ///
-    /// So the rank stays pinned and VoiceOver carries the content instead — every card
-    /// already publishes an `accessibilityLabel` ("스페이드 A"). Scaling it produced the
-    /// opposite of accessibility: the label truncated to "…" and the whole app became
-    /// unplayable at exactly the settings that asked for help.
-    static func fixed(_ s: CGFloat) -> Font    { .custom("Pretendard-Bold", fixedSize: s) }
-    static func semibold(_ s: CGFloat) -> Font { .custom("Pretendard-SemiBold", size: s, relativeTo: .body) }
-    static func body(_ s: CGFloat) -> Font     { .custom("Pretendard-Regular", size: s, relativeTo: .body) }
+    /// Card ranks and suits are pictograms sized to the card. VoiceOver carries the
+    /// accessible value while the glyph stays fixed so a five-card row cannot clip.
+    static func fixed(_ s: CGFloat) -> Font {
+        .custom("Pretendard-Bold", fixedSize: s)
+    }
+
+    static func semibold(_ s: CGFloat) -> Font {
+        .custom("Pretendard-SemiBold", size: s, relativeTo: .body)
+    }
+
+    static func body(_ s: CGFloat) -> Font {
+        .custom("Pretendard-Regular", size: s, relativeTo: .body)
+    }
 }
 
-/// Grade bands, on glass. Light inks over their own low-alpha washes — the previous
-/// dark-on-pale-tint pair would have vanished once the surface went dark.
-/// Measured 6.5 / 6.9 / 6.1:1 against the glass, so the verdict clears AA; shape,
-/// structure and wording still carry it if colour is stripped entirely.
+/// Grade feedback remains text-first and changes tone with the app appearance.
 enum GTBand {
-    static let spotOnInk  = Color(hex: 0x8FE3BB)
-    static let closeInk   = Color(hex: 0xE8C089)
-    static let offInk     = Color(hex: 0xF0A49C)
-    static let spotOnTint = Color(hex: 0x6FD3A0).opacity(0.16)
-    static let closeTint  = Color(hex: 0xE0A85A).opacity(0.16)
-    static let offTint    = Color(hex: 0xE06B60).opacity(0.16)
+    static let spotOnInk = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4)
+    static let closeInk = Color.adaptive(light: 0x805000, dark: 0xE8C089)
+    static let offInk = Color.adaptive(light: 0x9B332D, dark: 0xF0A39A)
+    static let spotOnTint = Color.adaptive(light: 0xDCEDE4, dark: 0x263D34)
+    static let closeTint = Color.adaptive(light: 0xF1E4CC, dark: 0x3B3325)
+    static let offTint = Color.adaptive(light: 0xF2DEDB, dark: 0x3D2929)
 }
 
-/// Home/settings backdrop: flat felt plus a faint spade.
+/// App backdrop. The subtle spade keeps the Glass Table identity in both appearances
+/// without turning the entire interface into a green poker table.
 struct FeltBackground: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -198,8 +177,24 @@ struct FeltBackground: View {
 extension Color {
     init(hex: UInt32) {
         self.init(.sRGB,
-                  red:   Double((hex >> 16) & 0xff) / 255,
-                  green: Double((hex >> 8)  & 0xff) / 255,
-                  blue:  Double( hex        & 0xff) / 255)
+                  red: Double((hex >> 16) & 0xff) / 255,
+                  green: Double((hex >> 8) & 0xff) / 255,
+                  blue: Double(hex & 0xff) / 255)
+    }
+
+    static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(uiColor: UIColor { traits in
+            let value = traits.userInterfaceStyle == .dark ? dark : light
+            return UIColor(hex: value)
+        })
+    }
+}
+
+private extension UIColor {
+    convenience init(hex: UInt32) {
+        self.init(red: CGFloat((hex >> 16) & 0xff) / 255,
+                  green: CGFloat((hex >> 8) & 0xff) / 255,
+                  blue: CGFloat(hex & 0xff) / 255,
+                  alpha: 1)
     }
 }
