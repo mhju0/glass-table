@@ -39,7 +39,7 @@ final class AccessibilityFlowTests: XCTestCase {
             "GT_DEMO_BEAT": "0",
         ])
 
-        XCTAssertTrue(app.descendants(matching: .any)["7단계 중 1단계"]
+        XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-0"]
             .waitForExistence(timeout: 15))
 
         for step in 1...7 {

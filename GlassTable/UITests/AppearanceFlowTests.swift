@@ -58,7 +58,10 @@ final class AppearanceFlowTests: XCTestCase {
         for mode in ["light", "dark", "system"] {
             let choice = app.buttons["appearance-\(mode)"]
             XCTAssertTrue(choice.waitForExistence(timeout: 15))
-            for _ in 0..<6 where !choice.isHittable { app.swipeUp() }
+            for _ in 0..<10 where !choice.isHittable {
+                if choice.frame.midY < app.frame.midY { app.swipeDown() }
+                else { app.swipeUp() }
+            }
             XCTAssertTrue(choice.isHittable)
             XCTAssertGreaterThanOrEqual(choice.frame.height, 44)
             choice.tap()

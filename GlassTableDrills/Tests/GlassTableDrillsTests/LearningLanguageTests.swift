@@ -4,6 +4,66 @@ import GlassTableEngine
 @testable import GlassTableDrills
 
 struct LearningLanguageTests {
+    @Test func walkthroughStepsStayAlignedAcrossLanguages() {
+        for seed: UInt64 in [19, 23, 91, 0x5EED] {
+            let korean = walkthroughs(seed: seed, language: .korean)
+            let english = walkthroughs(seed: seed, language: .english)
+            #expect(Set(korean.keys) == Set(Concept.allCases))
+            #expect(Set(english.keys) == Set(Concept.allCases))
+            for concept in Concept.allCases {
+                guard let ko = korean[concept], let en = english[concept] else { continue }
+                #expect(ko.count == en.count, "\(concept) seed \(seed): KO \(ko.count), EN \(en.count)")
+                for index in 0..<min(ko.count, en.count) {
+                    #expect(sameTeachingFocus(ko[index].focus, en[index].focus),
+                            "\(concept) seed \(seed) beat \(index): focus differs")
+                    #expect(ko[index].highlight == en[index].highlight,
+                            "\(concept) seed \(seed) beat \(index): highlight differs")
+                    #expect(ko[index].struck == en[index].struck,
+                            "\(concept) seed \(seed) beat \(index): struck differs")
+                    #expect(ko[index].hidden == en[index].hidden,
+                            "\(concept) seed \(seed) beat \(index): hidden differs")
+                }
+            }
+        }
+    }
+
+    private func sameTeachingFocus(_ lhs: BeatFocus, _ rhs: BeatFocus) -> Bool {
+        switch (lhs, rhs) {
+        case (.none, .none), (.table, .table): return true
+        case let (.grid(a), .grid(b)): return a == b
+        case let (.rangeGrid(a, ah), .rangeGrid(b, bh)): return a == b && ah == bh
+        case let (.actionList(a, al), .actionList(b, bl)): return a.count == b.count && al == bl
+        case let (.buckets(a), .buckets(b)):
+            return a.map(\.distribution) == b.map(\.distribution)
+        case let (.defendChart(a, ah), .defendChart(b, bh)): return a == b && ah == bh
+        default: return false
+        }
+    }
+
+    private func walkthroughs(seed: UInt64, language: LearningLanguage) -> [Concept: [Beat]] {
+        let bet = BetSpotGenerator.spot(baseSeed: seed, index: 0)
+        return [
+            .showdown: BeatScript.showdown(ShowdownSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .potMath: BeatScript.potMath(PotMathSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .position: BeatScript.position(PositionSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .combos: BeatScript.combos(BlockerSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .potOdds: BeatScript.potOdds(bet, language: language),
+            .outs: BeatScript.outs(OutsSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .equitySense: BeatScript.equitySense(EquitySenseSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .evCall: BeatScript.evCall(EVCallSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .callFold: BeatScript.callFold(CallFoldSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .rangeNotation: BeatScript.rangeNotation(RangeNotationSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .rfi: BeatScript.rfi(RFISpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .rangeRead: BeatScript.rangeRead(RangeReadSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .hitFrequency: BeatScript.hitFrequency(HitFrequencySpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .rangeAdvantage: BeatScript.rangeAdvantage(RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .evLoss: BeatScript.evLoss(EVLossSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .actionRead: BeatScript.actionRead(ActionReadSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .defend: BeatScript.defend(DefendSpotGenerator.spot(baseSeed: seed, index: 0), language: language),
+            .mdf: BeatScript.mdf(bet, language: language),
+        ]
+    }
+
     @Test func everyConceptHasEnglishWorkedExample() {
         let seed: UInt64 = 19
         let bet = BetSpotGenerator.spot(baseSeed: seed, index: 0)

@@ -103,6 +103,32 @@ import Testing
     #expect(table.legalActions.contains(.raise(to: 4)))
 }
 
+@Test func noRaiseWhenEveryOtherLiveSeatIsAllIn() throws {
+    var table = PracticeTableState.fixture(seed: 23, stacks: [100, 1, 2, 3], dealer: 0)
+    #expect(table.currentSeat == 3)
+    #expect(table.legalActions.contains(.raise(to: 3)))
+    try table.apply(.raise(to: 3), actionID: "seat-3-short-all-in")
+
+    #expect(table.currentSeat == 0)
+    #expect(table.legalActions == [.fold, .call])
+    let before = table
+    #expect(throws: PracticeTableError.illegalAction) {
+        try table.apply(.raise(to: 5), actionID: "uncontestable-raise")
+    }
+    #expect(table == before)
+
+    try table.apply(.call, actionID: "learner-call")
+    #expect(table.street == .finished)
+    #expect(table.review?.learnerRaisedPreflop == false)
+    let learnerRaised = table.review?.events.contains { event in
+        guard event.seat == 0 else { return false }
+        if case .raise = event.action { return true }
+        return false
+    } ?? false
+    #expect(!learnerRaised)
+    try table.validate()
+}
+
 @Test func largeStackBotsSettleWithoutUnboundedReraising() throws {
     for seed in 0..<100 {
         var table = PracticeTableState.fixture(seed: UInt64(seed),

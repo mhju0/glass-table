@@ -38,19 +38,46 @@ enum EnglishBeatScript {
     static func outs(_ s: OutsSpot) -> [Beat] {
         let unseen = 52 - Set(s.hero + s.villain + s.board).count
         let outs = s.outs.sorted(by: BeatScript.byRank)
+        let flushSuit = s.excluded.first?.suit
+        let suitOuts = flushSuit.map { suit in s.outs.filter { $0.suit == suit } } ?? []
+        let otherOuts = flushSuit.map { suit in s.outs.filter { $0.suit != suit } } ?? s.outs
         var beats = [
             Beat("One shared card remains", detail: "Only cards that make you win count as outs.", focus: .table),
             Beat("Your cards", focus: .table, highlight: s.hero),
             Beat("Opponent's cards", detail: "The opponent is ahead now.", focus: .table, highlight: s.villain),
-            Beat("Cards that make you win", value: "\(s.outCount) cards",
-                 focus: .grid(outs), highlight: outs),
         ]
-        if !s.excluded.isEmpty {
-            beats.append(Beat("These do not count", value: s.excluded.map(\.display).joined(separator: " · "),
-                              detail: "Your hand improves, but the opponent still wins.",
-                              focus: .grid(outs + s.excluded), struck: s.excluded))
+        if let suit = flushSuit {
+            let inHand = s.hero.filter { $0.suit == suit }
+            let onBoard = s.board.filter { $0.suit == suit }
+            let inVillain = s.villain.filter { $0.suit == suit }
+            let remaining = suitOuts + s.excluded
+            let suitName = DrillTerms.suit(suit, in: .english)
+            let seen = inHand.count + onBoard.count + inVillain.count
+            var subtraction = "Of 13 \(suitName), you hold \(inHand.count), the board has \(onBoard.count)"
+            if !inVillain.isEmpty { subtraction += ", and the opponent has \(inVillain.count)" }
+            subtraction += ". That leaves 13 − \(seen) = \(13 - seen)."
+
+            beats.append(Beat("You can see \(inHand.count + onBoard.count) \(suitName)",
+                              detail: "One more would make a flush.",
+                              focus: .table, highlight: inHand + onBoard))
+            beats.append(Beat("\(remaining.count) \(suitName) remain", detail: subtraction,
+                              focus: .grid(remaining.sorted(by: BeatScript.byRank))))
+            if !s.excluded.isEmpty {
+                beats.append(Beat("But \(s.excluded.map(\.display).joined(separator: " · ")) won't win",
+                                  detail: "They complete your draw but improve the opponent even more. Cross them out.",
+                                  focus: .grid(remaining.sorted(by: BeatScript.byRank)),
+                                  struck: s.excluded))
+            }
+            if !otherOuts.isEmpty {
+                beats.append(Beat("\(otherOuts.count) other winning cards",
+                                  detail: "A flush is not your only way to win.", focus: .grid(outs)))
+            }
+        } else {
+            beats.append(Beat("Cards that make you win",
+                              detail: "If one of these arrives on the river, you take the lead.",
+                              focus: .grid(outs)))
         }
-        beats.append(Beat("Your final count", value: "\(s.outCount) outs",
+        beats.append(Beat("Your real outs", value: "\(s.outCount) cards",
                           detail: "\(s.outCount) of \(unseen) unseen cards make you win. The rule of 2 gives about \(Int(s.improvementPct))% for one card to come.",
                           focus: .grid(outs)))
         return beats
@@ -181,6 +208,10 @@ enum EnglishBeatScript {
                               detail: hand.isPair ? "Pair" : hand.suited ? "Same suit" : "Different suits",
                               focus: .rangeGrid(s.range, highlight: hand)))
         }
+        if s.range.classes.count > 6 {
+            beats.append(Beat("Use the same count for the other \(s.range.classes.count - 6) hand groups",
+                              focus: .rangeGrid(s.range, highlight: nil)))
+        }
         beats.append(Beat("Add every class", value: "\(s.comboCount) combinations",
                           detail: "That is \(pctText(s.range.percent))% of all 1,326 starting combinations.",
                           focus: .rangeGrid(s.range, highlight: nil)))
@@ -211,23 +242,33 @@ enum EnglishBeatScript {
         if case .opened = s.action { opened = true } else { opened = false }
         let opponent = s.archetype
         let range = s.trueRange
-        let headline = opened ? opponent.pfr : opponent.vpip - opponent.pfr
-        return [Beat("What they did", value: opened ? "Raised first" : "Called",
+        let headline = opened ? opponent.pfr : opponent.vpip
+        let lines = s.actionLines(in: .english)
+        var beats = [Beat("What they did", value: opened ? "Raised first" : "Called",
                      detail: "You see the action, not their cards.",
-                     focus: .actionList(s.actionLines(in: .english), lit: opened ? 0 : 1)),
+                     focus: .actionList(lines, lit: opened ? 0 : 1)),
                 Beat("Opponent's usual style", value: opponent.beginnerTitle(in: .english),
                      detail: opponent.beginnerDescription(in: .english),
-                     focus: .actionList(s.actionLines(in: .english), lit: nil)),
-                Beat("Across all seats", value: "\(Int(headline))% of hands",
+                     focus: .actionList(lines, lit: nil)),
+                Beat("The numbers", value: "VPIP \(Int(opponent.vpip))% · PFR \(Int(opponent.pfr))%",
                      detail: opened ? "They raise first with about \(Int(opponent.pfr))% of hands on average."
                         : "They join with \(Int(opponent.vpip))%, raise with \(Int(opponent.pfr))%, and call with the gap.",
-                     focus: .actionList(s.actionLines(in: .english), lit: nil)),
-                Beat("From this seat", value: "Top \(pctText(range.percent))%",
-                     detail: "The seat changes how many hands they can play.",
-                     focus: .rangeGrid(range, highlight: nil)),
-                Beat("Possible hands", value: "\(range.classes.count) hand classes",
-                     detail: "Use the shown range to check your estimate.",
+                     focus: .actionList(lines, lit: nil)),
+                Beat("Now account for the seat", value: "Top \(pctText(range.percent))%",
+                     detail: "\(s.seat.playersBehind(preflop: true)) players still act after \(s.seat.rawValue). The \(Int(headline))% average becomes \(range.percent >= headline ? "wider" : "narrower") here.",
+                     focus: .actionList(lines, lit: nil)),
+                Beat("That gives this shape", value: "\(range.classes.count) hand classes",
+                     detail: opened ? "Start from the strongest hands and include the top \(pctText(range.percent))%."
+                        : "Leave out the raising hands. These hands are playable but not strong enough to raise.",
                      focus: .rangeGrid(range, highlight: nil))]
+        if let lean = RangeTendency.allCases.max(by: {
+            range.tendencyShare($0) < range.tendencyShare($1)
+        }) {
+            beats.append(Beat("Where it leans", value: DrillTerms.tendency(lean, in: .english),
+                              detail: "\(Int((range.tendencyShare(lean) * 100).rounded()))% of this range is \(DrillTerms.tendency(lean, in: .english)). Shape matters as well as width.",
+                              focus: .rangeGrid(range, highlight: nil)))
+        }
+        return beats
     }
 
     static func hitFrequency(_ s: HitFrequencySpot) -> [Beat] {
@@ -242,6 +283,9 @@ enum EnglishBeatScript {
                      focus: .table, highlight: s.board),
                 Beat("Hands with a pair or better", value: "\(pctText(distribution.pairOrBetter * 100))%",
                      detail: "Read the share from the remaining combinations.",
+                     focus: .buckets([bar])),
+                Beat("So the answer is", value: "\(pctText(distribution.pairOrBetter * 100))%",
+                     detail: "Most starting ranges miss most flops. That is why a bet can sometimes take the pot without a made hand.",
                      focus: .buckets([bar]))]
     }
 
@@ -292,7 +336,8 @@ enum EnglishBeatScript {
                 Beat("Hands they raise with", value: "Top \(pctText(open))%",
                      focus: .rangeGrid(RFIChart.range(for: s.opener), highlight: nil)),
                 Beat("How this chart divides hands", detail: "The bands follow the width of the opponent's opening range.",
-                     focus: .actionList(["Top \(pctText(open * DefendChart.threeBetShare))% → raise again",
+                     focus: .actionList(["Opening width \(pctText(open))%",
+                                         "Top \(pctText(open * DefendChart.threeBetShare))% → raise again",
                                          "Up to \(pctText(open * DefendChart.defendShare))% → call",
                                          "Remaining hands → fold"], lit: nil)),
                 Beat("Find your hand", value: s.handClass.description,

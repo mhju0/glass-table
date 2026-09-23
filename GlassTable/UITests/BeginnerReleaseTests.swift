@@ -145,4 +145,36 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "43")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "saved-answer-")).firstMatch.exists)
     }
+
+    func testPracticeHandSettlesAndNextHandSurvivesRelaunch() {
+        let app = app()
+        let storeID = app.launchEnvironment["GT_TEST_STORE_ID"]!
+        app.launchEnvironment["GT_DEMO_PRACTICE"] = "1"
+        app.launchEnvironment["GT_DEMO_TAB"] = "play"
+        app.launch()
+        let fold = app.buttons["Fold · leave this hand"]
+        XCTAssertTrue(fold.waitForExistence(timeout: 15))
+        scrollTo(fold, in: app)
+        fold.tap()
+        XCTAssertTrue(app.staticTexts["Review this hand"].waitForExistence(timeout: 10))
+        let next = app.buttons["Next hand"]
+        scrollTo(next, in: app)
+        next.tap()
+        app.terminate()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0",
+                                 "GT_DEMO_TAB": "play"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Hand 2"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.descendants(matching: .any)["practice-table"].exists)
+    }
+
+    func testCallFoldFixtureOpensThatConceptNotAMixedCheckpoint() {
+        let app = app()
+        app.launchEnvironment["GT_DEMO_CONCEPT"] = "callFold"
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Call or fold"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "drill-question-callFold/"
+        )).firstMatch.exists)
+    }
 }

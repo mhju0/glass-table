@@ -138,7 +138,7 @@ struct PotMathReplayView: View {
                 Text(actorName(actor))
                     .font(GT.semibold(13))
                 Spacer(minLength: 6)
-                Text(language.text("낸 칩 \(contributed)", "Paid \(contributed) chips"))
+                Text(language.text("낸 칩 \(contributed)", "Paid \(englishChips(contributed))"))
                     .font(GT.semibold(13).monospacedDigit())
             }
             .foregroundStyle(GT.onTable)
@@ -160,7 +160,7 @@ struct PotMathReplayView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(language.text("\(actor.rawValue), 낸 칩 \(contributed)칩",
-                                          "\(actorName(actor)), paid \(contributed) chips")
+                                          "\(actorName(actor)), paid \(englishChips(contributed))")
                             + (isActive ? ", \(caption(for: currentStep))" : ""))
     }
 
@@ -221,14 +221,18 @@ struct PotMathReplayView: View {
 
     private func caption(for step: PotMathReplayStep) -> String {
         switch step.kind {
-        case .post: return language.text("\(step.addedChips)칩 먼저 내요", "Posts \(step.addedChips) chips")
-        case .bet: return language.text("\(step.addedChips)칩 벳해요", "Bets \(step.addedChips) chips")
-        case .call: return language.text("\(step.addedChips)칩 더 내요 · 콜", "Adds \(step.addedChips) chips to call")
+        case .post: return language.text("\(step.addedChips)칩 먼저 내요", "Posts \(englishChips(step.addedChips))")
+        case .bet: return language.text("\(step.addedChips)칩 벳해요", "Bets \(englishChips(step.addedChips))")
+        case .call: return language.text("\(step.addedChips)칩 더 내요 · 콜", "Adds \(englishChips(step.addedChips)) to call")
         case let .raiseTo(total):
             return language.text("\(step.addedChips)칩 더 내요 · 총 \(total)칩으로 레이즈",
                                  "Adds \(step.addedChips), raising to \(total) chips total")
         case .fold: return language.text("폴드 · 이미 낸 칩은 남아요", "Folds · paid chips stay in the pot")
         }
+    }
+
+    private func englishChips(_ count: Int) -> String {
+        "\(count) \(count == 1 ? "chip" : "chips")"
     }
 
     private func actorName(_ actor: PotMathSpot.Actor) -> String {

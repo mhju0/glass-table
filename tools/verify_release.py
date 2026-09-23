@@ -14,7 +14,7 @@ def verify(bundle: Path) -> list[str]:
     info = plistlib.loads((bundle / 'Info.plist').read_bytes())
     require(info.get('CFBundleIdentifier') == 'com.michaelju.glasstable', 'Unexpected bundle identifier')
     require(info.get('CFBundleShortVersionString') and info.get('CFBundleVersion'), 'Missing release version')
-    require(info.get('CFBundleDevelopmentRegion') == 'ko' and info.get('CFBundleLocalizations') == ['ko'], 'Declared language must match the Korean interface')
+    require(info.get('CFBundleDevelopmentRegion') == 'ko' and info.get('CFBundleLocalizations') == ['ko', 'en'], 'Declared languages must match the Korean and English interface')
     require(info.get('MinimumOSVersion') == '17.0', 'Minimum OS changed; review compatibility')
     require(info.get('CFBundleSupportedPlatforms') == ['iPhoneOS'], 'Expected a device bundle, not Simulator')
     require(not info.get('UIFileSharingEnabled'), 'Application files must not be publicly shared')
@@ -33,7 +33,10 @@ def verify(bundle: Path) -> list[str]:
         require(manifest.get('NSPrivacyAccessedAPITypes') == [{
             'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults',
             'NSPrivacyAccessedAPITypeReasons': ['CA92.1'],
-        }], 'Expected app-only preferences declaration; other API uses require privacy review')
+        }, {
+            'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategorySystemBootTime',
+            'NSPrivacyAccessedAPITypeReasons': ['35F9.1'],
+        }], 'Expected app-only preferences and elapsed-time declarations; other API uses require privacy review')
     else:
         failures.append('Privacy manifest missing')
     for filename, notice in (

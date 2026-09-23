@@ -17,7 +17,7 @@ class ReleaseBundleTests(unittest.TestCase):
         self.info = {
             'CFBundleIdentifier': 'com.michaelju.glasstable',
             'CFBundleShortVersionString': '1.0', 'CFBundleVersion': '2',
-            'CFBundleDevelopmentRegion': 'ko', 'CFBundleLocalizations': ['ko'],
+            'CFBundleDevelopmentRegion': 'ko', 'CFBundleLocalizations': ['ko', 'en'],
             'MinimumOSVersion': '17.0', 'CFBundleSupportedPlatforms': ['iPhoneOS'],
             'CFBundleExecutable': 'GlassTable', 'UIAppFonts': ['Font.otf'],
         }
@@ -32,6 +32,9 @@ class ReleaseBundleTests(unittest.TestCase):
             'NSPrivacyCollectedDataTypes': [], 'NSPrivacyAccessedAPITypes': [{
                 'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults',
                 'NSPrivacyAccessedAPITypeReasons': ['CA92.1'],
+            }, {
+                'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategorySystemBootTime',
+                'NSPrivacyAccessedAPITypeReasons': ['35F9.1'],
             }],
         }))
 
@@ -40,6 +43,18 @@ class ReleaseBundleTests(unittest.TestCase):
 
     def test_expected_device_bundle_passes(self):
         self.assertEqual(release.verify(self.bundle), [])
+
+    def test_missing_english_or_timer_declaration_is_rejected(self):
+        self.info['CFBundleLocalizations'] = ['ko']
+        self.write_info()
+        self.assertEqual(len(release.verify(self.bundle)), 1)
+        self.info['CFBundleLocalizations'] = ['ko', 'en']
+        self.write_info()
+        path = self.bundle / 'PrivacyInfo.xcprivacy'
+        manifest = plistlib.loads(path.read_bytes())
+        manifest['NSPrivacyAccessedAPITypes'].pop()
+        path.write_bytes(plistlib.dumps(manifest))
+        self.assertEqual(len(release.verify(self.bundle)), 1)
 
     def test_missing_or_expanded_preference_declarations_are_rejected(self):
         path = self.bundle / 'PrivacyInfo.xcprivacy'

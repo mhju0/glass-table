@@ -316,6 +316,9 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
 
     private func mayAct(_ seat: Int) -> Bool { !seats[seat].folded && seats[seat].stack > 0 }
     private func canRaise(_ seat: Int) -> Bool {
+        // A wager needs someone who can answer it. All-in seats may contest the
+        // existing pot, but no additional chips can be wagered against them.
+        guard (0..<4).contains(where: { $0 != seat && mayAct($0) }) else { return false }
         guard let seen = lastActedFacing[seat] else { return true }
         return currentBet - seen >= fullRaise
     }

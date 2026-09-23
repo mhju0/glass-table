@@ -81,7 +81,7 @@ SCREENS=(
   "drill-outs:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-outs"
   "drill-equity:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-equitySense"
   "drill-ev:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-evCall"
-  "drill-callfold:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-boss"
+  "drill-callfold:GT_DEMO_CONCEPT=callFold"
   "drill-notation:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-notation"
   "drill-rfi:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-rfi"
   "drill-rangeread:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead"

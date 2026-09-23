@@ -134,6 +134,17 @@ struct RootView: View {
             if env["GT_DEMO_REPLAY"] != nil { tab = .progress }
             if let id = env["GT_DEMO_NODE"] { openNode = Curriculum.node(id: id) }
             if env["GT_DEMO_FREEPLAY"] != nil { showFreePlay = true }
+            if let raw = env["GT_DEMO_CONCEPT"], let concept = Concept(rawValue: raw) {
+                if model.state.activeRound == nil {
+                    _ = model.beginRound(concept: concept, seed: 0x6AA,
+                                         expectedEpoch: model.epoch)
+                    if let round = model.state.activeRound, round.introPhase != nil {
+                        _ = model.advanceRoundIntroduction(roundID: round.id, skip: true,
+                                                          expectedEpoch: model.epoch)
+                    }
+                }
+                showFreePlay = true
+            }
             if env["GT_DEMO_REVIEW"] != nil { showReview = true }
             if env["GT_DEMO_SETTINGS"] != nil { showSettings = true }
             if env["GT_DEMO_TAB"] == "path" { showPath = true }
