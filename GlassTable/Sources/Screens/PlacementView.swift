@@ -66,7 +66,6 @@ struct PlacementView: View {
         .background(FeltBackground())
         .modifier(ProgressSaveNotice())
         .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
-        .gtChrome(.topBarTrailing) { LanguageButton() }
         .onAppear { if epoch == nil { epoch = model.epoch } }
         .onChange(of: model.epoch) { _, _ in dismiss() }
     }

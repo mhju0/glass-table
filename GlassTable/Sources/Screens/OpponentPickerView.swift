@@ -64,7 +64,6 @@ struct OpponentPickerView: View {
                 }
                 .background(FeltBackground())
                 .gtChrome(.topBarLeading) { ChromeButton.close { selected = nil } }
-                .gtChrome(.topBarTrailing) { LanguageButton() }
             }
             .presentationDetents([.large])
         }

@@ -32,7 +32,7 @@ final class AppearanceFlowTests: XCTestCase {
         light.tap()
         XCTAssertTrue(light.isSelected)
         XCTAssertTrue(waitForBackground(in: app, light: true),
-                      "Selecting light must update the presented sheet, not only its checkmark")
+                      "Selecting light must update Settings, not only its checkmark")
         attach(app, name: "settings-light")
 
         let system = app.buttons["appearance-system"]

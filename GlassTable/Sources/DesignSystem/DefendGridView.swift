@@ -226,7 +226,6 @@ private struct DefendChartExplorer: View {
             }
             .background(FeltBackground())
             .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
-            .gtChrome(.topBarTrailing) { LanguageButton() }
         }
     }
 }

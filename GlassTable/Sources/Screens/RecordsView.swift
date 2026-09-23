@@ -10,6 +10,7 @@ import GlassTableDrills
 struct RecordsView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var textSize
     @State private var replay: Concept?
     @State private var selectedPracticeConcept: Concept?
 
@@ -22,7 +23,9 @@ struct RecordsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: GT.Space.section) {
-                Text(language.text("학습 기록", "Progress")).font(GT.title(30)).foregroundStyle(GT.onFelt)
+                Text(language.text("학습 기록", "Progress"))
+                    .font(GT.title(textSize.isAccessibilitySize ? 22 : 30))
+                    .foregroundStyle(GT.onFelt)
                     .padding(.top, 14)
                 headline
                 if model.state.streak.current > 0 {
@@ -74,10 +77,20 @@ struct RecordsView: View {
     }
 
     private var headline: some View {
-        HStack(spacing: 9) {
-            stat("\(model.masteredCount)", language.text("능숙 이상", "Strong topics"))
-            stat("\(model.state.streak.current)", language.text("연속 일수", "Day streak"))
-            stat("\(model.dueConcepts().count)", language.text("오늘 복습", "Review due"))
+        Group {
+            if textSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 6) {
+                    stat("\(model.masteredCount)", language.text("능숙 이상", "Strong topics"))
+                    stat("\(model.state.streak.current)", language.text("연속 일수", "Day streak"))
+                    stat("\(model.dueConcepts().count)", language.text("오늘 복습", "Review due"))
+                }
+            } else {
+                HStack(spacing: 9) {
+                    stat("\(model.masteredCount)", language.text("능숙 이상", "Strong topics"))
+                    stat("\(model.state.streak.current)", language.text("연속 일수", "Day streak"))
+                    stat("\(model.dueConcepts().count)", language.text("오늘 복습", "Review due"))
+                }
+            }
         }
     }
 
@@ -286,10 +299,21 @@ struct RecordsView: View {
     }
 
     private func stat(_ value: String, _ label: String) -> some View {
-        VStack(spacing: 3) {
-            Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
-            Text(label).font(GT.semibold(10)).foregroundStyle(GT.inkMuted)
-                .lineLimit(1).minimumScaleFactor(0.8)
+        Group {
+            if textSize.isAccessibilitySize {
+                HStack(alignment: .firstTextBaseline, spacing: 16) {
+                    Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
+                    Text(label).font(GT.semibold(14)).foregroundStyle(GT.inkMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+            } else {
+                VStack(spacing: 3) {
+                    Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
+                    Text(label).font(GT.semibold(10)).foregroundStyle(GT.inkMuted)
+                        .lineLimit(1).minimumScaleFactor(0.8)
+                }
+            }
         }
         .frame(maxWidth: .infinity).padding(.vertical, 10)
         .accessibilityElement(children: .combine)

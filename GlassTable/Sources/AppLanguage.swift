@@ -31,22 +31,3 @@ extension EnvironmentValues {
         set { self[LearningLanguageKey.self] = newValue }
     }
 }
-
-struct LanguageButton: View {
-    @AppStorage(AppLanguage.storageKey) private var preference = AppLanguage.system
-    var body: some View {
-        Menu {
-            Picker(preference.resolved.text("언어", "Language"), selection: $preference) {
-                ForEach(AppLanguage.allCases) { language in
-                    Text(language.title).tag(language)
-                }
-            }
-        } label: {
-            Image(systemName: "globe")
-                .font(.system(size: 20, weight: .semibold))
-                .frame(width: 44, height: 44)
-        }
-        .accessibilityLabel(preference.resolved.text("언어 바꾸기", "Change language"))
-        .accessibilityIdentifier("language-menu")
-    }
-}

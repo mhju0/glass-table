@@ -4,7 +4,6 @@ import UniformTypeIdentifiers
 import GlassTableDrills
 
 struct SettingsView: View {
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
@@ -41,7 +40,7 @@ struct SettingsView: View {
                     .padding(.top, 20)
                 VStack(alignment: .leading, spacing: 10) {
                     Text(language.text("언어", "Language")).font(GT.semibold(15)).foregroundStyle(GT.ink)
-                    Text(language.text("레슨을 진행하는 중에도 바꿀 수 있어요", "Switch at any time, even during a lesson."))
+                    Text(language.text("언어를 바꿔도 학습 기록은 그대로예요.", "Your progress stays saved when you switch."))
                         .font(GT.body(12)).foregroundStyle(GT.inkMuted)
                     VStack(spacing: 0) {
                         ForEach(AppLanguage.allCases) { option in
@@ -232,9 +231,9 @@ struct SettingsView: View {
             }
             .padding(.horizontal, 18)
         }
+        .gtTabBarClearance()
         .background(FeltBackground())
-        // A presented sheet owns its UIKit trait environment. Applying the saved
-        // choice here makes the sheet update immediately, not only its presenter.
+        // Apply the saved choice to Settings and its presented detail sheets.
         .preferredColorScheme(appearance.colorScheme)
         .sheet(isPresented: $showGlossary) { GlossaryView() }
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
@@ -290,9 +289,6 @@ struct SettingsView: View {
             }
             #endif
         }
-        // Leading, like every other 닫기 — it used to sit trailing, so dismissing a sheet
-        // meant looking in a different corner depending on which sheet you were in.
-        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
     }
 
     private func readImport(_ url: URL) {

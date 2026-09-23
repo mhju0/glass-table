@@ -81,7 +81,7 @@ struct PlayView: View {
                 }
                 Divider()
                 NavigationLink {
-                    TableView().gtChrome(.topBarTrailing) { LanguageButton() }
+                    TableView()
                 } label: {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(language.text("선택의 이유를 배우고 싶다면", "Want feedback on each decision?")).font(GT.title(18))

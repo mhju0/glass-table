@@ -2,7 +2,7 @@
 import SwiftUI
 import GlassTableDrills
 
-enum Tab: Hashable { case learn, play, progress }
+enum Tab: Hashable { case learn, play, progress, settings }
 
 struct RootView: View {
     @Environment(\.learningLanguage) private var language
@@ -11,7 +11,6 @@ struct RootView: View {
     @State private var openNode: CurriculumNode?
     @State private var showFreePlay = false
     @State private var showReview = false
-    @State private var showSettings = false
     @State private var showPath = false
     @State private var showPlacement = false
 
@@ -58,54 +57,52 @@ struct RootView: View {
                 LearnView(onOpenNode: { openNode = $0 },
                           onOpenReview: { showReview = true },
                           onOpenPractice: { showFreePlay = true })
-                    .modifier(RootChrome(showSettings: $showSettings))
+                    .modifier(ProgressSaveNotice())
+                    .toolbar(.hidden, for: .navigationBar)
             }
             .tabItem { Label(language.text("배우기", "Learn"), systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
             .tag(Tab.learn)
 
             NavigationStack {
                 PlayView()
-                    .modifier(RootChrome(showSettings: $showSettings))
+                    .modifier(ProgressSaveNotice())
+                    .toolbar(.hidden, for: .navigationBar)
             }
             .tabItem { Label(language.text("플레이", "Play"), systemImage: "suit.spade.fill") }
             .tag(Tab.play)
 
             NavigationStack {
                 RecordsView()
-                    .modifier(RootChrome(showSettings: $showSettings))
+                    .modifier(ProgressSaveNotice())
+                    .toolbar(.hidden, for: .navigationBar)
             }
             .tabItem { Label(language.text("기록", "Progress"), systemImage: "chart.bar.fill") }
             .tag(Tab.progress)
+
+            NavigationStack {
+                SettingsView()
+                    .modifier(ProgressSaveNotice())
+                    .toolbar(.hidden, for: .navigationBar)
+            }
+            .tabItem { Label(language.text("설정", "Settings"), systemImage: "gearshape.fill") }
+            .tag(Tab.settings)
         }
         .sheet(item: $openNode) { node in
             NavigationStack {
                 NodeSessionView(node: node).modifier(ProgressSaveNotice())
-                    .gtChrome(.topBarTrailing) { LanguageButton() }
             }.environment(model)
         }
         .sheet(isPresented: $showFreePlay) {
             NavigationStack {
                 FreePlayView().modifier(ProgressSaveNotice())
-                    .gtChrome(.topBarTrailing) { LanguageButton() }
             }.environment(model)
         }
         // Snapshot the five most-overdue concepts and ask one question for each.
         .sheet(isPresented: $showReview) {
             NavigationStack {
                 ReviewSessionView().modifier(ProgressSaveNotice())
-                    .gtChrome(.topBarTrailing) { LanguageButton() }
             }
             .environment(model)
-        }
-        // Presented once, here, rather than inside each tab's NavigationStack. The
-        // previous version bound one @State into three sibling stacks, so flipping it
-        // pushed Settings onto *all three* — switching tabs worked but landed on
-        // Settings every time, which read as the tab bar being dead. Presenting it as
-        // a sheet also covers the tab bar, which is what a full-screen detail should do.
-        .sheet(isPresented: $showSettings) {
-            NavigationStack {
-                SettingsView().modifier(ProgressSaveNotice())
-            }.environment(model)
         }
         .sheet(isPresented: $showPath) {
             NavigationStack {
@@ -120,7 +117,7 @@ struct RootView: View {
             // Screenshot hooks, same pattern as M1's GT_DEMO_*: synthetic taps never
             // reach Simulator content, so any screen past the first tab is otherwise
             // unverifiable (spec §10.6).
-            //   GT_DEMO_TAB=path|today|records
+            //   GT_DEMO_TAB=path|today|records|settings
             //   GT_DEMO_NODE=<node id>   opens that node's session
             //   GT_DEMO_FREEPLAY=1 · GT_DEMO_SETTINGS=1
             let env = ProcessInfo.processInfo.environment
@@ -128,6 +125,7 @@ struct RootView: View {
             case "path", "today", "learn": tab = .learn
             case "records", "progress": tab = .progress
             case "table", "play": tab = .play
+            case "settings": tab = .settings
             default: break
             }
             if env["GT_DEMO_TABLE"] != nil { tab = .play }
@@ -146,24 +144,10 @@ struct RootView: View {
                 showFreePlay = true
             }
             if env["GT_DEMO_REVIEW"] != nil { showReview = true }
-            if env["GT_DEMO_SETTINGS"] != nil { showSettings = true }
+            if env["GT_DEMO_SETTINGS"] != nil { tab = .settings }
             if env["GT_DEMO_TAB"] == "path" { showPath = true }
             if env["GT_DEMO_PLACEMENT"] != nil { showPlacement = true }
             #endif
-        }
-    }
-}
-
-/// Shared toolbar so every tab reaches 설정 without three copies of the button.
-private struct RootChrome: ViewModifier {
-    @Environment(\.learningLanguage) private var language
-    @Binding var showSettings: Bool
-    func body(content: Content) -> some View {
-        content.modifier(ProgressSaveNotice()).gtChrome(.topBarTrailing) {
-            HStack(spacing: 8) {
-                LanguageButton()
-                ChromeButton(symbol: "gearshape.fill", spoken: language.text("설정", "Settings")) { showSettings = true }
-            }
         }
     }
 }
@@ -182,7 +166,6 @@ struct StoreRecoveryView: View {
     var body: some View {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-            LanguageButton()
             Text(language.text("기록을 열 수 없어요", "Your progress could not be opened")).font(GT.title(20)).foregroundStyle(GT.onFelt)
             Text(language.text("저장된 파일을 읽을 수 없거나 더 새로운 앱 버전이 필요해요. 파일은 그대로 두었어요. 백업이 있으면 불러오고, 없으면 원본 파일을 보관한 뒤 새로 시작할 수 있어요.", "The file could not be read, or it needs a newer app. Your original file is unchanged. Import a backup, or keep a copy of the original before starting again."))
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)

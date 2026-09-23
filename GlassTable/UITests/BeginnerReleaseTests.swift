@@ -11,13 +11,25 @@ final class BeginnerReleaseTests: XCTestCase {
         return app
     }
 
-    func testThreeTabsAndPlacementRemainOptional() {
+    func testFourTabsAndPlacementRemainOptional() {
         let app = app()
         app.launch()
-        XCTAssertTrue(app.tabBars.buttons["Learn"].waitForExistence(timeout: 15))
-        XCTAssertTrue(app.tabBars.buttons["Play"].exists)
-        XCTAssertTrue(app.tabBars.buttons["Progress"].exists)
-        XCTAssertEqual(app.tabBars.buttons.count, 3)
+        let tabs = app.tabBars.buttons
+        let learn = tabs["Learn"]
+        let play = tabs["Play"]
+        let progress = tabs["Progress"]
+        let settings = tabs["Settings"]
+        XCTAssertTrue(learn.waitForExistence(timeout: 15))
+        XCTAssertEqual(tabs.count, 4)
+        XCTAssertTrue(play.exists && progress.exists && settings.exists)
+        XCTAssertLessThan(learn.frame.midX, play.frame.midX)
+        XCTAssertLessThan(play.frame.midX, progress.frame.midX)
+        XCTAssertLessThan(progress.frame.midX, settings.frame.midX)
+        XCTAssertGreaterThanOrEqual(settings.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(settings.frame.height, 44)
+        XCTAssertFalse(app.buttons["language-menu"].exists)
+        XCTAssertEqual(app.buttons.matching(identifier: "Settings").count, 1,
+                       "Settings should only be a tab, not a top button")
         app.swipeUp()
         app.buttons["Find a starting point"].tap()
         XCTAssertTrue(app.buttons["Start without the check"].waitForExistence(timeout: 5))
@@ -49,20 +61,79 @@ final class BeginnerReleaseTests: XCTestCase {
                       || app.staticTexts["Review this hand"].exists)
     }
 
-    func testLanguageSwitchKeepsTheOpenPlacementQuestion() {
+    func testLanguageSwitchInSettingsKeepsTheSavedLesson() {
         let app = app()
-        app.launchEnvironment["GT_DEMO_PLACEMENT"] = "1"
+        let storeID = app.launchEnvironment["GT_TEST_STORE_ID"]!
+        app.launchEnvironment["GT_DEMO_SEED"] = "1"
+        app.launchEnvironment["GT_DEMO_NODE"] = "u2-potOdds"
         app.launch()
-        XCTAssertTrue(app.buttons["I'm new to poker"].waitForExistence(timeout: 15))
-        app.buttons["I'm new to poker"].tap()
-        XCTAssertTrue(app.staticTexts["1 of 3 · Take your time"].exists)
-        app.buttons["language-menu"].firstMatch.tap()
-        app.buttons["한국어"].tap()
-        XCTAssertTrue(app.staticTexts["1 / 3 · 천천히 생각해도 좋아요"].waitForExistence(timeout: 5))
-        app.buttons["language-menu"].firstMatch.tap()
-        app.buttons["English"].tap()
-        XCTAssertTrue(app.staticTexts["1 of 3 · Take your time"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["I'm new to poker"].exists)
+        XCTAssertTrue(app.buttons["Check answer"].waitForExistence(timeout: 15))
+        app.buttons["Close"].firstMatch.tap()
+        app.tabBars.buttons["Settings"].tap()
+        XCTAssertFalse(app.buttons["language-menu"].exists)
+        app.buttons["language-korean"].tap()
+        XCTAssertTrue(app.tabBars.buttons["설정"].isSelected)
+        app.tabBars.buttons["배우기"].tap()
+        app.buttons["레슨 이어서 하기"].tap()
+        XCTAssertTrue(app.buttons["확인"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["1/5"].exists)
+        app.buttons["닫기"].firstMatch.tap()
+        app.tabBars.buttons["설정"].tap()
+        app.buttons["language-english"].tap()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].isSelected)
+        app.terminate()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0"]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Learn"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Learn"].tap()
+        app.buttons["Resume lesson"].tap()
+        XCTAssertTrue(app.buttons["Check answer"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["1/5"].exists)
+    }
+
+    func testLearningPathAndHeadsUpExerciseKeepBackNavigation() {
+        let app = app()
+        app.launch()
+        let path = app.buttons.matching(NSPredicate(
+            format: "label CONTAINS %@", "Full learning path"
+        )).firstMatch
+        XCTAssertTrue(path.waitForExistence(timeout: 15))
+        path.tap()
+        XCTAssertTrue(app.staticTexts["Learning path"].waitForExistence(timeout: 5))
+        let pathBack = app.navigationBars.buttons.firstMatch
+        XCTAssertTrue(pathBack.isHittable)
+        pathBack.tap()
+        XCTAssertTrue(path.waitForExistence(timeout: 5))
+
+        app.tabBars.buttons["Play"].tap()
+        let headsUp = app.buttons.matching(NSPredicate(
+            format: "label CONTAINS %@", "Heads-up decision exercise"
+        )).firstMatch
+        scrollTo(headsUp, in: app)
+        headsUp.tap()
+        let tableBack = app.navigationBars.buttons.firstMatch
+        XCTAssertTrue(tableBack.waitForExistence(timeout: 5))
+        XCTAssertTrue(tableBack.isHittable)
+        tableBack.tap()
+        XCTAssertTrue(headsUp.waitForExistence(timeout: 5))
+    }
+
+    func testSettingsLastRowAndOtherTabsStayReachableAtAccessibilityXXXL() {
+        let app = app()
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        let tabs = app.tabBars.buttons
+        XCTAssertTrue(tabs["Settings"].waitForExistence(timeout: 15))
+        tabs["Settings"].tap()
+        let version = app.staticTexts["Version"]
+        for _ in 0..<14 where !version.isHittable { app.swipeUp() }
+        XCTAssertTrue(version.isHittable, "The last Settings row must clear the tab bar")
+        for title in ["Learn", "Play", "Progress", "Settings"] {
+            let tab = tabs[title]
+            XCTAssertTrue(tab.isHittable)
+            tab.tap()
+            XCTAssertTrue(tab.isSelected)
+        }
     }
 
     func testCommittedAdvancedLessonResumesTheSameAnswer() {

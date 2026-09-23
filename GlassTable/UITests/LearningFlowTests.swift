@@ -31,12 +31,12 @@ final class LearningFlowTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["건너뛰기"].waitForExistence(timeout: 15))
         app.buttons["건너뛰기"].tap()
-        XCTAssertTrue(app.buttons["설정"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["설정"].waitForExistence(timeout: 10))
 
         app.terminate()
         app.launchEnvironment = environment
         app.launch()
-        XCTAssertTrue(app.buttons["설정"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["설정"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["어느 쪽이 이길까요?"].exists)
     }
 
@@ -45,7 +45,7 @@ final class LearningFlowTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["건너뛰기"].waitForExistence(timeout: 15))
         app.buttons["건너뛰기"].tap()
-        app.buttons["설정"].tap()
+        app.tabBars.buttons["설정"].tap()
         let replay = app.buttons.matching(NSPredicate(
             format: "label CONTAINS %@", "첫 포커 결정 다시 보기"
         )).firstMatch
