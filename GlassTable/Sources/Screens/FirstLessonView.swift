@@ -5,6 +5,7 @@ import GlassTableDrills
 
 struct FirstLessonView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.learningLanguage) private var language
     enum Context { case firstRun, replay }
     private enum Step { case example, exampleAnswer, transfer, transferAnswer, introduction }
 
@@ -14,6 +15,10 @@ struct FirstLessonView: View {
 
     @State private var step: Step = .example
     @State private var answer: Int?
+
+    private func copy(_ key: FirstLessonCopy.Key) -> String {
+        FirstLessonCopy.text(key, in: language)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -70,7 +75,7 @@ struct FirstLessonView: View {
 
     private var headerTitle: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(FirstLessonCopy.title)
+            Text(copy(.title))
                 .font(GT.title(22)).foregroundStyle(GT.onFelt)
                 .fixedSize(horizontal: false, vertical: true)
             Text(progressText)
@@ -81,7 +86,7 @@ struct FirstLessonView: View {
     }
 
     private var headerAction: some View {
-        Button(context == .firstRun ? FirstLessonCopy.skip : FirstLessonCopy.close,
+        Button(context == .firstRun ? copy(.skip) : copy(.close),
                action: onSkip)
             .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
             .frame(minWidth: 44, minHeight: 44)
@@ -91,26 +96,26 @@ struct FirstLessonView: View {
 
     private var progressText: String {
         switch step {
-        case .example, .exampleAnswer: return FirstLessonCopy.exampleProgress
-        case .transfer, .transferAnswer: return FirstLessonCopy.transferProgress
-        case .introduction: return FirstLessonCopy.introductionProgress
+        case .example, .exampleAnswer: return copy(.exampleProgress)
+        case .transfer, .transferAnswer: return copy(.transferProgress)
+        case .introduction: return copy(.introductionProgress)
         }
     }
 
     private func question(spot: ShowdownSpot, guided: Bool) -> some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
             VStack(alignment: .leading, spacing: 7) {
-                Text(guided ? FirstLessonCopy.exampleQuestion : FirstLessonCopy.transferQuestion)
+                Text(guided ? copy(.exampleQuestion) : copy(.transferQuestion))
                     .font(GT.title(28)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(guided ? FirstLessonCopy.examplePrompt : FirstLessonCopy.transferPrompt)
+                Text(guided ? copy(.examplePrompt) : copy(.transferPrompt))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
             board(spot.board)
             if guided {
-                Label(FirstLessonCopy.pairRule,
+                Label(copy(.pairRule),
                       systemImage: "lightbulb.fill")
                     .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
                     .padding(14).frame(maxWidth: .infinity, alignment: .leading)
@@ -123,7 +128,7 @@ struct FirstLessonView: View {
 
     private func board(_ cards: [Card]) -> some View {
         VStack(alignment: .center, spacing: 9) {
-            SectionLabel(text: FirstLessonCopy.sharedCards)
+            SectionLabel(text: copy(.sharedCards))
             CardRow(cards: cards)
         }
         .frame(maxWidth: .infinity)
@@ -132,8 +137,8 @@ struct FirstLessonView: View {
 
     private func handChoices(_ spot: ShowdownSpot) -> some View {
         VStack(spacing: 12) {
-            handButton(title: FirstLessonCopy.heroCards, cards: spot.hero, answer: 0)
-            handButton(title: FirstLessonCopy.villainCards, cards: spot.villain, answer: 1)
+            handButton(title: copy(.heroCards), cards: spot.hero, answer: 0)
+            handButton(title: copy(.villainCards), cards: spot.villain, answer: 1)
         }
     }
 
@@ -163,22 +168,24 @@ struct FirstLessonView: View {
                 .strokeBorder(GT.borderStrong, lineWidth: 1))
         }
         .buttonStyle(GTPress())
-        .accessibilityLabel("\(title), \(cards.map(\.spokenKorean).joined(separator: ", "))")
-        .accessibilityHint(FirstLessonCopy.selectWinnerHint)
+        .accessibilityLabel("\(title), \(cards.map { language == .korean ? $0.spokenKorean : $0.description }.joined(separator: ", "))")
+        .accessibilityHint(copy(.selectWinnerHint))
     }
 
     private func answerView(spot: ShowdownSpot, isTransfer: Bool) -> some View {
         let selected = answer ?? -1
-        let reveal = gradeShowdown(answer: selected, spot: spot)
+        let reveal = gradeShowdown(answer: selected, spot: spot, language: language)
         let correct = selected == spot.winner
         return VStack(alignment: .leading, spacing: GT.Space.section) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(correct ? FirstLessonCopy.correctTitle : FirstLessonCopy.retryTitle)
+                Text(correct ? copy(.correctTitle) : copy(.retryTitle))
                     .font(GT.title(27)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(correct
-                     ? (isTransfer ? "방금 배운 규칙을 다른 카드에도 적용했어요." : "핵심은 같은 족보끼리 숫자를 비교하는 거예요.")
-                     : "처음에는 족보 이름보다 어떤 숫자가 더 높은지만 찾아도 충분해요.")
+                     ? (isTransfer
+                        ? language.text("방금 배운 규칙을 다른 카드에도 적용했어요.", "You used the same rule with a new hand.")
+                        : language.text("핵심은 같은 족보끼리 숫자를 비교하는 거예요.", "When both hands have a pair, compare the ranks."))
+                     : language.text("처음에는 족보 이름보다 어떤 숫자가 더 높은지만 찾아도 충분해요.", "Start by finding which pair has the higher rank."))
                     .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
@@ -186,7 +193,7 @@ struct FirstLessonView: View {
             board(spot.board)
             resultHands(spot)
             VStack(alignment: .leading, spacing: 10) {
-                Text(FirstLessonCopy.explanationTitle).font(GT.title(18)).foregroundStyle(GT.ink)
+                Text(copy(.explanationTitle)).font(GT.title(18)).foregroundStyle(GT.ink)
                 Text(reveal.whyText)
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
@@ -194,8 +201,8 @@ struct FirstLessonView: View {
             }
             .padding(18).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
-            FeltCTAButton(title: isTransfer ? FirstLessonCopy.seeIntroduction
-                                            : FirstLessonCopy.tryTransfer) {
+            FeltCTAButton(title: isTransfer ? copy(.seeIntroduction)
+                                            : copy(.tryTransfer)) {
                 answer = nil
                 step = isTransfer ? .introduction : .transfer
             }
@@ -206,25 +213,25 @@ struct FirstLessonView: View {
     private var introduction: some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
             VStack(alignment: .leading, spacing: 7) {
-                Text(FirstLessonCopy.introductionTitle)
+                Text(copy(.introductionTitle))
                     .font(GT.title(28)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(FirstLessonCopy.introductionBody)
+                Text(copy(.introductionBody))
                     .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
             VStack(alignment: .leading, spacing: 16) {
-                lessonRow(symbol: "eye.fill", title: "먼저 이해해요",
-                          detail: "카드와 숫자를 보며 풀이 과정을 따라가요.")
-                lessonRow(symbol: "hand.tap.fill", title: "직접 골라봐요",
-                          detail: "답을 보기 전에 내 판단을 먼저 남겨요.")
-                lessonRow(symbol: "arrow.clockwise", title: "나중에 다시 풀어요",
-                          detail: "배운 내용을 다시 풀며 익혀요.")
+                lessonRow(symbol: "eye.fill", title: language.text("먼저 이해해요", "See the reasoning"),
+                          detail: language.text("카드와 숫자를 보며 풀이 과정을 따라가요.", "Follow the cards and numbers through a worked hand."))
+                lessonRow(symbol: "hand.tap.fill", title: language.text("직접 골라봐요", "Choose for yourself"),
+                          detail: language.text("답을 보기 전에 내 판단을 먼저 남겨요.", "Make your choice before seeing the answer."))
+                lessonRow(symbol: "arrow.clockwise", title: language.text("나중에 다시 풀어요", "Come back later"),
+                          detail: language.text("배운 내용을 다시 풀며 익혀요.", "Try the skill again after some time away."))
             }
             .padding(18).gtCard(radius: GT.Radius.panel)
-            FeltCTAButton(title: context == .firstRun ? FirstLessonCopy.beginCourse
-                                                       : FirstLessonCopy.returnToLearning) {
+            FeltCTAButton(title: context == .firstRun ? copy(.beginCourse)
+                                                       : copy(.returnToLearning)) {
                 onFinish()
             }
         }
@@ -248,15 +255,15 @@ struct FirstLessonView: View {
     private func handChoiceLabel(_ title: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(GT.title(17)).foregroundStyle(GT.ink)
-            Text(FirstLessonCopy.choiceHint)
+            Text(copy(.choiceHint))
                 .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
         }
     }
 
     private func resultHands(_ spot: ShowdownSpot) -> some View {
         VStack(spacing: 12) {
-            resultHand(title: FirstLessonCopy.heroCards, cards: spot.hero, wins: spot.winner == 0)
-            resultHand(title: FirstLessonCopy.villainCards, cards: spot.villain, wins: spot.winner == 1)
+            resultHand(title: copy(.heroCards), cards: spot.hero, wins: spot.winner == 0)
+            resultHand(title: copy(.villainCards), cards: spot.villain, wins: spot.winner == 1)
         }
     }
 
@@ -283,7 +290,7 @@ struct FirstLessonView: View {
     private func resultLabel(title: String, wins: Bool) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(GT.title(16)).foregroundStyle(GT.onFelt)
-            Text(wins ? FirstLessonCopy.higherPair : FirstLessonCopy.lowerPair)
+            Text(wins ? copy(.higherPair) : copy(.lowerPair))
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
         }
     }

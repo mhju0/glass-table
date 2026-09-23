@@ -9,6 +9,7 @@ final class AppearanceFlowTests: XCTestCase {
 
     func testAppearanceSelectionPersistsAcrossRelaunchAndReturnsToSystem() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = [
             "GT_TEST_STORE_ID": UUID().uuidString,
             "GT_DEMO_SEED": "1",
@@ -45,12 +46,13 @@ final class AppearanceFlowTests: XCTestCase {
 
     func testAllAppearanceChoicesRemainReachableAtAccessibilityXXXL() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = [
             "GT_TEST_STORE_ID": UUID().uuidString,
             "GT_DEMO_SEED": "1",
             "GT_DEMO_SETTINGS": "1",
         ]
-        app.launchArguments = ["-UIPreferredContentSizeCategoryName",
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName",
                                "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
         for mode in ["light", "dark", "system"] {
@@ -60,7 +62,9 @@ final class AppearanceFlowTests: XCTestCase {
             XCTAssertTrue(choice.isHittable)
             XCTAssertGreaterThanOrEqual(choice.frame.height, 44)
             choice.tap()
-            XCTAssertTrue(choice.isSelected)
+            let selected = NSPredicate(format: "isSelected == true")
+            expectation(for: selected, evaluatedWith: choice)
+            waitForExpectations(timeout: 5)
         }
         attach(app, name: "settings-accessibility")
     }

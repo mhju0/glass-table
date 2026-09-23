@@ -4,10 +4,13 @@ import GlassTableDrills
 
 struct PreparedProgressImport: Sendable {
     let state: ProgressState
+    let expectedEpoch: UUID
+    let expectedRevision: Int
 }
 
 enum ProgressFileReader {
-    static func readAndValidate(_ url: URL) async throws -> PreparedProgressImport {
+    static func readAndValidate(_ url: URL, expectedEpoch: UUID,
+                                expectedRevision: Int) async throws -> PreparedProgressImport {
         try await Task.detached(priority: .userInitiated) {
             try Task.checkCancellation()
             let scoped = url.startAccessingSecurityScopedResource()
@@ -15,7 +18,8 @@ enum ProgressFileReader {
             let data = try ProgressionStore.readImportData(at: url)
             let state = try ProgressionStore(url: url).importData(data)
             try Task.checkCancellation()
-            return PreparedProgressImport(state: state)
+            return PreparedProgressImport(state: state, expectedEpoch: expectedEpoch,
+                                          expectedRevision: expectedRevision)
         }.value
     }
 }

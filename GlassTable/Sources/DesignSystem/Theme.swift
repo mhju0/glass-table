@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
 import UIKit
+import GlassTableDrills
 
 /// The appearance applied to the app and to system-presented UI.
 ///
@@ -17,10 +18,14 @@ enum AppAppearance: String, CaseIterable, Identifiable {
     var id: Self { self }
 
     var title: String {
+        title(in: .korean)
+    }
+
+    func title(in language: LearningLanguage) -> String {
         switch self {
-        case .system: "시스템"
-        case .light: "라이트"
-        case .dark: "다크"
+        case .system: language.text("시스템", "System")
+        case .light: language.text("라이트", "Light")
+        case .dark: language.text("다크", "Dark")
         }
     }
 

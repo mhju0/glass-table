@@ -5,11 +5,14 @@ import GlassTableDrills
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
+    @AppStorage(AppLanguage.storageKey) private var languagePreference = AppLanguage.system
     @State private var showGlossary = false
     @State private var showGuide = false
     @State private var showFirstLesson = false
+    @State private var showPlacement = false
     @State private var showLicense = false
     @State private var backup: BackupDocument?
     @State private var exportingBackup = false
@@ -34,18 +37,45 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("설정").font(GT.title(26)).foregroundStyle(GT.onFelt)
+                Text(language.text("설정", "Settings")).font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("화면 모드").font(GT.semibold(15)).foregroundStyle(GT.ink)
-                    Text("기기 설정에 맞추거나 직접 골라요")
+                    Text(language.text("언어", "Language")).font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    Text(language.text("레슨을 진행하는 중에도 바꿀 수 있어요", "Switch at any time, even during a lesson."))
+                        .font(GT.body(12)).foregroundStyle(GT.inkMuted)
+                    VStack(spacing: 0) {
+                        ForEach(AppLanguage.allCases) { option in
+                            if option != .system { Divider() }
+                            Button { languagePreference = option } label: {
+                                HStack(spacing: 12) {
+                                    Text(option == .system ? language.text("기기 설정", "System") : option.title)
+                                        .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                                    Spacer()
+                                    Image(systemName: languagePreference == option
+                                          ? "checkmark.circle.fill" : "circle")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundStyle(languagePreference == option ? GT.cta : GT.inkMuted)
+                                }
+                                .frame(minHeight: 48).contentShape(Rectangle())
+                            }
+                            .buttonStyle(GTPress())
+                            .accessibilityIdentifier("language-\(option.rawValue)")
+                            .accessibilityAddTraits(languagePreference == option ? .isSelected : [])
+                        }
+                    }
+                }
+                .padding(16)
+                .gtCard(radius: 20)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(language.text("화면 모드", "Appearance")).font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    Text(language.text("기기 설정에 맞추거나 직접 골라요", "Follow your device or choose a look."))
                         .font(GT.body(12)).foregroundStyle(GT.inkMuted)
                     VStack(spacing: 0) {
                         ForEach(AppAppearance.allCases) { mode in
                             if mode != .system { Divider() }
                             Button { appearance = mode } label: {
                                 HStack(spacing: 12) {
-                                    Text(mode.title)
+                                    Text(mode.title(in: language))
                                         .font(GT.semibold(15))
                                         .foregroundStyle(GT.ink)
                                     Spacer()
@@ -67,14 +97,20 @@ struct SettingsView: View {
                 .gtCard(radius: 20)
                 VStack(spacing: 0) {
                     Button { showFirstLesson = true } label: {
-                        row("suit.spade.fill", "첫 포커 결정 다시 보기",
-                            "두 패를 비교하며 기본 규칙을 익혀요", chevron: true)
+                        row("suit.spade.fill", language.text("첫 포커 결정 다시 보기", "Replay the first decision"),
+                            language.text("두 패를 비교하며 기본 규칙을 익혀요", "Compare two hands and practice the basic rule."), chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    Divider().padding(.leading, 56)
+                    Button { showPlacement = true } label: {
+                        row("scope", language.text("시작점 다시 찾아보기", "Recheck your starting point"),
+                            language.text("짧은 확인으로 추천 주제를 바꿔요", "A short check can update your suggested topic."), chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
                     Button { showGuide = true } label: {
-                        row("rectangle.stack", "공부 방법",
-                            "레슨과 복습이 이어지는 방식을 알아봐요", chevron: true)
+                        row("rectangle.stack", language.text("공부 방법", "How learning works"),
+                            language.text("레슨과 복습이 이어지는 방식을 알아봐요", "See how lessons and reviews fit together."), chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -82,7 +118,8 @@ struct SettingsView: View {
                     // it. Pushing gave the glossary a system back button, the one piece
                     // of chrome the app cannot draw itself.
                     Button { showGlossary = true } label: {
-                        row("book.fill", "용어집", "포커 용어 한국어·영어 정리", chevron: true)
+                        row("book.fill", language.text("용어집", "Glossary"),
+                            language.text("포커 용어 한국어·영어 정리", "Poker terms explained in Korean and English."), chevron: true)
                     }
                     .buttonStyle(GTPress())
                     // 통계 and 첫 핸드 are gone. StatsView read the M1 per-drill stores
@@ -100,8 +137,8 @@ struct SettingsView: View {
                             exportingBackup = true
                         } catch { fileFailure = .export }
                     } label: {
-                        row("square.and.arrow.up", "백업 만들기",
-                            "진행 기록을 파일로 보관해요", chevron: true)
+                        row("square.and.arrow.up", language.text("백업 만들기", "Export progress"),
+                            language.text("진행 기록을 파일로 보관해요", "Save a copy of your local progress."), chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -112,8 +149,10 @@ struct SettingsView: View {
                         pendingImport = nil
                         importingBackup = true
                     } label: {
-                        row("square.and.arrow.down", "백업 불러오기",
-                            isReadingImport ? "파일을 확인하고 있어요" : "저장한 파일에서 기록을 가져와요",
+                        row("square.and.arrow.down", language.text("백업 불러오기", "Import progress"),
+                            isReadingImport
+                                ? language.text("파일을 확인하고 있어요", "Checking the file…")
+                                : language.text("저장한 파일에서 기록을 가져와요", "Restore progress from a saved file."),
                             chevron: true)
                     }
                     .buttonStyle(GTPress())
@@ -129,10 +168,11 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    .confirmationDialog("지금 기록을 백업 내용으로 바꿀까요?",
+                    .confirmationDialog(language.text("지금 기록을 백업 내용으로 바꿀까요?",
+                                                      "Replace current progress with this backup?"),
                                         isPresented: $confirmingImport,
                                         titleVisibility: .visible) {
-                        Button("백업으로 바꾸기", role: .destructive) {
+                        Button(language.text("백업으로 바꾸기", "Replace with backup"), role: .destructive) {
                             // Replacement is atomic; an unsuccessful write lands
                             // in the alert, never in a half-replaced store.
                             if let prepared = pendingImport {
@@ -141,14 +181,16 @@ struct SettingsView: View {
                             }
                             pendingImport = nil
                         }
-                        Button("취소", role: .cancel) { pendingImport = nil }
+                        Button(language.text("취소", "Cancel"), role: .cancel) { pendingImport = nil }
                     } message: {
-                        Text("지금까지의 진행이 백업 시점의 기록으로 돌아가요.")
+                        Text(language.text("지금까지의 진행이 백업 시점의 기록으로 돌아가요.",
+                                           "Your current progress will return to the state saved in that backup."))
                     }
                     Divider().padding(.leading, 56)
                     Button { confirmingReset = true } label: {
-                        row("arrow.counterclockwise", "진행 초기화",
-                            "모든 기록을 지우고 처음부터", chevron: true, destructive: true)
+                        row("arrow.counterclockwise", language.text("진행 초기화", "Reset progress"),
+                            language.text("모든 기록을 지우고 처음부터", "Clear local progress and start again."),
+                            chevron: true, destructive: true)
                     }
                     .buttonStyle(GTPress())
                     .disabled(isReadingImport)
@@ -156,19 +198,22 @@ struct SettingsView: View {
                 .gtCard(radius: 20)
                 VStack(spacing: 0) {
                     Link(destination: Self.feedbackURL) {
-                        row("envelope.fill", "피드백 보내기", "버그·아이디어를 메일로",
+                        row("envelope.fill", language.text("피드백 보내기", "Send feedback"),
+                            language.text("버그·아이디어를 메일로", "Email a bug or idea."),
                             chevron: false, external: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
                     Link(destination: Self.privacyURL) {
                         // arrow.up.right = leaves the app (Safari), unlike chevron rows.
-                        row("doc.text", "개인정보 처리방침", nil, chevron: false, external: true)
+                        row("doc.text", language.text("개인정보 처리방침", "Privacy policy"),
+                            nil, chevron: false, external: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
                     Button { showLicense = true } label: {
-                        row("doc.plaintext", "오픈소스 라이선스", "Pretendard · FSRS", chevron: true)
+                        row("doc.plaintext", language.text("오픈소스 라이선스", "Open-source licenses"),
+                            "Pretendard · FSRS", chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -176,7 +221,7 @@ struct SettingsView: View {
                         Image(systemName: "info.circle")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(GT.green).frame(width: 28)
-                        Text("버전").font(GT.semibold(15)).foregroundStyle(GT.ink)
+                        Text(language.text("버전", "Version")).font(GT.semibold(15)).foregroundStyle(GT.ink)
                         Spacer()
                         Text(version).font(GT.body(14)).foregroundStyle(GT.inkMuted)
                             .monospacedDigit()
@@ -193,6 +238,7 @@ struct SettingsView: View {
         .preferredColorScheme(appearance.colorScheme)
         .sheet(isPresented: $showGlossary) { GlossaryView() }
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
+        .sheet(isPresented: $showPlacement) { NavigationStack { PlacementView() } }
         .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }
         .fullScreenCover(isPresented: $showFirstLesson) {
             FirstLessonView(context: .replay,
@@ -210,19 +256,22 @@ struct SettingsView: View {
         }
         // 백업 만들기 + 백업 불러오기 make the advice real: a backup taken before this
         // genuinely restores from Settings, not only via the corrupt-store screen.
-        .confirmationDialog("모든 진행 기록을 지울까요?", isPresented: $confirmingReset,
+        .confirmationDialog(language.text("모든 진행 기록을 지울까요?", "Delete all local progress?"),
+                            isPresented: $confirmingReset,
                             titleVisibility: .visible) {
-            Button("전부 지우고 처음부터", role: .destructive) {
+            Button(language.text("전부 지우고 처음부터", "Delete progress and start over"), role: .destructive) {
                 do { try model.resetProgress() }
                 catch { fileFailure = .reset }
             }
-            Button("취소", role: .cancel) {}
+            Button(language.text("취소", "Cancel"), role: .cancel) {}
         } message: {
-            Text("되돌릴 수 없어요. 남겨두고 싶으면 먼저 백업을 만들어 두세요.")
+            Text(language.text("되돌릴 수 없어요. 남겨두고 싶으면 먼저 백업을 만들어 두세요.",
+                               "This cannot be undone. Export a backup first if you want to keep a copy."))
         }
         .alert(item: $fileFailure) { failure in
-            Alert(title: Text("기록 파일을 처리하지 못했어요"), message: Text(failure.message),
-                  dismissButton: .default(Text("확인")))
+            Alert(title: Text(language.text("기록 파일을 처리하지 못했어요", "Could not process the progress file")),
+                  message: Text(failure.message(in: language)),
+                  dismissButton: .default(Text(language.text("확인", "OK"))))
         }
         .onDisappear {
             importRequestID = nil
@@ -251,9 +300,12 @@ struct SettingsView: View {
         let requestID = UUID()
         importRequestID = requestID
         isReadingImport = true
+        let expectedEpoch = model.epoch
+        let expectedRevision = model.state.revision
         importTask = Task {
             do {
-                let prepared = try await ProgressFileReader.readAndValidate(url)
+                let prepared = try await ProgressFileReader.readAndValidate(
+                    url, expectedEpoch: expectedEpoch, expectedRevision: expectedRevision)
                 guard importRequestID == requestID else { return }
                 pendingImport = prepared
                 confirmingImport = true
@@ -296,10 +348,12 @@ struct SettingsView: View {
 
 private struct OpenSourceLicenseView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.learningLanguage) private var language
     private func license(named name: String) -> String {
         guard let url = Bundle.main.url(forResource: name, withExtension: "txt"),
               let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return "라이선스 문서를 열 수 없어요. 설정의 피드백으로 알려주세요."
+            return language.text("라이선스 문서를 열 수 없어요. 설정의 피드백으로 알려주세요.",
+                                 "The license file could not be opened. Please report this through Feedback in Settings.")
         }
         return text
     }
@@ -307,7 +361,8 @@ private struct OpenSourceLicenseView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("오픈소스 라이선스").font(GT.title(26)).foregroundStyle(GT.onFelt)
+                Text(language.text("오픈소스 라이선스", "Open-source licenses"))
+                    .font(GT.title(26)).foregroundStyle(GT.onFelt)
                 Text("Pretendard").font(GT.semibold(17)).foregroundStyle(GT.onFelt)
                 Text(license(named: "Pretendard-LICENSE"))
                     .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)

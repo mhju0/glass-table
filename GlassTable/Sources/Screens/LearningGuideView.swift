@@ -1,18 +1,21 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import GlassTableDrills
 
 /// Short orientation and study habits. These examples never award course credit.
 struct LearningGuideView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.learningLanguage) private var language
     @State private var page = 0
     @State private var answer: Int?
 
-    private var lesson: StudyNote { StudyNote.lessons[page] }
+    private var lessons: [StudyNote] { language == .korean ? StudyNote.lessons : StudyNote.englishLessons }
+    private var lesson: StudyNote { lessons[page] }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                Text("시작 안내 · \(page + 1)/\(StudyNote.lessons.count)")
+                Text("\(language.text("시작 안내", "Getting started")) · \(page + 1)/\(lessons.count)")
                     .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
                 Text(lesson.title).font(GT.title(28)).foregroundStyle(GT.onFelt)
                     .accessibilityAddTraits(.isHeader)
@@ -44,7 +47,9 @@ struct LearningGuideView: View {
                     }
                     if let answer {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(answer == lesson.correct ? "맞아요" : "이렇게 생각해 봐요")
+                            Text(answer == lesson.correct
+                                 ? language.text("맞아요", "That's right")
+                                 : language.text("이렇게 생각해 봐요", "Think about it this way"))
                                 .font(GT.semibold(18)).foregroundStyle(GT.onFelt)
                             Text(lesson.explanation).font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
                         }
@@ -58,13 +63,15 @@ struct LearningGuideView: View {
         .background(FeltBackground())
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
-                FeltCTAButton(title: page == StudyNote.lessons.count - 1 ? "연습하러 가기" : "다음 이야기") {
-                    if page == StudyNote.lessons.count - 1 { dismiss() }
+                FeltCTAButton(title: page == lessons.count - 1
+                              ? language.text("연습하러 가기", "Go to practice")
+                              : language.text("다음 이야기", "Next topic")) {
+                    if page == lessons.count - 1 { dismiss() }
                     else { page += 1; answer = nil }
                 }
                 .disabled(lesson.question != nil && answer == nil)
                 if page > 0 {
-                    Button("이전 이야기") { page -= 1; answer = nil }
+                    Button(language.text("이전 이야기", "Previous topic")) { page -= 1; answer = nil }
                         .font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
                         .frame(maxWidth: .infinity, minHeight: 44).buttonStyle(GTPress())
                 }
@@ -75,7 +82,7 @@ struct LearningGuideView: View {
         .onAppear {
             #if DEBUG
             if let requested = ProcessInfo.processInfo.environment["GT_DEMO_GUIDE_PAGE"].flatMap(Int.init) {
-                page = min(max(requested, 0), StudyNote.lessons.count - 1)
+                page = min(max(requested, 0), lessons.count - 1)
             }
             #endif
         }
@@ -128,5 +135,44 @@ private struct StudyNote {
         StudyNote(title: "더 깊이 공부하는 순서예요",
                   body: "기초를 익힌 뒤에는 한 번에 한 조건을 바꿔 보세요. 답을 보기 전에 달라질 방향을 예상하고, 이유를 설명한 뒤, 며칠 후 다시 풀어 보세요.",
                   example: "기초와 가격 → 포지션과 레인지 → 보드와 행동 → EV 결정 → 핸드 복기\n\n그다음 공부할 것: 스택 깊이, 베팅 크기, 레이크, 여러 스트리트의 전략과 분산. 코스 완주는 프로 실력이나 수익을 보장하지 않아요.")
+    ]
+
+    static let englishLessons: [StudyNote] = [
+        StudyNote(title: "Learn one decision at a time",
+                  body: "New to Hold'em? Watch a worked example, try a question with help, then solve a different one on your own. Later, mix the ideas together.",
+                  example: "Watch the reasoning → try with help → solve alone\n\nComing back to a skill later is part of learning it."),
+        StudyNote(title: "Find the best five cards",
+                  body: "In Hold'em, each player makes the best five-card hand from their own two cards and the five shared cards. You do not have to use both of your own cards. When players compare hands at the end, that is a showdown.",
+                  example: "Blinds → first betting round → three shared cards → one more → final card\n\nFold means leave the hand. Check means pass without adding chips. Call matches a bet. Raise increases it.",
+                  question: "Can the five shared cards alone make your best hand?",
+                  choices: ["Yes, the shared cards can play", "No, I must use both of my cards"],
+                  explanation: "Choose the best five of the seven available cards. If two players have equal best hands, they split the pot."),
+        StudyNote(title: "Compare the hand, then the high cards",
+                  body: "First compare the type of hand. If both have the same type, compare the ranks that make it. If those tie, compare the highest remaining card, called a kicker. Suits have no ranking.",
+                  example: "Straight flush · five in sequence, same suit\nFour of a kind · four of one rank\nFull house · three of one rank and a pair\nFlush · five of one suit\nStraight · five in sequence\nThree of a kind · three of one rank\nTwo pair · two different pairs\nOne pair · two of one rank\nHigh card · none of the above\n\nA, K, Q, J, 10 of one suit is the highest straight flush."),
+        StudyNote(title: "Acting later gives you more information",
+                  body: "Position means the order of decisions. Before the shared cards, the player left of the big blind acts first. After that, the first remaining player left of the dealer acts first. With only two players, the dealer posts the small blind and acts first before the shared cards, then last afterward.",
+                  example: "With the same cards, you may need more caution when several people still act after you. That is why the practice chart changes by position."),
+        StudyNote(title: "Compare your chance with the price",
+                  body: "Before calling, compare the chips you must add with the whole pot after your call. Keep chips already in the pot separate from the chips you add now.",
+                  example: "Pot 12bb + opponent's bet 4bb + your call 4bb\n\nThe final pot is 20bb. One bb is the size of the big blind.",
+                  question: "With no later betting or fee, what winning share does this call need?",
+                  choices: ["25%", "20%"], correct: 1,
+                  explanation: "You pay 4 to contest 20: 4 ÷ 20 = 20%. Later bets can change a real multi-round decision."),
+        StudyNote(title: "A good decision can still lose",
+                  body: "Expected value (EV) is the average result if you repeat a decision under the same conditions. One hand's outcome can differ. At the table, look at the result and the estimated decision loss separately.",
+                  example: "You called with favorable odds, but lost when the last card came.",
+                  question: "Does that loss alone prove the call was wrong?",
+                  choices: ["Yes, because the hand lost", "No, check the odds and price when the decision was made"], correct: 1,
+                  explanation: "Judge the decision using what you could know at the time. The final card includes luck."),
+        StudyNote(title: "Know when a practice answer applies",
+                  body: "The opponents here use published practice rules. First-round choices are checked against the app's chart. Later EV estimates assume no more betting after the current action. These are learning models, not a universal answer for every real opponent.",
+                  example: "Ask: Which hands could they have? Which actions and sizes are allowed? What happens after this bet?",
+                  question: "Is the same chart answer right in every game?",
+                  choices: ["No, reconsider when conditions or opponents change", "Yes, the chart answer never changes"],
+                  explanation: "The chart helps you practice a way to think. A different situation can change the best choice."),
+        StudyNote(title: "Keep going after the basics",
+                  body: "Change one condition at a time. Before revealing an answer, predict what will change and explain why. Try it again a few days later.",
+                  example: "Cards and price → position and possible hands → shared cards and actions → EV choices → hand review\n\nFurther study: stack depth, bet size, fees, decisions across several betting rounds, and variance. Finishing the course does not guarantee expert skill or profit.")
     ]
 }

@@ -65,13 +65,15 @@ public struct RangeNotationReveal: Equatable {
     public let whyText: String
 }
 
-public func gradeRangeNotation(estimate: Int, spot: RangeNotationSpot) -> RangeNotationReveal {
+public func gradeRangeNotation(estimate: Int, spot: RangeNotationSpot,
+                               language: LearningLanguage = .korean) -> RangeNotationReveal {
     let parts = spot.range.classes.map { "\($0.description) \($0.comboCount)" }
     return RangeNotationReveal(
         band: estimate == spot.comboCount ? .spotOn : .off,
         estimate: estimate, count: spot.comboCount,
-        whyText: "\(parts.joined(separator: " + ")) = \(spot.comboCount) 콤보. "
-               + "페어 6개, 수티드 4개, 오프수트 12개예요.")
+        whyText: language.text(
+            "\(parts.joined(separator: " + ")) = \(spot.comboCount) 콤보. 페어 6개, 수티드 4개, 오프수트 12개예요.",
+            "\(parts.joined(separator: " + ")) = \(spot.comboCount) combinations. A pair has 6, a same-suit hand 4, and a different-suit hand 12."))
 }
 
 // MARK: - RFI 차트
@@ -117,7 +119,8 @@ public struct RFIReveal: Equatable {
     public let whyText: String
 }
 
-public func gradeRFI(userOpens: Bool, spot: RFISpot) -> RFIReveal {
+public func gradeRFI(userOpens: Bool, spot: RFISpot,
+                     language: LearningLanguage = .korean) -> RFIReveal {
     let h = spot.handClass
     let pct = RFIChart.openPercent[spot.seat] ?? 0
     var why = "\(h.description) · \(Chen.explain(h))\n"
@@ -128,6 +131,13 @@ public func gradeRFI(userOpens: Bool, spot: RFISpot) -> RFIReveal {
         why += " \(h.description)는 \(earliest.rawValue)부터 열어요."
     } else {
         why += " \(h.description)는 어느 자리에서도 열지 않아요."
+    }
+    if language == .english {
+        why = "\(h.description) · \(DrillTerms.chen(h, in: language))\n\(spot.seat.rawValue) opens the top \(Int(pct))% of hands. "
+        if spot.opens { why += "\(h.description) is in that range." }
+        else if let earliest = RFIChart.earliestSeatOpening(spot.hand) {
+            why += "\(h.description) starts opening from \(earliest.rawValue)."
+        } else { why += "\(h.description) does not open from any seat in this chart." }
     }
     return RFIReveal(band: userOpens == spot.opens ? .spotOn : .off,
                      userOpens: userOpens, correctOpens: spot.opens, whyText: why)

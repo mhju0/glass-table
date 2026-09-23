@@ -223,7 +223,7 @@ final class AccessibilityFlowTests: XCTestCase {
             "GT_DEMO_TABLE_POLICY": "1",
         ])
 
-        XCTAssertTrue(app.navigationBars["TAG 전략과 레인지"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.navigationBars["선별형 전략과 레인지"].waitForExistence(timeout: 15))
         let rangeSummary = app.descendants(matching: .any)["table-policy-range-summary"]
         XCTAssertTrue(rangeSummary.waitForExistence(timeout: 5))
         XCTAssertTrue(rangeSummary.label.contains("내 3벳에 상대가 폴드했다면 폴드 직전의 레인지를 유지해요"))
@@ -276,12 +276,15 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The introduction and course entry must remain reachable at AX XXXL.")
         beginCourse.tap()
 
-        XCTAssertTrue(app.staticTexts["쇼다운 · 따라 배우기"].waitForExistence(timeout: 10))
+        let firstStep = app.descendants(matching: .any)["walkthrough-step-0"]
+        XCTAssertTrue(firstStep.waitForExistence(timeout: 10))
+        XCTAssertTrue(firstStep.label.contains("누가 이길까요?"))
     }
 
     private func launch(environment: [String: String]) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = accessibilityXXXL
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchArguments += accessibilityXXXL
         app.launchEnvironment = environment
         app.launch()
         return app

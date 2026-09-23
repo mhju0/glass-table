@@ -7,6 +7,7 @@ import GlassTableDrills
 struct PotMathReplayView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.learningLanguage) private var language
 
     let spot: PotMathSpot
     @Binding var stepIndex: Int
@@ -22,11 +23,11 @@ struct PotMathReplayView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("자리별로 낸 칩")
+                Text(language.text("자리별로 낸 칩", "Chips paid by each seat"))
                     .font(GT.semibold(14))
                     .foregroundStyle(GT.inkSecondary)
                 Spacer(minLength: 12)
-                Button("계산 방법", action: showHelp)
+                Button(language.text("계산 방법", "How to count"), action: showHelp)
                     .font(GT.semibold(14))
                     .foregroundStyle(GT.cta)
                     .frame(minHeight: 44)
@@ -113,7 +114,7 @@ struct PotMathReplayView: View {
                 seat(actor)
             }
             if spot.participantCount == 4, visibleStepIndex == steps.count - 1 {
-                Text("다음은 플레이어 B 차례예요")
+                Text(language.text("다음은 플레이어 B 차례예요", "Player B acts next"))
                     .font(GT.body(14))
                     .foregroundStyle(GT.onTableSecondary)
                     .padding(.top, 4)
@@ -134,10 +135,10 @@ struct PotMathReplayView: View {
         let contributed = spot.contribution(of: actor, throughReplayStep: visibleStepIndex)
         return VStack(alignment: .leading, spacing: 3) {
             HStack(alignment: .firstTextBaseline) {
-                Text(actor.rawValue)
+                Text(actorName(actor))
                     .font(GT.semibold(13))
                 Spacer(minLength: 6)
-                Text("낸 칩 \(contributed)")
+                Text(language.text("낸 칩 \(contributed)", "Paid \(contributed) chips"))
                     .font(GT.semibold(13).monospacedDigit())
             }
             .foregroundStyle(GT.onTable)
@@ -158,7 +159,8 @@ struct PotMathReplayView: View {
                               lineWidth: isActive ? 2 : 1)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(actor.rawValue), 낸 칩 \(contributed)칩"
+        .accessibilityLabel(language.text("\(actor.rawValue), 낸 칩 \(contributed)칩",
+                                          "\(actorName(actor)), paid \(contributed) chips")
                             + (isActive ? ", \(caption(for: currentStep))" : ""))
     }
 
@@ -174,11 +176,11 @@ struct PotMathReplayView: View {
             }
 
             HStack(spacing: 12) {
-                replayButton(title: "이전 행동", symbol: "chevron.left",
+                replayButton(title: language.text("이전 행동", "Previous action"), symbol: "chevron.left",
                              enabled: visibleStepIndex > 0) {
                     stepIndex = visibleStepIndex - 1
                 }
-                replayButton(title: "다음 행동", symbol: "chevron.right",
+                replayButton(title: language.text("다음 행동", "Next action"), symbol: "chevron.right",
                              enabled: visibleStepIndex < steps.count - 1) {
                     stepIndex = visibleStepIndex + 1
                 }
@@ -186,7 +188,8 @@ struct PotMathReplayView: View {
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("행동 \(visibleStepIndex + 1) / \(steps.count)")
+        .accessibilityLabel(language.text("행동 \(visibleStepIndex + 1) / \(steps.count)",
+                                          "Action \(visibleStepIndex + 1) of \(steps.count)"))
     }
 
     private func replayButton(title: String, symbol: String, enabled: Bool,
@@ -210,19 +213,31 @@ struct PotMathReplayView: View {
 
     private var centerPrompt: String {
         if spot.participantCount == 4, visibleStepIndex == steps.count - 1 {
-            return "다음\n플레이어 B 차례"
+            return language.text("다음\n플레이어 B 차례", "Next\nPlayer B acts")
         }
-        return "행동 \(visibleStepIndex + 1) / \(steps.count)"
+        return language.text("행동 \(visibleStepIndex + 1) / \(steps.count)",
+                             "Action \(visibleStepIndex + 1) / \(steps.count)")
     }
 
     private func caption(for step: PotMathReplayStep) -> String {
         switch step.kind {
-        case .post: return "\(step.addedChips)칩 먼저 내요"
-        case .bet: return "\(step.addedChips)칩 벳해요"
-        case .call: return "\(step.addedChips)칩 더 내요 · 콜"
+        case .post: return language.text("\(step.addedChips)칩 먼저 내요", "Posts \(step.addedChips) chips")
+        case .bet: return language.text("\(step.addedChips)칩 벳해요", "Bets \(step.addedChips) chips")
+        case .call: return language.text("\(step.addedChips)칩 더 내요 · 콜", "Adds \(step.addedChips) chips to call")
         case let .raiseTo(total):
-            return "\(step.addedChips)칩 더 내요 · 총 \(total)칩으로 레이즈"
-        case .fold: return "폴드 · 이미 낸 칩은 남아요"
+            return language.text("\(step.addedChips)칩 더 내요 · 총 \(total)칩으로 레이즈",
+                                 "Adds \(step.addedChips), raising to \(total) chips total")
+        case .fold: return language.text("폴드 · 이미 낸 칩은 남아요", "Folds · paid chips stay in the pot")
+        }
+    }
+
+    private func actorName(_ actor: PotMathSpot.Actor) -> String {
+        switch actor {
+        case .sb: return "SB"
+        case .bb: return "BB"
+        case .opener: return language.text("플레이어 A", "Player A")
+        case .caller1: return language.text("플레이어 B", "Player B")
+        case .caller2: return language.text("플레이어 C", "Player C")
         }
     }
 
@@ -256,32 +271,38 @@ private struct PotCaptionLayout: ViewModifier {
 }
 
 struct PotMathIntroView: View {
+    @Environment(\.learningLanguage) private var language
     let onStart: () -> Void
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: GT.Space.section) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("팟 계산")
+                    Text(language.text("팟 계산", "Count the pot"))
                         .font(GT.title(30))
                         .foregroundStyle(GT.ink)
-                    Text("테이블에 들어온 칩을 놓치지 않는 연습이에요.")
+                    Text(language.text("테이블에 들어온 칩을 놓치지 않는 연습이에요.",
+                                       "Practice keeping track of every chip paid into the pot."))
                         .font(GT.body(17))
                         .foregroundStyle(GT.inkSecondary)
                 }
 
-                introBlock(title: "왜 배우나요?",
-                           body: "팟을 알아야 콜 가격과 벳 크기를 제대로 비교할 수 있어요.")
-                introBlock(title: "어떻게 푸나요?",
-                           body: "각 자리의 ‘낸 칩’을 한 번씩 더해요. ‘총 18칩으로 레이즈’는 전에 낸 칩까지 포함한 금액이에요.")
-                introBlock(title: "SB와 BB",
-                           body: "SB는 딜러 왼쪽 첫 자리, BB는 그 다음 자리예요. 카드를 받기 전에 1칩과 2칩을 먼저 내요.")
+                introBlock(title: language.text("왜 배우나요?", "Why count?"),
+                           body: language.text("팟을 알아야 콜 가격과 벳 크기를 제대로 비교할 수 있어요.",
+                                               "The pot size helps you compare the price of a call and the size of a bet."))
+                introBlock(title: language.text("어떻게 푸나요?", "How do I count?"),
+                           body: language.text("각 자리의 ‘낸 칩’을 한 번씩 더해요. ‘총 18칩으로 레이즈’는 전에 낸 칩까지 포함한 금액이에요.",
+                                               "Add the chips each seat has paid. 'Raise to 18 chips total' includes chips that player already paid."))
+                introBlock(title: language.text("SB와 BB", "Small and big blinds"),
+                           body: language.text("SB는 딜러 왼쪽 첫 자리, BB는 그 다음 자리예요. 카드를 받기 전에 1칩과 2칩을 먼저 내요.",
+                                               "The small blind sits left of the dealer and posts 1 chip. The big blind sits next and posts 2 before cards are dealt."))
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("짧은 예")
+                    Text(language.text("짧은 예", "A quick example"))
                         .font(GT.semibold(14))
                         .foregroundStyle(GT.inkSecondary)
-                    Text("SB 1 + BB 2 + A 4 + B 4 = 11칩")
+                    Text(language.text("SB 1 + BB 2 + A 4 + B 4 = 11칩",
+                                       "SB 1 + BB 2 + A 4 + B 4 = 11 chips"))
                         .font(GT.title(19).monospacedDigit())
                         .foregroundStyle(GT.ink)
                 }
@@ -291,7 +312,7 @@ struct PotMathIntroView: View {
                             in: RoundedRectangle(cornerRadius: GT.Radius.panel,
                                                  style: .continuous))
 
-                PrimaryCTAButton(title: "문제 풀기", action: onStart)
+                PrimaryCTAButton(title: language.text("문제 풀기", "Try a question"), action: onStart)
             }
             .padding(20)
         }

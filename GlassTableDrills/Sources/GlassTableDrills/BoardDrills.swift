@@ -36,7 +36,8 @@ public enum HitFrequencySpotGenerator {
     }
 }
 
-public func gradeHitFrequency(estimate: Estimate, spot: HitFrequencySpot) -> EstimateReveal {
+public func gradeHitFrequency(estimate: Estimate, spot: HitFrequencySpot,
+                              language: LearningLanguage = .korean) -> EstimateReveal {
     // One pass over the range's combos, not two: `pairOrBetterPct` is a reading off
     // this same distribution, and building it twice was half the cost of grading.
     let d = spot.distribution
@@ -48,10 +49,10 @@ public func gradeHitFrequency(estimate: Estimate, spot: HitFrequencySpot) -> Est
                             closeWithin: 12, spotOnWithin: 5),
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
-        whyText: "\(spot.seat.rawValue) 오픈 레인지 \(d.liveCombos)콤보 중 "
-               + "\(pctText(correct))%가 페어 이상이에요. "
-               + "드로우까지 포함하면 \(pctText(d.hitRate * 100))%. "
-               + "\(spot.texture.summary).")
+        whyText: language.text(
+            "\(spot.seat.rawValue) 오픈 레인지 \(d.liveCombos)콤보 중 \(pctText(correct))%가 페어 이상이에요. "
+            + "드로우까지 포함하면 \(pctText(d.hitRate * 100))%. \(spot.texture.summary).",
+            "Of the \(d.liveCombos) live combinations in the \(spot.seat.rawValue) opening range, \(pctText(correct))% have at least a pair. Including draws, \(pctText(d.hitRate * 100))% connect. Board: \(DrillTerms.board(spot.texture, in: language))."))
 }
 
 // MARK: - 레인지 어드밴티지
@@ -113,7 +114,8 @@ public enum RangeAdvantageSpotGenerator {
 /// thread — the sampling is milliseconds in release but over a second in debug, so the
 /// UI computes it ahead of the tap rather than during it.
 public func gradeRangeAdvantage(estimate: Estimate, spot: RangeAdvantageSpot,
-                                openerEquityPct: Double? = nil) -> EstimateReveal {
+                                openerEquityPct: Double? = nil,
+                                language: LearningLanguage = .korean) -> EstimateReveal {
     let correct = openerEquityPct ?? spot.openerEquityPct
     let o = rangeOnBoard(spot.openerRange, board: spot.board)
     let c = rangeOnBoard(spot.callerRange, board: spot.board)
@@ -123,9 +125,14 @@ public func gradeRangeAdvantage(estimate: Estimate, spot: RangeAdvantageSpot,
                             closeWithin: 10, spotOnWithin: 4),
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
-        whyText: "\(spot.texture.summary). \(who). 오프너 \(pctText(correct))%. "
-               + widestGapSentence(opener: o, caller: c) + " "
-               + "표본 추출로 계산한 값이라 ±1% 정도 오차가 있어요.")
+        whyText: language.text(
+            "\(spot.texture.summary). \(who). 오프너 \(pctText(correct))%. "
+            + widestGapSentence(opener: o, caller: c) + " "
+            + "표본 추출로 계산한 값이라 ±1% 정도 오차가 있어요.",
+            "Board: \(DrillTerms.board(spot.texture, in: language)). "
+            + (correct > 52 ? "The opener is ahead. " : (correct < 48 ? "The caller is ahead. " : "The ranges are nearly even. "))
+            + "Opener equity: \(pctText(correct))%. \(widestGapSentence(opener: o, caller: c, language: language)) "
+            + "This sampled result has about ±1% error."))
 }
 
 /// Names whichever bucket the two ranges differ on **most**, rather than always
@@ -134,11 +141,15 @@ public func gradeRangeAdvantage(estimate: Estimate, spot: RangeAdvantageSpot,
 /// Hardcoding 투페어 이상 produced headlines like "2.7% 대 0%" on boards where the real
 /// story was top pair 24% against nothing — comparing two near-zero numbers and calling
 /// it the lesson.
-func widestGapSentence(opener: RangeOnBoard, caller: RangeOnBoard) -> String {
+func widestGapSentence(opener: RangeOnBoard, caller: RangeOnBoard,
+                       language: LearningLanguage = .korean) -> String {
     let bucket = MadeHand.allCases.max {
         abs(opener.share($0) - caller.share($0)) < abs(opener.share($1) - caller.share($1))
     } ?? .strong
     let a = opener.share(bucket) * 100, b = caller.share(bucket) * 100
+    if language == .english {
+        return "The largest gap is \(DrillTerms.madeHand(bucket, in: language)): opener \(pctText(a))% versus caller \(pctText(b))%."
+    }
     return "가장 크게 갈리는 건 \(KO.copula(bucket.korean)) "
          + "오프너 \(pctText(a))% 대 콜러 \(pctText(b))%."
 }

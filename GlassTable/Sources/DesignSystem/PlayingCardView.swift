@@ -4,6 +4,7 @@ import GlassTableEngine
 import GlassTableDrills
 
 struct PlayingCardView: View {
+    @Environment(\.learningLanguage) private var language
     static let canonicalSize: CGFloat = 68
     static func cornerRadius(for size: CGFloat) -> CGFloat { size * 0.07 }
 
@@ -25,8 +26,8 @@ struct PlayingCardView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(faceDown
-                            ? "아직 나오지 않은 카드"
-                            : "\(card.spokenKorean)\(dead ? ", 제외" : "")")
+                            ? language.text("아직 나오지 않은 카드", "Face-down card")
+                            : "\(card.spoken(in: language))\(dead ? language.text(", 제외", ", excluded") : "")")
     }
 
     private var back: some View {

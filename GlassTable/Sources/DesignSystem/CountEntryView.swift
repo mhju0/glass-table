@@ -1,13 +1,17 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import GlassTableDrills
 
 /// Direct whole-number entry without a seeded guess. The in-sheet keypad keeps every
 /// digit, deletion, and submit reachable at accessibility sizes without depending on a
 /// software keyboard dismissal gesture.
 struct CountEntryView: View {
+    @Environment(\.learningLanguage) private var language
     @Binding var entry: String
     let suffix: String
     let onSubmit: () -> Void
+    var maximumDigits = 3
+    var maximumValue = 999
     @State private var isEditing = false
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 7), count: 5)
@@ -16,7 +20,7 @@ struct CountEntryView: View {
         VStack(spacing: 9) {
             if isEditing {
                 HStack(spacing: 8) {
-                    Text(entry.isEmpty ? "숫자를 입력하세요" : "\(entry)\(suffix)")
+                    Text(entry.isEmpty ? language.text("숫자를 입력하세요", "Enter a number") : "\(entry)\(suffix)")
                         .font(GT.title(20).monospacedDigit())
                         .foregroundStyle(entry.isEmpty ? GT.inkMuted : GT.ink)
                         .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
@@ -32,7 +36,7 @@ struct CountEntryView: View {
                     }
                     .buttonStyle(GTPress())
                     .disabled(entry.isEmpty)
-                    .accessibilityLabel("마지막 숫자 지우기")
+                    .accessibilityLabel(language.text("마지막 숫자 지우기", "Delete last digit"))
                 }
 
                 LazyVGrid(columns: columns, spacing: 7) {
@@ -48,14 +52,14 @@ struct CountEntryView: View {
                                     .strokeBorder(GT.borderStrong, lineWidth: 1))
                         }
                         .buttonStyle(GTPress())
-                        .accessibilityLabel("숫자 \(digit)")
+                        .accessibilityLabel(language.text("숫자 \(digit)", "Digit \(digit)"))
                     }
                 }
-                SecondaryCTAButton(title: "입력 완료") { isEditing = false }
+                SecondaryCTAButton(title: language.text("입력 완료", "Done entering")) { isEditing = false }
             } else {
                 HStack(spacing: 10) {
                     Button { isEditing = true } label: {
-                        Text(entry.isEmpty ? "답 입력" : "\(entry)\(suffix)")
+                        Text(entry.isEmpty ? language.text("답 입력", "Enter answer") : "\(entry)\(suffix)")
                             .font(GT.title(18).monospacedDigit())
                             .foregroundStyle(entry.isEmpty ? GT.inkMuted : GT.ink)
                             .frame(maxWidth: .infinity, minHeight: 54)
@@ -66,7 +70,7 @@ struct CountEntryView: View {
                     }
                     .buttonStyle(GTPress())
                     Button(action: onSubmit) {
-                        Text("확인").font(GT.title(GT.Typography.buttonSize))
+                        Text(language.text("확인", "Check answer")).font(GT.title(GT.Typography.buttonSize))
                             .foregroundStyle(entry.isEmpty ? GT.inkMuted : GT.onCTA)
                             .frame(maxWidth: .infinity, minHeight: 54)
                             .background(entry.isEmpty ? GT.surface : GT.cta,
@@ -82,11 +86,10 @@ struct CountEntryView: View {
     }
 
     private func append(_ digit: Int) {
-        // Count drills ask about outs or one hand class's remaining combinations;
-        // neither answer can reach four digits.
-        guard entry.count < 3 else { return }
-        if entry == "0" { entry = "\(digit)" }
-        else { entry.append(String(digit)) }
+        guard entry.count < maximumDigits else { return }
+        let candidate = entry == "0" ? "\(digit)" : entry + String(digit)
+        guard let value = Int(candidate), value <= maximumValue else { return }
+        entry = candidate
     }
 
     private func deleteLast() {

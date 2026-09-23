@@ -20,7 +20,9 @@ final class LearningFlowTests: XCTestCase {
         app.buttons["앱 둘러보기"].tap()
         XCTAssertTrue(app.staticTexts["이렇게 한 결정씩 배워요"].waitForExistence(timeout: 5))
         app.buttons["첫 레슨 시작"].tap()
-        XCTAssertTrue(app.staticTexts["쇼다운 · 따라 배우기"].waitForExistence(timeout: 10))
+        let firstStep = app.descendants(matching: .any)["walkthrough-step-0"]
+        XCTAssertTrue(firstStep.waitForExistence(timeout: 10))
+        XCTAssertTrue(firstStep.label.contains("누가 이길까요?"))
     }
 
     func testSkippingFirstLessonDoesNotShowItAgain() {
@@ -75,6 +77,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testGuideRequiresRetrievalBeforeExplanation() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_DEMO_SETTINGS": "1", "GT_DEMO_GUIDE": "1",
                                  "GT_DEMO_GUIDE_PAGE": "1"]
         app.launch()
@@ -91,6 +94,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testIndependentLessonReachesSummaryAfterFiveAnswers() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_DEMO_SEED": "1", "GT_DEMO_NODE": "u2-potOdds"]
         app.launch()
         for number in 1...5 {
@@ -108,6 +112,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testPotMathTableRequiresTheFullReplayThenRevealsOptionalArithmetic() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_DEMO_SEED": "1",
                                  "GT_DEMO_NODE": "u1-potMath",
@@ -159,6 +164,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testPotMathFirstEntryExplainsWhyHowAndBlindRoles() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_DEMO_SEED": "1",
                                  "GT_DEMO_NODE": "u1-potMath",
@@ -185,7 +191,8 @@ final class LearningFlowTests: XCTestCase {
 
     func testPotMathAX5CanReachChoiceRevealAndNextAction() {
         let app = XCUIApplication()
-        app.launchArguments = ["-UIPreferredContentSizeCategoryName",
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName",
                                "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_DEMO_SEED": "1",
@@ -215,12 +222,12 @@ final class LearningFlowTests: XCTestCase {
 
     func testPotMathChoiceCommitsExactlyOnceBeforeNext() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         let storeID = UUID().uuidString
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID,
                                  "GT_DEMO_SEED": "1",
                                  "GT_DEMO_NODE": "u1-potMath",
-                                 "GT_DEMO_POT_STATE": "question",
-                                 "GT_DEMO_POT_PLAYERS": "3"]
+                                 "GT_DEMO_POT_STATE": "question"]
         app.launch()
         let choice = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", "pot-answer-"
@@ -230,19 +237,17 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 5))
 
         app.terminate()
-        app.launchArguments = []
+        app.launchArguments = ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_TAB": "records"]
         app.launch()
-        let record = app.descendants(matching: .any).matching(NSPredicate(
-            // GT_DEMO_SEED starts 팟 계산 at 16 answers. This committed choice must
-            // add exactly one before Next, not reset the fixture or record twice.
-            format: "label BEGINSWITH %@ AND label CONTAINS %@", "팟 계산.", "17문제"
-        )).firstMatch
+        let record = app.descendants(matching: .any)["record-potMath"].firstMatch
         XCTAssertTrue(record.waitForExistence(timeout: 10))
+        XCTAssertTrue(record.label.contains("17문제"))
     }
 
     func testDueReviewIsFiniteAndMovesBetweenConcepts() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_DEMO_SEED": "1", "GT_DEMO_REVIEW": "1"]
         app.launch()
         XCTAssertTrue(app.staticTexts["복습 1/2"].waitForExistence(timeout: 10))
@@ -263,20 +268,16 @@ final class LearningFlowTests: XCTestCase {
         positionChoice.tap()
         XCTAssertTrue(next.waitForExistence(timeout: 5))
         next.tap()
-        XCTAssertTrue(app.buttons["오늘로 돌아가기"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["학습으로 돌아가기"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["복습 3/2"].exists)
     }
 
-    func testOpponentSelectionStartsAnAnswerableHand() {
+    func testHeadsUpExerciseKeepsPublishedPolicyAndChartGrading() {
         let app = XCUIApplication()
-        app.launchEnvironment = ["GT_DEMO_TAB": "table"]
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_DEMO_TABLE": "tag"]
         app.launch()
-        let tag = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "TAG")).firstMatch
-        XCTAssertTrue(tag.waitForExistence(timeout: 10))
-        tag.tap()
-        let start = app.buttons["핸드 시작"]
-        XCTAssertTrue(start.waitForExistence(timeout: 5))
-        start.tap()
+        XCTAssertTrue(app.buttons["폴드, 0bb"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(
             format: "label CONTAINS %@", "프리플랍 판정은 디펜드 차트 기준"
         )).firstMatch.exists)
@@ -288,7 +289,7 @@ final class LearningFlowTests: XCTestCase {
         )).firstMatch
         XCTAssertTrue(policy.waitForExistence(timeout: 5))
         policy.tap()
-        XCTAssertTrue(app.navigationBars["TAG 전략과 레인지"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["선별형 전략과 레인지"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["table-policy-range-summary"].exists)
         XCTAssertTrue(app.staticTexts["포스트플랍 기본 · 상대가 먼저 행동할 때"].exists)
         app.buttons["닫기"].tap()
@@ -302,6 +303,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testDefendRevealShowsTheSelectedHandBeforeTheFullChart() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_DEMO_NODE": "u8-defend",
                                  "GT_DEMO_REVEAL": "1"]
@@ -320,6 +322,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testCountDrillRequiresAnIntentionalNumberIncludingZero() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_DEMO_NODE": "u1-combos"]
         app.launch()
@@ -349,6 +352,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testOutsHeroCardsAreFullyVisibleBeforeOpeningNumberEntry() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_DEMO_NODE": "u2-outs"]
         app.launch()
@@ -367,21 +371,24 @@ final class LearningFlowTests: XCTestCase {
 
     func testPathOpensAtRequestedLateCurrentNode() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
-                                 "GT_DEMO_TAB": "path",
+                                 "GT_DEMO_TAB": "learn",
+                                 "GT_TEST_FIRST_LESSON": "0",
                                  "GT_TEST_PATH_CURRENT_NODE": "u8-defend"]
         app.launch()
 
-        let node = app.buttons.matching(NSPredicate(
-            format: "label BEGINSWITH %@", "디펜드 차트"
-        )).firstMatch
+        let path = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "전체 학습 경로")).firstMatch
+        XCTAssertTrue(path.waitForExistence(timeout: 15))
+        path.tap()
+        let node = app.buttons["lesson-u8-defend"]
         XCTAssertTrue(node.waitForExistence(timeout: 15))
         XCTAssertTrue(node.isHittable,
                       "Opening the path should expand and scroll to a late current lesson once.")
         for _ in 0..<10 { app.swipeDown() }
         XCTAssertTrue(app.staticTexts["배움의 길"].isHittable)
-        app.tabBars.buttons["오늘"].tap()
-        app.tabBars.buttons["길"].tap()
+        app.tabBars.buttons["플레이"].tap()
+        app.tabBars.buttons["배우기"].tap()
         XCTAssertTrue(app.staticTexts["배움의 길"].isHittable,
                       "Returning to the path must preserve the learner's scroll position instead of jumping again.")
     }
@@ -400,6 +407,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testGuidedAnswerDoesNotCreateAssessedProgress() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         let storeID = UUID().uuidString
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_NODE": "u2-potOdds",
                                  "GT_DEMO_STAGE": "together"]
@@ -416,6 +424,7 @@ final class LearningFlowTests: XCTestCase {
 
     func testNextDoesNotDoubleRecordAndNextQuestionStillCounts() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         let storeID = UUID().uuidString
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_NODE": "u2-potOdds"]
         app.launch()
@@ -429,14 +438,14 @@ final class LearningFlowTests: XCTestCase {
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_TAB": "records"]
         app.launch()
-        let record = app.descendants(matching: .any).matching(NSPredicate(
-            format: "label BEGINSWITH %@ AND label CONTAINS %@", "팟 오즈.", "2문제"
-        )).firstMatch
+        let record = app.descendants(matching: .any)["record-potOdds"].firstMatch
         XCTAssertTrue(record.waitForExistence(timeout: 10))
+        XCTAssertTrue(record.label.contains("2문제"))
     }
 
     private func verifyCommittedAnswer(node: String, title: String, submit: String) {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         let storeID = UUID().uuidString
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_NODE": node]
         app.launch()
@@ -447,14 +456,15 @@ final class LearningFlowTests: XCTestCase {
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_TAB": "records"]
         app.launch()
-        let recorded = app.descendants(matching: .any).matching(NSPredicate(
-            format: "label BEGINSWITH %@ AND label CONTAINS %@", title + ".", "1문제"
-        )).firstMatch
+        let concept = String(node.split(separator: "-").last!)
+        let recorded = app.descendants(matching: .any)["record-\(concept)"].firstMatch
         XCTAssertTrue(recorded.waitForExistence(timeout: 10), "The revealed answer must be saved before Next.")
+        XCTAssertTrue(recorded.label.contains("1문제"))
     }
 
     private func firstLessonApp() -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_TEST_FIRST_LESSON": "1"]
         return app

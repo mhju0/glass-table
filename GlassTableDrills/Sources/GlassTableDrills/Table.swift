@@ -1,6 +1,86 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import GlassTableEngine
 
+/// Facts about a table action. Display language is chosen by the view, so a hand
+/// can change language without being dealt again or interpreting Korean prose.
+public struct TableEvent: Equatable {
+    public enum Actor: Equatable { case hero, villain, system }
+    public enum Action: Equatable { case open, fold, call, check, bet, raise, threeBet, runout }
+    public let street: Int
+    public let actor: Actor
+    public let action: Action
+    public let amount: Double?
+    public let fraction: Double?
+    public let position: Position?
+    public let opponent: Archetype?
+
+    public init(street: Int, actor: Actor, action: Action, amount: Double? = nil,
+                fraction: Double? = nil, position: Position? = nil,
+                opponent: Archetype? = nil) {
+        self.street = street; self.actor = actor; self.action = action
+        self.amount = amount; self.fraction = fraction
+        self.position = position; self.opponent = opponent
+    }
+
+    public func text(in language: LearningLanguage) -> String {
+        if action == .runout {
+            return language.text("올인 · 남은 보드 공개", "All-in · reveal the rest of the board")
+        }
+        let stage = TableEvent.streetName(street, in: language)
+        let who: String
+        switch actor {
+        case .hero: who = language.text("나", "You")
+        case .villain: who = opponent?.beginnerTitle(in: language) ?? language.text("상대", "Opponent")
+        case .system: who = ""
+        }
+        let chips = amount.map { "\(bbText($0))bb" } ?? ""
+        let verb: String
+        switch action {
+        case .open:
+            verb = language.text("\(chips) 오픈", "opens to \(chips)")
+        case .fold: verb = language.text("폴드", "folds")
+        case .call:
+            verb = amount == nil ? language.text("콜", "calls")
+                : language.text("콜 \(chips)", "calls \(chips)")
+        case .check: verb = language.text("체크", "checks")
+        case .bet:
+            if let fraction {
+                verb = language.text("\(chips) 벳 (팟의 \(pctText(fraction * 100))%)",
+                                     "bets \(chips) (\(pctText(fraction * 100))% pot)")
+            } else {
+                verb = language.text("\(chips) 벳", "bets \(chips)")
+            }
+        case .raise: verb = language.text("\(chips) 레이즈", "raises to \(chips)")
+        case .threeBet: verb = language.text("\(chips) 3벳", "3-bets to \(chips)")
+        case .runout: verb = ""
+        }
+        let seat = position.map { "\($0.rawValue) " } ?? ""
+        if actor == .hero && language == .english {
+            let heroVerb: String
+            switch action {
+            case .fold: heroVerb = "fold"
+            case .call: heroVerb = amount.map { "call \(bbText($0))bb" } ?? "call"
+            case .check: heroVerb = "check"
+            case .bet: heroVerb = "bet \(chips)"
+            case .raise: heroVerb = "raise to \(chips)"
+            case .threeBet: heroVerb = "3-bet to \(chips)"
+            case .open, .runout: heroVerb = verb
+            }
+            return "\(stage) · You \(heroVerb)"
+        }
+        return "\(stage) · \(seat)\(who) \(verb)"
+    }
+
+    public static func streetName(_ street: Int, in language: LearningLanguage) -> String {
+        switch street {
+        case 0: return language.text("프리플랍", "Before the flop")
+        case 3: return language.text("플랍", "Flop")
+        case 4: return language.text("턴", "Turn")
+        default: return language.text("리버", "River")
+        }
+    }
+}
+
 // MARK: - the hand
 
 /// One postflop hand against a declared opponent, as a pure value type.
@@ -69,8 +149,10 @@ public struct TableHand: Equatable {
     public private(set) var heroInvested: Double
     public private(set) var raisesThisStreet = 0
     public private(set) var heroPutThisStreet: Double = 0
-    /// One Korean line per event, oldest first — the on-screen hand history.
-    public private(set) var history: [String] = []
+    /// Semantic action history, oldest first. `history` remains a Korean compatibility
+    /// view for package callers; the app renders `events` in its current language.
+    public private(set) var events: [TableEvent] = []
+    public var history: [String] { events.map { $0.text(in: .korean) } }
     /// Every combo the villain can still hold, narrowed by his own actions (S3) and
     /// the board. Printable at any moment; his dealt combo is always in it.
     public private(set) var villainCombos: [[Card]]
@@ -92,8 +174,9 @@ public struct TableHand: Equatable {
         villainStack = TableHand.stack - TableHand.openSize
         heroInvested = 0
         villainCombos = villain.raiseRange(from: villainSeat).combos(removing: hero)
-        history.append("프리플랍 · \(villainSeat.rawValue) \(villain.name) "
-                       + "\(bbText(TableHand.openSize))bb 오픈")
+        events.append(TableEvent(street: 0, actor: .villain, action: .open,
+                                 amount: TableHand.openSize, position: villainSeat,
+                                 opponent: villain))
         phase = .hero(.open(TableHand.openSize))
     }
 
@@ -145,13 +228,11 @@ public struct TableHand: Equatable {
         villainCombos.removeAll { $0.contains(where: visible.contains) }
     }
 
-    private var streetName: String {
-        switch street {
-        case 0: return "프리플랍"
-        case 3: return "플랍"
-        case 4: return "턴"
-        default: return "리버"
-        }
+    private mutating func log(_ actor: TableEvent.Actor, _ action: TableEvent.Action,
+                              amount: Double? = nil, fraction: Double? = nil) {
+        events.append(TableEvent(street: street, actor: actor, action: action,
+                                 amount: amount, fraction: fraction,
+                                 opponent: actor == .villain ? villain : nil))
     }
 
     /// New street: villain is out of position and acts first.
@@ -165,12 +246,11 @@ public struct TableHand: Equatable {
             villainStack -= b
             pot += b
             narrow { p.opens(with: $0) }
-            history.append("\(streetName) · \(villain.name) \(bbText(b))bb 벳 "
-                           + "(팟의 \(pctText(policy.betFraction * 100))%)")
+            log(.villain, .bet, amount: b, fraction: policy.betFraction)
             phase = .hero(.bet(b))
         } else {
             narrow { !p.opens(with: $0) }
-            history.append("\(streetName) · \(villain.name) 체크")
+            log(.villain, .check)
             phase = .hero(.checkedTo)
         }
     }
@@ -245,46 +325,46 @@ public struct TableHand: Equatable {
         case (.open, .fold):
             // Nothing invested: blinds are dead money in this format, so a preflop
             // fold nets exactly 0 — and the grade says folding junk costs nothing.
-            history.append("프리플랍 · 나 폴드")
+            log(.hero, .fold)
             finish(heroWins: false, showdown: false)
         case let (.open(b), .call):
             heroStack -= b; heroInvested += b; pot += b
-            history.append("프리플랍 · 나 콜")
+            log(.hero, .call)
             startFlop()
         case let (.open(b), .raise):
             let r = b * TableHand.raiseFactor
             heroStack -= r; heroInvested += r; pot += r
             raisesThisStreet += 1
-            history.append("프리플랍 · 나 \(bbText(r))bb 3벳")
+            log(.hero, .threeBet, amount: r)
             villainRespondsTo3Bet(to: r, hisOpen: b)
         case (.checkedTo, .check):
-            history.append("\(streetName) · 나 체크")
+            log(.hero, .check)
             settleStreet()
         case let (.checkedTo, .bet(f)):
             let b = clampedBet(f * pot, cap: min(heroStack, villainStack))
             heroStack -= b; heroInvested += b; heroPutThisStreet += b; pot += b
-            history.append("\(streetName) · 나 \(bbText(b))bb 벳")
+            log(.hero, .bet, amount: b)
             villainResponds(toBet: b)
         case let (.bet(b), .fold), let (.raise(to: b), .fold):
             _ = b
-            history.append("\(streetName) · 나 폴드")
+            log(.hero, .fold)
             finish(heroWins: false, showdown: false)
         case let (.bet(b), .call):
             let c = min(b, heroStack)
             heroStack -= c; heroInvested += c; heroPutThisStreet += c; pot += c
-            history.append("\(streetName) · 나 콜 \(bbText(c))bb")
+            log(.hero, .call, amount: c)
             settleStreet()
         case let (.bet(b), .raise):
             let r = raiseSize(over: b)
             let put = r - heroPutThisStreet
             heroStack -= put; heroInvested += put; heroPutThisStreet = r; pot += put
             raisesThisStreet += 1
-            history.append("\(streetName) · 나 \(bbText(r))bb 레이즈")
+            log(.hero, .raise, amount: r)
             villainRespondsToRaise(to: r, hisBet: b)
         case let (.raise(to: r), .call):
             let c = min(r - heroPutThisStreet, heroStack)
             heroStack -= c; heroInvested += c; heroPutThisStreet += c; pot += c
-            history.append("\(streetName) · 나 콜 \(bbText(c))bb")
+            log(.hero, .call, amount: c)
             settleStreet()
         default:
             assertionFailure("illegal choice \(choice) while \(facing)")
@@ -296,13 +376,13 @@ public struct TableHand: Equatable {
         switch p.response(toBetWith: villainBucket) {
         case .fold:
             narrow { p.response(toBetWith: $0) == .fold }
-            history.append("\(streetName) · \(villain.name) 폴드")
+            log(.villain, .fold)
             finish(heroWins: true, showdown: false)
         case .call:
             narrow { p.response(toBetWith: $0) == .call }
             let c = min(b, villainStack)
             villainStack -= c; pot += c
-            history.append("\(streetName) · \(villain.name) 콜")
+            log(.villain, .call)
             settleStreet()
         case .raise:
             // The cap: if the street already saw a raise, or the stacks make the
@@ -312,13 +392,13 @@ public struct TableHand: Equatable {
                 narrow { p.response(toBetWith: $0) != .fold }
                 let c = min(b, villainStack)
                 villainStack -= c; pot += c
-                history.append("\(streetName) · \(villain.name) 콜")
+                log(.villain, .call)
                 settleStreet()
             } else {
                 narrow { p.response(toBetWith: $0) == .raise }
                 villainStack -= r; pot += r
                 raisesThisStreet += 1
-                history.append("\(streetName) · \(villain.name) \(bbText(r))bb 레이즈")
+                log(.villain, .raise, amount: r)
                 phase = .hero(.raise(to: r))
             }
         }
@@ -330,13 +410,13 @@ public struct TableHand: Equatable {
         let p = policy
         if p.response(toBetWith: villainBucket) == .fold {
             narrow { p.response(toBetWith: $0) == .fold }
-            history.append("\(streetName) · \(villain.name) 폴드")
+            log(.villain, .fold)
             finish(heroWins: true, showdown: false)
         } else {
             narrow { p.response(toBetWith: $0) != .fold }
             let c = min(r - b, villainStack)
             villainStack -= c; pot += c
-            history.append("\(streetName) · \(villain.name) 콜")
+            log(.villain, .call)
             settleStreet()
         }
     }
@@ -356,10 +436,10 @@ public struct TableHand: Equatable {
             villainCombos = villainCombos.filter(band.contains)
             let c = min(r - b, villainStack)
             villainStack -= c; pot += c
-            history.append("프리플랍 · \(villain.name) 콜")
+            log(.villain, .call)
             startFlop()
         } else {
-            history.append("프리플랍 · \(villain.name) 폴드")
+            log(.villain, .fold)
             finish(heroWins: true, showdown: false)
         }
     }
@@ -370,7 +450,7 @@ public struct TableHand: Equatable {
         // this the next street would open on a 0bb "bet" and a menu of nothing.
         if min(heroStack, villainStack) < 0.5 {
             while street < 5 { street += 1; revealBoard() }
-            history.append("올인 · 남은 보드 공개")
+            log(.system, .runout)
             return showdown()
         }
         street += 1
@@ -405,6 +485,32 @@ public struct GradedOption: Equatable {
     public let choice: TableHand.HeroChoice
     public let label: String
     public let ev: Double
+    /// Resolved chips put in for this choice, independent of the Korean grade label.
+    public let amount: Double?
+
+    public init(choice: TableHand.HeroChoice, label: String, ev: Double,
+                amount: Double? = nil) {
+        self.choice = choice; self.label = label; self.ev = ev; self.amount = amount
+    }
+
+    public func label(in language: LearningLanguage) -> String {
+        let chips = amount.map { "\(bbText($0))bb" } ?? ""
+        switch choice {
+        case .fold: return language.text("폴드", "Fold")
+        case .check: return language.text("체크", "Check")
+        case .call:
+            return amount == nil ? language.text("콜", "Call")
+                : language.text("콜 \(chips)", "Call \(chips)")
+        case .raise:
+            return amount == nil ? language.text("레이즈", "Raise")
+                : language.text("레이즈 \(chips)", "Raise to \(chips)")
+        case let .bet(f):
+            return amount == nil
+                ? language.text("벳 \(pctText(f * 100))%", "Bet \(pctText(f * 100))% of pot")
+                : language.text("벳 \(chips) (\(pctText(f * 100))%)",
+                                "Bet \(chips) (\(pctText(f * 100))% pot)")
+        }
+    }
 
     public var option: DecisionOption { DecisionOption(label: label, ev: ev) }
 }
@@ -468,7 +574,7 @@ public extension TableHand {
                 }
                 out.append(GradedOption(choice: .bet(f),
                                         label: "벳 \(bbText(b))bb (\(pctText(f * 100))%)",
-                                        ev: ev))
+                                        ev: ev, amount: b))
             }
             return out
 
@@ -476,7 +582,8 @@ public extension TableHand {
             var out = [
                 GradedOption(choice: .fold, label: "폴드", ev: 0),
                 GradedOption(choice: .call, label: "콜 \(bbText(b))bb",
-                             ev: mean { e, _ in callEV(equity: e, toCall: b, pot: pot) }),
+                             ev: mean { e, _ in callEV(equity: e, toCall: b, pot: pot) },
+                             amount: b),
             ]
             if choices().contains(.raise) {
                 let r = raiseSize(over: b)
@@ -488,7 +595,8 @@ public extension TableHand {
                         : e * (pot - b + 2 * r) - r
                 }
                 out.append(GradedOption(choice: .raise,
-                                        label: "레이즈 \(bbText(r))bb", ev: ev))
+                                        label: "레이즈 \(bbText(r))bb", ev: ev,
+                                        amount: r))
             }
             return out
 
@@ -497,7 +605,8 @@ public extension TableHand {
             return [
                 GradedOption(choice: .fold, label: "폴드", ev: 0),
                 GradedOption(choice: .call, label: "콜 \(bbText(c))bb",
-                             ev: mean { e, _ in callEV(equity: e, toCall: c, pot: pot) }),
+                             ev: mean { e, _ in callEV(equity: e, toCall: c, pot: pot) },
+                             amount: c),
             ]
         }
     }

@@ -5,6 +5,7 @@ import XCTest
 final class ReleaseSmokeTests: XCTestCase {
     func testLaunchAndOpenStudyGuideWithoutDemoHooks() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launch()
         if app.buttons["건너뛰기"].waitForExistence(timeout: 3) {
             app.buttons["건너뛰기"].tap()
@@ -20,6 +21,7 @@ final class ReleaseSmokeTests: XCTestCase {
 
     func testResponsiveLaunchMeasurement() {
         let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         let options = XCTMeasureOptions()
         options.iterationCount = 3
         measure(metrics: [XCTApplicationLaunchMetric(waitUntilResponsive: true)], options: options) {

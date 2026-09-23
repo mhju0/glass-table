@@ -5,7 +5,7 @@ final class ProgressStateTests: XCTestCase {
     func testEmptyStateHasCurrentSchemaVersionAndNoRecords() {
         let s = ProgressState()
         XCTAssertEqual(s.schemaVersion, ProgressState.currentSchemaVersion)
-        XCTAssertEqual(s.schemaVersion, 1)
+        XCTAssertEqual(s.schemaVersion, 2)
         XCTAssertTrue(s.concepts.isEmpty)
         XCTAssertTrue(s.nodes.isEmpty)
         XCTAssertTrue(s.answers.isEmpty)

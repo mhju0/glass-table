@@ -267,18 +267,21 @@ public struct PotMathReveal: Equatable {
     public let whyText: String
 }
 
-public func gradePotMath(answer: Int, spot: PotMathSpot) -> PotMathReveal {
+public func gradePotMath(answer: Int, spot: PotMathSpot,
+                         language: LearningLanguage = .korean) -> PotMathReveal {
     let correct = spot.correctAnswer
     let why: String
     switch spot.question {
     case .potNow:
-        why = potBreakdown(spot) + "\n지금 팟: \(spot.pot)칩"
+        why = potBreakdown(spot, language: language)
+            + language.text("\n지금 팟: \(spot.pot)칩", "\nPot now: \(spot.pot) chips")
     case let .fractionOfPot(f):
         let percentage = Int((f * 100).rounded())
         let unrounded = Double(spot.pot) * f
-        why = potBreakdown(spot)
-            + "\n현재 팟의 \(percentage)%: \(spot.pot) × \(percentage)% = "
-            + "\(decimalChipText(unrounded))칩 → \(correct)칩"
+        why = potBreakdown(spot, language: language)
+            + language.text(
+                "\n현재 팟의 \(percentage)%: \(spot.pot) × \(percentage)% = \(decimalChipText(unrounded))칩 → \(correct)칩",
+                "\n\(percentage)% of the current pot: \(spot.pot) × \(percentage)% = \(decimalChipText(unrounded)) chips → \(correct) chips")
     }
     return PotMathReveal(band: answer == correct ? .spotOn : .off,
                          answer: answer, correct: correct, pot: spot.pot, whyText: why)
@@ -286,31 +289,36 @@ public func gradePotMath(answer: Int, spot: PotMathSpot) -> PotMathReveal {
 
 /// One cumulative equation per action. Newlines let the reveal preserve the same
 /// sequence the learner just read instead of compressing every player into one sum.
-func potBreakdown(_ spot: PotMathSpot) -> String {
+func potBreakdown(_ spot: PotMathSpot, language: LearningLanguage = .korean) -> String {
     var running = 0
     var parts: [String] = []
     for action in spot.actions {
         switch action {
         case let .blinds(sb, bb):
             running += sb + bb
-            parts.append("블라인드: \(sb) + \(bb) = \(running)칩")
+            parts.append(language.text("블라인드: \(sb) + \(bb) = \(running)칩",
+                                       "Blinds: \(sb) + \(bb) = \(running) chips"))
         case let .bet(actor, n):
             let before = running
             running += n
-            parts.append("\(actor.rawValue) 벳: \(before) + \(n) = \(running)칩")
+            parts.append(language.text("\(actor.rawValue) 벳: \(before) + \(n) = \(running)칩",
+                                       "\(DrillTerms.actor(actor, in: language)) bets: \(before) + \(n) = \(running) chips"))
         case let .call(actor, n):
             let before = running
             running += n
-            parts.append("\(actor.rawValue) 콜: \(before) + \(n) = \(running)칩")
+            parts.append(language.text("\(actor.rawValue) 콜: \(before) + \(n) = \(running)칩",
+                                       "\(DrillTerms.actor(actor, in: language)) calls: \(before) + \(n) = \(running) chips"))
         case let .raiseTo(actor, to, from):
             if actor == .bb, spot.foldedActors.contains(.sb) {
-                parts.append("SB 폴드: 이미 낸 칩은 팟에 남아요")
+                parts.append(language.text("SB 폴드: 이미 낸 칩은 팟에 남아요",
+                                           "SB folds: the chips already posted stay in the pot"))
             }
             let before = running
             let added = to - from
             running += added
-            parts.append("\(actor.rawValue) 레이즈: \(before) + \(added) = \(running)칩 "
-                         + "(총 \(to)칩)")
+            parts.append(language.text(
+                "\(actor.rawValue) 레이즈: \(before) + \(added) = \(running)칩 (총 \(to)칩)",
+                "\(DrillTerms.actor(actor, in: language)) raises: \(before) + \(added) = \(running) chips (\(to) total)"))
         }
     }
     return parts.joined(separator: "\n")

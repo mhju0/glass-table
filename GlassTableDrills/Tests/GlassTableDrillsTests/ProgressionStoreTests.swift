@@ -1,4 +1,5 @@
 import XCTest
+import GlassTableEngine
 @testable import GlassTableDrills
 
 final class ProgressionStoreTests: XCTestCase {
@@ -30,6 +31,133 @@ final class ProgressionStoreTests: XCTestCase {
         try s.save(state)
         guard case let .loaded(back) = s.load() else { return XCTFail("expected .loaded") }
         XCTAssertEqual(back, state)
+    }
+
+    func testSchemaOneMigrationPreservesOriginalBytesAndDoesNotInventDailyHistory() throws {
+        let s = store()
+        let original = Data(#"{"schemaVersion":1,"concepts":{"outs":{"tier":"familiar","review":{"stability":0,"difficulty":5,"reps":0,"lapses":0},"correct":4,"total":6,"consecutiveMisses":0}},"nodes":{},"streak":{"current":0,"longest":0,"freezesRemaining":2},"answers":[]}"#.utf8)
+        try original.write(to: s.url)
+
+        guard case let .loaded(migrated) = s.load() else {
+            return XCTFail("schema one should migrate")
+        }
+        XCTAssertEqual(migrated.schemaVersion, 2)
+        XCTAssertEqual(migrated.record(for: .outs).total, 6)
+        XCTAssertEqual(migrated.record(for: .outs).correct, 4)
+        XCTAssertNotNil(migrated.detailedTrackingStartedAt)
+        XCTAssertTrue(migrated.dailySummaries.isEmpty)
+        let backups = try FileManager.default.contentsOfDirectory(at: dir,
+            includingPropertiesForKeys: nil).filter { $0.lastPathComponent.contains("schema-1-") }
+        XCTAssertEqual(backups.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), original)
+        guard case let .loaded(reloaded) = s.load() else { return XCTFail("expected migrated file") }
+        XCTAssertEqual(reloaded, migrated)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(at: dir,
+            includingPropertiesForKeys: nil).filter { $0.lastPathComponent.contains("schema-1-") }.count, 1)
+    }
+
+    func testSchemaOneMigrationFailureLeavesOriginalBytesUntouched() throws {
+        let s = store()
+        var old = ProgressState(schemaVersion: 1)
+        old.updateRecord(for: .outs) { $0.total = 2; $0.correct = 1 }
+        let original = try JSONEncoder().encode(old)
+        try original.write(to: s.url)
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: dir.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: dir.path) }
+
+        guard case .unreadable = s.load() else { return XCTFail("migration must surface failure") }
+        XCTAssertEqual(try Data(contentsOf: s.url), original)
+    }
+
+    func testImportRejectsUnsafeSavedAnswerBeforeAnyRevealCanRender() throws {
+        let s = store()
+        let validInput = try JSONEncoder().encode(SavedDrillInput.interval(
+            point: 50, lo: 45, hi: 55))
+        let overflowInput = Data(#"{"interval":{"point":1e308,"lo":0,"hi":1e308}}"#.utf8)
+        let validReveal = try JSONEncoder().encode(SavedDrillReveal(
+            band: GradeBand.spotOn.rawValue,
+            interval: IntervalAnswer(point: 50, lo: 45, hi: 55, truth: 52)))
+        let overflowReveal = Data(#"{"version":1,"band":"spotOn","interval":{"point":1e308,"lo":0,"hi":1e308,"truth":1e308}}"#.utf8)
+        let malformedInputs = [overflowInput, validInput]
+        let malformedReveals = [validReveal, overflowReveal]
+        for (input, reveal) in zip(malformedInputs, malformedReveals) {
+            var state = ProgressState()
+            var round = PracticeRound(id: "round", concept: Concept.equitySense.rawValue,
+                                      seed: 1)
+            round.answers = [RoundAnswer(attemptID: UUID().uuidString, ordinal: 0,
+                band: .spotOn, submittedAt: Date(), input: input, reveal: reveal)]
+            round.phase = .reveal
+            state.activeRound = round
+            XCTAssertThrowsError(try s.importData(JSONEncoder().encode(state))) { error in
+                XCTAssertEqual(error as? StoreError, .invalidProgress)
+            }
+        }
+    }
+
+    func testImportRejectsUnknownRoundFormatAndInventedNodeSchedule() throws {
+        let s = store()
+        var unknownRound = ProgressState()
+        unknownRound.activeRound = PracticeRound(id: "round", concept: Concept.showdown.rawValue,
+                                                 seed: 1, formatVersion: 99)
+        XCTAssertThrowsError(try s.importData(JSONEncoder().encode(unknownRound)))
+
+        let node = try XCTUnwrap(Curriculum.allNodes.first)
+        var wrongNode = ProgressState()
+        wrongNode.activeNodeSession = NodeSessionSnapshot(id: "node", nodeID: node.id,
+            seed: 1, scheduledConcepts: Array(repeating: Concept.mdf.rawValue, count: 5),
+            phase: .question)
+        XCTAssertThrowsError(try s.importData(JSONEncoder().encode(wrongNode)))
+    }
+
+    func testImportRegradesSavedAnswerAndRejectsFalseVerdictOrTruth() throws {
+        let s = store()
+        let seed: UInt64 = 19
+        let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: 2)
+        let selected = gradeShowdown(answer: 0, spot: spot)
+        let input = try JSONEncoder().encode(SavedDrillInput.integer(0))
+        func roundState(band: GradeBand, reveal: SavedDrillReveal) throws -> Data {
+            var state = ProgressState()
+            var round = PracticeRound(id: "verified", concept: Concept.showdown.rawValue,
+                                      seed: seed)
+            round.introPhase = nil
+            round.answers = [RoundAnswer(attemptID: "answer", ordinal: 0, band: band,
+                submittedAt: Date(), input: input,
+                reveal: try JSONEncoder().encode(reveal))]
+            round.phase = .reveal
+            state.activeRound = round
+            return try JSONEncoder().encode(state)
+        }
+        XCTAssertNoThrow(try s.importData(roundState(band: selected.band,
+            reveal: SavedDrillReveal(band: selected.band.rawValue))))
+        let wrong: GradeBand = selected.band == .spotOn ? .off : .spotOn
+        XCTAssertThrowsError(try s.importData(roundState(band: wrong,
+            reveal: SavedDrillReveal(band: wrong.rawValue))))
+
+        let evSeed: UInt64 = 27
+        let estimate = Estimate(point: 0, lo: -1, hi: 1)
+        let ev = gradeEVCall(estimate: estimate,
+            spot: EVCallSpotGenerator.spot(baseSeed: evSeed, index: 2))
+        var evState = ProgressState()
+        var evRound = PracticeRound(id: "ev", concept: Concept.evCall.rawValue,
+                                    seed: evSeed)
+        evRound.introPhase = nil
+        evRound.phase = .reveal
+        let evInput = try JSONEncoder().encode(SavedDrillInput.interval(
+            point: estimate.point, lo: estimate.lo, hi: estimate.hi))
+        evRound.answers = [RoundAnswer(attemptID: "ev-answer", ordinal: 0,
+            band: ev.band, submittedAt: Date(), input: evInput,
+            reveal: try JSONEncoder().encode(SavedDrillReveal(
+                band: ev.band.rawValue, interval: ev.intervalAnswer)))]
+        evState.activeRound = evRound
+        XCTAssertNoThrow(try s.importData(JSONEncoder().encode(evState)))
+        let falseTruth = IntervalAnswer(point: estimate.point, lo: estimate.lo,
+            hi: estimate.hi, truth: ev.correct + 1)
+        evRound.answers = [RoundAnswer(attemptID: "ev-answer", ordinal: 0,
+            band: ev.band, submittedAt: Date(), input: evInput,
+            reveal: try JSONEncoder().encode(SavedDrillReveal(
+                band: ev.band.rawValue, interval: falseTruth)))]
+        evState.activeRound = evRound
+        XCTAssertThrowsError(try s.importData(JSONEncoder().encode(evState)))
     }
 
     /// Spec §8.2 — the bug being fixed. Garbage must never read as empty progress.

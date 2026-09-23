@@ -56,7 +56,8 @@ func defendDistance(_ a: DefendAction, _ b: DefendAction) -> Int {
     return abs(rank(a) - rank(b))
 }
 
-public func gradeDefend(chosen: DefendAction, spot: DefendSpot) -> DefendReveal {
+public func gradeDefend(chosen: DefendAction, spot: DefendSpot,
+                        language: LearningLanguage = .korean) -> DefendReveal {
     let correct = spot.correct
     let openPct = RFIChart.openPercent[spot.opener] ?? 0
     let band: GradeBand
@@ -67,9 +68,13 @@ public func gradeDefend(chosen: DefendAction, spot: DefendSpot) -> DefendReveal 
     }
     // The numbers derive from the same constants the chart uses (spec §4.3) — the
     // reveal shows the rule, not just the verdict.
-    let why = "\(spot.opener.rawValue)는 상위 \(pctText(openPct))%를 열어요. "
+    let why = language.text(
+        "\(spot.opener.rawValue)는 상위 \(pctText(openPct))%를 열어요. "
         + "그 폭의 상위 \(pctText(openPct * DefendChart.threeBetShare))%는 3벳, "
         + "\(pctText(openPct * DefendChart.defendShare))%까지는 콜이에요. "
-        + "\(KO.topic(spot.handClass.description)) \(correct.rawValue) 밴드예요."
+        + "\(KO.topic(spot.handClass.description)) \(correct.rawValue) 밴드예요.",
+        "\(spot.opener.rawValue) opens the top \(pctText(openPct))% of hands. "
+        + "Raise again with the top \(pctText(openPct * DefendChart.threeBetShare))%; call up to \(pctText(openPct * DefendChart.defendShare))%. "
+        + "\(spot.handClass.description) is in the \(DrillTerms.action(correct, in: language)) band.")
     return DefendReveal(band: band, chosen: chosen, correct: correct, whyText: why)
 }

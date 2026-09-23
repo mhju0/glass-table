@@ -56,11 +56,14 @@ public struct CallFoldReveal: Equatable {
 }
 
 /// Binary grade: 정확 or 빗나감 — no 근접 band for a two-way decision.
-public func gradeCallFold(userCalls: Bool, spot: CallFoldSpot) -> CallFoldReveal {
+public func gradeCallFold(userCalls: Bool, spot: CallFoldSpot,
+                          language: LearningLanguage = .korean) -> CallFoldReveal {
     let correct = spot.correctIsCall
     return CallFoldReveal(
         band: userCalls == correct ? .spotOn : .off,
         userCalls: userCalls, correctIsCall: correct,
         equityPct: spot.equityPct, requiredPct: spot.requiredPct,
-        whyText: "에퀴티 \(pctText(spot.equityPct))% vs 필요 \(pctText(spot.requiredPct))% → \(correct ? "콜" : "폴드")")
+        whyText: language.text(
+            "에퀴티 \(pctText(spot.equityPct))% vs 필요 \(pctText(spot.requiredPct))% → \(correct ? "콜" : "폴드")",
+            "Winning chance \(pctText(spot.equityPct))% versus \(pctText(spot.requiredPct))% needed to call. \(correct ? "Call" : "Fold")."))
 }

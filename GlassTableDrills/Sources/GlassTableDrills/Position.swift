@@ -87,19 +87,27 @@ public struct PositionReveal: Equatable {
     public let whyText: String
 }
 
-public func gradePosition(answer: Int, spot: PositionSpot) -> PositionReveal {
+public func gradePosition(answer: Int, spot: PositionSpot,
+                          language: LearningLanguage = .korean) -> PositionReveal {
     let correct = spot.correctAnswer
     let why: String
     switch spot.question {
     case let .behind(p, preflop):
         let order = preflop ? Position.preflopOrder : Position.postflopOrder
         let after = order.drop(while: { $0 != p }).dropFirst()
+        if language == .english {
+            why = after.isEmpty
+                ? "\(p.rawValue) acts last \(preflop ? "before" : "after") the flop. Nobody acts after you."
+                : "After \(p.rawValue): \(after.map(\.rawValue).joined(separator: " · ")). \(correct) players still act."
+            break
+        }
         why = after.isEmpty
             ? "\(p.rawValue)는 \(preflop ? "프리플랍" : "플랍 이후") 마지막이에요. 뒤에 아무도 없어요."
             : "\(p.rawValue) 뒤에는 \(after.map(\.rawValue).joined(separator: " · ")), 모두 \(correct)명이에요."
     case let .whichIsLater(a, b):
         let later = correct == 1 ? b : a
-        why = "\(later.rawValue)가 더 늦게 행동해요. 앞선 행동을 더 보고 결정할 수 있어요."
+        why = language.text("\(later.rawValue)가 더 늦게 행동해요. 앞선 행동을 더 보고 결정할 수 있어요.",
+                            "\(later.rawValue) acts later, so you can see more decisions first.")
     }
     return PositionReveal(band: answer == correct ? .spotOn : .off,
                           answer: answer, correct: correct, whyText: why)

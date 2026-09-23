@@ -35,17 +35,26 @@ public struct ActionReadSpot: Equatable {
 
     /// "플랍에서 팟의 75%를 벳" / "플랍에서 체크".
     public var actionLine: String {
+        actionLine(in: .korean)
+    }
+
+    public func actionLine(in language: LearningLanguage) -> String {
         switch action {
-        case .bet: return "플랍에서 팟의 \(pctText(policy.betFraction * 100))%를 벳"
-        case .check: return "플랍에서 체크"
+        case .bet: return language.text("플랍에서 팟의 \(pctText(policy.betFraction * 100))%를 벳",
+                                        "Bets \(pctText(policy.betFraction * 100))% of the pot on the flop")
+        case .check: return language.text("플랍에서 체크", "Checks on the flop")
         }
     }
 
     /// The policy row for this action, in bucket order — what the reveal and the
     /// walkthrough print so the number is checkable against the rule that made it.
     public var actedBucketList: String {
+        actedBucketList(in: .korean)
+    }
+
+    public func actedBucketList(in language: LearningLanguage) -> String {
         MadeHand.allCases.filter { policy.buckets(after: action).contains($0) }
-            .map(\.korean).joined(separator: " · ")
+            .map { DrillTerms.madeHand($0, in: language) }.joined(separator: " · ")
     }
 }
 
@@ -80,7 +89,8 @@ public enum ActionReadSpotGenerator {
     }
 }
 
-public func gradeActionRead(estimate: Estimate, spot: ActionReadSpot) -> EstimateReveal {
+public func gradeActionRead(estimate: Estimate, spot: ActionReadSpot,
+                            language: LearningLanguage = .korean) -> EstimateReveal {
     // `acted` narrows the whole range combo by combo, so it is taken once and read
     // from — `pairOrBetterPct` would have narrowed it a second time for one number.
     let a = spot.acted
@@ -96,8 +106,10 @@ public func gradeActionRead(estimate: Estimate, spot: ActionReadSpot) -> Estimat
                             closeWithin: 12, spotOnWithin: 5),
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
-        whyText: "\(spot.villain.name)의 \(spot.action.rawValue) 레인지는 \(spot.actedBucketList). "
-               + "\(a.combos)콤보 중 \(pctText(correct))%가 페어 이상이에요. "
-               + "전체 레인지는 \(pctText(fullPct))%예요. \(KO.subject(spot.action.rawValue)) "
-               + "레인지를 \(direction).")
+        whyText: language.text(
+            "\(spot.villain.name)의 \(spot.action.rawValue) 레인지는 \(spot.actedBucketList). "
+            + "\(a.combos)콤보 중 \(pctText(correct))%가 페어 이상이에요. "
+            + "전체 레인지는 \(pctText(fullPct))%예요. \(KO.subject(spot.action.rawValue)) 레인지를 \(direction).",
+            "After \(spot.action == .bet ? "betting" : "checking"), the \(spot.villain.beginnerTitle(in: language)) opponent can hold: \(spot.actedBucketList(in: language)). "
+            + "Of \(a.combos) combinations, \(pctText(correct))% have at least a pair. Before the action it was \(pctText(fullPct))%."))
 }

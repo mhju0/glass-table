@@ -1,6 +1,6 @@
 # Beginner learning release
 
-Status: in progress, prototype review milestone
+Status: approved for combined native implementation; verification pending
 Baseline: `dd2f7e3e5a57ffb1139398f39fdd21207a6f8603`
 Date: 2026-09-23
 
@@ -10,14 +10,28 @@ Glass Table remains an offline learning app for adults, with a place to practise
 hands against computers. Everyday reading simplicity is the goal, not a child
 audience. Preserve serious poker concepts and the current visual identity.
 
-The owner approved one complete release with full Korean and English. The first
-milestone is an audit and interactive bilingual mocks. Obtain visual/copy approval
-before production UI implementation. Browser fixtures are neither a native build
+The owner approved one complete release with full Korean and English, approved
+the revised mocks and authorized native implementation including the optional
+offline starting-point check. Browser fixtures are neither a native build
 nor evidence that the future four-player engine, migration or statistics work.
 
 This file records the approved scope. [audit.md](audit.md) covers current-source
 findings. [prototype/README.md](prototype/README.md) describes the review build.
 Individual implementation tickets live in [issues/](issues/).
+
+## Combined release: starting point and open access
+
+The September 23 approval combines the previously discussed first and second
+versions into one native delivery. Every lesson and advanced practice stays open.
+The recommended sequence remains available, but it is guidance rather than a lock.
+Opening an advanced lesson never marks earlier lessons complete.
+
+Offer an optional, untimed starting-point check with a plain self-report, three
+bundled questions, an unsure answer and a skip action. Store its topic suggestion
+locally, separately from mastery and review scheduling. It is not a proficiency
+certificate. Existing learners are not forced through it; it can be replayed from
+Learn and Settings. No email, password, account or online profile is introduced.
+Progress export/restore remains the explicit recovery mechanism.
 
 ## Beginner language and entry
 

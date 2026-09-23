@@ -2,6 +2,7 @@ import XCTest
 import GlassTableDrills
 @testable import GlassTable
 
+@MainActor
 final class ProgressionModelTests: XCTestCase {
     private var dir: URL!
     private var store: ProgressionStore!
@@ -21,6 +22,158 @@ final class ProgressionModelTests: XCTestCase {
         let model = ProgressionModel(store: store)
 
         XCTAssertTrue(model.shouldPresentFirstLesson)
+    }
+
+    func testRoundCommitAndNextAreDurableAndIdempotent() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        XCTAssertTrue(model.beginRound(concept: .showdown, seed: 77,
+                                       roundID: "round-1", expectedEpoch: epoch))
+        XCTAssertTrue(model.advanceRoundIntroduction(roundID: "round-1", skip: true,
+            expectedEpoch: epoch))
+        let winner = gradeShowdown(answer: 0,
+            spot: ShowdownSpotGenerator.spot(baseSeed: 77, index: 2)).winner
+        let input = try JSONEncoder().encode(SavedDrillInput.integer(winner))
+        let reveal = try JSONEncoder().encode(SavedDrillReveal(band: "spotOn"))
+        XCTAssertTrue(model.commitRoundAnswer(roundID: "round-1", attemptID: "attempt-1",
+            ordinal: 0, band: .spotOn, language: "ko", assisted: false,
+            input: input, reveal: reveal, eligibleSeconds: 3, expectedEpoch: epoch))
+        XCTAssertTrue(model.commitRoundAnswer(roundID: "round-1", attemptID: "attempt-1",
+            ordinal: 0, band: .spotOn, language: "ko", assisted: false,
+            input: input, reveal: reveal, eligibleSeconds: 3, expectedEpoch: epoch))
+        XCTAssertEqual(model.record(for: .showdown).total, 1)
+        XCTAssertEqual(model.state.dailySummaries.first?.exact, 1)
+        XCTAssertEqual(model.state.dailySummaries.first?.eligibleCorrectSeconds, 3)
+        XCTAssertEqual(ProgressionModel(store: store).state.activeRound?.phase, .reveal)
+        XCTAssertEqual(ProgressionModel(store: store).state.activeRound?.answers.first?.input, input)
+        XCTAssertTrue(model.nextRoundQuestion(roundID: "round-1", afterOrdinal: 0,
+                                               expectedEpoch: epoch))
+        XCTAssertTrue(model.nextRoundQuestion(roundID: "round-1", afterOrdinal: 0,
+                                               expectedEpoch: epoch))
+        XCTAssertEqual(model.state.activeRound?.ordinal, 1)
+        XCTAssertEqual(ProgressionModel(store: store).state.activeRound?.ordinal, 1)
+    }
+
+    func testRoundIntroAndDraftResumeWithoutGrading() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        XCTAssertTrue(model.beginRound(concept: .outs, seed: 18, roundID: "intro-round",
+                                       expectedEpoch: epoch))
+        XCTAssertEqual(ProgressionModel(store: store).state.activeRound?.introPhase, .show)
+        XCTAssertTrue(model.setRoundShowBeat(roundID: "intro-round", index: 1,
+            expectedEpoch: epoch))
+        XCTAssertEqual(ProgressionModel(store: store).state.activeRound?.showBeatIndex, 1)
+        XCTAssertTrue(model.advanceRoundIntroduction(roundID: "intro-round", skip: false,
+            expectedEpoch: epoch))
+        XCTAssertEqual(ProgressionModel(store: store).state.activeRound?.introPhase, .together)
+        XCTAssertTrue(model.saveRoundGuidedDraft(roundID: "intro-round",
+            input: .integerText("0"), expectedEpoch: epoch))
+        XCTAssertEqual(ProgressionModel(store: store).state.activeRound?.guidedDraft?.input,
+                       .integerText("0"))
+        let guidedBand = gradeOuts(estimate: 0,
+            spot: OutsSpotGenerator.spot(baseSeed: 18, index: 1)).band
+        let guidedInput = try JSONEncoder().encode(SavedDrillInput.integer(0))
+        let guidedReveal = try JSONEncoder().encode(SavedDrillReveal(
+            band: guidedBand.rawValue))
+        XCTAssertTrue(model.commitRoundGuidedAnswer(roundID: "intro-round",
+            band: guidedBand,
+            input: guidedInput,
+            reveal: guidedReveal,
+            expectedEpoch: epoch))
+        XCTAssertEqual(ProgressionModel(store: store).state.activeRound?.guidedAnswer?.band,
+                       guidedBand.rawValue)
+        XCTAssertEqual(model.record(for: .outs).total, 0)
+        XCTAssertTrue(model.advanceRoundIntroduction(roundID: "intro-round", skip: true,
+            expectedEpoch: epoch))
+        XCTAssertNil(model.state.activeRound?.guidedAnswer)
+        XCTAssertTrue(model.saveRoundDraft(roundID: "intro-round", ordinal: 0,
+            input: .integerText("12"), expectedEpoch: epoch))
+        let relaunched = ProgressionModel(store: store)
+        XCTAssertEqual(relaunched.state.activeRound?.draft?.input, .integerText("12"))
+        XCTAssertTrue(relaunched.state.introducedConcepts.contains(Concept.outs.rawValue))
+        XCTAssertEqual(relaunched.record(for: .outs).total, 0)
+        XCTAssertFalse(model.saveRoundDraft(roundID: "intro-round", ordinal: 1,
+            input: .integerText("13"), expectedEpoch: epoch))
+    }
+
+    func testReviewCommitResumeAndNextAreAtomicAndIdempotent() throws {
+        let yesterday = Date().addingTimeInterval(-86_400)
+        var initial = ProgressState()
+        initial.concepts[Concept.showdown.rawValue] = ConceptRecord(
+            review: ReviewState(stability: 1, difficulty: 5,
+                lastReview: yesterday.addingTimeInterval(-86_400),
+                due: yesterday, reps: 1), correct: 1, total: 1)
+        try store.save(initial)
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        XCTAssertTrue(model.beginReviewSession(seed: 17, expectedEpoch: epoch))
+        let id = try XCTUnwrap(model.state.activeReviewSession?.id)
+        let winner = gradeShowdown(answer: 0,
+            spot: ShowdownSpotGenerator.spot(baseSeed: 17, index: 2)).winner
+        let input = try JSONEncoder().encode(SavedDrillInput.integer(winner))
+        let reveal = try JSONEncoder().encode(SavedDrillReveal(band: "spotOn"))
+        XCTAssertTrue(model.commitReviewAnswer(sessionID: id, attemptID: "review-a",
+            ordinal: 0, band: .spotOn, input: input, reveal: reveal,
+            language: .english, expectedEpoch: epoch))
+        XCTAssertTrue(model.commitReviewAnswer(sessionID: id, attemptID: "review-a",
+            ordinal: 0, band: .spotOn, input: input, reveal: reveal,
+            language: .english, expectedEpoch: epoch))
+        XCTAssertEqual(model.record(for: .showdown).total, 2)
+        XCTAssertEqual(ProgressionModel(store: store).state.activeReviewSession?.phase, .reveal)
+        XCTAssertTrue(model.nextReviewQuestion(sessionID: id, afterOrdinal: 0,
+            expectedEpoch: epoch))
+        XCTAssertEqual(model.state.activeReviewSession?.phase, .finished)
+        XCTAssertTrue(model.dismissFinishedReviewSession(sessionID: id,
+            expectedEpoch: epoch))
+        XCTAssertNil(ProgressionModel(store: store).state.activeReviewSession)
+    }
+
+    func testFailedRoundWriteBlocksLaterAnswersUntilRetry() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        XCTAssertTrue(model.beginRound(concept: .outs, seed: 1, expectedEpoch: epoch))
+        let id = try XCTUnwrap(model.state.activeRound?.id)
+        XCTAssertTrue(model.advanceRoundIntroduction(roundID: id, skip: true,
+            expectedEpoch: epoch))
+        let input = try JSONEncoder().encode(SavedDrillInput.integer(999))
+        let reveal = try JSONEncoder().encode(SavedDrillReveal(band: "off"))
+        let prior = try store.exportData()
+        try withReadOnlyDirectory {
+            XCTAssertFalse(model.commitRoundAnswer(roundID: id, attemptID: "a1",
+                ordinal: 0, band: .off, language: "en", assisted: false,
+                input: input, reveal: reveal, expectedEpoch: epoch))
+            XCTAssertNotNil(model.saveError)
+            XCTAssertEqual(try store.exportData(), prior)
+            XCTAssertEqual(model.record(for: .outs).total, 0)
+            XCTAssertFalse(model.commitRoundAnswer(roundID: id, attemptID: "a2",
+                ordinal: 0, band: .off, language: "en", assisted: false,
+                input: input, reveal: reveal, expectedEpoch: epoch))
+            XCTAssertEqual(try store.importData(model.exportData()).activeRound?.answers.count, 1)
+        }
+        model.retrySave()
+        XCTAssertNil(model.saveError)
+        XCTAssertEqual(ProgressionModel(store: store).record(for: .outs).total, 1)
+        XCTAssertTrue(model.commitRoundAnswer(roundID: id, attemptID: "a1",
+            ordinal: 0, band: .off, language: "en", assisted: false,
+            input: input, reveal: reveal, expectedEpoch: epoch))
+        XCTAssertEqual(model.record(for: .outs).total, 1)
+    }
+
+    func testResetInvalidatesOldRoundAndPlacementNeverAwardsProgress() throws {
+        let model = ProgressionModel(store: store)
+        let oldEpoch = model.epoch
+        XCTAssertTrue(model.setPlacement(report: .playRegularly,
+            answers: ["showdown": "pair", "pot": "include-blinds",
+                      "price": "compare-call-to-pot"], skipped: false,
+            expectedEpoch: oldEpoch))
+        XCTAssertEqual(model.state.placement?.recommendedConcept, Concept.rangeRead.rawValue)
+        XCTAssertTrue(model.state.nodes.isEmpty)
+        XCTAssertTrue(model.state.concepts.isEmpty)
+        try model.resetProgress()
+        XCTAssertNotEqual(model.epoch, oldEpoch)
+        XCTAssertFalse(model.beginRound(concept: .showdown, seed: 1,
+                                        expectedEpoch: oldEpoch))
+        XCTAssertNil(model.state.placement)
     }
 
     func testDemoStateRoundTripsThroughTheProductionStore() throws {
@@ -56,9 +209,10 @@ final class ProgressionModelTests: XCTestCase {
         try withReadOnlyDirectory {
             model.completeFirstLesson()
 
-            XCTAssertEqual(model.state.firstLessonCompleted, true)
+            XCTAssertNil(model.state.firstLessonCompleted)
             XCTAssertNotNil(model.saveError)
             XCTAssertEqual(try store.exportData(), savedBefore)
+            XCTAssertEqual(try store.importData(model.exportData()).firstLessonCompleted, true)
         }
 
         model.retrySave()
@@ -165,7 +319,7 @@ final class ProgressionModelTests: XCTestCase {
             XCTAssertEqual(try store.exportData(), previousBytes)
             let exported = try store.importData(model.exportData())
             XCTAssertEqual(exported.record(for: .outs).total, 1)
-            XCTAssertEqual(exported.record(for: .potOdds).total, 1)
+            XCTAssertEqual(exported.record(for: .potOdds).total, 0)
         }
 
         model.retrySave()
@@ -173,7 +327,7 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertNil(model.saveError)
         XCTAssertEqual(ProgressionModel(store: store).state, model.state)
         XCTAssertEqual(model.record(for: .outs).total, 1)
-        XCTAssertEqual(model.record(for: .potOdds).total, 1)
+        XCTAssertEqual(model.record(for: .potOdds).total, 0)
     }
 
     func testFailedResetKeepsDisplayedAndSavedProgress() throws {
@@ -273,8 +427,9 @@ final class ProgressionModelTests: XCTestCase {
         let bytes = try JSONEncoder().encode(ProgressState())
         try bytes.write(to: url)
 
-        let prepared = try await ProgressFileReader.readAndValidate(url)
         let target = ProgressionModel(store: store)
+        let prepared = try await ProgressFileReader.readAndValidate(
+            url, expectedEpoch: target.epoch, expectedRevision: target.state.revision)
         try target.importPrepared(prepared)
         XCTAssertEqual(target.state, ProgressState())
     }
@@ -284,7 +439,8 @@ final class ProgressionModelTests: XCTestCase {
         try Data(repeating: 0, count: ProgressionStore.maximumFileBytes + 1).write(to: url)
 
         do {
-            _ = try await ProgressFileReader.readAndValidate(url)
+            _ = try await ProgressFileReader.readAndValidate(
+                url, expectedEpoch: UUID(), expectedRevision: 0)
             XCTFail("oversized imports must be rejected before decoding")
         } catch {
             XCTAssertEqual(error as? StoreError,
@@ -298,14 +454,38 @@ final class ProgressionModelTests: XCTestCase {
         replacement.streak.longest = 9
         let source = dir.appendingPathComponent("prepared-backup.json")
         try JSONEncoder().encode(replacement).write(to: source)
-        let prepared = try await ProgressFileReader.readAndValidate(source)
         let model = ProgressionModel(store: store)
+        let prepared = try await ProgressFileReader.readAndValidate(
+            source, expectedEpoch: model.epoch, expectedRevision: model.state.revision)
         let original = model.state
 
         try withReadOnlyDirectory {
             XCTAssertThrowsError(try model.importPrepared(prepared))
             XCTAssertEqual(model.state, original)
         }
+    }
+
+    func testPreparedImportCannotReplaceAnUnsavedAnswerWithSamePublishedRevision() throws {
+        let model = ProgressionModel(store: store)
+        var replacement = ProgressState()
+        replacement.streak.current = 4
+        replacement.streak.longest = 4
+        let prepared = PreparedProgressImport(state: replacement,
+            expectedEpoch: model.epoch, expectedRevision: model.state.revision)
+        let originalBytes = try store.exportData()
+
+        try withReadOnlyDirectory {
+            XCTAssertFalse(model.record(concept: .outs, band: .spotOn))
+            XCTAssertNotNil(model.saveError)
+            XCTAssertThrowsError(try model.importPrepared(prepared)) { error in
+                XCTAssertEqual(error as? ProgressCommandError, .staleImport)
+            }
+            XCTAssertEqual(try store.exportData(), originalBytes)
+            XCTAssertEqual(try store.importData(model.exportData()).record(for: .outs).total, 1)
+        }
+        model.retrySave()
+        XCTAssertEqual(model.record(for: .outs).total, 1)
+        XCTAssertThrowsError(try model.importPrepared(prepared))
     }
 
     func testFilePickerCancellationIsNotPresentedAsFailure() {

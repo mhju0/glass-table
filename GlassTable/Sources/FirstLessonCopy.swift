@@ -1,10 +1,51 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import Foundation
+import GlassTableDrills
 
 /// Semantic keys for the bounded first-lesson localization surface. Korean remains
 /// the only reviewed language; these calls let Xcode extract translator-ready keys
 /// later without scattering the lesson script through its layout.
 enum FirstLessonCopy {
+    enum Key {
+        case title, skip, close, exampleProgress, transferProgress, introductionProgress
+        case exampleQuestion, transferQuestion, examplePrompt, transferPrompt, pairRule
+        case sharedCards, heroCards, villainCards, choiceHint, selectWinnerHint
+        case correctTitle, retryTitle, explanationTitle, higherPair, lowerPair
+        case tryTransfer, seeIntroduction, beginCourse, returnToLearning
+        case introductionTitle, introductionBody
+    }
+
+    static func text(_ key: Key, in language: LearningLanguage) -> String {
+        switch key {
+        case .title: language.text(title, "Try your first hand")
+        case .skip: language.text(skip, "Skip")
+        case .close: language.text(close, "Close")
+        case .exampleProgress: language.text(exampleProgress, "Let's solve one together")
+        case .transferProgress: language.text(transferProgress, "Now choose on your own")
+        case .introductionProgress: language.text(introductionProgress, "You're ready for the lessons")
+        case .exampleQuestion: language.text(exampleQuestion, "Which hand wins?")
+        case .transferQuestion: language.text(transferQuestion, "Use the same rule with new cards")
+        case .examplePrompt: language.text(examplePrompt, "The five cards in the middle are shared. Choose the stronger hand.")
+        case .transferPrompt: language.text(transferPrompt, "Only the cards changed. Find the higher pair.")
+        case .pairRule: language.text(pairRule, "Two cards of the same rank make one pair.\nAn ace is higher than a king.")
+        case .sharedCards: language.text(sharedCards, "Shared cards")
+        case .heroCards: language.text(heroCards, "My cards")
+        case .villainCards: language.text(villainCards, "Opponent's cards")
+        case .choiceHint: language.text(choiceHint, "This hand is stronger")
+        case .selectWinnerHint: language.text(selectWinnerHint, "Choose this hand as the winner")
+        case .correctTitle: language.text(correctTitle, "You got it")
+        case .retryTitle: language.text(retryTitle, "Let's look at the cards again")
+        case .explanationTitle: language.text(explanationTitle, "Why?")
+        case .higherPair: language.text(higherPair, "Higher pair")
+        case .lowerPair: language.text(lowerPair, "Lower pair")
+        case .tryTransfer: language.text(tryTransfer, "Try different cards")
+        case .seeIntroduction: language.text(seeIntroduction, "See how learning works")
+        case .beginCourse: language.text(beginCourse, "Start the first lesson")
+        case .returnToLearning: language.text(returnToLearning, "Back to Learn")
+        case .introductionTitle: language.text(introductionTitle, "Learn one decision at a time")
+        case .introductionBody: language.text(introductionBody, "Watch the reasoning, try with help, then solve a different hand on your own. Later, return to review what you learned.")
+        }
+    }
     static let title = String(localized: "firstLesson.title",
                               defaultValue: "첫 문제 풀어보기",
                               comment: "Title of the hands-on first lesson")

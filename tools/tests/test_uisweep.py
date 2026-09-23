@@ -56,6 +56,7 @@ class UISweepTests(unittest.TestCase):
                         FAKE_ROOT=str(self.root), GT_SIM='iPhone 17')
         self.env.pop('GT_CONTENT_SIZE', None)
         self.env.pop('GT_APPEARANCE', None)
+        self.env.pop('GT_LANGUAGE', None)
 
     def run_sweep(self, *args, fail=''):
         return subprocess.run(['bash', str(self.root / 'tools/uisweep.sh'), *args],
@@ -139,6 +140,20 @@ class UISweepTests(unittest.TestCase):
         result = self.run_sweep('--screen', 'today')
         self.assertEqual(result.returncode, 2)
         self.assertIn('unknown appearance', result.stderr)
+        self.assertEqual(self.calls(), [])
+
+    def test_english_language_is_recorded(self):
+        self.env['GT_LANGUAGE'] = 'en'
+        result = self.run_sweep('--screen', 'learn')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = Path(result.stdout.strip().splitlines()[-1])
+        self.assertIn('language=en', (output / 'run.txt').read_text())
+
+    def test_invalid_language_fails_before_building(self):
+        self.env['GT_LANGUAGE'] = 'fr'
+        result = self.run_sweep('--screen', 'learn')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('unknown language', result.stderr)
         self.assertEqual(self.calls(), [])
 
     def test_no_build_reuses_matching_artifact_and_rejects_edits(self):

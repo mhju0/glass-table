@@ -17,6 +17,12 @@ public extension Card {
     /// consistently by every locale or speech voice.
     var spokenKorean: String { "\(suitKorean) \(Card.displayRanks[rank - 2])" }
 
+    /// VoiceOver name selected from the card value, independent of the glyph voice.
+    func spoken(in language: LearningLanguage) -> String {
+        language.text(spokenKorean,
+                      "\(Card.displayRanks[rank - 2]) of \(DrillTerms.suit(suit, in: language))")
+    }
+
     internal static let displayRanks =
         ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
     internal static let displaySuits = ["♣", "♦", "♥", "♠"]

@@ -51,6 +51,7 @@ struct CardRow: View {
 /// The stable reading order for a poker decision. Every region uses the same card
 /// geometry; quiet rules separate ownership without turning the table into panels.
 struct ThreeRegionCardTable: View {
+    @Environment(\.learningLanguage) private var language
     let opponent: [Card]
     let board: [Card]
     let hero: [Card]
@@ -60,11 +61,13 @@ struct ThreeRegionCardTable: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            region(opponentTitle, cards: opponent)
+            region(opponentTitle == "상대 카드" ? language.text("상대 카드", "Opponent's cards") : opponentTitle,
+                   cards: opponent)
             boundary
-            region("공용 카드", cards: board)
+            region(language.text("공용 카드", "Shared cards"), cards: board)
             boundary
-            region(heroTitle, cards: hero)
+            region(heroTitle == "내 카드" ? language.text("내 카드", "My cards") : heroTitle,
+                   cards: hero)
         }
         .frame(maxWidth: .infinity)
     }
@@ -77,7 +80,7 @@ struct ThreeRegionCardTable: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 11)
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(title.hasPrefix("내 카드")
+        .accessibilityIdentifier(title == language.text("내 카드", "My cards")
                                  ? "three-region-hero-cards" : "card-region-\(title)")
     }
 
@@ -98,6 +101,13 @@ struct SectionLabel: View {
 }
 
 extension GradeBand {
+    func label(in language: LearningLanguage) -> String {
+        switch self {
+        case .spotOn: language.text("정확", "Exact")
+        case .close: language.text("근접", "Close")
+        case .off: language.text("다시 살펴볼까요?", "Review this one")
+        }
+    }
     var label: String {
         switch self {
         case .spotOn: return "정확"
@@ -143,6 +153,7 @@ extension GradeBand {
 ///   4. **color** — additive only, never load-bearing.
 /// Numbers stay near-black (14.9:1 on the tint) because the band inks only reach ~5:1.
 struct VerdictRow: View {
+    @Environment(\.learningLanguage) private var language
     let band: GradeBand
     let mine: String
     let correct: String
@@ -176,9 +187,9 @@ struct VerdictRow: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 7) {
-                    Text(band.label).font(GT.title(18)).foregroundStyle(band.ink)
+                    Text(band.label(in: language)).font(GT.title(18)).foregroundStyle(band.ink)
                     if let delta {
-                        Text(delta).font(GT.semibold(12)).foregroundStyle(band.ink.opacity(0.85))
+                        Text(localizedDelta(delta)).font(GT.semibold(12)).foregroundStyle(band.ink.opacity(0.85))
                     }
                 }
                 answers
@@ -190,9 +201,11 @@ struct VerdictRow: View {
         .background(band.tint, in: RoundedRectangle(cornerRadius: 16))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(band == .spotOn
-            ? "\(band.label). 정답 \(correct), 내 답과 같아요."
-            : "\(band.label). 내 답 \(mine), 정답 \(correct)."
-              + (delta.map { " \($0)." } ?? ""))
+            ? language.text("\(band.label). 정답 \(correct), 내 답과 같아요.",
+                            "\(band.label(in: language)). Correct answer \(correct), same as my answer.")
+            : language.text("\(band.label). 내 답 \(mine), 정답 \(correct).",
+                            "\(band.label(in: language)). My answer \(mine), correct answer \(correct).")
+              + (delta.map { " \(localizedDelta($0))." } ?? ""))
     }
 
     /// Right answer: one value, nothing to compare. Wrong: the correction shown as a move
@@ -200,21 +213,36 @@ struct VerdictRow: View {
     @ViewBuilder
     private var answers: some View {
         if band == .spotOn {
-            Text("정답 \(correct)").font(GT.title(15)).foregroundStyle(GT.ink)
+            Text(language.text("정답 \(correct)", "Correct \(correct)"))
+                .font(GT.title(15)).foregroundStyle(GT.ink)
         } else {
             HStack(spacing: 6) {
-                Text("내 답 \(mine)").font(GT.body(13)).foregroundStyle(GT.inkMuted)
+                Text(language.text("내 답 \(mine)", "My answer \(mine)"))
+                    .font(GT.body(13)).foregroundStyle(GT.inkMuted)
                 Image(systemName: "arrow.right").font(.system(size: 10, weight: .bold))
                     .foregroundStyle(GT.inkMuted)
-                Text("정답 \(correct)").font(GT.title(15)).foregroundStyle(GT.ink)
+                Text(language.text("정답 \(correct)", "Correct \(correct)"))
+                    .font(GT.title(15)).foregroundStyle(GT.ink)
             }
         }
+    }
+
+    private func localizedDelta(_ value: String) -> String {
+        guard language == .english else { return value }
+        if value.hasSuffix("%p 차이") {
+            return value.replacingOccurrences(of: "%p 차이", with: " percentage points apart")
+        }
+        if value.hasSuffix(" 차이") {
+            return value.replacingOccurrences(of: " 차이", with: " apart")
+        }
+        return value
     }
 }
 
 /// Board + the tapped river card, both finished hands, and who wins. Shared by the outs
 /// reveal and 첫 핸드 on purpose: the first hand rehearses the affordance the drill uses.
 struct RiverExplainPanel: View {
+    @Environment(\.learningLanguage) private var language
     let spot: OutsSpot
     let river: Card
 
@@ -223,15 +251,17 @@ struct RiverExplainPanel: View {
         VStack(alignment: .leading, spacing: 9) {
             CardRow(cards: spot.board)
             HStack(spacing: 10) {
-                SectionLabel(text: "리버")
+                SectionLabel(text: language.text("리버", "Final card"))
                 PlayingCardView(card: river)
                     .overlay(RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: PlayingCardView.canonicalSize))
                         .strokeBorder(GT.mint, lineWidth: 2.5))
             }
-            Text("내 핸드 · \(handName(ex.hero))").font(GT.title(14)).foregroundStyle(GT.onFelt)
-            Text("상대 · \(handName(ex.villain))")
+            Text("\(language.text("내 핸드", "My hand")) · \(DrillTerms.hand(ex.hero, in: language))")
+                .font(GT.title(14)).foregroundStyle(GT.onFelt)
+            Text("\(language.text("상대", "Opponent")) · \(DrillTerms.hand(ex.villain, in: language))")
                 .font(GT.semibold(13)).foregroundStyle(GT.onFelt.opacity(0.85))
-            Text(ex.heroWins ? "→ 내가 이겨요" : "→ 완성해도 상대가 더 강해요")
+            Text(ex.heroWins ? language.text("내가 이겨요", "My hand wins")
+                             : language.text("완성해도 상대가 더 강해요", "The opponent still wins"))
                 .font(GT.title(13))
                 .foregroundStyle(ex.heroWins ? GTBand.spotOnInk : GTBand.offInk)
         }
@@ -244,13 +274,15 @@ struct RiverExplainPanel: View {
 /// "용어 · 팟 오즈" — opens the glossary scrolled to one term, from inside a reveal.
 /// Owns its own sheet state so a call site is one line.
 struct GlossaryChip: View {
+    @Environment(\.learningLanguage) private var language
     let term: String
     @State private var open = false
     var body: some View {
         Button { open = true } label: {
             HStack(spacing: 4) {
                 Image(systemName: "text.book.closed.fill").font(.system(size: 9.5))
-                Text("용어 · \(term)").font(GT.semibold(11))
+                Text("\(language.text("용어", "Term")) · \(GlossaryView.displayName(for: term, language: language))")
+                    .font(GT.semibold(11))
             }
             .foregroundStyle(GT.inkSecondary)
             .padding(.horizontal, 11).padding(.vertical, 6)
@@ -260,7 +292,8 @@ struct GlossaryChip: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
-        .accessibilityLabel("용어집에서 \(term) 보기")
+        .accessibilityLabel(language.text("용어집에서 \(term) 보기",
+                                          "Open glossary entry for \(GlossaryView.displayName(for: term, language: language))"))
         .sheet(isPresented: $open) { GlossaryView(focus: term) }
     }
 }
@@ -312,6 +345,7 @@ extension View {
 /// Direction carries the meaning, which is why these are arrows and not words: ∨ puts
 /// the sheet back down the way it came up, ‹ steps back one level inside it.
 struct ChromeButton: View {
+    @Environment(\.learningLanguage) private var language
     let symbol: String
     /// Never rendered — the arrow is the label. Spoken by VoiceOver, which cannot see it.
     let spoken: String
@@ -337,7 +371,7 @@ struct ChromeButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
-        .accessibilityLabel(spoken)
+        .accessibilityLabel(spoken == "닫기" ? language.text("닫기", "Close") : spoken)
     }
 }
 

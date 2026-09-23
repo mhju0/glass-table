@@ -58,14 +58,16 @@ public struct ShowdownReveal: Equatable {
 // Hand naming reuses the shipped `handName` in Reveal.swift — the outs reveal and the
 // showdown drill must never name the same hand two different ways.
 
-public func gradeShowdown(answer: Int, spot: ShowdownSpot) -> ShowdownReveal {
+public func gradeShowdown(answer: Int, spot: ShowdownSpot,
+                          language: LearningLanguage = .korean) -> ShowdownReveal {
     let w = spot.winner
-    let hName = handName(spot.heroBest), vName = handName(spot.villainBest)
+    let hName = DrillTerms.hand(spot.heroBest, in: language)
+    let vName = DrillTerms.hand(spot.villainBest, in: language)
     let why: String
     switch w {
-    case 0: why = showdownWhy(winner: hName, loser: vName, spot: spot, heroWon: true)
-    case 1: why = showdownWhy(winner: vName, loser: hName, spot: spot, heroWon: false)
-    default: why = showdownTieWhy(spot)
+    case 0: why = showdownWhy(winner: hName, loser: vName, spot: spot, heroWon: true, language: language)
+    case 1: why = showdownWhy(winner: vName, loser: hName, spot: spot, heroWon: false, language: language)
+    default: why = showdownTieWhy(spot, language: language)
     }
     return ShowdownReveal(band: answer == w ? .spotOn : .off,
                           answer: answer, winner: w,
@@ -75,8 +77,13 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot) -> ShowdownReveal {
 /// A tie means the two exact best-five strengths match. It does not necessarily
 /// mean the board plays: two players can use different hole cards to make the same
 /// straight, flush, or kicked hand.
-func showdownTieWhy(_ spot: ShowdownSpot) -> String {
-    let name = handName(spot.heroBest)
+func showdownTieWhy(_ spot: ShowdownSpot, language: LearningLanguage = .korean) -> String {
+    let name = DrillTerms.hand(spot.heroBest, in: language)
+    if language == .english {
+        return showdownBoardPlays(spot)
+            ? "The five shared cards make the best hand for both players: \(name). It is a tie."
+            : "Both players make equally strong five-card hands: \(name). It is a tie."
+    }
     if showdownBoardPlays(spot) {
         return "공용 카드 다섯 장이 두 사람의 가장 강한 패라서 비겨요. 완성한 패는 둘 다 \(KO.copula(name))"
     }
@@ -103,10 +110,14 @@ func showdownBoardPlays(_ spot: ShowdownSpot) -> Bool {
 /// When both hands share a name — two players on the same trips, say — "3 트리플이 3
 /// 트리플을 이겨요" is true and useless. The kicker decided it, so the kicker is what
 /// the sentence has to name.
-func showdownWhy(winner: String, loser: String, spot: ShowdownSpot, heroWon: Bool) -> String {
+func showdownWhy(winner: String, loser: String, spot: ShowdownSpot, heroWon: Bool,
+                 language: LearningLanguage = .korean) -> String {
     let side = heroWon ? "내" : "상대"
     let other = heroWon ? "상대" : "내"
     guard winner == loser else {
+        if language == .english {
+            return "\(heroWon ? "Your" : "The opponent's") \(winner) beats \(heroWon ? "the opponent's" : "your") \(loser)."
+        }
         return "\(side) \(KO.subject(winner)) \(other) \(KO.object(loser)) 이겨요."
     }
     let winFive = bestFiveCards((heroWon ? spot.hero : spot.villain) + spot.board)
@@ -114,10 +125,13 @@ func showdownWhy(winner: String, loser: String, spot: ShowdownSpot, heroWon: Boo
     // Highest-first, first differing rank is the one that broke the tie.
     let w = winFive.map(\.rank).sorted(by: >), l = loseFive.map(\.rank).sorted(by: >)
     if let i = w.indices.first(where: { $0 < l.count && w[$0] != l[$0] }) {
+        if language == .english {
+            return "Both have \(winner). The kicker decides it: \(heroWon ? "your" : "the opponent's") \(rankLabel(w[i])) beats \(heroWon ? "the opponent's" : "your") \(rankLabel(l[i]))."
+        }
         return "둘 다 \(KO.copula(winner)) 키커가 승부를 갈랐어요. "
              + "\(side) \(rankLabel(w[i])), \(other) \(rankLabel(l[i]))라서 \(side) 쪽이 이겨요."
     }
-    return "둘 다 \(KO.copula(winner))"
+    return language == .english ? "Both players have \(winner)." : "둘 다 \(KO.copula(winner))"
 }
 
 /// Rank as the app prints it on a card face ("10", "Q"), not the parse letter.

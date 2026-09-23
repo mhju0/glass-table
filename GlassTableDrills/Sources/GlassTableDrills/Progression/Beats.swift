@@ -79,7 +79,8 @@ public enum BeatScript {
     /// Replays the hand as it was actually played: the turn, both hands as they stand,
     /// then the river lands and both are re-read before they are compared. A finished
     /// board shown all at once teaches the answer; this teaches the reading.
-    public static func showdown(_ s: ShowdownSpot) -> [Beat] {
+    public static func showdown(_ s: ShowdownSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.showdown(s) }
         let turn = Array(s.board.prefix(4))
         let river = Array(s.board.suffix(1))
 
@@ -137,7 +138,8 @@ public enum BeatScript {
 
     // MARK: 아웃
 
-    public static func outs(_ s: OutsSpot) -> [Beat] {
+    public static func outs(_ s: OutsSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.outs(s) }
         let unseen = 52 - Set(s.hero + s.villain + s.board).count
         // A 4-flush is the only draw shape the spot can prove it has: `excluded` is
         // non-empty exactly when hero holds four to a suit.
@@ -198,7 +200,8 @@ public enum BeatScript {
 
     // MARK: 팟 계산
 
-    public static func potMath(_ s: PotMathSpot) -> [Beat] {
+    public static func potMath(_ s: PotMathSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.potMath(s) }
         var running = 0
         var beats: [Beat] = [Beat("\(s.participantCount)명이 낸 칩을 세어봐요",
                                   detail: "스몰 블라인드(SB) 1칩 · 빅 블라인드(BB) 2칩으로 시작해요. 칩이 더 들어오지 않는 폴드는 생략해요.")]
@@ -238,7 +241,8 @@ public enum BeatScript {
 
     // MARK: 포지션
 
-    public static func position(_ s: PositionSpot) -> [Beat] {
+    public static func position(_ s: PositionSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.position(s) }
         switch s.question {
         case let .behind(p, preflop):
             let order = preflop ? Position.preflopOrder : Position.postflopOrder
@@ -270,7 +274,8 @@ public enum BeatScript {
 
     // MARK: 콤보
 
-    public static func combos(_ s: BlockerSpot) -> [Beat] {
+    public static func combos(_ s: BlockerSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.combos(s) }
         let removedNames = s.removed.map(\.display).joined(separator: "·")
         return [
             Beat("\(s.className)는 원래 \(s.baseline)가지예요",
@@ -294,8 +299,9 @@ public enum BeatScript {
 
     // MARK: 팟 오즈 · MDF
 
-    public static func potOdds(_ s: BetSpot) -> [Beat] {
-        [
+    public static func potOdds(_ s: BetSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.potOdds(s) }
+        return [
             Beat("콜하면 얼마를 걸고 얼마를 받나요",
                  detail: "\(s.bet)bb를 내고, 이기면 팟 \(s.pot) + 벳 \(s.bet) + 내 콜 \(s.bet)을 가져와요."),
             Beat("필요 에퀴티 = 내 콜 ÷ 전체 팟",
@@ -305,8 +311,9 @@ public enum BeatScript {
         ]
     }
 
-    public static func mdf(_ s: BetSpot) -> [Beat] {
-        [
+    public static func mdf(_ s: BetSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.mdf(s) }
+        return [
             Beat("상대는 \(s.bet)bb로 팟 \(s.pot)bb를 노려요",
                  detail: "내가 너무 자주 폴드하면 상대의 블러프가 공짜가 돼요."),
             Beat("MDF = 팟 ÷ (팟 + 벳)",
@@ -318,7 +325,8 @@ public enum BeatScript {
 
     // MARK: 에퀴티 감각
 
-    public static func equitySense(_ s: EquitySenseSpot) -> [Beat] {
+    public static func equitySense(_ s: EquitySenseSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.equitySense(s) }
         let unseen = 52 - Set(s.hero + s.villain + s.board).count
         return [
             Beat("두 손이 보여요", detail: "여기서 쇼다운까지 갔을 때를 세어봐요.", focus: .table),
@@ -333,7 +341,8 @@ public enum BeatScript {
 
     // MARK: EV 계산
 
-    public static func evCall(_ s: EVCallSpot) -> [Beat] {
+    public static func evCall(_ s: EVCallSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.evCall(s) }
         let win = Double(s.pot + s.bet)
         return [
             Beat("EV는 이길 때와 질 때를 저울에 올리는 거예요"),
@@ -351,7 +360,8 @@ public enum BeatScript {
 
     // MARK: 레인지 표기법
 
-    public static func rangeNotation(_ s: RangeNotationSpot) -> [Beat] {
+    public static func rangeNotation(_ s: RangeNotationSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.rangeNotation(s) }
         var beats: [Beat] = [
             Beat("표기법은 핸드 묶음을 줄여 쓴 거예요", value: s.notation,
                  focus: .rangeGrid(s.range, highlight: nil)),
@@ -376,7 +386,8 @@ public enum BeatScript {
 
     // MARK: RFI 차트
 
-    public static func rfi(_ s: RFISpot) -> [Beat] {
+    public static func rfi(_ s: RFISpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.rfi(s) }
         let h = s.handClass
         let pct = RFIChart.openPercent[s.seat] ?? 0
         let chart = RFIChart.range(for: s.seat)
@@ -418,7 +429,8 @@ public enum BeatScript {
     /// The point of the beats is that the answer is *derived* in front of the user —
     /// VPIP and PFR are printed, the seat adjustment is printed, and the grid appears
     /// last. A range handed over as a finished picture teaches nothing about reading.
-    public static func rangeRead(_ s: RangeReadSpot) -> [Beat] {
+    public static func rangeRead(_ s: RangeReadSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.rangeRead(s) }
         let a = s.archetype
         let truth = s.trueRange
         let raising = { if case .opened = s.action { return true } else { return false } }()
@@ -465,7 +477,8 @@ public enum BeatScript {
 
     /// Builds the number instead of stating it: the board, then the range, then what
     /// that range actually made on it, then the share that is a real pair.
-    public static func hitFrequency(_ s: HitFrequencySpot) -> [Beat] {
+    public static func hitFrequency(_ s: HitFrequencySpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.hitFrequency(s) }
         let d = s.distribution
         let t = s.texture
         return [
@@ -500,7 +513,8 @@ public enum BeatScript {
     // MARK: 레인지 어드밴티지
 
     /// Two distributions side by side, because the whole answer is the comparison.
-    public static func rangeAdvantage(_ s: RangeAdvantageSpot) -> [Beat] {
+    public static func rangeAdvantage(_ s: RangeAdvantageSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.rangeAdvantage(s) }
         let o = rangeOnBoard(s.openerRange, board: s.board)
         let c = rangeOnBoard(s.callerRange, board: s.board)
         let eq = s.openerEquityPct
@@ -532,10 +546,14 @@ public enum BeatScript {
         ]
     }
 
-    static func widestGapValue(opener: RangeOnBoard, caller: RangeOnBoard) -> String {
+    static func widestGapValue(opener: RangeOnBoard, caller: RangeOnBoard,
+                               language: LearningLanguage = .korean) -> String {
         let bucket = MadeHand.allCases.max {
             abs(opener.share($0) - caller.share($0)) < abs(opener.share($1) - caller.share($1))
         } ?? .strong
+        if language == .english {
+            return "\(DrillTerms.madeHand(bucket, in: language)) \(pctText(opener.share(bucket) * 100))% vs \(pctText(caller.share(bucket) * 100))%"
+        }
         return "\(bucket.korean) \(pctText(opener.share(bucket) * 100))% 대 "
              + "\(pctText(caller.share(bucket) * 100))%"
     }
@@ -549,7 +567,8 @@ public enum BeatScript {
     /// Rule → inversion → shape change. The policy table row is shown *as the rule*
     /// before the bars, because the whole claim of the drill is that the number is
     /// checkable against a published table rather than read off a black box.
-    public static func actionRead(_ s: ActionReadSpot) -> [Beat] {
+    public static func actionRead(_ s: ActionReadSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.actionRead(s) }
         let acted = s.acted
         let full = s.full
         let bars = [BucketBar(label: "\(s.villain.name) 오픈 레인지 전체",
@@ -588,7 +607,8 @@ public enum BeatScript {
 
     /// Derives the chart instead of asserting it: the opener's range, the two shares
     /// applied to its width, then the finished bands with the hand ringed.
-    public static func defend(_ s: DefendSpot) -> [Beat] {
+    public static func defend(_ s: DefendSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.defend(s) }
         let openPct = RFIChart.openPercent[s.opener] ?? 0
         let correct = s.correct
         return [
@@ -623,7 +643,8 @@ public enum BeatScript {
     /// before naming a winner. 콜/폴드 above ends at "which one" on purpose — that node
     /// teaches the comparison. This one has to end at "how much", because the whole
     /// point of the concept is that being wrong is not one thing.
-    public static func evLoss(_ s: EVLossSpot) -> [Beat] {
+    public static func evLoss(_ s: EVLossSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.evLoss(s) }
         let ev = s.callEVbb
         let gap = s.equityPct - s.requiredPct
         return [
@@ -658,8 +679,9 @@ public enum BeatScript {
 
     // MARK: 콜/폴드
 
-    public static func callFold(_ s: CallFoldSpot) -> [Beat] {
-        [
+    public static func callFold(_ s: CallFoldSpot, language: LearningLanguage = .korean) -> [Beat] {
+        if language == .english { return EnglishBeatScript.callFold(s) }
+        return [
             Beat("지금 상황이에요", detail: "팟 \(s.pot)bb, 상대 벳 \(s.bet)bb.", focus: .table),
             Beat("이길 확률", detail: "\(pctText(s.equityPct))%", focus: .table,
                  highlight: s.hero),

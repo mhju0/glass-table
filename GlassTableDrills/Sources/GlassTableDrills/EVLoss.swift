@@ -38,12 +38,12 @@ public func evLossBand(bb loss: Double) -> GradeBand {
 
 /// Human label for an EV loss. Exact and near-best choices share the `.spotOn`
 /// progression band, but the words stay honest about whether another option was better.
-public func evLossLabel(loss: Double) -> String {
-    if loss <= 0 { return "최선" }
+public func evLossLabel(loss: Double, language: LearningLanguage = .korean) -> String {
+    if loss <= 0 { return language.text("최선", "Best choice") }
     switch evLossBand(bb: loss) {
-    case .spotOn: return "거의 최선"
-    case .close:  return "부정확"
-    case .off:    return "실수"
+    case .spotOn: return language.text("거의 최선", "Near best")
+    case .close:  return language.text("부정확", "Could improve")
+    case .off:    return language.text("실수", "Costly choice")
     }
 }
 
@@ -109,6 +109,10 @@ public struct EVLossSpot: Equatable {
     public var villainRange: HandRange { villain.raiseRange(from: villainSeat) }
     public var rangeLabel: String { "\(villainSeat.rawValue) 오픈 · \(villain.name)" }
 
+    public func rangeLabel(in language: LearningLanguage) -> String {
+        language.text(rangeLabel, "\(villainSeat.rawValue) opens · \(villain.beginnerTitle(in: language))")
+    }
+
     public var requiredPct: Double {
         requiredEquity(toCall: Double(bet), pot: Double(pot + bet)) * 100
     }
@@ -124,6 +128,11 @@ public struct EVLossSpot: Equatable {
     public var options: [DecisionOption] {
         [DecisionOption(label: "폴드", ev: 0),
          DecisionOption(label: "콜", ev: callEVbb)]
+    }
+
+    public func options(in language: LearningLanguage) -> [DecisionOption] {
+        [DecisionOption(label: language.text("폴드", "Fold"), ev: 0),
+         DecisionOption(label: language.text("콜", "Call"), ev: callEVbb)]
     }
     public static let foldIndex = 0
     public static let callIndex = 1
@@ -172,21 +181,30 @@ public struct EVLossReveal: Equatable {
     public let whyText: String
 }
 
-public func gradeEVLoss(userCalls: Bool, spot: EVLossSpot) -> EVLossReveal {
+public func gradeEVLoss(userCalls: Bool, spot: EVLossSpot,
+                        language: LearningLanguage = .korean) -> EVLossReveal {
     let grade = gradeByEVLoss(chosen: userCalls ? EVLossSpot.callIndex : EVLossSpot.foldIndex,
-                              options: spot.options)
+                              options: spot.options(in: language))
     // Phrased off `chosen` when nothing was lost and off `best` otherwise, so the
     // sentence is true even in the measure-zero case where both options price the same.
-    let verdict = grade.loss <= 0
-        ? "\(KO.subject(grade.chosen.label)) 최선이었어요."
-        : "\(KO.subject(grade.best.label)) 더 좋았어요."
+    let verdict = language == .english
+        ? (grade.loss <= 0
+            ? "\(userCalls ? "Calling" : "Folding") was the better choice."
+            : "\(userCalls ? "Folding" : "Calling") would have been better.")
+        : (grade.loss <= 0
+            ? "\(KO.subject(grade.chosen.label)) 최선이었어요."
+            : "\(KO.subject(grade.best.label)) 더 좋았어요.")
     // Both EVs, always — including the one the user picked. A grade that prints only the
     // better option is asking to be taken on faith.
     return EVLossReveal(
         band: grade.band, grade: grade,
         equityPct: spot.equityPct, requiredPct: spot.requiredPct,
         callEVbb: spot.callEVbb,
-        whyText: "콜의 EV는 \(bbText(spot.callEVbb))bb, 폴드는 0bb. "
-               + "\(spot.rangeLabel) 상대로 에퀴티 \(pctText(spot.equityPct))%, "
-               + "필요 에퀴티 \(pctText(spot.requiredPct))%. " + verdict)
+        whyText: language.text(
+            "콜의 EV는 \(bbText(spot.callEVbb))bb, 폴드는 0bb. "
+            + "\(spot.rangeLabel) 상대로 에퀴티 \(pctText(spot.equityPct))%, "
+            + "필요 에퀴티 \(pctText(spot.requiredPct))%. " + verdict,
+            "Calling is worth \(bbText(spot.callEVbb))bb; folding is worth 0bb. "
+            + "Against \(spot.villainSeat.rawValue)'s opening range, your equity is \(pctText(spot.equityPct))%; "
+            + "you need \(pctText(spot.requiredPct))% to call. " + verdict))
 }

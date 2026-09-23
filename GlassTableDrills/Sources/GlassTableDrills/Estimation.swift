@@ -107,7 +107,8 @@ public struct EstimateReveal: Equatable {
     public var intervalHit: Bool { intervalAnswer.containsTruth }
 }
 
-public func gradeEquitySense(estimate: Estimate, spot: EquitySenseSpot) -> EstimateReveal {
+public func gradeEquitySense(estimate: Estimate, spot: EquitySenseSpot,
+                             language: LearningLanguage = .korean) -> EstimateReveal {
     let correct = spot.equityPct
     let unseen = 52 - Set(spot.hero + spot.villain + spot.board).count
     return EstimateReveal(
@@ -115,11 +116,13 @@ public func gradeEquitySense(estimate: Estimate, spot: EquitySenseSpot) -> Estim
                             closeWithin: 10, spotOnWithin: 4),
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
-        whyText: "남은 \(unseen)장으로 가능한 모든 보드를 세어 계산했어요. "
-               + "\(pctText(correct))%. 근사가 아니라 정확한 수치예요.")
+        whyText: language.text(
+            "남은 \(unseen)장으로 가능한 모든 보드를 세어 계산했어요. \(pctText(correct))%. 근사가 아니라 정확한 수치예요.",
+            "We counted every possible board from the \(unseen) unseen cards. Your equity is \(pctText(correct))%. This is an exact count, not an estimate."))
 }
 
-public func gradeEVCall(estimate: Estimate, spot: EVCallSpot) -> EstimateReveal {
+public func gradeEVCall(estimate: Estimate, spot: EVCallSpot,
+                        language: LearningLanguage = .korean) -> EstimateReveal {
     let correct = spot.evBB
     let win = pctText(spot.equityPct)
     let sign = correct > 0 ? "이득" : "손해"
@@ -129,7 +132,8 @@ public func gradeEVCall(estimate: Estimate, spot: EVCallSpot) -> EstimateReveal 
                             closeWithin: 1.5, spotOnWithin: 0.5),
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
-        whyText: "\(win)%로 \(spot.pot + spot.bet)bb를 따고, \(pctText(100 - spot.equityPct))%로 "
-               + "\(spot.bet)bb를 잃어요 → \(pctText(correct))bb \(sign). "
-               + "이번 판의 결과는 이 계산과 상관없어요.")
+        whyText: language.text(
+            "\(win)%로 \(spot.pot + spot.bet)bb를 따고, \(pctText(100 - spot.equityPct))%로 "
+            + "\(spot.bet)bb를 잃어요 → \(pctText(correct))bb \(sign). 이번 판의 결과는 이 계산과 상관없어요.",
+            "You win \(spot.pot + spot.bet)bb \(win)% of the time and lose \(spot.bet)bb \(pctText(100 - spot.equityPct))% of the time. The call is worth \(pctText(correct))bb on average. One hand's result does not change that value."))
 }

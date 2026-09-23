@@ -11,6 +11,7 @@ import GlassTableDrills
 /// denominator is the term beginners miss, and it is drawn dashed because it is
 /// hypothetical money — not in the middle yet.
 struct PriceBarView: View {
+    @Environment(\.learningLanguage) private var language
     struct Segment: Identifiable {
         let label: String
         let bb: Int
@@ -44,13 +45,13 @@ struct PriceBarView: View {
         }
         .frame(height: 58)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(segments.map { "\($0.label) \($0.bb) 빅블라인드" }
+        .accessibilityLabel(segments.map { "\(displayLabel($0.label)) \($0.bb) \(language.text("빅블라인드", "big blinds"))" }
             .joined(separator: ", "))
     }
 
     private func segmentView(_ seg: Segment, width: CGFloat) -> some View {
         VStack(spacing: 2) {
-            Text(seg.label).font(GT.semibold(11)).foregroundStyle(GT.onTable)
+            Text(displayLabel(seg.label)).font(GT.semibold(11)).foregroundStyle(GT.onTable)
             Text("\(seg.bb)").font(GT.title(17).monospacedDigit()).foregroundStyle(GT.onTable)
         }
         .minimumScaleFactor(0.6)
@@ -63,6 +64,15 @@ struct PriceBarView: View {
                     .strokeBorder(GT.onTable,
                                   style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
             }
+        }
+    }
+
+    private func displayLabel(_ value: String) -> String {
+        switch value {
+        case "팟": language.text("팟", "Pot")
+        case "벳": language.text("벳", "Bet")
+        case "콜": language.text("콜", "Call")
+        default: value
         }
     }
 }

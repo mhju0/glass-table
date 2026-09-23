@@ -13,6 +13,7 @@ import GlassTableDrills
 /// carry their own labels underneath, so the bar survives greyscale and the legend is
 /// readable without matching swatches to a key.
 struct BucketBarView: View {
+    @Environment(\.learningLanguage) private var language
     let label: String
     let distribution: RangeOnBoard
 
@@ -33,7 +34,8 @@ struct BucketBarView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(label).font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                 Spacer(minLength: 8)
-                Text("페어 이상 \(pctText(distribution.pairOrBetter * 100))%")
+                Text(language.text("페어 이상 \(pctText(distribution.pairOrBetter * 100))%",
+                                   "Pair or better \(pctText(distribution.pairOrBetter * 100))%"))
                     .font(GT.title(13).monospacedDigit()).foregroundStyle(GT.onFelt)
             }
             GeometryReader { geo in
@@ -72,7 +74,7 @@ struct BucketBarView: View {
                 HStack(spacing: 4) {
                     RoundedRectangle(cornerRadius: 2).fill(fill(b))
                         .frame(width: 9, height: 9)
-                    Text("\(b.korean) \(pctText(distribution.share(b) * 100))%")
+                    Text("\(DrillTerms.madeHand(b, in: language)) \(pctText(distribution.share(b) * 100))%")
                         .font(GT.body(10)).foregroundStyle(GT.onFeltMuted)
                 }
             }
@@ -83,7 +85,7 @@ struct BucketBarView: View {
     /// segments, a VoiceOver user only learns a bucket is empty by being told.
     private var spoken: String {
         label + ", " + MadeHand.allCases
-            .map { "\($0.korean) \(pctText(distribution.share($0) * 100))퍼센트" }
+            .map { "\(DrillTerms.madeHand($0, in: language)) \(pctText(distribution.share($0) * 100))\(language.text("퍼센트", " percent"))" }
             .joined(separator: ", ")
     }
 }

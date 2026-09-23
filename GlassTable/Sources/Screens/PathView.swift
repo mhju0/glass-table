@@ -3,6 +3,7 @@ import SwiftUI
 import GlassTableDrills
 
 struct PathView: View {
+    @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let onOpenNode: (CurriculumNode) -> Void
@@ -17,6 +18,10 @@ struct PathView: View {
                     header
                     freePlay
                     ForEach(Array(Curriculum.units.enumerated()), id: \.element.id) { index, unit in
+                        if let stage = stageTitle(index) {
+                            Text(stage).font(GT.title(24)).foregroundStyle(GT.ink)
+                                .padding(.top, 12)
+                        }
                         unitSection(unit, index: index)
                     }
                 }
@@ -33,8 +38,8 @@ struct PathView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("배움의 길").font(GT.title(30)).foregroundStyle(GT.onFelt)
-            Text("한 개념씩 배우고 문제를 푼 뒤, 마지막에 섞어서 확인해요.")
+            Text(language.text("배움의 길", "Learning path")).font(GT.title(30)).foregroundStyle(GT.onFelt)
+            Text(language.text("추천 순서대로 배우거나 어떤 레슨이든 골라요. 앞 단계를 건너뛰어도 완료 기록은 그대로예요.", "Follow the suggested order or pick any lesson. Skipping ahead doesn't mark earlier lessons complete."))
                 .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                 .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
@@ -49,8 +54,8 @@ struct PathView: View {
                     .font(.system(size: 18, weight: .semibold)).foregroundStyle(GT.mint)
                     .frame(width: 36, height: 36)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("자유 연습").font(GT.title(17)).foregroundStyle(GT.onFelt)
-                    Text("원하는 개념을 횟수 제한 없이 연습해요")
+                    Text(language.text("한 가지 집중 연습", "Practice one skill")).font(GT.title(17)).foregroundStyle(GT.onFelt)
+                    Text(language.text("원하는 주제를 다섯 문제씩 연습해요", "Choose a topic for a five-question round"))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                 }
@@ -72,7 +77,7 @@ struct PathView: View {
             Button { toggle(unit.id) } label: {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text("\(index + 1)단원").font(GT.semibold(13))
+                        Text(language.text("\(index + 1)단원", "Unit \(index + 1)")).font(GT.semibold(13))
                             .foregroundStyle(current ? GT.mint : GT.onFeltSecondary)
                         Spacer(minLength: 8)
                         Text("\(cleared)/\(unit.nodes.count)")
@@ -81,7 +86,7 @@ struct PathView: View {
                             .font(.system(size: 12, weight: .semibold)).foregroundStyle(GT.onFeltSecondary)
                             .rotationEffect(.degrees(expanded ? 180 : 0))
                     }
-                    Text(unit.title).font(GT.title(21)).foregroundStyle(GT.onFelt)
+                    Text(unitTitle(unit, index: index)).font(GT.title(21)).foregroundStyle(GT.onFelt)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     GeometryReader { proxy in
                         ZStack(alignment: .leading) {
@@ -95,8 +100,8 @@ struct PathView: View {
                 .padding(.vertical, 14).contentShape(Rectangle())
             }
             .buttonStyle(GTPress())
-            .accessibilityLabel("\(index + 1)단원, \(unit.title), \(unit.nodes.count)개 중 \(cleared)개 완료")
-            .accessibilityHint(expanded ? "단원 접기" : "단원 펼치기")
+            .accessibilityLabel(language.text("\(index + 1)단원, \(unit.title), \(unit.nodes.count)개 중 \(cleared)개 완료", "Unit \(index + 1), \(unitTitle(unit, index: index)), \(cleared) of \(unit.nodes.count) completed"))
+            .accessibilityHint(expanded ? language.text("단원 접기", "Collapse unit") : language.text("단원 펼치기", "Expand unit"))
 
             if expanded {
                 VStack(spacing: 0) {
@@ -146,9 +151,9 @@ struct PathView: View {
             HStack(spacing: 13) {
                 badge(status: status, boss: boss)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(node.title).font(GT.title(status == .available ? 17 : 15))
-                        .foregroundStyle(status == .locked ? GT.onFeltMuted : GT.onFelt)
-                    Text(boss ? "단원에서 배운 개념을 섞어서 풀어요" : nodeBlurb(node))
+                    Text(learningNodeTitle(node, language: language)).font(GT.title(status == .available ? 17 : 15))
+                        .foregroundStyle(GT.onFelt)
+                    Text(learningNodeDescription(node, language: language))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                         .fixedSize(horizontal: false, vertical: true)
@@ -165,10 +170,11 @@ struct PathView: View {
                         in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
             .contentShape(Rectangle())
         }
-        .buttonStyle(GTPress()).disabled(status == .locked)
+        .buttonStyle(GTPress())
         .id(node.id)
-        .accessibilityLabel("\(node.title), \(statusLabel(status))"
+        .accessibilityLabel("\(learningNodeTitle(node, language: language)), \(statusLabel(status))"
                             + (practiceLabel(node).map { ", \($0)" } ?? ""))
+        .accessibilityIdentifier("lesson-\(node.id)")
     }
 
     private func badge(status: NodeStatus, boss: Bool) -> some View {
@@ -186,16 +192,16 @@ struct PathView: View {
     private func icon(status: NodeStatus, boss: Bool) -> String {
         switch status {
         case .cleared: return "checkmark"
-        case .locked: return "lock.fill"
+        case .locked: return "play.fill"
         case .available: return boss ? "crown.fill" : "play.fill"
         }
     }
 
     private func statusLabel(_ status: NodeStatus) -> String {
         switch status {
-        case .cleared: return "완료"
-        case .available: return "지금 할 차례"
-        case .locked: return "잠김"
+        case .cleared: return language.text("완료", "Completed")
+        case .available: return language.text("추천 순서", "Suggested next")
+        case .locked: return language.text("언제든 시작", "Available anytime")
         }
     }
 
@@ -204,10 +210,25 @@ struct PathView: View {
         let record = model.record(for: concept)
         guard record.total > 0 else { return nil }
         switch record.tier {
-        case .attempted: return "기록 시작"
-        case .familiar: return "반복 중"
-        case .proficient: return "능숙 단계"
-        case .mastered: return "숙달 단계"
+        case .attempted: return language.text("기록 시작", "Started")
+        case .familiar: return language.text("반복 중", "Building familiarity")
+        case .proficient: return language.text("능숙 단계", "Practiced")
+        case .mastered: return language.text("숙달 단계", "Mixed checks passed")
+        }
+    }
+
+    private func unitTitle(_ unit: CurriculumUnit, index: Int) -> String {
+        let titles = ["Read the table", "Price and probability", "Read hand charts", "Possible opponent hands", "Read the shared cards", "Compare decision value", "Read actions", "Respond to a raise", "Check defending frequency"]
+        return language.text(unit.title, titles[index])
+    }
+
+    private func stageTitle(_ index: Int) -> String? {
+        switch index {
+        case 0: language.text("카드와 칩부터", "Start with cards and chips")
+        case 1: language.text("가격과 가능성 비교", "Weigh the price and chances")
+        case 2: language.text("상대의 가능한 패 읽기", "Read possible hands")
+        case 5: language.text("더 깊이 있는 판단", "Go deeper with decisions")
+        default: nil
         }
     }
 }

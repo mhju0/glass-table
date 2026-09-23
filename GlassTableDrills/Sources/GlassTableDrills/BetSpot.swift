@@ -42,16 +42,20 @@ public func pctText(_ x: Double) -> String {
     abs(x - x.rounded()) < 0.05 ? "\(Int(x.rounded()))" : String(format: "%.1f", x)
 }
 
-public func gradePotOdds(estimatePct: Int, spot: BetSpot) -> PercentReveal {
+public func gradePotOdds(estimatePct: Int, spot: BetSpot,
+                         language: LearningLanguage = .korean) -> PercentReveal {
     let correct = spot.requiredPct
     return PercentReveal(
         band: gradeEstimate(user: Double(estimatePct), correct: correct,
                             closeWithin: 7.5, spotOnWithin: 2.5),
         answerPct: estimatePct, correctPct: correct,
-        whyText: "벳 \(spot.bet) ÷ (팟 \(spot.pot) + 벳 \(spot.bet) + 콜 \(spot.bet)) = \(pctText(correct))%")
+        whyText: language.text(
+            "벳 \(spot.bet) ÷ (팟 \(spot.pot) + 벳 \(spot.bet) + 콜 \(spot.bet)) = \(pctText(correct))%",
+            "Call \(spot.bet) ÷ (pot \(spot.pot) + bet \(spot.bet) + your call \(spot.bet)) = \(pctText(correct))%."))
 }
 
-public func gradeMDF(estimatePct: Int, spot: BetSpot) -> PercentReveal {
+public func gradeMDF(estimatePct: Int, spot: BetSpot,
+                     language: LearningLanguage = .korean) -> PercentReveal {
     let correct = spot.mdfPct
     return PercentReveal(
         band: gradeEstimate(user: Double(estimatePct), correct: correct,
@@ -60,8 +64,11 @@ public func gradeMDF(estimatePct: Int, spot: BetSpot) -> PercentReveal {
         // The formula alone is an assertion. What's missing for a beginner is *whose*
         // price this is: alpha = 100 − MDF is exactly villain's bluff break-even, so the
         // second sentence derives the first and is always true (no rounding branch).
-        whyText: "팟 \(spot.pot) ÷ (팟 \(spot.pot) + 벳 \(spot.bet)) = \(pctText(correct))%. "
-               + "상대는 벳 \(spot.bet)로 팟 \(spot.pot)을 노려요. 블러프가 "
-               + "\(pctText(100 - correct))%보다 자주 통하면 이득이에요. "
-               + "그래서 최소 \(pctText(correct))%는 지켜요.")
+        whyText: language.text(
+            "팟 \(spot.pot) ÷ (팟 \(spot.pot) + 벳 \(spot.bet)) = \(pctText(correct))%. "
+            + "상대는 벳 \(spot.bet)로 팟 \(spot.pot)을 노려요. 블러프가 "
+            + "\(pctText(100 - correct))%보다 자주 통하면 이득이에요. "
+            + "그래서 최소 \(pctText(correct))%는 지켜요.",
+            "Pot \(spot.pot) ÷ (pot \(spot.pot) + bet \(spot.bet)) = \(pctText(correct))%. "
+            + "The opponent risks \(spot.bet) to win \(spot.pot). Their bluff profits if you fold more than \(pctText(100 - correct))% of the time. Defend at least \(pctText(correct))% across your range."))
 }

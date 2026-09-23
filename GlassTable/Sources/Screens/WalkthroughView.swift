@@ -14,14 +14,25 @@ import GlassTableDrills
 struct WalkthroughView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.learningLanguage) private var language
     let title: String
     let beats: [Beat]
     /// Card rows to show for `.table` beats: (label, cards), top to bottom.
     let rows: [(String, [Card])]
+    let initialIndex: Int
+    let onStep: (Int) -> Bool
     let onFinish: () -> Void
     let onSkip: () -> Void
 
     @State private var index = 0
+
+    init(title: String, beats: [Beat], rows: [(String, [Card])],
+         initialIndex: Int = 0, onStep: @escaping (Int) -> Bool = { _ in true },
+         onFinish: @escaping () -> Void, onSkip: @escaping () -> Void) {
+        self.title = title; self.beats = beats; self.rows = rows
+        self.initialIndex = initialIndex; self.onStep = onStep
+        self.onFinish = onFinish; self.onSkip = onSkip
+    }
 
     private var beat: Beat { beats[min(index, beats.count - 1)] }
     private var isLast: Bool { index >= beats.count - 1 }
@@ -58,6 +69,7 @@ struct WalkthroughView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(FeltBackground())
         .onAppear {
+            index = min(max(0, initialIndex), max(0, beats.count - 1))
             #if DEBUG
             // GT_DEMO_BEAT=<n> opens on beat n — synthetic taps never reach Simulator
             // content, so the highlight/strike states are otherwise unverifiable.
@@ -69,7 +81,7 @@ struct WalkthroughView: View {
         // Stays a word, and stays opposite 닫기. Skipping a lesson is a decision, not a
         // direction — an arrow would leave the user guessing what they were giving up.
         .gtChrome(.topBarTrailing) {
-            Button("건너뛰기", action: onSkip)
+            Button(language.text("건너뛰기", "Skip"), action: onSkip)
                 .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
                 .frame(minHeight: 44)
         }
@@ -78,7 +90,7 @@ struct WalkthroughView: View {
     private var header: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("\(title) · 따라 배우기").font(GT.semibold(14))
+                Text("\(title) · \(language.text("따라 배우기", "Worked example"))").font(GT.semibold(14))
                     .foregroundStyle(GT.onFeltSecondary)
                 Spacer()
                 Text("\(index + 1)/\(beats.count)")
@@ -97,7 +109,9 @@ struct WalkthroughView: View {
         }
         .padding(.horizontal, 18).padding(.top, 4)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(beats.count)단계 중 \(index + 1)단계")
+        .accessibilityLabel(title + ", " + language.text("\(beats.count)단계 중 \(index + 1)단계",
+                                           "Step \(index + 1) of \(beats.count)"))
+        .accessibilityIdentifier("walkthrough-step-\(index)")
     }
 
     @ViewBuilder
@@ -143,7 +157,7 @@ struct WalkthroughView: View {
             // short lines, and a small box top-left under an empty felt reads as a
             // screen that failed to load.
             VStack(alignment: .leading, spacing: 9) {
-                SectionLabel(text: "액션")
+                SectionLabel(text: language.text("액션", "Actions"))
                 ForEach(Array(lines.enumerated()), id: \.offset) { i, line in
                     HStack(spacing: 9) {
                         Circle()
@@ -230,8 +244,8 @@ struct WalkthroughView: View {
     }
 
     private func accessibilityText(_ card: Card, lit: Bool, dead: Bool) -> String {
-        if dead { return "\(card.description), 제외됨" }
-        if lit { return "\(card.description), 강조됨" }
+        if dead { return "\(card.description), \(language.text("제외됨", "excluded"))" }
+        if lit { return "\(card.description), \(language.text("강조됨", "highlighted"))" }
         return card.description
     }
 
@@ -263,9 +277,12 @@ struct WalkthroughView: View {
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            PrimaryCTAButton(title: isLast ? "이해했어요" : "다음") {
+            PrimaryCTAButton(title: isLast ? language.text("이해했어요", "I understand")
+                                            : language.text("다음", "Next")) {
                 if isLast { onFinish() }
-                else { withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 } }
+                else if onStep(index + 1) {
+                    withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 }
+                }
             }
         }
     }
@@ -275,65 +292,72 @@ struct WalkthroughView: View {
 /// rows a `.table` beat needs. Keeping this beside the player means a new concept
 /// only has to be added in one place on the app side.
 enum Walkthrough {
-    static func make(concept: Concept, seed: UInt64, index: Int)
+    static func make(concept: Concept, seed: UInt64, index: Int,
+                     language: LearningLanguage = .korean)
         -> (beats: [Beat], rows: [(String, [Card])]) {
+        let opponent = language.text("상대 카드", "Opponent's cards")
+        let shared = language.text("공용 카드", "Shared cards")
+        let mine = language.text("내 카드", "My cards")
+        let flop = language.text("플랍", "flop")
+        let turn = language.text("턴", "turn")
+        let river = language.text("리버", "river")
         switch concept {
         case .showdown:
             let s = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.showdown(s),
-                    [("상대 카드", s.villain), ("공용 카드", s.board), ("내 카드", s.hero)])
+            return (BeatScript.showdown(s, language: language),
+                    [(opponent, s.villain), (shared, s.board), (mine, s.hero)])
         case .outs:
             let s = OutsSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.outs(s),
-                    [("상대 카드", s.villain), ("공용 카드 · 턴", s.board), ("내 카드", s.hero)])
+            return (BeatScript.outs(s, language: language),
+                    [(opponent, s.villain), ("\(shared) · \(turn)", s.board), (mine, s.hero)])
         case .equitySense:
             let s = EquitySenseSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.equitySense(s),
-                    [("상대 카드", s.villain),
-                     (s.board.count == 3 ? "공용 카드 · 플랍" : "공용 카드 · 턴", s.board),
-                     ("내 카드", s.hero)])
+            return (BeatScript.equitySense(s, language: language),
+                    [(opponent, s.villain),
+                     ("\(shared) · \(s.board.count == 3 ? flop : turn)", s.board),
+                     (mine, s.hero)])
         case .callFold:
             let s = CallFoldSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.callFold(s),
-                    [("상대 카드", s.villain), ("공용 카드 · 턴", s.board), ("내 카드", s.hero)])
+            return (BeatScript.callFold(s, language: language),
+                    [(opponent, s.villain), ("\(shared) · \(turn)", s.board), (mine, s.hero)])
         case .combos:
             let s = BlockerSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.combos(s), [("보이는 카드", s.removed)])
+            return (BeatScript.combos(s, language: language), [(language.text("보이는 카드", "Visible cards"), s.removed)])
         case .potMath:
-            return (BeatScript.potMath(PotMathSpotGenerator.spot(baseSeed: seed, index: index)), [])
+            return (BeatScript.potMath(PotMathSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .position:
-            return (BeatScript.position(PositionSpotGenerator.spot(baseSeed: seed, index: index)), [])
+            return (BeatScript.position(PositionSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .potOdds:
-            return (BeatScript.potOdds(BetSpotGenerator.spot(baseSeed: seed, index: index)), [])
+            return (BeatScript.potOdds(BetSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .mdf:
-            return (BeatScript.mdf(BetSpotGenerator.spot(baseSeed: seed, index: index)), [])
+            return (BeatScript.mdf(BetSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .evCall:
-            return (BeatScript.evCall(EVCallSpotGenerator.spot(baseSeed: seed, index: index)), [])
+            return (BeatScript.evCall(EVCallSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .rangeNotation:
             return (BeatScript.rangeNotation(
-                RangeNotationSpotGenerator.spot(baseSeed: seed, index: index)), [])
+                RangeNotationSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .rfi:
             let s = RFISpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.rfi(s), [("내 카드", s.hand)])
+            return (BeatScript.rfi(s, language: language), [(mine, s.hand)])
         case .rangeRead:
             // No card rows on purpose: seeing no cards *is* the drill.
             return (BeatScript.rangeRead(
-                RangeReadSpotGenerator.spot(baseSeed: seed, index: index)), [])
+                RangeReadSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .hitFrequency:
             let s = HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.hitFrequency(s), [("공용 카드 · 플랍", s.board)])
+            return (BeatScript.hitFrequency(s, language: language), [("\(shared) · \(flop)", s.board)])
         case .rangeAdvantage:
             let s = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.rangeAdvantage(s), [("공용 카드 · 플랍", s.board)])
+            return (BeatScript.rangeAdvantage(s, language: language), [("\(shared) · \(flop)", s.board)])
         case .evLoss:
             let s = EVLossSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.evLoss(s), [("공용 카드 · 리버", s.board), ("내 카드", s.hero)])
+            return (BeatScript.evLoss(s, language: language), [("\(shared) · \(river)", s.board), (mine, s.hero)])
         case .actionRead:
             let s = ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.actionRead(s), [("공용 카드 · 플랍", s.board)])
+            return (BeatScript.actionRead(s, language: language), [("\(shared) · \(flop)", s.board)])
         case .defend:
             let s = DefendSpotGenerator.spot(baseSeed: seed, index: index)
-            return (BeatScript.defend(s), [("내 카드", s.hand)])
+            return (BeatScript.defend(s, language: language), [(mine, s.hand)])
         }
     }
 }

@@ -4,11 +4,17 @@
 # GT_SIM selects an available device name (default: iPhone 17).
 # Default: capture large and AX5. GT_CONTENT_SIZE selects a single category instead.
 # GT_APPEARANCE selects light or dark (default: dark).
+# GT_LANGUAGE selects ko or en (default: ko).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE=com.michaelju.glasstable
 DEVICE_NAME="${GT_SIM:-iPhone 17}"
 APPEARANCE="${GT_APPEARANCE:-dark}"
+LANGUAGE="${GT_LANGUAGE:-ko}"
+case "$LANGUAGE" in
+  ko|en) ;;
+  *) echo "unknown language: $LANGUAGE" >&2; exit 2 ;;
+esac
 case "$APPEARANCE" in
   light|dark) ;;
   *) echo "unknown appearance: $APPEARANCE" >&2; exit 2 ;;
@@ -37,6 +43,10 @@ while [ $# -gt 0 ]; do
 done
 
 SCREENS=(
+  "learn:GT_DEMO_TAB=learn"
+  "placement:GT_DEMO_PLACEMENT=1"
+  "opponent-details:GT_DEMO_TAB=play GT_DEMO_OPPONENT=tag"
+  "play-hand:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1"
   "first-lesson:GT_DEMO_FIRST_LESSON=example"
   "first-lesson-answer:GT_DEMO_FIRST_LESSON=example-answer"
   "first-lesson-transfer:GT_DEMO_FIRST_LESSON=transfer"
@@ -231,6 +241,7 @@ echo "Starting disposable simulator; logs and captures: $OUT"
 printf 'device=%s\nruntime=%s\nsource=%s\n' "$DEV" "$RUNTIME" "$fingerprint" >"$OUT/run.txt"
 printf 'content_size=%s\n' "${CONTENT_SIZES[@]}" >>"$OUT/run.txt"
 printf 'appearance=%s\n' "$APPEARANCE" >>"$OUT/run.txt"
+printf 'language=%s\n' "$LANGUAGE" >>"$OUT/run.txt"
 xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
 if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1; then
   echo "First boot stalled; restarting the disposable device once."
@@ -251,7 +262,7 @@ for content_size in "${CONTENT_SIZES[@]}"; do
     rest="${entry#*:}"
     slp="${rest##*:}"
     if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=4; fi
-    args=()
+    args=("SIMCTL_CHILD_GT_DEMO_LANGUAGE=$LANGUAGE")
     for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
     # Uninstall clears progress written by the preceding demo. Empty-state captures
     # remain empty regardless of the requested order.

@@ -113,10 +113,10 @@ public struct AnswerRecord: Codable, Equatable, Sendable {
     }
 }
 
-/// Everything the app persists, as one value type (spec §8.1). Roughly 50 KB at full
-/// size, so it is loaded whole and kept in memory; no query here needs an index.
+/// Everything the app persists, as one value type. Schema 2 keeps durable summaries
+/// alongside the bounded answer log, so older history is never inferred from a ring.
 public struct ProgressState: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 1
+    public static let currentSchemaVersion = 2
     /// Ring-buffer cap for the answer log. Bounded on purpose — an unbounded history
     /// is the one thing that would make a single-file store the wrong choice.
     public static let answerLogCap = 500
@@ -132,16 +132,86 @@ public struct ProgressState: Codable, Equatable, Sendable {
     /// existing schema-1 backups decode without a migration; historical activity is
     /// handled by the app and also suppresses the introduction.
     public var firstLessonCompleted: Bool?
+    /// Monotonic for each local snapshot. Reset/import changes the model epoch too.
+    public var revision: Int
+    public var detailedTrackingStartedAt: Date?
+    public var introducedConcepts: Set<String>
+    public var placement: PlacementState?
+    public var activeRound: PracticeRound?
+    public var activeNodeSession: NodeSessionSnapshot?
+    public var activeReviewSession: ReviewSessionSnapshot?
+    public var dailySummaries: [DailyPracticeSummary]
+    public var recentEvidence: [PracticeEvidence]
+    public var tableState: PracticeTableState?
+    public var recentHands: [PracticeHandObservation]
+    public var processedAttemptIDs: Set<String>
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
                 nodes: [String: NodeRecord] = [:],
                 streak: StreakRecord = StreakRecord(),
                 answers: [AnswerRecord] = [],
-                firstLessonCompleted: Bool? = nil) {
+                firstLessonCompleted: Bool? = nil, revision: Int = 0,
+                detailedTrackingStartedAt: Date? = nil,
+                introducedConcepts: Set<String> = [], placement: PlacementState? = nil,
+                activeRound: PracticeRound? = nil,
+                activeNodeSession: NodeSessionSnapshot? = nil,
+                activeReviewSession: ReviewSessionSnapshot? = nil,
+                dailySummaries: [DailyPracticeSummary] = [],
+                recentEvidence: [PracticeEvidence] = [],
+                tableState: PracticeTableState? = nil,
+                recentHands: [PracticeHandObservation] = [],
+                processedAttemptIDs: Set<String> = []) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
         self.nodes = nodes; self.streak = streak; self.answers = answers
         self.firstLessonCompleted = firstLessonCompleted
+        self.revision = revision
+        self.detailedTrackingStartedAt = detailedTrackingStartedAt
+        self.introducedConcepts = introducedConcepts
+        self.placement = placement; self.activeRound = activeRound
+        self.activeNodeSession = activeNodeSession
+        self.activeReviewSession = activeReviewSession
+        self.dailySummaries = dailySummaries; self.recentEvidence = recentEvidence
+        self.tableState = tableState; self.recentHands = recentHands
+        self.processedAttemptIDs = processedAttemptIDs
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion, concepts, nodes, streak, answers, firstLessonCompleted
+        case revision, detailedTrackingStartedAt, introducedConcepts, placement
+        case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
+             tableState, recentHands
+        case processedAttemptIDs
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try c.decode(Int.self, forKey: .schemaVersion)
+        concepts = try c.decode([String: ConceptRecord].self, forKey: .concepts)
+        nodes = try c.decode([String: NodeRecord].self, forKey: .nodes)
+        streak = try c.decode(StreakRecord.self, forKey: .streak)
+        answers = try c.decode([AnswerRecord].self, forKey: .answers)
+        firstLessonCompleted = try c.decodeIfPresent(Bool.self, forKey: .firstLessonCompleted)
+        revision = try c.decodeIfPresent(Int.self, forKey: .revision) ?? 0
+        detailedTrackingStartedAt = try c.decodeIfPresent(Date.self,
+                                                           forKey: .detailedTrackingStartedAt)
+        introducedConcepts = try c.decodeIfPresent(Set<String>.self,
+                                                   forKey: .introducedConcepts) ?? []
+        placement = try c.decodeIfPresent(PlacementState.self, forKey: .placement)
+        activeRound = try c.decodeIfPresent(PracticeRound.self, forKey: .activeRound)
+        activeNodeSession = try c.decodeIfPresent(NodeSessionSnapshot.self,
+                                                  forKey: .activeNodeSession)
+        activeReviewSession = try c.decodeIfPresent(ReviewSessionSnapshot.self,
+                                                    forKey: .activeReviewSession)
+        dailySummaries = try c.decodeIfPresent([DailyPracticeSummary].self,
+                                              forKey: .dailySummaries) ?? []
+        recentEvidence = try c.decodeIfPresent([PracticeEvidence].self,
+                                               forKey: .recentEvidence) ?? []
+        tableState = try c.decodeIfPresent(PracticeTableState.self, forKey: .tableState)
+        recentHands = try c.decodeIfPresent([PracticeHandObservation].self,
+                                            forKey: .recentHands) ?? []
+        processedAttemptIDs = try c.decodeIfPresent(Set<String>.self,
+                                                    forKey: .processedAttemptIDs) ?? []
     }
 
     public func record(for concept: Concept) -> ConceptRecord {

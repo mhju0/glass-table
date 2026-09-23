@@ -70,14 +70,15 @@ public struct BlockerReveal: Equatable {
 }
 
 /// Same bands as the Outs drill: exact = 정확, ±2 = 근접, else = 빗나감.
-public func gradeBlocker(estimate: Int, spot: BlockerSpot) -> BlockerReveal {
+public func gradeBlocker(estimate: Int, spot: BlockerSpot,
+                         language: LearningLanguage = .korean) -> BlockerReveal {
     BlockerReveal(
         band: gradeEstimate(user: Double(estimate), correct: Double(spot.count),
                             closeWithin: 2, spotOnWithin: 0),
-        estimate: estimate, count: spot.count, whyText: whyText(for: spot))
+        estimate: estimate, count: spot.count, whyText: whyText(for: spot, language: language))
 }
 
-func whyText(for spot: BlockerSpot) -> String {
+func whyText(for spot: BlockerSpot, language: LearningLanguage = .korean) -> String {
     let removedSet = Set(spot.removed)
     func left(_ rank: Int) -> Int {
         (0...3).filter { !removedSet.contains(Card(rank: rank, suit: $0)) }.count
@@ -85,10 +86,13 @@ func whyText(for spot: BlockerSpot) -> String {
     let na = left(spot.rankA)
     switch spot.kind {
     case .pair:
+        if language == .english { return "\(na) \(rankName(spot.rankA)) cards remain: \(na) × \(na - 1) ÷ 2 = \(spot.count) combinations." }
         return "\(rankName(spot.rankA)) \(na)장 남음 → \(na)×\(na - 1)÷2 = \(spot.count) 콤보"
     case .suited:
+        if language == .english { return "\(spot.count) suits still have both ranks: \(spot.count) combinations." }
         return "양쪽 다 남은 무늬 \(spot.count)개 = \(spot.count) 콤보"
     default:
+        if language == .english { return "\(na) \(rankName(spot.rankA)) cards × \(left(spot.rankB)) \(rankName(spot.rankB)) cards = \(spot.count) combinations." }
         return "\(rankName(spot.rankA)) \(na)장 × \(rankName(spot.rankB)) \(left(spot.rankB))장 = \(spot.count) 콤보"
     }
 }

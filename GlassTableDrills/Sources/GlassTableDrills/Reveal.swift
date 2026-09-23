@@ -11,11 +11,12 @@ public struct OutsReveal: Equatable {
 }
 
 /// Grade an out-count estimate against a spot. Bands: exact = 정확, ±2 = 근접, else = 빗나감.
-public func gradeOuts(estimate: Int, spot: OutsSpot) -> OutsReveal {
+public func gradeOuts(estimate: Int, spot: OutsSpot,
+                      language: LearningLanguage = .korean) -> OutsReveal {
     let band = gradeEstimate(user: Double(estimate), correct: Double(spot.outCount),
                              closeWithin: 2, spotOnWithin: 0)
     return OutsReveal(band: band, estimate: estimate, outs: spot.outs, excluded: spot.excluded,
-                      improvementPct: spot.improvementPct, whyText: whyText(for: spot))
+                      improvementPct: spot.improvementPct, whyText: whyText(for: spot, language: language))
 }
 
 /// What a tapped river card does for both players. `heroWins` comes straight from
@@ -51,7 +52,13 @@ public func handName(_ b: HandBrief) -> String {
     }
 }
 
-func whyText(for spot: OutsSpot) -> String {
+func whyText(for spot: OutsSpot, language: LearningLanguage = .korean) -> String {
+    if language == .english {
+        guard !spot.excluded.isEmpty else { return "\(spot.outCount) winning river cards." }
+        let apparent = spot.outCount + spot.excluded.count
+        let cards = spot.excluded.map(\.display).joined(separator: " · ")
+        return "\(apparent) cards look promising, but \(cards) still leave the opponent ahead. There are \(spot.outCount) winning river cards."
+    }
     guard !spot.excluded.isEmpty else { return "\(spot.outCount) 아웃." }
     let ex = spot.excluded.map(\.display).joined(separator: "·")
     let apparent = spot.outCount + spot.excluded.count

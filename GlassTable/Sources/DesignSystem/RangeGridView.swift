@@ -12,6 +12,7 @@ import GlassTableDrills
 /// and that belongs to R3, which is the slice where Range Read paints. Showing a
 /// chart and pointing at one hand needs no touch target at all.
 struct RangeGridView: View {
+    @Environment(\.learningLanguage) private var language
     let range: HandRange
     /// Drawn with a ring, so "where does my hand sit" is answered by looking.
     var highlight: HandClass?
@@ -99,19 +100,19 @@ struct RangeGridView: View {
             let state: String
             if outline != nil {
                 switch (truth, compared) {
-                case (true, true): state = "정답과 내 답에 포함"
-                case (true, false): state = "정답에만 포함"
-                case (false, true): state = "내 답에만 포함"
-                case (false, false): state = "제외"
+                case (true, true): state = language.text("정답과 내 답에 포함", "in both the answer and my choice")
+                case (true, false): state = language.text("정답에만 포함", "only in the answer")
+                case (false, true): state = language.text("내 답에만 포함", "only in my choice")
+                case (false, false): state = language.text("제외", "excluded")
                 }
             } else {
-                state = truth ? "포함" : "제외"
+                state = truth ? language.text("포함", "included") : language.text("제외", "excluded")
             }
-            let selected = highlight == hand ? ", 선택한 핸드" : ""
+            let selected = highlight == hand ? language.text(", 선택한 핸드", ", selected hand") : ""
             return "\(hand.description) \(state)\(selected)"
         }
         let rank = String(RangeGrid.classAt(row: row, col: row).description.prefix(1))
-        return "\(rank) 행. " + cells.joined(separator: ", ")
+        return language.text("\(rank) 행. ", "Row \(rank). ") + cells.joined(separator: ", ")
     }
 
     private var accessibilitySummary: String {
@@ -119,11 +120,14 @@ struct RangeGridView: View {
         if let outline {
             let missed = range.subtracting(outline).comboCount
             let over = outline.subtracting(range).comboCount
-            return "레인지 비교 표. 정답 상위 \(pct)%. "
-                 + "놓친 콤보 \(missed)개, 넣지 않았어야 할 콤보 \(over)개."
+            return language.text("레인지 비교 표. 정답 상위 \(pct)%. "
+                                 + "놓친 콤보 \(missed)개, 넣지 않았어야 할 콤보 \(over)개.",
+                                 "Range comparison. Answer covers the top \(pct)%. "
+                                 + "\(missed) missed combinations and \(over) extra combinations.")
         }
-        guard let highlight else { return "레인지 표, 상위 \(pct)%" }
+        guard let highlight else { return language.text("레인지 표, 상위 \(pct)%", "Range chart, top \(pct)%") }
         let inside = range.weight(highlight) > 0
-        return "레인지 표, 상위 \(pct)%. \(highlight.description)는 \(inside ? "포함" : "제외")."
+        return language.text("레인지 표, 상위 \(pct)%. \(highlight.description)는 \(inside ? "포함" : "제외").",
+                             "Range chart, top \(pct)%. \(highlight.description) is \(inside ? "included" : "excluded").")
     }
 }

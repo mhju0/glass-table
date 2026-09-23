@@ -40,11 +40,19 @@ public struct RangeReadSpot: Equatable {
 
     /// Plain-Korean action history, the only thing the user gets to see.
     public var actionLines: [String] {
+        actionLines(in: .korean)
+    }
+
+    public func actionLines(in language: LearningLanguage) -> [String] {
         switch action {
         case let .opened(seat):
-            return ["\(seat.rawValue) 오픈 3bb", "이후 전원 폴드"]
+            return language == .korean
+                ? ["\(seat.rawValue) 오픈 3bb", "이후 전원 폴드"]
+                : ["\(seat.rawValue) opens to 3bb", "Everyone else folds"]
         case let .called(seat, opener):
-            return ["\(opener.rawValue) 오픈 3bb", "\(seat.rawValue) 콜", "이후 전원 폴드"]
+            return language == .korean
+                ? ["\(opener.rawValue) 오픈 3bb", "\(seat.rawValue) 콜", "이후 전원 폴드"]
+                : ["\(opener.rawValue) opens to 3bb", "\(seat.rawValue) calls", "Everyone else folds"]
         }
     }
 }
@@ -99,7 +107,8 @@ public enum RangeReadGrading {
     public static let close = 0.45
 }
 
-public func gradeRangeRead(estimate: RangeEstimate, spot: RangeReadSpot) -> RangeReadReveal {
+public func gradeRangeRead(estimate: RangeEstimate, spot: RangeReadSpot,
+                           language: LearningLanguage = .korean) -> RangeReadReveal {
     let guess = estimate.range
     let truth = spot.trueRange
     let overlap = guess.jaccard(truth)
@@ -108,13 +117,27 @@ public func gradeRangeRead(estimate: RangeEstimate, spot: RangeReadSpot) -> Rang
         : (overlap >= RangeReadGrading.close ? .close : .off)
 
     return RangeReadReveal(band: band, overlap: overlap, guess: guess, truth: truth,
-                           whyText: explain(guess: guess, truth: truth, spot: spot))
+                           whyText: explain(guess: guess, truth: truth, spot: spot, language: language))
 }
 
 /// "0.52" teaches nothing. Name the direction: too wide, too tight, or the right width
 /// with the wrong shape — and when it is shape, name the category that differed most.
-func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot) -> String {
+func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot,
+             language: LearningLanguage = .korean) -> String {
     let gw = guess.percent, tw = truth.percent
+    if language == .english {
+        let head = "\(spot.archetype.beginnerTitle(in: language))'s \(actionWord(spot, language: language)) range is the top \(pctText(tw))% of hands. You estimated \(pctText(gw))%."
+        if gw > tw * 1.2 { return head + " Your range was too wide." }
+        if gw < tw * 0.8 { return head + " Your range was too narrow." }
+        let worst = RangeTendency.allCases.max {
+            (truth.tendencyShare($0) - guess.tendencyShare($0))
+                < (truth.tendencyShare($1) - guess.tendencyShare($1))
+        }
+        if let tendency = worst, truth.tendencyShare(tendency) - guess.tendencyShare(tendency) > 0.08 {
+            return head + " The width is close, but the shape differs. There are more \(DrillTerms.tendency(tendency, in: language).lowercased())."
+        }
+        return head + " The shape is close too."
+    }
     let head = "\(spot.archetype.name)의 \(actionWord(spot)) 레인지는 상위 "
              + "\(pctText(tw))%예요. 내 추정은 \(pctText(gw))%."
 
@@ -137,14 +160,16 @@ func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot) -> String 
     return head + " 모양도 비슷해요."
 }
 
-func actionWord(_ spot: RangeReadSpot) -> String {
+func actionWord(_ spot: RangeReadSpot, language: LearningLanguage = .korean) -> String {
     switch spot.action {
-    case .opened: return "오픈"
-    case .called: return "콜"
+    case .opened: return language.text("오픈", "opening")
+    case .called: return language.text("콜", "calling")
     }
 }
 
-public func tendencyWord(_ t: RangeTendency) -> String {
+public func tendencyWord(_ t: RangeTendency,
+                         language: LearningLanguage = .korean) -> String {
+    if language == .english { return DrillTerms.tendency(t, in: language) }
     switch t {
     case .pairs: return "페어"
     case .suited: return "수티드"

@@ -12,6 +12,7 @@ import GlassTableDrills
 /// pattern 레인지 어드밴티지 uses for its sampling.
 struct TableView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.learningLanguage) private var language
     @State private var hand: TableHand?
     @State private var options: [GradedOption]?
     @State private var lastTurn: TurnRecord?
@@ -30,13 +31,31 @@ struct TableView: View {
     /// decisions carry a bb price; the preflop one carries the chart verdict —
     /// future-value is exactly what the checkdown model cannot price (R5 §3).
     struct TurnRecord: Equatable {
-        let street: String
-        let label: String
+        let street: Int
+        let choice: TableHand.HeroChoice
+        let amount: Double?
+        let fraction: Double?
         enum Verdict: Equatable {
-            case ev(loss: Double, best: String)
+            case ev(loss: Double, best: GradedOption)
             case chart(TableHand.PreflopVerdict)
         }
         let verdict: Verdict
+
+        func label(in language: LearningLanguage) -> String {
+            switch choice {
+            case .fold: return language.text("폴드", "Fold")
+            case .check: return language.text("체크", "Check")
+            case .call:
+                if let amount { return language.text("콜 \(bbText(amount))bb", "Call \(bbText(amount))bb") }
+                return language.text("콜", "Call")
+            case .raise:
+                if street == 0 { return language.text("3벳", "3-bet") }
+                return language.text("레이즈 \(bbText(amount ?? 0))bb", "Raise to \(bbText(amount ?? 0))bb")
+            case let .bet(f):
+                return language.text("벳 \(bbText(amount ?? 0))bb (\(pctText(f * 100))%)",
+                                     "Bet \(bbText(amount ?? 0))bb (\(pctText(f * 100))% pot)")
+            }
+        }
 
         var band: GradeBand {
             switch verdict {
@@ -55,21 +74,24 @@ struct TableView: View {
         .background(FeltBackground())
         .sheet(isPresented: $showChart) {
             if let hand {
-                VStack(alignment: .leading, spacing: 10) {
+                ScrollView {
+                  VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         ChromeButton.close { showChart = false }
                         Spacer()
                     }
-                    Text("디펜드 차트 · \(hand.villainSeat.rawValue) 오픈에 맞서")
+                    Text(language.text("디펜드 차트 · \(hand.villainSeat.rawValue) 오픈에 맞서",
+                                       "Defend chart · facing a \(hand.villainSeat.rawValue) open"))
                         .font(GT.title(16)).foregroundStyle(GT.onFelt)
                         .padding(.horizontal, 18)
-                    Text("오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요.")
+                    Text(language.text("오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요.",
+                                       "A starting guide based on the hands this seat opens. The app shows how it works."))
                         .font(GT.body(11)).foregroundStyle(GT.onFeltSecondary)
                         .padding(.horizontal, 18)
                     DefendGridView(opener: hand.villainSeat,
-                                   highlight: HandClass(hand.hero))
+                                   highlight: HandClass(hand.hero), cards: hand.hero)
                         .padding(18)
-                    Spacer(minLength: 0)
+                  }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(FeltBackground())
@@ -96,7 +118,8 @@ struct TableView: View {
                     guard case let .hero(facing) = h.phase else { break }
                     if case .open = facing {
                         if let v = h.preflopVerdict(for: .call) {
-                            decisions.append(TurnRecord(street: "프리플랍", label: "콜",
+                            decisions.append(TurnRecord(street: 0, choice: .call,
+                                                        amount: nil, fraction: nil,
                                                         verdict: .chart(v)))
                         }
                         h.play(.call)
@@ -126,65 +149,10 @@ struct TableView: View {
 
     private var picker: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: GT.Space.related) {
-                Text("연습 테이블").font(GT.title(30)).foregroundStyle(GT.onFelt)
-                    .padding(.top, 14)
-                Text("상대를 한 명 고른 뒤, 한 핸드의 결정을 차례로 풀어요.")
-                    .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
-                    .padding(.bottom, 8)
-                ForEach(Archetype.allCases, id: \.self) { a in
-                    Button { pickerSelection = .archetype(a) } label: {
-                        archetypeRow(a, selected: pickerSelection == .archetype(a))
-                    }
-                        .buttonStyle(GTPress())
-                }
-                Button { pickerSelection = .random } label: {
-                    HStack {
-                        Text("랜덤 상대").font(GT.title(16)).foregroundStyle(GT.onFelt)
-                        Spacer(minLength: 0)
-                        Image(systemName: pickerSelection == .random ? "checkmark.circle.fill" : "dice.fill")
-                            .font(.system(size: 17)).foregroundStyle(GT.mint)
-                    }
-                    .padding(16).frame(maxWidth: .infinity)
-                    .gtPanel()
-                }
-                .buttonStyle(GTPress())
-            }
-            .padding(.horizontal, 18)
-        }
-        .safeAreaInset(edge: .bottom) {
-            if let pickerSelection {
-                FeltCTAButton(title: "핸드 시작") {
-                    switch pickerSelection {
-                    case let .archetype(archetype): start(vs: archetype)
-                    case .random: start(vs: nil)
-                    }
-                }
-                .padding(.horizontal, 18).padding(.vertical, 10)
-                .background(GT.felt)
-            }
+            OpponentPickerView { start(vs: $0) }
+                .padding(18)
         }
         .gtTabBarClearance(20)
-    }
-
-    private func archetypeRow(_ a: Archetype, selected: Bool) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(a.name).font(GT.title(16)).foregroundStyle(GT.onFelt)
-                Text(a.blurb).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
-            if selected {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 17)).foregroundStyle(GT.mint)
-            } else {
-                Text("VPIP \(Int(a.vpip)) · PFR \(Int(a.pfr))")
-                    .font(GT.semibold(11).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
-            }
-        }
-        .padding(16).frame(maxWidth: .infinity)
-        .gtPanel()
     }
 
     private func start(vs villain: Archetype?) {
@@ -254,7 +222,10 @@ struct TableView: View {
     /// lines, which are display strings and would be the wrong thing to depend on.
     private func streetStrip(_ hand: TableHand) -> some View {
         let streets: [(name: String, n: Int)] =
-            [("프리플랍", 0), ("플랍", 3), ("턴", 4), ("리버", 5)]
+            [(language.text("프리플랍", "Before"), 0),
+             (language.text("플랍", "Flop"), 3),
+             (language.text("턴", "Turn"), 4),
+             (language.text("리버", "River"), 5)]
         return HStack(spacing: 6) {
             ForEach(streets, id: \.n) { s in
                 let live = hand.street == s.n
@@ -275,7 +246,7 @@ struct TableView: View {
         // the row's height with it.
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("현재 스트리트 "
+        .accessibilityLabel(language.text("현재 스트리트 ", "Current round: ")
             + (streets.first { $0.n == hand.street }?.name ?? ""))
     }
 
@@ -284,7 +255,7 @@ struct TableView: View {
     /// crossing the whole viewport for its other half.
     private func boardBlock(_ hand: TableHand) -> some View {
         VStack(spacing: 12) {
-            SectionLabel(text: "공용 카드")
+            SectionLabel(text: language.text("공용 카드", "Shared cards"))
             boardRow(hand)
             if let toCall = hand.toCall, hand.street == 0 {
                 preflopPriceReference(pot: hand.pot, toCall: toCall)
@@ -292,7 +263,7 @@ struct TableView: View {
                 priceStrip(pot: hand.pot, toCall: toCall)
             } else {
                 // Nothing owed: no price to read, so the pot stands on its own.
-                Text("팟 \(bbText(hand.pot))bb")
+                Text(language.text("팟 \(bbText(hand.pot))bb", "Pot \(bbText(hand.pot))bb"))
                     .font(GT.title(21).monospacedDigit()).foregroundStyle(GT.onFelt)
             }
         }
@@ -308,17 +279,19 @@ struct TableView: View {
     /// a second recommendation beside the chart verdict.
     private func preflopPriceReference(pot: Double, toCall: Double) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 7) {
-            Text("참고")
+            Text(language.text("참고", "For reference"))
                 .font(GT.semibold(11)).foregroundStyle(GT.mint)
                 .padding(.horizontal, 7).padding(.vertical, 3)
                 .background(GT.mint.opacity(0.14), in: Capsule())
-            Text("현재 팟 \(bbText(pot))bb · 콜 \(bbText(toCall))bb")
+            Text(language.text("현재 팟 \(bbText(pot))bb · 콜 \(bbText(toCall))bb",
+                               "Pot now \(bbText(pot))bb · Call \(bbText(toCall))bb"))
                 .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
             Spacer(minLength: 0)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("참고. 현재 팟 \(bbText(pot)) 빅블라인드, 콜 \(bbText(toCall)) 빅블라인드. "
-                            + "프리플랍 판정은 디펜드 차트 기준.")
+        .accessibilityLabel(language.text(
+            "참고. 현재 팟 \(bbText(pot)) 빅블라인드, 콜 \(bbText(toCall)) 빅블라인드. 프리플랍 판정은 디펜드 차트 기준.",
+            "For reference. Pot now \(bbText(pot)) big blinds; call \(bbText(toCall)) big blinds. Before the flop, the defend chart grades your choice."))
     }
 
     /// The pot-odds shape at a glance: what is already out there against what continuing
@@ -344,20 +317,22 @@ struct TableView: View {
             // first, so with two greedy segments the larger one simply took the row.
             GeometryReader { geo in
                 HStack(spacing: 3) {
-                    segment("팟 \(bbText(p))", fill: GT.segPot,
+                    segment(language.text("팟 \(bbText(p))", "Pot \(bbText(p))"), fill: GT.segPot,
                             width: geo.size.width * p / total)
-                    segment("콜 \(bbText(c))", fill: GT.segCall,
+                    segment(language.text("콜 \(bbText(c))", "Call \(bbText(c))"), fill: GT.segCall,
                             width: geo.size.width * c / total)
                 }
             }
             .frame(height: 30)
-            Text("\(bbText(c)) / \(bbText(total)) · 필요 에퀴티 \(pctText(required))%")
+            Text(language.text("\(bbText(c)) / \(bbText(total)) · 필요 에퀴티 \(pctText(required))%",
+                               "\(bbText(c)) / \(bbText(total)) · Need \(pctText(required))% chance to win"))
                 .font(GT.body(14).monospacedDigit())
                 .foregroundStyle(GT.onFeltSecondary)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("팟 \(bbText(p)) 빅블라인드, 콜 \(bbText(c)) 빅블라인드. "
-                            + "필요 에퀴티 \(pctText(required)) 퍼센트.")
+        .accessibilityLabel(language.text(
+            "팟 \(bbText(p)) 빅블라인드, 콜 \(bbText(c)) 빅블라인드. 필요 에퀴티 \(pctText(required)) 퍼센트.",
+            "Pot \(bbText(p)) big blinds; call \(bbText(c)) big blinds. Need \(pctText(required)) percent chance to win."))
     }
 
     private func segment(_ text: String, fill: Color, width: CGFloat) -> some View {
@@ -370,7 +345,8 @@ struct TableView: View {
 
     private func heroBlock(_ hand: TableHand) -> some View {
         VStack(spacing: 7) {
-            SectionLabel(text: "내 카드 · \(hand.heroSeat.rawValue)")
+            SectionLabel(text: language.text("내 카드 · \(hand.heroSeat.rawValue)",
+                                             "Your cards · \(hand.heroSeat.rawValue)"))
             CardRow(cards: hand.hero)
         }
         .frame(maxWidth: .infinity)
@@ -384,14 +360,16 @@ struct TableView: View {
     private func seatRow(_ hand: TableHand) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
-                Text("상대 카드 · \(hand.villainSeat.rawValue) · \(hand.villain.name)")
+                Text(language.text("상대 카드 · \(hand.villainSeat.rawValue) · \(hand.villain.beginnerTitle(in: language))",
+                                   "Opponent cards · \(hand.villainSeat.rawValue) · \(hand.villain.beginnerTitle(in: language))"))
                     .font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Spacer(minLength: 8)
                 // The bot's live range, always countable — the printable claim at
                 // the table (spec §4).
                 Button { showPolicyReference = true } label: {
                     HStack(spacing: 4) {
-                        Text("레인지 \(hand.villainCombos.count)콤보")
+                        Text(language.text("레인지 \(hand.villainCombos.count)콤보",
+                                           "Possible hands \(hand.villainCombos.count)"))
                             .font(GT.semibold(14).monospacedDigit())
                         Image(systemName: "info.circle")
                             .font(.system(size: 12, weight: .semibold))
@@ -401,7 +379,9 @@ struct TableView: View {
                 .buttonStyle(GTPress())
                 .frame(minHeight: 44)
                 .contentShape(Rectangle())
-                .accessibilityLabel("상대 전략과 레인지 보기, 현재 \(hand.villainCombos.count)콤보")
+                .accessibilityLabel(language.text(
+                    "상대 전략과 레인지 보기, 현재 \(hand.villainCombos.count)콤보",
+                    "View opponent strategy and possible hands; \(hand.villainCombos.count) possible hands"))
             }
             VStack(spacing: 0) {
                 if case let .over(o) = hand.phase {
@@ -415,8 +395,8 @@ struct TableView: View {
             }
             .frame(maxWidth: .infinity)
             VStack(alignment: .leading, spacing: 3) {
-                ForEach(Array(hand.history.suffix(3).enumerated()), id: \.offset) { _, line in
-                    Text(line).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                ForEach(Array(hand.events.suffix(3).enumerated()), id: \.offset) { _, event in
+                    Text(event.text(in: language)).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                         .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
                 }
@@ -456,7 +436,8 @@ struct TableView: View {
         } else {
             HStack(spacing: 10) {
                 ProgressView().tint(GT.inkMuted)
-                Text("계산 중…").font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                Text(language.text("계산 중…", "Calculating…"))
+                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
             }
             .frame(maxWidth: .infinity, minHeight: 80)
         }
@@ -466,7 +447,7 @@ struct TableView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 ForEach(options.filter(\.isCompact), id: \.choice) { opt in
-                    GTActionButton(title: opt.actionName, price: opt.priceText,
+                    GTActionButton(title: opt.actionName(in: language), price: opt.priceText,
                                    role: opt.role) { act(opt.choice) }
                 }
             }
@@ -477,7 +458,8 @@ struct TableView: View {
                     ForEach(bets, id: \.choice) { opt in bviewButton(opt) }
                 }
             }
-            Text("체크다운 근사 · 이 스트리트 뒤에는 추가 베팅이 없고 레이크는 제외해요")
+            Text(language.text("체크다운 근사 · 이 스트리트 뒤에는 추가 베팅이 없고 레이크는 제외해요",
+                               "Estimate: no more bets after this round; fees are not included."))
                 .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -489,9 +471,9 @@ struct TableView: View {
     private func bviewButton(_ opt: GradedOption) -> some View {
         Button { act(opt.choice) } label: {
             VStack(spacing: 3) {
-                Text(opt.headline).font(GT.title(15)).foregroundStyle(GT.ink)
+                Text(opt.headline(in: language)).font(GT.title(15)).foregroundStyle(GT.ink)
                     .lineLimit(1).minimumScaleFactor(0.8)
-                Text(opt.subline).font(GT.body(14).monospacedDigit())
+                Text(opt.subline(in: language)).font(GT.body(14).monospacedDigit())
                     .foregroundStyle(GT.inkMuted)
                     .lineLimit(1).minimumScaleFactor(0.8)
                 Capsule().fill(GTActionRole.aggressive.accent)
@@ -504,24 +486,26 @@ struct TableView: View {
                 .strokeBorder(GT.borderStrong, lineWidth: 1))
         }
         .buttonStyle(GTPress())
-        .accessibilityLabel("벳 \(opt.headline), \(opt.subline)")
+        .accessibilityLabel(language.text("벳 \(opt.headline(in: language)), \(opt.subline(in: language))",
+                                           "Bet \(opt.headline(in: language)), \(opt.subline(in: language))"))
     }
 
     /// 폴드 / 콜 3bb / 3벳 9bb. No pricing pass — the grade here is the chart.
     private func preflopButtons(_ hand: TableHand, open b: Double) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                GTActionButton(title: "폴드", price: "0bb", role: .fold) {
+                GTActionButton(title: language.text("폴드", "Fold"), price: "0bb", role: .fold) {
                     actPreflop(.fold, hand)
                 }
-                GTActionButton(title: "콜", price: "\(bbText(b))bb", role: .passive) {
+                GTActionButton(title: language.text("콜", "Call"), price: "\(bbText(b))bb", role: .passive) {
                     actPreflop(.call, hand)
                 }
-                GTActionButton(title: "3벳",
+                GTActionButton(title: language.text("3벳", "3-bet"),
                                price: "\(bbText(b * TableHand.raiseFactor))bb",
                                role: .aggressive) { actPreflop(.raise, hand) }
             }
-            Text("프리플랍은 앱에 공개된 디펜드 차트와 비교해요. 실제 최적 전략을 뜻하지 않아요.")
+            Text(language.text("프리플랍은 앱에 공개된 디펜드 차트와 비교해요. 실제 최적 전략을 뜻하지 않아요.",
+                               "Before the flop, your choice is compared with this app's defend chart—not a claim about perfect play."))
                 .font(GT.body(11)).foregroundStyle(GT.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -545,9 +529,9 @@ struct TableView: View {
             }
             evPrices(turn)
             if case .chart = turn.verdict {
-                SecondaryCTAButton(title: "차트 보기") { showChart = true }
+                SecondaryCTAButton(title: language.text("차트 보기", "View chart")) { showChart = true }
             }
-            PrimaryCTAButton(title: "계속") {
+            PrimaryCTAButton(title: language.text("계속", "Continue")) {
                 lastTurn = nil
                 if let hand { prepareOptions(for: hand) }
             }
@@ -559,20 +543,24 @@ struct TableView: View {
     private func headlineText(_ turn: TurnRecord) -> Text {
         switch turn.verdict {
         case let .ev(loss, best):
-            if loss <= 0 { return Text("최선의 선택").foregroundStyle(GT.ink) }
-            return Text("최선은 ").foregroundStyle(GT.ink)
-                 + Text(best).foregroundStyle(GT.green)
+            if loss <= 0 { return Text(language.text("최선의 선택", "Best choice")).foregroundStyle(GT.ink) }
+            return Text(language.text("최선은 ", "Better choice: ")).foregroundStyle(GT.ink)
+                 + Text(best.label(in: language)).foregroundStyle(GT.green)
         case let .chart(v):
-            if v.matched { return Text("차트대로").foregroundStyle(GT.ink) }
-            return Text("차트는 ").foregroundStyle(GT.ink)
-                 + Text(v.chart.rawValue).foregroundStyle(GT.green)
+            if v.matched { return Text(language.text("차트대로", "Matches the chart")).foregroundStyle(GT.ink) }
+            return Text(language.text("차트는 ", "Chart suggests: ")).foregroundStyle(GT.ink)
+                 + Text(chartAction(v.chart)).foregroundStyle(GT.green)
         }
     }
 
     private func bandPill(_ turn: TurnRecord) -> some View {
         let word: String = {
-            if case let .ev(loss, _) = turn.verdict { return evLossLabel(loss: loss) }
-            return turn.band == .spotOn ? "일치" : "불일치"
+            if case let .ev(loss, _) = turn.verdict {
+                return language == .korean ? evLossLabel(loss: loss)
+                    : (loss <= 0 ? "Best" : loss <= 0.5 ? "Close" : "Needs work")
+            }
+            return turn.band == .spotOn ? language.text("일치", "Match")
+                : language.text("불일치", "Different")
         }()
         return HStack(spacing: 4) {
             Image(systemName: turn.band.glyph).font(.system(size: 10, weight: .bold))
@@ -581,7 +569,7 @@ struct TableView: View {
         .foregroundStyle(turn.band.ink)
         .padding(.horizontal, 9).padding(.vertical, 4)
         .background(turn.band.tint, in: Capsule())
-        .accessibilityLabel("판정 \(word)")
+        .accessibilityLabel(language.text("판정 \(word)", "Result: \(word)"))
     }
 
     /// Where the number came from: the best line and the chosen line, side by side.
@@ -591,12 +579,13 @@ struct TableView: View {
     private func evPrices(_ turn: TurnRecord) -> some View {
         if case let .ev(loss, best) = turn.verdict, loss > 0 {
             VStack(spacing: 8) {
-                priceRow(tag: "최선", action: best,
+                priceRow(tag: language.text("최선", "Best"), action: best.label(in: language),
                          amount: "0bb", ink: GTBand.spotOnInk)
                 Divider().overlay(GT.border)
-                priceRow(tag: "내 선택", action: turn.label,
+                priceRow(tag: language.text("내 선택", "You"), action: turn.label(in: language),
                          amount: "\u{2212}\(bbText(loss))bb", ink: turn.band.ink)
-                Text("숫자는 최선 대비 손실이에요")
+                Text(language.text("숫자는 최선 대비 손실이에요",
+                                   "This is the estimated value lost versus the best choice."))
                     .font(GT.body(10)).foregroundStyle(GT.inkMuted)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -619,13 +608,8 @@ struct TableView: View {
 
     private func actPreflop(_ choice: TableHand.HeroChoice, _ current: TableHand) {
         guard var h = hand, let v = h.preflopVerdict(for: choice) else { return }
-        let label: String
-        switch choice {
-        case .fold: label = "폴드"
-        case .call: label = "콜"
-        default: label = "3벳"
-        }
-        decisions.append(TurnRecord(street: "프리플랍", label: label, verdict: .chart(v)))
+        decisions.append(TurnRecord(street: 0, choice: choice, amount: nil,
+                                    fraction: nil, verdict: .chart(v)))
         h.play(choice)
         hand = h
         lastTurn = decisions.last
@@ -656,21 +640,28 @@ struct TableView: View {
             let highestCost = evDecisions.max { $0.1 < $1.1 }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("결과와 결정은 따로 봐요").font(GT.title(15)).foregroundStyle(GT.ink)
-                Text("이번 결과는 \(resultLine(outcome)) · \(outcome.heroNet >= 0 ? "+" : "")\(bbText(outcome.heroNet))bb예요.")
+                Text(language.text("결과와 결정은 따로 봐요", "Result and decisions are different"))
+                    .font(GT.title(15)).foregroundStyle(GT.ink)
+                Text(language.text(
+                    "이번 결과는 \(resultLine(outcome)) · \(outcome.heroNet >= 0 ? "+" : "")\(bbText(outcome.heroNet))bb예요.",
+                    "This hand: \(resultLine(outcome)) · \(outcome.heroNet >= 0 ? "+" : "")\(bbText(outcome.heroNet))bb."))
                     .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if evDecisions.isEmpty {
-                    Text("프리플랍 결정은 공개된 디펜드 차트와 비교했어요. EV 손실은 측정하지 않았어요.")
+                    Text(language.text("프리플랍 결정은 공개된 디펜드 차트와 비교했어요. EV 손실은 측정하지 않았어요.",
+                                       "The before-flop choice used the published defend chart. No value loss was estimated."))
                         .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Text("포스트플랍 체크다운 근사로 측정한 EV 손실은 \(bbText(lost))bb예요.")
+                    Text(language.text("포스트플랍 체크다운 근사로 측정한 EV 손실은 \(bbText(lost))bb예요.",
+                                       "Estimated value lost after the flop: \(bbText(lost))bb. This assumes no later bets."))
                         .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let highestCost, highestCost.1 > 0 {
-                    Text("가장 큰 비용 · \(highestCost.0.street) \(highestCost.0.label), −\(bbText(highestCost.1))bb")
+                    Text(language.text(
+                        "가장 큰 비용 · \(TableEvent.streetName(highestCost.0.street, in: language)) \(highestCost.0.label(in: language)), −\(bbText(highestCost.1))bb",
+                        "Largest missed value · \(TableEvent.streetName(highestCost.0.street, in: language)) \(highestCost.0.label(in: language)), −\(bbText(highestCost.1))bb"))
                         .font(GT.semibold(12.5)).foregroundStyle(highestCost.0.band.ink)
                 }
             }
@@ -680,15 +671,16 @@ struct TableView: View {
             VStack(alignment: .leading, spacing: 5) {
                 ForEach(Array(decisions.enumerated()), id: \.offset) { _, d in
                     HStack {
-                        Text("\(d.street) · \(d.label)")
+                        Text("\(TableEvent.streetName(d.street, in: language)) · \(d.label(in: language))")
                             .font(GT.body(11.5)).foregroundStyle(GT.inkSecondary)
                         Spacer(minLength: 6)
                         Group {
                             switch d.verdict {
                             case let .ev(loss, _):
-                                Text(loss <= 0 ? "최선" : "\u{2212}\(bbText(loss))bb")
+                                Text(loss <= 0 ? language.text("최선", "Best") : "\u{2212}\(bbText(loss))bb")
                             case let .chart(v):
-                                Text(v.matched ? "차트대로" : "차트: \(v.chart.rawValue)")
+                                Text(v.matched ? language.text("차트대로", "Chart match")
+                                     : language.text("차트: \(v.chart.rawValue)", "Chart: \(chartAction(v.chart))"))
                             }
                         }
                         .font(GT.semibold(11.5).monospacedDigit())
@@ -698,7 +690,8 @@ struct TableView: View {
                 if decisions.count > 1 {
                     Divider()
                     HStack {
-                        Text("이 핸드에서 버린 EV").font(GT.semibold(11.5))
+                        Text(language.text("이 핸드에서 버린 EV", "Value lost this hand"))
+                            .font(GT.semibold(11.5))
                             .foregroundStyle(GT.ink)
                         Spacer(minLength: 6)
                         Text("\(bbText(lost))bb")
@@ -708,12 +701,13 @@ struct TableView: View {
             }
             .padding(.horizontal, 12).padding(.vertical, 10)
             .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
-            PrimaryCTAButton(title: "다음 핸드") { start(vs: villainPick) }
+            PrimaryCTAButton(title: language.text("다음 핸드", "Next hand")) { start(vs: villainPick) }
             // Text rather than a filled secondary: it is the rarer of the two actions,
             // and a full 50pt surface here bought nothing but height on the sheet that
             // can least afford it. The row keeps the 44pt tap target.
             Button { hand2Picker() } label: {
-                Text("상대 바꾸기").font(GT.semibold(13.5))
+                Text(language.text("상대 바꾸기", "Change opponent"))
+                    .font(GT.semibold(13.5))
                     .foregroundStyle(GT.inkSecondary)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .contentShape(Rectangle())
@@ -727,9 +721,21 @@ struct TableView: View {
     }
 
     private func resultLine(_ o: TableHand.Outcome) -> String {
-        if o.heroWon == nil { return "무승부" }
-        if !o.wentToShowdown { return o.heroWon! ? "상대 폴드" : "폴드" }
-        return o.heroWon! ? "쇼다운 승리" : "쇼다운 패배"
+        if o.heroWon == nil { return language.text("무승부", "Tie") }
+        if !o.wentToShowdown {
+            return o.heroWon! ? language.text("상대 폴드", "Opponent folded")
+                : language.text("폴드", "You folded")
+        }
+        return o.heroWon! ? language.text("쇼다운 승리", "Won at showdown")
+            : language.text("쇼다운 패배", "Lost at showdown")
+    }
+
+    private func chartAction(_ action: DefendAction) -> String {
+        switch action {
+        case .fold: return language.text("폴드", "Fold")
+        case .call: return language.text("콜", "Call")
+        case .threeBet: return language.text("3벳", "3-bet")
+        }
     }
 
     // MARK: acting
@@ -747,9 +753,11 @@ struct TableView: View {
                         of hand: TableHand) {
         guard let grade = TableHand.graded(choice, with: options),
               let chosen = options.first(where: { $0.choice == choice }) else { return }
-        let street = hand.street == 3 ? "플랍" : (hand.street == 4 ? "턴" : "리버")
-        decisions.append(TurnRecord(street: street, label: chosen.label,
-                                    verdict: .ev(loss: grade.loss, best: grade.best.label)))
+        let best = options.first { $0.label == grade.best.label } ?? chosen
+        decisions.append(TurnRecord(street: hand.street, choice: choice,
+                                    amount: chosen.amount,
+                                    fraction: { if case let .bet(f) = choice { return f }; return nil }(),
+                                    verdict: .ev(loss: grade.loss, best: best)))
     }
 
     /// The slow part, off the main thread on a copy (spec §3): exact on turn and
@@ -775,25 +783,31 @@ private extension GradedOption {
         return true
     }
     /// "75%" for a bet — §A: the pro unit leads postflop.
-    var headline: String {
+    func headline(in language: LearningLanguage) -> String {
         if case let .bet(f) = choice { return "\(pctText(f * 100))%" }
-        return label
+        return label(in: language)
     }
-    /// The resolved amount, already in the label: "벳 5.6bb (75%)" → "5.6bb".
-    var subline: String {
-        label.split(separator: " ").dropFirst().first.map(String.init) ?? ""
+    /// The resolved amount comes from the graded option, not its display copy.
+    func subline(in language: LearningLanguage) -> String {
+        _ = language
+        return amount.map { "\(bbText($0))bb" } ?? ""
     }
-    /// The verb on its own — "콜 5.6bb" → "콜". The price gets its own line so the
-    /// three amounts form a column instead of hiding inside three sentences.
-    var actionName: String {
-        label.split(separator: " ").first.map(String.init) ?? label
+    /// The verb on its own; prices form a separate visual column.
+    func actionName(in language: LearningLanguage) -> String {
+        switch choice {
+        case .fold: return language.text("폴드", "Fold")
+        case .check: return language.text("체크", "Check")
+        case .call: return language.text("콜", "Call")
+        case .raise: return language.text("레이즈", "Raise")
+        case .bet: return language.text("벳", "Bet")
+        }
     }
     /// What committing costs. 폴드 and 체크 are stated as 0bb rather than left blank:
     /// it is the number the reveal's EV comparison is read against.
     var priceText: String {
         switch choice {
         case .fold, .check: return "0bb"
-        default: return subline.isEmpty ? "0bb" : subline
+        default: return amount.map { "\(bbText($0))bb" } ?? "0bb"
         }
     }
     /// Money class, not merit — see `GTActionRole`.
