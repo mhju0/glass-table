@@ -167,3 +167,24 @@
 - No native code, progress/schema, iPhone installation or GitHub push in this
   milestone. Next: owner reviews wording and flows; obtain mock approval before
   tickets 02–06. Full native release and independent data-safety review remain open.
+
+## 2026-09-23: Opponent and navigation mock revision
+
+- Owner approved the review mock's overall direction and requested short opponent
+  names, two separate behavior scales, and Learn/Play/Progress instead of Today.
+  The revision is in `.scratch/beginner-learning-release/prototype/`; the spec,
+  tickets and verification in that folder record the intended native follow-up.
+- The five names now map to the existing `Archetype` values. Only the selected row
+  expands its entry and raise scales. Percentages and legacy poker names are in
+  optional details; Computer 1/2/3 identify the replay seats. These are published
+  model settings, not measured behavior in the scripted four-seat example.
+- Learn shows one suggestion: unfinished intro/round first; next-lesson and
+  review-reminder examples are labelled fixtures. The full path, real review
+  scheduling and calibration remain native work, not mock claims. No daily popup.
+- Verification: revised interaction run and extra-control run passed; 304 layout
+  states and 36 computed contrast pairs passed. After final copy and narrow-nav
+  edits, a focused 16-state check passed one-line nav labels and Start reachability.
+  `verification.md` holds exact limits and the final 320px/200% capture.
+- Next: review the revised mock, then implement tickets 02–06 as the complete
+  native release with migration/engine safety gates. This mock changed no native
+  app, persistence, phone installation or GitHub remote state.

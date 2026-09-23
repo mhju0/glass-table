@@ -27,6 +27,13 @@ Individual implementation tickets live in [issues/](issues/).
   and accessibility labels. A glossary supplements understandable screens.
 - Opponent descriptions must match the actual authored policy. Present configured
   VPIP/PFR as policy parameters, not observed statistics or difficulty scores.
+- Lead the opponent picker with short titles: Cautious/신중형,
+  Selective/선별형, Aggressive/공격형, Caller/콜 위주형 and Very aggressive/매우 공격형.
+  Give each one brief everyday wording. Only the selected opponent expands to two
+  distinct scales: how often it enters and how often it raises before shared cards.
+  These are separate per-hand settings, not one aggression or skill rank. Put the
+  numerical VPIP/PFR values and original poker names in optional details. Use
+  Computer 1/2/3 as seat identities, with the selected style on Computer 1.
 - Give each concept a short why/how/example introduction, with skip and replay.
   Use a different worked example from the assessed question. Previously attempted
   concepts do not force the introduction on existing users.
@@ -67,8 +74,16 @@ is implemented and reviewed. The current Korean-only metadata claim stays until 
 
 Single-skill free practice becomes five-question rounds. Record each answer at
 commit, not only on completion. Leaving after three retains those three answers.
-Completion offers another round, guidance or another concept. Keep four main tabs;
-surface practice clearly on Today/Learn and history/style reports in Records.
+Completion offers another round, guidance or another concept. Use three main tabs:
+Learn/배우기, Play/플레이 and Progress/기록. Fold Today's recommended action into
+Learn rather than opening a daily popup. Show one suggestion: resume an unfinished
+introduction or round first, then a useful due review, then the next lesson. When
+the curriculum is complete, show an honest completed state. Keep the full path,
+review scheduling, calibration and single-skill practice reachable from Learn;
+four-player table practice starts in Play, and history/style reports live in
+Progress. No existing information is dropped just because its tab disappears.
+The browser mock may use labelled next/review fixtures, but must not claim a real
+due schedule or a full path before those are connected.
 
 Daily and weekly per-concept summaries show counts and meaningful outcomes:
 exact/near/miss for estimates, chart match for chart tasks, decision loss for EV.

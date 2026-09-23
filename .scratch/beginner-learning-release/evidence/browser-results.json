@@ -1,7 +1,14 @@
 {
   "url": "http://127.0.0.1:8768/.scratch/beginner-learning-release/prototype/",
   "checks": [
-    "Intro replay preserves answer; chart own-cell scroll, row text and reset; optional timing, loading and Settings backdrop",
+    "Three destinations; one honest next/review fixture recommendation on Learn",
+    "Settings opens, changes language/theme, Escape closes and restores focus",
+    "Language and appearance switches preserve the committed question",
+    "Leaving after three answers and continuing preserves the in-memory round",
+    "Five-question round reaches summary with assistance and a wrong answer",
+    "Chart remains hidden before commitment; overview and cell explorer work",
+    "All opponent choices/details, replay controls, settlement review, hindsight and reset",
+    "Records empty/error/retry and all style descriptions/insufficient state",
     "304 layout states: 320/375px, KO/EN, light/dark, 100/200% text; no page overflow, undersized controls or Korean leakage in English"
   ],
   "layouts": 304,

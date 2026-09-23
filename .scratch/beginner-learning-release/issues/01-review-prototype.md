@@ -18,3 +18,8 @@ review. Owner approval is the dependency for tickets 02–06, not implied by tes
   Interaction checkpoints, 192 final layout combinations and 32 contrast pairs
   passed; see [verification](../verification.md) for evidence and limits.
   Awaiting owner visual/copy approval before native implementation (tickets 02–06).
+- 2026-09-23: owner approved the overall mock direction and requested shorter
+  opponent titles with separate entry/raise scales and three-tab Learn/Play/Progress
+  navigation. The revised interaction run passed; 304 layout states and 36 colour
+  pairs passed. A final 320px/200% screen verified Start and all three tab labels.
+  The owner still reviews this revised mock before tickets 02–06 begin.

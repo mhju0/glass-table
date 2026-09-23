@@ -25,6 +25,13 @@ const pass = label => { checks.push(label); console.log(`PASS ${label}`); };
 run('open', url);
 run('set', 'viewport', '375', '812');
 if (!process.env.GT_LAYOUT_ONLY) {
+assert.deepEqual(evaluate('[...document.querySelectorAll(".bottomnav button")].map(e=>e.textContent.trim())'), ['♠Learn', '▤Play', '▥Progress']);
+assert.equal(evaluate('document.querySelector(".bottomnav [data-value=learn]").getAttribute("aria-current")'), 'page');
+click('learn-sample', 'review');
+assert.ok(evaluate('document.querySelector(".recommendation").textContent').includes('not connected to a real review schedule'));
+click('learn-sample', 'next');
+assert.equal(evaluate('document.querySelectorAll(".recommendation .btn").length'), 1);
+pass('Three destinations; one honest next/review fixture recommendation on Learn');
 click('settings-open');
 run('press', 'Shift+Tab');
 assert.equal(evaluate('document.querySelector("[role=dialog]").contains(document.activeElement)'), true);
@@ -41,6 +48,7 @@ pass('Settings opens, changes language/theme, Escape closes and restores focus')
 
 click('practice-intro');
 click('practice-start');
+assert.equal(evaluate('document.querySelector(".bottomnav [data-value=learn]").getAttribute("aria-current")'), 'page');
 click('practice-answer', 'you');
 const beforeLanguage = evaluate('JSON.stringify({q:state.q,answers:state.answers,answer:state.answer})');
 click('settings-open');
@@ -56,7 +64,8 @@ click('practice-next');
 click('practice-answer', 'tie');
 click('practice-next');
 const beforeLeave = evaluate('JSON.stringify({q:state.q,answers:state.answers})');
-click('nav', 'today');
+click('nav', 'learn');
+assert.equal(evaluate('document.querySelector(".recommendation h2").textContent'), '풀던 문제');
 click('practice-resume');
 assert.equal(evaluate('JSON.stringify({q:state.q,answers:state.answers})'), beforeLeave);
 pass('Leaving after three answers and continuing preserves the in-memory round');
@@ -66,10 +75,15 @@ click('practice-answer', 'you');
 click('practice-next');
 assert.equal(evaluate('state.practiceStage'), 'summary');
 assert.equal(evaluate('state.answers.length'), 5);
+click('nav', 'learn');
+assert.equal(evaluate('document.querySelector(".recommendation h2").textContent'), '이번 연습을 마쳤어요');
+click('practice-resume');
+assert.equal(evaluate('state.practiceStage'), 'summary');
 pass('Five-question round reaches summary with assistance and a wrong answer');
 
 click('nav', 'learn');
 click('chart-open');
+assert.equal(evaluate('document.querySelector(".bottomnav [data-value=learn]").getAttribute("aria-current")'), 'page');
 assert.equal(evaluate('document.querySelectorAll(".chart-overview,.chart-explore").length'), 0);
 click('chart-choose', 'fold');
 assert.equal(evaluate('document.querySelectorAll(".chart-cell").length'), 169);
@@ -80,10 +94,23 @@ assert.equal(evaluate('state.chartCell'), 'AA');
 pass('Chart remains hidden before commitment; overview and cell explorer work');
 
 click('nav', 'opponents');
-for (const id of ['nit', 'tag', 'lag', 'station', 'maniac']) click('opp-select', id);
+assert.equal(evaluate('document.querySelector(".bottomnav [data-value=opponents]").getAttribute("aria-current")'), 'page');
+assert.ok(!evaluate('document.querySelector("main").textContent').includes('VPIP'));
+for (const [id, vpip, pfr] of [['nit',12,9], ['tag',20,17], ['lag',27,22], ['station',40,10], ['maniac',55,40]]) {
+  click('opp-select', id);
+  assert.equal(evaluate('document.querySelectorAll("#opponent-habits").length'), 1);
+  assert.deepEqual(evaluate('[...document.querySelectorAll("#opponent-habits .behavior-track")].map(e=>e.getAttribute("aria-label"))'), [`판에 들어오기: ${vpip}%, 드물게–자주`, `금액 올리기: ${pfr}%, 드물게–자주`]);
+  assert.equal(evaluate('document.querySelectorAll(".opponent[aria-pressed=true]").length'), 1);
+}
+click('settings-open');
+click('language', 'en');
+click('settings-close');
+assert.equal(evaluate('document.querySelector("h1").textContent'), 'Choose an opponent');
+assert.deepEqual(evaluate('[...document.querySelectorAll("#opponent-habits .behavior-track")].map(e=>e.getAttribute("aria-label"))'), ['Joins a hand: 55%, Rarely–Often', 'Raises the bet: 40%, Rarely–Often']);
 click('opp-details');
 assert.ok(evaluate('document.querySelector(".detail-panel").textContent').includes('VPIP'));
 click('table-start');
+assert.deepEqual(evaluate('[...document.querySelectorAll(".seat strong")].map(e=>e.textContent.split(" · ")[0].trim())'), ['Computer 3', 'Computer 1', 'Computer 2', 'Me']);
 click('table-next');
 click('table-prev');
 assert.equal(evaluate('state.tableIndex'), -1);
@@ -150,8 +177,15 @@ if (process.env.GT_LAYOUT_ONLY === '1') {
 }
 
 const fixtures = {
+  learn: { route: 'learn', practiceStage: 'idle', learnRecommendation: 'next' },
+  learnReview: { route: 'learn', practiceStage: 'idle', learnRecommendation: 'review' },
+  learnIntro: { route: 'learn', practiceStage: 'intro' },
+  learnResume: { route: 'learn', practiceStage: 'question', q: 2, answer: null },
+  learnDone: { route: 'learn', practiceStage: 'summary' },
   settings: { route: 'learn', settings: true },
-  opponents: { route: 'opponents', oppDetails: false },
+  opponents: { route: 'opponents', opp: 'tag', oppDetails: false },
+  opponentLast: { route: 'opponents', opp: 'maniac', oppDetails: false },
+  opponentDetails: { route: 'opponents', opp: 'station', oppDetails: true },
   intro: { route: 'practice', practiceStage: 'intro' },
   question: { route: 'practice', practiceStage: 'question', q: 0, answer: null, help: false },
   summary: { route: 'practice', practiceStage: 'summary' },
@@ -173,9 +207,13 @@ for (const width of [320, 375]) for (const lang of ['ko', 'en']) for (const them
     assert.deepEqual(layout.small, [], `${name}/${lang}/${theme}/${width}/${size} undersized targets`);
     const clippedControls = evaluate(`[...document.querySelectorAll('button')].filter(e=>e.getClientRects().length&&!e.closest('[inert]')&&!e.closest('.chart-explore')).filter(e=>{const r=e.getBoundingClientRect();return e.scrollWidth>e.clientWidth+1||r.right>innerWidth+1||r.left< -1}).map(e=>e.textContent)`);
     assert.deepEqual(clippedControls, [], `${name}/${lang}/${theme}/${width}/${size} clipped control text`);
+    if (name === 'opponentLast' || name === 'opponentDetails') {
+      const reach = evaluate(`(()=>{const last=document.querySelector('[data-action="table-start"]');last.scrollIntoView({block:'center',behavior:'instant'});const r=last.getBoundingClientRect(),nav=document.querySelector('.bottomnav').getBoundingClientRect();return r.top>=0&&r.bottom<=nav.top})()`);
+      assert.equal(reach, true, `${name}/${lang}/${theme}/${width}/${size} final action covered by nav`);
+    }
     if (lang === 'en') assert.ok(!/[가-힣]/.test(layout.text), `${name} untranslated Korean`);
     layouts++;
-    if (width === 375 && size === 16 && ['opponents', 'chart', 'intro', 'table', 'review', 'records'].includes(name)) {
+    if (width === 375 && size === 16 && ['learn', 'learnReview', 'opponents', 'opponentLast', 'chart', 'intro', 'table', 'review', 'records'].includes(name)) {
       run('screenshot', path.join(output, `${name}-${lang}-${theme}.png`), '--full');
     }
   }

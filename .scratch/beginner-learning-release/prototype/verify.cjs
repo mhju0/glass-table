@@ -32,6 +32,15 @@ assert.equal(model.sampleStyle.hands, 120);
 assert.equal(model.sampleStyle.entries, 72);
 assert.equal(model.sampleStyle.raises, 59);
 
+const archetypeSource = fs.readFileSync(path.join(folder, '../../../GlassTableDrills/Sources/GlassTableDrills/Archetype.swift'), 'utf8');
+const vpipSource = archetypeSource.slice(archetypeSource.indexOf('public var vpip'), archetypeSource.indexOf('public var pfr'));
+const pfrSource = archetypeSource.slice(archetypeSource.indexOf('public var pfr'), archetypeSource.indexOf('public var name'));
+for (const [name, vpip, pfr] of [['nit',12,9], ['tag',20,17], ['lag',27,22], ['station',40,10], ['maniac',55,40]]) {
+  assert.match(vpipSource, new RegExp(`case \\.${name}: return ${vpip}(?:;|\\s)`));
+  assert.match(pfrSource, new RegExp(`case \\.${name}: return ${pfr}(?:;|\\s)`));
+  assert.match(appSource, new RegExp(`id:"${name}"[^\\n]+vpip:${vpip}, pfr:${pfr}`));
+}
+
 function contrast(a, b) {
   const luminance = hex => {
     const rgb = hex.match(/[0-9a-f]{2}/gi).map(v => parseInt(v, 16) / 255);
@@ -75,7 +84,11 @@ const boundaryPairs = [
   ['chart raise edge and inset focus', '#d28a82', '#222c29'],
   ['chart call edge and inset focus', '#edc17f', '#222c29'],
   ['chart dark fold edge and inset focus', '#1d2024', '#f4f0e6'],
-  ['chart light fold edge and inset focus', '#e7e1d6', '#222c29']
+  ['chart light fold edge and inset focus', '#e7e1d6', '#222c29'],
+  ['light behavior fill', '#fffdf7', '#8a5500'],
+  ['dark behavior fill', '#24272b', '#edc17f'],
+  ['light behavior marker', '#fffdf7', '#222c29'],
+  ['dark behavior marker', '#24272b', '#f4f0e6']
 ];
 for (const [label, background, foreground] of textPairs) {
   const ratio = contrast(background, foreground);
@@ -86,4 +99,4 @@ for (const [label, background, foreground] of boundaryPairs) {
   assert.ok(ratio >= 3, `${label}: ${ratio.toFixed(2)} below 3`);
 }
 assert.ok(fs.readFileSync(path.join(__dirname, 'styles.css'), 'utf8').includes('.chart-explore button{border-color:currentColor}'));
-console.log(`PASS: fixtures, chip accounting, bilingual keys, and ${textPairs.length + boundaryPairs.length} computed color-pair contrasts`);
+console.log(`PASS: fixtures, chip accounting, opponent settings against Archetype.swift, bilingual keys, and ${textPairs.length + boundaryPairs.length} computed color-pair contrasts`);
