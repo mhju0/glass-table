@@ -13,9 +13,9 @@ prototype demonstrates six representative flows, not 18 implemented native lesso
 | Plan consistency | PASS: independent read-only review retained storage, accounting and profile safety requirements. This is not a Class-3 runtime review. |
 | JavaScript syntax | PASS: `node --check prototype/app.js`. |
 | Fixture and copy checks | PASS: `node prototype/verify.cjs`; 169 distinct chart labels, five distinct-card question fixtures, replay chip accounting, KO/EN key parity, five opponent values checked against `Archetype.swift`, and 36 computed colour-pair checks including the new scales. |
-| Browser interactions | PASS: the revised full run completed with three-tab navigation, recommendation next/review and resume priority, all five opponent selections and two scale values in KO/EN, technical disclosure, Computer 1/2/3 seats, and the existing practice/chart/table/records flows. The extra-control run checked intro replay, chart scroll/reset, optional timing, loading and Settings backdrop. |
-| Responsive matrix | PASS: 304 combinations of 19 states, 320/375px, KO/EN, light/dark and 100/200% text; no page/control-text overflow, undersized enabled controls, English-screen Korean leakage or captured runtime errors. The last opponent and expanded details additionally passed a scroll-to-Start check above the fixed nav. |
-| Visual review | Rendered Learn and selected-opponent screens inspected in KO/light and EN/dark, plus the prior chart, intro, table, review and records views. Final large-text Settings correction remains covered by the matrix; a 320px/200% last-opponent capture is retained. |
+| Browser interactions | PASS: current picker run opened all five sheets, checked both scale values, stable row positions and sheet height, focus wrapping, Escape/Back/backdrop return, inert background, technical disclosure and Start. Existing practice/chart/table/records interaction checkpoints also passed. |
+| Responsive matrix | PASS: current picker targeted 72 states (list, selected sheet, expanded details × 320/375/760px × KO/EN × light/dark × 100/200% text). Exactly five vertical rows at every width; no horizontal/control-text overflow or undersized controls; Start reachable inside the scrolling sheet. The previous inline version passed a broader 304-state matrix and remains historical evidence only. |
+| Visual review | Current Korean/light selected sheet and English/dark 320px/200% expanded sheet inspected. The prior Learn, chart, intro, table, review and records views were unchanged by this revision. |
 | Native / device / comprehension | NOT PERFORMED: browser 200% text is not iOS AX5; browser focus checks are not a spoken VoiceOver audit. Owner/adult-beginner comprehension and native testing follow mock approval. |
 
 ## Interaction evidence
@@ -35,10 +35,11 @@ fixtures; it does not count as an interaction pass.
 - Chart: no chart before commitment; right/wrong selections; 169-cell overview;
   44px-cell explorer; selecting AA; returning and scrolling to J5o; text rows;
   collapsing and resetting the question.
-- Table: all five short-name choices and their published entry/raise values;
-  selected-only scales in both languages, optional technical disclosure and
-  Computer 1/2/3 seats; previous/next through the fixed hand; factual review,
-  post-hand reveal/hide and reset.
+- Table: exactly five stationary one-column opponent rows. Each opens the same
+  bottom-sheet frame; checks cover entry/raise values, technical disclosure,
+  keyboard focus wrap, Back/Escape/backdrop dismissal, scroll preservation,
+  inert background and Computer 1/2/3 seats. The fixed hand's previous/next,
+  factual review, hindsight and reset also passed.
 - Records: empty, loading, error/retry and sample states; optional timing; five
   proposed style descriptions and the insufficient-evidence alternative.
 
@@ -47,7 +48,7 @@ The fixed four-player hand contributes 2 + 2 + 2 + 0 = 6 chips. The learner's
 The chart explicitly uses illustrative colours, not the app's grading policy.
 The mock keeps state only while the page stays open; refresh does not preserve it.
 
-The revised full run exited successfully and wrote `browser-results.json`; the
+The earlier inline version's full run wrote `browser-results.json`; its
 extra-control run wrote `layout-results.json`. The prior
 `initial-browser-results.json` remains historical evidence for the first mock.
 After those runs, a copy-only correction changed “seven-seat exercise” to
@@ -59,8 +60,22 @@ Syntax, fixture and contrast checks were rerun on this final source, and the
 again after those final copy/nav changes. A focused final check passed 16 states
 (320/375px × KO/EN × light/dark × 100/200% text): each of the three nav labels
 stayed on one line without clipping and Start scrolled above the nav. Final
-`app.js` SHA-256:
+inline-version `app.js` SHA-256:
 `b191e540e3218d961d432abda7757199a53670489435f36d4551fbbdbed362c9`.
+
+## Stationary picker and bottom-sheet revision
+
+The current scoped run used `GT_OPP_ONLY=1` and exited 0, writing
+`evidence/opponent-results.json`. All existing interaction checkpoints passed;
+the picker-specific checks covered five modal flows and 72 responsive states.
+The sheet frame held the same height for all five choices. List row offsets and
+heights were unchanged after selection/dismissal. English Back initially clipped
+at 320px/200%; the visible label was shortened while its full accessible name
+remained, then the 72-state run passed. Browser errors were empty. The final
+`opponent-sheet-en-dark-320-200.png` capture shows expanded details and the
+reachable Start action. This is browser evidence; native AX5/VoiceOver remains
+untested. Current `app.js` SHA-256:
+`bee01c1cceeb75f7c2ecd3c52f68dc1f1919b7f3ce6a2aaa0298f8dda3b744bc`.
 
 ## Findings corrected during this milestone
 
@@ -80,8 +95,9 @@ stayed on one line without clipping and Start scrolled above the nav. Final
   that document-width checks missed; the harness now checks control text overflow.
 - Replaced a fixed 800ms loading assertion with waiting for the actual state.
   A timed wait that expires before the fixture finishes is not passing evidence.
-- Shortened opponent titles and moved the selected-only two scales under the
-  selected row. Removed the Today destination and moved its recommendation to
+- Shortened opponent titles and first placed the selected-only scales under the
+  row; the current revision moved them into a stable bottom sheet so the five
+  rows stay still. Removed the Today destination and moved its recommendation to
   Learn. A separate 320px/200% check confirms the final Start control remains
   reachable above navigation even for the last opponent and expanded details.
 
@@ -99,6 +115,7 @@ node .scratch/beginner-learning-release/prototype/verify.cjs
 GT_BROWSER_CLI=agent-browser node .scratch/beginner-learning-release/verify-browser.cjs
 GT_LAYOUT_ONLY=1 GT_BROWSER_CLI=agent-browser node .scratch/beginner-learning-release/verify-browser.cjs
 GT_LAYOUT_ONLY=matrix GT_BROWSER_SESSION=gt-beginner-final GT_BROWSER_CLI=agent-browser node .scratch/beginner-learning-release/verify-browser.cjs
+GT_OPP_ONLY=1 GT_BROWSER_SESSION=gt-opponent-sheet-final2 GT_BROWSER_CLI=agent-browser node .scratch/beginner-learning-release/verify-browser.cjs
 ```
 
 `GT_BROWSER_CLI` accepts an installed executable path. This run used the existing

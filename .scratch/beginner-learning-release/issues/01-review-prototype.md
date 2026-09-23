@@ -23,3 +23,7 @@ review. Owner approval is the dependency for tickets 02–06, not implied by tes
   navigation. The revised interaction run passed; 304 layout states and 36 colour
   pairs passed. A final 320px/200% screen verified Start and all three tab labels.
   The owner still reviews this revised mock before tickets 02–06 begin.
+- 2026-09-23: owner requested the opponent rows stay fixed. The current mock has
+  five vertical rows at every width and a selected-opponent bottom sheet. A
+  targeted 72-state matrix, all five selection/dismissal flows and large-text
+  sheet scrolling passed; see [verification](../verification.md).

@@ -188,3 +188,12 @@
 - Next: review the revised mock, then implement tickets 02–06 as the complete
   native release with migration/engine safety gates. This mock changed no native
   app, persistence, phone installation or GitHub remote state.
+
+## 2026-09-23: Stationary opponent picker
+
+- Replaced the moving selected-row scales with one stable bottom sheet. Five
+  vertical rows remain fixed at phone and wide widths; the sheet holds the two
+  policy scales, optional numbers and Start. Back/Escape/backdrop restore focus.
+- Targeted browser checks passed five flows and 72 layout states; 36 contrast
+  pairs and syntax passed. See `.scratch/beginner-learning-release/verification.md`.
+- Next: owner reviews this mock before native tickets. No app or device changes.

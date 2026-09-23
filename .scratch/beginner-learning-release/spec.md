@@ -29,8 +29,11 @@ Individual implementation tickets live in [issues/](issues/).
   VPIP/PFR as policy parameters, not observed statistics or difficulty scores.
 - Lead the opponent picker with short titles: Cautious/신중형,
   Selective/선별형, Aggressive/공격형, Caller/콜 위주형 and Very aggressive/매우 공격형.
-  Give each one brief everyday wording. Only the selected opponent expands to two
-  distinct scales: how often it enters and how often it raises before shared cards.
+  Give each one brief everyday wording. Keep exactly five stationary vertical rows
+  at phone and wide widths. Tapping a row opens a bottom sheet with a stable frame,
+  the selected title and two distinct scales: how often it enters and how often it
+  raises before shared cards. Back, Escape and backdrop dismissal restore focus
+  and scroll position; the background is inert while the sheet is open.
   These are separate per-hand settings, not one aggression or skill rank. Put the
   numerical VPIP/PFR values and original poker names in optional details. Use
   Computer 1/2/3 as seat identities, with the selected style on Computer 1.

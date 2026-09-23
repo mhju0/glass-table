@@ -1,0 +1,31 @@
+{
+  "url": "http://127.0.0.1:8768/.scratch/beginner-learning-release/prototype/",
+  "checks": [
+    "Three destinations; one honest next/review fixture recommendation on Learn",
+    "Settings opens, changes language/theme, Escape closes and restores focus",
+    "Language and appearance switches preserve the committed question",
+    "Leaving after three answers and continuing preserves the in-memory round",
+    "Five-question round reaches summary with assistance and a wrong answer",
+    "Chart remains hidden before commitment; overview and cell explorer work",
+    "All opponent choices/details, replay controls, settlement review, hindsight and reset",
+    "Records empty/error/retry and all style descriptions/insufficient state",
+    "72 layout states: 320/375/760px, KO/EN, light/dark, 100/200% text; no page overflow, undersized controls or Korean leakage in English"
+  ],
+  "layouts": 72,
+  "errors": {
+    "errors": [],
+    "lifecycle": {
+      "effectiveLaunch": {
+        "browserLaunched": true,
+        "engine": "chrome",
+        "launchHash": 11677035664275012000
+      },
+      "launched": false,
+      "relaunchedBrowser": false,
+      "restartedBackground": false,
+      "restoreStatus": "not_configured",
+      "reused": true,
+      "saveStatus": "not_attempted"
+    }
+  }
+}

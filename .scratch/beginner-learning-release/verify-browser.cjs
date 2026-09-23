@@ -96,18 +96,40 @@ pass('Chart remains hidden before commitment; overview and cell explorer work');
 click('nav', 'opponents');
 assert.equal(evaluate('document.querySelector(".bottomnav [data-value=opponents]").getAttribute("aria-current")'), 'page');
 assert.ok(!evaluate('document.querySelector("main").textContent').includes('VPIP'));
+assert.equal(evaluate('document.querySelectorAll(".opponent-grid > .opponent").length'), 5);
+const rowGeometry = evaluate('[...document.querySelectorAll(".opponent")].map(e=>({top:e.offsetTop,height:e.offsetHeight}))');
+let sheetHeight = null;
 for (const [id, vpip, pfr] of [['nit',12,9], ['tag',20,17], ['lag',27,22], ['station',40,10], ['maniac',55,40]]) {
   click('opp-select', id);
-  assert.equal(evaluate('document.querySelectorAll("#opponent-habits").length'), 1);
-  assert.deepEqual(evaluate('[...document.querySelectorAll("#opponent-habits .behavior-track")].map(e=>e.getAttribute("aria-label"))'), [`판에 들어오기: ${vpip}%, 드물게–자주`, `금액 올리기: ${pfr}%, 드물게–자주`]);
+  const openScroll = evaluate('window.scrollY');
+  const currentHeight = evaluate('document.querySelector(".opp-sheet").getBoundingClientRect().height');
+  if (sheetHeight === null) sheetHeight = currentHeight;
+  assert.equal(currentHeight, sheetHeight);
+  assert.equal(evaluate('state.oppSheet'), true);
+  assert.equal(evaluate('document.querySelectorAll("[role=dialog]").length'), 1);
+  assert.equal(evaluate('document.querySelector("main").inert && document.querySelector(".bottomnav").inert'), true);
+  assert.deepEqual(evaluate('[...document.querySelectorAll(".opp-sheet .behavior-track")].map(e=>e.getAttribute("aria-label"))'), [`판에 들어오기: ${vpip}%, 드물게–자주`, `금액 올리기: ${pfr}%, 드물게–자주`]);
   assert.equal(evaluate('document.querySelectorAll(".opponent[aria-pressed=true]").length'), 1);
+  run('press', 'Shift+Tab');
+  assert.equal(evaluate('document.activeElement?.dataset.action'), 'table-start');
+  run('press', 'Tab');
+  assert.equal(evaluate('document.activeElement?.dataset.action'), 'opp-close');
+  if (id === 'nit') run('press', 'Escape');
+  else if (id === 'lag') { run('mouse', 'move', '8', '8'); run('mouse', 'down'); run('mouse', 'up'); }
+  else click('opp-close');
+  assert.equal(evaluate('state.oppSheet'), false);
+  assert.ok(Math.abs(evaluate('window.scrollY') - openScroll) <= 1);
+  assert.equal(evaluate('document.activeElement?.dataset.value'), id);
+  assert.deepEqual(evaluate('[...document.querySelectorAll(".opponent")].map(e=>({top:e.offsetTop,height:e.offsetHeight}))'), rowGeometry);
 }
 click('settings-open');
 click('language', 'en');
 click('settings-close');
 assert.equal(evaluate('document.querySelector("h1").textContent'), 'Choose an opponent');
-assert.deepEqual(evaluate('[...document.querySelectorAll("#opponent-habits .behavior-track")].map(e=>e.getAttribute("aria-label"))'), ['Joins a hand: 55%, Rarely–Often', 'Raises the bet: 40%, Rarely–Often']);
-click('opp-details');
+click('opp-select', 'maniac');
+assert.deepEqual(evaluate('[...document.querySelectorAll(".opp-sheet .behavior-track")].map(e=>e.getAttribute("aria-label"))'), ['Joins a hand: 55%, Rarely–Often', 'Raises the bet: 40%, Rarely–Often']);
+run('click', '.opp-disclosure summary');
+assert.equal(evaluate('document.querySelector(".opp-disclosure").open'), true);
 assert.ok(evaluate('document.querySelector(".detail-panel").textContent').includes('VPIP'));
 click('table-start');
 assert.deepEqual(evaluate('[...document.querySelectorAll(".seat strong")].map(e=>e.textContent.split(" · ")[0].trim())'), ['Computer 3', 'Computer 1', 'Computer 2', 'Me']);
@@ -183,9 +205,9 @@ const fixtures = {
   learnResume: { route: 'learn', practiceStage: 'question', q: 2, answer: null },
   learnDone: { route: 'learn', practiceStage: 'summary' },
   settings: { route: 'learn', settings: true },
-  opponents: { route: 'opponents', opp: 'tag', oppDetails: false },
-  opponentLast: { route: 'opponents', opp: 'maniac', oppDetails: false },
-  opponentDetails: { route: 'opponents', opp: 'station', oppDetails: true },
+  opponents: { route: 'opponents', opp: 'tag', oppSheet: false },
+  opponentLast: { route: 'opponents', opp: 'maniac', oppSheet: true },
+  opponentDetails: { route: 'opponents', opp: 'station', oppSheet: true },
   intro: { route: 'practice', practiceStage: 'intro' },
   question: { route: 'practice', practiceStage: 'question', q: 0, answer: null, help: false },
   summary: { route: 'practice', practiceStage: 'summary' },
@@ -198,18 +220,26 @@ const fixtures = {
   error: { route: 'records', recordsState: 'error', styleState: 'short' }
 };
 let layouts = 0;
-for (const width of [320, 375]) for (const lang of ['ko', 'en']) for (const theme of ['light', 'dark']) for (const size of [16, 32]) {
+const layoutFixtures = process.env.GT_OPP_ONLY ? Object.fromEntries(['opponents', 'opponentLast', 'opponentDetails'].map(name => [name, fixtures[name]])) : fixtures;
+const widths = process.env.GT_OPP_ONLY ? [320, 375, 760] : [320, 375];
+for (const width of widths) for (const lang of ['ko', 'en']) for (const theme of ['light', 'dark']) for (const size of [16, 32]) {
   run('set', 'viewport', String(width), '812');
-  for (const [name, fixture] of Object.entries(fixtures)) {
-    evaluate(`Object.assign(state,${JSON.stringify({ lang, langOption: lang, theme, settings: false, ...fixture })});document.documentElement.style.fontSize='${size}px';render();window.scrollTo(0,0)`);
+  for (const [name, fixture] of Object.entries(layoutFixtures)) {
+    evaluate(`Object.assign(state,${JSON.stringify({ lang, langOption: lang, theme, settings: false, oppSheet: false, ...fixture })});document.documentElement.style.fontSize='${size}px';render();window.scrollTo(0,0)`);
+    if (name === 'opponentDetails') evaluate('document.querySelector(".opp-disclosure").open=true');
     const layout = evaluate(`({width:innerWidth,scroll:document.documentElement.scrollWidth,small:[...document.querySelectorAll('button,summary')].filter(e=>!e.disabled&&e.getClientRects().length).filter(e=>{const r=e.getBoundingClientRect();return r.width<43.9||r.height<43.9}).map(e=>({text:e.textContent,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height})),text:document.querySelector('main').innerText})`);
     assert.ok(layout.scroll <= layout.width, `${name}/${lang}/${theme}/${width}/${size} horizontal overflow ${layout.scroll}`);
     assert.deepEqual(layout.small, [], `${name}/${lang}/${theme}/${width}/${size} undersized targets`);
     const clippedControls = evaluate(`[...document.querySelectorAll('button')].filter(e=>e.getClientRects().length&&!e.closest('[inert]')&&!e.closest('.chart-explore')).filter(e=>{const r=e.getBoundingClientRect();return e.scrollWidth>e.clientWidth+1||r.right>innerWidth+1||r.left< -1}).map(e=>e.textContent)`);
     assert.deepEqual(clippedControls, [], `${name}/${lang}/${theme}/${width}/${size} clipped control text`);
     if (name === 'opponentLast' || name === 'opponentDetails') {
-      const reach = evaluate(`(()=>{const last=document.querySelector('[data-action="table-start"]');last.scrollIntoView({block:'center',behavior:'instant'});const r=last.getBoundingClientRect(),nav=document.querySelector('.bottomnav').getBoundingClientRect();return r.top>=0&&r.bottom<=nav.top})()`);
-      assert.equal(reach, true, `${name}/${lang}/${theme}/${width}/${size} final action covered by nav`);
+      const reach = evaluate(`(()=>{const last=document.querySelector('[data-action="table-start"]');last.scrollIntoView({block:'center',behavior:'instant'});const r=last.getBoundingClientRect(),sheet=document.querySelector('.opp-sheet').getBoundingClientRect();return r.top>=sheet.top&&r.bottom<=sheet.bottom})()`);
+      assert.equal(reach, true, `${name}/${lang}/${theme}/${width}/${size} final action outside sheet viewport`);
+    }
+    if (name.startsWith('opponent')) {
+      assert.equal(evaluate('document.querySelectorAll(".opponent-grid > .opponent").length'), 5);
+      assert.equal(evaluate('getComputedStyle(document.querySelector(".opponent-grid")).gridTemplateColumns.split(" ").length'), 1);
+      assert.equal(evaluate('document.querySelectorAll(".opponent-grid > :not(.opponent)").length'), 0);
     }
     if (lang === 'en') assert.ok(!/[가-힣]/.test(layout.text), `${name} untranslated Korean`);
     layouts++;
@@ -218,10 +248,10 @@ for (const width of [320, 375]) for (const lang of ['ko', 'en']) for (const them
     }
   }
 }
-pass(`${layouts} layout states: 320/375px, KO/EN, light/dark, 100/200% text; no page overflow, undersized controls or Korean leakage in English`);
+pass(`${layouts} layout states: ${widths.join('/')}px, KO/EN, light/dark, 100/200% text; no page overflow, undersized controls or Korean leakage in English`);
 run('set', 'viewport', '375', '812');
 evaluate("Object.assign(state,{route:'learn',lang:'ko',langOption:'ko',theme:'system',settings:false});document.documentElement.style.fontSize='16px';render();window.scrollTo(0,0)");
 const errors = run('errors');
 assert.deepEqual(errors.errors, [], 'Browser runtime errors');
-fs.writeFileSync(path.join(output, process.env.GT_LAYOUT_ONLY ? 'layout-results.json' : 'browser-results.json'), JSON.stringify({ url, checks, layouts, errors }, null, 2));
+fs.writeFileSync(path.join(output, process.env.GT_OPP_ONLY ? 'opponent-results.json' : process.env.GT_LAYOUT_ONLY ? 'layout-results.json' : 'browser-results.json'), JSON.stringify({ url, checks, layouts, errors }, null, 2));
 console.log(JSON.stringify(errors));
