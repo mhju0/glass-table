@@ -1,0 +1,23 @@
+{
+  "url": "http://127.0.0.1:8768/.scratch/beginner-learning-release/prototype/",
+  "checks": [
+    "192 layout states: 320/375px, KO/EN, light/dark, 100/200% text; no page overflow, undersized controls or Korean leakage in English"
+  ],
+  "layouts": 192,
+  "errors": {
+    "errors": [],
+    "lifecycle": {
+      "effectiveLaunch": {
+        "browserLaunched": true,
+        "engine": "chrome",
+        "launchHash": 11677035664275012000
+      },
+      "launched": false,
+      "relaunchedBrowser": false,
+      "restartedBackground": false,
+      "restoreStatus": "not_configured",
+      "reused": true,
+      "saveStatus": "not_attempted"
+    }
+  }
+}

@@ -148,3 +148,22 @@
 - Next: collect phone feedback on the pot flow and both appearances. Physical
   VoiceOver, minimum-iOS-17 and distribution checks remain open. Other lesson
   introductions and five/six-player diagrams are not part of this delivery.
+
+## 2026-09-23: Beginner release review milestone
+
+- Completed the approved first milestone: current-source audit of all 18 concepts,
+  delivery tickets and a bilingual interactive browser prototype covering entry,
+  opponents, chart, practice, review and records. The authoritative scope is
+  `.scratch/beginner-learning-release/spec.md`; audit and verification sit beside it.
+- Preserved adult learning-app positioning, everyday language, optional technical
+  detail, accuracy-first progress and explicit safety gates for future persistence
+  and four-player rules. Mock records, chart colours and table play are fixtures.
+- Core interaction checkpoints and extra controls passed. Final fresh-session
+  layout matrix passed 192 combinations; fixture/copy/contrast checks passed
+  32 colour pairs. Verification records the browser-transport interruption and
+  distinguishes prototype evidence from native, VoiceOver and comprehension tests.
+- Preview: `http://127.0.0.1:8768/.scratch/beginner-learning-release/prototype/`.
+  Serve the repository root on port 8768 if the local server has stopped.
+- No native code, progress/schema, iPhone installation or GitHub push in this
+  milestone. Next: owner reviews wording and flows; obtain mock approval before
+  tickets 02–06. Full native release and independent data-safety review remain open.
