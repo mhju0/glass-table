@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import Testing
 import UIKit
+import GlassTableDrills
 @testable import GlassTable
 
 struct AppearanceTests {
@@ -86,6 +87,17 @@ struct AppearanceTests {
 
         #expect(lightPage != darkPage)
         #expect(lightTable == darkTable)
+    }
+
+    @Test(arguments: [UIUserInterfaceStyle.light, .dark])
+    func defendChartLabelsUseOpaqueContrastSafeBands(style: UIUserInterfaceStyle) throws {
+        for action in [DefendAction.call, .threeBet] {
+            let fill = DefendGridView.bandFill(action)
+            let resolved = UIColor(fill).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
+            #expect(resolved.cgColor.alpha == 1,
+                    "Translucent chart bands must not wash out their small labels")
+            #expect(try contrast(GT.onCTA, fill, style: style) >= 4.5)
+        }
     }
 
     private func contrast(_ foreground: Color, _ background: Color,

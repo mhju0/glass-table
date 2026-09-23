@@ -4,7 +4,7 @@ import GlassTableEngine
 import GlassTableDrills
 
 /// The defending chart as a 13×13 grid, decisions.md §B convention: colour = action,
-/// red 3벳, green 콜, grey 폴드. Bands come straight from `DefendChart`, so the grid
+/// red 3벳, amber 콜, grey 폴드. Bands come straight from `DefendChart`, so the grid
 /// can never drift from what the table actually graded against.
 struct DefendGridView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -17,10 +17,10 @@ struct DefendGridView: View {
         return .fold
     }
 
-    private func fill(_ a: DefendAction) -> Color {
+    static func bandFill(_ a: DefendAction) -> Color {
         switch a {
-        case .threeBet: return GT.suitRed.opacity(0.85)
-        case .call: return GT.mint.opacity(0.80)
+        case .threeBet: return GT.suitRed
+        case .call: return GT.cta
         case .fold: return GT.surface
         }
     }
@@ -34,7 +34,7 @@ struct DefendGridView: View {
             HStack(spacing: 12) {
                 ForEach(DefendAction.allCases, id: \.self) { a in
                     HStack(spacing: 4) {
-                        RoundedRectangle(cornerRadius: 2).fill(fill(a))
+                        RoundedRectangle(cornerRadius: 2).fill(Self.bandFill(a))
                             .frame(width: 9, height: 9)
                         Text(a.rawValue).font(GT.body(10)).foregroundStyle(GT.inkSecondary)
                     }
@@ -69,7 +69,7 @@ struct DefendGridView: View {
         return HStack(spacing: 12) {
             if !dynamicTypeSize.isAccessibilitySize {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8).fill(fill(verdict))
+                    RoundedRectangle(cornerRadius: 8).fill(Self.bandFill(verdict))
                     Text(hand.description)
                         .font(GT.title(17))
                         .foregroundStyle(verdict == .fold ? GT.ink : GT.onCTA)
@@ -115,7 +115,7 @@ struct DefendGridView: View {
     private func cell(_ h: HandClass, side: CGFloat) -> some View {
         let a = action(h)
         return ZStack {
-            Rectangle().fill(fill(a))
+            Rectangle().fill(Self.bandFill(a))
             Text(h.description)
                 .font(.system(size: max(6, side * 0.30), weight: .semibold))
                 .minimumScaleFactor(0.5).lineLimit(1)
