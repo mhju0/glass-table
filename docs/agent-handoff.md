@@ -46,3 +46,20 @@ earlier verification worktrees remain preserved. Do not reset phone progress.
   table hands. Read the delivery report and the prior learner-trust audit before
   repeating investigations. Local raw evidence stays in
   `.build/beginner-native-release/`; do not remove that worktree without archiving it.
+
+## 2026-09-23: Settings in bottom navigation
+
+- Changed: Settings is the far-right fourth tab. Removed top gear/globe shortcuts;
+  language lives inside Settings. Root pages reclaim navigation-bar space while
+  pushed Back and presented Close controls still work. Fixed Progress summary
+  truncation at accessibility sizes during the visual check.
+- Why: The owner requested fewer top controls and more space for learning content.
+  Existing styling remains; no schema, engine or grading change.
+- Verified: 15 interaction tests, final 6 appearance/contrast tests plus AX5 Settings
+  navigation, and 2 Release smoke tests passed. Installed 1.0 (5) in place on the
+  iPhone 12 mini; progress and schema-1 backup stayed byte-identical after launch.
+- Evidence: Implementation `e612e66`; [delivery record](specs/2026-09-23-settings-navigation.md).
+  Raw logs, screenshots and phone backups remain in `.build/settings-navigation/`.
+- Open issues: Physical VoiceOver/keyboard and minimum-iOS-17 checks remain
+  unverified. No push or App Store submission in this task.
+- Next step: Owner tests the installed bottom-tab navigation and language setting.

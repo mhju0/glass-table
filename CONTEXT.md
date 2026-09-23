@@ -2,16 +2,19 @@
 
 ## Current native baseline (2026-09-23)
 
-The combined beginner release is implemented and installed for dogfood as
-1.0 (4), not submitted to the App Store. Read the
+The combined beginner release and navigation follow-up are installed for dogfood as
+1.0 (5), not submitted to the App Store. Read the
 [delivery and verification record](docs/specs/2026-09-23-beginner-native-release.md)
-before reopening its work. Older updates below retain their historical scope.
+and [Settings navigation follow-up](docs/specs/2026-09-23-settings-navigation.md)
+before reopening their work. Older updates below retain their historical scope.
 
-- Learn / Play / Progress replace the four-tab navigation. Learn recommends
+- Navigation is Learn / Play / Progress / Settings, with Settings at the far right.
+  Primary screens have no top-right gear or language shortcut. Learn recommends
   unfinished work, review or a lesson while all 9 units / 18 concepts stay open.
 - The optional offline starting-point check is untimed and skippable. It changes
   recommendations, never grants completion, mastery or review credit.
-- Korean and English can be switched in-app without losing the current activity.
+- Korean and English can be switched inside Settings. Close a lesson, change
+  language, then resume it without losing the saved activity.
   Everyday wording leads; canonical poker terms remain available in context.
 - Play is a four-seat integer-chip practice table with public bot policies and
   factual hand reviews. The original graded heads-up exercise remains separate;
