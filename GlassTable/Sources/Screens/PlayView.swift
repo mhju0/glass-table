@@ -5,7 +5,6 @@ import GlassTableEngine
 struct PlayView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
-    @Environment(\.dynamicTypeSize) private var textSize
     @State private var failure = false
     @State private var revealAllCards = false
     @State private var raiseAmount = 0.0
@@ -128,81 +127,39 @@ struct PlayView: View {
     }
 
     private func tableDiagram(_ table: PracticeTableState) -> some View {
-        VStack(spacing: textSize.isAccessibilitySize ? 18 : 10) {
-            if textSize.isAccessibilitySize {
-                ForEach(1..<4, id: \.self) { seat in seatView(seat, table: table) }
-            } else {
-                seatView(2, table: table)
-                HStack(alignment: .top, spacing: 12) {
-                    seatView(1, table: table)
-                    Spacer(minLength: 0)
-                    seatView(3, table: table)
-                }
-            }
-            VStack(spacing: 10) {
-                Text(language.text("팟 \(table.pot)칩", "Pot · \(table.pot) chips"))
-                    .font(GT.title(22)).foregroundStyle(GT.onTable)
-                if table.visibleBoard.isEmpty {
-                    Text(language.text("아직 공용 카드가 없어요", "No shared cards yet"))
-                        .font(GT.body(13)).foregroundStyle(GT.onTable)
-                } else {
-                    HStack(spacing: 5) {
-                        ForEach(table.visibleBoard, id: \.self) { raw in
-                            if let card = Card(raw) { PlayingCardView(card: card, size: 48) }
-                        }
-                    }
-                }
-            }.frame(maxWidth: .infinity).padding(.vertical, 4)
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 12) {
-                    learnerCards(table)
-                    seatView(0, table: table)
-                }
-                VStack(spacing: 10) {
-                    learnerCards(table)
-                    seatView(0, table: table)
-                }
-            }
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity)
-        .background(GT.feltDeep, in: RoundedRectangle(cornerRadius: 30))
-        .accessibilityIdentifier("practice-table")
+        TableSurface(seats: (0..<4).map { tableSeat($0, table: table) },
+                     center: TableCenter(board: table.visibleBoard.compactMap(Card.init),
+                                         reservesBoard: true,
+                                         potTotal: language.text("\(table.pot)칩", "\(table.pot) chips")))
+            .accessibilityIdentifier("practice-table")
     }
 
-    private func learnerCards(_ table: PracticeTableState) -> some View {
-        HStack(spacing: 6) {
-            ForEach(table.learnerHole, id: \.self) { raw in
-                if let card = Card(raw) { PlayingCardView(card: card, size: 54) }
-            }
-        }.fixedSize()
-    }
-
-    private func seatView(_ seat: Int, table: PracticeTableState) -> some View {
+    /// Clockwise from the learner: you bottom left, then the computers in seat order.
+    private func tableSeat(_ seat: Int, table: PracticeTableState) -> TableSeat {
         let player = table.seats[seat]
-        return VStack(spacing: 5) {
-            Text(seatName(seat) + (table.dealer == seat ? language.text(" · 버튼", " · Dealer") : ""))
-                .font(GT.semibold(14))
-            Text(table.street == .finished
-                 ? language.text("남은 칩 \(player.stack)", "\(player.stack) chips left")
-                 : language.text("남은 칩 \(player.stack) · 낸 칩 \(player.committed)", "\(player.stack) left · \(player.committed) in"))
-                .font(GT.body(12)).monospacedDigit()
-                .fixedSize(horizontal: false, vertical: true)
-            if let event = table.events.last(where: { $0.seat == seat }) {
-                Text(eventDescription(event)).font(GT.body(12))
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+        let places: [TableSeat.Place] = [.bottomLeading, .topLeading, .topTrailing, .bottomTrailing]
+        let hand: TableSeat.Hand
+        if seat == 0 {
+            hand = .faceUp(table.learnerHole.compactMap(Card.init))
+        } else if revealAllCards, let review = table.review {
+            hand = .faceUp(review.holeCards[seat].compactMap(Card.init))
+        } else {
+            hand = .faceDown
         }
-        .multilineTextAlignment(.center)
-        .foregroundStyle(GT.onTable)
-        .padding(textSize.isAccessibilitySize ? 10 : 6)
-        .frame(maxWidth: .infinity)
-        .overlay {
-            if table.currentSeat == seat {
-                RoundedRectangle(cornerRadius: 12).strokeBorder(GT.onTable, lineWidth: 2)
-            }
-        }
-        .accessibilityElement(children: .combine)
+        return TableSeat(
+            id: "practice-\(seat)",
+            place: places[seat],
+            name: seatName(seat),
+            detail: table.street == .finished
+                ? language.text("남은 칩 \(player.stack)", "\(player.stack) chips left")
+                : language.text("남은 칩 \(player.stack) · 낸 칩 \(player.committed)",
+                                "\(player.stack) left · \(player.committed) in"),
+            status: table.events.last(where: { $0.seat == seat }).map(eventDescription),
+            tone: .neutral,
+            isActive: table.currentSeat == seat,
+            isFolded: player.folded,
+            isDealer: table.dealer == seat,
+            hand: hand)
     }
 
     private func actions(_ table: PracticeTableState) -> some View {

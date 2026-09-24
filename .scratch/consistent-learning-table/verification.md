@@ -239,3 +239,24 @@ blocks and flags line-count mismatch, last lines under 50% and in-word breaks.
   order line wraps to 2 lines in both languages (last lines 61% KO, 55% EN).
 - Not run: `audit-lines.cjs` and `verify-browser.cjs` need `agent-browser`,
   which is not installed on this Mac.
+
+### Native shell and shared table (issue 02, part 1), 2026-09-24
+
+- Lessons, free practice and review now open with `fullScreenCover`.
+  `testActivitiesOpenFullScreenAndCloseOnlyFromClose` failed on the sheet code
+  (a downward swipe dismissed the pot lesson) and passes now.
+- `TableSurface` (Refined spec) is used by pot counting and Play. In pot
+  questions the seats carry no totals, the centre reads "팟" until the reveal,
+  and new questions start at the blind posts. The debug `GT_DEMO_POT_STATE`
+  states keep the last step for the existing tests.
+- Play: opponents show card backs (face up only after "reveal opponents' cards"
+  in the review), folded seats dim their cards, the dealer disc sits by the
+  name, and the known pot is in the middle. Stacks stay visible, because in Play
+  they are public. `testPracticeTableHidesOpponentCardsAndShowsThePot` failed
+  on the old Play view and passes now.
+- Screenshots checked (KO, dark, large and AX5): potmath-four, potmath-reveal,
+  drill-potmath, play-hand. AX5 uses the one-column seat list.
+- Not done yet: EN and light-appearance screenshots, measured stable table
+  bounds across states, and scroll interaction checks at AX5 beyond the existing
+  `testPotMathAX5CanReachChoiceRevealAndNextAction`. The graded heads-up
+  `TableView` and the 8-seat Position strip still use their own renderers.

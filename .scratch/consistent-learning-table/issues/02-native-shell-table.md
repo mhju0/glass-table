@@ -1,6 +1,6 @@
 # Implement the full-screen shell and shared table visuals
 
-Status: ready-for-agent
+Status: in-progress
 Type: task
 Blocked by: 01
 
@@ -16,3 +16,8 @@ scroll interactions. Do not claim browser checks establish SwiftUI behavior.
 ## Comments
 
 2026-09-24: Owner scheduled this next (with 02, 03 and 04). Unblocked by 01.
+
+2026-09-24: Full-screen shell, pot table and Play table done on
+`feat/shared-learning-table` (see verification.md). Remaining: EN/light
+screenshots, measured table bounds, and deciding whether heads-up `TableView`
+joins the shared table.

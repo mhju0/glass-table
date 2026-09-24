@@ -13,6 +13,9 @@ struct TableSeat: Identifiable {
     let id: String
     let place: Place
     let name: String
+    /// A public fact about the seat, such as its stack in Play. Give it to every
+    /// seat or none, so the seats keep one height.
+    var detail: String?
     var status: String?
     var tone: Tone = .action
     var isActive = false
@@ -174,6 +177,13 @@ struct TableSurface: View {
                     .fixedSize(horizontal: false, vertical: true)
                 if seat.isDealer { DealerDisc() }
             }
+            if let detail = seat.detail {
+                Text(detail)
+                    .font(GT.body(13))
+                    .monospacedDigit()
+                    .foregroundStyle(GT.tableStatus)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             // A reserved line: a seat never grows when its caption appears.
             Text(seat.status ?? " ")
                 .font(seat.tone == .action ? GT.semibold(13) : GT.body(13))
@@ -227,6 +237,7 @@ struct TableSurface: View {
     private func spokenLabel(_ seat: TableSeat) -> String {
         var parts = [seat.name]
         if seat.isDealer { parts.append(language.text("딜러 버튼", "dealer button")) }
+        if let detail = seat.detail { parts.append(detail) }
         if seat.isFolded, seat.status == nil { parts.append(language.text("폴드", "folded")) }
         if let status = seat.status { parts.append(status) }
         switch seat.hand {

@@ -239,6 +239,30 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["practice-table"].exists)
     }
 
+    /// Play uses the shared table: opponents hold face-down cards, the learner's cards
+    /// are face up, and the known pot sits in the middle.
+    func testPracticeTableHidesOpponentCardsAndShowsThePot() {
+        let app = app()
+        app.launchEnvironment["GT_DEMO_PRACTICE"] = "1"
+        app.launchEnvironment["GT_DEMO_TAB"] = "play"
+        app.launch()
+        XCTAssertTrue(app.buttons["Fold · leave this hand"].waitForExistence(timeout: 15))
+        let table = app.descendants(matching: .any)["practice-table"]
+        for seat in 1...3 {
+            let label = table.descendants(matching: .any)
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(seat),")).firstMatch
+            XCTAssertTrue(label.exists, "Computer \(seat) seat")
+            XCTAssertTrue(label.label.contains("two face-down cards"), label.label)
+        }
+        let you = table.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "You,")).firstMatch
+        XCTAssertTrue(you.exists)
+        XCTAssertFalse(you.label.contains("face-down"), you.label)
+        let pot = table.descendants(matching: .any)["table-pot"]
+        XCTAssertTrue(pot.exists)
+        XCTAssertTrue(pot.label.hasPrefix("Pot, ") && pot.label.hasSuffix(" chips"), pot.label)
+    }
+
     func testCallFoldFixtureOpensThatConceptNotAMixedCheckpoint() {
         let app = app()
         app.launchEnvironment["GT_DEMO_CONCEPT"] = "callFold"
