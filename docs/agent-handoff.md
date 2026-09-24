@@ -172,3 +172,7 @@ earlier verification worktrees remain preserved. Do not reset phone progress.
 - Not covered: string literals in `Text("…")`, `Button`/`Label` titles.
 - CI fix pushed earlier: `PracticeTableTests` split one `#expect` that timed out
   the CI type checker (pre-existing since `0742438`).
+- CI on main failed `testChartExplorerReachesOwnHandAtLargestTextSize` on the
+  runner's iOS 18.5 simulator (Xcode 27 locally cannot download iOS 18). Fixed
+  by deferring the chart explorer's initial scroll one main-queue turn; verified
+  by a CI run on a feature branch (46/46), then merged.
