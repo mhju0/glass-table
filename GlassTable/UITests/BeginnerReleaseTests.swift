@@ -41,6 +41,30 @@ final class BeginnerReleaseTests: XCTestCase {
                       || app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Full learning path")).firstMatch.exists)
     }
 
+    func testStartingPointLeadsUntilTheFirstLessonThenMovesBelowPractice() {
+        let app = app()
+        app.launch()
+        let path = app.buttons["learn-path"]
+        XCTAssertTrue(path.waitForExistence(timeout: 15))
+        let card = app.buttons["placement-start"]
+        XCTAssertTrue(card.exists, "Before any lesson, the starting-point check is a real button")
+        XCTAssertLessThan(card.frame.minY, path.frame.minY)
+        XCTAssertFalse(app.buttons["placement-row"].exists)
+        app.terminate()
+
+        app.launchEnvironment["GT_TEST_STORE_ID"] = UUID().uuidString
+        app.launchEnvironment["GT_TEST_PATH_CURRENT_NODE"] = "u1-potMath"
+        app.launch()
+        XCTAssertTrue(path.waitForExistence(timeout: 15))
+        let row = app.buttons["placement-row"]
+        scrollTo(row, in: app)
+        XCTAssertTrue(row.exists)
+        XCTAssertFalse(app.buttons["placement-start"].exists)
+        XCTAssertGreaterThan(row.frame.minY, path.frame.minY)
+        row.tap()
+        XCTAssertTrue(app.buttons["Start without the check"].waitForExistence(timeout: 5))
+    }
+
     func testPlayHomeOffersTwoModesAboveTheTabBar() {
         let app = app()
         app.launch()

@@ -478,11 +478,16 @@ struct PrimaryCTAButton: View {
 struct TapCardLabel: View {
     let title: String
     var detail: String? = nil
+    var icon: String? = nil
     var emphasized = false
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
         HStack(spacing: 12) {
+            if let icon {
+                Image(systemName: icon).font(.system(size: 22)).foregroundStyle(GT.ink)
+                    .frame(width: 28).accessibilityHidden(true)
+            }
             VStack(alignment: .leading, spacing: 5) {
                 Text(title).font(GT.title(18)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
