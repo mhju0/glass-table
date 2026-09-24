@@ -176,3 +176,15 @@ earlier verification worktrees remain preserved. Do not reset phone progress.
   runner's iOS 18.5 simulator (Xcode 27 locally cannot download iOS 18). Fixed
   by deferring the chart explorer's initial scroll one main-queue turn; verified
   by a CI run on a feature branch (46/46), then merged.
+
+## 2026-09-24: Installed 1.0 (6) on the iPhone 12 mini
+
+- Release 1.0 (6) at `bb87591` + build bump, installed in place (no uninstall).
+  `progression.json` and the schema-1 backup were copied off the phone first
+  (`.build/device-backups/20260924-before-1.0.6/`) and were byte-identical after
+  launch.
+- Loss: the earlier worktree cleanup removed `.build/beginner-native-release/`
+  and `.build/settings-navigation/` with their ignored raw evidence (logs,
+  screenshots, earlier phone-backup copies), despite the note above to archive
+  first. No local snapshot exists; a Time Machine disk was not mounted. Commits,
+  delivery records in `docs/specs/` and on-phone progress are unaffected.
