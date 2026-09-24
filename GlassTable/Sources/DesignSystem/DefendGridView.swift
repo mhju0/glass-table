@@ -219,7 +219,11 @@ private struct DefendChartExplorer: View {
                         }.padding(4)
                     }
                     .onAppear {
-                        if let ownHand { proxy.scrollTo(ownHand.description, anchor: .center) }
+                        // iOS 18 ignores a scroll requested before the sheet's first layout,
+                        // leaving the learner's hand off screen at large text sizes.
+                        DispatchQueue.main.async {
+                            if let ownHand { proxy.scrollTo(ownHand.description, anchor: .center) }
+                        }
                     }
                 }
                 .padding(18)
