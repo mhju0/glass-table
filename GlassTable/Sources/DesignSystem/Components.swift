@@ -472,6 +472,40 @@ struct PrimaryCTAButton: View {
     }
 }
 
+/// The label for anything tappable that is not a filled button: a bordered card that
+/// ends in a chevron, so it reads as a way forward rather than as information.
+/// `emphasized` marks the one card a screen leads with.
+struct TapCardLabel: View {
+    let title: String
+    var detail: String? = nil
+    var emphasized = false
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title).font(GT.title(18)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let detail {
+                    Text(detail).font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                        .lineSpacing(GT.Typography.bodyLineSpacing)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right").font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(emphasized ? GT.cta : GT.inkSecondary)
+        }
+        .multilineTextAlignment(.leading)
+        .padding(18)
+        .frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
+        .background(GT.glass, in: shape)
+        .overlay(shape.strokeBorder(emphasized ? GT.cta : GT.borderStrong,
+                                    lineWidth: emphasized ? 2 : 1))
+        .contentShape(shape)
+    }
+}
+
 struct SecondaryCTAButton: View {
     let title: String
     let action: () -> Void

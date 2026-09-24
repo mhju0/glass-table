@@ -41,24 +41,51 @@ final class BeginnerReleaseTests: XCTestCase {
                       || app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Full learning path")).firstMatch.exists)
     }
 
-    func testOpponentDetailsDoNotMoveTheChoices() {
+    func testPlayHomeOffersTwoModesAboveTheTabBar() {
         let app = app()
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Play"].tap()
+        let free = app.buttons["play-free"]
+        let graded = app.buttons["play-graded"]
+        XCTAssertTrue(free.waitForExistence(timeout: 5))
+        XCTAssertTrue(free.label.contains("Free table"), free.label)
+        XCTAssertTrue(graded.label.contains("Graded 1:1 practice"), graded.label)
+        XCTAssertTrue(free.isHittable && graded.isHittable)
+        XCTAssertLessThan(graded.frame.maxY, app.tabBars.firstMatch.frame.minY,
+                          "Both mode cards must clear the tab bar without scrolling")
+    }
+
+    func testTableSetupGivesEachComputerItsOwnStyle() {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Play"].tap()
+        app.buttons["play-free"].tap()
+        XCTAssertTrue(app.staticTexts["Set up the table"].waitForExistence(timeout: 5))
+        let seats = (1...3).map { app.buttons["seat-style-\($0)"] }
+        XCTAssertTrue(seats.allSatisfy(\.exists))
+        XCTAssertEqual(Set(seats.map(\.label)).count, 3, "Default computers should play three different styles")
+
+        seats[1].tap()
+        app.buttons["Very aggressive"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["seat-style-2"].label.contains("Very aggressive"), app.buttons["seat-style-2"].label)
+
+        app.buttons["style-guide"].tap()
         let cautious = app.buttons["opponent-nit"]
         XCTAssertTrue(cautious.waitForExistence(timeout: 5))
-        let original = cautious.frame
         cautious.tap()
-        XCTAssertTrue(app.buttons["opponent-start"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Starting habits"].waitForExistence(timeout: 5))
         app.buttons["Close"].firstMatch.tap()
-        XCTAssertTrue(cautious.waitForExistence(timeout: 5))
-        XCTAssertEqual(cautious.frame.minY, original.minY, accuracy: 2)
-        app.buttons["opponent-tag"].tap()
-        XCTAssertTrue(app.buttons["opponent-start"].waitForExistence(timeout: 5))
-        app.buttons["opponent-start"].tap()
+        XCTAssertTrue(app.buttons["table-start"].waitForExistence(timeout: 5))
+
+        app.buttons["table-start"].tap()
         XCTAssertTrue(app.staticTexts["Your turn"].waitForExistence(timeout: 10)
                       || app.staticTexts["Review this hand"].exists)
+        let table = app.descendants(matching: .any)["practice-table"]
+        let second = table.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer 2 · ")).firstMatch
+        XCTAssertTrue(second.label.contains("Very aggressive"), second.label)
     }
 
     func testLanguageSwitchInSettingsKeepsTheSavedLesson() {
@@ -106,10 +133,8 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(path.waitForExistence(timeout: 5))
 
         app.tabBars.buttons["Play"].tap()
-        let headsUp = app.buttons.matching(NSPredicate(
-            format: "label CONTAINS %@", "Heads-up decision exercise"
-        )).firstMatch
-        scrollTo(headsUp, in: app)
+        let headsUp = app.buttons["play-graded"]
+        XCTAssertTrue(headsUp.waitForExistence(timeout: 5))
         headsUp.tap()
         let tableBack = app.navigationBars.buttons.firstMatch
         XCTAssertTrue(tableBack.waitForExistence(timeout: 5))
@@ -272,7 +297,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let table = app.descendants(matching: .any)["practice-table"]
         for seat in 1...3 {
             let label = table.descendants(matching: .any)
-                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(seat),")).firstMatch
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(seat) · ")).firstMatch
             XCTAssertTrue(label.exists, "Computer \(seat) seat")
             XCTAssertTrue(label.label.contains("two face-down cards"), label.label)
         }
