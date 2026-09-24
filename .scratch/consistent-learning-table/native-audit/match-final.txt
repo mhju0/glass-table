@@ -1,0 +1,34 @@
+78 screens, 198 source pairs located, 11 with violations
+- GlassTable/Sources/Screens/ConceptDrillView.swift:1026 [drill-ev] lines ko 4 / en 2
+    KO: 상황 / 팟 10bb•상대 벳 10bb / 내 에퀴티 51% / 콜하면 20bb를 걸고 10bb를 잃을 수 있어요.
+    EN: Your chance to win 51% / Calling can win 20bb or cost 10bb.
+- GlassTable/Sources/Screens/ConceptDrillView.swift:2340 [drill-defend] end width ko 71% / en 100%
+    KO: UTG가 3bb 오픈했어요 / 상위 15%를 여는 자리예요
+    EN: UTG raises first to 3bb / This seat starts with roughly the top 15% of hands.
+- GlassTable/Sources/Screens/PlayView.swift:345 [play-hand] lines ko 1 / en 3
+    KO: 시작 칩 +1 • SB
+    EN: Computer 1 / 99 left • 1 in / Small blind +1
+- GlassTable/Sources/Screens/PotMathLessonView.swift:226 [potmath-four] lines ko 2 / en 1
+    KO: 플레이어 A / 8칩 더 내요 • 콜
+    EN: Adds & chips to call
+- GlassTable/Sources/Screens/RecordsView.swift:280 [records-empty] end width ko 59% / en 93%
+    KO: 공개된 컴퓨터 규칙 아래에서 시작 전 행동만 묘사해요. 최소 100 / 핸드, 5일, 자발적 참여 40번이 필요하고, 경계에 걸치면 이름을 / 붙이지 않아요. 실력 평가는 아니에요.
+    EN: Describes preflop play under the published bot rules. / Labels need 100 hands, 5 days, 40 voluntary entries; / borderline cases stay unnamed. Not a skill rating.
+- GlassTable/Sources/Screens/TableView.swift:49 [table-grade] lines ko 2 / en 1
+    KO: 플랍 • 선별형 5.6bb 벳 (팟의 75%) / 플랍 •나 콜 5.6bb
+    EN: Flop • You call 5.6bb
+- GlassTable/Sources/Screens/TableView.swift:266 [table-grade] lines ko 2 / en 1
+    KO: 플랍 • 선별형 5.6bb 벳 (팟의 75%) / 플랍 •나 콜 5.6bb
+    EN: Pot 18.8bb
+- GlassTable/Sources/Screens/TableView.swift:371 [drill-evloss] lines ko 2 / en 1
+    KO: 상대 레인지 / UTG 오픈•LAG•216콤보
+    EN: Opponent's possible hands
+- GlassTable/Sources/Screens/TableView.swift:656 [table-summary] lines ko 3 / en 2
+    KO: 결과와 결정은 따로 봐요 / 이번 결과는 쇼다운 패배 • -22.7bb예요. / 포스트플랍 체크다운 근사로 측정한 EV 손실은 37bb예요.
+    EN: This hand: Lost at showdown • -22.7bb. / EV lost after the flop, by Checkdown estimate: 37bb.
+- GlassTableDrills/Sources/GlassTableDrills/Table.swift:48 [table-hand] lines ko 2 / en 1
+    KO: 프리플랍 • 나 콜 / 플랍 • 선별형 5.6bb 벳 (팟의 75%)
+    EN: Flop • Selective bets 5.6bb (75% pot)
+- GlassTableDrills/Sources/GlassTableDrills/Table.swift:510 [table-hand] lines ko 2 / en 1
+    KO: 프리플랍 • 나 콜 / 플랍 • 선별형 5.6bb 벳 (팟의 75%)
+    EN: Flop • Selective bets 5.6bb (75% pot)

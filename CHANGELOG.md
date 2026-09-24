@@ -6,6 +6,12 @@ Notable changes to the Glass Table app. Format follows
 
 ## [Unreleased]
 
+### Changed — beginner release, pot lessons and bilingual copy (2026-09-24)
+- Rebuilt the pot lessons and added light, dark and system appearances; the defend chart keeps its contrast in light mode.
+- Delivered offline beginner learning and four-player practice against computer opponents. Opponent choices stay in place, with details in a sheet.
+- Moved Settings into the bottom navigation and kept equity cards visible above the answer sheet on compact screens.
+- Fitted Korean and English copy to the same number of lines at the default text size, including all eight start-guide pages (75 strings). The rule is recorded in `DESIGN.md`.
+
 ### Changed — research-led learning and Warm interface (2026-09-14)
 - Rebuilt Today around one recommended lesson or a review of up to five due concepts; simplified the course, records, walkthroughs and table flow.
 - Added an eight-part start guide with retrieval questions, poker foundations, model assumptions and a continuing study path.

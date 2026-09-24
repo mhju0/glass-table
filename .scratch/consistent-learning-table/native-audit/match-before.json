@@ -1,0 +1,7848 @@
+[
+ {
+  "file": "GlassTable/Sources/DesignSystem/Components.swift",
+  "line": 64,
+  "ko": "상대 카드",
+  "en": "Opponent's cards",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 카드"
+   ],
+   "x": 465.2381513237292,
+   "widest": 149.52369689941406,
+   "w": [
+    149.52369689941406
+   ],
+   "h": [
+    44.51843261718759
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent's cards"
+   ],
+   "x": 376.98112469835905,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    47.6162796020508
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/DesignSystem/Components.swift",
+  "line": 67,
+  "ko": "공용 카드",
+  "en": "Shared cards",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "공용 카드"
+   ],
+   "x": 464.9860754604307,
+   "widest": 146.63162231445315,
+   "w": [
+    146.63162231445315
+   ],
+   "h": [
+    39.795032501220845
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Shared cards"
+   ],
+   "x": 414.3396201517819,
+   "widest": 241.13208007812494,
+   "w": [
+    241.13208007812494
+   ],
+   "h": [
+    34.26744079589845
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/DesignSystem/Components.swift",
+  "line": 108,
+  "ko": "다시 살펴볼까요?",
+  "en": "Review this one",
+  "screen": "drill-actionread-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다시 살펴볼까요?"
+   ],
+   "x": 213.8703940074281,
+   "widest": 366.97619628906256,
+   "w": [
+    366.97619628906256
+   ],
+   "h": [
+    79.09022521972666
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Review this one"
+   ],
+   "x": 217.35848772136876,
+   "widest": 383.7735900878907,
+   "w": [
+    383.7735900878907
+   ],
+   "h": [
+    44.215114593505916
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/DesignSystem/DefendGridView.swift",
+  "line": 62,
+  "ko": "크게 보고 핸드 찾기",
+  "en": "Enlarge and explore hands",
+  "screen": "drill-defend-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "t 크게 보고 핸드 찾기"
+   ],
+   "x": 356.6037762925241,
+   "widest": 373.58489990234375,
+   "w": [
+    373.58489990234375
+   ],
+   "h": [
+    41.11046600341797
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Enlarge and explore hands"
+   ],
+   "x": 305.66036452100525,
+   "widest": 516.2264404296875,
+   "w": [
+    516.2264404296875
+   ],
+   "h": [
+    41.000000000000114
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/DesignSystem/DefendGridView.swift",
+  "line": 100,
+  "ko": "테두리로 표시한 칸이 내 핸드예요",
+  "en": "The outlined cell is your hand",
+  "screen": "drill-defend-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "테두리로 표시한 칸이 내 핸드예요"
+   ],
+   "x": 363.39623085029484,
+   "widest": 417.73583984374994,
+   "w": [
+    417.73583984374994
+   ],
+   "h": [
+    34.32558059692381
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "The outlined cell is your hand"
+   ],
+   "x": 363.39622250256116,
+   "widest": 414.3396301269532,
+   "w": [
+    414.3396301269532
+   ],
+   "h": [
+    34.28488349914554
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 369,
+  "ko": "다음 문제",
+  "en": "Next question",
+  "screen": "drill-hitfreq-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 문제"
+   ],
+   "x": 444.72366935053924,
+   "widest": 183.7602081298828,
+   "w": [
+    183.7602081298828
+   ],
+   "h": [
+    52.3377647399903
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Next question"
+   ],
+   "x": 376.9811246768374,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    51.36627769470227
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 419,
+  "ko": "90% 구간",
+  "en": "90% range",
+  "screen": "drill-actionread",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "90% 구간"
+   ],
+   "x": 47.34135405493065,
+   "widest": 149.84559631347656,
+   "w": [
+    149.84559631347656
+   ],
+   "h": [
+    39.087192535400575
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "90% range"
+   ],
+   "x": 50.32858143253793,
+   "widest": 177.740234375,
+   "w": [
+    177.740234375
+   ],
+   "h": [
+    34.13904190063473
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 436,
+  "ko": "정답이 들어갈 범위를 잡아요. 10번 중 약 9번 포함된다고 생각하는 구간이에요.",
+  "en": "Choose a range you think contains the answer about 9 times out of 10.",
+  "screen": "drill-actionread",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "정답이 들어갈 범위를 잡아요. 10번 중 약 9번 포함된다고 생각하는 구간이에요."
+   ],
+   "x": 50.7924191310724,
+   "widest": 971.6300048828125,
+   "w": [
+    971.6300048828125
+   ],
+   "h": [
+    44.76848983764654
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.09,
+   "text": [
+    "Choose a range you think contains the answer about 9 times out",
+    "Of 10."
+   ],
+   "x": 50.94339890392257,
+   "widest": 913.5848999023438,
+   "w": [
+    913.5848999023438,
+    86.03781127929688
+   ],
+   "h": [
+    38.00000000000013,
+    32.35576438903804
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 9%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 518,
+  "ko": "상대 카드",
+  "en": "Opponent's cards",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 카드"
+   ],
+   "x": 465.2381513237292,
+   "widest": 149.52369689941406,
+   "w": [
+    149.52369689941406
+   ],
+   "h": [
+    44.51843261718759
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent's cards"
+   ],
+   "x": 376.98112469835905,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    47.6162796020508
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 534,
+  "ko": "누가 이겼나요?",
+  "en": "Who won this hand?",
+  "screen": "drill-showdown",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "누가 이겼나요?"
+   ],
+   "x": 47.43887135780596,
+   "widest": 326.2543334960938,
+   "w": [
+    326.2543334960938
+   ],
+   "h": [
+    79.13175201416036
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Who won this hand?"
+   ],
+   "x": 50.94340524438013,
+   "widest": 499.24526977539057,
+   "w": [
+    499.24526977539057
+   ],
+   "h": [
+    64.62209320068361
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 601,
+  "ko": "지금 팟은 몇 칩인가요?",
+  "en": "How many chips are in the pot now?",
+  "screen": "drill-potmath",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "지금 팟은 몇 칩인가요?"
+   ],
+   "x": 47.43373387028709,
+   "widest": 482.4910278320313,
+   "w": [
+    482.4910278320313
+   ],
+   "h": [
+    79.63360595703111
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "How many chips are in the pot now?"
+   ],
+   "x": 47.24487022762594,
+   "widest": 883.747802734375,
+   "w": [
+    883.747802734375
+   ],
+   "h": [
+    70.40718460083004
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 632,
+  "ko": "가장 가까운 한 칩으로 반올림해요.",
+  "en": "Round to the nearest chip.",
+  "screen": "potmath-four",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "가장 가까운 한 칩으로 반올림해요."
+   ],
+   "x": 50.94338223401513,
+   "widest": 546.7924804687501,
+   "w": [
+    546.7924804687501
+   ],
+   "h": [
+    51.01744079589865
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Round to the nearest chip."
+   ],
+   "x": 50.94339142979953,
+   "widest": 482.26416015624994,
+   "w": [
+    482.26416015624994
+   ],
+   "h": [
+    48.005813598632685
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 664,
+  "ko": "계산 방법",
+  "en": "How to count",
+  "screen": "drill-potmath",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "계산 방법"
+   ],
+   "x": 876.2264167958892,
+   "widest": 152.83018493652347,
+   "w": [
+    152.83018493652347
+   ],
+   "h": [
+    44.377906799316534
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "How to count"
+   ],
+   "x": 774.3396295853295,
+   "widest": 258.1131896972656,
+   "w": [
+    258.1131896972656
+   ],
+   "h": [
+    44.37790679931627
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 776,
+  "ko": "맞았어요",
+  "en": "That's right",
+  "screen": "potmath-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "맞았어요"
+   ],
+   "x": 57.552652640246265,
+   "widest": 221.12110900878903,
+   "w": [
+    221.12110900878903
+   ],
+   "h": [
+    65.88123703002933
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "That's right"
+   ],
+   "x": 57.192197905413565,
+   "widest": 344.1318359375,
+   "w": [
+    344.1318359375
+   ],
+   "h": [
+    64.73706054687496
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 803,
+  "ko": "다음 문제",
+  "en": "Next question",
+  "screen": "drill-hitfreq-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 문제"
+   ],
+   "x": 444.72366935053924,
+   "widest": 183.7602081298828,
+   "w": [
+    183.7602081298828
+   ],
+   "h": [
+    52.3377647399903
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Next question"
+   ],
+   "x": 376.9811246768374,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    51.36627769470227
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 837,
+  "ko": "8맥스 테이블 · 행동 순서",
+  "en": "8-player table · action order",
+  "screen": "drill-position",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "8맥스 테이블•행동 순서"
+   ],
+   "x": 50.94339289929559,
+   "widest": 376.9811401367188,
+   "w": [
+    376.9811401367188
+   ],
+   "h": [
+    44.343021392822344
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "8-player table· action order"
+   ],
+   "x": 47.300799040874494,
+   "widest": 516.720458984375,
+   "w": [
+    516.720458984375
+   ],
+   "h": [
+    51.23941802978519
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 949,
+  "ko": "상대 카드",
+  "en": "Opponent's cards",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 카드"
+   ],
+   "x": 465.2381513237292,
+   "widest": 149.52369689941406,
+   "w": [
+    149.52369689941406
+   ],
+   "h": [
+    44.51843261718759
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent's cards"
+   ],
+   "x": 376.98112469835905,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    47.6162796020508
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 954,
+  "ko": "공용 카드",
+  "en": "Shared cards",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "공용 카드"
+   ],
+   "x": 464.9860754604307,
+   "widest": 146.63162231445315,
+   "w": [
+    146.63162231445315
+   ],
+   "h": [
+    39.795032501220845
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Shared cards"
+   ],
+   "x": 414.3396201517819,
+   "widest": 241.13208007812494,
+   "w": [
+    241.13208007812494
+   ],
+   "h": [
+    34.26744079589845
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 974,
+  "ko": "쇼다운까지 갔을 때 내가 이길 확률은?",
+  "en": "If both hands reach the end, how often do you win?",
+  "screen": "drill-equity",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "쇼다운까지 갔을 때 내가 이길 확률은?"
+   ],
+   "x": 47.54718517644454,
+   "widest": 774.3395996093751,
+   "w": [
+    774.3395996093751
+   ],
+   "h": [
+    65.00000000000003
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.32,
+   "text": [
+    "If both hands reach the end, how often",
+    "do you win?"
+   ],
+   "x": 50.943381071394924,
+   "widest": 937.3585205078125,
+   "w": [
+    937.3585205078125,
+    296.2197265625
+   ],
+   "h": [
+    65.05813980102539,
+    53.88432693481429
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 32%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1026,
+  "ko": "콜하면 \\(spot.pot + spot.bet)bb를 걸고 \\(spot.bet)bb를 잃을 수 있어요.",
+  "en": "Calling can win \\(spot.pot + spot.bet)bb or cost \\(spot.bet)bb.",
+  "screen": "drill-ev",
+  "ko_m": {
+   "lines": 4,
+   "last": 1.0,
+   "text": [
+    "상황",
+    "팟 10bb•상대 벳 10bb",
+    "내 에퀴티 51%",
+    "콜하면 20bb를 걸고 10bb를 잃을 수 있어요."
+   ],
+   "x": 47.54717021731278,
+   "widest": 614.7169799804686,
+   "w": [
+    74.71697998046876,
+    448.30187988281256,
+    227.89552307128906,
+    614.7169799804686
+   ],
+   "h": [
+    51.06976699829115,
+    51.31976699829089,
+    46.038730621337976,
+    45.0000000000001
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Calling can win 20bb or cost 10bb."
+   ],
+   "x": 50.94340143794233,
+   "widest": 536.6037597656251,
+   "w": [
+    536.6037597656251
+   ],
+   "h": [
+    41.000000000000114
+   ]
+  },
+  "issues": [
+   "lines ko 4 / en 1"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1047,
+  "ko": "이 콜의 EV는 몇 bb인가요?",
+  "en": "What is the expected value of this call, in bb?",
+  "screen": "drill-ev",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이콜의EV는몇 bb인가요?"
+   ],
+   "x": 47.54718783725667,
+   "widest": 577.3584594726562,
+   "w": [
+    577.3584594726562
+   ],
+   "h": [
+    71.42441558837878
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.17,
+   "text": [
+    "what is the expected value of this call,",
+    "in bb?"
+   ],
+   "x": 53.68394126333237,
+   "widest": 942.3706665039062,
+   "w": [
+    942.3706665039062,
+    156.22640991210938
+   ],
+   "h": [
+    77.14245605468749,
+    47.99999999999983
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 17%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1113,
+  "ko": "리버에 나를 이기게 해주는 카드는 몇 장인가요?",
+  "en": "How many river cards would make you win?",
+  "screen": "drill-outs",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "리버에 나를 이기게 해주는 카드는 몇 장인가요?"
+   ],
+   "x": 50.943400254738094,
+   "widest": 961.132080078125,
+   "w": [
+    961.132080078125
+   ],
+   "h": [
+    71.48255538940414
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.27,
+   "text": [
+    "How many river cards would make",
+    "you win?"
+   ],
+   "x": 50.94340526360191,
+   "widest": 835.4716796875,
+   "w": [
+    835.4716796875,
+    222.41549682617188
+   ],
+   "h": [
+    54.4593029022218,
+    51.080585479736435
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 27%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1115,
+  "ko": "상대가 이 핸드를 가질 수 있는 콤보는 몇 개인가요?",
+  "en": "How many ways can the opponent hold this hand?",
+  "screen": "drill-combos",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.36,
+   "text": [
+    "상대가 이 핸드를 가질 수 있는 콤보는",
+    "몇 개인가요?"
+   ],
+   "x": 47.54716849149719,
+   "widest": 750.5660400390625,
+   "w": [
+    750.5660400390625,
+    271.6981201171875
+   ],
+   "h": [
+    57.81976699829113,
+    64.62209320068361
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.28,
+   "text": [
+    "How many ways can the opponent hold",
+    "this hand?"
+   ],
+   "x": 50.94340757328621,
+   "widest": 954.3395996093751,
+   "w": [
+    954.3395996093751,
+    265.33392333984375
+   ],
+   "h": [
+    54.4593029022218,
+    53.28304672241219
+   ]
+  },
+  "issues": [
+   "ko last 36%",
+   "en last 28%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1202,
+  "ko": "상대 핸드 클래스",
+  "en": "Opponent hand type",
+  "screen": "drill-combos",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 핸드 클래스"
+   ],
+   "x": 50.789167605948954,
+   "widest": 255.11613464355466,
+   "w": [
+    255.11613464355466
+   ],
+   "h": [
+    43.56179046630877
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent hand type"
+   ],
+   "x": 50.49450785810356,
+   "widest": 374.3806457519531,
+   "w": [
+    374.3806457519531
+   ],
+   "h": [
+    45.707735061645586
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1204,
+  "ko": "보이는 카드",
+  "en": "Visible cards",
+  "screen": "drill-combos",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "보이는 카드"
+   ],
+   "x": 50.81400080587622,
+   "widest": 176.86256408691406,
+   "w": [
+    176.86256408691406
+   ],
+   "h": [
+    38.650283813476705
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Visible cards"
+   ],
+   "x": 50.50453352955557,
+   "widest": 235.28448486328128,
+   "w": [
+    235.28448486328128
+   ],
+   "h": [
+    38.83605957031241
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1228,
+  "ko": "상대 벳 \\(spot.bet)bb",
+  "en": "Opponent bets \\(spot.bet)bb",
+  "screen": "drill-mdf",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 벳 20bb"
+   ],
+   "x": 50.88597789911395,
+   "widest": 292.1903076171875,
+   "w": [
+    292.1903076171875
+   ],
+   "h": [
+    51.67702865600567
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent bets 20bb"
+   ],
+   "x": 54.33961527297686,
+   "widest": 506.03775024414057,
+   "w": [
+    506.03775024414057
+   ],
+   "h": [
+    54.46511650085414
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1240,
+  "ko": "콜 \\(spot.bet)bb는 아직 내지 않은 돈이라 점선이에요",
+  "en": "The \\(spot.bet)bb call is dashed because you have not paid it yet.",
+  "screen": "drill-potodds",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "콜 4bb는 아직 내지 않은 돈이라 점선이에요"
+   ],
+   "x": 50.943383389778944,
+   "widest": 696.2264404296876,
+   "w": [
+    696.2264404296876
+   ],
+   "h": [
+    44.2558135986327
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "The 4bb call is dashed because you have not pald"
+   ],
+   "x": 50.746370701544095,
+   "widest": 896.9605712890625,
+   "w": [
+    896.9605712890625
+   ],
+   "h": [
+    47.11982727050785
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1257,
+  "ko": "이 벳에 최소 몇 %를 지켜야 하나요?",
+  "en": "What share of hands must you keep against this bet?",
+  "screen": "drill-mdf",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이벳에 최소 몇 %를 지켜야 하나요?"
+   ],
+   "x": 47.547180372588805,
+   "widest": 747.1697998046875,
+   "w": [
+    747.1697998046875
+   ],
+   "h": [
+    78.41860580444319
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.47,
+   "text": [
+    "What share of hands must you keep",
+    "against this bet?"
+   ],
+   "x": 53.931549976658175,
+   "widest": 870.3177490234375,
+   "w": [
+    870.3177490234375,
+    411.7777404785156
+   ],
+   "h": [
+    61.96547317504875,
+    58.221488952636605
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 47%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1259,
+  "ko": "콜하려면 최소 몇 %의 에퀴티가 필요한가요?",
+  "en": "How often must you win for a call to break even?",
+  "screen": "drill-potodds",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "콜하려면 최소 몇 %의 에퀴티가 필요한가요?"
+   ],
+   "x": 47.547155833140266,
+   "widest": 906.7924804687501,
+   "w": [
+    906.7924804687501
+   ],
+   "h": [
+    62.00000000000004
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.35,
+   "text": [
+    "How often must you win for a call to",
+    "break even?"
+   ],
+   "x": 54.33963046464123,
+   "widest": 866.0377197265625,
+   "w": [
+    866.0377197265625,
+    302.26416015625
+   ],
+   "h": [
+    54.424419403076136,
+    44.412790298461935
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 35%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1314,
+  "ko": "콜인가요, 폴드인가요?",
+  "en": "Call or fold?",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "콜인가요, 폴드인가요?"
+   ],
+   "x": 47.217048850489505,
+   "widest": 473.2235107421875,
+   "w": [
+    473.2235107421875
+   ],
+   "h": [
+    82.96680450439453
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Call or fold?"
+   ],
+   "x": 50.94339714834115,
+   "widest": 292.0754699707032,
+   "w": [
+    292.0754699707032
+   ],
+   "h": [
+    48.07558250427254
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1379,
+  "ko": "페어 6 · 수티드 4 · 오프수트 12",
+  "en": "Pair 6 · same suit 4 · different suits 12",
+  "screen": "drill-notation",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "페어 6 • 수티드 4 • 오프수트 12"
+   ],
+   "x": 322.64151639255545,
+   "widest": 431.3207397460937,
+   "w": [
+    431.3207397460937
+   ],
+   "h": [
+    37.430233001709055
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Pair 6• same suit 4 • different suits 12"
+   ],
+   "x": 237.73585349321934,
+   "widest": 597.73583984375,
+   "w": [
+    597.73583984375
+   ],
+   "h": [
+    31.00000000000015
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1397,
+  "ko": "이 레인지는 몇 콤보인가요?",
+  "en": "How many two-card combinations does this describe?",
+  "screen": "drill-notation",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이 레인지는 몇 콤보인가요?"
+   ],
+   "x": 47.54717137669508,
+   "widest": 570.5660400390625,
+   "w": [
+    570.5660400390625
+   ],
+   "h": [
+    71.4825553894044
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.37,
+   "text": [
+    "How many two-card combinations does",
+    "this describe?"
+   ],
+   "x": 54.339613241462075,
+   "widest": 964.5283203125,
+   "w": [
+    964.5283203125,
+    354.17877197265625
+   ],
+   "h": [
+    54.459302902221545,
+    58.267127990722784
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 37%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1460,
+  "ko": "\\(spot.seat.rawValue)에서 이 핸드, 오픈인가요?",
+  "en": "In \\(spot.seat.rawValue), raise first with this hand?",
+  "screen": "drill-rfi",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "SB에서 이 핸드, 오픈인가요?"
+   ],
+   "x": 46.73793815498732,
+   "widest": 606.5561523437501,
+   "w": [
+    606.5561523437501
+   ],
+   "h": [
+    88.51910018920888
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "In SB, raise first with this hand?"
+   ],
+   "x": 47.141617736526996,
+   "widest": 775.5389404296875,
+   "w": [
+    775.5389404296875
+   ],
+   "h": [
+    77.74304962158192
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1530,
+  "ko": "내가 보는 범위",
+  "en": "My possible hands",
+  "screen": "drill-rangeread",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "내가 보는 범위"
+   ],
+   "x": 50.9433985091589,
+   "widest": 227.54716491699222,
+   "w": [
+    227.54716491699222
+   ],
+   "h": [
+    40.81395339965833
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "My possible hands"
+   ],
+   "x": 50.943391726757795,
+   "widest": 339.6226501464844,
+   "w": [
+    339.6226501464844
+   ],
+   "h": [
+    38.00000000000013
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1655,
+  "ko": "상대는 몇 %로 \\(actionVerb)했을까요?",
+  "en": "What share of hands would the opponent \\(actionVerb)?",
+  "screen": "drill-rangeread",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대는 몇 %로 오픈했을까요?"
+   ],
+   "x": 47.54716616050263,
+   "widest": 618.1132202148439,
+   "w": [
+    618.1132202148439
+   ],
+   "h": [
+    68.24418640136741
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.67,
+   "text": [
+    "What share of hands would the",
+    "opponent raise first?"
+   ],
+   "x": 54.339617255134385,
+   "widest": 767.5471801757812,
+   "w": [
+    767.5471801757812,
+    510.7041320800781
+   ],
+   "h": [
+    44.395347595214844,
+    59.52743148803699
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1671,
+  "ko": "어디에 몰려 있나요 (선택)",
+  "en": "Which hands are more common? (optional)",
+  "screen": "drill-rangeread",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "어디에 몰려 있나요 (선택)"
+   ],
+   "x": 50.94339634450549,
+   "widest": 397.3584899902344,
+   "w": [
+    397.3584899902344
+   ],
+   "h": [
+    48.00000000000009
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Which hands are more common? (optional)"
+   ],
+   "x": 50.94340066303067,
+   "widest": 777.73583984375,
+   "w": [
+    777.73583984375
+   ],
+   "h": [
+    37.41279220581048
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1710,
+  "ko": "브로드웨이",
+  "en": "Broadway",
+  "screen": "drill-rangeread",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "브로드웨이"
+   ],
+   "x": 207.07962882507474,
+   "widest": 166.59545898437497,
+   "w": [
+    166.59545898437497
+   ],
+   "h": [
+    38.22100830078128
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Broadway"
+   ],
+   "x": 199.12631477483285,
+   "widest": 179.1168518066406,
+   "w": [
+    179.1168518066406
+   ],
+   "h": [
+    43.231296539306534
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1772,
+  "ko": "상대 레인지",
+  "en": "Opponent's possible hands",
+  "screen": "drill-evloss",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 레인지"
+   ],
+   "x": 50.943395450057096,
+   "widest": 176.60377502441403,
+   "w": [
+    176.60377502441403
+   ],
+   "h": [
+    41.2325592041018
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent's possible hands"
+   ],
+   "x": 50.943401148391104,
+   "widest": 492.45281982421875,
+   "w": [
+    492.45281982421875
+   ],
+   "h": [
+    40.81395339965807
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1816,
+  "ko": "이 레인지의 몇 %가 페어 이상을 만들었을까요?",
+  "en": "What share of these possible hands made at least a pair?",
+  "screen": "drill-hitfreq",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이레인지의 몇 %가 페어 이상을 만들었을까요?"
+   ],
+   "x": 47.547160561456735,
+   "widest": 964.5283203125,
+   "w": [
+    964.5283203125
+   ],
+   "h": [
+    57.819766998290866
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.58,
+   "text": [
+    "What share of these possible hands",
+    "made at least a pair?"
+   ],
+   "x": 54.06149554543555,
+   "widest": 869.9889526367188,
+   "w": [
+    869.9889526367188,
+    503.33981323242176
+   ],
+   "h": [
+    59.22996520996089,
+    55.517364501953196
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1876,
+  "ko": "\\(spot.openerSeat.rawValue) 오픈 3bb",
+  "en": "\\(spot.openerSeat.rawValue) raises first to 3bb",
+  "screen": "drill-rangeadv",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "LJ 오픈 3bb"
+   ],
+   "x": 88.30188461981373,
+   "widest": 207.16981506347656,
+   "w": [
+    207.16981506347656
+   ],
+   "h": [
+    41.174419403076186
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "LJ raises first to 3bb"
+   ],
+   "x": 84.90565758783225,
+   "widest": 383.77359008789057,
+   "w": [
+    383.77359008789057
+   ],
+   "h": [
+    37.999999999999865
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 1943,
+  "ko": "쇼다운까지 가면 오프너의 승률은 몇 %일까요?",
+  "en": "If both ranges reach the end, how often does the first raiser win?",
+  "screen": "drill-rangeadv",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "쇼다운까지 가면 오프너의 승률은 몇 %일까요?"
+   ],
+   "x": 47.547157551491296,
+   "widest": 950.9434204101562,
+   "w": [
+    950.9434204101562
+   ],
+   "h": [
+    54.488372802734354
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.63,
+   "text": [
+    "If both ranges reach the end, how often",
+    "does the first raiser win?"
+   ],
+   "x": 50.94340064832261,
+   "widest": 957.7358398437499,
+   "w": [
+    957.7358398437499,
+    604.5283203125001
+   ],
+   "h": [
+    65.05813980102539,
+    47.6162796020508
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2033,
+  "ko": "다음 문제",
+  "en": "Next question",
+  "screen": "drill-hitfreq-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 문제"
+   ],
+   "x": 444.72366935053924,
+   "widest": 183.7602081298828,
+   "w": [
+    183.7602081298828
+   ],
+   "h": [
+    52.3377647399903
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Next question"
+   ],
+   "x": 376.9811246768374,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    51.36627769470227
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2165,
+  "ko": "콜인가요, 폴드인가요?",
+  "en": "Call or fold?",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "콜인가요, 폴드인가요?"
+   ],
+   "x": 47.217048850489505,
+   "widest": 473.2235107421875,
+   "w": [
+    473.2235107421875
+   ],
+   "h": [
+    82.96680450439453
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Call or fold?"
+   ],
+   "x": 50.94339714834115,
+   "widest": 292.0754699707032,
+   "w": [
+    292.0754699707032
+   ],
+   "h": [
+    48.07558250427254
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2194,
+  "ko": "상대 레인지",
+  "en": "Opponent's possible hands",
+  "screen": "drill-evloss",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 레인지"
+   ],
+   "x": 50.943395450057096,
+   "widest": 176.60377502441403,
+   "w": [
+    176.60377502441403
+   ],
+   "h": [
+    41.2325592041018
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent's possible hands"
+   ],
+   "x": 50.943401148391104,
+   "widest": 492.45281982421875,
+   "w": [
+    492.45281982421875
+   ],
+   "h": [
+    40.81395339965807
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2199,
+  "ko": "리버에서 어떻게 좁혔는지는 아직 안 따져요",
+  "en": "This does not yet account for how the range narrowed on the river.",
+  "screen": "drill-evloss-call",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "리버에서 어떻게 좁혔는지는 아직 안 따져요"
+   ],
+   "x": 98.49056932181162,
+   "widest": 628.3018798828124,
+   "w": [
+    628.3018798828124
+   ],
+   "h": [
+    41.12209320068342
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.51,
+   "text": [
+    "This does not yet account for how the range",
+    "narrowed on the river."
+   ],
+   "x": 95.09436062637089,
+   "widest": 740.3773193359375,
+   "w": [
+    740.3773193359375,
+    374.6750793457032
+   ],
+   "h": [
+    41.09302330017114,
+    43.75115776062006
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2294,
+  "ko": "\\(KO.subject(spot.action.rawValue)) 남긴 레인지의 몇 %가 페어 이상일까요?",
+  "en": "After that action, what share of remaining hands have at least a pair?",
+  "screen": "drill-actionread",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "체크가 남긴 레인지의 몇 %가 페어 이상일까요?"
+   ],
+   "x": 47.54716764225827,
+   "widest": 961.132080078125,
+   "w": [
+    961.132080078125
+   ],
+   "h": [
+    57.81976699829113
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "After that action, what share of",
+    "remaining hands have at least a pair?"
+   ],
+   "x": 50.94338396396137,
+   "widest": 903.7268676757812,
+   "w": [
+    770.9434204101564,
+    903.7268676757812
+   ],
+   "h": [
+    65.05813980102539,
+    61.49341964721677
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2337,
+  "ko": "\\(spot.opener.rawValue)가 3bb 오픈했어요",
+  "en": "\\(spot.opener.rawValue) raises first to 3bb",
+  "screen": "drill-defend-reveal",
+  "ko_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "문제에서 본 상황",
+    "UTG가 3bb 오픈"
+   ],
+   "x": 94.92638581988712,
+   "widest": 285.28302001953125,
+   "w": [
+    251.6566619873047,
+    285.28302001953125
+   ],
+   "h": [
+    49.41674423217796,
+    54.41860580444328
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "The situation you saw",
+    "UTG raises first to 3bb"
+   ],
+   "x": 91.69811188082252,
+   "widest": 417.73583984375,
+   "w": [
+    390.56604003906256,
+    417.73583984375
+   ],
+   "h": [
+    54.41860580444328,
+    55.00000000000033
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2340,
+  "ko": "상위 \\(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
+  "en": "This seat starts with roughly the top \\(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands.",
+  "screen": "drill-defend",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.71,
+   "text": [
+    "UTG가 3bb 오픈했어요",
+    "상위 15%를 여는 자리예요"
+   ],
+   "x": 50.943396978627845,
+   "widest": 472.07546997070307,
+   "w": [
+    472.07546997070307,
+    332.83020019531244
+   ],
+   "h": [
+    51.45930099487303,
+    34.48255729675279
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "UTG raises first to 3bb",
+    "This seat starts with roughly the top 15% of hands."
+   ],
+   "x": 50.94338338892993,
+   "widest": 723.3961791992189,
+   "w": [
+    516.2264404296876,
+    723.3961791992189
+   ],
+   "h": [
+    41.05813980102521,
+    37.999999999999865
+   ]
+  },
+  "issues": [
+   "end width ko 71% / en 100%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2364,
+  "ko": "이 핸드로 어떻게 맞서나요?",
+  "en": "What would you do with this hand?",
+  "screen": "drill-defend",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이 핸드로 어떻게 맞서나요?"
+   ],
+   "x": 47.54716417837557,
+   "widest": 573.9622802734375,
+   "w": [
+    573.9622802734375
+   ],
+   "h": [
+    75.08139801025382
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "What would you do with this hand?"
+   ],
+   "x": 54.11648651378442,
+   "widest": 852.9430541992186,
+   "w": [
+    852.9430541992186
+   ],
+   "h": [
+    58.75207710266104
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/ConceptDrillView.swift",
+  "line": 2457,
+  "ko": "다음 문제",
+  "en": "Next question",
+  "screen": "drill-hitfreq-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 문제"
+   ],
+   "x": 444.72366935053924,
+   "widest": 183.7602081298828,
+   "w": [
+    183.7602081298828
+   ],
+   "h": [
+    52.3377647399903
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Next question"
+   ],
+   "x": 376.9811246768374,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    51.36627769470227
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/FirstLessonView.swift",
+  "line": 187,
+  "ko": "핵심은 같은 족보끼리 숫자를 비교하는 거예요.",
+  "en": "When both hands have a pair, compare the ranks.",
+  "screen": "first-lesson-answer",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "핵심은 같은 족보끼리 숫자를 비교하는 거예요."
+   ],
+   "x": 50.94339374954842,
+   "widest": 781.1320800781251,
+   "w": [
+    781.1320800781251
+   ],
+   "h": [
+    47.6162796020508
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "when both hands have a palr, compare the ranks."
+   ],
+   "x": 50.94340756696829,
+   "widest": 954.3395996093749,
+   "w": [
+    954.3395996093749
+   ],
+   "h": [
+    47.6162796020508
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/FirstLessonView.swift",
+  "line": 188,
+  "ko": "처음에는 족보 이름보다 어떤 숫자가 더 높은지만 찾아도 충분해요.",
+  "en": "Start by finding which pair has the higher rank.",
+  "screen": "first-lesson-transfer-answer",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.36,
+   "text": [
+    "처음에는 족보 이름보다 어떤 숫자가 더 높은지만",
+    "찾아도 충분해요."
+   ],
+   "x": 50.943385692143295,
+   "widest": 815.0943603515624,
+   "w": [
+    815.0943603515624,
+    292.0754699707031
+   ],
+   "h": [
+    44.23837089538587,
+    48.01744270324692
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Start by finding which pair has the higher rank."
+   ],
+   "x": 50.94339604592386,
+   "widest": 900,
+   "w": [
+    900
+   ],
+   "h": [
+    45.0000000000001
+   ]
+  },
+  "issues": [
+   "lines ko 2 / en 1",
+   "ko last 36%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/FirstLessonView.swift",
+  "line": 225,
+  "ko": "먼저 이해해요",
+  "en": "See the reasoning",
+  "screen": "first-lesson-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "먼저 이해해요"
+   ],
+   "x": 217.35849097202976,
+   "widest": 254.71697998046878,
+   "w": [
+    254.71697998046878
+   ],
+   "h": [
+    54.9999999999998
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "See the reasoning"
+   ],
+   "x": 216.50895087238024,
+   "widest": 392.5086364746093,
+   "w": [
+    392.5086364746093
+   ],
+   "h": [
+    57.51819992065418
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/FirstLessonView.swift",
+  "line": 226,
+  "ko": "카드와 숫자를 보며 풀이 과정을 따라가요.",
+  "en": "Follow the cards and numbers through a worked hand.",
+  "screen": "first-lesson-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "카드와 숫자를 보며 풀이 과정을 따라가요."
+   ],
+   "x": 217.35848717093165,
+   "widest": 662.26416015625,
+   "w": [
+    662.26416015625
+   ],
+   "h": [
+    47.61627960205055
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.35,
+   "text": [
+    "Follow the cards and numbers through a",
+    "worked hand."
+   ],
+   "x": 217.17486149221224,
+   "widest": 723.7447509765625,
+   "w": [
+    723.7447509765625,
+    251.52061462402344
+   ],
+   "h": [
+    44.94998550415047,
+    42.059446334838746
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 35%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/FirstLessonView.swift",
+  "line": 227,
+  "ko": "직접 골라봐요",
+  "en": "Choose for yourself",
+  "screen": "first-lesson-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "직접 골라봐요"
+   ],
+   "x": 217.13124110965634,
+   "widest": 251.7752532958984,
+   "w": [
+    251.7752532958984
+   ],
+   "h": [
+    50.06886291503931
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Choose for yourself"
+   ],
+   "x": 217.35848953526033,
+   "widest": 427.9245300292969,
+   "w": [
+    427.9245300292969
+   ],
+   "h": [
+    44.38953399658199
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/FirstLessonView.swift",
+  "line": 228,
+  "ko": "답을 보기 전에 내 판단을 먼저 남겨요.",
+  "en": "Make your choice before seeing the answer.",
+  "screen": "first-lesson-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "답을 보기 전에 내 판단을 먼저 남겨요."
+   ],
+   "x": 217.00031995376526,
+   "widest": 605.4408569335938,
+   "w": [
+    605.4408569335938
+   ],
+   "h": [
+    54.61515426635721
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.38,
+   "text": [
+    "Make your choice before seeing",
+    "the answer."
+   ],
+   "x": 217.3584824359482,
+   "widest": 573.9622802734375,
+   "w": [
+    573.9622802734375,
+    218.52612304687497
+   ],
+   "h": [
+    44.999999999999844,
+    36.51776123046862
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 38%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/FirstLessonView.swift",
+  "line": 229,
+  "ko": "나중에 다시 풀어요",
+  "en": "Come back later",
+  "screen": "first-lesson-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "나중에 다시 풀어요"
+   ],
+   "x": 217.35849442684992,
+   "widest": 343.01885986328125,
+   "w": [
+    343.01885986328125
+   ],
+   "h": [
+    47.99999999999983
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Come back later"
+   ],
+   "x": 217.35849709360258,
+   "widest": 356.60375976562506,
+   "w": [
+    356.60375976562506
+   ],
+   "h": [
+    37.41279220581048
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/FirstLessonView.swift",
+  "line": 230,
+  "ko": "배운 내용을 다시 풀며 익혀요.",
+  "en": "Try the skill again after some time away.",
+  "screen": "first-lesson-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "배운 내용을 다시 풀며 익혀요."
+   ],
+   "x": 217.00438486984058,
+   "widest": 476.2871398925782,
+   "w": [
+    476.2871398925782
+   ],
+   "h": [
+    52.27116012573254
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Try the skill again after some time away."
+   ],
+   "x": 217.35848329462556,
+   "widest": 723.3962402343749,
+   "w": [
+    723.3962402343749
+   ],
+   "h": [
+    44.215114593505916
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 19,
+  "ko": "추천부터 시작하거나, 직접 골라요.",
+  "en": "Follow a suggestion or choose any lesson.",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "추천부터 시작하거나, 직접 골라요."
+   ],
+   "x": 43.75851628571553,
+   "widest": 632.4959716796876,
+   "w": [
+    632.4959716796876
+   ],
+   "h": [
+    73.61819458007822
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Follow a suggestion or choose any lesson."
+   ],
+   "x": 44.15095416402568,
+   "widest": 879.6226196289064,
+   "w": [
+    879.6226196289064
+   ],
+   "h": [
+    61.488372802734325
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 24,
+  "ko": "내 방식으로 연습",
+  "en": "Practice your way",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "내 방식으로 연습"
+   ],
+   "x": 50.943392025980245,
+   "widest": 376.98114013671875,
+   "w": [
+    376.98114013671875
+   ],
+   "h": [
+    58.017440795898366
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Practice your way"
+   ],
+   "x": 49.875603717461104,
+   "widest": 487.92657470703125,
+   "w": [
+    487.92657470703125
+   ],
+   "h": [
+    70.83398437500009
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 28,
+  "ko": "전체 학습 경로",
+  "en": "Full learning path",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "전체 학습 경로"
+   ],
+   "x": 173.0981920536874,
+   "widest": 275.31304931640625,
+   "w": [
+    275.31304931640625
+   ],
+   "h": [
+    52.2065162658691
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Full learning path"
+   ],
+   "x": 172.43591110566717,
+   "widest": 398.8639221191406,
+   "w": [
+    398.8639221191406
+   ],
+   "h": [
+    58.21060180664047
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 29,
+  "ko": "기초부터 깊이 있는 판단까지. 모든 레슨이 열려 있어요.",
+  "en": "From the basics to deeper decisions. Every lesson is open.",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.31,
+   "text": [
+    "기초부터 깊이 있는 판단까지. 모든 레슨이",
+    "열려 있어요."
+   ],
+   "x": 169.81132979865328,
+   "widest": 655.4716796875,
+   "w": [
+    655.4716796875,
+    204.56968688964847
+   ],
+   "h": [
+    48.06976699829116,
+    48.03007698059075
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.57,
+   "text": [
+    "From the basics to deeper decisions.",
+    "Every lesson is open."
+   ],
+   "x": 173.20753546135666,
+   "widest": 665.6604003906249,
+   "w": [
+    665.6604003906249,
+    380.3773498535156
+   ],
+   "h": [
+    41.06976699829092,
+    41.12790679931654
+   ]
+  },
+  "issues": [
+   "ko last 31%",
+   "end width ko 31% / en 56%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 32,
+  "ko": "한 가지 집중 연습",
+  "en": "Practice one skill",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "한 가지 집중 연습"
+   ],
+   "x": 169.81131482687204,
+   "widest": 332.83020019531256,
+   "w": [
+    332.83020019531256
+   ],
+   "h": [
+    54.476745605468636
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Practice one skill"
+   ],
+   "x": 166.16315695846862,
+   "widest": 401.4070739746093,
+   "w": [
+    401.4070739746093
+   ],
+   "h": [
+    50.51156616210929
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 33,
+  "ko": "원하는 주제를 골라 다섯 문제씩 풀어요.",
+  "en": "Pick a topic for a five-question round.",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "원하는 주제를 골라 다섯 문제씩 풀어요."
+   ],
+   "x": 173.2075573596636,
+   "widest": 624.9056396484375,
+   "w": [
+    624.9056396484375
+   ],
+   "h": [
+    44.215114593505916
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Pick a topic for a five-question round."
+   ],
+   "x": 173.20754507693772,
+   "widest": 675.8490600585938,
+   "w": [
+    675.8490600585938
+   ],
+   "h": [
+    41.16279029846195
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 37,
+  "ko": "배운 내용 복습",
+  "en": "Review what you've learned",
+  "screen": "today",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "배운 내용 복습"
+   ],
+   "x": 173.06044191096643,
+   "widest": 275.3885498046875,
+   "w": [
+    275.3885498046875
+   ],
+   "h": [
+    49.34131813049317
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Review what you've learned"
+   ],
+   "x": 173.20754633472615,
+   "widest": 645.2830200195312,
+   "w": [
+    645.2830200195312
+   ],
+   "h": [
+    48.017442703247184
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 38,
+  "ko": "복습할 주제 \\(due.count)개",
+  "en": "\\(due.count) topics ready for review",
+  "screen": "today",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.93,
+   "text": [
+    "배운 내용 복습",
+    "복습할 주제 2개"
+   ],
+   "x": 173.06044191096643,
+   "widest": 275.3885498046875,
+   "w": [
+    275.3885498046875,
+    254.9131927490234
+   ],
+   "h": [
+    49.34131813049317,
+    45.35641860961902
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.69,
+   "text": [
+    "Review what you've learned",
+    "2 topics ready for review"
+   ],
+   "x": 173.20754633472615,
+   "widest": 645.2830200195312,
+   "w": [
+    645.2830200195312,
+    445.61724853515625
+   ],
+   "h": [
+    48.017442703247184,
+    49.74752426147444
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 43,
+  "ko": "어디서 시작할지 고민되나요?",
+  "en": "Not sure where to start?",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "어디서 시작할지 고민되나요?"
+   ],
+   "x": 47.54716218082251,
+   "widest": 635.0943603515625,
+   "w": [
+    635.0943603515625
+   ],
+   "h": [
+    78.99999999999999
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Not sure where to start?"
+   ],
+   "x": 54.339609228220866,
+   "widest": 621.5094604492188,
+   "w": [
+    621.5094604492188
+   ],
+   "h": [
+    48.00000000000009
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 45,
+  "ko": "짧은 확인으로 시작할 주제를 추천해 드려요. 점수나 자격시험은 아니에요.",
+  "en": "A short check can suggest a starting topic. It isn't a score or a qualification.",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.43,
+   "text": [
+    "짧은 확인으로 시작할 주제를 추천해 드려요. 점수나",
+    "자격시험은 아니에요."
+   ],
+   "x": 50.943406421796226,
+   "widest": 804.9056396484374,
+   "w": [
+    804.9056396484374,
+    343.8809509277344
+   ],
+   "h": [
+    48.052326202392585,
+    51.05313110351571
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.46,
+   "text": [
+    "A short check can suggest a starting topic. It isn't a",
+    "score or a qualitication."
+   ],
+   "x": 50.943392020755255,
+   "widest": 916.9811401367186,
+   "w": [
+    916.9811401367186,
+    421.13208007812494
+   ],
+   "h": [
+    41.052326202392614,
+    41.14534950256338
+   ]
+  },
+  "issues": [
+   "ko last 43%",
+   "en last 46%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 47,
+  "ko": "시작점 찾아보기",
+  "en": "Find a starting point",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "시작점 찾아보기"
+   ],
+   "x": 50.94340094863762,
+   "widest": 275.0943298339844,
+   "w": [
+    275.0943298339844
+   ],
+   "h": [
+    44.30813789367694
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Find a starting point"
+   ],
+   "x": 50.94339776460686,
+   "widest": 404.15093994140625,
+   "w": [
+    404.15093994140625
+   ],
+   "h": [
+    45.0000000000001
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 61,
+  "ko": "다음 추천",
+  "en": "Suggested next",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 추천"
+   ],
+   "x": 108.570427500336,
+   "widest": 146.25537109375,
+   "w": [
+    146.25537109375
+   ],
+   "h": [
+    48.286010742187585
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Suggested next"
+   ],
+   "x": 101.88679260154021,
+   "widest": 292.0754699707032,
+   "w": [
+    292.0754699707032
+   ],
+   "h": [
+    54.424419403076136
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 81,
+  "ko": "기억을 다시 꺼내 봐요",
+  "en": "Bring it back to mind",
+  "screen": "today",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "기억을 다시 꺼내 봐요"
+   ],
+   "x": 108.67924683958853,
+   "widest": 584.1509399414064,
+   "w": [
+    584.1509399414064
+   ],
+   "h": [
+    64.62209320068361
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Bring it back to mind"
+   ],
+   "x": 108.6792572050781,
+   "widest": 669.0565795898438,
+   "w": [
+    669.0565795898438
+   ],
+   "h": [
+    74.82558441162097
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 85,
+  "ko": "복습 \\(min(5, due.count))개 시작",
+  "en": "Review \\(min(5, due.count)) topics",
+  "screen": "today",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "복습 2개 시작"
+   ],
+   "x": 404.0846472428476,
+   "widest": 268.4344787597656,
+   "w": [
+    268.4344787597656
+   ],
+   "h": [
+    55.07412719726565
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Review 2 topics"
+   ],
+   "x": 356.0148452934819,
+   "widest": 367.9720764160156,
+   "w": [
+    367.9720764160156
+   ],
+   "h": [
+    57.59243392944334
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 90,
+  "ko": "레슨 시작",
+  "en": "Start lesson",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "레슨 시작"
+   ],
+   "x": 441.2190612597732,
+   "widest": 190.76942443847662,
+   "w": [
+    190.76942443847662
+   ],
+   "h": [
+    59.7538013458252
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Start lesson"
+   ],
+   "x": 397.35849657267727,
+   "widest": 281.88677978515625,
+   "w": [
+    281.88677978515625
+   ],
+   "h": [
+    40.81395339965833
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 130,
+  "ko": "섞어서 확인하기",
+  "en": "Mixed practice",
+  "screen": "path-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "섞어서 확인하기"
+   ],
+   "x": 173.20755203017757,
+   "widest": 275.0943298339843,
+   "w": [
+    275.0943298339843
+   ],
+   "h": [
+    47.99999999999983
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Mixed practice"
+   ],
+   "x": 176.60377569000593,
+   "widest": 298.86791992187494,
+   "w": [
+    298.86791992187494
+   ],
+   "h": [
+    44.215114593505916
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearnView.swift",
+  "line": 137,
+  "ko": "여러 주제를 새로운 상황에서 함께 써 봐요.",
+  "en": "Use several skills together in a different situation.",
+  "screen": "path-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "여러 주제를 새로운 상황에서 함께 써 봐요."
+   ],
+   "x": 176.38857591098838,
+   "widest": 621.975830078125,
+   "w": [
+    621.975830078125
+   ],
+   "h": [
+    47.36195755004875
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.61,
+   "text": [
+    "use several skils together in a",
+    "different situation."
+   ],
+   "x": 173.20753978598378,
+   "widest": 506.0377502441405,
+   "w": [
+    506.0377502441405,
+    309.8190612792969
+   ],
+   "h": [
+    37.9999999999996,
+    40.69105529785163
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearningGuideView.swift",
+  "line": 68,
+  "ko": "다음 이야기",
+  "en": "Next topic",
+  "screen": "guide-question",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 이야기"
+   ],
+   "x": 424.3327017474803,
+   "widest": 227.93836975097656,
+   "w": [
+    227.93836975097656
+   ],
+   "h": [
+    59.37430191040048
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Next topic"
+   ],
+   "x": 417.5383375354752,
+   "widest": 244.92332458496102,
+   "w": [
+    244.92332458496102
+   ],
+   "h": [
+    59.50870513916014
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/LearningGuideView.swift",
+  "line": 74,
+  "ko": "이전 이야기",
+  "en": "Previous topic",
+  "screen": "guide-question",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이전 이야기"
+   ],
+   "x": 434.71697909404793,
+   "widest": 207.1698150634765,
+   "w": [
+    207.1698150634765
+   ],
+   "h": [
+    58.07558059692372
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Previous topic"
+   ],
+   "x": 390.32982345328514,
+   "widest": 295.98236083984375,
+   "w": [
+    295.98236083984375
+   ],
+   "h": [
+    55.21936798095709
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/NodeSessionView.swift",
+  "line": 284,
+  "ko": "함께 풀기",
+  "en": "Try together",
+  "screen": "guided-potodds",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "함께 풀기"
+   ],
+   "x": 876.226416733625,
+   "widest": 152.83018493652335,
+   "w": [
+    152.83018493652335
+   ],
+   "h": [
+    41.069766998291186
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Try together"
+   ],
+   "x": 790.6400193125507,
+   "widest": 235.42431640624991,
+   "w": [
+    235.42431640624991
+   ],
+   "h": [
+    47.88542175292976
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/NodeSessionView.swift",
+  "line": 421,
+  "ko": "모두 목표 안에 들었어요",
+  "en": "All answers were on target",
+  "screen": "lesson-complete",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "모두 목표 안에 들었어요"
+   ],
+   "x": 57.73584843524128,
+   "widest": 645.2830200195312,
+   "w": [
+    645.2830200195312
+   ],
+   "h": [
+    68.05813980102538
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "All answers were on target"
+   ],
+   "x": 57.52717507728761,
+   "widest": 869.8213500976562,
+   "w": [
+    869.8213500976562
+   ],
+   "h": [
+    65.46800613403308
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/NodeSessionView.swift",
+  "line": 422,
+  "ko": "\\(itemCount - missed)/\\(itemCount) 목표 안에 들었어요",
+  "en": "\\(itemCount - missed)/\\(itemCount) on target",
+  "screen": "review-complete",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "2/2 목표 안에 들었어요"
+   ],
+   "x": 54.339635844635495,
+   "widest": 638.4905395507812,
+   "w": [
+    638.4905395507812
+   ],
+   "h": [
+    68.05813980102538
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "2/2 on target"
+   ],
+   "x": 53.81729470911358,
+   "widest": 428.9684143066406,
+   "w": [
+    428.9684143066406
+   ],
+   "h": [
+    72.90490341186529
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/NodeSessionView.swift",
+  "line": 428,
+  "ko": "길로 돌아가기",
+  "en": "Back to path",
+  "screen": "lesson-complete",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "길로 돌아가기"
+   ],
+   "x": 403.9117110391113,
+   "widest": 265.3841247558593,
+   "w": [
+    265.3841247558593
+   ],
+   "h": [
+    53.55530548095714
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Back to path"
+   ],
+   "x": 393.5700673138384,
+   "widest": 292.80227661132807,
+   "w": [
+    292.80227661132807
+   ],
+   "h": [
+    50.80675125122064
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/NodeSessionView.swift",
+  "line": 447,
+  "ko": "모든 답이 목표 안에 들었어요. 기록에서 개념별 단계와 다음 복습 시점을 볼 수 있어요.",
+  "en": "Every answer was on target. See your skill levels and next reviews in Progress.",
+  "screen": "lesson-complete",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.33,
+   "text": [
+    "모든 답이 목표 안에 들었어요. 기록에서 개념별 단계와 다음 복습",
+    "시점을 볼 수 있어요."
+   ],
+   "x": 57.49573088208274,
+   "widest": 937.8128051757812,
+   "w": [
+    937.8128051757812,
+    309.0566101074219
+   ],
+   "h": [
+    54.10793113708507,
+    44.215114593505916
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.36,
+   "text": [
+    "Every answer was on target. See your skill levels and next",
+    "reviews in Progress."
+   ],
+   "x": 54.339613434315986,
+   "widest": 964.5283203125,
+   "w": [
+    964.5283203125,
+    343.9382019042969
+   ],
+   "h": [
+    41.017442703247205,
+    42.24514389038101
+   ]
+  },
+  "issues": [
+   "ko last 33%",
+   "en last 36%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/NodeSessionView.swift",
+  "line": 1137,
+  "ko": "\\(exact)/\\(queue.count) 목표 안에 들었어요",
+  "en": "\\(exact)/\\(queue.count) on target",
+  "screen": "review-complete",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "2/2 목표 안에 들었어요"
+   ],
+   "x": 54.339635844635495,
+   "widest": 638.4905395507812,
+   "w": [
+    638.4905395507812
+   ],
+   "h": [
+    68.05813980102538
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "2/2 on target"
+   ],
+   "x": 53.81729470911358,
+   "widest": 428.9684143066406,
+   "w": [
+    428.9684143066406
+   ],
+   "h": [
+    72.90490341186529
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/NodeSessionView.swift",
+  "line": 1143,
+  "ko": "각 개념을 한 번씩 목표 안에 답했어요. 다음 복습은 기록에서 볼 수 있어요.",
+  "en": "You answered each skill on target. Check Progress for the next review.",
+  "screen": "review-complete",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.17,
+   "text": [
+    "각 개념을 한 번씩 목표 안에 답했어요. 다음 복습은 기록에서 볼",
+    "수 있어요."
+   ],
+   "x": 57.73585176580923,
+   "widest": 913.5848999023438,
+   "w": [
+    913.5848999023438,
+    157.29257202148438
+   ],
+   "h": [
+    44.418603897094535,
+    48.131034851074155
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.21,
+   "text": [
+    "You answered each skill on target. Check Progress for the",
+    "next review."
+   ],
+   "x": 54.33963684813614,
+   "widest": 967.9244995117188,
+   "w": [
+    967.9244995117188,
+    207.16981506347656
+   ],
+   "h": [
+    47.61627960205055,
+    37.999999999999865
+   ]
+  },
+  "issues": [
+   "ko last 17%",
+   "en last 21%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/NodeSessionView.swift",
+  "line": 1151,
+  "ko": "학습으로 돌아가기",
+  "en": "Back to Learn",
+  "screen": "review-complete",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "학습으로 돌아가기"
+   ],
+   "x": 359.51881671048363,
+   "widest": 354.1695251464843,
+   "w": [
+    354.1695251464843
+   ],
+   "h": [
+    58.59362411499045
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Back to Learn"
+   ],
+   "x": 380.37736485327036,
+   "widest": 319.24526977539057,
+   "w": [
+    319.24526977539057
+   ],
+   "h": [
+    47.99999999999983
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/OpponentPickerView.swift",
+  "line": 11,
+  "ko": "상대 고르기",
+  "en": "Choose an opponent",
+  "screen": "table-picker",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 고르기"
+   ],
+   "x": 50.53791044125083,
+   "widest": 367.60342407226557,
+   "w": [
+    367.60342407226557
+   ],
+   "h": [
+    85.34137725830077
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Choose an opponent"
+   ],
+   "x": 50.65148964161699,
+   "widest": 791.8657836914064,
+   "w": [
+    791.8657836914064
+   ],
+   "h": [
+    80.24618911743144
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/OpponentPickerView.swift",
+  "line": 13,
+  "ko": "어떤 스타일과 연습할까요? 실력 순서는 아니에요.",
+  "en": "Which style would you like to practice against? These aren't difficulty levels.",
+  "screen": "table-picker",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "어떤 스타일과 연습할까요? 실력 순서는 아니에요."
+   ],
+   "x": 50.94338683992544,
+   "widest": 784.5283203125,
+   "w": [
+    784.5283203125
+   ],
+   "h": [
+    45.0000000000001
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.42,
+   "text": [
+    "which style would you like to practice against? These",
+    "aren't difficulty levels."
+   ],
+   "x": 54.214469903692134,
+   "widest": 954.6163330078125,
+   "w": [
+    954.6163330078125,
+    400.7547302246094
+   ],
+   "h": [
+    48.5049839019775,
+    44.215114593505916
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 42%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/OpponentPickerView.swift",
+  "line": 44,
+  "ko": "공용 카드가 나오기 전의 습관",
+  "en": "Starting habits",
+  "screen": "opponent-details",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "공용 카드가 나오기 전의 습관"
+   ],
+   "x": 54.33961039546807,
+   "widest": 590.9434204101561,
+   "w": [
+    590.9434204101561
+   ],
+   "h": [
+    58.00000000000006
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Starting habits"
+   ],
+   "x": 54.339623877244264,
+   "widest": 366.79244995117193,
+   "w": [
+    366.79244995117193
+   ],
+   "h": [
+    58.244186401367195
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/OpponentPickerView.swift",
+  "line": 46,
+  "ko": "자발적으로 들어와요",
+  "en": "Chooses to join",
+  "screen": "opponent-details",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "자발적으로 들어와요"
+   ],
+   "x": 54.33962102992558,
+   "widest": 353.20755004882807,
+   "w": [
+    353.20755004882807
+   ],
+   "h": [
+    51.27906990051289
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Chooses to join"
+   ],
+   "x": 57.22657930304882,
+   "widest": 313.4188537597656,
+   "w": [
+    313.4188537597656
+   ],
+   "h": [
+    52.67377471923823
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/OpponentPickerView.swift",
+  "line": 47,
+  "ko": "금액을 올려요",
+  "en": "Raises the price",
+  "screen": "opponent-details",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "금액을 올려요"
+   ],
+   "x": 57.69176534961258,
+   "widest": 241.22024536132812,
+   "w": [
+    241.22024536132812
+   ],
+   "h": [
+    48.063537597656456
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Raises the price"
+   ],
+   "x": 57.59376960815956,
+   "widest": 323.0408020019531,
+   "w": [
+    323.0408020019531
+   ],
+   "h": [
+    53.98924255371103
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/OpponentPickerView.swift",
+  "line": 49,
+  "ko": "숫자와 포커 용어",
+  "en": "Numbers and poker terms",
+  "screen": "opponent-details",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "숫자와 포커 용어"
+   ],
+   "x": 54.204910751414474,
+   "widest": 326.3071594238281,
+   "w": [
+    326.3071594238281
+   ],
+   "h": [
+    59.35418701171858
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Numbers and poker terms"
+   ],
+   "x": 53.98645431716187,
+   "widest": 581.5045776367188,
+   "w": [
+    581.5045776367188
+   ],
+   "h": [
+    66.41514587402352
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/OpponentPickerView.swift",
+  "line": 57,
+  "ko": "이 상대와 연습",
+  "en": "Practice with this opponent",
+  "screen": "opponent-details",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이 상대와 연습"
+   ],
+   "x": 397.30933291176643,
+   "widest": 281.985107421875,
+   "w": [
+    281.985107421875
+   ],
+   "h": [
+    54.92859077453608
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Practice with this opponent"
+   ],
+   "x": 217.3584898222689,
+   "widest": 645.2830200195312,
+   "w": [
+    645.2830200195312
+   ],
+   "h": [
+    58.127906799316484
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PathView.swift",
+  "line": 57,
+  "ko": "한 가지 집중 연습",
+  "en": "Practice one skill",
+  "screen": "learn",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "한 가지 집중 연습"
+   ],
+   "x": 169.81131482687204,
+   "widest": 332.83020019531256,
+   "w": [
+    332.83020019531256
+   ],
+   "h": [
+    54.476745605468636
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Practice one skill"
+   ],
+   "x": 166.16315695846862,
+   "widest": 401.4070739746093,
+   "w": [
+    401.4070739746093
+   ],
+   "h": [
+    50.51156616210929
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PathView.swift",
+  "line": 58,
+  "ko": "원하는 주제를 다섯 문제씩 연습해요",
+  "en": "Choose a topic for a five-question round",
+  "screen": "path-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "원하는 주제를 다섯 문제씩 연습해요"
+   ],
+   "x": 237.73584600889274,
+   "widest": 526.4151000976562,
+   "w": [
+    526.4151000976562
+   ],
+   "h": [
+    41.04069709777812
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.59,
+   "text": [
+    "Choose a topic for a five-",
+    "question round"
+   ],
+   "x": 237.73584836271004,
+   "widest": 427.92453002929693,
+   "w": [
+    427.92453002929693,
+    253.20274353027344
+   ],
+   "h": [
+    41.05813980102547,
+    43.27901840209978
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PathView.swift",
+  "line": 213,
+  "ko": "기록 시작",
+  "en": "Started",
+  "screen": "path",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "기록 시작"
+   ],
+   "x": 906.6368014333252,
+   "widest": 122.57545471191413,
+   "w": [
+    122.57545471191413
+   ],
+   "h": [
+    45.080791473388736
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Started"
+   ],
+   "x": 913.5849039790824,
+   "widest": 118.8679275512695,
+   "w": [
+    118.8679275512695
+   ],
+   "h": [
+    37.49418640136701
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PathView.swift",
+  "line": 227,
+  "ko": "카드와 칩부터",
+  "en": "Start with cards and chips",
+  "screen": "path-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "카드와 칩부터"
+   ],
+   "x": 50.9434003734803,
+   "widest": 380.3773498535157,
+   "w": [
+    380.3773498535157
+   ],
+   "h": [
+    71.44767379760751
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Start with cards and chips"
+   ],
+   "x": 53.91629068495337,
+   "widest": 849.9025878906249,
+   "w": [
+    849.9025878906249
+   ],
+   "h": [
+    69.40680694580065
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PathView.swift",
+  "line": 228,
+  "ko": "가격과 가능성 비교",
+  "en": "Weigh the price and chances",
+  "screen": "path-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "가격과 가능성 비교"
+   ],
+   "x": 50.943397183156435,
+   "widest": 509.43395996093756,
+   "w": [
+    509.43395996093756
+   ],
+   "h": [
+    68.47674179077129
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Weigh the price and chances"
+   ],
+   "x": 57.735840779888576,
+   "widest": 933.9622802734376,
+   "w": [
+    933.9622802734376
+   ],
+   "h": [
+    55.000000000000064
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PathView.swift",
+  "line": 229,
+  "ko": "상대의 가능한 패 읽기",
+  "en": "Read possible hands",
+  "screen": "path",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대의 가능한 패 읽기"
+   ],
+   "x": 50.94339783253139,
+   "widest": 584.1509399414064,
+   "w": [
+    584.1509399414064
+   ],
+   "h": [
+    68.3372077941894
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Read possible hands"
+   ],
+   "x": 54.33962764360831,
+   "widest": 672.4528198242188,
+   "w": [
+    672.4528198242188
+   ],
+   "h": [
+    64.62209320068361
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlacementView.swift",
+  "line": 19,
+  "ko": "시작점 찾기",
+  "en": "Find a starting point",
+  "screen": "placement",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "시작점 찾기"
+   ],
+   "x": 57.36838816944322,
+   "widest": 367.5273742675782,
+   "w": [
+    367.5273742675782
+   ],
+   "h": [
+    81.73762130737303
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Find a starting point"
+   ],
+   "x": 57.73585060426683,
+   "widest": 764.1509399414062,
+   "w": [
+    764.1509399414062
+   ],
+   "h": [
+    78.25581359863284
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlacementView.swift",
+  "line": 30,
+  "ko": "포커가 얼마나 익숙한가요?",
+  "en": "How familiar is poker?",
+  "screen": "placement",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "포커가 얼마나 익숙한가요?"
+   ],
+   "x": 57.73584464057768,
+   "widest": 679.2453002929686,
+   "w": [
+    679.2453002929686
+   ],
+   "h": [
+    88.43022918701158
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "How familiar is poker?"
+   ],
+   "x": 60.66212845862589,
+   "widest": 652.9924926757811,
+   "w": [
+    652.9924926757811
+   ],
+   "h": [
+    69.73736953735349
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlacementView.swift",
+  "line": 32,
+  "ko": "시간 제한 없이 세 가지만 확인해요. 기록과 실력 점수에는 영향을 주지 않아요.",
+  "en": "Try three untimed questions. They won't change your practice results or award a skill level.",
+  "screen": "placement",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.36,
+   "text": [
+    "시간 제한 없이 세 가지만 확인해요. 기록과 실력 점수에는",
+    "영향을 주지 않아요."
+   ],
+   "x": 57.73585344845105,
+   "widest": 957.73583984375,
+   "w": [
+    957.73583984375,
+    344.0702514648438
+   ],
+   "h": [
+    51.459300994873296,
+    61.256198883056626
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.87,
+   "text": [
+    "Try three untimed questions. They won't Change",
+    "your practice results or award a skill level."
+   ],
+   "x": 57.735854608274735,
+   "widest": 927.1697998046875,
+   "w": [
+    927.1697998046875,
+    808.56884765625
+   ],
+   "h": [
+    44.45930099487332,
+    47.920009613037294
+   ]
+  },
+  "issues": [
+   "ko last 36%",
+   "end width ko 36% / en 87%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlacementView.swift",
+  "line": 59,
+  "ko": "확인 없이 시작하기",
+  "en": "Start without the check",
+  "screen": "placement",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "확인 없이 시작하기"
+   ],
+   "x": 54.33962391285522,
+   "widest": 366.79244995117193,
+   "w": [
+    366.79244995117193
+   ],
+   "h": [
+    55.000000000000064
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Start without the check"
+   ],
+   "x": 57.73583631666975,
+   "widest": 516.2264404296875,
+   "w": [
+    516.2264404296875
+   ],
+   "h": [
+    47.6162796020508
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlacementView.swift",
+  "line": 83,
+  "ko": "처음 배워요",
+  "en": "I'm new to poker",
+  "screen": "placement",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "처음 배워요"
+   ],
+   "x": 94.76854386313659,
+   "widest": 228.19876098632815,
+   "w": [
+    228.19876098632815
+   ],
+   "h": [
+    57.2021713256835
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "I'm new to poker"
+   ],
+   "x": 95.09433539664366,
+   "widest": 376.98114013671875,
+   "w": [
+    376.98114013671875
+   ],
+   "h": [
+    47.99999999999983
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlacementView.swift",
+  "line": 84,
+  "ko": "규칙은 알지만 선택이 어려워요",
+  "en": "I know the rules; decisions are harder",
+  "screen": "placement",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "규칙은 알지만 선택이 어려워요"
+   ],
+   "x": 95.09432737419172,
+   "widest": 590.9434204101562,
+   "w": [
+    590.9434204101562
+   ],
+   "h": [
+    58.00000000000006
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "I know the rules; decisions are harder"
+   ],
+   "x": 91.6981251186744,
+   "widest": 849.0565795898438,
+   "w": [
+    849.0565795898438
+   ],
+   "h": [
+    55.000000000000064
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlacementView.swift",
+  "line": 85,
+  "ko": "자주 하고 더 깊이 배우고 싶어요",
+  "en": "I play regularly and want to go deeper",
+  "screen": "placement",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "자주 하고 더 깊이 배우고 싶어요"
+   ],
+   "x": 98.49058021583875,
+   "widest": 607.9244995117186,
+   "w": [
+    607.9244995117186
+   ],
+   "h": [
+    51.15697669982906
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "l play regularly and want to go deeper"
+   ],
+   "x": 91.69810454310789,
+   "widest": 859.2453002929688,
+   "w": [
+    859.2453002929688
+   ],
+   "h": [
+    57.819766998290866
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 32,
+  "ko": "네 명의 연습 테이블",
+  "en": "Four-player practice",
+  "screen": "play-hand",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "네 명의 연습 테이블"
+   ],
+   "x": 50.94339807191551,
+   "widest": 441.50942993164057,
+   "w": [
+    441.50942993164057
+   ],
+   "h": [
+    61.27325630187999
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Four-player practice"
+   ],
+   "x": 50.94339891500067,
+   "widest": 553.5848999023438,
+   "w": [
+    553.5848999023438
+   ],
+   "h": [
+    58.00000000000006
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 34,
+  "ko": "\\(table.handNumber + 1)번째 핸드",
+  "en": "Hand \\(table.handNumber + 1)",
+  "screen": "play-hand",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "1번째 핸드"
+   ],
+   "x": 865.8516900402319,
+   "widest": 166.78718566894543,
+   "w": [
+    166.78718566894543
+   ],
+   "h": [
+    45.632553100585795
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Hand 1"
+   ],
+   "x": 906.7924518686478,
+   "widest": 122.26415252685533,
+   "w": [
+    122.26415252685533
+   ],
+   "h": [
+    37.41279220581048
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 44,
+  "ko": "다음 핸드",
+  "en": "Next hand",
+  "screen": "table-summary",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 핸드"
+   ],
+   "x": 444.59368043961035,
+   "widest": 187.41641235351557,
+   "w": [
+    187.41641235351557
+   ],
+   "h": [
+    56.593852996826264
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Next hand"
+   ],
+   "x": 420.9681089608008,
+   "widest": 238.06378173828122,
+   "w": [
+    238.06378173828122
+   ],
+   "h": [
+    46.00817108154288
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 70,
+  "ko": "컴퓨터 세 명과 천천히 연습해요. 각자 100칩, 시작 금액은 1·2칩이에요. 실제 돈은 쓰지 않아요.",
+  "en": "Practice at your own pace against three computers. Each starts with 100 chips; blinds are 1 and 2. No real money is involved.",
+  "screen": "table-picker",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.87,
+   "text": [
+    "컴퓨터 세 명과 천천히 연습해요. 각자 100칩, 시작",
+    "금액은 1•2칩이에요. 실제 돈은 쓰지 않아요."
+   ],
+   "x": 50.35035589066063,
+   "widest": 901.2122192382812,
+   "w": [
+    901.2122192382812,
+    781.1320800781249
+   ],
+   "h": [
+    76.829315185547,
+    51.162790298461914
+   ]
+  },
+  "en_m": {
+   "lines": 3,
+   "last": 0.85,
+   "text": [
+    "Practice at your own pace against three",
+    "computers. Each starts with 100 chips; blinds",
+    "are 1 and 2. No real money is involved."
+   ],
+   "x": 50.792689098395954,
+   "widest": 927.5157470703125,
+   "w": [
+    815.4078979492188,
+    927.5157470703125,
+    784.9262084960939
+   ],
+   "h": [
+    48.592445373535,
+    55.35609436035151,
+    53.1290073394775
+   ]
+  },
+  "issues": [
+   "lines ko 2 / en 3"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 146,
+  "ko": "아직 공용 카드가 없어요",
+  "en": "No shared cards yet",
+  "screen": "play-hand",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "아직 공용 카드가 없어요"
+   ],
+   "x": 360.00000674149385,
+   "widest": 356.603759765625,
+   "w": [
+    356.603759765625
+   ],
+   "h": [
+    40.81395339965807
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "No shared Cards yet"
+   ],
+   "x": 369.8549282730544,
+   "widest": 340.2857971191406,
+   "w": [
+    340.2857971191406
+   ],
+   "h": [
+    41.65342712402352
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 210,
+  "ko": "내 차례예요",
+  "en": "Your turn",
+  "screen": "play-hand",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "내 차례예요"
+   ],
+   "x": 50.943396871380116,
+   "widest": 292.0754699707031,
+   "w": [
+    292.0754699707031
+   ],
+   "h": [
+    65.00000000000003
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Your turn"
+   ],
+   "x": 50.88945988571737,
+   "widest": 275.20220947265625,
+   "w": [
+    275.20220947265625
+   ],
+   "h": [
+    54.96493148803713
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 211,
+  "ko": "포기는 폴드, 같은 금액까지 따라가기는 콜이에요.",
+  "en": "Fold to leave the hand; call to match the current price.",
+  "screen": "play-hand",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "포기는 폴드, 같은 금액까지 따라가기는 콜이에요."
+   ],
+   "x": 50.94340757809056,
+   "widest": 774.3395996093749,
+   "w": [
+    774.3395996093749
+   ],
+   "h": [
+    54.459302902221545
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Fold to leave the hand; call to match the current price."
+   ],
+   "x": 50.94341044151179,
+   "widest": 967.9244995117188,
+   "w": [
+    967.9244995117188
+   ],
+   "h": [
+    44.999999999999844
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 229,
+  "ko": "금액 올리기",
+  "en": "Raise the price",
+  "screen": "play-hand",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "금액 올리기"
+   ],
+   "x": 50.6237099840144,
+   "widest": 224.79031372070312,
+   "w": [
+    224.79031372070312
+   ],
+   "h": [
+    53.895244598388544
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Raise the price"
+   ],
+   "x": 53.82656877011601,
+   "widest": 327.0478820800781,
+   "w": [
+    327.0478820800781
+   ],
+   "h": [
+    55.29856491088864
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PlayView.swift",
+  "line": 345,
+  "ko": "시작 칩 +\\(event.chips) · SB",
+  "en": "Small blind +\\(event.chips)",
+  "screen": "play-hand",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "시작 칩 +1 • SB"
+   ],
+   "x": 193.49359667298967,
+   "widest": 217.54110717773435,
+   "w": [
+    217.54110717773435
+   ],
+   "h": [
+    38.48554611206046
+   ]
+  },
+  "en_m": {
+   "lines": 3,
+   "last": 0.95,
+   "text": [
+    "Computer 1",
+    "99 left • 1 in",
+    "Small blind +1"
+   ],
+   "x": 193.1533069230901,
+   "widest": 228.39157104492188,
+   "w": [
+    228.39157104492188,
+    186.79244995117188,
+    217.35848999023438
+   ],
+   "h": [
+    49.29936599731476,
+    31.104650497436367,
+    31.087209701538313
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 3"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 26,
+  "ko": "자리별로 낸 칩",
+  "en": "Chips paid by each seat",
+  "screen": "drill-potmath",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "자리별로 낸 칩"
+   ],
+   "x": 47.48599305840074,
+   "widest": 237.85820007324213,
+   "w": [
+    237.85820007324213
+   ],
+   "h": [
+    54.95404052734396
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Chips paid by each seat"
+   ],
+   "x": 47.547173913196445,
+   "widest": 455.0943298339844,
+   "w": [
+    455.0943298339844
+   ],
+   "h": [
+    58.04069709777832
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 30,
+  "ko": "계산 방법",
+  "en": "How to count",
+  "screen": "drill-potmath",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "계산 방법"
+   ],
+   "x": 876.2264167958892,
+   "widest": 152.83018493652347,
+   "w": [
+    152.83018493652347
+   ],
+   "h": [
+    44.377906799316534
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "How to count"
+   ],
+   "x": 774.3396295853295,
+   "widest": 258.1131896972656,
+   "w": [
+    258.1131896972656
+   ],
+   "h": [
+    44.37790679931627
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 179,
+  "ko": "이전 행동",
+  "en": "Previous action",
+  "screen": "drill-potmath",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "< 이전 행동"
+   ],
+   "x": 183.3962245169211,
+   "widest": 207.16981506347656,
+   "w": [
+    207.16981506347656
+   ],
+   "h": [
+    44.42441749572765
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "< Previous action"
+   ],
+   "x": 115.47169359889989,
+   "widest": 339.6226501464844,
+   "w": [
+    339.6226501464844
+   ],
+   "h": [
+    37.4244194030762
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 183,
+  "ko": "다음 행동",
+  "en": "Next action",
+  "screen": "drill-potmath",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "> 다음 행동"
+   ],
+   "x": 692.8301935072045,
+   "widest": 200.37734985351562,
+   "w": [
+    200.37734985351562
+   ],
+   "h": [
+    44.42441749572739
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "> Next action"
+   ],
+   "x": 662.264152753291,
+   "widest": 261.5094299316406,
+   "w": [
+    261.5094299316406
+   ],
+   "h": [
+    34.023256301879826
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 226,
+  "ko": "\\(step.addedChips)칩 더 내요 · 콜",
+  "en": "Adds \\(englishChips(step.addedChips)) to call",
+  "screen": "potmath-four",
+  "ko_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "플레이어 A",
+    "8칩 더 내요 • 콜"
+   ],
+   "x": 604.5283002774727,
+   "widest": 220.881576538086,
+   "w": [
+    173.20755004882818,
+    220.881576538086
+   ],
+   "h": [
+    40.81395339965833,
+    41.503787994384595
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Adds & chips to call"
+   ],
+   "x": 601.1320804984384,
+   "widest": 312.45281982421875,
+   "w": [
+    312.45281982421875
+   ],
+   "h": [
+    44.999999999999844
+   ]
+  },
+  "issues": [
+   "lines ko 2 / en 1"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 242,
+  "ko": "플레이어 A",
+  "en": "Player A",
+  "screen": "potmath-four",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "플레이어 A"
+   ],
+   "x": 604.5283002774727,
+   "widest": 173.20755004882818,
+   "w": [
+    173.20755004882818
+   ],
+   "h": [
+    40.81395339965833
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Player A"
+   ],
+   "x": 600.9975556892047,
+   "widest": 153.0992279052734,
+   "w": [
+    153.0992279052734
+   ],
+   "h": [
+    48.484428405761705
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 243,
+  "ko": "플레이어 B",
+  "en": "Player B",
+  "screen": "drill-potmath",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "플레이어 B"
+   ],
+   "x": 118.76711424428714,
+   "widest": 166.61671447753903,
+   "w": [
+    166.61671447753903
+   ],
+   "h": [
+    41.64151382446279
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Player B"
+   ],
+   "x": 115.4716990991447,
+   "widest": 149.43395996093753,
+   "w": [
+    149.43395996093753
+   ],
+   "h": [
+    44.999999999999844
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 288,
+  "ko": "테이블에 들어온 칩을 놓치지 않는 연습이에요.",
+  "en": "Practice keeping track of every chip paid into the pot.",
+  "screen": "potmath-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "테이블에 들어온 칩을 놓치지 않는 연습이에요."
+   ],
+   "x": 57.73585290446426,
+   "widest": 883.0188598632812,
+   "w": [
+    883.0188598632812
+   ],
+   "h": [
+    51.4011631011962
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.31,
+   "text": [
+    "Practice keeping track of every Chip paid",
+    "Into the pot."
+   ],
+   "x": 57.7358460071174,
+   "widest": 886.4151000976562,
+   "w": [
+    886.4151000976562,
+    272.93969726562494
+   ],
+   "h": [
+    48.00000000000009,
+    50.22828292846703
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 31%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 294,
+  "ko": "왜 배우나요?",
+  "en": "Why count?",
+  "screen": "potmath-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "왜 배우나요?"
+   ],
+   "x": 54.12862314527604,
+   "widest": 278.9125671386719,
+   "w": [
+    278.9125671386719
+   ],
+   "h": [
+    79.73817443847658
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Why count?"
+   ],
+   "x": 60.91790380468103,
+   "widest": 292.5038146972656,
+   "w": [
+    292.5038146972656
+   ],
+   "h": [
+    56.75949478149409
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 295,
+  "ko": "팟을 알아야 콜 가격과 벳 크기를 제대로 비교할 수 있어요.",
+  "en": "The pot size helps you compare the price of a call and the size of a bet.",
+  "screen": "potmath-intro",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.23,
+   "text": [
+    "팟을 알아야 콜 가격과 벳 크기를 제대로 비교할",
+    "수 있어요."
+   ],
+   "x": 57.735851216443564,
+   "widest": 838.8679199218749,
+   "w": [
+    838.8679199218749,
+    191.1111297607422
+   ],
+   "h": [
+    47.616279602051065,
+    51.43341255188004
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.55,
+   "text": [
+    "The pot size helps you compare the price of a",
+    "call and the size of a bet."
+   ],
+   "x": 54.33960749629102,
+   "widest": 937.3585205078125,
+   "w": [
+    937.3585205078125,
+    513.3636474609375
+   ],
+   "h": [
+    48.08720970153773,
+    46.42397308349619
+   ]
+  },
+  "issues": [
+   "ko last 23%",
+   "end width ko 23% / en 55%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 297,
+  "ko": "어떻게 푸나요?",
+  "en": "How do I count?",
+  "screen": "potmath-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "어떻게 푸나요?"
+   ],
+   "x": 54.04826421803972,
+   "widest": 319.82800292968744,
+   "w": [
+    319.82800292968744
+   ],
+   "h": [
+    70.80420684814459
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "How do | count?"
+   ],
+   "x": 57.73585464941556,
+   "widest": 387.1697998046875,
+   "w": [
+    387.1697998046875
+   ],
+   "h": [
+    41.267442703247205
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 298,
+  "ko": "각 자리의 ‘낸 칩’을 한 번씩 더해요. ‘총 18칩으로 레이즈’는 전에 낸 칩까지 포함한 금액이에요.",
+  "en": "Add the chips each seat has paid. 'Raise to 18 chips total' includes chips that player already paid.",
+  "screen": "potmath-intro",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.93,
+   "text": [
+    "각 자리의 '낸 칩'을 한 번씩 더해요. '총 18칩으로",
+    "레이즈'는 전에 낸 칩까지 포함한 금액이에요."
+   ],
+   "x": 57.51012692208542,
+   "widest": 859.7085571289061,
+   "w": [
+    859.7085571289061,
+    801.5094604492188
+   ],
+   "h": [
+    59.153160095214936,
+    51.44186019897472
+   ]
+  },
+  "en_m": {
+   "lines": 3,
+   "last": 0.11,
+   "text": [
+    "Add the chips each seat has paid. \"Raise to 18",
+    "chips total' includes chips that player already",
+    "paid."
+   ],
+   "x": 54.33963110874845,
+   "widest": 940.7546997070311,
+   "w": [
+    940.7546997070311,
+    920.3773193359375,
+    105.28302001953125
+   ],
+   "h": [
+    44.44186019897449,
+    47.6162796020508,
+    44.999999999999844
+   ]
+  },
+  "issues": [
+   "lines ko 2 / en 3",
+   "en last 11%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 300,
+  "ko": "SB와 BB",
+  "en": "Small and big blinds",
+  "screen": "potmath-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "SB와 BB"
+   ],
+   "x": 57.50941061593397,
+   "widest": 190.6415557861328,
+   "w": [
+    190.6415557861328
+   ],
+   "h": [
+    46.19945335388168
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Small and big blinds"
+   ],
+   "x": 57.73584568412423,
+   "widest": 489.0566101074219,
+   "w": [
+    489.0566101074219
+   ],
+   "h": [
+    51.36046409606915
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 301,
+  "ko": "SB는 딜러 왼쪽 첫 자리, BB는 그 다음 자리예요. 카드를 받기 전에 1칩과 2칩을 먼저 내요.",
+  "en": "The small blind sits left of the dealer and posts 1 chip. The big blind sits next and posts 2 before cards are dealt.",
+  "screen": "potmath-intro",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.84,
+   "text": [
+    "SB는 딜러 왼쪽 첫 자리, BB는 그 다음 자리예요.",
+    "카드를 받기 전에 1칩과 2칩을 먼저 내요."
+   ],
+   "x": 57.73584313758022,
+   "widest": 872.8302001953125,
+   "w": [
+    872.8302001953125,
+    730.1886596679686
+   ],
+   "h": [
+    58.00000000000006,
+    51.26162719726553
+   ]
+  },
+  "en_m": {
+   "lines": 3,
+   "last": 0.49,
+   "text": [
+    "The small blind sits left of the dealer and posts",
+    "1 chip. The big blind sits next and posts 2",
+    "before cards are dealt."
+   ],
+   "x": 57.48204613305825,
+   "widest": 954.8757934570312,
+   "w": [
+    954.8757934570312,
+    845.660400390625,
+    465.83154296875
+   ],
+   "h": [
+    49.513950347900305,
+    45.0000000000001,
+    43.84540557861336
+   ]
+  },
+  "issues": [
+   "lines ko 2 / en 3",
+   "en last 49%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/PotMathLessonView.swift",
+  "line": 319,
+  "ko": "문제 풀기",
+  "en": "Try a question",
+  "screen": "potmath-intro",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "문제 풀기"
+   ],
+   "x": 444.68923067874596,
+   "widest": 183.8290863037109,
+   "w": [
+    183.8290863037109
+   ],
+   "h": [
+    55.89127349853504
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Try a question"
+   ],
+   "x": 373.5848996985702,
+   "widest": 332.83020019531244,
+   "w": [
+    332.83020019531244
+   ],
+   "h": [
+    51.11627769470227
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 26,
+  "ko": "학습 기록",
+  "en": "Progress",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "학습 기록"
+   ],
+   "x": 54.19209029309275,
+   "widest": 319.5403442382812,
+   "w": [
+    319.5403442382812
+   ],
+   "h": [
+    86.14041137695311
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Progress"
+   ],
+   "x": 49.91265983384321,
+   "widest": 368.4514465332031,
+   "w": [
+    368.4514465332031
+   ],
+   "h": [
+    80.84531784057616
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 32,
+  "ko": "하루 쉬어도 연속 기록을 지켜주는 보호: \\(model.state.streak.freezesRemaining)개",
+  "en": "Streak protection: \\(model.state.streak.freezesRemaining) left. Each covers one missed day.",
+  "screen": "records",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "하루 쉬어도 연속 기록을 지켜주는 보호: 2개"
+   ],
+   "x": 50.94338396372848,
+   "widest": 590.9434204101562,
+   "w": [
+    590.9434204101562
+   ],
+   "h": [
+    37.41279220581048
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Streak protection: 2 left. Each covers one missed day."
+   ],
+   "x": 47.371074321609115,
+   "widest": 835.85693359375,
+   "w": [
+    835.85693359375
+   ],
+   "h": [
+    51.29246139526375
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 39,
+  "ko": "능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실제 포커 실력을 인증하지 않아요.",
+  "en": "Learning stages describe practice in this app. They do not certify poker skill.",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.29,
+   "text": [
+    "능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실제 포커 실력을",
+    "인증하지 않아요."
+   ],
+   "x": 50.94339027398206,
+   "widest": 872.8302001953124,
+   "w": [
+    872.8302001953124,
+    255.45320129394534
+   ],
+   "h": [
+    47.6162796020508,
+    48.23598480224606
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.31,
+   "text": [
+    "Learning stages describe practice in this app. They do not",
+    "certify poker skil."
+   ],
+   "x": 47.54716209958622,
+   "widest": 978.1132202148439,
+   "w": [
+    978.1132202148439,
+    306.72326660156244
+   ],
+   "h": [
+    51.21511650085467,
+    52.765134811401595
+   ]
+  },
+  "issues": [
+   "ko last 28%",
+   "en last 31%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 83,
+  "ko": "능숙 이상",
+  "en": "Strong topics",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "능숙 이상"
+   ],
+   "x": 149.25014479807845,
+   "widest": 115.8393325805664,
+   "w": [
+    115.8393325805664
+   ],
+   "h": [
+    38.55988311767562
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Strong topics"
+   ],
+   "x": 108.53735685438897,
+   "widest": 193.86868286132812,
+   "w": [
+    193.86868286132812
+   ],
+   "h": [
+    52.10181808471679
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 84,
+  "ko": "연속 일수",
+  "en": "Day streak",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "연속 일수"
+   ],
+   "x": 485.56839496596115,
+   "widest": 115.65566253662107,
+   "w": [
+    115.65566253662107
+   ],
+   "h": [
+    37.98281097412114
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Day streak"
+   ],
+   "x": 458.38517666321775,
+   "widest": 159.8334197998047,
+   "w": [
+    159.8334197998047
+   ],
+   "h": [
+    51.6788597106934
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 85,
+  "ko": "오늘 복습",
+  "en": "Review due",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "오늘 복습"
+   ],
+   "x": 815.00456523138,
+   "widest": 112.25502014160158,
+   "w": [
+    112.25502014160158
+   ],
+   "h": [
+    31.272547721862637
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Review due"
+   ],
+   "x": 791.320758074906,
+   "widest": 166.41508483886713,
+   "w": [
+    166.41508483886713
+   ],
+   "h": [
+    41.24418640136726
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 89,
+  "ko": "능숙 이상",
+  "en": "Strong topics",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "능숙 이상"
+   ],
+   "x": 149.25014479807845,
+   "widest": 115.8393325805664,
+   "w": [
+    115.8393325805664
+   ],
+   "h": [
+    38.55988311767562
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Strong topics"
+   ],
+   "x": 108.53735685438897,
+   "widest": 193.86868286132812,
+   "w": [
+    193.86868286132812
+   ],
+   "h": [
+    52.10181808471679
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 90,
+  "ko": "연속 일수",
+  "en": "Day streak",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "연속 일수"
+   ],
+   "x": 485.56839496596115,
+   "widest": 115.65566253662107,
+   "w": [
+    115.65566253662107
+   ],
+   "h": [
+    37.98281097412114
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Day streak"
+   ],
+   "x": 458.38517666321775,
+   "widest": 159.8334197998047,
+   "w": [
+    159.8334197998047
+   ],
+   "h": [
+    51.6788597106934
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 91,
+  "ko": "오늘 복습",
+  "en": "Review due",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "오늘 복습"
+   ],
+   "x": 815.00456523138,
+   "widest": 112.25502014160158,
+   "w": [
+    112.25502014160158
+   ],
+   "h": [
+    31.272547721862637
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Review due"
+   ],
+   "x": 791.320758074906,
+   "widest": 166.41508483886713,
+   "w": [
+    166.41508483886713
+   ],
+   "h": [
+    41.24418640136726
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 111,
+  "ko": "연습 변화",
+  "en": "Practice over time",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "연습 변화"
+   ],
+   "x": 101.69816428376555,
+   "widest": 149.81121826171875,
+   "w": [
+    149.81121826171875
+   ],
+   "h": [
+    45.5035114288332
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Practice over time"
+   ],
+   "x": 101.43327621244521,
+   "widest": 333.53930664062494,
+   "w": [
+    333.53930664062494
+   ],
+   "h": [
+    44.50895500183075
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 171,
+  "ko": "한 문제를 풀면 날짜별 연습 기록이 여기에 쌓여요.",
+  "en": "Answer a question to begin a day-by-day practice record.",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "한 문제를 풀면 날짜별 연습 기록이 여기에 쌓여요."
+   ],
+   "x": 105.11422176831621,
+   "widest": 781.5137329101561,
+   "w": [
+    781.5137329101561
+   ],
+   "h": [
+    50.81806945800781
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.39,
+   "text": [
+    "Answer a question to begin a day-by-day",
+    "practice record."
+   ],
+   "x": 101.88680527749949,
+   "widest": 743.7735595703124,
+   "w": [
+    743.7735595703124,
+    289.40893554687506
+   ],
+   "h": [
+    44.499999999999844,
+    43.775230407715036
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 39%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 254,
+  "ko": "테이블에서 보인 습관",
+  "en": "Observed table habits",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "테이블에서 보인 습관"
+   ],
+   "x": 101.88679199511716,
+   "widest": 322.6415100097656,
+   "w": [
+    322.6415100097656
+   ],
+   "h": [
+    44.43023109436025
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Observed table habits"
+   ],
+   "x": 101.88678565363107,
+   "widest": 400.7547302246093,
+   "w": [
+    400.7547302246093
+   ],
+   "h": [
+    34.0116271972656
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 280,
+  "ko": "공개된 컴퓨터 규칙 아래에서 시작 전 행동만 묘사해요. 최소 100핸드, 5일, 자발적 참여 40번이 필요하고, 경계에 걸치면 이름을 붙이지 않아요. 성격이나 실력 평가는 아니에요.",
+  "en": "This describes before-flop actions under the published bot rules. A label needs at least 100 hands, 5 days and 40 voluntary entries; borderline patterns remain unnamed. It is not a personality or skill rating.",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 3,
+   "last": 0.74,
+   "text": [
+    "공개된 컴퓨터 규칙 아래에서 시작 전 행동만 묘사해요. 최소 100",
+    "핸드, 5일, 자발적 참여 40번이 필요하고, 경계에 걸치면 이름을",
+    "붙이지 않아요. 성격이나 실력 평가는 아니에요."
+   ],
+   "x": 101.8867836244051,
+   "widest": 859.2453002929688,
+   "w": [
+    859.2453002929688,
+    845.660400390625,
+    638.4905395507812
+   ],
+   "h": [
+    37.41279220581074,
+    47.6162796020508,
+    44.29069709777836
+   ]
+  },
+  "en_m": {
+   "lines": 4,
+   "last": 0.84,
+   "text": [
+    "This describes before-flop actions under the published",
+    "bot rules. A label needs at least 100 hands, 5 days and",
+    "40 Voluntary entres; borderline patterns remain",
+    "unnamed. It is not a personality or skill rating."
+   ],
+   "x": 101.7275059961529,
+   "widest": 845.9827880859375,
+   "w": [
+    845.9827880859375,
+    838.8679199218751,
+    737.2351074218751,
+    706.80810546875
+   ],
+   "h": [
+    43.11063385009778,
+    41.104650497436594,
+    42.538589477539,
+    42.38137817382814
+   ]
+  },
+  "issues": [
+   "lines ko 3 / en 4"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 297,
+  "ko": "아직 이름을 붙이지 않았어요",
+  "en": "Not enough clear evidence yet",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "아직 이름을 붙이지 않았어요"
+   ],
+   "x": 98.49057161166718,
+   "widest": 641.8867797851562,
+   "w": [
+    641.8867797851562
+   ],
+   "h": [
+    61.22092819213898
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Not enough clear evidence yet"
+   ],
+   "x": 105.28301805197384,
+   "widest": 825.2830200195312,
+   "w": [
+    825.2830200195312
+   ],
+   "h": [
+    58.2325572967527
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 326,
+  "ko": "확신 점검",
+  "en": "Confidence check",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "확신 점검"
+   ],
+   "x": 101.88679271040269,
+   "widest": 146.0377349853516,
+   "w": [
+    146.0377349853516
+   ],
+   "h": [
+    41.000000000000114
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Confidence check"
+   ],
+   "x": 101.88679187236147,
+   "widest": 329.4339599609375,
+   "w": [
+    329.4339599609375
+   ],
+   "h": [
+    34.406976699829116
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 328,
+  "ko": "정답이 내가 예상한 90% 범위에 들어온 비율",
+  "en": "How often the answer fell inside your stated 90% range",
+  "screen": "records",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "정답이 내가 예상한 90% 범위에 들어온 비율"
+   ],
+   "x": 101.67289634883934,
+   "widest": 720.4163208007811,
+   "w": [
+    720.4163208007811
+   ],
+   "h": [
+    51.82693862915042
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.25,
+   "text": [
+    "How otten the answer fell inside your stated",
+    "90% range"
+   ],
+   "x": 101.88680552720973,
+   "widest": 818.4905395507814,
+   "w": [
+    818.4905395507814,
+    208.67303466796872
+   ],
+   "h": [
+    40.81395339965833,
+    38.99999999999986
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 25%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 334,
+  "ko": "\\(sampleCount)개 답변 · 기준 90%",
+  "en": "\\(sampleCount) answers · 90% target",
+  "screen": "records",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "12개 답변•기준 90%"
+   ],
+   "x": 285.28301844190963,
+   "widest": 322.6415100097657,
+   "w": [
+    322.6415100097657
+   ],
+   "h": [
+    37.41279220581048
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    ") 12 answers • 90% target"
+   ],
+   "x": 274.76969999293726,
+   "widest": 418.37573242187494,
+   "w": [
+    418.37573242187494
+   ],
+   "h": [
+    41.178054809570305
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 356,
+  "ko": "에퀴티 감각, EV 계산처럼 예상 범위를 답하는 문제의 기록이 여기에 쌓여요.",
+  "en": "Answers where you give a likely range, such as equity and call value, appear here.",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.43,
+   "text": [
+    "에퀴티 감각, EV 계산처럼 예상 범위를 답하는 문제의",
+    "기록이 여기에 쌓여요."
+   ],
+   "x": 101.88678021928274,
+   "widest": 770.9434204101562,
+   "w": [
+    770.9434204101562,
+    329.4339599609375
+   ],
+   "h": [
+    51.186046600341605,
+    44.215114593505916
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.73,
+   "text": [
+    "Answers where you give a likely range, such as",
+    "equity and call value, appear nere."
+   ],
+   "x": 101.52781478292576,
+   "widest": 785.1380004882812,
+   "w": [
+    785.1380004882812,
+    574.9585571289064
+   ],
+   "h": [
+    52.54098892211917,
+    55.385311126708864
+   ]
+  },
+  "issues": [
+   "ko last 43%",
+   "end width ko 43% / en 73%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 404,
+  "ko": "아직 기록이 없어요. 한 문제를 풀면 답변 수와 다음 복습 시점이 여기에 쌓여요.",
+  "en": "No answers yet. Your answer count and next review date will appear after a question.",
+  "screen": "records-empty",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.41,
+   "text": [
+    "아직 기록이 없어요. 한 문제를 풀면 답변 수와 다음 복습",
+    "시점이 여기에 쌓여요."
+   ],
+   "x": 50.94339720888166,
+   "widest": 869.4339599609374,
+   "w": [
+    869.4339599609374,
+    353.2075500488281
+   ],
+   "h": [
+    48.05813980102545,
+    48.00000000000009
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.64,
+   "text": [
+    "No answers yet. Your answer count and next review",
+    "date will appear atter a question."
+   ],
+   "x": 50.94339489508582,
+   "widest": 930.5660400390625,
+   "w": [
+    930.5660400390625,
+    590.9434204101562
+   ],
+   "h": [
+    41.11046600341797,
+    37.41279220581048
+   ]
+  },
+  "issues": [
+   "ko last 41%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RecordsView.swift",
+  "line": 490,
+  "ko": "기록 시작",
+  "en": "Started",
+  "screen": "path",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "기록 시작"
+   ],
+   "x": 906.6368014333252,
+   "widest": 122.57545471191413,
+   "w": [
+    122.57545471191413
+   ],
+   "h": [
+    45.080791473388736
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Started"
+   ],
+   "x": 913.5849039790824,
+   "widest": 118.8679275512695,
+   "w": [
+    118.8679275512695
+   ],
+   "h": [
+    37.49418640136701
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RestoredDrillView.swift",
+  "line": 42,
+  "ko": "저장된 답",
+  "en": "Saved answer",
+  "screen": "drill-actionread-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "저장된 답"
+   ],
+   "x": 54.22199290321129,
+   "widest": 146.27299499511722,
+   "w": [
+    146.27299499511722
+   ],
+   "h": [
+    41.66138458251944
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Saved answer"
+   ],
+   "x": 54.339621373770576,
+   "widest": 247.92453002929682,
+   "w": [
+    247.92453002929682
+   ],
+   "h": [
+    34.441860198974524
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RestoredDrillView.swift",
+  "line": 47,
+  "ko": "맞았어요",
+  "en": "That's right",
+  "screen": "potmath-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "맞았어요"
+   ],
+   "x": 57.552652640246265,
+   "widest": 221.12110900878903,
+   "w": [
+    221.12110900878903
+   ],
+   "h": [
+    65.88123703002933
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "That's right"
+   ],
+   "x": 57.192197905413565,
+   "widest": 344.1318359375,
+   "w": [
+    344.1318359375
+   ],
+   "h": [
+    64.73706054687496
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RestoredDrillView.swift",
+  "line": 76,
+  "ko": "다음 문제",
+  "en": "Next question",
+  "screen": "drill-hitfreq-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 문제"
+   ],
+   "x": 444.72366935053924,
+   "widest": 183.7602081298828,
+   "w": [
+    183.7602081298828
+   ],
+   "h": [
+    52.3377647399903
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Next question"
+   ],
+   "x": 376.9811246768374,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    51.36627769470227
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RestoredDrillView.swift",
+  "line": 309,
+  "ko": "문제에서 본 상황",
+  "en": "The situation you saw",
+  "screen": "drill-actionread-reveal",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "문제에서 본 상황"
+   ],
+   "x": 95.09433930887934,
+   "widest": 251.32075500488278,
+   "w": [
+    251.32075500488278
+   ],
+   "h": [
+    47.99999999999983
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "The situation you saw"
+   ],
+   "x": 91.69811156148984,
+   "widest": 390.56604003906256,
+   "w": [
+    390.56604003906256
+   ],
+   "h": [
+    54.41860580444328
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RestoredDrillView.swift",
+  "line": 426,
+  "ko": "리버에서 어떻게 좁혔는지는 아직 안 따져요",
+  "en": "This does not yet account for how the range narrowed on the river.",
+  "screen": "drill-evloss-call",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "리버에서 어떻게 좁혔는지는 아직 안 따져요"
+   ],
+   "x": 98.49056932181162,
+   "widest": 628.3018798828124,
+   "w": [
+    628.3018798828124
+   ],
+   "h": [
+    41.12209320068342
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.51,
+   "text": [
+    "This does not yet account for how the range",
+    "narrowed on the river."
+   ],
+   "x": 95.09436062637089,
+   "widest": 740.3773193359375,
+   "w": [
+    740.3773193359375,
+    374.6750793457032
+   ],
+   "h": [
+    41.09302330017114,
+    43.75115776062006
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RestoredDrillView.swift",
+  "line": 436,
+  "ko": "\\(spot.opener.rawValue)가 3bb 오픈",
+  "en": "\\(spot.opener.rawValue) raises first to 3bb",
+  "screen": "drill-defend-reveal",
+  "ko_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "문제에서 본 상황",
+    "UTG가 3bb 오픈"
+   ],
+   "x": 94.92638581988712,
+   "widest": 285.28302001953125,
+   "w": [
+    251.6566619873047,
+    285.28302001953125
+   ],
+   "h": [
+    49.41674423217796,
+    54.41860580444328
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "The situation you saw",
+    "UTG raises first to 3bb"
+   ],
+   "x": 91.69811188082252,
+   "widest": 417.73583984375,
+   "w": [
+    390.56604003906256,
+    417.73583984375
+   ],
+   "h": [
+    54.41860580444328,
+    55.00000000000033
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/RestoredDrillView.swift",
+  "line": 459,
+  "ko": "내 자리 · \\(spot.seat.rawValue)",
+  "en": "Your seat · \\(spot.seat.rawValue)",
+  "screen": "drill-rfi",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "내 자리"
+   ],
+   "x": 50.94339692030883,
+   "widest": 112.07546997070314,
+   "w": [
+    112.07546997070314
+   ],
+   "h": [
+    41.03488349914552
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Your seat"
+   ],
+   "x": 47.54716892175526,
+   "widest": 176.60377502441403,
+   "w": [
+    176.60377502441403
+   ],
+   "h": [
+    34.03488349914554
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/SettingsView.swift",
+  "line": 43,
+  "ko": "언어를 바꿔도 학습 기록은 그대로예요.",
+  "en": "Your progress stays saved when you switch.",
+  "screen": "settings",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "언어를 바꿔도 학습 기록은 그대로예요."
+   ],
+   "x": 98.4905560746779,
+   "widest": 529.8113403320312,
+   "w": [
+    529.8113403320312
+   ],
+   "h": [
+    48.00000000000009
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Your progress stays saved when you switch."
+   ],
+   "x": 88.08371832814788,
+   "widest": 700.0575561523438,
+   "w": [
+    700.0575561523438
+   ],
+   "h": [
+    59.31273651123058
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/SettingsView.swift",
+  "line": 50,
+  "ko": "기기 설정",
+  "en": "System",
+  "screen": "settings",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "기기 설정"
+   ],
+   "x": 91.63622122989585,
+   "widest": 169.9351043701172,
+   "w": [
+    169.9351043701172
+   ],
+   "h": [
+    54.80492401123071
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "System"
+   ],
+   "x": 91.16116027142093,
+   "widest": 164.09277343750003,
+   "w": [
+    164.09277343750003
+   ],
+   "h": [
+    64.13173675537097
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/SettingsView.swift",
+  "line": 69,
+  "ko": "화면 모드",
+  "en": "Appearance",
+  "screen": "settings",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "화면 모드"
+   ],
+   "x": 91.69811087847324,
+   "widest": 169.8113250732422,
+   "w": [
+    169.8113250732422
+   ],
+   "h": [
+    55.000000000000064
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Appearance"
+   ],
+   "x": 91.63132575208152,
+   "widest": 254.85055541992188,
+   "w": [
+    254.85055541992188
+   ],
+   "h": [
+    55.04547882080077
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/SettingsView.swift",
+  "line": 70,
+  "ko": "기기 설정에 맞추거나 직접 골라요",
+  "en": "Follow your device or choose a look.",
+  "screen": "settings",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "기기 설정에 맞추거나 직접 골라요"
+   ],
+   "x": 95.09433389978267,
+   "widest": 458.4905700683594,
+   "w": [
+    458.4905700683594
+   ],
+   "h": [
+    48.00000000000009
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Follow your device or choose a look."
+   ],
+   "x": 95.09434521412942,
+   "widest": 567.1697998046874,
+   "w": [
+    567.1697998046874
+   ],
+   "h": [
+    47.99999999999983
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/SettingsView.swift",
+  "line": 99,
+  "ko": "첫 포커 결정 다시 보기",
+  "en": "Replay the first decision",
+  "screen": "settings",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "첫 포커 결정 다시 보기"
+   ],
+   "x": 217.35850257533536,
+   "widest": 376.9811096191406,
+   "w": [
+    376.9811096191406
+   ],
+   "h": [
+    48.00000000000009
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Replay the first decision"
+   ],
+   "x": 217.35849268313802,
+   "widest": 478.867919921875,
+   "w": [
+    478.867919921875
+   ],
+   "h": [
+    44.2209300994873
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/SettingsView.swift",
+  "line": 100,
+  "ko": "두 패를 비교하며 기본 규칙을 익혀요",
+  "en": "Compare two hands and practice the basic rule.",
+  "screen": "settings",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "두 패를 비교하며 기본 규칙을 익혀요"
+   ],
+   "x": 217.35848866881634,
+   "widest": 495.8490600585938,
+   "w": [
+    495.8490600585938
+   ],
+   "h": [
+    37.43604660034191
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.29,
+   "text": [
+    "Compare two hands and practice the",
+    "basic rule."
+   ],
+   "x": 217.14318253610793,
+   "widest": 574.3296508789062,
+   "w": [
+    574.3296508789062,
+    164.8336944580078
+   ],
+   "h": [
+    40.7478523254395,
+    37.56922912597659
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 28%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/SettingsView.swift",
+  "line": 105,
+  "ko": "시작점 다시 찾아보기",
+  "en": "Recheck your starting point",
+  "screen": "settings",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "시작점 다시 찾아보기"
+   ],
+   "x": 217.35849730586676,
+   "widest": 356.60375976562494,
+   "w": [
+    356.60375976562494
+   ],
+   "h": [
+    44.28488349914551
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Recheck your starting point"
+   ],
+   "x": 217.3584932752433,
+   "widest": 553.5848999023438,
+   "w": [
+    553.5848999023438
+   ],
+   "h": [
+    41.11046600341797
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TablePolicyReferenceView.swift",
+  "line": 18,
+  "ko": "포스트플랍 기본 · 상대가 먼저 행동할 때",
+  "en": "After the first betting round · opponent acts first",
+  "screen": "table-policy",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "포스트플랍 기본 · 상대가 먼저 행동할 때"
+   ],
+   "x": 50.943386844731606,
+   "widest": 604.5283203125,
+   "w": [
+    604.5283203125
+   ],
+   "h": [
+    51.27325439453125
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "After the first betting round • opponent acts first"
+   ],
+   "x": 47.41662371454772,
+   "widest": 886.7290649414062,
+   "w": [
+    886.7290649414062
+   ],
+   "h": [
+    53.940513610839936
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TablePolicyReferenceView.swift",
+  "line": 25,
+  "ko": "포스트플랍 기본 · 내가 벳했을 때",
+  "en": "After the first betting round · I bet",
+  "screen": "table-policy",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "포스트플랍 기본 • 내가 벳했을 때"
+   ],
+   "x": 50.943394328006214,
+   "widest": 495.84906005859375,
+   "w": [
+    495.84906005859375
+   ],
+   "h": [
+    44.43604660034189
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "After the first betting round • l bet"
+   ],
+   "x": 43.765500056815654,
+   "widest": 625.7109985351562,
+   "w": [
+    625.7109985351562
+   ],
+   "h": [
+    62.95102691650394
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TablePolicyReferenceView.swift",
+  "line": 77,
+  "ko": "현재 상대 레인지",
+  "en": "Possible opponent hands now",
+  "screen": "table-policy",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "현재 상대 레인지"
+   ],
+   "x": 95.09434003105943,
+   "widest": 254.71697998046878,
+   "w": [
+    254.71697998046878
+   ],
+   "h": [
+    44.447673797607344
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Possible opponent hands now"
+   ],
+   "x": 94.79033001655756,
+   "widest": 543.9756469726564,
+   "w": [
+    543.9756469726564
+   ],
+   "h": [
+    42.56615447998033
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 49,
+  "ko": "콜 \\(bbText(amount))bb",
+  "en": "Call \\(bbText(amount))bb",
+  "screen": "guide-question",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.22,
+   "text": [
+    "기존 팟 12bb + 상대 벳 4bb + 내",
+    "콜 4bb"
+   ],
+   "x": 122.26415365341433,
+   "widest": 733.5848999023438,
+   "w": [
+    733.5848999023438,
+    163.01885986328125
+   ],
+   "h": [
+    65.0232543945312,
+    51.017440795898395
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.4,
+   "text": [
+    "Pot 12bb + opponent's bet 4bb +",
+    "your call 4bb"
+   ],
+   "x": 125.35395397247953,
+   "widest": 839.4577026367188,
+   "w": [
+    839.4577026367188,
+    334.5016784667969
+   ],
+   "h": [
+    68.27402496337916,
+    55.485118865966655
+   ]
+  },
+  "issues": [
+   "ko last 22%",
+   "en last 40%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 83,
+  "ko": "디펜드 차트 · \\(hand.villainSeat.rawValue) 오픈에 맞서",
+  "en": "Defend chart · facing a \\(hand.villainSeat.rawValue) open",
+  "screen": "table-chart",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "디펜드 차트•UTG 오픈에 맞서"
+   ],
+   "x": 50.94338511740125,
+   "widest": 560.3773803710938,
+   "w": [
+    560.3773803710938
+   ],
+   "h": [
+    48.00000000000009
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Defend chart • facing a UTG open"
+   ],
+   "x": 50.94341303437494,
+   "widest": 713.20751953125,
+   "w": [
+    713.20751953125
+   ],
+   "h": [
+    47.6162796020508
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 87,
+  "ko": "오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요.",
+  "en": "A starting guide based on the hands this seat opens. The app shows how it works.",
+  "screen": "table-chart",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요."
+   ],
+   "x": 50.94340461120953,
+   "widest": 940.7546997070312,
+   "w": [
+    940.7546997070312
+   ],
+   "h": [
+    37.41279220581048
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.2,
+   "text": [
+    "A starting guide based on the hands this seat opens. The app shows",
+    "how it workS."
+   ],
+   "x": 50.94341040942368,
+   "widest": 967.9244995117188,
+   "w": [
+    967.9244995117188,
+    198.03660583496094
+   ],
+   "h": [
+    30.99999999999989,
+    34.27566528320289
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 20%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 225,
+  "ko": "프리플랍",
+  "en": "Before",
+  "screen": "table-grade",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "프리플랍"
+   ],
+   "x": 108.56864718979804,
+   "widest": 115.6928939819336,
+   "w": [
+    115.6928939819336
+   ],
+   "h": [
+    34.768089294433665
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Before"
+   ],
+   "x": 115.408994321298,
+   "widest": 102.01219940185547,
+   "w": [
+    102.01219940185547
+   ],
+   "h": [
+    31.029293060302425
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 258,
+  "ko": "공용 카드",
+  "en": "Shared cards",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "공용 카드"
+   ],
+   "x": 464.9860754604307,
+   "widest": 146.63162231445315,
+   "w": [
+    146.63162231445315
+   ],
+   "h": [
+    39.795032501220845
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Shared cards"
+   ],
+   "x": 414.3396201517819,
+   "widest": 241.13208007812494,
+   "w": [
+    241.13208007812494
+   ],
+   "h": [
+    34.26744079589845
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 266,
+  "ko": "팟 \\(bbText(hand.pot))bb",
+  "en": "Pot \\(bbText(hand.pot))bb",
+  "screen": "guide-question",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.22,
+   "text": [
+    "기존 팟 12bb + 상대 벳 4bb + 내",
+    "콜 4bb"
+   ],
+   "x": 122.26415365341433,
+   "widest": 733.5848999023438,
+   "w": [
+    733.5848999023438,
+    163.01885986328125
+   ],
+   "h": [
+    65.0232543945312,
+    51.017440795898395
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.4,
+   "text": [
+    "Pot 12bb + opponent's bet 4bb +",
+    "your call 4bb"
+   ],
+   "x": 125.35395397247953,
+   "widest": 839.4577026367188,
+   "w": [
+    839.4577026367188,
+    334.5016784667969
+   ],
+   "h": [
+    68.27402496337916,
+    55.485118865966655
+   ]
+  },
+  "issues": [
+   "ko last 22%",
+   "en last 40%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 348,
+  "ko": "내 카드 · \\(hand.heroSeat.rawValue)",
+  "en": "Your cards · \\(hand.heroSeat.rawValue)",
+  "screen": "drill-showdown",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "내 카드"
+   ],
+   "x": 482.2641523570441,
+   "widest": 115.47169494628909,
+   "w": [
+    115.47169494628909
+   ],
+   "h": [
+    37.41279220581048
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Your cards"
+   ],
+   "x": 437.8368116616698,
+   "widest": 197.4850463867187,
+   "w": [
+    197.4850463867187
+   ],
+   "h": [
+    33.46075248718266
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 371,
+  "ko": "레인지 \\(hand.villainCombos.count)콤보",
+  "en": "Possible hands \\(hand.villainCombos.count)",
+  "screen": "drill-evloss",
+  "ko_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "상대 레인지",
+    "UTG 오픈•LAG•216콤보"
+   ],
+   "x": 50.943395450057096,
+   "widest": 476.0315246582032,
+   "w": [
+    176.60377502441403,
+    476.0315246582032
+   ],
+   "h": [
+    41.2325592041018,
+    50.15084838867184
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent's possible hands"
+   ],
+   "x": 50.943401148391104,
+   "widest": 492.45281982421875,
+   "w": [
+    492.45281982421875
+   ],
+   "h": [
+    40.81395339965807
+   ]
+  },
+  "issues": [
+   "lines ko 2 / en 1"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 461,
+  "ko": "체크다운 근사 · 이 스트리트 뒤에는 추가 베팅이 없고 레이크는 제외해요",
+  "en": "Estimate: no more bets after this round; fees are not included.",
+  "screen": "table-hand",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.36,
+   "text": [
+    "체크다운 근사 •이 스트리트 뒤에는 추가 베팅이 없고",
+    "레이크는 제외해요"
+   ],
+   "x": 50.94340238305762,
+   "widest": 821.8867797851562,
+   "w": [
+    821.8867797851562,
+    292.0754699707031
+   ],
+   "h": [
+    41.27906990051266,
+    44.296510696411225
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.28,
+   "text": [
+    "Estimate: no more bets after this round; fees are",
+    "not included."
+   ],
+   "x": 50.94341099826784,
+   "widest": 862.6414794921874,
+   "w": [
+    862.6414794921874,
+    237.9330596923828
+   ],
+   "h": [
+    44.21511459350566,
+    41.975317001342646
+   ]
+  },
+  "issues": [
+   "ko last 36%",
+   "en last 28%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 507,
+  "ko": "프리플랍은 앱에 공개된 디펜드 차트와 비교해요. 실제 최적 전략을 뜻하지 않아요.",
+  "en": "Before the flop, your choice is compared with this app's defend chart—not a claim about perfect play.",
+  "screen": "table-preflop",
+  "ko_m": {
+   "lines": 2,
+   "last": 0.23,
+   "text": [
+    "프리플랍은 앱에 공개된 디펜드 차트와 비교해요. 실제 최적 전략을",
+    "뜻하지 않아요."
+   ],
+   "x": 50.943399523887194,
+   "widest": 808.3018798828125,
+   "w": [
+    808.3018798828125,
+    187.6859130859375
+   ],
+   "h": [
+    37.41279220581074,
+    36.55224037170407
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.46,
+   "text": [
+    "Before the flop, your choice is compared with this app's defend chart",
+    "-not a claim about pertect play."
+   ],
+   "x": 50.94339659291609,
+   "widest": 974.7169799804688,
+   "w": [
+    974.7169799804688,
+    452.6313781738281
+   ],
+   "h": [
+    41.12790679931654,
+    43.41026306152342
+   ]
+  },
+  "issues": [
+   "ko last 23%",
+   "en last 46%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 532,
+  "ko": "차트 보기",
+  "en": "View chart",
+  "screen": "table-preflop-grade",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "차트 보기"
+   ],
+   "x": 447.7709130796744,
+   "widest": 181.1446838378906,
+   "w": [
+    181.1446838378906
+   ],
+   "h": [
+    49.71772766113271
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "View chart"
+   ],
+   "x": 414.23079585262707,
+   "widest": 251.53840637207028,
+   "w": [
+    251.53840637207028
+   ],
+   "h": [
+    45.46568679809568
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 587,
+  "ko": "숫자는 최선 대비 손실이에요",
+  "en": "This is the estimated value lost versus the best choice.",
+  "screen": "table-grade",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "숫자는 최선 대비 손실이에요"
+   ],
+   "x": 81.5094265809264,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    34.22093009948733
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "This is the estimated value lost versus the best choice."
+   ],
+   "x": 81.39191780565722,
+   "widest": 710.078857421875,
+   "w": [
+    710.078857421875
+   ],
+   "h": [
+    33.99471092224122
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 643,
+  "ko": "결과와 결정은 따로 봐요",
+  "en": "Result and decisions are different",
+  "screen": "table-summary",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "결과와 결정은 따로 봐요"
+   ],
+   "x": 84.90565502531695,
+   "widest": 407.54718017578125,
+   "w": [
+    407.54718017578125
+   ],
+   "h": [
+    44.43023109436025
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Result and decisions are different"
+   ],
+   "x": 84.90567514792957,
+   "widest": 682.6414794921875,
+   "w": [
+    682.6414794921875
+   ],
+   "h": [
+    37.41279220581048
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 656,
+  "ko": "포스트플랍 체크다운 근사로 측정한 EV 손실은 \\(bbText(lost))bb예요.",
+  "en": "Estimated value lost after the flop: \\(bbText(lost))bb. This assumes no later bets.",
+  "screen": "table-summary",
+  "ko_m": {
+   "lines": 3,
+   "last": 1.0,
+   "text": [
+    "결과와 결정은 따로 봐요",
+    "이번 결과는 쇼다운 패배 • -22.7bb예요.",
+    "포스트플랍 체크다운 근사로 측정한 EV 손실은 37bb예요."
+   ],
+   "x": 84.90565502531695,
+   "widest": 849.3667602539062,
+   "w": [
+    407.54718017578125,
+    587.5471801757814,
+    849.3667602539062
+   ],
+   "h": [
+    44.43023109436025,
+    41.00581359863271,
+    43.83517074584974
+   ]
+  },
+  "en_m": {
+   "lines": 3,
+   "last": 0.51,
+   "text": [
+    "This hand: Lost at showdown •-22.7bb.",
+    "Estimated value lost atter the fiop: 37bb. This",
+    "assumes no later Dets."
+   ],
+   "x": 84.90565559752639,
+   "widest": 757.3585205078125,
+   "w": [
+    662.2641601562501,
+    757.3585205078125,
+    384.3170471191406
+   ],
+   "h": [
+    41.023256301879805,
+    37.41279220581048,
+    37.54021835327151
+   ]
+  },
+  "issues": [
+   "end width ko 100% / en 51%"
+  ]
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 693,
+  "ko": "이 핸드에서 버린 EV",
+  "en": "Value lost this hand",
+  "screen": "table-summary",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이 핸드에서 버린 EV"
+   ],
+   "x": 84.90566649684345,
+   "widest": 281.88677978515625,
+   "w": [
+    281.88677978515625
+   ],
+   "h": [
+    37.44186210632329
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Value lost this hand"
+   ],
+   "x": 84.90565936315596,
+   "widest": 315.8490600585937,
+   "w": [
+    315.8490600585937
+   ],
+   "h": [
+    34.441860198974524
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 704,
+  "ko": "다음 핸드",
+  "en": "Next hand",
+  "screen": "table-summary",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "다음 핸드"
+   ],
+   "x": 444.59368043961035,
+   "widest": 187.41641235351557,
+   "w": [
+    187.41641235351557
+   ],
+   "h": [
+    56.593852996826264
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Next hand"
+   ],
+   "x": 420.9681089608008,
+   "widest": 238.06378173828122,
+   "w": [
+    238.06378173828122
+   ],
+   "h": [
+    46.00817108154288
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/TableView.swift",
+  "line": 709,
+  "ko": "상대 바꾸기",
+  "en": "Change opponent",
+  "screen": "table-summary",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 바꾸기"
+   ],
+   "x": 444.3820562359731,
+   "widest": 191.36663818359378,
+   "w": [
+    191.36663818359378
+   ],
+   "h": [
+    49.475830078124915
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Change opponent"
+   ],
+   "x": 369.79332579384413,
+   "widest": 340.3142700195312,
+   "w": [
+    340.3142700195312
+   ],
+   "h": [
+    47.05899810790997
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/WalkthroughView.swift",
+  "line": 84,
+  "ko": "건너뛰기",
+  "en": "Skip",
+  "screen": "first-lesson-answer",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "건너뛰기"
+   ],
+   "x": 886.3048796488047,
+   "widest": 142.86193847656247,
+   "w": [
+    142.86193847656247
+   ],
+   "h": [
+    41.58880996704091
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Skip"
+   ],
+   "x": 918.145228511959,
+   "widest": 89.80571746826172,
+   "w": [
+    89.80571746826172
+   ],
+   "h": [
+    47.57112884521487
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/WalkthroughView.swift",
+  "line": 280,
+  "ko": "이해했어요",
+  "en": "I understand",
+  "screen": "teach-actionread-bars",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "이해했어요"
+   ],
+   "x": 427.8705206530102,
+   "widest": 220.86273193359375,
+   "w": [
+    220.86273193359375
+   ],
+   "h": [
+    54.85716247558587
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "l understand"
+   ],
+   "x": 387.1698134561546,
+   "widest": 298.867919921875,
+   "w": [
+    298.867919921875
+   ],
+   "h": [
+    44.48837089538587
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/WalkthroughView.swift",
+  "line": 298,
+  "ko": "상대 카드",
+  "en": "Opponent's cards",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "상대 카드"
+   ],
+   "x": 465.2381513237292,
+   "widest": 149.52369689941406,
+   "w": [
+    149.52369689941406
+   ],
+   "h": [
+    44.51843261718759
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Opponent's cards"
+   ],
+   "x": 376.98112469835905,
+   "widest": 326.0377502441406,
+   "w": [
+    326.0377502441406
+   ],
+   "h": [
+    47.6162796020508
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/WalkthroughView.swift",
+  "line": 299,
+  "ko": "공용 카드",
+  "en": "Shared cards",
+  "screen": "drill-callfold",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "공용 카드"
+   ],
+   "x": 464.9860754604307,
+   "widest": 146.63162231445315,
+   "w": [
+    146.63162231445315
+   ],
+   "h": [
+    39.795032501220845
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Shared cards"
+   ],
+   "x": 414.3396201517819,
+   "widest": 241.13208007812494,
+   "w": [
+    241.13208007812494
+   ],
+   "h": [
+    34.26744079589845
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTable/Sources/Screens/WalkthroughView.swift",
+  "line": 325,
+  "ko": "보이는 카드",
+  "en": "Visible cards",
+  "screen": "drill-combos",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "보이는 카드"
+   ],
+   "x": 50.81400080587622,
+   "widest": 176.86256408691406,
+   "w": [
+    176.86256408691406
+   ],
+   "h": [
+    38.650283813476705
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Visible cards"
+   ],
+   "x": 50.50453352955557,
+   "widest": 235.28448486328128,
+   "w": [
+    235.28448486328128
+   ],
+   "h": [
+    38.83605957031241
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTableDrills/Sources/GlassTableDrills/LearningLanguage.swift",
+  "line": 27,
+  "ko": "콜 위주형",
+  "en": "Caller",
+  "screen": "table-picker",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "콜 위주형"
+   ],
+   "x": 101.64174736677558,
+   "widest": 194.0749969482422,
+   "w": [
+    194.0749969482422
+   ],
+   "h": [
+    56.18326950073225
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Caller"
+   ],
+   "x": 101.82673475889334,
+   "widest": 149.5540771484375,
+   "w": [
+    149.5540771484375
+   ],
+   "h": [
+    44.6215953826903
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTableDrills/Sources/GlassTableDrills/LearningLanguage.swift",
+  "line": 28,
+  "ko": "매우 공격형",
+  "en": "Very aggressive",
+  "screen": "table-picker",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "매우 공격형"
+   ],
+   "x": 101.78562349102451,
+   "widest": 237.93818664550773,
+   "w": [
+    237.93818664550773
+   ],
+   "h": [
+    55.30686378479
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Very aggressive"
+   ],
+   "x": 101.8867925464117,
+   "widest": 397.3584899902344,
+   "w": [
+    397.3584899902344
+   ],
+   "h": [
+    55.000000000000064
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTableDrills/Sources/GlassTableDrills/LearningLanguage.swift",
+  "line": 34,
+  "ko": "좋은 카드를 기다렸다가 들어와요",
+  "en": "Waits for strong cards before joining",
+  "screen": "table-picker",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "좋은 카드를 기다렸다가 들어와요"
+   ],
+   "x": 101.62900453045171,
+   "widest": 523.5773315429689,
+   "w": [
+    523.5773315429689
+   ],
+   "h": [
+    54.26245498657244
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Waits for strong cards before joining"
+   ],
+   "x": 101.88677786658133,
+   "widest": 652.0755004882811,
+   "w": [
+    652.0755004882811
+   ],
+   "h": [
+    44.35465049743658
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTableDrills/Sources/GlassTableDrills/LearningLanguage.swift",
+  "line": 35,
+  "ko": "카드를 골라서 들어오고, 들어오면 자주 올려요",
+  "en": "Chooses hands carefully, then often raises",
+  "screen": "opponent-details",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "카드를 골라서 들어오고, 들어오면 자주 올려요"
+   ],
+   "x": 57.73584831098907,
+   "widest": 825.2830200195311,
+   "w": [
+    825.2830200195311
+   ],
+   "h": [
+    61.41860580444325
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Chooses hands carefully, then often raises"
+   ],
+   "x": 57.73583612752333,
+   "widest": 876.2264404296875,
+   "w": [
+    876.2264404296875
+   ],
+   "h": [
+    57.81976699829113
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTableDrills/Sources/GlassTableDrills/LearningLanguage.swift",
+  "line": 36,
+  "ko": "여러 카드로 들어오고 자주 올려요",
+  "en": "Joins with more hands and often raises",
+  "screen": "drill-rangeread",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "여러 카드로 들어오고 자주 올려요"
+   ],
+   "x": 50.943394040005614,
+   "widest": 458.4905700683594,
+   "w": [
+    458.4905700683594
+   ],
+   "h": [
+    44.21511459350566
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Joins with more hands and often raises"
+   ],
+   "x": 47.54718402106198,
+   "widest": 607.9244995117189,
+   "w": [
+    607.9244995117189
+   ],
+   "h": [
+    34.21511650085447
+   ]
+  },
+  "issues": []
+ },
+ {
+  "file": "GlassTableDrills/Sources/GlassTableDrills/LearningLanguage.swift",
+  "line": 37,
+  "ko": "자주 들어오지만 금액은 잘 올리지 않아요",
+  "en": "Often joins, but usually calls rather than raises",
+  "screen": "table-picker",
+  "ko_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "자주 들어오지만 금액은 잘 올리지 않아요"
+   ],
+   "x": 101.8867917072156,
+   "widest": 645.2830200195312,
+   "w": [
+    645.2830200195312
+   ],
+   "h": [
+    44.22674369812015
+   ]
+  },
+  "en_m": {
+   "lines": 2,
+   "last": 0.33,
+   "text": [
+    "Often joins, but usually calls rather",
+    "than raises"
+   ],
+   "x": 101.88677898909043,
+   "widest": 621.5094604492188,
+   "w": [
+    621.5094604492188,
+    204.01133728027347
+   ],
+   "h": [
+    47.6162796020508,
+    38.72623443603517
+   ]
+  },
+  "issues": [
+   "lines ko 1 / en 2",
+   "en last 33%"
+  ]
+ },
+ {
+  "file": "GlassTableDrills/Sources/GlassTableDrills/Table.swift",
+  "line": 48,
+  "ko": "\\(chips) 벳 (팟의 \\(pctText(fraction * 100))%)",
+  "en": "bets \\(chips) (\\(pctText(fraction * 100))% pot)",
+  "screen": "table-hand",
+  "ko_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "프리플랍 • 나 콜",
+    "플랍·선별형 5.6bb 벳 (팟의 75%)"
+   ],
+   "x": 50.823042331017405,
+   "widest": 567.9066162109374,
+   "w": [
+    251.56146240234378,
+    567.9066162109374
+   ],
+   "h": [
+    45.60030937194829,
+    52.75197601318357
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Flop • Selective bets 5.6bb (75% pot)"
+   ],
+   "x": 50.94338451069092,
+   "widest": 665.6604003906251,
+   "w": [
+    665.6604003906251
+   ],
+   "h": [
+    40.99999999999986
+   ]
+  },
+  "issues": [
+   "lines ko 2 / en 1"
+  ]
+ },
+ {
+  "file": "GlassTableDrills/Sources/GlassTableDrills/Table.swift",
+  "line": 510,
+  "ko": "벳 \\(chips) (\\(pctText(f * 100))%)",
+  "en": "Bet \\(chips) (\\(pctText(f * 100))% pot)",
+  "screen": "table-hand",
+  "ko_m": {
+   "lines": 2,
+   "last": 1.0,
+   "text": [
+    "프리플랍 • 나 콜",
+    "플랍·선별형 5.6bb 벳 (팟의 75%)"
+   ],
+   "x": 50.823042331017405,
+   "widest": 567.9066162109374,
+   "w": [
+    251.56146240234378,
+    567.9066162109374
+   ],
+   "h": [
+    45.60030937194829,
+    52.75197601318357
+   ]
+  },
+  "en_m": {
+   "lines": 1,
+   "last": 1.0,
+   "text": [
+    "Flop • Selective bets 5.6bb (75% pot)"
+   ],
+   "x": 50.94338451069092,
+   "widest": 665.6604003906251,
+   "w": [
+    665.6604003906251
+   ],
+   "h": [
+    40.99999999999986
+   ]
+  },
+  "issues": [
+   "lines ko 2 / en 1"
+  ]
+ }
+]

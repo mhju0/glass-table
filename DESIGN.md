@@ -185,3 +185,46 @@ arithmetic without claiming to know why an incorrect option was chosen.
 The 220ms chip movement is decorative: amounts update immediately, backward/fold
 steps stay static, and Reduce Motion suppresses the flight. Broader lesson-intro
 coverage remains future work, not a consequence of shipping the pot introduction.
+
+### Consistent learning/table direction, approved 2026-09-23
+
+The owner approved a follow-up after testing the installed app. This direction
+supersedes the exposed contribution totals and variable table/reveal layout above;
+it is a design requirement, not a claim of native implementation.
+
+Use full-screen lessons with clear exit and resume. Keep a shared wide green
+rectangular table and consistent card geometry wherever seating/actions matter.
+Keep table bounds stable through answers and explanations; let surrounding text
+scroll rather than shrinking it. Charts and card-only tasks need not use a table.
+
+Pot replay advances by tap. Original action amounts remain reviewable; calculated
+contribution totals require a hint or answer reveal. Assisted completion counts
+as practice, not unaided accuracy. Correct and incorrect feedback share one
+layout below the unchanged question/table, with optional calculation steps.
+
+Every mode needs a skippable, reopenable visual worked example with everyday
+language and definitions at first use. In Play, show hidden cards, folds and the
+central pot visually while preserving actual information boundaries.
+The [approved spec](.scratch/consistent-learning-table/spec.md) and
+[teaching plan](.scratch/consistent-learning-table/teaching-plan.md) record the
+decisions, scope, evidence requirements and implementation limits.
+
+### Bilingual line parity, owner rule 2026-09-24
+
+This applies to the whole app, not only the prototype. A screen should look the
+same in Korean and English; switching language must not change its layout.
+
+- At the default text size on a compact 375pt iPhone, each heading, paragraph,
+  note, button and label wraps to the same number of lines in both languages.
+  When they differ, rewrite toward the shorter version rather than padding.
+- A wrapped block's last line fills at least half its width. Rewrite or trim
+  copy instead of leaving one word or syllable, such as 요., on its own line.
+- Blocks that share a line count end at similar widths (within 25% of the width).
+- Korean breaks only between words (어절), never inside one; English never
+  breaks inside a word. Do not shrink text, stretch spacing or truncate to fit.
+- Larger Dynamic Type sizes reflow naturally. There, the rules are no in-word
+  breaks and no clipped text; matching line counts is not required
+  (owner confirmed 2026-09-24; fitting every size would shorten default copy).
+- Fit copy by measuring the rendered text, not by counting characters. The
+  prototype's `audit-lines.cjs` shows the method; for native, the Vision OCR
+  audit in `.scratch/consistent-learning-table/native-audit/` is the check.
