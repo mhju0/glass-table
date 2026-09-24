@@ -26,7 +26,7 @@ struct LearnView: View {
                         PathView(onOpenNode: onOpenNode, onOpenFreePlay: onOpenPractice)
                     } label: {
                         learningRow(language.text("전체 학습 경로", "Full learning path"),
-                                    language.text("기초부터 깊이 있는 판단까지. 모든 레슨이 열려 있어요.", "From the basics to deeper decisions. Every lesson is open."), icon: "point.topleft.down.to.point.bottomright.curvepath")
+                                    language.text("기초부터 깊이 있는 판단까지. 모든 레슨이 처음부터 열려 있어요.", "From the basics to deeper decisions. Every lesson is open now."), icon: "point.topleft.down.to.point.bottomright.curvepath")
                     }.buttonStyle(GTPress())
                     Button(action: onOpenPractice) {
                         learningRow(language.text("한 가지 집중 연습", "Practice one skill"),
@@ -42,7 +42,7 @@ struct LearnView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(language.text("어디서 시작할지 고민되나요?", "Not sure where to start?"))
                         .font(GT.title(19))
-                    Text(language.text("짧은 확인으로 시작할 주제를 추천해 드려요. 점수나 자격시험은 아니에요.", "A short check can suggest a starting topic. It isn't a score or a qualification."))
+                    Text(language.text("짧은 확인으로 시작할 주제를 추천해 드려요. 점수나 자격시험이 아니라 출발점을 찾는 과정이에요.", "A short check suggests a starting topic. It isn't a score or a qualification, just a place to begin."))
                         .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                     Button(language.text("시작점 찾아보기", "Find a starting point")) { showPlacement = true }
                         .font(GT.semibold(15)).frame(minHeight: 44)
@@ -134,5 +134,5 @@ func learningNodeDescription(_ node: CurriculumNode, language: LearningLanguage)
     if let concept = Curriculum.taughtConcept(of: node) {
         return ConceptIntroduction.make(concept, language: language).why
     }
-    return language.text("여러 주제를 새로운 상황에서 함께 써 봐요.", "Use several skills together in a different situation.")
+    return language.text("여러 주제를 새로운 상황에서 함께 써 봐요.", "Use several skills in a new spot.")
 }

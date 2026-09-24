@@ -36,8 +36,8 @@ struct RecordsView: View {
                     .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 }
-                Text(language.text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실제 포커 실력을 인증하지 않아요.",
-                                   "Learning stages describe practice in this app. They do not certify poker skill."))
+                Text(language.text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실력 인증은 아니에요.",
+                                   "Stages describe practice in this app, not proven skill."))
                     .font(GT.body(12.5)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
@@ -169,7 +169,7 @@ struct RecordsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(language.text("한 문제를 풀면 날짜별 연습 기록이 여기에 쌓여요.",
-                                   "Answer a question to begin a day-by-day practice record."))
+                                   "Answer a question to start a daily record."))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
             }
             if let started = model.state.detailedTrackingStartedAt {
@@ -278,8 +278,8 @@ struct RecordsView: View {
                 Text("\(first) – \(last)").font(GT.body(12)).foregroundStyle(GT.inkMuted)
             }
             Text(language.text(
-                "공개된 컴퓨터 규칙 아래에서 시작 전 행동만 묘사해요. 최소 100핸드, 5일, 자발적 참여 40번이 필요하고, 경계에 걸치면 이름을 붙이지 않아요. 성격이나 실력 평가는 아니에요.",
-                "This describes before-flop actions under the published bot rules. A label needs at least 100 hands, 5 days and 40 voluntary entries; borderline patterns remain unnamed. It is not a personality or skill rating."))
+                "공개된 컴퓨터 규칙 아래에서 시작 전 행동만 묘사해요. 최소 100핸드, 5일, 자발적 참여 40번이 필요하고, 경계에 걸치면 이름을 붙이지 않아요. 실력 평가는 아니에요.",
+                "Describes preflop play under the published bot rules. Labels need 100 hands, 5 days, 40 voluntary entries; borderline cases stay unnamed. Not a skill rating."))
                 .font(GT.body(12)).foregroundStyle(GT.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -326,7 +326,7 @@ struct RecordsView: View {
             SectionLabel(text: language.text("확신 점검", "Confidence check"), onDark: false)
             if let rate = model.calibrationHitRate {
                 Text(language.text("정답이 내가 예상한 90% 범위에 들어온 비율",
-                                   "How often the answer fell inside your stated 90% range"))
+                                   "Answers inside your 90% range"))
                     .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(Int((rate * 100).rounded()))%")
@@ -353,8 +353,8 @@ struct RecordsView: View {
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                Text(language.text("에퀴티 감각, EV 계산처럼 예상 범위를 답하는 문제의 기록이 여기에 쌓여요.",
-                                   "Answers where you give a likely range, such as equity and call value, appear here."))
+                Text(language.text("범위로 답하는 문제의 기록이 여기에 쌓여요.",
+                                   "Your range answers collect here."))
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -401,8 +401,8 @@ struct RecordsView: View {
     }
 
     private var emptyState: some View {
-        Text(language.text("아직 기록이 없어요. 한 문제를 풀면 답변 수와 다음 복습 시점이 여기에 쌓여요.",
-                           "No answers yet. Your answer count and next review date will appear after a question."))
+        Text(language.text("아직 기록이 없어요. 한 문제를 풀면 답변 수와 다음 복습 시점을 여기에서 확인할 수 있어요.",
+                           "No answers yet. After one question, your answer count and next review date appear here."))
             .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
             .padding(.top, 4)
     }

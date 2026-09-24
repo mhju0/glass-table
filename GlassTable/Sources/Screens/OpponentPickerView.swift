@@ -10,7 +10,7 @@ struct OpponentPickerView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(language.text("상대 고르기", "Choose an opponent"))
                 .font(GT.title(28)).foregroundStyle(GT.ink)
-            Text(language.text("어떤 스타일과 연습할까요? 실력 순서는 아니에요.", "Which style would you like to practice against? These aren't difficulty levels."))
+            Text(language.text("어떤 스타일과 연습할까요? 실력 순서는 아니에요.", "Pick a style. These aren't difficulty levels."))
                 .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
             ForEach(Archetype.allCases, id: \.self) { opponent in
                 Button { selected = opponent } label: {

@@ -418,7 +418,7 @@ final class LearningFlowTests: XCTestCase {
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_DEMO_TAB": "records"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["아직 기록이 없어요. 한 문제를 풀면 답변 수와 다음 복습 시점이 여기에 쌓여요."]
+        XCTAssertTrue(app.staticTexts["아직 기록이 없어요. 한 문제를 풀면 답변 수와 다음 복습 시점을 여기에서 확인할 수 있어요."]
             .waitForExistence(timeout: 10))
     }
 

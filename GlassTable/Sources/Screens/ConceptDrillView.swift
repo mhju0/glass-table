@@ -434,7 +434,7 @@ private struct IntervalInput: View {
                                   })
             }
             Text(language.text("정답이 들어갈 범위를 잡아요. 10번 중 약 9번 포함된다고 생각하는 구간이에요.",
-                               "Choose a range you think contains the answer about 9 times out of 10."))
+                               "Pick a range you expect to contain the answer 9 times in 10."))
                 .font(GT.body(10.5)).foregroundStyle(GT.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -972,7 +972,7 @@ private struct EquitySenseDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("쇼다운까지 갔을 때 내가 이길 확률은?",
-                                       "If both hands reach the end, how often do you win?"))
+                                       "How often do you win at showdown?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: 1, unit: "%")
@@ -1045,7 +1045,7 @@ private struct EVCallDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("이 콜의 EV는 몇 bb인가요?",
-                                       "What is the expected value of this call, in bb?"))
+                                       "What is this call's EV in bb?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: -20...20, step: 0.5, unit: "bb")
@@ -1111,9 +1111,9 @@ private struct CountDrill: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(kind == .outs
                         ? language.text("리버에 나를 이기게 해주는 카드는 몇 장인가요?",
-                                        "How many river cards would make you win?")
-                        : language.text("상대가 이 핸드를 가질 수 있는 콤보는 몇 개인가요?",
-                                        "How many ways can the opponent hold this hand?"))
+                                        "How many river cards make you win?")
+                        : language.text("상대가 들 수 있는 이 핸드 콤보는 몇 개인가요?",
+                                        "How many combos can they hold?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     CountEntryView(entry: $countEntry,
@@ -1255,9 +1255,9 @@ private struct PercentDrill: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(isMDF
                         ? language.text("이 벳에 최소 몇 %를 지켜야 하나요?",
-                                        "What share of hands must you keep against this bet?")
+                                        "What minimum share do you defend?")
                         : language.text("콜하려면 최소 몇 %의 에퀴티가 필요한가요?",
-                                        "How often must you win for a call to break even?"))
+                                        "What equity does this call need?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     HStack { Spacer()
@@ -1395,7 +1395,7 @@ private struct RangeNotationDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("이 레인지는 몇 콤보인가요?",
-                                       "How many two-card combinations does this describe?"))
+                                       "How many combos is this range?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     CountEntryView(entry: $countEntry, suffix: language.text("개", " combinations"),
                                    onSubmit: {
@@ -1653,7 +1653,7 @@ private struct RangeReadDrill: View {
         return VStack(alignment: .leading, spacing: 13) {
             HStack(alignment: .firstTextBaseline) {
                 Text(language.text("상대는 몇 %로 \(actionVerb)했을까요?",
-                                   "What share of hands would the opponent \(actionVerb)?"))
+                                   "What % would they \(actionVerb)?"))
                     .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                 Spacer(minLength: 8)
                 Text("\(pctText(width))%")
@@ -1814,7 +1814,7 @@ private struct HitFrequencyDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("이 레인지의 몇 %가 페어 이상을 만들었을까요?",
-                                       "What share of these possible hands made at least a pair?"))
+                                       "What share made a pair or better?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
@@ -1941,7 +1941,7 @@ private struct RangeAdvantageDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("쇼다운까지 가면 오프너의 승률은 몇 %일까요?",
-                                       "If both ranges reach the end, how often does the first raiser win?"))
+                                       "What's the raiser's showdown win rate?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
@@ -2197,7 +2197,7 @@ private struct EVLossDrill: View {
                                "\(spot.rangeLabel(in: language)) · \(Int(spot.villainRange.comboCount)) combinations"))
                 .font(GT.title(15)).foregroundStyle(GT.onFelt)
             Text(language.text("리버에서 어떻게 좁혔는지는 아직 안 따져요",
-                               "This does not yet account for how the range narrowed on the river."))
+                               "River narrowing is not counted yet"))
                 .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
             // Drawn, not just named. A stated range the user cannot see is still a
             // number handed down — showing the 169 cells the equity came from is the
@@ -2292,7 +2292,7 @@ private struct ActionReadDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("\(KO.subject(spot.action.rawValue)) 남긴 레인지의 몇 %가 페어 이상일까요?",
-                                       "After that action, what share of remaining hands have at least a pair?"))
+                                       "What share left has a pair or better?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     IntervalInput(point: $point, halfWidth: $halfWidth,

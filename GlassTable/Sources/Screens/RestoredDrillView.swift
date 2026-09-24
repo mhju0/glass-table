@@ -424,7 +424,7 @@ private struct RestoredDrillContextView: View {
                                "\(spot.rangeLabel(in: language)) · \(Int(spot.villainRange.comboCount)) combinations"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
             Text(language.text("리버에서 어떻게 좁혔는지는 아직 안 따져요",
-                               "This does not yet account for how the range narrowed on the river."))
+                               "River narrowing is not counted yet"))
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
             RangeGridView(range: spot.villainRange)
                 .frame(maxWidth: 350)

@@ -286,20 +286,20 @@ struct PotMathIntroView: View {
                         .font(GT.title(30))
                         .foregroundStyle(GT.ink)
                     Text(language.text("테이블에 들어온 칩을 놓치지 않는 연습이에요.",
-                                       "Practice keeping track of every chip paid into the pot."))
+                                       "Practice tracking every chip in the pot."))
                         .font(GT.body(17))
                         .foregroundStyle(GT.inkSecondary)
                 }
 
                 introBlock(title: language.text("왜 배우나요?", "Why count?"),
-                           body: language.text("팟을 알아야 콜 가격과 벳 크기를 제대로 비교할 수 있어요.",
-                                               "The pot size helps you compare the price of a call and the size of a bet."))
+                           body: language.text("팟을 알아야 콜 가격과 벳 크기를 비교해요.",
+                                               "The pot lets you judge calls and bets."))
                 introBlock(title: language.text("어떻게 푸나요?", "How do I count?"),
-                           body: language.text("각 자리의 ‘낸 칩’을 한 번씩 더해요. ‘총 18칩으로 레이즈’는 전에 낸 칩까지 포함한 금액이에요.",
-                                               "Add the chips each seat has paid. 'Raise to 18 chips total' includes chips that player already paid."))
+                           body: language.text("각 자리의 ‘낸 칩’을 한 번씩 더해요. ‘총 18칩으로 레이즈’는 전에 낸 칩까지 포함해요.",
+                                               "Add each seat's paid chips once. 'Raise to 18 total' includes chips paid before."))
                 introBlock(title: language.text("SB와 BB", "Small and big blinds"),
                            body: language.text("SB는 딜러 왼쪽 첫 자리, BB는 그 다음 자리예요. 카드를 받기 전에 1칩과 2칩을 먼저 내요.",
-                                               "The small blind sits left of the dealer and posts 1 chip. The big blind sits next and posts 2 before cards are dealt."))
+                                               "The small blind sits left of the dealer, the big blind next. They post 1 and 2 before the deal."))
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(language.text("짧은 예", "A quick example"))

@@ -97,13 +97,13 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     Button { showFirstLesson = true } label: {
                         row("suit.spade.fill", language.text("첫 포커 결정 다시 보기", "Replay the first decision"),
-                            language.text("두 패를 비교하며 기본 규칙을 익혀요", "Compare two hands and practice the basic rule."), chevron: true)
+                            language.text("두 패를 비교하며 기본 규칙을 익혀요", "Compare two hands, learn the rule"), chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
                     Button { showPlacement = true } label: {
                         row("scope", language.text("시작점 다시 찾아보기", "Recheck your starting point"),
-                            language.text("짧은 확인으로 추천 주제를 바꿔요", "A short check can update your suggested topic."), chevron: true)
+                            language.text("짧은 확인으로 추천 주제를 바꿔요", "A short check updates your topic"), chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)

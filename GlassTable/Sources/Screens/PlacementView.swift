@@ -29,7 +29,7 @@ struct PlacementView: View {
                 } else if question < 0 {
                     Text(language.text("포커가 얼마나 익숙한가요?", "How familiar is poker?"))
                         .font(GT.title(22))
-                    Text(language.text("시간 제한 없이 세 가지만 확인해요. 기록과 실력 점수에는 영향을 주지 않아요.", "Try three untimed questions. They won't change your practice results or award a skill level."))
+                    Text(language.text("시간 제한 없이 세 가지만 확인해요. 연습 기록이나 실력 단계에는 영향을 주지 않아요.", "Try three untimed questions. They won't change your practice results or skill level."))
                         .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                     ForEach(PlacementSelfReport.allCases, id: \.self) { option in
                         Button {

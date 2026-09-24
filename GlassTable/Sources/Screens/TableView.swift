@@ -85,7 +85,7 @@ struct TableView: View {
                         .font(GT.title(16)).foregroundStyle(GT.onFelt)
                         .padding(.horizontal, 18)
                     Text(language.text("오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요.",
-                                       "A starting guide based on the hands this seat opens. The app shows how it works."))
+                                       "A baseline from this seat's opening range. The app shows how."))
                         .font(GT.body(11)).foregroundStyle(GT.onFeltSecondary)
                         .padding(.horizontal, 18)
                     DefendGridView(opener: hand.villainSeat,
@@ -458,8 +458,8 @@ struct TableView: View {
                     ForEach(bets, id: \.choice) { opt in bviewButton(opt) }
                 }
             }
-            Text(language.text("체크다운 근사 · 이 스트리트 뒤에는 추가 베팅이 없고 레이크는 제외해요",
-                               "Estimate: no more bets after this round; fees are not included."))
+            Text(language.text("체크다운 근사 · 이후 베팅 없음, 레이크 제외",
+                               "Estimate: no later bets, fees excluded"))
                 .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -504,8 +504,8 @@ struct TableView: View {
                                price: "\(bbText(b * TableHand.raiseFactor))bb",
                                role: .aggressive) { actPreflop(.raise, hand) }
             }
-            Text(language.text("프리플랍은 앱에 공개된 디펜드 차트와 비교해요. 실제 최적 전략을 뜻하지 않아요.",
-                               "Before the flop, your choice is compared with this app's defend chart—not a claim about perfect play."))
+            Text(language.text("프리플랍은 앱의 디펜드 차트와 비교해요. 최적 전략은 아니에요.",
+                               "Preflop is graded on the app's defend chart, not perfect play."))
                 .font(GT.body(11)).foregroundStyle(GT.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -654,7 +654,7 @@ struct TableView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text(language.text("포스트플랍 체크다운 근사로 측정한 EV 손실은 \(bbText(lost))bb예요.",
-                                       "Estimated value lost after the flop: \(bbText(lost))bb. This assumes no later bets."))
+                                       "EV lost after the flop, by checkdown estimate: \(bbText(lost))bb."))
                         .font(GT.body(12.5)).foregroundStyle(GT.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

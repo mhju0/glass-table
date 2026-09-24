@@ -185,7 +185,7 @@ struct FirstLessonView: View {
                      ? (isTransfer
                         ? language.text("방금 배운 규칙을 다른 카드에도 적용했어요.", "You used the same rule with a new hand.")
                         : language.text("핵심은 같은 족보끼리 숫자를 비교하는 거예요.", "When both hands have a pair, compare the ranks."))
-                     : language.text("처음에는 족보 이름보다 어떤 숫자가 더 높은지만 찾아도 충분해요.", "Start by finding which pair has the higher rank."))
+                     : language.text("처음에는 어떤 숫자가 더 높은지만 찾아도 충분해요.", "Start by finding which pair has the higher rank."))
                     .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
@@ -223,9 +223,9 @@ struct FirstLessonView: View {
             }
             VStack(alignment: .leading, spacing: 16) {
                 lessonRow(symbol: "eye.fill", title: language.text("먼저 이해해요", "See the reasoning"),
-                          detail: language.text("카드와 숫자를 보며 풀이 과정을 따라가요.", "Follow the cards and numbers through a worked hand."))
+                          detail: language.text("카드와 숫자를 보며 풀이 과정을 따라가요.", "Follow a worked hand, card by card."))
                 lessonRow(symbol: "hand.tap.fill", title: language.text("직접 골라봐요", "Choose for yourself"),
-                          detail: language.text("답을 보기 전에 내 판단을 먼저 남겨요.", "Make your choice before seeing the answer."))
+                          detail: language.text("답을 보기 전에 먼저 골라요.", "Choose, then see the answer."))
                 lessonRow(symbol: "arrow.clockwise", title: language.text("나중에 다시 풀어요", "Come back later"),
                           detail: language.text("배운 내용을 다시 풀며 익혀요.", "Try the skill again after some time away."))
             }

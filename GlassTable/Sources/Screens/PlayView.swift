@@ -67,7 +67,7 @@ struct PlayView: View {
                     }
                     policyDetails(table)
                 } else {
-                    Text(language.text("컴퓨터 세 명과 천천히 연습해요. 각자 100칩, 시작 금액은 1·2칩이에요. 실제 돈은 쓰지 않아요.", "Practice at your own pace against three computers. Each starts with 100 chips; blinds are 1 and 2. No real money is involved."))
+                    Text(language.text("컴퓨터 세 명과 천천히 연습해요. 각자 100칩, 블라인드는 1·2칩이에요. 실제 돈은 쓰지 않아요.", "Play three computers at your pace. Each has 100 chips; blinds are 1 and 2. No real money."))
                         .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
                     OpponentPickerView { opponent in
                         perform {

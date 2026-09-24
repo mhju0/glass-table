@@ -55,7 +55,7 @@ struct PathView: View {
                     .frame(width: 36, height: 36)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(language.text("한 가지 집중 연습", "Practice one skill")).font(GT.title(17)).foregroundStyle(GT.onFelt)
-                    Text(language.text("원하는 주제를 다섯 문제씩 연습해요", "Choose a topic for a five-question round"))
+                    Text(language.text("원하는 주제를 다섯 문제씩 연습해요", "Five questions on one topic"))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                 }

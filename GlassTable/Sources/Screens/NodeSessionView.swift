@@ -445,8 +445,8 @@ struct NodeSessionView: View {
         }.sorted()
         if missedConcepts.isEmpty {
             return language.text(
-                "모든 답이 목표 안에 들었어요. 기록에서 개념별 단계와 다음 복습 시점을 볼 수 있어요.",
-                "Every answer was on target. See your skill levels and next reviews in Progress.")
+                "모든 답이 목표 안에 들었어요. 개념별 단계와 다음 복습 시점은 기록 화면에서 확인할 수 있어요.",
+                "Every answer was on target. Your skill levels and next review dates are in Progress.")
         }
         return language.text(
             "다시 볼 개념: \(missedConcepts.joined(separator: " · ")). 복습에서 한 문제씩 다시 만나요.",
@@ -1141,8 +1141,8 @@ struct ReviewSessionView: View {
                      ? language.text("지금 복습할 개념이 없어요.", "No skills are due right now.")
                      : missed.isEmpty
                         ? language.text(
-                            "각 개념을 한 번씩 목표 안에 답했어요. 다음 복습은 기록에서 볼 수 있어요.",
-                            "You answered each skill on target. Check Progress for the next review.")
+                            "각 개념을 목표 안에 답했어요. 다음 복습은 기록에서 볼 수 있어요.",
+                            "Each skill was on target. Progress shows the next review.")
                         : language.text(
                             "다시 볼 개념: \(missed.joined(separator: " · ")). 오늘 답은 저장됐어요.",
                             "Review these skills: \(missed.joined(separator: " · ")). Today's answers are saved."))

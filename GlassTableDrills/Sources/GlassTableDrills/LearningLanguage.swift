@@ -34,7 +34,7 @@ public extension Archetype {
         case .nit: language.text("좋은 카드를 기다렸다가 들어와요", "Waits for strong cards before joining")
         case .tag: language.text("카드를 골라서 들어오고, 들어오면 자주 올려요", "Chooses hands carefully, then often raises")
         case .lag: language.text("여러 카드로 들어오고 자주 올려요", "Joins with more hands and often raises")
-        case .station: language.text("자주 들어오지만 금액은 잘 올리지 않아요", "Often joins, but usually calls rather than raises")
+        case .station: language.text("자주 들어오지만 금액은 잘 올리지 않아요", "Joins often but rarely raises")
         case .maniac: language.text("아주 자주 들어오고 금액도 자주 올려요", "Joins very often and frequently raises")
         }
     }
