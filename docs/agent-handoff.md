@@ -180,3 +180,7 @@ earlier verification worktrees remain preserved. Do not reset phone progress.
 - Open: EN/light screenshots, measured table bounds, heads-up `TableView`
   decision. Issues 03 (first-use explanations) and 04 (assisted = practice)
   are next. Record in `.scratch/consistent-learning-table/verification.md`.
+- Device: Release 1.0 (7) from `95f47a1` installed in place on the iPhone 12
+  mini for owner testing. Progress and the schema-1 backup were copied off first
+  (`.build/device-backups/20260924-before-1.0.7/`) and were byte-identical after
+  launch.
