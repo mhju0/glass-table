@@ -25,4 +25,30 @@ public enum KO {
     public static func topic(_ s: String) -> String { s + (endsInConsonant(s) ? "은" : "는") }
     /// Copula, sentence-final: 이에요 after a consonant, 예요 after a vowel.
     public static func copula(_ s: String) -> String { s + (endsInConsonant(s) ? "이에요." : "예요.") }
+
+    /// Joins a latin letter, digit, % or ) to the Hangul syllable after it with an
+    /// invisible word joiner (U+2060).
+    ///
+    /// iOS allows a line break at that boundary, so "최소 100핸드" could wrap as
+    /// "최소 100 / 핸드" and "상위 9%를" as "상위 9% / 를", splitting one 어절.
+    /// Spaces are untouched, so ordinary word breaks still happen.
+    public static func wordJoined(_ s: String) -> String {
+        var out = String.UnicodeScalarView()
+        var previous: Unicode.Scalar?
+        var changed = false
+        for scalar in s.unicodeScalars {
+            if let p = previous, joinsForward(p), (0xAC00...0xD7A3).contains(scalar.value) {
+                out.append("\u{2060}")
+                changed = true
+            }
+            out.append(scalar)
+            previous = scalar
+        }
+        return changed ? String(out) : s
+    }
+
+    private static func joinsForward(_ scalar: Unicode.Scalar) -> Bool {
+        scalar.isASCII && (scalar.properties.isAlphabetic || ("0"..."9").contains(scalar)
+                           || scalar == "%" || scalar == ")")
+    }
 }

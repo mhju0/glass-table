@@ -32,6 +32,24 @@ final class KoreanTests: XCTestCase {
         XCTAssertEqual(KO.subject(""), "가")
     }
 
+    /// iOS breaks a line between a digit or % and the Hangul after it ("최소 100 / 핸드",
+    /// "상위 9% / 를"), splitting one 어절. A word joiner removes that break opportunity.
+    func testWordJoinedKeepsDigitsAndParticlesTogether() {
+        XCTAssertEqual(KO.wordJoined("최소 100핸드"), "최소 100\u{2060}핸드")
+        XCTAssertEqual(KO.wordJoined("상위 9%를 열어요."), "상위 9%\u{2060}를 열어요.")
+        XCTAssertEqual(KO.wordJoined("내 콜 8을 가져와요"), "내 콜 8\u{2060}을 가져와요")
+        XCTAssertEqual(KO.wordJoined("20bb예요, AKs를, (EV)는"), "20bb\u{2060}예요, AKs\u{2060}를, (EV)\u{2060}는")
+    }
+
+    /// Spaces stay break opportunities, and text without such a boundary is unchanged.
+    func testWordJoinedLeavesOrdinaryBreaksAlone() {
+        XCTAssertEqual(KO.wordJoined("팟 12bb + 상대 벳 4bb"), "팟 12bb + 상대 벳 4bb")
+        XCTAssertEqual(KO.wordJoined("플랍 3 장"), "플랍 3 장")
+        XCTAssertEqual(KO.wordJoined("핸드 100"), "핸드 100")
+        XCTAssertEqual(KO.wordJoined("Pot 12bb"), "Pot 12bb")
+        XCTAssertEqual(KO.wordJoined(""), "")
+    }
+
     /// Every hand name the app can print must produce grammatical Korean.
     func testEveryHandNameTakesAParticleWithoutCrashing() {
         for category in 0...8 {
