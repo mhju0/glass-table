@@ -21,8 +21,8 @@ struct TableSetupView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(language.text("테이블 만들기", "Set up the table")).font(GT.title(28))
-                        Text(language.text("인원과 컴퓨터마다 스타일을 골라요. 실력 순서는 아니에요.",
-                                           "Choose how many play and each computer's style. Styles aren't difficulty levels."))
+                        Text(language.text("인원과 컴퓨터별 스타일을 골라요. 스타일은 난이도가 아니라 카드를 고르는 습관이에요.",
+                                           "Pick the players and each computer's style. A style is a habit, not a difficulty level."))
                             .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                             .lineSpacing(GT.Typography.bodyLineSpacing)
                     }

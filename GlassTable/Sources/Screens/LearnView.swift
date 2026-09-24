@@ -27,7 +27,7 @@ struct LearnView: View {
                         PathView(onOpenNode: onOpenNode, onOpenFreePlay: onOpenPractice)
                     } label: {
                         learningRow(language.text("전체 학습 경로", "Full learning path"),
-                                    language.text("기초부터 깊이 있는 판단까지. 모든 레슨이 처음부터 열려 있어요.", "From the basics to deeper decisions. Every lesson is open now."), icon: "point.topleft.down.to.point.bottomright.curvepath")
+                                    language.text("기초부터 깊이 있는 판단까지. 모든 레슨이 처음부터 열려 있어요.", "From basics to deeper decisions. Every lesson is open."), icon: "point.topleft.down.to.point.bottomright.curvepath")
                     }
                     .buttonStyle(GTPress())
                     .accessibilityIdentifier("learn-path")

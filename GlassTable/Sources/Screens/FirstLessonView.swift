@@ -331,7 +331,12 @@ struct FirstLessonView: View {
         let mark: (text: String, spoken: String, band: GradeBand)? =
             picked ? (copy(.myPick), wins ? copy(.pickCorrect) : copy(.pickWrong), wins ? .spotOn : .off)
                    : (wins ? (copy(.rightAnswer), copy(.rightAnswer), .spotOn) : nil)
-        return handLayout(label: resultLabel(title: title, wins: wins), cards: cards)
+        // At accessibility sizes the badge would cover the title, so it sits above it.
+        let inline = dynamicTypeSize.isAccessibilitySize
+        return VStack(alignment: .leading, spacing: 10) {
+            if inline, let mark { markBadge(mark.text, band: mark.band) }
+            handLayout(label: resultLabel(title: title, wins: wins), cards: cards)
+        }
             .padding(14).frame(maxWidth: .infinity, alignment: .leading)
             .background(mark?.band.tint ?? GT.glass,
                         in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
@@ -342,16 +347,9 @@ struct FirstLessonView: View {
             .shadow(color: picked && pulse ? (mark?.band.ink ?? .clear).opacity(0.55) : .clear,
                     radius: picked && pulse ? 12 : 0)
             .overlay(alignment: .topTrailing) {
-                if let mark {
-                    Label(mark.text, systemImage: mark.band.glyph)
-                        .font(GT.semibold(12)).foregroundStyle(mark.band.ink)
-                        .padding(.horizontal, 9).padding(.vertical, 3)
-                        .background(GT.felt, in: Capsule())
-                        .overlay(Capsule().strokeBorder(mark.band.ink, lineWidth: 1.5))
-                        .offset(x: -12, y: -11)
-                }
+                if !inline, let mark { markBadge(mark.text, band: mark.band).offset(x: -12, y: -11) }
             }
-            .padding(.top, mark == nil ? 0 : 6)
+            .padding(.top, mark == nil || inline ? 0 : 6)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel([title, spoken(cards), wins ? copy(.higherPair) : copy(.lowerPair), mark?.spoken]
                 .compactMap { $0 }.joined(separator: ", "))
@@ -359,6 +357,14 @@ struct FirstLessonView: View {
                 guard picked, pulse else { return }
                 withAnimation(.easeOut(duration: 1.2)) { pulse = false }
             }
+    }
+
+    private func markBadge(_ text: String, band: GradeBand) -> some View {
+        Label(text, systemImage: band.glyph)
+            .font(GT.semibold(12)).foregroundStyle(band.ink)
+            .padding(.horizontal, 9).padding(.vertical, 3)
+            .background(GT.felt, in: Capsule())
+            .overlay(Capsule().strokeBorder(band.ink, lineWidth: 1.5))
     }
 
     private func resultLabel(title: String, wins: Bool) -> some View {
@@ -376,8 +382,8 @@ struct FirstLessonView: View {
         let detail = correct
             ? (isTransfer
                ? language.text("방금 배운 규칙을 다른 카드에도 적용했어요.", "You used the same rule with a new hand.")
-               : language.text("핵심은 같은 족보끼리 숫자를 비교하는 거예요.", "When both hands have a pair, compare the ranks."))
-            : language.text("처음에는 어떤 숫자가 더 높은지만 찾아도 충분해요.", "Start by finding which pair has the higher rank.")
+               : language.text("핵심은 같은 족보끼리 숫자를 비교하는 거예요.", "Same hand type? Compare the ranks."))
+            : language.text("처음에는 어느 쪽 숫자가 더 높은지만 알아봐도 충분해요.", "To begin, it's enough to spot which pair has the higher rank of the two.")
         return VStack(alignment: .leading, spacing: GT.Space.related) {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: band.glyph)

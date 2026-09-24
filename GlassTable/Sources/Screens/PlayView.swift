@@ -72,16 +72,16 @@ struct PlayView: View {
                         policyDetails(table)
                         gradedCard
                     } else {
-                        Text(language.text("컴퓨터 상대와 한 판씩 연습해요. 실제 돈은 쓰지 않아요.",
-                                           "Practice hands against computer players. No real money."))
+                        Text(language.text("컴퓨터와 한 판씩 연습해요. 실제 돈은 쓰지 않아요.",
+                                           "Practice against computers. No real money."))
                             .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
                             .lineSpacing(GT.Typography.bodyLineSpacing)
                         Spacer(minLength: 12)
                         VStack(spacing: 12) {
                             Button { showSetup = true } label: {
                                 TapCardLabel(title: language.text("자유 대전", "Free table"),
-                                             detail: language.text("컴퓨터 한 명에서 세 명과 끝까지 쳐요. 채점은 없어요.",
-                                                                   "Play whole hands against one to three computers. No grading."),
+                                             detail: language.text("컴퓨터 한 명에서 세 명과 한 판을 끝까지 쳐요. 여기서는 채점하지 않아요.",
+                                                                   "Play whole hands against one to three computers. No grading here."),
                                              emphasized: true)
                             }
                             .buttonStyle(GTPress())
@@ -142,8 +142,8 @@ struct PlayView: View {
     private var gradedCard: some View {
         Button { showGraded = true } label: {
             TapCardLabel(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
-                         detail: language.text("상대 한 명과 치며 판단마다 공개된 차트와 평균값으로 채점해요.",
-                                               "Heads-up: each decision is graded against a published chart and average-value model."))
+                         detail: language.text("상대 한 명과 쳐요. 판단마다 공개된 차트와 평균값으로 채점해요.",
+                                               "One opponent. Each decision is graded by a published chart and EV."))
         }
         .buttonStyle(GTPress())
         .accessibilityIdentifier("play-graded")
