@@ -184,3 +184,15 @@ earlier verification worktrees remain preserved. Do not reset phone progress.
   mini for owner testing. Progress and the schema-1 backup were copied off first
   (`.build/device-backups/20260924-before-1.0.7/`) and were byte-identical after
   launch.
+
+## 2026-09-24: Combo definition; phone reset at the owner's request
+
+- `aeaedd7`: the combos walkthrough opens by defining a combo with one exact
+  two-card example of the spot's class (avoiding visible cards); the intro
+  "why/how" copy says the same. Beat count grew by one, which keeps saved
+  walkthrough positions valid. Part of issue 03 (combos row).
+- Device: owner asked to start fresh. All app data (progression, schema-1
+  backup, preferences) was copied to `.build/device-backups/20260924-before-reset/`,
+  then the app was uninstalled and Release 1.0 (8) from `07f9a1e` installed
+  clean. The container had no progress files before first launch. Restoring
+  means copying those files back into the app's data container.
