@@ -11,6 +11,7 @@ Notable changes to the Glass Table app. Format follows
 - Delivered offline beginner learning and four-player practice against computer opponents. Opponent choices stay in place, with details in a sheet.
 - Moved Settings into the bottom navigation and kept equity cards visible above the answer sheet on compact screens.
 - Fitted Korean and English copy to the same number of lines at the default text size, including all eight start-guide pages (75 strings). The rule is recorded in `DESIGN.md`.
+- Korean no longer wraps between a number and the syllable after it, such as "100 / 핸드" or "9% / 를".
 
 ### Changed — research-led learning and Warm interface (2026-09-14)
 - Rebuilt Today around one recommended lesson or a review of up to five due concepts; simplified the course, records, walkthroughs and table flow.

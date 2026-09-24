@@ -222,6 +222,9 @@ same in Korean and English; switching language must not change its layout.
 - Blocks that share a line count end at similar widths (within 25% of the width).
 - Korean breaks only between words (어절), never inside one; English never
   breaks inside a word. Do not shrink text, stretch spacing or truncate to fit.
+  iOS would otherwise break between a digit, latin letter, % or ) and the
+  Hangul after it ("100 / 핸드", "9% / 를"); `Text(String)` inserts an invisible
+  word joiner there (`KO.wordJoined`), keeping VoiceOver text unchanged.
 - Larger Dynamic Type sizes reflow naturally. There, the rules are no in-word
   breaks and no clipped text; matching line counts is not required
   (owner confirmed 2026-09-24; fitting every size would shorten default copy).

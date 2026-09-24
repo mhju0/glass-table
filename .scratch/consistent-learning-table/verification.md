@@ -214,3 +214,15 @@ blocks and flags line-count mismatch, last lines under 50% and in-word breaks.
   46 tests: 44 passed; 2 failed on pinned old copy, were updated, and passed
   on re-run. Not checked: AX5 sizes, dark mode, scrolled content, guide pages
   2-4 and 6-8 on device (offline fit only).
+
+### Digit–Hangul word joiner, 2026-09-24
+
+- Owner approved the fix. `KO.wordJoined` (Drills) inserts U+2060 between an
+  ASCII letter, digit, % or ) and a following Hangul syllable. An app-side
+  `Text(String)` overload applies it to every non-literal `Text` and keeps the
+  original string as the accessibility label. Literals, `Button` and `Label`
+  titles are not covered; none showed the break in the audit.
+- Overload resolution was checked with a standalone program: `String` values
+  and expressions use it; literals, interpolated literals and `verbatim:` do not.
+- KO re-capture of records-empty, replay and teach-rangeread-stats: "100핸드",
+  "8을" and "9%를" now stay on one line; the joiner renders invisibly.

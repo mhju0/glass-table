@@ -163,3 +163,12 @@ earlier verification worktrees remain preserved. Do not reset phone progress.
   audit tools committed; merged worktrees/branches removed. Review page and
   screenshots moved to ignored `.uisweep/line-parity-review/`.
   `.scratch/pot-calculation-redesign/` left untracked on purpose (unrelated).
+
+## 2026-09-24: Digit–Hangul word joiner
+
+- `KO.wordJoined` plus a disfavoured `Text(String)` overload
+  (`GlassTable/Sources/DesignSystem/WordJoinedText.swift`) stop iOS breaking
+  "100 / 핸드", "9% / 를", "8 / 을". Accessibility labels keep the plain string.
+- Not covered: string literals in `Text("…")`, `Button`/`Label` titles.
+- CI fix pushed earlier: `PracticeTableTests` split one `#expect` that timed out
+  the CI type checker (pre-existing since `0742438`).
