@@ -14,60 +14,80 @@ struct PlacementView: View {
     private var questionID: String { PlacementGuide.questionIDs[max(0, min(question, 2))] }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                Text(language.text("시작점 찾기", "Find a starting point")).font(GT.title(28))
-                if completed {
-                    let recommendation = PlacementGuide.recommendation(report: report, answers: answers)
-                    let intro = ConceptIntroduction.make(recommendation, language: language)
-                    Text(language.text("여기부터 해 볼까요?", "How about starting here?")).font(GT.body(16))
-                    Text(intro.title).font(GT.title(24))
-                    Text(intro.why).font(GT.body(16))
-                    Text(language.text("시작점 제안일 뿐이에요. 어떤 레슨이든 고를 수 있고, 이전 레슨은 완료로 바뀌지 않아요.", "This is only a starting suggestion. Every lesson stays open, and earlier lessons aren't marked complete."))
-                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-                    FeltCTAButton(title: language.text("배우기로 돌아가기", "Return to Learn")) { dismiss() }
-                } else if question < 0 {
-                    Text(language.text("포커가 얼마나 익숙한가요?", "How familiar is poker?"))
-                        .font(GT.title(22))
-                    Text(language.text("시간 제한 없이 세 가지만 확인해요. 연습 기록이나 실력 단계에는 영향을 주지 않아요.", "Try three untimed questions. They won't change your practice results or skill level."))
-                        .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
-                    ForEach(PlacementSelfReport.allCases, id: \.self) { option in
-                        Button {
-                            report = option
-                            question = 0
-                        } label: {
-                            Text(reportTitle(option)).font(GT.semibold(17))
-                                .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-                                .padding(14).gtPanel()
-                        }.buttonStyle(GTPress())
+        // Prompt at the top, choices anchored at the bottom; the column scrolls
+        // when large text needs more than one screen.
+        GeometryReader { viewport in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    Text(language.text("시작점 찾기", "Find a starting point")).font(GT.title(28))
+                    if completed {
+                        let recommendation = PlacementGuide.recommendation(report: report, answers: answers)
+                        let intro = ConceptIntroduction.make(recommendation, language: language)
+                        Text(language.text("여기부터 해 볼까요?", "How about starting here?")).font(GT.body(16))
+                        Text(intro.title).font(GT.title(24))
+                        Text(intro.why).font(GT.body(16))
+                        Text(language.text("시작점 제안일 뿐이에요. 어떤 레슨이든 고를 수 있고, 이전 레슨은 완료로 바뀌지 않아요.", "This is only a starting suggestion. Every lesson stays open, and earlier lessons aren't marked complete."))
+                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                        Spacer(minLength: 12)
+                        FeltCTAButton(title: language.text("배우기로 돌아가기", "Return to Learn")) { dismiss() }
+                    } else if question < 0 {
+                        Text(language.text("포커가 얼마나 익숙한가요?", "How familiar is poker?"))
+                            .font(GT.title(22))
+                        Text(language.text("시간 제한 없이 세 가지만 확인해요. 연습 기록이나 실력 단계에는 영향을 주지 않아요.", "Try three untimed questions. They won't change your practice results or skill level."))
+                            .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                        Spacer(minLength: 12)
+                        VStack(spacing: 10) {
+                            ForEach(PlacementSelfReport.allCases, id: \.self) { option in
+                                choice(reportTitle(option)) {
+                                    report = option
+                                    question = 0
+                                }
+                            }
+                        }
+                    } else {
+                        Text(language.text("\(question + 1) / 3 · 천천히 생각해도 좋아요", "\(question + 1) of 3 · Take your time"))
+                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                        Text(prompt).font(GT.title(22))
+                        Spacer(minLength: 12)
+                        VStack(spacing: 10) {
+                            ForEach(options, id: \.0) { option in
+                                choice(option.1) { answer(option.0) }
+                            }
+                            choice(language.text("아직 잘 모르겠어요", "I'm not sure yet")) { answer("unsure") }
+                        }
                     }
-                } else {
-                    Text(language.text("\(question + 1) / 3 · 천천히 생각해도 좋아요", "\(question + 1) of 3 · Take your time"))
-                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-                    Text(prompt).font(GT.title(22))
-                    ForEach(options, id: \.0) { option in
-                        Button { answer(option.0) } label: {
-                            Text(option.1).font(GT.semibold(17))
-                                .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-                                .padding(14).gtPanel()
-                        }.buttonStyle(GTPress())
+                    if !completed {
+                        SecondaryCTAButton(title: language.text("확인 없이 시작하기", "Start without the check")) {
+                            if model.setPlacement(report: report, answers: [:], skipped: true,
+                                                  expectedEpoch: epoch ?? model.epoch) { dismiss() }
+                        }
                     }
-                    Button(language.text("아직 잘 모르겠어요", "I'm not sure yet")) { answer("unsure") }
-                        .frame(minHeight: 44)
                 }
-                if !completed {
-                    Button(language.text("확인 없이 시작하기", "Start without the check")) {
-                        if model.setPlacement(report: report, answers: [:], skipped: true,
-                                              expectedEpoch: epoch ?? model.epoch) { dismiss() }
-                    }.frame(minHeight: 44)
-                }
-            }.padding(20)
+                .padding(20)
+                .frame(minHeight: viewport.size.height, alignment: .top)
+            }
         }
         .background(FeltBackground())
         .modifier(ProgressSaveNotice())
         .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
         .onAppear { if epoch == nil { epoch = model.epoch } }
         .onChange(of: model.epoch) { _, _ in dismiss() }
+    }
+
+    /// An answer is a bordered card: it commits on tap, so it must look tappable.
+    private func choice(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).font(GT.semibold(17)).foregroundStyle(GT.ink)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+                .padding(.horizontal, 16)
+                .background(GT.glass, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+                    .strokeBorder(GT.borderStrong, lineWidth: 1))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(GTPress())
     }
 
     private func answer(_ value: String) {

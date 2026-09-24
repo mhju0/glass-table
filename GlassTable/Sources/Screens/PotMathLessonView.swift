@@ -24,10 +24,14 @@ struct PotMathReplayView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Spacer(minLength: 0)
-                Button(language.text("계산 방법", "How to count"), action: showHelp)
-                    .font(GT.semibold(14))
-                    .foregroundStyle(GT.cta)
-                    .frame(minHeight: 44)
+                Button(action: showHelp) {
+                    Label(language.text("계산 방법", "How to count"), systemImage: "questionmark.circle")
+                        .font(GT.semibold(14)).foregroundStyle(GT.ink)
+                        .padding(.horizontal, 14).frame(minHeight: 44)
+                        .background(GT.surface, in: Capsule())
+                        .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
+                }
+                .buttonStyle(GTPress())
             }
             TableSurface(seats: seats,
                          center: TableCenter(potTotal: revealedPot.map {

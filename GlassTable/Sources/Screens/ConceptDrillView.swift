@@ -324,6 +324,7 @@ private struct DrillShell<Content: View, Sheet: View>: View {
         guard language == .english else { return title }
         switch title {
         case "쇼다운": return "Showdown"
+        case "팟 계산": return "Count the pot"
         case "포지션": return "Position"
         case "에퀴티 감각": return "Chance to win"
         case "EV 계산": return "Value of a call"
@@ -389,7 +390,7 @@ private struct RevealSheet: View {
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
             if !saved {
-                Button(language.text("저장 다시 시도", "Retry saving")) {
+                SecondaryCTAButton(title: language.text("저장 다시 시도", "Retry saving")) {
                     model.retrySave()
                     if model.saveError == nil {
                         saved = onCommit(DrillOutcome(band: band, interval: interval,
@@ -638,19 +639,10 @@ private struct PotMathDrill: View {
             if showingIntro {
                 PotMathIntroView(onStart: finishIntro)
             } else {
-                ScrollView {
+                // Choices and the verdict sit in the bottom sheet like every other drill;
+                // the replay above them scrolls when it needs the room.
+                DrillShell(title: "팟 계산", progressText: progressText) {
                     VStack(alignment: .leading, spacing: GT.Space.section) {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(language.text("팟 계산", "Count the pot"))
-                                .font(GT.title(19))
-                                .foregroundStyle(GT.ink)
-                            Spacer(minLength: 12)
-                            Text(progressText)
-                                .font(GT.semibold(14).monospacedDigit())
-                                .foregroundStyle(GT.inkSecondary)
-                                .accessibilityIdentifier("drill-question-\(questionID)")
-                        }
-
                         VStack(alignment: .leading, spacing: 5) {
                             Text(question)
                                 .font(GT.title(GT.Typography.questionSize))
@@ -668,23 +660,20 @@ private struct PotMathDrill: View {
                                           revealedPot: reveal == nil ? nil : spot.pot) {
                             showingHelp = true
                         }
-
-                        if let reveal {
-                            PotMathRevealSheet(reveal: reveal) {
-                                onAnswer(DrillOutcome(band: reveal.band, interval: nil))
-                                self.reveal = nil
-                            }
-                        } else {
-                            PotMathChoicesView(spot: spot, stepIndex: stepIndex) { choice in
-                                reveal = gradePotMath(answer: choice, spot: spot, language: language)
-                            }
+                    }
+                    .padding(.bottom, 12)
+                } sheet: {
+                    if let reveal {
+                        PotMathRevealSheet(reveal: reveal) {
+                            onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                            self.reveal = nil
+                        }
+                    } else {
+                        PotMathChoicesView(spot: spot, stepIndex: stepIndex) { choice in
+                            reveal = gradePotMath(answer: choice, spot: spot, language: language)
                         }
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, 6)
-                    .padding(.bottom, 32)
                 }
-                .scrollBounceBehavior(.basedOnSize)
             }
         }
         .sheet(isPresented: $showingHelp) {
@@ -833,7 +822,7 @@ private struct PotMathRevealSheet: View {
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
             if !saved {
-                Button(language.text("저장 다시 시도", "Retry saving")) {
+                SecondaryCTAButton(title: language.text("저장 다시 시도", "Retry saving")) {
                     model.retrySave()
                     if model.saveError == nil {
                         saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
@@ -2064,7 +2053,7 @@ private struct EVLossRevealSheet: View {
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
             if !saved {
-                Button(language.text("저장 다시 시도", "Retry saving")) {
+                SecondaryCTAButton(title: language.text("저장 다시 시도", "Retry saving")) {
                     model.retrySave()
                     if model.saveError == nil {
                         saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
@@ -2489,7 +2478,7 @@ private struct DefendRevealSheet: View {
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
             if !saved {
-                Button(language.text("저장 다시 시도", "Retry saving")) {
+                SecondaryCTAButton(title: language.text("저장 다시 시도", "Retry saving")) {
                     model.retrySave()
                     if model.saveError == nil {
                         saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,

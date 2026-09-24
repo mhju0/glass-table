@@ -17,9 +17,14 @@ struct ProgressSaveNotice: ViewModifier {
                               systemImage: "exclamationmark.triangle")
                             .font(GT.semibold(13))
                         Spacer(minLength: 8)
-                        Button(language.text("다시 저장", "Retry save")) { model.retrySave() }
-                            .font(GT.semibold(13))
-                            .frame(minHeight: 44)
+                        Button { model.retrySave() } label: {
+                            Text(language.text("다시 저장", "Retry save"))
+                                .font(GT.semibold(13))
+                                .padding(.horizontal, 12).frame(minHeight: 44)
+                                .background(GT.surface, in: Capsule())
+                                .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
+                        }
+                        .buttonStyle(GTPress())
                     }
                     Text(language.text(
                         "최근 진행이 아직 저장되지 않았어요. 앱을 닫기 전에 다시 저장하거나 설정에서 백업을 만들어 주세요.",

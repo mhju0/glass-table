@@ -71,9 +71,9 @@ struct LearningGuideView: View {
                 }
                 .disabled(lesson.question != nil && answer == nil)
                 if page > 0 {
-                    Button(language.text("이전 이야기", "Previous topic")) { page -= 1; answer = nil }
-                        .font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
-                        .frame(maxWidth: .infinity, minHeight: 44).buttonStyle(GTPress())
+                    SecondaryCTAButton(title: language.text("이전 이야기", "Previous topic")) {
+                        page -= 1; answer = nil
+                    }
                 }
             }
             .padding(.horizontal, 24).padding(.vertical, 12).background(GT.felt)

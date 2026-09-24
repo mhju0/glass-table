@@ -511,6 +511,57 @@ struct TapCardLabel: View {
     }
 }
 
+/// Every expandable section: its heading is a bordered row whose chevron turns, so
+/// "tap to see more" looks tappable. Applied once at the root.
+struct GTDisclosureStyle: DisclosureGroupStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        GTDisclosure(configuration: configuration)
+    }
+}
+
+private struct GTDisclosure: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.learningLanguage) private var language
+    let configuration: DisclosureGroupStyleConfiguration
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                    configuration.isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    configuration.label
+                        .font(GT.semibold(16)).foregroundStyle(GT.ink)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.down").font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(GT.inkSecondary)
+                        .rotationEffect(.degrees(configuration.isExpanded ? 180 : 0))
+                        .accessibilityHidden(true)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+                .background(GT.glass, in: shape)
+                .overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
+                .contentShape(shape)
+            }
+            .buttonStyle(GTPress())
+            .accessibilityValue(configuration.isExpanded
+                                ? language.text("펼침", "Expanded")
+                                : language.text("접힘", "Collapsed"))
+            if configuration.isExpanded {
+                configuration.content
+                    .padding(.horizontal, 4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+}
+
 struct SecondaryCTAButton: View {
     let title: String
     let action: () -> Void

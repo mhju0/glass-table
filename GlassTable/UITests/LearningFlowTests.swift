@@ -273,6 +273,26 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(next.isHittable, "The expanded arithmetic must not trap the next action below the viewport.")
     }
 
+    /// Pot-math choices live in the bottom answer sheet, below the replay, like every
+    /// other question.
+    func testPotMathChoicesSitInTheBottomSheet() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question"]
+        app.launch()
+        let sheet = app.descendants(matching: .any)["answer-sheet"]
+        XCTAssertTrue(sheet.waitForExistence(timeout: 15))
+        let choice = sheet.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "pot-answer-"
+        )).firstMatch
+        XCTAssertTrue(choice.exists, "Choices belong to the answer sheet")
+        XCTAssertTrue(choice.isHittable)
+        XCTAssertGreaterThan(choice.frame.minY, app.windows.firstMatch.frame.height * 0.6)
+    }
+
     func testPotMathChoiceCommitsExactlyOnceBeforeNext() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
