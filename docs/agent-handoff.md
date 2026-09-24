@@ -15,37 +15,14 @@ and final age-rating/territory decisions. Installation does not close these.
 The unrelated `.scratch/pot-calculation-redesign/` in the primary checkout and
 earlier verification worktrees remain preserved. Do not reset phone progress.
 
-## 2026-09-23 — Combined beginner native release
+## 2026-09-23 — Combined beginner native release (condensed 2026-09-24)
 
-- What changed: Implemented the approved combined scope in runtime `1f5cf33`:
-  Learn / Play / Progress, all 9 units / 18 concepts freely open, optional offline
-  starting-point check, Korean/English switching, fixed vertical opponent rows
-  with a stable habits sheet, accessible chart explorer, resumable five-question
-  practice and introductions, comparable progress, and four-player practice with
-  factual reviews and evidence-thresholded recent habits. Existing graded
-  heads-up learning remains separate. No accounts or network service were added.
-- Decisions and why: Recommendations guide without locking lessons. Placement
-  grants no mastery. Accuracy precedes optional speed; observed practice habits
-  are not personality or skill rankings. Four-seat play does not invent an EV
-  grade. Schema 2 preserves old records and original migration bytes.
-- Verification: Independent Class-3 review accepted `003f997`, then the final
-  compact-equity-only correction at `1f5cf33`. Package, app, UI, Release and
-  tooling gates passed. The bilingual/theme/text-size screenshot matrix and
-  targeted interaction checks are recorded in the
-  [delivery report](specs/2026-09-23-beginner-native-release.md).
-- Device: Installed Release 1.0 (4) in place on the owner's iPhone 12 mini.
-  All 9 old answers, 2 concept records, 1 node and streak fields survived schema
-  migration; the on-device schema-1 backup is byte-identical to the original.
-  Migrated progress stayed byte-identical after relaunch. No uninstall or reset.
-- Open issues: The human/distribution gates above remain. Very large local
-  histories still impose synchronous save latency; measured limits and synthetic
-  device benchmarks are documented. Local README assets are refreshed, but no
-  GitHub push, hosted-policy update or App Store submission occurred in this task.
-- Next step: Collect the owner's feedback on the installed combined flow,
-  especially optional placement, lesson freedom, opponent wording and complete
-  table hands. Read the delivery report and the prior learner-trust audit before
-  repeating investigations. Local raw evidence stays in
-  `.build/beginner-native-release/`; do not remove that worktree without archiving it.
+- Runtime `1f5cf33`: Learn / Play / Progress, 18 open concepts, optional
+  placement (grants no mastery), KO/EN, resumable practice, four-player Play
+  with factual reviews (no invented EV grade). Schema 2 keeps old records and
+  original migration bytes. Details: [delivery report](specs/2026-09-23-beginner-native-release.md).
+- Still open: the human/distribution gates above, and synchronous save latency
+  for very large local histories (limits documented in the report).
 
 ## 2026-09-23: Settings in bottom navigation
 
@@ -188,3 +165,18 @@ earlier verification worktrees remain preserved. Do not reset phone progress.
   screenshots, earlier phone-backup copies), despite the note above to archive
   first. No local snapshot exists; a Time Machine disk was not mounted. Commits,
   delivery records in `docs/specs/` and on-phone progress are unaffected.
+
+## 2026-09-24: Full-screen activities and the shared table (issue 02, part 1)
+
+- Branch `feat/shared-learning-table` (not pushed): `1d23978` opens lessons,
+  practice and review with `fullScreenCover`; `a8d5b4a` adds `TableSurface`
+  (owner-picked "Refined" look) for pot counting; `717f265` moves Play onto it.
+- Decisions: pot questions hide per-seat totals and start at the blind posts;
+  the centre shows the total only after the answer. Play keeps stacks and the
+  pot visible because they are public there. The Position 8-seat strip and the
+  graded heads-up `TableView` keep their own renderers for now.
+- Verified: new UI tests failed first and pass now; full app suite 48/48 UI plus
+  unit tests. KO dark screenshots at large and AX5 checked.
+- Open: EN/light screenshots, measured table bounds, heads-up `TableView`
+  decision. Issues 03 (first-use explanations) and 04 (assisted = practice)
+  are next. Record in `.scratch/consistent-learning-table/verification.md`.
