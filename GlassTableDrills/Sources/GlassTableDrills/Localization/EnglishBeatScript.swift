@@ -148,7 +148,17 @@ enum EnglishBeatScript {
         case .suited: kind = "One combination per suit gives 4 same-suit combinations."
         default: kind = "Two different ranks begin with 4 × 4 = 16 combinations."
         }
+        let meaning: String
+        switch s.kind {
+        case .pair: meaning = "\(s.className) means two \(rankName(s.rankA))s."
+        case .suited: meaning = "The s in \(s.className) means both cards share a suit."
+        default: meaning = "\(s.className) allows any suits."
+        }
+        let example = s.exampleCombo.map(\.display).joined(separator: " ")
         return [
+            Beat("A combo is one exact two-card hand an opponent could hold",
+                 detail: "\(meaning) Fix the suits, as in \(example), and you have one combo.",
+                 focus: .grid(s.exampleCombo)),
             Beat("Before visible cards", value: "\(s.className): \(s.baseline)", detail: kind),
             Beat("These cards are visible", value: s.removed.map(\.display).joined(separator: " · "),
                  focus: .grid(s.removed), highlight: s.removed),

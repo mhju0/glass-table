@@ -92,6 +92,7 @@ SCREENS=(
   "teach-showdown-b1:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=1"
   "teach-showdown-b3:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=3"
   "teach-showdown-b5:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=5"
+  "teach-combos-define:GT_DEMO_NODE=u1-combos GT_DEMO_BEAT=0"
   "teach-outs-grid:GT_DEMO_NODE=u2-outs GT_DEMO_BEAT=4"
   "teach-rfi-grid:GT_DEMO_NODE=u3-rfi GT_DEMO_BEAT=3"
   "teach-notation:GT_DEMO_NODE=u3-notation GT_DEMO_BEAT=2"

@@ -277,7 +277,12 @@ public enum BeatScript {
     public static func combos(_ s: BlockerSpot, language: LearningLanguage = .korean) -> [Beat] {
         if language == .english { return EnglishBeatScript.combos(s) }
         let removedNames = s.removed.map(\.display).joined(separator: "·")
+        let example = s.exampleCombo
         return [
+            Beat("콤보는 상대가 실제로 들 수 있는 두 장 한 쌍이에요",
+                 detail: comboMeaning(s) + " "
+                    + "\(example.map(\.display).joined(separator: " "))처럼 무늬까지 정하면 콤보 하나예요.",
+                 focus: .grid(example)),
             Beat("\(s.className)는 원래 \(s.baseline)가지예요",
                  detail: kindExplain(s.kind)),
             Beat("그런데 이 카드들이 보여요", detail: removedNames,
@@ -289,10 +294,18 @@ public enum BeatScript {
         ]
     }
 
+    private static func comboMeaning(_ s: BlockerSpot) -> String {
+        switch s.kind {
+        case .pair: return "\(s.className)는 \(rankName(s.rankA)) 두 장이라는 뜻이에요."
+        case .suited: return "\(s.className)의 s는 두 장의 무늬가 같다는 뜻이에요."
+        default: return "\(s.className)는 두 장의 무늬를 가리지 않아요."
+        }
+    }
+
     private static func kindExplain(_ kind: ComboKind) -> String {
         switch kind {
         case .pair: return "페어는 4장 중 2장을 고르니 6가지예요."
-        case .suited: return "수티드는 무늬마다 하나씩, 4가지예요."
+        case .suited: return "같은 무늬 두 장은 무늬마다 하나씩, 4가지예요."
         default: return "두 랭크를 짝지으면 4 × 4 = 16가지예요."
         }
     }
