@@ -226,3 +226,16 @@ blocks and flags line-count mismatch, last lines under 50% and in-word breaks.
   and expressions use it; literals, interpolated literals and `verbatim:` do not.
 - KO re-capture of records-empty, replay and teach-rangeread-stats: "100핸드",
   "8을" and "9%를" now stay on one line; the joiner renders invisibly.
+
+### Position intro give-aways fixed in the prototype, 2026-09-24
+
+- Owner decision: "rule, not result". `table('position', example)` no longer
+  outlines the button seat; it is outlined only after an answer. The expanded
+  order line keeps the full order before shared cards and gives only
+  "공용 카드 뒤: SB부터 시계 방향" / "After: clockwise from SB" afterwards
+  (Current and Refined).
+- Checked in Chrome at 375pt, refined design: the intro shows 0 outlined seats
+  in KO and EN; practice shows 0 before an answer and the button after one. The
+  order line wraps to 2 lines in both languages (last lines 61% KO, 55% EN).
+- Not run: `audit-lines.cjs` and `verify-browser.cjs` need `agent-browser`,
+  which is not installed on this Mac.

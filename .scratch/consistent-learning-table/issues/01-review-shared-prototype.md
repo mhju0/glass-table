@@ -1,6 +1,6 @@
 # Review the shared learning/table prototype
 
-Status: ready-for-human
+Status: resolved
 Type: prototype
 
 Build one interactive direction from the approved spec, not another palette
@@ -20,3 +20,9 @@ runtime and progress files are outside this task's write scope.
 2026-09-23: The [interactive prototype](../prototype/index.html) and
 [browser evidence](../verification.md) are ready.
 Review the shared table proportion and teaching interactions before native work.
+
+2026-09-24: Owner approved the prototype as the basis for native work (decision
+page). Position intro: owner chose "rule, not result": no seat is outlined in the
+example and the expanded order line gives only the rule after shared cards
+("SB부터 시계 방향" / "clockwise from SB"). The button is outlined only after
+the learner answers. Applied in `prototype/app.js`.

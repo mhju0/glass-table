@@ -1,6 +1,6 @@
 # Complete first-use explanations and contextual help
 
-Status: needs-triage
+Status: ready-for-agent
 Type: task
 Blocked by: 01
 
@@ -12,3 +12,7 @@ distinct from independent questions and preserve advanced practice access.
 Acceptance: a per-concept entry-route checklist, reviewed Korean/English copy,
 interactive worked examples, returning-user and language-switch behavior, and
 readable normal/AX5 layouts without filler space or unexplained abbreviations.
+
+## Comments
+
+2026-09-24: Owner scheduled this next (with 02, 03 and 04). Unblocked by 01.
