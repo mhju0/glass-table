@@ -162,6 +162,28 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["2/5"].waitForExistence(timeout: 5))
     }
 
+    func testGradedRevealSheetIsTintedByItsVerdict() {
+        let app = app()
+        app.launchEnvironment["GT_DEMO_SEED"] = "1"
+        app.launchEnvironment["GT_DEMO_NODE"] = "u2-potOdds"
+        app.launch()
+        let submit = app.buttons["Check answer"]
+        XCTAssertTrue(submit.waitForExistence(timeout: 15))
+        submit.tap()
+        let sheet = app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "graded-sheet-"
+        )).firstMatch
+        XCTAssertTrue(sheet.waitForExistence(timeout: 5))
+        let verdicts = ["graded-sheet-spotOn": "Exact", "graded-sheet-close": "Close",
+                        "graded-sheet-off": "Review this one"]
+        let expected = try? XCTUnwrap(verdicts[sheet.identifier])
+        XCTAssertNotNil(expected, "Unexpected sheet identifier \(sheet.identifier)")
+        let verdict = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label BEGINSWITH %@", expected ?? "-"
+        )).firstMatch
+        XCTAssertTrue(verdict.exists, "The tint must match the verdict shown")
+    }
+
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<10 {
             if element.exists && element.isHittable { return }

@@ -1,6 +1,6 @@
 # Tint every graded reveal sheet by its grade
 
-Status: ready-for-agent
+Status: done
 Type: task
 
 Drill reveals already show ✓/±/✗, words and a haptic in `VerdictRow`. Tint the

@@ -323,6 +323,18 @@ extension View {
         }
     }
 
+    /// A card that takes a graded verdict's tint and outline once there is one.
+    @ViewBuilder
+    func gtCard(radius: CGFloat, band: GradeBand?) -> some View {
+        if let band {
+            let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+            background(band.tint, in: shape)
+                .overlay(shape.strokeBorder(band.ink, lineWidth: 2))
+        } else {
+            gtCard(radius: radius)
+        }
+    }
+
 
     /// A quiet grouping directly on felt. Use it for supporting information that does
     /// not need to compete with the current task as an elevated card.

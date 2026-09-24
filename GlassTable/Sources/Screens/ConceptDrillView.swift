@@ -249,11 +249,20 @@ private func gradeHaptic(_ band: GradeBand) {
     UINotificationFeedbackGenerator().notificationOccurred(type)
 }
 
+/// A graded reveal reports its band so the sheet around it can take the verdict's tint.
+private struct GradedBandKey: PreferenceKey {
+    static let defaultValue: GradeBand? = nil
+    static func reduce(value: inout GradeBand?, nextValue: () -> GradeBand?) {
+        value = value ?? nextValue()
+    }
+}
+
 /// Every drill shares the same skeleton: felt content zone, cream answer sheet.
 private struct DrillShell<Content: View, Sheet: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @Environment(\.drillQuestionID) private var questionID
+    @State private var gradedBand: GradeBand?
     let title: String
     let progressText: String
     @ViewBuilder var content: () -> Content
@@ -268,7 +277,9 @@ private struct DrillShell<Content: View, Sheet: View>: View {
                         content().frame(maxWidth: .infinity, alignment: .leading)
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
                             .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-                            .gtCard(radius: GT.Radius.panel)
+                            .gtCard(radius: GT.Radius.panel, band: gradedBand)
+                            .accessibilityElement(children: .contain)
+                            .accessibilityIdentifier(sheetIdentifier)
                     }
                     .padding(.horizontal, 18).padding(.bottom, 28)
                 }
@@ -283,11 +294,19 @@ private struct DrillShell<Content: View, Sheet: View>: View {
                         }
                         .scrollBounceBehavior(.basedOnSize)
                     }
-                    ActionSheet { sheet() }.layoutPriority(1)
+                    ActionSheet(band: gradedBand) { sheet() }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier(sheetIdentifier)
+                        .layoutPriority(1)
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onPreferenceChange(GradedBandKey.self) { gradedBand = $0 }
+    }
+
+    private var sheetIdentifier: String {
+        gradedBand.map { "graded-sheet-\($0)" } ?? "answer-sheet"
     }
 
     private var header: some View {
@@ -382,6 +401,7 @@ private struct RevealSheet: View {
                 .accessibilityIdentifier("retry-answer-save")
             }
         }
+        .preference(key: GradedBandKey.self, value: band)
         .onAppear {
             saved = onCommit(DrillOutcome(band: band, interval: interval, evLoss: evLoss,
                                           submittedInput: submittedInput))
@@ -822,6 +842,7 @@ private struct PotMathRevealSheet: View {
                 }.frame(minHeight: 44)
             }
         }
+        .preference(key: GradedBandKey.self, value: reveal.band)
         .onAppear {
             saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
                                           submittedInput: submittedInput))
@@ -2054,6 +2075,7 @@ private struct EVLossRevealSheet: View {
             }
         }
         .accessibilityElement(children: .contain)
+        .preference(key: GradedBandKey.self, value: reveal.band)
         .onAppear {
             saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
                                           evLoss: reveal.grade.loss,
@@ -2476,6 +2498,7 @@ private struct DefendRevealSheet: View {
                 }.frame(minHeight: 44)
             }
         }
+        .preference(key: GradedBandKey.self, value: reveal.band)
         .onAppear {
             saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
                                           submittedInput: submittedInput))

@@ -1,6 +1,6 @@
 # Welcome, warm-up and graded feedback in the first run
 
-Status: in-progress
+Status: done
 Type: task
 
 Welcome and how-it-works screens come before the two example hands, now called
