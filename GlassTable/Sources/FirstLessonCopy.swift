@@ -7,22 +7,29 @@ import GlassTableDrills
 /// later without scattering the lesson script through its layout.
 enum FirstLessonCopy {
     enum Key {
-        case title, skip, close, exampleProgress, transferProgress, introductionProgress
+        case title, skip, close, exampleProgress, transferProgress
+        case welcomeTitle, welcomeBody, noMoney, noAccount, offline, startWelcome
         case exampleQuestion, transferQuestion, examplePrompt, transferPrompt, pairRule
         case sharedCards, heroCards, villainCards, choiceHint, selectWinnerHint
         case correctTitle, retryTitle, explanationTitle, higherPair, lowerPair
-        case tryTransfer, seeIntroduction, beginCourse, returnToLearning
-        case introductionTitle, introductionBody
+        case myPick, rightAnswer, pickCorrect, pickWrong
+        case tryTransfer, beginCourse, returnToLearning
+        case introductionTitle, introductionBody, warmUpNote, startWarmUp
     }
 
     static func text(_ key: Key, in language: LearningLanguage) -> String {
         switch key {
-        case .title: language.text(title, "Try your first hand")
-        case .skip: language.text(skip, "Skip")
+        case .title: language.text(title, "Getting started")
+        case .skip: language.text(skip, "Skip guide")
         case .close: language.text(close, "Close")
-        case .exampleProgress: language.text(exampleProgress, "Let's solve one together")
-        case .transferProgress: language.text(transferProgress, "Now choose on your own")
-        case .introductionProgress: language.text(introductionProgress, "You're ready for the lessons")
+        case .exampleProgress: language.text(exampleProgress, "Warm-up 1/2")
+        case .transferProgress: language.text(transferProgress, "Warm-up 2/2")
+        case .welcomeTitle: language.text(welcomeTitle, "Welcome to Glass Table")
+        case .welcomeBody: language.text(welcomeBody, "Learn Hold'em decisions one at a time, with cards and numbers.")
+        case .noMoney: language.text(noMoney, "No real money")
+        case .noAccount: language.text(noAccount, "No account")
+        case .offline: language.text(offline, "Works offline")
+        case .startWelcome: language.text(startWelcome, "Get started")
         case .exampleQuestion: language.text(exampleQuestion, "Which hand wins?")
         case .transferQuestion: language.text(transferQuestion, "Use the same rule with new cards")
         case .examplePrompt: language.text(examplePrompt, "The five cards in the middle are shared. Choose the stronger hand.")
@@ -38,29 +45,44 @@ enum FirstLessonCopy {
         case .explanationTitle: language.text(explanationTitle, "Why?")
         case .higherPair: language.text(higherPair, "Higher pair")
         case .lowerPair: language.text(lowerPair, "Lower pair")
+        case .myPick: language.text(myPick, "My answer")
+        case .rightAnswer: language.text(rightAnswer, "Correct")
+        case .pickCorrect: language.text(pickCorrect, "My answer, correct")
+        case .pickWrong: language.text(pickWrong, "My answer, wrong")
         case .tryTransfer: language.text(tryTransfer, "Try different cards")
-        case .seeIntroduction: language.text(seeIntroduction, "See how learning works")
         case .beginCourse: language.text(beginCourse, "Start the first lesson")
         case .returnToLearning: language.text(returnToLearning, "Back to Learn")
-        case .introductionTitle: language.text(introductionTitle, "Learn one decision at a time")
+        case .introductionTitle: language.text(introductionTitle, "How you'll learn")
         case .introductionBody: language.text(introductionBody, "Watch the reasoning, try with help, then solve a different hand on your own. Later, return to review what you learned.")
+        case .warmUpNote: language.text(warmUpNote, "Start with two quick warm-up questions.")
+        case .startWarmUp: language.text(startWarmUp, "Start the warm-up")
         }
     }
     static let title = String(localized: "firstLesson.title",
-                              defaultValue: "첫 문제 풀어보기",
-                              comment: "Title of the hands-on first lesson")
+                              defaultValue: "시작 안내",
+                              comment: "Title of the first-run guide")
     static let skip = String(localized: "firstLesson.action.skip",
-                             defaultValue: "건너뛰기",
-                             comment: "Skip the optional first lesson")
+                             defaultValue: "안내 건너뛰기",
+                             comment: "Skip the optional first-run guide")
     static let close = String(localized: "firstLesson.action.close",
                               defaultValue: "닫기",
                               comment: "Close a replay of the first lesson")
     static let exampleProgress = String(localized: "firstLesson.progress.example",
-                                        defaultValue: "하나만 같이 풀어봐요")
+                                        defaultValue: "워밍업 1/2")
     static let transferProgress = String(localized: "firstLesson.progress.transfer",
-                                         defaultValue: "이번에는 혼자 골라봐요")
-    static let introductionProgress = String(localized: "firstLesson.progress.introduction",
-                                             defaultValue: "이제 공부를 시작할 준비가 됐어요")
+                                         defaultValue: "워밍업 2/2")
+    static let welcomeTitle = String(localized: "firstLesson.welcome.title",
+                                     defaultValue: "Glass Table에 오신 걸 환영해요")
+    static let welcomeBody = String(localized: "firstLesson.welcome.body",
+                                    defaultValue: "홀덤의 결정을 한 번에 하나씩, 카드와 숫자로 배워요.")
+    static let noMoney = String(localized: "firstLesson.welcome.noMoney",
+                                defaultValue: "실제 돈 없음")
+    static let noAccount = String(localized: "firstLesson.welcome.noAccount",
+                                  defaultValue: "계정 없음")
+    static let offline = String(localized: "firstLesson.welcome.offline",
+                                defaultValue: "오프라인")
+    static let startWelcome = String(localized: "firstLesson.action.startWelcome",
+                                     defaultValue: "시작하기")
     static let exampleQuestion = String(localized: "firstLesson.example.question",
                                         defaultValue: "어느 쪽이 이길까요?")
     static let transferQuestion = String(localized: "firstLesson.transfer.question",
@@ -93,14 +115,24 @@ enum FirstLessonCopy {
                                   defaultValue: "더 낮은 원 페어")
     static let tryTransfer = String(localized: "firstLesson.action.tryTransfer",
                                     defaultValue: "다른 카드로 풀어보기")
-    static let seeIntroduction = String(localized: "firstLesson.action.seeIntroduction",
-                                        defaultValue: "앱 둘러보기")
+    static let myPick = String(localized: "firstLesson.feedback.myPick",
+                               defaultValue: "내 답")
+    static let rightAnswer = String(localized: "firstLesson.feedback.rightAnswer",
+                                    defaultValue: "정답")
+    static let pickCorrect = String(localized: "firstLesson.feedback.pickCorrect",
+                                    defaultValue: "내 답, 맞았어요")
+    static let pickWrong = String(localized: "firstLesson.feedback.pickWrong",
+                                  defaultValue: "내 답, 틀렸어요")
     static let beginCourse = String(localized: "firstLesson.action.beginCourse",
                                     defaultValue: "첫 레슨 시작")
     static let returnToLearning = String(localized: "firstLesson.action.returnToLearning",
                                          defaultValue: "학습 화면으로 돌아가기")
     static let introductionTitle = String(localized: "firstLesson.introduction.title",
-                                          defaultValue: "이렇게 한 결정씩 배워요")
+                                          defaultValue: "이렇게 배워요")
     static let introductionBody = String(localized: "firstLesson.introduction.body",
-                                         defaultValue: "풀이를 보고, 도움을 받으며 풀고, 다른 상황을 혼자 해결해요. 잊을 만할 때는 오늘 화면에서 다시 만나요.")
+                                         defaultValue: "풀이를 보고, 도움을 받으며 풀고, 다른 상황을 혼자 해결해요. 잊을 만할 때는 배우기 화면에서 다시 만나요.")
+    static let warmUpNote = String(localized: "firstLesson.introduction.warmUpNote",
+                                   defaultValue: "가볍게 몸풀기 문제 두 개로 시작해요.")
+    static let startWarmUp = String(localized: "firstLesson.action.startWarmUp",
+                                    defaultValue: "워밍업 시작")
 }

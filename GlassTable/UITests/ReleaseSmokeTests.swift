@@ -7,8 +7,8 @@ final class ReleaseSmokeTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launch()
-        if app.buttons["건너뛰기"].waitForExistence(timeout: 3) {
-            app.buttons["건너뛰기"].tap()
+        if app.buttons["안내 건너뛰기"].waitForExistence(timeout: 3) {
+            app.buttons["안내 건너뛰기"].tap()
         }
         XCTAssertTrue(app.tabBars.buttons["설정"].waitForExistence(timeout: 15))
         app.tabBars.buttons["설정"].tap()

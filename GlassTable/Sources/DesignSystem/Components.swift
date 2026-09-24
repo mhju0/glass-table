@@ -407,6 +407,9 @@ private struct GTChrome<V: View>: ViewModifier {
 /// The bottom action sheet. Rounded at the top, **bleeding to the bottom edge**, with
 /// a grabber so it reads as a sheet rather than a colour change.
 struct ActionSheet<Content: View>: View {
+    /// A graded result tints the whole sheet and outlines its top edge, so right and
+    /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
+    var band: GradeBand? = nil
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -422,10 +425,17 @@ struct ActionSheet<Content: View>: View {
         .padding(.bottom, 22)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
-            GlassBackground(shape: UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
-                                                          topTrailingRadius: GT.Radius.sheet,
-                                                          style: .continuous))
-                .ignoresSafeArea(edges: .bottom)
+            let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
+                                               topTrailingRadius: GT.Radius.sheet,
+                                               style: .continuous)
+            if let band {
+                shape.fill(band.tint)
+                    .overlay(shape.stroke(band.ink, lineWidth: 2))
+                    .ignoresSafeArea(edges: .bottom)
+            } else {
+                GlassBackground(shape: shape)
+                    .ignoresSafeArea(edges: .bottom)
+            }
         }
     }
 }

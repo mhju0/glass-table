@@ -248,6 +248,17 @@ final class AccessibilityFlowTests: XCTestCase {
             "GT_TEST_FIRST_LESSON": "1",
         ])
 
+        let start = app.buttons["시작하기"]
+        XCTAssertTrue(start.waitForExistence(timeout: 15))
+        XCTAssertTrue(scrollUntilHittable(start, in: app),
+                      "The welcome action must remain reachable at AX XXXL.")
+        start.tap()
+        let warmUp = app.buttons["워밍업 시작"]
+        XCTAssertTrue(warmUp.waitForExistence(timeout: 10))
+        XCTAssertTrue(scrollUntilHittable(warmUp, in: app),
+                      "The how-it-works action must remain reachable at AX XXXL.")
+        warmUp.tap()
+
         XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 15))
         let exampleAnswer = firstButton(prefix: "내 카드", in: app)
         XCTAssertTrue(scrollUntilHittable(exampleAnswer, in: app),
@@ -265,15 +276,9 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The transfer hand choice must remain reachable at AX XXXL.")
         transferAnswer.tap()
 
-        let seeIntroduction = app.buttons["앱 둘러보기"]
-        XCTAssertTrue(scrollUntilHittable(seeIntroduction, in: app),
-                      "The transfer explanation must remain scrollable at AX XXXL.")
-        seeIntroduction.tap()
-
-        XCTAssertTrue(app.staticTexts["이렇게 한 결정씩 배워요"].waitForExistence(timeout: 10))
         let beginCourse = app.buttons["첫 레슨 시작"]
         XCTAssertTrue(scrollUntilHittable(beginCourse, in: app),
-                      "The introduction and course entry must remain reachable at AX XXXL.")
+                      "The transfer explanation and course entry must remain reachable at AX XXXL.")
         beginCourse.tap()
 
         let firstStep = app.descendants(matching: .any)["walkthrough-step-0"]
