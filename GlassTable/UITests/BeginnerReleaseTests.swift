@@ -112,6 +112,29 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(second.label.contains("Very aggressive"), second.label)
     }
 
+    func testTwoPlayerTableSeatsOneComputer() {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Play"].tap()
+        app.buttons["play-free"].tap()
+        XCTAssertTrue(app.buttons["seat-style-3"].waitForExistence(timeout: 5))
+        app.buttons["2 players"].tap()
+        XCTAssertTrue(app.buttons["seat-style-1"].exists)
+        XCTAssertFalse(app.buttons["seat-style-2"].exists)
+        app.buttons["table-start"].tap()
+        let table = app.descendants(matching: .any)["practice-table"]
+        XCTAssertTrue(table.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Two-player practice"].exists)
+        func seat(_ n: Int) -> XCUIElement {
+            table.descendants(matching: .any)
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(n) · ")).firstMatch
+        }
+        XCTAssertTrue(seat(1).exists)
+        XCTAssertFalse(seat(2).exists)
+        XCTAssertFalse(seat(3).exists)
+    }
+
     func testLanguageSwitchInSettingsKeepsTheSavedLesson() {
         let app = app()
         let storeID = app.launchEnvironment["GT_TEST_STORE_ID"]!

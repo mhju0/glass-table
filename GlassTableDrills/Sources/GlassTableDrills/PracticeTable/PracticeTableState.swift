@@ -2,7 +2,8 @@
 import Foundation
 import GlassTableEngine
 
-/// Fixed-blind, four-seat practice. Seat zero is the learner. All money is integer chips.
+/// Fixed-blind practice for two to four seats: the learner plus one computer per style.
+/// Seat zero is the learner. All money is integer chips.
 public enum PracticeAction: Equatable, Sendable, Codable {
     case fold, check, call
     /// Total committed on this street, rather than an increment.
@@ -98,16 +99,18 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
     public var pot: Int { seats.reduce(0) { $0 + $1.committed } }
     public var learnerHole: [String] { seats[0].hole }
     public var visibleBoard: [String] { Array(board.prefix(revealedCount)) }
+    /// The learner plus one seat per computer style.
+    public var seatCount: Int { styles.count + 1 }
 
     /// Call after decoding an imported snapshot before it replaces live progress.
     public func validate() throws {
         let chipBound = Int.max / 64
         guard storedRulesVersion == Self.rulesVersion,
               storedPolicyVersion == Self.policyVersion,
-              styles.count == 3, styles.allSatisfy({ Archetype(rawValue: $0) != nil }),
-              seats.count == 4, refills.count == 4, needsAction.count == 4,
-              lastActedFacing.count == 4, startingStacks.count == 4,
-              (0..<4).contains(dealer), (0..<Int.max / 64).contains(handNumber),
+              (1...3).contains(styles.count), styles.allSatisfy({ Archetype(rawValue: $0) != nil }),
+              seats.count == seatCount, refills.count == seatCount, needsAction.count == seatCount,
+              lastActedFacing.count == seatCount, startingStacks.count == seatCount,
+              (0..<seatCount).contains(dealer), (0..<Int.max / 64).contains(handNumber),
               !handID.isEmpty,
               refills.allSatisfy({ (0...chipBound).contains($0) }),
               startingStacks.allSatisfy({ (1...chipBound).contains($0) }),
@@ -119,13 +122,13 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
                                 && (0...chipBound).contains($0.committed)
                                 && (0...$0.committed).contains($0.streetCommitted)
                                 && $0.hole.allSatisfy(deck.contains) }),
-              Set(seats.flatMap(\.hole)).count == 8,
+              Set(seats.flatMap(\.hole)).count == 2 * seatCount,
               Set(board).count == 5,
-              Set(seats.flatMap(\.hole) + board).count == 13,
+              Set(seats.flatMap(\.hole) + board).count == 2 * seatCount + 5,
               Set(appliedActionIDs).count == appliedActionIDs.count,
               (0...chipBound).contains(currentBet), (2...chipBound).contains(fullRaise),
               lastActedFacing.allSatisfy({ $0.map { (0...chipBound).contains($0) } ?? true }),
-              events.allSatisfy({ (0..<4).contains($0.seat) && (0...chipBound).contains($0.chips)
+              events.allSatisfy({ (0..<seatCount).contains($0.seat) && (0...chipBound).contains($0.chips)
                                   && !$0.id.isEmpty }),
               Set(events.map(\.id)).count == events.count
         else { throw PracticeTableError.invalidState }
@@ -136,7 +139,7 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
                   review?.settlementID == "\(handID)-settled",
                   stacks == initial else { throw PracticeTableError.invalidState }
         } else {
-            guard let currentSeat, (0..<4).contains(currentSeat), review == nil,
+            guard let currentSeat, (0..<seatCount).contains(currentSeat), review == nil,
                   stacks + pot == initial else { throw PracticeTableError.invalidState }
         }
         // Imported state must be reachable by the versioned rules, not merely add
@@ -145,7 +148,7 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
         replay.dealer = dealer
         replay.handNumber = handNumber
         replay.refills = refills
-        for seat in 0..<4 { replay.seats[seat].stack = startingStacks[seat] }
+        for seat in 0..<seatCount { replay.seats[seat].stack = startingStacks[seat] }
         replay.deal()
         guard events.count >= 2, Array(events.prefix(2)) == replay.events else {
             throw PracticeTableError.invalidState
@@ -159,18 +162,19 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
     }
 
     public init(seed: UInt64, styles: [Archetype] = [.tag, .station, .lag], handID: String = "hand-0") {
-        precondition(styles.count == 3, "Practice requires three bot styles")
+        precondition((1...3).contains(styles.count), "Practice seats one to three bots")
         self.seed = seed
         storedRulesVersion = Self.rulesVersion
         storedPolicyVersion = Self.policyVersion
         self.styles = styles.map(\.rawValue)
-        seats = (0..<4).map { _ in PracticeSeat(stack: 100) }
+        let count = styles.count + 1
+        seats = (0..<count).map { _ in PracticeSeat(stack: 100) }
         dealer = 0; handNumber = 0; self.handID = handID
         street = .preflop; board = []; currentSeat = nil; events = []; review = nil
-        refills = [0, 0, 0, 0]; appliedActionIDs = []
-        deck = []; needsAction = [false, false, false, false]
-        lastActedFacing = [nil, nil, nil, nil]; currentBet = 0; fullRaise = 2
-        startingStacks = [100, 100, 100, 100]
+        refills = Array(repeating: 0, count: count); appliedActionIDs = []
+        deck = []; needsAction = Array(repeating: false, count: count)
+        lastActedFacing = Array(repeating: nil, count: count); currentBet = 0; fullRaise = 2
+        startingStacks = Array(repeating: 100, count: count)
         revealedCount = 0
         deal()
     }
@@ -234,7 +238,7 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
         lastActedFacing[actor] = currentBet
         needsAction[actor] = false
         if currentBet > oldBet {
-            for i in 0..<4 where i != actor && mayAct(i) && seats[i].streetCommitted < currentBet {
+            for i in 0..<seatCount where i != actor && mayAct(i) && seats[i].streetCommitted < currentBet {
                 needsAction[i] = true
             }
         }
@@ -248,10 +252,10 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
         guard !newID.isEmpty else { throw PracticeTableError.invalidState }
         if newID == handID { return }
         guard street == .finished else { throw PracticeTableError.handStillRunning }
-        for i in 0..<4 where seats[i].stack == 0 {
+        for i in 0..<seatCount where seats[i].stack == 0 {
             seats[i].stack = 100; refills[i] += 100
         }
-        dealer = (dealer + 1) % 4; handNumber += 1; handID = newID
+        dealer = (dealer + 1) % seatCount; handNumber += 1; handID = newID
         deal()
     }
 
@@ -260,22 +264,25 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
         var cards = Deck.all
         cards.shuffle(using: &rng)
         deck = cards.map(\.description)
-        for i in 0..<4 {
+        let count = seatCount
+        for i in 0..<count {
             seats[i].hole = Array(deck[(i * 2)..<(i * 2 + 2)])
             seats[i].committed = 0; seats[i].streetCommitted = 0
             seats[i].folded = false; seats[i].enteredVoluntarily = false
             seats[i].raisedPreflop = false
         }
-        board = Array(deck[8..<13]); street = .preflop; review = nil; revealedCount = 0
+        board = Array(deck[(count * 2)..<(count * 2 + 5)]); street = .preflop; review = nil; revealedCount = 0
         events = []; appliedActionIDs = []; startingStacks = seats.map(\.stack)
-        needsAction = [true, true, true, true]
-        lastActedFacing = [nil, nil, nil, nil]
-        let sb = (dealer + 1) % 4, bb = (dealer + 2) % 4
+        needsAction = Array(repeating: true, count: count)
+        lastActedFacing = Array(repeating: nil, count: count)
+        // Heads-up, the button is the small blind and speaks first before the flop.
+        let sb = count == 2 ? dealer : (dealer + 1) % count
+        let bb = (sb + 1) % count
         postBlind(sb, amount: 1, label: "small blind")
         postBlind(bb, amount: 2, label: "big blind")
         currentBet = 2; fullRaise = 2
-        currentSeat = (dealer + 3) % 4
-        if !mayAct(currentSeat!) { progress(after: (currentSeat! + 3) % 4) }
+        currentSeat = (bb + 1) % count
+        if !mayAct(currentSeat!) { progress(after: (currentSeat! + count - 1) % count) }
     }
 
     /// Internal deterministic rules fixture; production starts every seat at 100.
@@ -318,15 +325,15 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
     private func canRaise(_ seat: Int) -> Bool {
         // A wager needs someone who can answer it. All-in seats may contest the
         // existing pot, but no additional chips can be wagered against them.
-        guard (0..<4).contains(where: { $0 != seat && mayAct($0) }) else { return false }
+        guard (0..<seatCount).contains(where: { $0 != seat && mayAct($0) }) else { return false }
         guard let seen = lastActedFacing[seat] else { return true }
         return currentBet - seen >= fullRaise
     }
 
     private mutating func progress(after actor: Int) {
-        let live = (0..<4).filter { !seats[$0].folded }
+        let live = (0..<seatCount).filter { !seats[$0].folded }
         if live.count == 1 { settle(); return }
-        if let next = (1...4).map({ (actor + $0) % 4 }).first(where: { needsAction[$0] && mayAct($0) }) {
+        if let next = (1...seatCount).map({ (actor + $0) % seatCount }).first(where: { needsAction[$0] && mayAct($0) }) {
             currentSeat = next; return
         }
         if street == .river { settle(); return }
@@ -337,13 +344,13 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
             case .turn: street = .river; revealedCount = 5
             case .river, .finished: settle(); return
             }
-            for i in 0..<4 { seats[i].streetCommitted = 0 }
+            for i in 0..<seatCount { seats[i].streetCommitted = 0 }
             currentBet = 0; fullRaise = 2
-            lastActedFacing = [nil, nil, nil, nil]
-            needsAction = (0..<4).map { mayAct($0) }
-            let active = (0..<4).filter { mayAct($0) }
+            lastActedFacing = Array(repeating: nil, count: seatCount)
+            needsAction = (0..<seatCount).map { mayAct($0) }
+            let active = (0..<seatCount).filter { mayAct($0) }
             if active.count > 1 {
-                currentSeat = (1...4).map({ (dealer + $0) % 4 }).first(where: { mayAct($0) })
+                currentSeat = (1...seatCount).map({ (dealer + $0) % seatCount }).first(where: { mayAct($0) })
                 return
             }
             if street == .river { settle(); return }
@@ -352,12 +359,12 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
 
     private mutating func settle() {
         let contributions = seats.map(\.committed)
-        var refunds = [Int](repeating: 0, count: 4)
-        var payouts = [Int](repeating: 0, count: 4)
+        var refunds = [Int](repeating: 0, count: seatCount)
+        var payouts = [Int](repeating: 0, count: seatCount)
         var pots: [PracticePot] = []
         var previous = 0
         for level in Set(contributions).filter({ $0 > 0 }).sorted() {
-            let contributors = (0..<4).filter { contributions[$0] >= level }
+            let contributors = (0..<seatCount).filter { contributions[$0] >= level }
             let amount = (level - previous) * contributors.count
             let eligible = contributors.filter { !seats[$0].folded }
             if contributors.count == 1 {
@@ -376,16 +383,16 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
                 let share = amount / winners.count
                 for winner in winners { payouts[winner] += share }
                 var remainder = amount % winners.count
-                for seat in (1...4).map({ (dealer + $0) % 4 }) where winners.contains(seat) && remainder > 0 {
+                for seat in (1...seatCount).map({ (dealer + $0) % seatCount }) where winners.contains(seat) && remainder > 0 {
                     payouts[seat] += 1; remainder -= 1
                 }
                 pots.append(PracticePot(amount: amount, eligibleSeats: eligible, winners: winners))
             }
             previous = level
         }
-        for i in 0..<4 { seats[i].stack += refunds[i] + payouts[i] }
+        for i in 0..<seatCount { seats[i].stack += refunds[i] + payouts[i] }
         let exposedBoard = visibleBoard
-        street = .finished; currentSeat = nil; needsAction = [false, false, false, false]
+        street = .finished; currentSeat = nil; needsAction = Array(repeating: false, count: seatCount)
         review = PracticeTableReview(settlementID: "\(handID)-settled", handID: handID,
                                      board: exposedBoard, holeCards: seats.map(\.hole),
                                      contributions: contributions, refunds: refunds,

@@ -1,8 +1,8 @@
 import SwiftUI
 import GlassTableDrills
 
-/// Seats a free table: one style per computer, chosen in place, then one start button
-/// at the bottom. The default seats three different styles so the first table already
+/// Seats a free table: two to four players, one style per computer chosen in place,
+/// then one start button at the bottom. The default seats three different styles so the first table already
 /// shows how differently people play.
 struct TableSetupView: View {
     @Environment(ProgressionModel.self) private var model
@@ -11,6 +11,7 @@ struct TableSetupView: View {
     @Environment(\.dismiss) private var dismiss
     let epoch: UUID
     @State private var styles: [Archetype] = [.nit, .station, .lag]
+    @State private var players = 4
     @State private var showGuide = false
     @State private var failure = false
 
@@ -20,13 +21,23 @@ struct TableSetupView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(language.text("테이블 만들기", "Set up the table")).font(GT.title(28))
-                        Text(language.text("컴퓨터마다 스타일을 골라요. 실력 순서는 아니에요.",
-                                           "Choose a style for each computer. Styles aren't difficulty levels."))
+                        Text(language.text("인원과 컴퓨터마다 스타일을 골라요. 실력 순서는 아니에요.",
+                                           "Choose how many play and each computer's style. Styles aren't difficulty levels."))
                             .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                             .lineSpacing(GT.Typography.bodyLineSpacing)
                     }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(language.text("인원", "Players")).font(GT.semibold(15))
+                        Picker(language.text("인원", "Players"), selection: $players) {
+                            ForEach(2...4, id: \.self) { count in
+                                Text(language.text("\(count)명", "\(count) players")).tag(count)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .accessibilityIdentifier("player-count")
+                    }
                     VStack(spacing: 10) {
-                        ForEach(0..<3, id: \.self) { seat in seatRow(seat) }
+                        ForEach(0..<(players - 1), id: \.self) { seat in seatRow(seat) }
                     }
                     Button { showGuide = true } label: {
                         TapCardLabel(title: language.text("스타일 자세히 보기", "About the styles"),
@@ -99,7 +110,8 @@ struct TableSetupView: View {
 
     private func start() {
         do {
-            if try model.startTable(seed: UInt64.random(in: 0..<UInt64.max), styles: styles,
+            if try model.startTable(seed: UInt64.random(in: 0..<UInt64.max),
+                                    styles: Array(styles.prefix(players - 1)),
                                     expectedEpoch: epoch) {
                 dismiss()
             } else if model.saveError == nil {
