@@ -92,6 +92,29 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["족보는 위에서부터 강해요"].waitForExistence(timeout: 3))
     }
 
+    /// A sheet would close on a downward swipe and leave the tabs peeking above it;
+    /// every activity entry is full screen and leaves only through its Close control.
+    func testActivitiesOpenFullScreenAndCloseOnlyFromClose() {
+        for entry in [["GT_DEMO_NODE": "u2-potOdds"], ["GT_DEMO_FREEPLAY": "1"], ["GT_DEMO_REVIEW": "1"]] {
+            let app = XCUIApplication()
+            app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+            app.launchEnvironment = entry.merging(["GT_TEST_STORE_ID": UUID().uuidString,
+                                                   "GT_TEST_FIRST_LESSON": "0"]) { current, _ in current }
+            app.launch()
+            let close = app.buttons["닫기"]
+            XCTAssertTrue(close.waitForExistence(timeout: 15), "\(entry)")
+            let top = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08))
+            top.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
+            XCTAssertTrue(close.waitForExistence(timeout: 3) && close.isHittable,
+                          "A downward swipe must not dismiss \(entry)")
+            XCTAssertFalse(app.tabBars.buttons["배우기"].isHittable, "\(entry) must cover the tabs")
+            close.tap()
+            XCTAssertTrue(app.tabBars.buttons["배우기"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.tabBars.buttons["배우기"].isHittable, "\(entry) must close from Close")
+            app.terminate()
+        }
+    }
+
     func testIndependentLessonReachesSummaryAfterFiveAnswers() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
