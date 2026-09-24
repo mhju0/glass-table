@@ -102,6 +102,18 @@ enum GT {
     static let onTableMuted = Color(hex: 0xA8BBB4)
     static let tableAccent = Color(hex: 0xEDC17F)
     static let onTableAccent = Color(hex: 0x241B0E)
+    /// The shared table's material: a rail darker than the felt, seats as darker
+    /// areas of it, and ivory chips. Only cards, chips and the dealer disc cast shadows.
+    static let tableRail = Color(hex: 0x0D2A20)
+    static let tableSeat = Color(hex: 0x123A2D)
+    static let tableSeatLine = Color(hex: 0x2A5646)
+    static let tableSeatActive = Color(hex: 0xF3CA87)
+    static let tableStatus = Color(hex: 0xCFDAD2)
+    static let chipTop = Color(hex: 0xF2ECDD)
+    static let chipSide = Color(hex: 0xD6CCB4)
+    static let chipEdge = Color(hex: 0x2F3B40)
+    static let cardBack = Color(hex: 0x2C3A42)
+    static let cardBackLine = Color(hex: 0xE9E2CF)
 
     /// Existing card backs remain part of the fixed table object.
     static let feltDeep = tableFeltDeep

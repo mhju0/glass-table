@@ -575,7 +575,15 @@ private struct PotMathDrill: View {
         #endif
         let spot = Self.makeSpot(seed: seed, index: index, environment: environment)
         self.spot = spot
-        _stepIndex = State(initialValue: max(0, spot.replaySteps.count - 1))
+        // Every question starts at the blind posts: the seats carry no totals, so
+        // opening at the last action would hide the hand the learner has to count.
+        #if DEBUG
+        let opensAtLastAction = environment["GT_DEMO_POT_STATE"] == "question"
+            || environment["GT_DEMO_POT_STATE"] == "reveal"
+        #else
+        let opensAtLastAction = false
+        #endif
+        _stepIndex = State(initialValue: opensAtLastAction ? max(0, spot.replaySteps.count - 1) : 0)
 
         #if DEBUG
         let storeSuffix = environment["GT_TEST_STORE_ID"] ?? "shared"
@@ -636,7 +644,8 @@ private struct PotMathDrill: View {
                             }
                         }
 
-                        PotMathReplayView(spot: spot, stepIndex: $stepIndex) {
+                        PotMathReplayView(spot: spot, stepIndex: $stepIndex,
+                                          revealedPot: reveal == nil ? nil : spot.pot) {
                             showingHelp = true
                         }
 
@@ -667,7 +676,7 @@ private struct PotMathDrill: View {
             }
         }
         .onChange(of: index) { _, _ in
-            stepIndex = max(0, spot.replaySteps.count - 1)
+            stepIndex = 0
             reveal = nil
             restoreReplayDraft()
         }

@@ -365,7 +365,7 @@ private struct RestoredDrillContextView: View {
             let spot = PotMathSpotGenerator.spot(baseSeed: seed, index: index)
             Text(language.text("팟 계산", "Count the pot"))
                 .font(GT.title(18)).foregroundStyle(GT.onFelt)
-            PotMathReplayView(spot: spot, stepIndex: $potStepIndex) {
+            PotMathReplayView(spot: spot, stepIndex: $potStepIndex, revealedPot: spot.pot) {
                 showingPotHelp = true
             }
             .onAppear { potStepIndex = max(0, spot.replaySteps.count - 1) }
