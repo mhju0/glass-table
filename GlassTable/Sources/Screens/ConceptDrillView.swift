@@ -763,7 +763,7 @@ private struct PotMathDrill: View {
             Button(language.text("직접 세기", "Keep counting"), role: .cancel) {}
         } message: {
             Text(language.text("이 문제는 도움 받은 연습으로 기록돼요.",
-                               "This question will count as practice with help."))
+                               "This counts as practice with help."))
         }
         .sheet(isPresented: $showingHelp) {
             NavigationStack {

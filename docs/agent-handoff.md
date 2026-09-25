@@ -108,3 +108,22 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
 - Not verified: the real permission dialog, delivery of a notification, the share sheet
   and the review dialog (system UI; unit tests cover the request and the gates).
 - Next: step 5 needs the owner (support Gmail, Team ID); then the step 6 matrix.
+
+## 2026-09-26: Phase 2 — step 6 verification (device matrix, audit, iPad)
+
+- Sweep matrix on 12 mini, SE 3rd gen (sim "Audit SE3", iOS 26.5), 17, Air, 18 Pro Max,
+  KO and EN, large and AX5: all 102 screens captured on every run. AX5 review on the
+  375-pt phones found mid-word breaks in this phase's code; fixed by stacking at
+  accessibility sizes: Hold'em basics header (Close above title), pot-math help buttons,
+  Play table header (`isAccessibilitySize` instead of `ViewThatFits`, which XCTest's audit
+  flagged as partial Dynamic Type support). Two EN lines shortened for line parity.
+- New `AccessibilityAuditTests`: XCTest audit on Play, a lesson question, the lesson
+  summary with a milestone and Settings (scrolled and not). Contrast is excluded because
+  its findings follow text scrolled under the translucent tab bar.
+- iPad: the app is iPhone-only and runs in compatibility mode; first run, a lesson and
+  Settings render correctly on iPad mini (iPadOS 26 window).
+- Open, not fixed (owner call): single words wider than the screen at AX5 still break
+  ("Play responsibly", and older "Welcome", "Selective", "Opponent", "combinations");
+  Free practice list is Korean-only in English; tab-bar contrast; older KO/EN line-parity
+  flags. Not verified: iOS 17 runtime (not installed), VoiceOver by hand, TestFlight.
+- Next: owner inputs (support Gmail, Team ID, iOS 17 test route).

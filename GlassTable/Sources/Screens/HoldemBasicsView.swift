@@ -82,24 +82,41 @@ struct HoldemBasicsView: View {
     // MARK: Header
 
     private var header: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(language.text("홀덤 기초", "Hold'em basics"))
-                    .font(GT.title(22)).foregroundStyle(GT.onFelt)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text("\(page.rawValue + 1)/\(pageCount)")
-                    .font(GT.body(13).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
-                    .accessibilityLabel(language.text("\(pageCount)쪽 중 \(page.rawValue + 1)쪽",
-                                                      "Page \(page.rawValue + 1) of \(pageCount)"))
+        Group {
+            // Beside Close, the title breaks mid-word at accessibility sizes, so Close goes above it.
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    closeButton.frame(maxWidth: .infinity, alignment: .trailing)
+                    headerTitle
+                }
+            } else {
+                HStack(alignment: .center) {
+                    headerTitle.frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer(minLength: 12)
+                    closeButton
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Spacer(minLength: 12)
-            Button(language.text("닫기", "Close"), action: onClose)
-                .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-                .frame(minWidth: 44, minHeight: 44)
-                .accessibilityIdentifier("basics.close")
         }
         .padding(.horizontal, 18).padding(.vertical, 10)
+    }
+
+    private var headerTitle: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(language.text("홀덤 기초", "Hold'em basics"))
+                .font(GT.title(22)).foregroundStyle(GT.onFelt)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("\(page.rawValue + 1)/\(pageCount)")
+                .font(GT.body(13).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
+                .accessibilityLabel(language.text("\(pageCount)쪽 중 \(page.rawValue + 1)쪽",
+                                                  "Page \(page.rawValue + 1) of \(pageCount)"))
+        }
+    }
+
+    private var closeButton: some View {
+        Button(language.text("닫기", "Close"), action: onClose)
+            .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+            .frame(minWidth: 44, minHeight: 44)
+            .accessibilityIdentifier("basics.close")
     }
 
     // MARK: Pages

@@ -8,6 +8,7 @@ import GlassTableDrills
 /// learner opts into: each seat shows what it has paid so far, and the question then
 /// counts as practice with help.
 struct PotMathReplayView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.learningLanguage) private var language
 
@@ -27,8 +28,11 @@ struct PotMathReplayView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Spacer(minLength: 0)
+            // Side by side the two help buttons break words at accessibility sizes.
+            (dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .trailing, spacing: 8))
+                : AnyLayout(HStackLayout(spacing: 8))) {
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 if let showTotals, !showsPaidTotals {
                     helpButton(language.text("합계 보기", "Show totals"), symbol: "sum",
                                action: showTotals)
@@ -37,6 +41,7 @@ struct PotMathReplayView: View {
                 helpButton(language.text("계산 방법", "How to count"),
                            symbol: "questionmark.circle", action: showHelp)
             }
+            .frame(maxWidth: .infinity, alignment: .trailing)
             TableSurface(seats: seats,
                          center: TableCenter(potTotal: revealedPot.map {
                              language.text("\($0)칩", englishChips($0))

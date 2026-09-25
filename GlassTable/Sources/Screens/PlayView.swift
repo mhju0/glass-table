@@ -5,6 +5,7 @@ import GlassTableEngine
 struct PlayView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var failure = false
     @State private var revealAllCards = false
     @State private var raiseAmount = 0.0
@@ -34,17 +35,15 @@ struct PlayView: View {
                 VStack(alignment: .leading, spacing: 22) {
                     Text(language.text("플레이", "Play")).font(GT.title(30))
                     if let table = model.state.tableState {
-                        // The title keeps one line beside the controls when it fits;
-                        // otherwise it takes its own row and wraps between words.
-                        ViewThatFits(in: .horizontal) {
-                            HStack {
-                                tableTitleText(table).fixedSize()
-                                tableHeaderControls(table)
-                            }
+                        // At accessibility sizes the title takes its own row, so it
+                        // wraps between words instead of squeezing beside the controls.
+                        if typeSize.isAccessibilitySize {
                             VStack(alignment: .leading, spacing: 4) {
-                                tableTitleText(table).fixedSize(horizontal: false, vertical: true)
+                                tableTitleText(table)
                                 HStack { tableHeaderControls(table) }
                             }
+                        } else {
+                            HStack { tableTitleText(table); tableHeaderControls(table) }
                         }
                         tableDiagram(table)
                         if let review = table.review {
@@ -183,7 +182,6 @@ struct PlayView: View {
         Spacer()
         Text(language.text("\(table.handNumber + 1)번째 핸드", "Hand \(table.handNumber + 1)"))
             .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-            .fixedSize()
     }
 
     private func tableTitle(_ players: Int) -> String {

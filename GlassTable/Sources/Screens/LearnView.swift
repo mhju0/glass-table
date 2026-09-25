@@ -91,7 +91,7 @@ struct LearnView: View {
                 FeltCTAButton(title: language.text("복습 \(min(5, due.count))개 시작", "Review \(min(5, due.count)) topics"), action: onOpenReview)
             } else if model.shouldSuggestBasicsLesson {
                 Text(language.text("홀덤 기초", "Hold'em basics")).font(GT.title(24))
-                Text(language.text("카드가 나오는 순서와 족보부터 알아봐요.", "Start with how cards are dealt and what beats what."))
+                Text(language.text("카드가 나오는 순서와 족보부터 알아봐요.", "Start with the deal and hand rankings."))
                     .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                 FeltCTAButton(title: language.text("레슨 시작", "Start lesson"), action: onOpenBasics)
                     .accessibilityIdentifier("learn-basics-start")
