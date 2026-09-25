@@ -19,7 +19,7 @@ phase can run in parallel.
 | Business model | A free download plus one ₩9,900 / $6.99 unlock, with no ads. **1.0 launches free**. The unlock comes in 1.1, after Korean business registration. |
 | Beta | One week of internal TestFlight, then 10–20 invited beginners. |
 | Security | Fix audit findings #1 (live privacy page) and #2 (personal email) before submitting. #3 and #4 come later. |
-| Push `feat/shared-learning-table` | After the owner has used build 9 for a day, and only on their "yes, push" in chat. |
+| Push `feat/shared-learning-table` | Done 2026-09-25 on the owner's "yes push everything": merged to `main` as PR #6. |
 | Support contact | A new Gmail used only for the app. |
 | Device testing | A five-phone matrix plus the iOS 17 runtime (Phase 3). |
 
@@ -27,8 +27,12 @@ phase can run in parallel.
 
 1. **GRAC rating for Korea.** The owner chose 18+ / frequent, so the Korean storefront needs a
    GRAC Rating Classification Number (RCN): an application to the GRAC,
-   about 10–15 days, with a fee. If the RCN is late, the US launches first and Korea
-   follows. The counsel consult (open question #11) is skipped.
+   about 10–15 days, with a fee (use the GRAC fee calculator). The application goes
+   through grac.or.kr → 등급분류신청 and needs a content description, the build and a gameplay
+   video. It may also need a business registration certificate; confirm by calling GRAC.
+   From 2026-10-01, stores can self-rate adults-only mobile games, but gambling-like
+   games reportedly stay excluded, so plan on GRAC anyway. If the RCN is late, the US
+   launches first and Korea follows. The counsel consult (open question #11) is skipped.
 2. **Support Gmail.** It goes in Settings' feedback link, the privacy policy, the
    support page and App Store Connect. In Korea, Apple shows this email on the product
    page for every individual developer, even for free apps.
@@ -40,9 +44,12 @@ phase can run in parallel.
    record: bundle ID `com.michaelju.glasstable`, name reservation, and Korean-law
    compliance email verification.
 6. **Name check.** Search "Glass Table" and "포커 배우기" in KIPRIS and USPTO.
-7. **For 1.1, not blocking 1.0:** 사업자등록 (simplified tier) on 홈택스, a single
-   consult with a tax accountant, then the Paid Apps Agreement, W-8BEN, Korean tax forms
-   and bank account.
+7. **For 1.1, not blocking 1.0, and done by the owner without an accountant:** 사업자등록 on
+   홈택스, industry code 722000 or the closest match found in 홈택스's industry-code search.
+   In the Seoul area, 722000 is reportedly excluded from the simplified tier
+   (간이과세), so expect a general taxpayer (일반과세자). Questions go to the 국세청 126
+   call centre. Then the Paid Apps Agreement, W-8BEN, Korean tax forms and bank
+   account. Earlier if GRAC requires a business registration.
 
 ## Phase 2 — 1.0 code work
 
