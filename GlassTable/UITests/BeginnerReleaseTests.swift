@@ -112,6 +112,21 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(second.label.contains("Very aggressive"), second.label)
     }
 
+    func testSettingsListsProblemGamblingHelplines() {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Settings"].tap()
+        let row = app.buttons["settings-responsible"]
+        for _ in 0..<4 where !row.isHittable { app.swipeUp() }
+        row.tap()
+        XCTAssertTrue(app.staticTexts["Play responsibly"].waitForExistence(timeout: 5))
+        let korea = app.descendants(matching: .any)["helpline-kr"]
+        let us = app.descendants(matching: .any)["helpline-us"]
+        XCTAssertTrue(korea.label.contains("1336"), korea.label)
+        XCTAssertTrue(us.label.contains("1-800-GAMBLER"), us.label)
+    }
+
     func testTwoPlayerTableSeatsOneComputer() {
         let app = app()
         app.launch()
@@ -120,6 +135,8 @@ final class BeginnerReleaseTests: XCTestCase {
         app.buttons["play-free"].tap()
         XCTAssertTrue(app.buttons["seat-style-3"].waitForExistence(timeout: 5))
         app.buttons["2 players"].tap()
+        XCTAssertTrue(app.buttons["player-count-2"].isSelected)
+        XCTAssertFalse(app.buttons["player-count-4"].isSelected)
         XCTAssertTrue(app.buttons["seat-style-1"].exists)
         XCTAssertFalse(app.buttons["seat-style-2"].exists)
         app.buttons["table-start"].tap()

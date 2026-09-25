@@ -242,6 +242,23 @@ final class AccessibilityFlowTests: XCTestCase {
         add(attachment)
     }
 
+    func testTableSetupPlayerCountStacksAndStaysReachableAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_TEST_FIRST_LESSON": "0",
+            "GT_DEMO_TAB": "play",
+            "GT_DEMO_PLAY_SETUP": "1",
+        ])
+        let two = app.buttons["player-count-2"]
+        XCTAssertTrue(scrollUntilHittable(two, in: app))
+        let three = app.buttons["player-count-3"]
+        XCTAssertGreaterThan(three.frame.minY, two.frame.maxY,
+                             "At accessibility sizes the counts stack instead of squeezing into three columns.")
+        two.tap()
+        XCTAssertTrue(two.isSelected)
+        XCTAssertFalse(app.buttons["seat-style-2"].exists)
+    }
+
     func testFirstLessonReachesCourseAtAccessibilityXXXL() {
         let app = launch(environment: [
             "GT_TEST_STORE_ID": UUID().uuidString,

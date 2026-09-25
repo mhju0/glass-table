@@ -227,6 +227,10 @@ struct FirstLessonView: View {
             }
             .padding(18).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
+            Text(copy(.responsibleNote))
+                .font(GT.body(13)).foregroundStyle(GT.onFeltMuted)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("introduction-responsible")
             Spacer(minLength: 0)
         }
     }

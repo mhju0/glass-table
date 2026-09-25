@@ -65,3 +65,18 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
   privacy/support pages, enrolment) is owner work.
 - Next: the Phase 2 code items, each with a `.scratch/` spec first. Start with the Hold'em
   basics and hand-rankings lesson.
+
+## 2026-09-25: Phase 2 — basics lesson and small fixes
+
+- Hold'em basics lesson shipped (c8abfd0; spec `.scratch/holdem-basics/spec.md`). The
+  engine recount showed high card (17.4%) is rarer than one pair and two pair, so the copy
+  says "rarer usually ranks higher, except high card" instead of "rarer = stronger".
+- Small fixes: table setup's player count uses the app's choice buttons (amber selection;
+  the grey system segment was unreadable in dark mode) and stacks at accessibility sizes;
+  Settings row "책임감 있게 이용하기 / Play responsibly" opens helplines (Korea 1336,
+  US 1-800-GAMBLER, tappable); one sentence on the welcome guide's second page; product
+  brief no longer says "free forever".
+- Position intro leaks: the native app has no Position intro table yet, so the owner's
+  "rule, not result" example is applied when issue 03 builds first-use explanations.
+- Open: AGENTS.md still lists "purchases" as excluded; that conflicts with the 1.1 unlock
+  and is the owner's call to edit. Next: issues 03 and 04.

@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showFirstLesson = false
     @State private var showPlacement = false
     @State private var showLicense = false
+    @State private var showResponsible = false
     @State private var backup: BackupDocument?
     @State private var exportingBackup = false
     @State private var importingBackup = false
@@ -196,6 +197,13 @@ struct SettingsView: View {
                 }
                 .gtCard(radius: 20)
                 VStack(spacing: 0) {
+                    Button { showResponsible = true } label: {
+                        row("heart.text.square", language.text("책임감 있게 이용하기", "Play responsibly"),
+                            language.text("도박 문제 상담 번호", "Problem-gambling helplines"), chevron: true)
+                    }
+                    .buttonStyle(GTPress())
+                    .accessibilityIdentifier("settings-responsible")
+                    Divider().padding(.leading, 56)
                     Link(destination: Self.feedbackURL) {
                         row("envelope.fill", language.text("피드백 보내기", "Send feedback"),
                             language.text("버그·아이디어를 메일로", "Email a bug or idea."),
@@ -239,6 +247,7 @@ struct SettingsView: View {
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
         .sheet(isPresented: $showPlacement) { NavigationStack { PlacementView() } }
         .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }
+        .sheet(isPresented: $showResponsible) { NavigationStack { ResponsiblePlayView() } }
         .fullScreenCover(isPresented: $showFirstLesson) {
             FirstLessonView(context: .replay,
                             onFinish: { showFirstLesson = false },
@@ -286,6 +295,9 @@ struct SettingsView: View {
             }
             if ProcessInfo.processInfo.environment["GT_DEMO_GUIDE"] != nil {
                 showGuide = true
+            }
+            if ProcessInfo.processInfo.environment["GT_DEMO_RESPONSIBLE"] != nil {
+                showResponsible = true
             }
             #endif
         }
@@ -339,6 +351,73 @@ struct SettingsView: View {
         }
         .padding(16)
         .contentShape(Rectangle())
+    }
+}
+
+/// Helplines for anyone for whom gambling has become a problem. The app itself never
+/// takes money; this page exists because poker is gambling elsewhere.
+private struct ResponsiblePlayView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.learningLanguage) private var language
+
+    private struct Helpline: Identifiable {
+        let id: String
+        let region: (ko: String, en: String)
+        let number: String
+        let url: URL
+    }
+
+    private let helplines = [
+        Helpline(id: "kr", region: ("한국", "Korea"), number: "1336",
+                 url: URL(string: "tel:1336")!),
+        Helpline(id: "us", region: ("미국", "United States"), number: "1-800-GAMBLER",
+                 url: URL(string: "tel:18004262537")!),
+    ]
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(language.text("책임감 있게 이용하기", "Play responsibly"))
+                    .font(GT.title(26)).foregroundStyle(GT.onFelt)
+                Text(language.text("Glass Table은 포커를 배우는 앱이에요. 실제 돈을 걸 수 없고, 칩은 연습용이에요.",
+                                   "Glass Table teaches poker. You can't bet real money here; the chips are for practice."))
+                    .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(language.text("도박 때문에 힘들다면 혼자 버티지 말고 상담을 받아 보세요.",
+                                   "If gambling is hurting you or someone close, talk to someone."))
+                    .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
+                VStack(spacing: 0) {
+                    ForEach(helplines) { line in
+                        if line.id != helplines.first?.id { Divider().padding(.leading, 16) }
+                        Link(destination: line.url) {
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(language.text(line.region.ko, line.region.en))
+                                        .font(GT.body(13)).foregroundStyle(GT.inkMuted)
+                                    Text(line.number).font(GT.semibold(18)).foregroundStyle(GT.ink)
+                                }
+                                Spacer()
+                                Image(systemName: "phone.fill")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(GT.green)
+                            }
+                            .padding(16).contentShape(Rectangle())
+                        }
+                        .buttonStyle(GTPress())
+                        .accessibilityLabel(language.text("\(line.region.ko) 상담 \(line.number)에 전화",
+                                                          "Call \(line.region.en) helpline \(line.number)"))
+                        .accessibilityIdentifier("helpline-\(line.id)")
+                    }
+                }
+                .gtCard(radius: 20)
+            }
+            .padding(24)
+        }
+        .background(FeltBackground())
+        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
     }
 }
 

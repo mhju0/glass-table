@@ -28,12 +28,21 @@ struct TableSetupView: View {
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         Text(language.text("인원", "Players")).font(GT.semibold(15))
-                        Picker(language.text("인원", "Players"), selection: $players) {
+                        // App choice buttons rather than the system segmented control,
+                        // whose grey selection nearly vanished on the dark page.
+                        let countLayout = typeSize.isAccessibilitySize
+                            ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+                        countLayout {
                             ForEach(2...4, id: \.self) { count in
-                                Text(language.text("\(count)명", "\(count) players")).tag(count)
+                                GTChoiceButton(title: language.text("\(count)명", "\(count) players"),
+                                               selected: players == count, minHeight: 44) {
+                                    players = count
+                                }
+                                .accessibilityAddTraits(players == count ? .isSelected : [])
+                                .accessibilityIdentifier("player-count-\(count)")
                             }
                         }
-                        .pickerStyle(.segmented)
+                        .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("player-count")
                     }
                     VStack(spacing: 10) {
