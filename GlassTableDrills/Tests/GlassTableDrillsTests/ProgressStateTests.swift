@@ -69,7 +69,16 @@ final class ProgressStateTests: XCTestCase {
         let state = try JSONDecoder().decode(ProgressState.self, from: json)
 
         XCTAssertNil(state.firstLessonCompleted)
+        XCTAssertNil(state.basicsLessonCompleted)
         XCTAssertEqual(state.schemaVersion, 1)
+    }
+
+    func testBasicsLessonMarkerSurvivesEncoding() throws {
+        var s = ProgressState()
+        s.basicsLessonCompleted = true
+        let data = try JSONEncoder().encode(s)
+        XCTAssertTrue(String(decoding: data, as: UTF8.self).contains("\"basicsLessonCompleted\":true"))
+        XCTAssertEqual(try JSONDecoder().decode(ProgressState.self, from: data).basicsLessonCompleted, true)
     }
 
     func testIntervalKnowsWhetherItContainedTheTruth() {

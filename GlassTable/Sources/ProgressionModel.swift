@@ -217,6 +217,20 @@ final class ProgressionModel {
         _ = commit { $0.firstLessonCompleted = true }
     }
 
+    /// Learn leads with the basics lesson only for someone who has not started the
+    /// course: nothing cleared, no starting-point recommendation, lesson unfinished.
+    var shouldSuggestBasicsLesson: Bool {
+        state.basicsLessonCompleted != true
+            && state.placement?.recommendedConcept == nil
+            && !Curriculum.allNodes.contains { status(of: $0) == .cleared }
+    }
+
+    /// Like the first lesson, the basics lesson is practice: finishing it writes only
+    /// its marker.
+    func completeBasicsLesson() {
+        _ = commit { $0.basicsLessonCompleted = true }
+    }
+
     // MARK: - beginner sessions and durable summaries
 
     /// A new round never replaces an unfinished round by accident.

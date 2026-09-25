@@ -132,6 +132,9 @@ public struct ProgressState: Codable, Equatable, Sendable {
     /// existing schema-1 backups decode without a migration; historical activity is
     /// handled by the app and also suppresses the introduction.
     public var firstLessonCompleted: Bool?
+    /// The ungraded Hold'em basics lesson. `nil` means not finished yet, which is also
+    /// how every file written before the lesson existed reads.
+    public var basicsLessonCompleted: Bool?
     /// Monotonic for each local snapshot. Reset/import changes the model epoch too.
     public var revision: Int
     public var detailedTrackingStartedAt: Date?
@@ -161,7 +164,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
                 recentEvidence: [PracticeEvidence] = [],
                 tableState: PracticeTableState? = nil,
                 recentHands: [PracticeHandObservation] = [],
-                processedAttemptIDs: Set<String> = []) {
+                processedAttemptIDs: Set<String> = [],
+                basicsLessonCompleted: Bool? = nil) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
         self.nodes = nodes; self.streak = streak; self.answers = answers
         self.firstLessonCompleted = firstLessonCompleted
@@ -174,6 +178,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         self.dailySummaries = dailySummaries; self.recentEvidence = recentEvidence
         self.tableState = tableState; self.recentHands = recentHands
         self.processedAttemptIDs = processedAttemptIDs
+        self.basicsLessonCompleted = basicsLessonCompleted
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -181,7 +186,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case revision, detailedTrackingStartedAt, introducedConcepts, placement
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands
-        case processedAttemptIDs
+        case processedAttemptIDs, basicsLessonCompleted
     }
 
     public init(from decoder: Decoder) throws {
@@ -212,6 +217,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
                                             forKey: .recentHands) ?? []
         processedAttemptIDs = try c.decodeIfPresent(Set<String>.self,
                                                     forKey: .processedAttemptIDs) ?? []
+        basicsLessonCompleted = try c.decodeIfPresent(Bool.self, forKey: .basicsLessonCompleted)
     }
 
     public func record(for concept: Concept) -> ConceptRecord {

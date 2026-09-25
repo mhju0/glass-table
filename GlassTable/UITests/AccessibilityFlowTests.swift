@@ -281,6 +281,22 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The transfer explanation and course entry must remain reachable at AX XXXL.")
         beginCourse.tap()
 
+        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 10))
+        let next = app.buttons["basics.next"]
+        for _ in 0..<6 {
+            XCTAssertTrue(scrollUntilHittable(next, in: app),
+                          "Every basics step must remain reachable at AX XXXL.")
+            next.tap()
+        }
+        let choice = app.buttons["basics.choice.flush"]
+        XCTAssertTrue(scrollUntilHittable(choice, in: app),
+                      "The basics check must remain reachable at AX XXXL.")
+        choice.tap()
+        let finish = app.buttons["basics.finish"]
+        XCTAssertTrue(scrollUntilHittable(finish, in: app),
+                      "The basics verdict and course entry must remain reachable at AX XXXL.")
+        finish.tap()
+
         let firstStep = app.descendants(matching: .any)["walkthrough-step-0"]
         XCTAssertTrue(firstStep.waitForExistence(timeout: 10))
         XCTAssertTrue(firstStep.label.contains("누가 이길까요?"))

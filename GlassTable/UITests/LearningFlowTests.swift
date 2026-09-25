@@ -31,9 +31,45 @@ final class LearningFlowTests: XCTestCase {
         firstButton(prefix: "상대 카드", in: app).tap()
         XCTAssertTrue(app.staticTexts["방금 배운 규칙을 다른 카드에도 적용했어요."].waitForExistence(timeout: 5))
         app.buttons["첫 레슨 시작"].tap()
+
+        // The basics lesson comes before the course's first node.
+        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 10))
+        let next = app.buttons["basics.next"]
+        XCTAssertEqual(next.label, "플랍 펼치기")
+        next.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["basics.streetCaption"].label.contains("플랍"))
+        next.tap(); next.tap()
+        XCTAssertEqual(next.label, "다음")
+        next.tap()
+        XCTAssertTrue(app.staticTexts["basics.bestHand"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["basics.bestHand"].label, "A 하이 플러시")
+        next.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].label.contains("0.0032%"))
+        next.tap()
+        app.buttons["basics.choice.straight"].tap()
+        let basicsVerdict = app.descendants(matching: .any)["basics.verdict"]
+        XCTAssertTrue(basicsVerdict.waitForExistence(timeout: 5))
+        XCTAssertTrue(basicsVerdict.label.contains("플러시가 이겨요"))
+        app.buttons["basics.finish"].tap()
+
         let firstStep = app.descendants(matching: .any)["walkthrough-step-0"]
         XCTAssertTrue(firstStep.waitForExistence(timeout: 10))
         XCTAssertTrue(firstStep.label.contains("누가 이길까요?"))
+    }
+
+    func testLearnSuggestsBasicsUntilFinishedAndClosingKeepsIt() {
+        let app = firstLessonApp()
+        app.launch()
+        XCTAssertTrue(app.buttons["안내 건너뛰기"].waitForExistence(timeout: 15))
+        app.buttons["안내 건너뛰기"].tap()
+
+        let start = app.buttons["learn-basics-start"]
+        XCTAssertTrue(start.waitForExistence(timeout: 10))
+        start.tap()
+        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 5))
+        app.buttons["basics.close"].tap()
+        XCTAssertTrue(start.waitForExistence(timeout: 5), "Closing early must not mark the lesson finished.")
     }
 
     func testFirstLessonMarksAWrongPickAndTheRightAnswer() {

@@ -202,6 +202,30 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(ProgressionModel(store: store).state.firstLessonCompleted, true)
     }
 
+    func testBasicsLessonIsSuggestedUntilFinishedAndWritesOnlyItsMarker() throws {
+        let model = ProgressionModel(store: store)
+        let before = model.state
+        XCTAssertTrue(model.shouldSuggestBasicsLesson)
+
+        model.completeBasicsLesson()
+
+        XCTAssertFalse(model.shouldSuggestBasicsLesson)
+        XCTAssertEqual(model.state.basicsLessonCompleted, true)
+        XCTAssertEqual(model.state.concepts, before.concepts)
+        XCTAssertEqual(model.state.nodes, before.nodes)
+        XCTAssertEqual(model.state.answers, before.answers)
+        XCTAssertEqual(model.state.streak, before.streak)
+        XCTAssertEqual(ProgressionModel(store: store).state.basicsLessonCompleted, true)
+    }
+
+    func testLearnerWithAClearedLessonIsNotSentBackToBasics() throws {
+        var started = ProgressState()
+        started.nodes["u1-showdown"] = NodeRecord(cleared: true, attempts: 1)
+        try store.save(started)
+
+        XCTAssertFalse(ProgressionModel(store: store).shouldSuggestBasicsLesson)
+    }
+
     func testFailedFirstLessonCompletionKeepsSavedProgressAndCanRetry() throws {
         let model = ProgressionModel(store: store)
         let savedBefore = try store.exportData()
