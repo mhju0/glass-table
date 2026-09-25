@@ -75,8 +75,12 @@ enum RatingPrompt {
     static func shouldRequest(milestones: [LearningMilestone], version: String,
                               defaults: UserDefaults = .standard,
                               environment: [String: String] = ProcessInfo.processInfo.environment) -> Bool {
-        !milestones.isEmpty && environment["GT_TEST_STORE_ID"] == nil
-            && defaults.string(forKey: storageKey) != version
+        guard !milestones.isEmpty, defaults.string(forKey: storageKey) != version
+        else { return false }
+        #if DEBUG
+        if environment["GT_TEST_STORE_ID"] != nil { return false }
+        #endif
+        return true
     }
 
     static func markRequested(version: String, defaults: UserDefaults = .standard) {
