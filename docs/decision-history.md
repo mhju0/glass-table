@@ -36,6 +36,25 @@ Read across the entries, a few preferences keep coming back:
 
 ---
 
+## 2026-09-25 — Release plan (owner chose on the release research page)
+
+- **Decided by:** owner, on the [release research page](https://claude.ai/artifact/5uBT6CLXkUkruLoYyxUgjN)
+  (two rounds; every answer matched the page's suggestion).
+- **What:**
+  - *Where:* 1.0 goes to Korea and the US together, not the EU.
+  - *Age rating:* answered honestly, after a Korean game-law consult. A US-first path is ready if Korea takes longer.
+  - *Money:* 1.0 launches free. A one-time unlock (about ₩9,900), with no ads, follows in 1.1 after Korean business registration.
+  - *Features:* 1.0 adds a Hold'em basics and hand-rankings lesson with engine-computed odds, a daily reminder (opt-in, local), a milestone share card, a rating prompt, a responsible-gambling Settings row plus a welcome sentence, and a support page with a dedicated support Gmail. Milestones, What's New, widget and sounds come later. No daily puzzle, iCloud or Shortcuts.
+  - *Testing:* a five-phone matrix (SE 3rd gen through 18 Pro Max) plus the iOS 17 runtime, then a staged TestFlight beta.
+- **Why:** ship as soon as possible without half-finishing. Reach beginners broadly
+  ("I want to reach a wider audience"). Keep the app offline and data-free. Charging
+  needs a 사업자등록 (Korean business registration), so charging waits for 1.1 rather than
+  delaying launch.
+- **Replaces:** the "free forever / no money" and "separate onboarding" founding positions
+  (the latter already replaced 2026-09-24).
+- **Evidence:** [`ROADMAP.md`](ROADMAP.md) (rewritten); the old roadmap is in
+  `handoff-archive/2026-09-25-roadmap-before-release-plan.md`.
+
 ## 2026-09-25 — Autonomous session (owner away, delegated authority)
 
 The owner delegated full autonomy for this session: "implement everything as much

@@ -1,250 +1,130 @@
-# Glass Table — Roadmap
+# Glass Table — Release roadmap
 
-> **Current delivery, 2026-09-23:** The combined beginner release is implemented and
-> installed in place as Release 1.0 (4) on the owner's iPhone 12 mini. Learn, Play and
-> Progress now contain an open nine-unit/eighteen-concept path, optional untimed
-> starting-point check, complete Korean/English interface, five-question practice,
-> and a separate four-seat chip practice table. The previous NOW/NEXT/LATER sections
-> below record the 2026-09-05 plan; they are historical, including the locked path,
-> absent resume, Today tab and unbuilt four-player table claims. Exact tests, migration
-> checks and remaining acceptance work are in the
-> [combined delivery](specs/2026-09-23-beginner-native-release.md).
+> Rewritten 2026-09-25 from the owner's answers on the
+> [release research page](https://claude.ai/artifact/5uBT6CLXkUkruLoYyxUgjN).
+> The previous roadmap (2026-09-04, NOW section dated 09-05) is archived at
+> [`handoff-archive/2026-09-25-roadmap-before-release-plan.md`](handoff-archive/2026-09-25-roadmap-before-release-plan.md).
+> Why each choice was made: [`decision-history.md`](decision-history.md).
 
-## Current next work
+Goal: get 1.0 onto the App Store in Korea and the US **as soon as possible**. "Done" beats
+"perfect", but the app should not be half-finished. Phases run in order. Items within a
+phase can run in parallel.
 
-1. Observe adult beginners using the revised path, explanations and table. Run a
-   physical VoiceOver pass and check the minimum iOS 17 target. The iPhone 12 mini
-   install and simulator AX5 sweeps do not answer those questions.
-2. Complete signed distribution/archive checks, current App Store screenshots,
-   metadata review, age-rating/territory decisions and privacy-policy publication
-   before any store submission. See [submission.md](submission.md).
-3. Use actual answers to assess the absolute EV-loss bands and the bot's usefulness.
-   Combo-selection MDF, deeper betting models and authoring tools remain deferred.
+## Phase 0 — Decisions ✅ (2026-09-25)
 
----
-
-Written 2026-09-04 from the repo, git history, the specs' scope-out sections, and prior
-agent-session memory; NOW updated after the 2026-09-05 takeover audit. It separates
-verified implementation (including labeled working-tree changes) from discussion.
-Old brainstorming has deliberately *not* been promoted into NOW/NEXT.
-
-Sources are tagged: `[V]` verified in repo/git, `[C]` prior Claude conversation context
-only. Companion docs: [`PROJECT_HANDOFF.md`](PROJECT_HANDOFF.md),
-[`decisions.md`](decisions.md).
-
----
-
-## NOW
-
-The project remains in the **dogfood phase entered on 2026-07-23** (`7daef48`). After
-takeover approval, confirmed correctness defects take priority before the next dogfood
-build; new features remain NEXT.
-
-1. **Fix confirmed dogfood defects.** `[V]` 2026-09-05 source audit and reproductions.
-   Persistence safety is fixed in PR #3: visible save failures with retry,
-   recovery copies before reset/import, memory changes only after replacement saves,
-   and future-schema rejection on load. Store and app regression tests pass.
-   The cleanup branch fixes the other three reproduced defects: credit streaks before
-   rescheduling, ask every boss concept before promotion (unit 2 now has seven questions),
-   and keep hero in position on every street. It also fixes stale range-equity reuse
-   between questions. Verification and measured performance work are recorded in
-   [`CLEANUP_AUDIT.md`](CLEANUP_AUDIT.md). Merge and dogfood these fixes next.
-2. **Use the app.** Release-config builds on the owner's iPhone via free personal-team
-   provisioning; 7-day expiry means a weekly re-deploy. `[C]` Recipe in
-   `PROJECT_HANDOFF.md` §9.
-3. **Answer the two questions only usage can answer** — (a) is the archetype bot *useful*,
-   not just correct? (the top-severity risk in `risks.md`); (b) do the EV-loss bb
-   thresholds feel right? `[V]`
-4. **Record what breaks.** Issue templates and five triage labels exist; no GitHub issues
-   existed at the 2026-09-05 audit. The confirmed defects above are tracked here. `[V]`
-
----
-
-## NEXT
-
-Committed in principle, buildable today, nothing blocking them.
-
-### 1. Complete MDF as a full Block B slice
-`[V]` R1 spec §12.6, `Concept.swift:12-13`, `BetSpot.swift` · `[C]` memory `mdf-parked-deliberately`
-
-The shipped MDF drill is only the **frequency half** (`BetSpot` is `(pot, bet)` — no
-cards, no range, grading `pot/(pot+bet)`). The real skill is *selecting which combos make
-up the defense*. It was parked because its prerequisites did not exist; **they now do**
-(`HandRange`, `RangeOnBoard`, `PostflopPolicy.narrowed`, shipped R2–R4).
-
-- Scope is a **full slice** — new spot type, defense-selection grading, screen, 천천히
-  beats, its own spec — on the order of R4-S1. **It is not a node-only change**, and it
-  has been misread as one before.
-- Still missing: a **fold-equity primitive** in the engine. That is part of the slice.
-- The parked state is guarded by tests (`CurriculumTests`, `RangeReadTests`), so it cannot
-  drift silently while it waits.
-
-### 2. Re-answer the age-rating questionnaire honestly
-`[V]` `docs/submission.md:3-13`, `:124-142`
-
-Not a code change — a decision plus a document edit. It is listed under NEXT rather than
-BLOCKED because **the analysis itself is not blocked**; only *acting* on the result is
-(see BLOCKED). Producing an honest answer, and updating the review notes that still carry
-M1's removed "no simulated betting gameplay" phrasing, can be done now.
-
-### 3. Retune the EV-loss severity bands to be pot-relative
-`[V]` R4-S2 §2 and §7
-
-The spec calls the absolute 0.5 / 2.0 bb thresholds "the model's weakest joint" and says
-to revisit them against real answers. The *implementation* is small. **It depends on
-having real answers**, which depends on NOW — so it is genuinely NEXT-after-dogfood rather
-than NEXT-today.
-
----
-
-## LATER
-
-Real, specified, deferred with reasons. Each is drawn from a spec's own "Scope — out"
-section — these are the authoritative deferred-work lists, not wishes.
-
-**테이블 depth** `[V]` R4-S4 §6, R5 §5
-- Multiway pots; hero out of position; stack depths other than 100 bb. Hero 3-bets
-  already shipped in R5.
-- 4-bets, and hero facing a re-raise preflop.
-- Blind defense; **hero-seat-sensitive defend-chart band widths** (today the bands ignore
-  which seat hero defends from).
-- Bot mixing / randomisation of any kind — note this **conflicts with the determinism that
-  makes narrowing exact** (`decisions.md` D09); adding it is a thesis-level change.
-- **Slowplay rows.** A test currently pins that no archetype's check buckets overlap its
-  raise buckets, so a check-raise cannot happen and hero never faces a raise. The machine
-  supports the phase; the pin exists so adding a slowplay row forces real coverage first.
-- **Table-stats persistence** (hands played, mean loss per hand) and a 기록 card for it —
-  deliberately not built so table results cannot distort `evLoss`'s FSRS scheduling.
-
-**Reads and narrowing** `[V]` R4-S3 §6, R3 §5
-- Reads on *raises*; caller-side postflop policies (the drill reads the c-bet spot only).
-- Multi-street narrowing; turn/river texture *changes* (S1 classifies a board, it does not
-  narrate how the turn changed it).
-- **정확히 칠하기** — exact cell painting of the 13×13 grid as a Range Read input mode.
-
-**Engine**
-- **Perfect-hash evaluator.** Originally specified, never built; the naive evaluator was
-  made allocation-free instead (`e0084ac`) which removed most of the pressure. Trigger
-  remains "when profiling demands it." `[V]`
-
-**App quality**
-- **VoiceOver pass over `TableView` and `NodeSessionView`** — the two screens that never
-  got a dedicated one. `[C]`
-- **Daily reminder notification** (R1 §6's day-3 prompt). `[C]`
-- **Mid-session resume** — skipped as YAGNI during the 2026-08-06 wiring pass. `[C]`
-- **Motion pass.** `[C]`
-- Break up `ConceptDrillView.swift` (1,607 LOC, all 18 drill screens). `[V]`
-- Broader app/session coverage beyond the persistence regression tests. `[V]`
-
-**Deferred beyond M1 and never revisited** `[V]` `docs/specs/2026-07-22-m1-four-drills-design.md:101`
-- Difficulty tiers; richer "why" copy; SwiftData as a storage backend.
-
----
-
-## BLOCKED
-
-**App Store / TestFlight submission** — blocked on two things, in order:
-
-1. **The age rating.** `[V]` `docs/submission.md`, `open-questions.md` #11.
-   M1 answered Apple's Simulated Gambling question "Infrequent/Mild" because there was no
-   betting gameplay. The 테이블 has betting gameplay with bb stakes. An honest re-answer
-   is plausibly Frequent/Intense → 17+/KR-19, which is **barred from Apple's self-rating
-   track in Korea** and forces a direct GRAC review + Rating Classification Number
-   (~10–15 business days, a fee, a gameplay video). Standing instruction: if the computed
-   rating is 17+/KR-19, **stop before submitting**.
-2. **Korean game-law counsel.** `[V]` `open-questions.md` #11. Skipping counsel was agreed
-   for M1 *explicitly on the condition* "revisit before the betting-table milestone."
-   That milestone shipped 2026-08-04. The condition has fired and is unmet.
-
-Also gated behind the same decision: Apple Developer Program enrollment (deliberately
-deferred), and the standing rule that resumption goes **enroll → TestFlight upload only**,
-never submit for review without an explicit go. `[V]`
-`docs/plans/2026-07-23-m1-submission.md:6-9`
-
-**Anything needing real usage data** — the EV-loss retune, the "is the bot useful?"
-question, and whether a table-stats card is wanted. All blocked on NOW.
-
----
-
-## CONSIDERED BUT NOT COMMITTED
-
-Discussed, sometimes at length, but never promoted to a commitment. **Do not treat these
-as planned work.**
-
-| Item | Where it came from | Why it is not committed |
-|---|---|---|
-| **Sit In Their Seat** — play *as* the archetype, seeing villain's cards | `product-brief.md` modes table | Named post-v1 from the start; no spec, no engine work, never scheduled `[V]` |
-| **Run It 1000 Times** — resimulate a finished hand's runout | same | Same; targets outcome bias, which nothing currently addresses `[V]` |
-| **Lab** — scenario editor / puzzle level editor | same | Same, plus it depends on the unspecified `.glasstable` share format `[V]` |
-| **6-max table-size option** | `open-questions.md` #14 | "Cheap, but confirm demand." Demand unconfirmed `[V]` |
-| **Korean app name / bilingual lockup** (유리 테이블?) | `open-questions.md` #12 | Never decided; store listing currently uses "Glass Table" in both locales `[V]` |
-| **`.glasstable` puzzle sharing** (file or URL-encoded string) | `open-questions.md` #16, `decisions.md` D02 | Schema never designed; only matters once Lab exists `[V]` |
-| **Remote puzzle content as static JSON on a CDN** | old §5 | Explicitly "defer"; would be the first crack in zero-networking `[V]` |
-| **Optional tip jar** | old §6 | Called YAGNI at the time and never revisited `[V]` |
-| **Captioned App Store marketing screenshots** | `docs/submission.md:179-180` | Current set is raw frames; captions are "a separate pass" if ASC wants them `[V]` |
-| **The 8-seat animated table** with phase-multiplexed grid/EV | old §3 | Designed in detail, then the shipped table went heads-up for grading tractability. Reviving it is a large slice, not a setting `[V]` `decisions.md` D08 |
-
----
-
-## EXPLICITLY REJECTED
-
-These are **decisions, not gaps.** Re-proposing one without new evidence is a regression.
-
-**Product non-goals** `[V]` `product-brief.md:88-101`
-- Multiplayer, netcode, real money, or purchasable chips — **ever**. (Also the foundation
-  of the Korean legal position: adding purchasable currency or cashout would forfeit the
-  structural escape from 사행성/웹보드 regimes.)
-- iPad, Android, web. iPhone only, forever.
-- Tournaments and ICM. Cash game, 100 bb effective, only.
-- Rake modelling.
-- Continuous bet sizing / a size slider. A fixed menu keeps the bot's tree and the EV math
-  tractable — and the bots literally cannot reason about sizes outside the menu.
-- A backend, accounts, sync, receipt validation.
-- Money or ads of any kind.
-- Competing with GTO Wizard on equilibrium/solver depth. Different axis on purpose.
-- Multi-street planning for the bot.
-
-**Engagement theater** `[V]` R1 §7.2
-- Leagues, XP, hearts/lives. 기록 leads with mastered-concept count — never XP, never
-  streak.
-
-**UI rules that pre-emptively reject "improvements"** `[V]` `decisions.md` D35, D37
-- **"Make the recommended action stand out" is a bug, not a polish.** Choice buttons are
-  visually identical until *selected*; accent colour marks what kind of money a button
-  commits, never which one is correct.
-- **Do not make card faces scale with Dynamic Type.** There is no size rung that fits —
-  five cards at 3× need ~715 pt of a 393 pt screen. Cards are pictograms and opt out;
-  VoiceOver carries the content.
-
-**Reversed and not to be re-litigated** `[V]` `decisions.md` D20, D24, D34
-- **A separate onboarding flow.** Built twice (a prose guide, then an authored hand),
-  deleted both times. Per-node 보여주기 already teaches on first exposure; a separate
-  onboarding is a second system doing the same job. The durable finding: *explanation
-  belongs where the confusion is, after a committed answer.*
-- **A light/dark twin.** The two appearances measured 1.04:1 apart on every glass surface —
-  the same pixel. The app pins `UIUserInterfaceStyle: Dark`.
-- **Translucent material surfaces.** Measured 1.17–1.71:1 against the felt where WCAG
-  1.4.11 wants 3:1, while paying an offscreen blur pass over a flat fill. Glass is a colour.
-- **GTO Wizard as the range baseline.** It is the named direct competitor, and no public
-  chart is redistributable anyway. Benchmarks are Upswing + PokerCoaching, *named and
-  never reproduced*; all values are derived from Chen's formula.
-- **"Top N% by all-in equity vs a random hand"** as the chart derivation rule. Measured: it
-  puts A9o above AJs and 76s in the bottom quartile.
-
----
-
-## COMPLETED RECENTLY
-
-Newest first. `[V]` from git.
-
-| Date | Work |
+| Question | Answer |
 |---|---|
-| **2026-08-27** | Docs: Xcode 26 requirement + XcodeGen install step in the README; ignore `build-device-release/`. *(Most recent commits.)* |
-| **2026-08-08 → 08-09** | **Performance campaign, three commits, all proven behaviour-preserving.** Engine hot paths allocation-free (`madeHand` 47×, `boardTexture` 67×, `evaluate7` 2.9×; engine gate 284 s → 128 s, drills 4.8 s → 0.7 s). Drill screens stopped regenerating their spot on every render (up to 9× per body pass). Grading stopped computing the same answer twice. Verified by byte-diffing tens of thousands of outputs against the previous package plus a 58-screen pixel sweep. |
-| **2026-08-07** | **UI review pass** — table gained three fixed zones and a 팟/콜 strip at the board; the reveal leads with the lesson rather than the score; 길 inverted its weight onto a continuous rail; the last two emoji icons became SF Symbols; tab-bar clearance unified into one scaled inset. **Plus a critical accessibility fix**: card ranks truncated to "…" at accessibility text sizes, which made the app unplayable at exactly those settings. Screenshots re-captured; `decisions.md` §H written. |
-| **2026-08-06** | **Completeness / wiring pass** (`5e8b73e`) — connected shipped machinery that had no UI: walkthrough replay, backup export/import, progress reset, honest 오늘 header, due-filtered 복습 sheet, glossary chips in reveals, streak-freeze display, grade haptics. Plus `Card: Sendable` (140 Swift-6-mode errors) and `actions/checkout@v5`. |
-| **2026-08-03 → 08-04** | **The revamp, R1–R5b** (PRs #1, #2). The app stopped being five drills behind a home screen and became a course plus a table: progression shell (3 tabs → 4), 8 units / 18 concepts, FSRS review, Winkler calibration; RFI charts and range notation; range read; board texture; EV-loss grading; archetype postflop policy; the 테이블; hero preflop against a derived defend chart; the 디펜드 차트 drill. Visual system rebuilt around opaque surfaces and one pinned appearance. All docs refreshed to the shipped state. |
-| **2026-07-31 → 08-02** | Licensing corrected to all-rights-reserved across the repo; global agent baseline removed from `CLAUDE.md`. |
-| **2026-07-24 → 07-25** | Outs-reveal legibility + tap-to-explain; new range-grid app icon; 첫 핸드 onboarding *(since deleted)*; in-drill teaching, 용어 chips, verdict banners. |
-| **2026-07-23** | **M1 shipped and tagged `v1.0.0-beta.1`.** Five drills, glossary screen, stats screen, app icon, README, CI (app build + drills tests; engine release gate), issue templates, CHANGELOG, privacy policy on GitHub Pages, full App Store metadata. Then **paused for dogfood.** |
-| **2026-07-22** | Repo created. Engine core (evaluator, equity, oracle fixtures), app spine, all five M1 drills. |
+| Territories for 1.0 | Korea and the US together, once the age rating is settled. No EU (it would require DSA trader status and a public address). |
+| Age rating | Answer honestly on the final build. Consult Korean game-law counsel before any Korean release. Keep a US-first path ready in case Korea takes longer. |
+| Business model | A free download plus one ₩9,900 / $6.99 unlock, with no ads. **1.0 launches free**. The unlock comes in 1.1, after Korean business registration. |
+| Beta | One week of internal TestFlight, then 10–20 invited beginners. |
+| Security | Fix audit findings #1 (live privacy page) and #2 (personal email) before submitting. #3 and #4 come later. |
+| Push `feat/shared-learning-table` | After the owner has used build 9 for a day, and only on their "yes, push" in chat. |
+| Support contact | A new Gmail used only for the app. |
+| Device testing | A five-phone matrix plus the iOS 17 runtime (Phase 3). |
+
+## Phase 1 — Outside the code (start now; these take the longest)
+
+1. **Korean game-law consult** (open question #11). Question to settle: is the
+   simulated-gambling answer *infrequent* (13+, no RCN) or *frequent* (18+; Korea needs
+   a GRAC Rating Classification Number, about 10–15 days, with a fee if the rating is
+   adults-only)?
+2. **Support Gmail.** It goes in Settings' feedback link, the privacy policy, the
+   support page and App Store Connect. In Korea, Apple shows this email on the product
+   page for every individual developer, even for free apps.
+3. **Publish the final privacy policy.** The live page still shows the draft notice
+   (audit #1). Add one sentence on how support emails are handled.
+4. **Support page** on the same GitHub Pages site: FAQ plus contact. It replaces the
+   repo URL in `submission.md`.
+5. **Apple Developer Program.** Individual, $99 a year. Then the App Store Connect app
+   record: bundle ID `com.michaelju.glasstable`, name reservation, and Korean-law
+   compliance email verification.
+6. **Name check.** Search "Glass Table" and "포커 배우기" in KIPRIS and USPTO.
+7. **For 1.1, not blocking 1.0:** 사업자등록 (simplified tier) on 홈택스, a single
+   consult with a tax accountant, then the Paid Apps Agreement, W-8BEN, Korean tax forms
+   and bank account.
+
+## Phase 2 — 1.0 code work
+
+Each item gets a short spec or issue under `.scratch/` before it is built.
+
+1. **Hold'em basics lesson (new first beginner lesson).** How the cards are dealt
+   (two hole cards; flop, turn, river; best five of seven), then the hand-ranking
+   ladder with how often each hand appears. The frequencies must be **computed by the
+   engine in a test**, not copied from the web. Reference values for seven cards:
+   royal flush 0.0032%, straight flush 0.028%, quads 0.17%, full house 2.6%, flush
+   3.0%, straight 4.6%, trips 4.8%, two pair 23.5%, one pair 43.8%, high card 17.4%.
+   The ranking list in `LearningGuideView` is text only today.
+2. **Consistent-learning-table issue 03**: first-use explanations for every mode.
+3. **Consistent-learning-table issue 04**: assisted attempts count as practice, not accuracy.
+4. **Position intro leaks**: the expanded order line and the highlighted button seat.
+5. **Dark-mode contrast** of the table setup's segmented control.
+6. **Responsible-gambling placement (combination):** a Settings row "책임감 있게
+   이용하기 / Play responsibly" with helplines (Korea 1336, US 1-800-GAMBLER); one
+   sentence on the welcome screen's second page; keep Play's existing "No real
+   money" line; add a store-description disclaimer (Phase 4).
+7. **Rating prompt** (`requestReview`) after a real milestone only, never at launch
+   or mid-question.
+8. **Daily reminder**: a local notification, off until the learner turns it on,
+   one time of day, calm wording, no streak guilt. No push server.
+9. **Share card**: an image of a learning milestone (a section finished, a concept
+   mastered) made on the phone and sent through the share sheet. It never shows chips
+   won. Open question #16 applies only if puzzles are shared later.
+10. **Feedback mailto** switches to the support Gmail (audit #2).
+11. **Update the product brief** where it still says "free forever / no money".
+
+## Phase 3 — Verify
+
+1. **Five-phone matrix** at `large` and AX5: iPhone SE (3rd generation, 375 × 667,
+   **never tested so far**), 12 mini, 17, Air, 18 Pro Max. Keep the line-parity OCR
+   audit on the mini.
+2. **Minimum iOS 17.** Download the iOS 17 simulator runtime (only 26.x and 27.0 are
+   installed) or use a real iOS 17 phone. Keep the minimum at iOS 17: it already covers
+   well over 90% of active iPhones.
+3. **iPad compatibility mode**: run the iPhone app once in an iPad simulator.
+4. **VoiceOver** on `TableView` and `NodeSessionView`, or declare only verified
+   features in the Accessibility Nutrition Label.
+5. The usual gates: app build and tests, Drills tests, the Engine **release** gate,
+   `tools/verify_release.py`.
+
+## Phase 4 — TestFlight → submit 1.0
+
+1. Archive and upload. One week of internal TestFlight (the owner's iPhone plus an
+   iOS 17 device).
+2. An external group of 10–20 beginners (KO and EN, including one or two VoiceOver or
+   large-text users). Tasks: finish 기초, play 10 free hands, try one graded session.
+   External testers need a Beta App Review of 1–2 days.
+3. New 6.9″ screenshots (KO/EN). Metadata updated for Play/Learn and the 2–4 player
+   tables. Store disclaimer: no real money, and practice doesn't imply real-money success.
+4. Questionnaires: App Privacy ("Data Not Collected"), age rating (Phase 1 outcome),
+   content rights, accessibility labels. Review notes: no login, no real money, chips
+   have no value. Manual release.
+
+## After 1.0
+
+- **1.1:** one-time unlock (after registration), milestones (a small set tied to
+  mastery, no XP), a What's New sheet, MDF as a full slice, pot-relative EV-loss
+  bands, pinning Actions by SHA, pruning recovery copies.
+- **Later:** home-screen widget (needs an App Group, i.e. a `progression.json`
+  location migration), optional sounds, `KO.wordJoined` coverage for `Text`
+  literals and button titles.
+- **Decided against:** daily hand puzzle, iCloud sync, Shortcuts / Spotlight / TipKit,
+  Game Center, ads, subscriptions.
+
+## Still considered, not committed
+
+Carried over from the old roadmap: Sit In Their Seat, Run It 1000 Times, Lab, a 6-max
+table (#14), a Korean app name beyond "포커 배우기 — Glass Table" (#12), remote puzzle
+content, captioned screenshots, the 8-seat animated table. See the archive for why
+each is parked.
+
+## Still rejected
+
+Multiplayer, real money, **purchasable chips (ever)**, iPad/Android/web, tournaments,
+rake, a sizing slider, a backend or accounts, leagues/XP/hearts, highlighting the
+recommended action, Dynamic Type card faces, translucent surfaces, GTO Wizard as the
+range baseline.
+
+Superseded since the old roadmap: "money or ads of any kind" (now a one-time unlock,
+no ads); "separate onboarding" (a two-screen welcome plus a warm-up, chosen
+2026-09-24); "light/dark twin" (an appearance setting now exists).

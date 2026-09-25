@@ -50,3 +50,18 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
 - Open: push to `main` held until the owner confirms in their own words; issues
   03/04 above; the setup's segmented control is low-contrast in dark mode.
 - Next: owner tries the installed build and confirms the push.
+
+## 2026-09-25: Release research and plan (no code)
+
+- Owner answered the release research page (https://claude.ai/artifact/5uBT6CLXkUkruLoYyxUgjN,
+  db docs `release/choices` and `release/followup`). `docs/ROADMAP.md` rewritten as a
+  phased release roadmap; the old one moved to `handoff-archive/`. Decisions and reasons are in
+  `decision-history.md`.
+- Key facts found: frequent simulated gambling = 18+ plus a Korean RCN, infrequent = 13+ with no RCN;
+  Apple shows an individual's email on Korean product pages even for free apps; charging
+  needs 사업자등록 plus the Paid Apps Agreement; the iPhone SE (375×667) has never been swept;
+  only the iOS 26/27 simulator runtimes are installed.
+- Open: push to main is still held for the owner's "yes, push". Phase 1 (counsel, Gmail,
+  privacy/support pages, enrolment) is owner work.
+- Next: the Phase 2 code items, each with a `.scratch/` spec first. Start with the Hold'em
+  basics and hand-rankings lesson.
