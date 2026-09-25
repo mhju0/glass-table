@@ -36,6 +36,16 @@ Read across the entries, a few preferences keep coming back:
 
 ---
 
+## 2026-09-25 — Age rating: 18+, frequent simulated gambling
+
+- **Decided by:** owner ("I will just play safe and go with 18+ frequent. I can't consult
+  a Korean game law person right now.")
+- **What:** answer Apple's simulated-gambling question as *Frequent*, which gives 18+.
+  Korea then needs a GRAC Rating Classification Number before the app can be sold there.
+- **Why:** it's the answer that can't be wrong without a lawyer's opinion. It gives up
+  under-18 learners in return for zero risk of a re-rating or removal.
+- **Replaces:** "answer after a Korean counsel consult" in the release plan below.
+
 ## 2026-09-25 — Release plan (owner chose on the release research page)
 
 - **Decided by:** owner, on the [release research page](https://claude.ai/artifact/5uBT6CLXkUkruLoYyxUgjN)

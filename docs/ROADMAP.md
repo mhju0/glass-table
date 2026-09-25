@@ -15,7 +15,7 @@ phase can run in parallel.
 | Question | Answer |
 |---|---|
 | Territories for 1.0 | Korea and the US together, once the age rating is settled. No EU (it would require DSA trader status and a public address). |
-| Age rating | Answer honestly on the final build. Consult Korean game-law counsel before any Korean release. Keep a US-first path ready in case Korea takes longer. |
+| Age rating | **Frequent simulated gambling, 18+** (owner, 2026-09-25: the safe answer without counsel). In Korea this requires a GRAC Rating Classification Number (RCN) before sale. The US can launch without it. |
 | Business model | A free download plus one ₩9,900 / $6.99 unlock, with no ads. **1.0 launches free**. The unlock comes in 1.1, after Korean business registration. |
 | Beta | One week of internal TestFlight, then 10–20 invited beginners. |
 | Security | Fix audit findings #1 (live privacy page) and #2 (personal email) before submitting. #3 and #4 come later. |
@@ -25,10 +25,10 @@ phase can run in parallel.
 
 ## Phase 1 — Outside the code (start now; these take the longest)
 
-1. **Korean game-law consult** (open question #11). Question to settle: is the
-   simulated-gambling answer *infrequent* (13+, no RCN) or *frequent* (18+; Korea needs
-   a GRAC Rating Classification Number, about 10–15 days, with a fee if the rating is
-   adults-only)?
+1. **GRAC rating for Korea.** The owner chose 18+ / frequent, so the Korean storefront needs a
+   GRAC Rating Classification Number (RCN): an application to the GRAC,
+   about 10–15 days, with a fee. If the RCN is late, the US launches first and Korea
+   follows. The counsel consult (open question #11) is skipped.
 2. **Support Gmail.** It goes in Settings' feedback link, the privacy policy, the
    support page and App Store Connect. In Korea, Apple shows this email on the product
    page for every individual developer, even for free apps.
