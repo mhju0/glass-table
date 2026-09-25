@@ -43,6 +43,15 @@ final class AccessibilityFlowTests: XCTestCase {
             .waitForExistence(timeout: 15))
 
         for step in 1...7 {
+            // One step is covered until the learner taps to check it.
+            let reveal = app.buttons["walkthrough-reveal"]
+            if reveal.exists {
+                XCTAssertFalse(app.buttons[step == 7 ? "이해했어요" : "다음"].isEnabled,
+                               "The example can't advance before the learner checks the value.")
+                XCTAssertTrue(scrollUntilHittable(reveal, in: app),
+                              "The covered example value must be reachable at AX XXXL.")
+                reveal.tap()
+            }
             let title = step == 7 ? "이해했어요" : "다음"
             let advance = app.buttons[title]
             XCTAssertTrue(scrollUntilHittable(advance, in: app),

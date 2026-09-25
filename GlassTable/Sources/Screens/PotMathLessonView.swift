@@ -4,7 +4,9 @@ import GlassTableDrills
 
 /// Pot counting on the shared table. Seats show who is acting and who folded, never
 /// a running total: the learner adds the actions. The middle names the total only
-/// once `revealedPot` is set, after the answer.
+/// once `revealedPot` is set, after the answer. `showsPaidTotals` is the help the
+/// learner opts into: each seat shows what it has paid so far, and the question then
+/// counts as practice with help.
 struct PotMathReplayView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.learningLanguage) private var language
@@ -12,6 +14,9 @@ struct PotMathReplayView: View {
     let spot: PotMathSpot
     @Binding var stepIndex: Int
     var revealedPot: Int?
+    var showsPaidTotals = false
+    /// Offered only before the answer on graded questions; nil hides the control.
+    var showTotals: (() -> Void)?
     let showHelp: () -> Void
 
     @State private var movingChip: (seatID: String, arrived: Bool)?
@@ -22,16 +27,15 @@ struct PotMathReplayView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            HStack(spacing: 8) {
                 Spacer(minLength: 0)
-                Button(action: showHelp) {
-                    Label(language.text("계산 방법", "How to count"), systemImage: "questionmark.circle")
-                        .font(GT.semibold(14)).foregroundStyle(GT.ink)
-                        .padding(.horizontal, 14).frame(minHeight: 44)
-                        .background(GT.surface, in: Capsule())
-                        .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
+                if let showTotals, !showsPaidTotals {
+                    helpButton(language.text("합계 보기", "Show totals"), symbol: "sum",
+                               action: showTotals)
+                        .accessibilityIdentifier("pot-show-totals")
                 }
-                .buttonStyle(GTPress())
+                helpButton(language.text("계산 방법", "How to count"),
+                           symbol: "questionmark.circle", action: showHelp)
             }
             TableSurface(seats: seats,
                          center: TableCenter(potTotal: revealedPot.map {
@@ -66,6 +70,18 @@ struct PotMathReplayView: View {
         }
     }
 
+    private func helpButton(_ title: String, symbol: String,
+                            action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: symbol)
+                .font(GT.semibold(14)).foregroundStyle(GT.ink)
+                .padding(.horizontal, 14).frame(minHeight: 44)
+                .background(GT.surface, in: Capsule())
+                .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
+        }
+        .buttonStyle(GTPress())
+    }
+
     private var seats: [TableSeat] {
         let others = spot.actors.filter { $0 != .sb && $0 != .bb }
         return spot.actors.map { actor in
@@ -80,10 +96,15 @@ struct PotMathReplayView: View {
                 place = others.count == 1 ? .bottomCenter
                     : order == 0 ? .bottomTrailing : .bottomLeading
             }
-            let folded = steps.prefix(visibleStepIndex + 1)
-                .contains { $0.actor == actor && $0.kind == .fold }
+            let shown = steps.prefix(visibleStepIndex + 1)
+            let folded = shown.contains { $0.actor == actor && $0.kind == .fold }
+            let paid = shown.filter { $0.actor == actor }.reduce(0) { $0 + $1.addedChips }
+            let paidText = showsPaidTotals
+                ? language.text("낸 칩 \(paid)", "Paid \(paid)") : nil
+            let foldText = folded ? language.text("폴드", "Folded") : nil
+            let status = [foldText, paidText].compactMap { $0 }.joined(separator: " · ")
             return TableSeat(id: actor.rawValue, place: place, name: actorName(actor),
-                             status: folded ? language.text("폴드", "Folded") : nil,
+                             status: status.isEmpty ? nil : status,
                              tone: .neutral,
                              isActive: currentStep.actor == actor,
                              isFolded: folded)

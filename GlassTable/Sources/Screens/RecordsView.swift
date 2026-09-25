@@ -66,7 +66,9 @@ struct RecordsView: View {
                                      seed: 0x7EAC &+ UInt64(model.record(for: concept).total),
                                      index: 0, language: language)
             NavigationStack {
-                WalkthroughView(title: conceptName(concept), beats: w.beats, rows: w.rows,
+                WalkthroughView(title: conceptName(concept),
+                                purpose: ConceptIntroduction.make(concept, language: language).why,
+                                beats: w.beats, rows: w.rows,
                                 onFinish: {
                                     model.completeWalkthrough(concept: concept)
                                     replay = nil
@@ -183,11 +185,15 @@ struct RecordsView: View {
         .gtCard(radius: GT.Radius.panel)
     }
 
+    /// The newest day's lane; on the same day, practice without help comes first.
     private func latestSummary(for concept: Concept) -> DailyPracticeSummary? {
         let matches = model.state.dailySummaries.filter { $0.key.concept == concept.rawValue }
-        return matches.filter { $0.key.language == language.rawValue }
-            .max { $0.key.day < $1.key.day }
-            ?? matches.max { $0.key.day < $1.key.day }
+        let older: (DailyPracticeSummary, DailyPracticeSummary) -> Bool = {
+            $0.key.day != $1.key.day ? $0.key.day < $1.key.day
+                : $0.key.assisted && !$1.key.assisted
+        }
+        return matches.filter { $0.key.language == language.rawValue }.max(by: older)
+            ?? matches.max(by: older)
     }
 
     private func practiceLane(_ key: DailyPracticeKey) -> String {

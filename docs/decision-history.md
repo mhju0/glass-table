@@ -36,6 +36,25 @@ Read across the entries, a few preferences keep coming back:
 
 ---
 
+## 2026-09-26 — Help counts toward the streak, not toward accuracy
+
+- **Decided by:** agent, after an independent review of the issue 04 plan (owner delegated
+  the "full plan" build).
+- **What:** an answer given after "Show totals" is recorded as practice with help. It keeps
+  the daily streak and moves the seeds, but adds nothing to accuracy, the miss streak,
+  review scheduling, timing or mastery. A review answered with help stays due.
+- **Why:** the streak rewards showing up; accuracy and reviews must describe what the learner
+  can do alone. Breaking the streak for asking for help would teach people not to ask.
+
+## 2026-09-26 — Issues 03 and 04: full plan
+
+- **Decided by:** owner (chose "Full plan" when asked for scope).
+- **What:** first-use explanations reachable from every graded route (explain button,
+  worked example, rule example for position, play-table guide), and assisted attempts
+  stored as practice rather than accuracy, across lessons, single-skill practice and review.
+- **Why:** beginners should never meet a mode without a way to see what it asks, and help
+  should not quietly inflate grades.
+
 ## 2026-09-25 — Age rating: 18+, frequent simulated gambling
 
 - **Decided by:** owner ("I will just play safe and go with 18+ frequent. I can't consult

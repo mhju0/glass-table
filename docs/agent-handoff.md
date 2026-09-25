@@ -80,3 +80,16 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
   "rule, not result" example is applied when issue 03 builds first-use explanations.
 - Open: AGENTS.md still lists "purchases" as excluded; that conflicts with the 1.1 unlock
   and is the owner's call to edit. Next: issues 03 and 04.
+
+## 2026-09-26: Phase 2 — issues 03 and 04 (explanations and help)
+
+- Every graded question has an info button that reopens the skill's explanation and a
+  worked example on a different seed; position gets the owner's rule example. The first
+  four-seat table explains itself once (info button reopens). Worked examples cover their
+  last value until tapped.
+- Pot counting offers "Show totals" after a confirm. A helped answer is stored with
+  `assisted: true` (omitted otherwise, so old saves read as independent), keeps the streak,
+  and skips accuracy, FSRS, timing and mastery. Summaries count help separately.
+  Route × feature checklist: `.scratch/consistent-learning-table/entry-routes.md`.
+- Decisions recorded in `decision-history.md` (full plan; help keeps the streak).
+- Next: step 4 (rating prompt, daily reminder, share card).

@@ -43,6 +43,7 @@ struct RestoredDrillView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         context(detail: detail, input: input)
                         VStack(alignment: .leading, spacing: GT.Space.related) {
+                            if answer.isAssisted { SolvedWithHelpLabel() }
                             verdict(band: band, detail: detail, input: input)
                             nextButton(next)
                         }
@@ -61,6 +62,7 @@ struct RestoredDrillView: View {
                     .scrollBounceBehavior(.basedOnSize)
                     ActionSheet(band: band) {
                         VStack(alignment: .leading, spacing: GT.Space.related) {
+                            if answer.isAssisted { SolvedWithHelpLabel() }
                             verdict(band: band, detail: detail, input: input)
                             nextButton(next)
                         }
@@ -82,7 +84,8 @@ struct RestoredDrillView: View {
                 .font(GT.title(22)).foregroundStyle(GT.onFelt)
             Text(progressText).font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
                 .accessibilityIdentifier("saved-answer-\(concept.rawValue)/\(seed)/\(index)")
-            RestoredDrillContextView(concept: concept, seed: seed, index: index)
+            RestoredDrillContextView(concept: concept, seed: seed, index: index,
+                                     assisted: answer.isAssisted)
             if concept == .evLoss, case let .boolean(calls)? = input {
                 RestoredEVLossResult(seed: seed, index: index, calls: calls)
             } else if concept == .potMath {
@@ -362,6 +365,7 @@ private struct RestoredDrillContextView: View {
     let concept: Concept
     let seed: UInt64
     let index: Int
+    let assisted: Bool
 
     private var script: (beats: [Beat], rows: [(String, [Card])]) {
         Walkthrough.make(concept: concept, seed: seed, index: index, language: language)
@@ -428,7 +432,8 @@ private struct RestoredDrillContextView: View {
             let spot = PotMathSpotGenerator.spot(baseSeed: seed, index: index)
             Text(language.text("팟 계산", "Count the pot"))
                 .font(GT.title(18)).foregroundStyle(GT.onFelt)
-            PotMathReplayView(spot: spot, stepIndex: $potStepIndex, revealedPot: spot.pot) {
+            PotMathReplayView(spot: spot, stepIndex: $potStepIndex, revealedPot: spot.pot,
+                              showsPaidTotals: assisted) {
                 showingPotHelp = true
             }
             .onAppear { potStepIndex = max(0, spot.replaySteps.count - 1) }

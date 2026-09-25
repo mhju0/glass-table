@@ -154,6 +154,28 @@ final class MasteryTests: XCTestCase {
         ], scheduled: scheduled))
     }
 
+    func testAnswersWithHelpFinishTheScheduleButNeverPromote() {
+        let scheduled: [Concept] = [.outs, .outs, .potOdds]
+        var outs = SessionEvidence()
+        outs.record(spotOn: true)
+        outs.record(spotOn: true, assisted: true)
+        var potOdds = SessionEvidence()
+        potOdds.record(spotOn: true, assisted: true)
+        XCTAssertEqual(outs, SessionEvidence(attempted: 1, spotOn: 1, assisted: 1))
+        XCTAssertTrue(SessionEvidence.validates([.outs: outs, .potOdds: potOdds],
+                                                scheduled: scheduled))
+        XCTAssertFalse(outs.isPerfect)
+        XCTAssertFalse(potOdds.isComplete)
+
+        // One answer with help keeps an otherwise clean run below proficient.
+        var r = ConceptRecord(correct: 9, total: 10)
+        Mastery.promote(&r, evidence: outs, viaBoss: false, now: t0)
+        XCTAssertEqual(r.tier, .familiar)
+        var helpOnly = ConceptRecord(correct: 9, total: 10)
+        Mastery.promote(&helpOnly, evidence: potOdds, viaBoss: false, now: t0)
+        XCTAssertEqual(helpOnly.tier, .attempted)
+    }
+
     func testCompletedWalkthroughOnlyResetsConsecutiveMisses() {
         var state = ProgressState()
         state.updateRecord(for: .outs) {

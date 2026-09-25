@@ -354,6 +354,130 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(record.label.contains("17문제"))
     }
 
+    /// Showing the pot totals asks first, then labels the answer as practice with help,
+    /// and the label survives a relaunch.
+    func testPotTotalsHelpAsksFirstAndMarksTheAnswer() {
+        let app = XCUIApplication()
+        let arguments = ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchArguments += arguments
+        let environment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                           "GT_DEMO_SEED": "1",
+                           "GT_DEMO_NODE": "u1-potMath",
+                           "GT_DEMO_POT_STATE": "question"]
+        app.launchEnvironment = environment
+        app.launch()
+        let paid = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@", "낸 칩"
+        )).firstMatch
+        let showTotals = app.buttons["pot-show-totals"]
+        XCTAssertTrue(showTotals.waitForExistence(timeout: 15))
+        XCTAssertFalse(paid.exists)
+
+        showTotals.tap()
+        let alert = app.alerts["합계를 볼까요?"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        alert.buttons["직접 세기"].tap()
+        XCTAssertFalse(paid.exists, "Declining keeps the totals hidden")
+
+        showTotals.tap()
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        alert.buttons["합계 보기"].tap()
+        XCTAssertTrue(paid.waitForExistence(timeout: 5))
+        XCTAssertFalse(showTotals.exists)
+
+        let choice = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "pot-answer-"
+        )).firstMatch
+        choice.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["solved-with-help"]
+            .waitForExistence(timeout: 5))
+
+        app.terminate()
+        app.launchArguments = arguments
+        app.launchEnvironment = ["GT_TEST_STORE_ID": environment["GT_TEST_STORE_ID"]!,
+                                 "GT_TEST_FIRST_LESSON": "0"]
+        app.launch()
+        let resume = app.buttons["레슨 이어서 하기"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 15))
+        resume.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["solved-with-help"]
+            .waitForExistence(timeout: 15), "A restored answer keeps its help label")
+    }
+
+    /// Every graded question can reopen its skill's explanation, with the approved
+    /// position rule and a worked example on a different spot.
+    func testGradedQuestionReopensTheExplanationAndAnExample() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-position"]
+        app.launch()
+        let explain = app.buttons["drill-explain"]
+        XCTAssertTrue(explain.waitForExistence(timeout: 15))
+        explain.tap()
+        XCTAssertTrue(app.staticTexts["누가 먼저 행동할까요?"].waitForExistence(timeout: 5))
+        let rule = app.descendants(matching: .any)["explain-rule-example"]
+        XCTAssertTrue(rule.exists)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "공용 카드 전에는 BB가 마지막이에요."
+        )).firstMatch.exists)
+        let example = app.buttons["explain-example"]
+        for _ in 0..<6 where !example.isHittable { app.swipeUp() }
+        example.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-0"]
+            .waitForExistence(timeout: 5))
+    }
+
+    /// Changing the language mid-example returns to the same step, not the start.
+    /// The saved preference can be either language from an earlier run, so the test
+    /// switches to whichever one is not current.
+    func testLanguageSwitchKeepsTheWorkedExampleStep() {
+        let app = XCUIApplication()
+        // No language launch argument: it would pin the preference against the switch.
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_TEST_FIRST_LESSON": "0",
+                                 "GT_DEMO_NODE": "u1-showdown",
+                                 "GT_DEMO_BEAT": "0"]
+        app.launch()
+        func button(_ ko: String, _ en: String) -> XCUIElement {
+            app.buttons.matching(NSPredicate(format: "label IN %@", [ko, en])).firstMatch
+        }
+        XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-0"]
+            .waitForExistence(timeout: 15))
+        button("다음", "Next").tap()
+        XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-1"]
+            .waitForExistence(timeout: 5))
+        // Relaunch without the demo hook, which would reopen step 0 on every appear.
+        let storeID = app.launchEnvironment["GT_TEST_STORE_ID"]!
+        app.terminate()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0"]
+        app.launch()
+        let tabs = app.tabBars.buttons
+        XCTAssertTrue(tabs.element(boundBy: 3).waitForExistence(timeout: 15))
+        tabs.element(boundBy: 3).tap()
+        let korean = app.buttons["language-korean"]
+        XCTAssertTrue(korean.waitForExistence(timeout: 5))
+        let wasKorean = korean.isSelected
+        app.buttons[wasKorean ? "language-english" : "language-korean"].tap()
+        XCTAssertTrue(tabs[wasKorean ? "Learn" : "배우기"].waitForExistence(timeout: 5))
+        tabs.element(boundBy: 0).tap()
+        let resume = button("레슨 이어서 하기", "Resume lesson")
+        XCTAssertTrue(resume.waitForExistence(timeout: 5))
+        resume.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-1"]
+            .waitForExistence(timeout: 5), "The example must not restart after a language change")
+
+        // Leave the shared preference in English, where other suites expect it.
+        if !wasKorean {
+            button("닫기", "Close").tap()
+            tabs.element(boundBy: 3).tap()
+            app.buttons["language-english"].tap()
+            XCTAssertTrue(tabs["Learn"].waitForExistence(timeout: 5))
+        }
+    }
+
     func testDueReviewIsFiniteAndMovesBetweenConcepts() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]

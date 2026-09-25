@@ -12,6 +12,7 @@ struct PlayView: View {
     @State private var chooseNewOpponent = false
     @State private var showSetup = false
     @State private var showGraded = false
+    @State private var showTableGuide = false
 
     var body: some View {
         Group {
@@ -35,6 +36,16 @@ struct PlayView: View {
                     if let table = model.state.tableState {
                         HStack {
                             Text(tableTitle(table.seatCount)).font(GT.title(20))
+                            Button { showTableGuide = true } label: {
+                                Image(systemName: "info.circle")
+                                    .font(GT.title(18))
+                                    .foregroundStyle(GT.inkSecondary)
+                                    .frame(minWidth: 44, minHeight: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(GTPress())
+                            .accessibilityLabel(language.text("테이블 보는 법", "How to read the table"))
+                            .accessibilityIdentifier("play-table-guide")
                             Spacer()
                             Text(language.text("\(table.handNumber + 1)번째 핸드", "Hand \(table.handNumber + 1)"))
                                 .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
@@ -112,6 +123,20 @@ struct PlayView: View {
             #endif
         }
         .onChange(of: model.epoch) { _, value in epoch = value; revealAllCards = false }
+        .onChange(of: model.state.tableState != nil, initial: true) { _, hasTable in
+            // The first table explains itself once; the info button reopens it.
+            guard hasTable, !Self.guideSeen else { return }
+            #if DEBUG
+            // Demo tables are for screenshots of the table itself unless asked.
+            let env = ProcessInfo.processInfo.environment
+            if env["GT_DEMO_PRACTICE"] != nil, env["GT_DEMO_PLAY_GUIDE"] == nil { return }
+            #endif
+            Self.guideSeen = true
+            showTableGuide = true
+        }
+        .sheet(isPresented: $showTableGuide) {
+            PlayTableGuideView { showTableGuide = false }
+        }
         .confirmationDialog(language.text("새 테이블을 시작할까요?", "Start a fresh table?"),
                             isPresented: $chooseNewOpponent, titleVisibility: .visible) {
             Button(language.text("테이블 다시 만들기", "Set up a new table")) {
@@ -128,6 +153,20 @@ struct PlayView: View {
         } message: {
             Text(language.text("저장된 테이블은 그대로예요. 현재 차례와 가능한 선택을 다시 확인해 주세요.", "Your saved table is unchanged. Check the current turn and available choices."))
         }
+    }
+
+    private static var guideKey: String {
+        #if DEBUG
+        let suffix = ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"] ?? "shared"
+        #else
+        let suffix = "shared"
+        #endif
+        return "play.tableGuideSeen.v1.\(suffix)"
+    }
+
+    private static var guideSeen: Bool {
+        get { UserDefaults.standard.bool(forKey: guideKey) }
+        set { UserDefaults.standard.set(newValue, forKey: guideKey) }
     }
 
     private func tableTitle(_ players: Int) -> String {
@@ -345,5 +384,73 @@ struct PlayView: View {
         case "bet": language.text("베팅 +\(event.chips)", "Bet +\(event.chips)")
         default: language.text("올리기 +\(event.chips)", "Raised +\(event.chips)")
         }
+    }
+}
+
+/// What each part of the free table shows, in the order a new player looks at it.
+private struct PlayTableGuideView: View {
+    @Environment(\.learningLanguage) private var language
+    let onClose: () -> Void
+
+    private var items: [(symbol: String, title: String, detail: String)] {
+        [
+            ("person.crop.square", language.text("내 카드", "Your cards"),
+             language.text("왼쪽 아래 자리가 나예요. 내 카드 두 장은 나만 볼 수 있어요.",
+                           "You sit bottom left. Only you can see your two cards.")),
+            ("rectangle.on.rectangle", language.text("상대 카드", "Opponents' cards"),
+             language.text("상대 카드는 뒤집혀 있어요. 핸드가 끝나면 볼 수 있어요.",
+                           "Opponents' cards stay face down until the hand ends.")),
+            ("square.grid.3x1.below.line.grid.1x2", language.text("공용 카드", "Shared cards"),
+             language.text("가운데 카드는 모두가 함께 써요. 세 장, 한 장, 한 장씩 펼쳐져요.",
+                           "Everyone uses the middle cards. They come out three, then one, then one.")),
+            ("circle.grid.cross", language.text("팟", "The pot"),
+             language.text("가운데 숫자는 이번 핸드에 모인 칩이에요. 이긴 사람이 가져가요.",
+                           "The middle number is every chip bet this hand. The winner takes it.")),
+            ("hand.point.right", language.text("차례", "Whose turn"),
+             language.text("밝게 표시된 자리가 행동할 차례예요. 내 차례에만 버튼이 열려요.",
+                           "The highlighted seat acts next. Your buttons open on your turn.")),
+            ("arrow.up.arrow.down", language.text("행동의 가격", "What each action costs"),
+             language.text("폴드는 무료로 핸드를 떠나요. 콜은 버튼에 적힌 칩을 내고, 레이즈는 가격을 더 올려요.",
+                           "Folding leaves the hand for free. Calling pays the chips on the button; raising sets a higher price.")),
+        ]
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(language.text("테이블 보는 법", "How to read the table"))
+                        .font(GT.title(26)).foregroundStyle(GT.ink)
+                    Text(language.text("실제 돈은 쓰지 않아요. 칩은 연습용이에요.",
+                                       "No real money. The chips are for practice."))
+                        .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                    ForEach(items, id: \.title) { item in
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Image(systemName: item.symbol)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(GT.inkSecondary)
+                                .frame(width: 24)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(item.title).font(GT.semibold(16)).foregroundStyle(GT.ink)
+                                Text(item.detail).font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .gtPanel()
+                        .accessibilityElement(children: .combine)
+                    }
+                    FeltCTAButton(title: language.text("테이블로 가기", "Go to the table"), action: onClose)
+                        .accessibilityIdentifier("play-table-guide-close")
+                }
+                .padding(20)
+            }
+            .background(FeltBackground())
+            .gtChrome(.topBarTrailing) { ChromeButton.close(onClose) }
+        }
+        .accessibilityIdentifier("play-table-guide-sheet")
     }
 }

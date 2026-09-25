@@ -62,4 +62,15 @@ public enum ReviewQueue {
         }
     }
 
+    /// An answer given with calculation help is still a day of study, so it keeps the
+    /// streak under the same rule as `recordReview`, but it changes no accuracy count,
+    /// miss streak or review schedule.
+    public static func recordAssistedPractice(_ state: inout ProgressState, concept: Concept,
+                                              now: Date) {
+        let due = dueConcepts(in: state, at: now)
+        if due.isEmpty || due.contains(concept) {
+            Streak.recordSession(&state.streak, on: DayKey(now))
+        }
+    }
+
 }

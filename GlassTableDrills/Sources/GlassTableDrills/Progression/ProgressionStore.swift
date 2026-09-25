@@ -313,6 +313,10 @@ public struct ProgressionStore {
                   isTogether: round.introPhase == .together,
                   verifyAnswers: verifyAnswers),
               Set(round.answers.map(\.attemptID)).count == round.answers.count,
+              validHelp(round.helpOrdinal, ordinal: round.ordinal,
+                        count: round.questionCount)
+                  && (round.helpOrdinal == nil || round.introPhase == nil),
+              round.guidedAnswer?.assisted == nil,
               validateDraft(round.draft, ordinal: round.ordinal, concept: concept,
                             phaseIsQuestion: round.phase == .question
                                 && round.introPhase == nil),
@@ -357,6 +361,9 @@ public struct ProgressionStore {
                   isTogether: session.phase == .together,
                   verifyAnswers: verifyAnswers),
               Set(session.answers.map(\.answer.attemptID)).count == session.answers.count,
+              validHelp(session.helpOrdinal, ordinal: session.ordinal,
+                        count: session.scheduledConcepts.count),
+              session.guidedAnswer?.assisted == nil,
               (0..<session.scheduledConcepts.count).contains(session.ordinal),
               Concept(rawValue: session.scheduledConcepts[session.ordinal])
                 .map({ validateDraft(session.draft, ordinal: session.ordinal,
@@ -381,10 +388,17 @@ public struct ProgressionStore {
         }
     }
 
+    /// Help belongs to one question that has already been reached.
+    private static func validHelp(_ helpOrdinal: Int?, ordinal: Int, count: Int) -> Bool {
+        guard let helpOrdinal else { return true }
+        return (0..<count).contains(helpOrdinal) && helpOrdinal <= ordinal
+    }
+
     private static func validateSavedAnswer(_ answer: RoundAnswer, concept: Concept,
                                             seed: UInt64, index: Int,
                                             verifyAnswers: Bool) -> Bool {
-        guard answer.input.count <= 4_096, answer.reveal.count <= 4_096,
+        guard answer.assisted != false,
+              answer.input.count <= 4_096, answer.reveal.count <= 4_096,
               let input = try? JSONDecoder().decode(SavedDrillInput.self, from: answer.input),
               let reveal = try? JSONDecoder().decode(SavedDrillReveal.self, from: answer.reveal),
               input.isValid(for: concept), reveal.isValid, reveal.band == answer.band
@@ -438,6 +452,8 @@ public struct ProgressionStore {
               (0..<session.scheduledConcepts.count).contains(session.ordinal),
               session.answers.count <= session.scheduledConcepts.count,
               Set(session.answers.map(\.answer.attemptID)).count == session.answers.count,
+              validHelp(session.helpOrdinal, ordinal: session.ordinal,
+                        count: session.scheduledConcepts.count),
               Concept(rawValue: session.scheduledConcepts[session.ordinal])
                 .map({ validateDraft(session.draft, ordinal: session.ordinal,
                     concept: $0, phaseIsQuestion: session.phase == .question) }) == true,

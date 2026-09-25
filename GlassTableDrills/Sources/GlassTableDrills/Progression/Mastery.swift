@@ -79,24 +79,31 @@ public enum Mastery {
 /// Ephemeral, per-concept evidence from one node session. This deliberately stays
 /// outside `ProgressState`, preserving the schema-1 file format and old records.
 public struct SessionEvidence: Equatable, Sendable {
+    /// Independent answers only. Answers given with calculation help are practice and
+    /// count in `assisted`, never here.
     public var attempted: Int
     public var spotOn: Int
+    public var assisted: Int
 
-    public init(attempted: Int = 0, spotOn: Int = 0) {
+    public init(attempted: Int = 0, spotOn: Int = 0, assisted: Int = 0) {
         self.attempted = attempted
         self.spotOn = spotOn
+        self.assisted = assisted
     }
 
     public var isComplete: Bool { attempted > 0 && spotOn >= 0 && spotOn <= attempted }
-    public var isPerfect: Bool { isComplete && spotOn == attempted }
+    /// A perfect session is fully independent: one answer with help rules it out.
+    public var isPerfect: Bool { isComplete && spotOn == attempted && assisted == 0 }
 
-    public mutating func record(spotOn: Bool) {
+    public mutating func record(spotOn: Bool, assisted: Bool = false) {
+        if assisted { self.assisted += 1; return }
         attempted += 1
         if spotOn { self.spotOn += 1 }
     }
 
-    /// Requires exactly one recorded answer for every scheduled entry, with no
-    /// missing or extra concepts. Clearing and promotion share this gate.
+    /// Requires exactly one recorded answer, independent or with help, for every
+    /// scheduled entry, with no missing or extra concepts. Clearing and promotion share
+    /// this gate; promotion additionally needs independent answers (`isComplete`).
     public static func validates(_ evidence: [Concept: SessionEvidence],
                                  scheduled: [Concept]) -> Bool {
         guard !scheduled.isEmpty else { return false }
@@ -104,7 +111,9 @@ public struct SessionEvidence: Equatable, Sendable {
         guard evidence.count == expected.count else { return false }
         return expected.allSatisfy { concept, count in
             guard let item = evidence[concept] else { return false }
-            return item.isComplete && item.attempted == count
+            return item.attempted >= 0 && item.assisted >= 0
+                && item.spotOn >= 0 && item.spotOn <= item.attempted
+                && item.attempted + item.assisted == count
         }
     }
 }

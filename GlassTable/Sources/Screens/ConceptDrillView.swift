@@ -35,12 +35,14 @@ struct ConceptDrillView: View {
     let onQuestionReady: () -> Void
     let onCommit: (DrillOutcome) -> Bool
     let onAnswer: (DrillOutcome) -> Void
+    let help: DrillHelp?
 
     private var questionID: String { "\(concept.rawValue)/\(seed)/\(index)" }
 
     init(concept: Concept, seed: UInt64, index: Int, progressText: String,
          restoredAnswer: RoundAnswer? = nil,
          initialDraft: SavedDrillDraftInput? = nil,
+         help: DrillHelp? = nil,
          onDraft: @escaping (SavedDrillDraftInput) -> Void = { _ in },
          onQuestionReady: @escaping () -> Void = {},
          onCommit: @escaping (DrillOutcome) -> Bool = { _ in true },
@@ -55,6 +57,7 @@ struct ConceptDrillView: View {
         self.onQuestionReady = onQuestionReady
         self.onCommit = onCommit
         self.onAnswer = onAnswer
+        self.help = help
     }
 
     var body: some View {
@@ -73,6 +76,8 @@ struct ConceptDrillView: View {
                     .environment(\.drillSaveDraft, scheduleDraft)
                     .environment(\.drillQuestionReady, onQuestionReady)
                     .environment(\.drillQuestionID, questionID)
+                    .environment(\.drillHelp, help)
+                    .environment(\.drillExplain, help == nil ? nil : concept)
                     .environment(\.drillReplayContext,
                                   DrillReplayContext(concept: concept, seed: seed, index: index))
             }
@@ -200,6 +205,25 @@ private struct DrillQuestionReadyKey: EnvironmentKey {
     static let defaultValue: () -> Void = {}
 }
 
+/// Help that shows the current question's calculation. Only graded questions pass it;
+/// guided steps and replays leave it nil, so the control does not appear there.
+/// `mark` records the help and returns false when it can't be saved, in which case
+/// the help stays hidden.
+struct DrillHelp {
+    let isUsed: Bool
+    let mark: () -> Bool
+}
+
+private struct DrillHelpKey: EnvironmentKey {
+    static let defaultValue: DrillHelp? = nil
+}
+
+/// The skill a graded question can explain again. Guided steps leave it nil; they
+/// have their own hint.
+private struct DrillExplainKey: EnvironmentKey {
+    static let defaultValue: Concept? = nil
+}
+
 private struct DrillQuestionIDKey: EnvironmentKey {
     static let defaultValue = "unknown"
 }
@@ -235,6 +259,16 @@ extension EnvironmentValues {
         set { self[DrillQuestionReadyKey.self] = newValue }
     }
 
+    fileprivate var drillHelp: DrillHelp? {
+        get { self[DrillHelpKey.self] }
+        set { self[DrillHelpKey.self] = newValue }
+    }
+
+    fileprivate var drillExplain: Concept? {
+        get { self[DrillExplainKey.self] }
+        set { self[DrillExplainKey.self] = newValue }
+    }
+
     fileprivate var drillQuestionID: String {
         get { self[DrillQuestionIDKey.self] }
         set { self[DrillQuestionIDKey.self] = newValue }
@@ -262,7 +296,9 @@ private struct DrillShell<Content: View, Sheet: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @Environment(\.drillQuestionID) private var questionID
+    @Environment(\.drillExplain) private var explainConcept
     @State private var gradedBand: GradeBand?
+    @State private var explaining = false
     let title: String
     let progressText: String
     @ViewBuilder var content: () -> Content
@@ -303,6 +339,17 @@ private struct DrillShell<Content: View, Sheet: View>: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onPreferenceChange(GradedBandKey.self) { gradedBand = $0 }
+        .sheet(isPresented: $explaining) {
+            if let explainConcept {
+                ConceptExplainView(concept: explainConcept) { explaining = false }
+            }
+        }
+        .onAppear {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["GT_DEMO_EXPLAIN"] != nil,
+               explainConcept != nil { explaining = true }
+            #endif
+        }
     }
 
     private var sheetIdentifier: String {
@@ -310,8 +357,20 @@ private struct DrillShell<Content: View, Sheet: View>: View {
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .center, spacing: 8) {
             Text(localizedTitle).font(GT.title(19)).foregroundStyle(GT.onFelt)
+            if explainConcept != nil {
+                Button { explaining = true } label: {
+                    Image(systemName: "info.circle")
+                        .font(GT.title(18))
+                        .foregroundStyle(GT.onFeltSecondary)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(GTPress())
+                .accessibilityLabel(language.text("개념 설명", "Explain this skill"))
+                .accessibilityIdentifier("drill-explain")
+            }
             Spacer(minLength: 12)
             Text(progressText).font(GT.semibold(14).monospacedDigit())
                 .foregroundStyle(GT.onFeltSecondary)
@@ -573,12 +632,14 @@ private struct PotMathDrill: View {
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.drillInitialDraft) private var initialDraft
     @Environment(\.drillSaveDraft) private var saveDraft
+    @Environment(\.drillHelp) private var help
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     private let spot: PotMathSpot
     private let introKey: String
     @State private var showingIntro: Bool
     @State private var showingHelp = false
+    @State private var confirmingTotals = false
     @State private var stepIndex: Int
     @State private var reveal: PotMathReveal?
 
@@ -657,7 +718,11 @@ private struct PotMathDrill: View {
                         }
 
                         PotMathReplayView(spot: spot, stepIndex: $stepIndex,
-                                          revealedPot: reveal == nil ? nil : spot.pot) {
+                                          revealedPot: reveal == nil ? nil : spot.pot,
+                                          showsPaidTotals: help?.isUsed == true,
+                                          showTotals: help == nil || reveal != nil ? nil : {
+                                              confirmingTotals = true
+                                          }) {
                             showingHelp = true
                         }
                     }
@@ -675,6 +740,13 @@ private struct PotMathDrill: View {
                     }
                 }
             }
+        }
+        .alert(language.text("합계를 볼까요?", "Show the totals?"), isPresented: $confirmingTotals) {
+            Button(language.text("합계 보기", "Show totals")) { _ = help?.mark() }
+            Button(language.text("직접 세기", "Keep counting"), role: .cancel) {}
+        } message: {
+            Text(language.text("이 문제는 도움 받은 연습으로 기록돼요.",
+                               "This question will count as practice with help."))
         }
         .sheet(isPresented: $showingHelp) {
             NavigationStack {
@@ -698,6 +770,11 @@ private struct PotMathDrill: View {
             if ProcessInfo.processInfo.environment["GT_DEMO_POT_STATE"] == "reveal",
                reveal == nil {
                 reveal = gradePotMath(answer: spot.correctAnswer, spot: spot, language: language)
+            }
+            switch ProcessInfo.processInfo.environment["GT_DEMO_POT_TOTALS"] {
+            case "confirm": confirmingTotals = true
+            case "shown": _ = help?.mark()
+            default: break
             }
             #endif
         }
@@ -775,6 +852,7 @@ private struct PotMathRevealSheet: View {
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.glossaryTerm) private var term
     @Environment(\.drillCommit) private var onCommit
+    @Environment(\.drillHelp) private var help
     @Environment(ProgressionModel.self) private var model
     @State private var saved = false
     let reveal: PotMathReveal
@@ -791,6 +869,7 @@ private struct PotMathRevealSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if help?.isUsed == true { SolvedWithHelpLabel() }
             Text(reveal.band == .spotOn ? language.text("맞았어요", "That's right")
                  : language.text("정답은 \(reveal.correct)칩이에요", "The answer is \(reveal.correct) chips"))
                 .font(GT.title(GT.Typography.resultSize))

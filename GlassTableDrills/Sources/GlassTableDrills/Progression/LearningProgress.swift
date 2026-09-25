@@ -59,12 +59,19 @@ public struct RoundAnswer: Codable, Equatable, Sendable {
     /// The committed input and reveal payload are UI-owned, versioned JSON bytes.
     public var input: Data
     public var reveal: Data
+    /// `true` when the learner opened help that showed this question's calculation
+    /// before committing. Absent (nil) means unassisted, which is every answer written
+    /// before help existed; those are never relabelled.
+    public var assisted: Bool?
 
     public init(attemptID: String, ordinal: Int, band: GradeBand, submittedAt: Date,
-                input: Data, reveal: Data) {
+                input: Data, reveal: Data, assisted: Bool = false) {
         self.attemptID = attemptID; self.ordinal = ordinal; self.band = band.rawValue
         self.submittedAt = submittedAt; self.input = input; self.reveal = reveal
+        self.assisted = assisted ? true : nil
     }
+
+    public var isAssisted: Bool { assisted == true }
 }
 
 /// A question that has not been submitted. No score or review credit is inferred
@@ -131,6 +138,9 @@ public struct PracticeRound: Codable, Equatable, Sendable {
     public var showBeatIndex: Int?
     public var guidedDraft: SavedDrillDraft?
     public var guidedAnswer: RoundAnswer?
+    /// The ordinal whose calculation help the learner opened before committing.
+    /// Written when help opens, so leaving and relaunching keep the attempt assisted.
+    public var helpOrdinal: Int?
 
     public enum Phase: String, Codable, Sendable { case question, reveal, finished }
 
@@ -173,6 +183,9 @@ public struct NodeSessionSnapshot: Codable, Equatable, Sendable {
     public var showBeatIndex: Int?
     public var guidedDraft: SavedDrillDraft?
     public var guidedAnswer: RoundAnswer?
+    /// The ordinal whose calculation help the learner opened before committing.
+    /// Written when help opens, so leaving and relaunching keep the attempt assisted.
+    public var helpOrdinal: Int?
 
     public init(id: String, nodeID: String, seed: UInt64,
                 scheduledConcepts: [String], phase: Phase,
@@ -196,6 +209,9 @@ public struct ReviewSessionSnapshot: Codable, Equatable, Sendable {
     public var phase: PracticeRound.Phase
     public var answers: [NodeGradedAnswer]
     public var draft: SavedDrillDraft?
+    /// The ordinal whose calculation help the learner opened before committing.
+    /// Written when help opens, so leaving and relaunching keep the attempt assisted.
+    public var helpOrdinal: Int?
 
     public init(id: String, seed: UInt64, scheduledConcepts: [String],
                 formatVersion: Int = 1) {
@@ -248,6 +264,15 @@ public extension ProgressState {
         guard !recentHands.contains(where: { $0.handID == observation.handID }) else { return }
         recentHands.append(observation)
         if recentHands.count > 200 { recentHands.removeFirst(recentHands.count - 200) }
+    }
+
+    /// Answers given with calculation help. Daily summaries keep every day, so this
+    /// only grows; spot seeds add it so that help, leave and restart deals a new spot.
+    public func assistedAttempts(for concept: Concept) -> Int {
+        dailySummaries.reduce(0) { sum, summary in
+            summary.key.assisted && summary.key.concept == concept.rawValue
+                ? sum + summary.total : sum
+        }
     }
 
     mutating func recordDetailedAttempt(_ evidence: PracticeEvidence) {

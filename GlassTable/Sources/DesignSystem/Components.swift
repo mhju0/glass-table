@@ -271,6 +271,19 @@ struct RiverExplainPanel: View {
     }
 }
 
+/// Leads a result the learner reached after opening calculation help. It counts as
+/// practice, so the verdict below it stays but no accuracy is claimed.
+struct SolvedWithHelpLabel: View {
+    @Environment(\.learningLanguage) private var language
+    var body: some View {
+        Label(language.text("도움을 받아 풀었어요", "Solved with help"),
+              systemImage: "hand.raised")
+            .font(GT.semibold(14))
+            .foregroundStyle(GT.inkSecondary)
+            .accessibilityIdentifier("solved-with-help")
+    }
+}
+
 /// "용어 · 팟 오즈" — opens the glossary scrolled to one term, from inside a reveal.
 /// Owns its own sheet state so a call site is one line.
 struct GlossaryChip: View {

@@ -104,6 +104,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.buttons["table-start"].waitForExistence(timeout: 5))
 
         app.buttons["table-start"].tap()
+        closeTableGuide(in: app)
         XCTAssertTrue(app.staticTexts["Your turn"].waitForExistence(timeout: 10)
                       || app.staticTexts["Review this hand"].exists)
         let table = app.descendants(matching: .any)["practice-table"]
@@ -140,6 +141,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.buttons["seat-style-1"].exists)
         XCTAssertFalse(app.buttons["seat-style-2"].exists)
         app.buttons["table-start"].tap()
+        closeTableGuide(in: app)
         let table = app.descendants(matching: .any)["practice-table"]
         XCTAssertTrue(table.waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["Two-player practice"].exists)
@@ -326,6 +328,43 @@ final class BeginnerReleaseTests: XCTestCase {
         app.buttons["Resume lesson"].tap()
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "43")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "saved-answer-")).firstMatch.exists)
+    }
+
+    /// The first table explains what each part shows once; the info button reopens it.
+    func testFirstTableExplainsItselfOnceAndReopens() {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Play"].tap()
+        app.buttons["play-free"].tap()
+        XCTAssertTrue(app.buttons["table-start"].waitForExistence(timeout: 5))
+        app.buttons["table-start"].tap()
+        let close = app.buttons["play-table-guide-close"]
+        XCTAssertTrue(app.staticTexts["How to read the table"].waitForExistence(timeout: 10))
+        for title in ["Your cards", "Opponents' cards", "Shared cards", "The pot",
+                      "Whose turn", "What each action costs"] {
+            XCTAssertTrue(app.staticTexts[title].exists, title)
+        }
+        for _ in 0..<6 where !close.isHittable { app.swipeUp() }
+        close.tap()
+        let reopen = app.buttons["play-table-guide"]
+        XCTAssertTrue(reopen.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["How to read the table"].exists)
+
+        app.terminate()
+        app.launchEnvironment["GT_DEMO_TAB"] = "play"
+        app.launch()
+        XCTAssertTrue(reopen.waitForExistence(timeout: 15))
+        XCTAssertFalse(app.staticTexts["How to read the table"].exists, "The guide shows only once")
+        reopen.tap()
+        XCTAssertTrue(app.staticTexts["How to read the table"].waitForExistence(timeout: 5))
+    }
+
+    private func closeTableGuide(in app: XCUIApplication) {
+        let close = app.buttons["play-table-guide-close"]
+        guard close.waitForExistence(timeout: 10) else { return }
+        for _ in 0..<6 where !close.isHittable { app.swipeUp() }
+        close.tap()
     }
 
     func testPracticeHandSettlesAndNextHandSurvivesRelaunch() {

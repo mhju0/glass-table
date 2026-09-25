@@ -109,4 +109,34 @@ final class ReviewQueueTests: XCTestCase {
                                  interval: nil, now: t0, scheduler: sched)
         XCTAssertEqual(s.streak.current, 1, "more answers on the same day do not inflate the streak")
     }
+
+    func testAnswerWithHelpKeepsTheStreakButLeavesScheduleAndCountsAlone() {
+        var s = state(due: [(.outs, -1)])
+        let before = s.record(for: .outs)
+        ReviewQueue.recordAssistedPractice(&s, concept: .outs, now: t0)
+        XCTAssertEqual(s.streak.current, 1)
+        XCTAssertEqual(s.record(for: .outs), before)
+        XCTAssertEqual(ReviewQueue.dueConcepts(in: s, at: t0), [.outs])
+
+        var fresh = state(due: [(.outs, -1)])
+        ReviewQueue.recordAssistedPractice(&fresh, concept: .showdown, now: t0)
+        XCTAssertEqual(fresh.streak.current, 0)
+    }
+
+    func testAssistedAttemptsCountOnlyTheConceptsHelpedLanes() {
+        var s = ProgressState()
+        func key(_ concept: Concept, assisted: Bool, day: Double) -> DailyPracticeKey {
+            DailyPracticeKey(day: DayKey(days(day)), concept: concept.rawValue,
+                             mode: "path", formatVersion: 1, language: "ko", assisted: assisted)
+        }
+        for (i, k) in [key(.outs, assisted: true, day: 0), key(.outs, assisted: true, day: 1),
+                       key(.outs, assisted: false, day: 1), key(.potOdds, assisted: true, day: 1)]
+            .enumerated() {
+            s.recordDetailedAttempt(PracticeEvidence(attemptID: "\(i)", key: k, at: t0,
+                band: .off, eligibleCorrectSeconds: nil, decisionLossBB: nil))
+        }
+        XCTAssertEqual(s.assistedAttempts(for: .outs), 2)
+        XCTAssertEqual(s.assistedAttempts(for: .potOdds), 1)
+        XCTAssertEqual(s.assistedAttempts(for: .combos), 0)
+    }
 }

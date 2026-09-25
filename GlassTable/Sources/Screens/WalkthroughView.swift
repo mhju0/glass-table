@@ -16,6 +16,8 @@ struct WalkthroughView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     let title: String
+    /// One sentence on why the concept matters, shown on the first step.
+    let purpose: String?
     let beats: [Beat]
     /// Card rows to show for `.table` beats: (label, cards), top to bottom.
     let rows: [(String, [Card])]
@@ -25,17 +27,31 @@ struct WalkthroughView: View {
     let onSkip: () -> Void
 
     @State private var index = 0
+    /// The learner's one action in the example: the first computed value stays covered
+    /// until they tap it, and Next waits for that tap.
+    @State private var practiceRevealed = false
 
-    init(title: String, beats: [Beat], rows: [(String, [Card])],
+    init(title: String, purpose: String? = nil, beats: [Beat], rows: [(String, [Card])],
          initialIndex: Int = 0, onStep: @escaping (Int) -> Bool = { _ in true },
          onFinish: @escaping () -> Void, onSkip: @escaping () -> Void) {
-        self.title = title; self.beats = beats; self.rows = rows
+        self.title = title; self.purpose = purpose; self.beats = beats; self.rows = rows
         self.initialIndex = initialIndex; self.onStep = onStep
         self.onFinish = onFinish; self.onSkip = onSkip
     }
 
     private var beat: Beat { beats[min(index, beats.count - 1)] }
     private var isLast: Bool { index >= beats.count - 1 }
+
+    /// The last step that carries a value: the example's conclusion (the count, the
+    /// percentage, the call). Every concept's script has one after its opening step
+    /// (`WalkthroughPracticeTests`), so each example asks for a tap.
+    static func practiceIndex(in beats: [Beat]) -> Int? {
+        beats.indices.last { $0 > 0 && beats[$0].value != nil }
+    }
+
+    private var isCovered: Bool {
+        !practiceRevealed && index == Self.practiceIndex(in: beats)
+    }
 
     var body: some View {
         Group {
@@ -106,11 +122,21 @@ struct WalkthroughView: View {
                 }
             }
             .frame(height: 2)
+            if index == 0, let purpose {
+                Text(purpose)
+                    .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+                    .accessibilityIdentifier("walkthrough-purpose")
+            }
         }
         .padding(.horizontal, 18).padding(.top, 4)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(title + ", " + language.text("\(beats.count)단계 중 \(index + 1)단계",
-                                           "Step \(index + 1) of \(beats.count)"))
+                                           "Step \(index + 1) of \(beats.count)")
+                            + (index == 0 ? purpose.map { ". " + $0 } ?? "" : ""))
         .accessibilityIdentifier("walkthrough-step-\(index)")
     }
 
@@ -124,11 +150,15 @@ struct WalkthroughView: View {
             // the sheet keeps the label, the reasoning and the button.
             VStack(alignment: .leading, spacing: 10) {
                 Spacer(minLength: 24)
-                Text(beat.value ?? beat.caption)
-                    .font(GT.title(34)).foregroundStyle(GT.onFelt)
-                    .lineSpacing(GT.Typography.bodyLineSpacing)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .contentTransition(.numericText())
+                if isCovered {
+                    revealTile
+                } else {
+                    Text(beat.value ?? beat.caption)
+                        .font(GT.title(34)).foregroundStyle(GT.onFelt)
+                        .lineSpacing(GT.Typography.bodyLineSpacing)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .contentTransition(.numericText())
+                }
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -259,9 +289,13 @@ struct WalkthroughView: View {
                 Text(beat.caption)
                     .font(GT.semibold(13)).tracking(0.3)
                     .foregroundStyle(GT.inkMuted)
-                Text(value).font(GT.title(26)).foregroundStyle(GT.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .contentTransition(.numericText())
+                if isCovered {
+                    revealTile
+                } else {
+                    Text(value).font(GT.title(26)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .contentTransition(.numericText())
+                }
             } else if beat.focus == .none {
                 // The payload is already large on the felt. Repeating it here is the
                 // same sentence twice; only its label belongs in the sheet.
@@ -272,7 +306,12 @@ struct WalkthroughView: View {
                 Text(beat.caption).font(GT.title(GT.Typography.resultSize)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if let detail = beat.detail {
+            if isCovered {
+                Text(language.text("먼저 스스로 계산해 본 뒤 눌러서 확인해요.",
+                                   "Work it out first, then tap to check."))
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if let detail = beat.detail {
                 Text(detail).font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
@@ -284,7 +323,30 @@ struct WalkthroughView: View {
                     withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 }
                 }
             }
+            .disabled(isCovered)
         }
+    }
+
+    /// Covers the step's value until the learner taps it. The caption above it says
+    /// what the value is; the detail that explains it appears with it.
+    private var revealTile: some View {
+        Button {
+            withAnimation(reduceMotion ? nil : GT.Motion.change) { practiceRevealed = true }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "hand.tap.fill").font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(GT.cta)
+                Text(language.text("눌러서 확인하기", "Tap to check"))
+                    .font(GT.semibold(GT.Typography.buttonSize)).foregroundStyle(GT.ink)
+            }
+            .frame(maxWidth: .infinity, minHeight: 54)
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .strokeBorder(GT.borderStrong, style: StrokeStyle(lineWidth: 1, dash: [5, 4])))
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel(language.text("가려진 결과. 눌러서 확인하기", "Hidden result. Tap to check"))
+        .accessibilityIdentifier("walkthrough-reveal")
     }
 }
 
