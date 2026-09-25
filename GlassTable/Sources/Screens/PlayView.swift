@@ -34,21 +34,17 @@ struct PlayView: View {
                 VStack(alignment: .leading, spacing: 22) {
                     Text(language.text("플레이", "Play")).font(GT.title(30))
                     if let table = model.state.tableState {
-                        HStack {
-                            Text(tableTitle(table.seatCount)).font(GT.title(20))
-                            Button { showTableGuide = true } label: {
-                                Image(systemName: "info.circle")
-                                    .font(GT.title(18))
-                                    .foregroundStyle(GT.inkSecondary)
-                                    .frame(minWidth: 44, minHeight: 44)
-                                    .contentShape(Rectangle())
+                        // The title keeps one line beside the controls when it fits;
+                        // otherwise it takes its own row and wraps between words.
+                        ViewThatFits(in: .horizontal) {
+                            HStack {
+                                tableTitleText(table).fixedSize()
+                                tableHeaderControls(table)
                             }
-                            .buttonStyle(GTPress())
-                            .accessibilityLabel(language.text("테이블 보는 법", "How to read the table"))
-                            .accessibilityIdentifier("play-table-guide")
-                            Spacer()
-                            Text(language.text("\(table.handNumber + 1)번째 핸드", "Hand \(table.handNumber + 1)"))
-                                .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                tableTitleText(table).fixedSize(horizontal: false, vertical: true)
+                                HStack { tableHeaderControls(table) }
+                            }
                         }
                         tableDiagram(table)
                         if let review = table.review {
@@ -167,6 +163,27 @@ struct PlayView: View {
     private static var guideSeen: Bool {
         get { UserDefaults.standard.bool(forKey: guideKey) }
         set { UserDefaults.standard.set(newValue, forKey: guideKey) }
+    }
+
+    private func tableTitleText(_ table: PracticeTableState) -> some View {
+        Text(tableTitle(table.seatCount)).font(GT.title(20))
+    }
+
+    @ViewBuilder private func tableHeaderControls(_ table: PracticeTableState) -> some View {
+        Button { showTableGuide = true } label: {
+            Image(systemName: "info.circle")
+                .font(GT.title(18))
+                .foregroundStyle(GT.inkSecondary)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel(language.text("테이블 보는 법", "How to read the table"))
+        .accessibilityIdentifier("play-table-guide")
+        Spacer()
+        Text(language.text("\(table.handNumber + 1)번째 핸드", "Hand \(table.handNumber + 1)"))
+            .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+            .fixedSize()
     }
 
     private func tableTitle(_ players: Int) -> String {

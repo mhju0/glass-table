@@ -356,27 +356,44 @@ private struct DrillShell<Content: View, Sheet: View>: View {
         gradedBand.map { "graded-sheet-\($0)" } ?? "answer-sheet"
     }
 
+    /// The title stays on one line beside the explain button and counter when it fits.
+    /// Otherwise it takes a full row, so a large text size wraps it between words.
     private var header: some View {
-        HStack(alignment: .center, spacing: 8) {
-            Text(localizedTitle).font(GT.title(19)).foregroundStyle(GT.onFelt)
-            if explainConcept != nil {
-                Button { explaining = true } label: {
-                    Image(systemName: "info.circle")
-                        .font(GT.title(18))
-                        .foregroundStyle(GT.onFeltSecondary)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(GTPress())
-                .accessibilityLabel(language.text("개념 설명", "Explain this skill"))
-                .accessibilityIdentifier("drill-explain")
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: 8) {
+                titleText.fixedSize()
+                headerControls
             }
-            Spacer(minLength: 12)
-            Text(progressText).font(GT.semibold(14).monospacedDigit())
-                .foregroundStyle(GT.onFeltSecondary)
-                .accessibilityIdentifier("drill-question-\(questionID)")
+            VStack(alignment: .leading, spacing: 4) {
+                titleText.fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .center, spacing: 8) { headerControls }
+            }
         }
         .padding(.top, 6).padding(.bottom, 12)
+    }
+
+    private var titleText: some View {
+        Text(localizedTitle).font(GT.title(19)).foregroundStyle(GT.onFelt)
+    }
+
+    @ViewBuilder private var headerControls: some View {
+        if explainConcept != nil {
+            Button { explaining = true } label: {
+                Image(systemName: "info.circle")
+                    .font(GT.title(18))
+                    .foregroundStyle(GT.onFeltSecondary)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(GTPress())
+            .accessibilityLabel(language.text("개념 설명", "Explain this skill"))
+            .accessibilityIdentifier("drill-explain")
+        }
+        Spacer(minLength: 12)
+        Text(progressText).font(GT.semibold(14).monospacedDigit())
+            .foregroundStyle(GT.onFeltSecondary)
+            .fixedSize()
+            .accessibilityIdentifier("drill-question-\(questionID)")
     }
 
     private var localizedTitle: String {
