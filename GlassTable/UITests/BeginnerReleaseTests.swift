@@ -41,24 +41,98 @@ final class BeginnerReleaseTests: XCTestCase {
                       || app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Full learning path")).firstMatch.exists)
     }
 
-    func testOpponentDetailsDoNotMoveTheChoices() {
+    func testStartingPointLeadsUntilTheFirstLessonThenMovesBelowPractice() {
+        let app = app()
+        app.launch()
+        let path = app.buttons["learn-path"]
+        XCTAssertTrue(path.waitForExistence(timeout: 15))
+        let card = app.buttons["placement-start"]
+        XCTAssertTrue(card.exists, "Before any lesson, the starting-point check is a real button")
+        XCTAssertLessThan(card.frame.minY, path.frame.minY)
+        XCTAssertFalse(app.buttons["placement-row"].exists)
+        app.terminate()
+
+        app.launchEnvironment["GT_TEST_STORE_ID"] = UUID().uuidString
+        app.launchEnvironment["GT_TEST_PATH_CURRENT_NODE"] = "u1-potMath"
+        app.launch()
+        XCTAssertTrue(path.waitForExistence(timeout: 15))
+        let row = app.buttons["placement-row"]
+        scrollTo(row, in: app)
+        XCTAssertTrue(row.exists)
+        XCTAssertFalse(app.buttons["placement-start"].exists)
+        XCTAssertGreaterThan(row.frame.minY, path.frame.minY)
+        row.tap()
+        XCTAssertTrue(app.buttons["Start without the check"].waitForExistence(timeout: 5))
+    }
+
+    func testPlayHomeOffersTwoModesAboveTheTabBar() {
         let app = app()
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Play"].tap()
+        let free = app.buttons["play-free"]
+        let graded = app.buttons["play-graded"]
+        XCTAssertTrue(free.waitForExistence(timeout: 5))
+        XCTAssertTrue(free.label.contains("Free table"), free.label)
+        XCTAssertTrue(graded.label.contains("Graded 1:1 practice"), graded.label)
+        XCTAssertTrue(free.isHittable && graded.isHittable)
+        XCTAssertLessThan(graded.frame.maxY, app.tabBars.firstMatch.frame.minY,
+                          "Both mode cards must clear the tab bar without scrolling")
+    }
+
+    func testTableSetupGivesEachComputerItsOwnStyle() {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Play"].tap()
+        app.buttons["play-free"].tap()
+        XCTAssertTrue(app.staticTexts["Set up the table"].waitForExistence(timeout: 5))
+        let seats = (1...3).map { app.buttons["seat-style-\($0)"] }
+        XCTAssertTrue(seats.allSatisfy(\.exists))
+        XCTAssertEqual(Set(seats.map(\.label)).count, 3, "Default computers should play three different styles")
+
+        seats[1].tap()
+        app.buttons["Very aggressive"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["seat-style-2"].label.contains("Very aggressive"), app.buttons["seat-style-2"].label)
+
+        app.buttons["style-guide"].tap()
         let cautious = app.buttons["opponent-nit"]
         XCTAssertTrue(cautious.waitForExistence(timeout: 5))
-        let original = cautious.frame
         cautious.tap()
-        XCTAssertTrue(app.buttons["opponent-start"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Starting habits"].waitForExistence(timeout: 5))
         app.buttons["Close"].firstMatch.tap()
-        XCTAssertTrue(cautious.waitForExistence(timeout: 5))
-        XCTAssertEqual(cautious.frame.minY, original.minY, accuracy: 2)
-        app.buttons["opponent-tag"].tap()
-        XCTAssertTrue(app.buttons["opponent-start"].waitForExistence(timeout: 5))
-        app.buttons["opponent-start"].tap()
+        XCTAssertTrue(app.buttons["table-start"].waitForExistence(timeout: 5))
+
+        app.buttons["table-start"].tap()
         XCTAssertTrue(app.staticTexts["Your turn"].waitForExistence(timeout: 10)
                       || app.staticTexts["Review this hand"].exists)
+        let table = app.descendants(matching: .any)["practice-table"]
+        let second = table.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer 2 · ")).firstMatch
+        XCTAssertTrue(second.label.contains("Very aggressive"), second.label)
+    }
+
+    func testTwoPlayerTableSeatsOneComputer() {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Play"].tap()
+        app.buttons["play-free"].tap()
+        XCTAssertTrue(app.buttons["seat-style-3"].waitForExistence(timeout: 5))
+        app.buttons["2 players"].tap()
+        XCTAssertTrue(app.buttons["seat-style-1"].exists)
+        XCTAssertFalse(app.buttons["seat-style-2"].exists)
+        app.buttons["table-start"].tap()
+        let table = app.descendants(matching: .any)["practice-table"]
+        XCTAssertTrue(table.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Two-player practice"].exists)
+        func seat(_ n: Int) -> XCUIElement {
+            table.descendants(matching: .any)
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(n) · ")).firstMatch
+        }
+        XCTAssertTrue(seat(1).exists)
+        XCTAssertFalse(seat(2).exists)
+        XCTAssertFalse(seat(3).exists)
     }
 
     func testLanguageSwitchInSettingsKeepsTheSavedLesson() {
@@ -106,10 +180,8 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(path.waitForExistence(timeout: 5))
 
         app.tabBars.buttons["Play"].tap()
-        let headsUp = app.buttons.matching(NSPredicate(
-            format: "label CONTAINS %@", "Heads-up decision exercise"
-        )).firstMatch
-        scrollTo(headsUp, in: app)
+        let headsUp = app.buttons["play-graded"]
+        XCTAssertTrue(headsUp.waitForExistence(timeout: 5))
         headsUp.tap()
         let tableBack = app.navigationBars.buttons.firstMatch
         XCTAssertTrue(tableBack.waitForExistence(timeout: 5))
@@ -160,6 +232,28 @@ final class BeginnerReleaseTests: XCTestCase {
         scrollTo(next, in: app)
         next.tap()
         XCTAssertTrue(app.staticTexts["2/5"].waitForExistence(timeout: 5))
+    }
+
+    func testGradedRevealSheetIsTintedByItsVerdict() {
+        let app = app()
+        app.launchEnvironment["GT_DEMO_SEED"] = "1"
+        app.launchEnvironment["GT_DEMO_NODE"] = "u2-potOdds"
+        app.launch()
+        let submit = app.buttons["Check answer"]
+        XCTAssertTrue(submit.waitForExistence(timeout: 15))
+        submit.tap()
+        let sheet = app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "graded-sheet-"
+        )).firstMatch
+        XCTAssertTrue(sheet.waitForExistence(timeout: 5))
+        let verdicts = ["graded-sheet-spotOn": "Exact", "graded-sheet-close": "Close",
+                        "graded-sheet-off": "Review this one"]
+        let expected = try? XCTUnwrap(verdicts[sheet.identifier])
+        XCTAssertNotNil(expected, "Unexpected sheet identifier \(sheet.identifier)")
+        let verdict = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label BEGINSWITH %@", expected ?? "-"
+        )).firstMatch
+        XCTAssertTrue(verdict.exists, "The tint must match the verdict shown")
     }
 
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {
@@ -237,6 +331,30 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["Hand 2"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.descendants(matching: .any)["practice-table"].exists)
+    }
+
+    /// Play uses the shared table: opponents hold face-down cards, the learner's cards
+    /// are face up, and the known pot sits in the middle.
+    func testPracticeTableHidesOpponentCardsAndShowsThePot() {
+        let app = app()
+        app.launchEnvironment["GT_DEMO_PRACTICE"] = "1"
+        app.launchEnvironment["GT_DEMO_TAB"] = "play"
+        app.launch()
+        XCTAssertTrue(app.buttons["Fold · leave this hand"].waitForExistence(timeout: 15))
+        let table = app.descendants(matching: .any)["practice-table"]
+        for seat in 1...3 {
+            let label = table.descendants(matching: .any)
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(seat) · ")).firstMatch
+            XCTAssertTrue(label.exists, "Computer \(seat) seat")
+            XCTAssertTrue(label.label.contains("two face-down cards"), label.label)
+        }
+        let you = table.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "You,")).firstMatch
+        XCTAssertTrue(you.exists)
+        XCTAssertFalse(you.label.contains("face-down"), you.label)
+        let pot = table.descendants(matching: .any)["table-pot"]
+        XCTAssertTrue(pot.exists)
+        XCTAssertTrue(pot.label.hasPrefix("Pot, ") && pot.label.hasSuffix(" chips"), pot.label)
     }
 
     func testCallFoldFixtureOpensThatConceptNotAMixedCheckpoint() {

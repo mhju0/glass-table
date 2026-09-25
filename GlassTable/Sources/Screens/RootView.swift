@@ -87,18 +87,20 @@ struct RootView: View {
             .tabItem { Label(language.text("설정", "Settings"), systemImage: "gearshape.fill") }
             .tag(Tab.settings)
         }
-        .sheet(item: $openNode) { node in
+        // Activities take the whole screen and leave only through their Close control;
+        // each session saves its place, so closing never loses an answer.
+        .fullScreenCover(item: $openNode) { node in
             NavigationStack {
                 NodeSessionView(node: node).modifier(ProgressSaveNotice())
             }.environment(model)
         }
-        .sheet(isPresented: $showFreePlay) {
+        .fullScreenCover(isPresented: $showFreePlay) {
             NavigationStack {
                 FreePlayView().modifier(ProgressSaveNotice())
             }.environment(model)
         }
         // Snapshot the five most-overdue concepts and ask one question for each.
-        .sheet(isPresented: $showReview) {
+        .fullScreenCover(isPresented: $showReview) {
             NavigationStack {
                 ReviewSessionView().modifier(ProgressSaveNotice())
             }

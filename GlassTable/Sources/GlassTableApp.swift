@@ -18,6 +18,7 @@ struct GlassTableApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .disclosureGroupStyle(GTDisclosureStyle())
                 .preferredColorScheme(appearance.colorScheme)
                 .environment(\.learningLanguage, resolvedLanguage)
                 .environment(\.locale, Locale(identifier: resolvedLanguage.rawValue))

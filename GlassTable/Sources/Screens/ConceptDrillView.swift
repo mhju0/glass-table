@@ -249,11 +249,20 @@ private func gradeHaptic(_ band: GradeBand) {
     UINotificationFeedbackGenerator().notificationOccurred(type)
 }
 
+/// A graded reveal reports its band so the sheet around it can take the verdict's tint.
+private struct GradedBandKey: PreferenceKey {
+    static let defaultValue: GradeBand? = nil
+    static func reduce(value: inout GradeBand?, nextValue: () -> GradeBand?) {
+        value = value ?? nextValue()
+    }
+}
+
 /// Every drill shares the same skeleton: felt content zone, cream answer sheet.
 private struct DrillShell<Content: View, Sheet: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @Environment(\.drillQuestionID) private var questionID
+    @State private var gradedBand: GradeBand?
     let title: String
     let progressText: String
     @ViewBuilder var content: () -> Content
@@ -268,7 +277,9 @@ private struct DrillShell<Content: View, Sheet: View>: View {
                         content().frame(maxWidth: .infinity, alignment: .leading)
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
                             .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-                            .gtCard(radius: GT.Radius.panel)
+                            .gtCard(radius: GT.Radius.panel, band: gradedBand)
+                            .accessibilityElement(children: .contain)
+                            .accessibilityIdentifier(sheetIdentifier)
                     }
                     .padding(.horizontal, 18).padding(.bottom, 28)
                 }
@@ -283,11 +294,19 @@ private struct DrillShell<Content: View, Sheet: View>: View {
                         }
                         .scrollBounceBehavior(.basedOnSize)
                     }
-                    ActionSheet { sheet() }.layoutPriority(1)
+                    ActionSheet(band: gradedBand) { sheet() }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier(sheetIdentifier)
+                        .layoutPriority(1)
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onPreferenceChange(GradedBandKey.self) { gradedBand = $0 }
+    }
+
+    private var sheetIdentifier: String {
+        gradedBand.map { "graded-sheet-\($0)" } ?? "answer-sheet"
     }
 
     private var header: some View {
@@ -305,6 +324,7 @@ private struct DrillShell<Content: View, Sheet: View>: View {
         guard language == .english else { return title }
         switch title {
         case "쇼다운": return "Showdown"
+        case "팟 계산": return "Count the pot"
         case "포지션": return "Position"
         case "에퀴티 감각": return "Chance to win"
         case "EV 계산": return "Value of a call"
@@ -370,7 +390,7 @@ private struct RevealSheet: View {
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
             if !saved {
-                Button(language.text("저장 다시 시도", "Retry saving")) {
+                SecondaryCTAButton(title: language.text("저장 다시 시도", "Retry saving")) {
                     model.retrySave()
                     if model.saveError == nil {
                         saved = onCommit(DrillOutcome(band: band, interval: interval,
@@ -382,6 +402,7 @@ private struct RevealSheet: View {
                 .accessibilityIdentifier("retry-answer-save")
             }
         }
+        .preference(key: GradedBandKey.self, value: band)
         .onAppear {
             saved = onCommit(DrillOutcome(band: band, interval: interval, evLoss: evLoss,
                                           submittedInput: submittedInput))
@@ -575,7 +596,15 @@ private struct PotMathDrill: View {
         #endif
         let spot = Self.makeSpot(seed: seed, index: index, environment: environment)
         self.spot = spot
-        _stepIndex = State(initialValue: max(0, spot.replaySteps.count - 1))
+        // Every question starts at the blind posts: the seats carry no totals, so
+        // opening at the last action would hide the hand the learner has to count.
+        #if DEBUG
+        let opensAtLastAction = environment["GT_DEMO_POT_STATE"] == "question"
+            || environment["GT_DEMO_POT_STATE"] == "reveal"
+        #else
+        let opensAtLastAction = false
+        #endif
+        _stepIndex = State(initialValue: opensAtLastAction ? max(0, spot.replaySteps.count - 1) : 0)
 
         #if DEBUG
         let storeSuffix = environment["GT_TEST_STORE_ID"] ?? "shared"
@@ -610,19 +639,10 @@ private struct PotMathDrill: View {
             if showingIntro {
                 PotMathIntroView(onStart: finishIntro)
             } else {
-                ScrollView {
+                // Choices and the verdict sit in the bottom sheet like every other drill;
+                // the replay above them scrolls when it needs the room.
+                DrillShell(title: "팟 계산", progressText: progressText) {
                     VStack(alignment: .leading, spacing: GT.Space.section) {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(language.text("팟 계산", "Count the pot"))
-                                .font(GT.title(19))
-                                .foregroundStyle(GT.ink)
-                            Spacer(minLength: 12)
-                            Text(progressText)
-                                .font(GT.semibold(14).monospacedDigit())
-                                .foregroundStyle(GT.inkSecondary)
-                                .accessibilityIdentifier("drill-question-\(questionID)")
-                        }
-
                         VStack(alignment: .leading, spacing: 5) {
                             Text(question)
                                 .font(GT.title(GT.Typography.questionSize))
@@ -636,26 +656,24 @@ private struct PotMathDrill: View {
                             }
                         }
 
-                        PotMathReplayView(spot: spot, stepIndex: $stepIndex) {
+                        PotMathReplayView(spot: spot, stepIndex: $stepIndex,
+                                          revealedPot: reveal == nil ? nil : spot.pot) {
                             showingHelp = true
                         }
-
-                        if let reveal {
-                            PotMathRevealSheet(reveal: reveal) {
-                                onAnswer(DrillOutcome(band: reveal.band, interval: nil))
-                                self.reveal = nil
-                            }
-                        } else {
-                            PotMathChoicesView(spot: spot, stepIndex: stepIndex) { choice in
-                                reveal = gradePotMath(answer: choice, spot: spot, language: language)
-                            }
+                    }
+                    .padding(.bottom, 12)
+                } sheet: {
+                    if let reveal {
+                        PotMathRevealSheet(reveal: reveal) {
+                            onAnswer(DrillOutcome(band: reveal.band, interval: nil))
+                            self.reveal = nil
+                        }
+                    } else {
+                        PotMathChoicesView(spot: spot, stepIndex: stepIndex) { choice in
+                            reveal = gradePotMath(answer: choice, spot: spot, language: language)
                         }
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, 6)
-                    .padding(.bottom, 32)
                 }
-                .scrollBounceBehavior(.basedOnSize)
             }
         }
         .sheet(isPresented: $showingHelp) {
@@ -667,7 +685,7 @@ private struct PotMathDrill: View {
             }
         }
         .onChange(of: index) { _, _ in
-            stepIndex = max(0, spot.replaySteps.count - 1)
+            stepIndex = 0
             reveal = nil
             restoreReplayDraft()
         }
@@ -804,7 +822,7 @@ private struct PotMathRevealSheet: View {
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
             if !saved {
-                Button(language.text("저장 다시 시도", "Retry saving")) {
+                SecondaryCTAButton(title: language.text("저장 다시 시도", "Retry saving")) {
                     model.retrySave()
                     if model.saveError == nil {
                         saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
@@ -813,6 +831,7 @@ private struct PotMathRevealSheet: View {
                 }.frame(minHeight: 44)
             }
         }
+        .preference(key: GradedBandKey.self, value: reveal.band)
         .onAppear {
             saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
                                           submittedInput: submittedInput))
@@ -2034,7 +2053,7 @@ private struct EVLossRevealSheet: View {
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
             if !saved {
-                Button(language.text("저장 다시 시도", "Retry saving")) {
+                SecondaryCTAButton(title: language.text("저장 다시 시도", "Retry saving")) {
                     model.retrySave()
                     if model.saveError == nil {
                         saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
@@ -2045,6 +2064,7 @@ private struct EVLossRevealSheet: View {
             }
         }
         .accessibilityElement(children: .contain)
+        .preference(key: GradedBandKey.self, value: reveal.band)
         .onAppear {
             saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
                                           evLoss: reveal.grade.loss,
@@ -2458,7 +2478,7 @@ private struct DefendRevealSheet: View {
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
             if !saved {
-                Button(language.text("저장 다시 시도", "Retry saving")) {
+                SecondaryCTAButton(title: language.text("저장 다시 시도", "Retry saving")) {
                     model.retrySave()
                     if model.saveError == nil {
                         saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
@@ -2467,6 +2487,7 @@ private struct DefendRevealSheet: View {
                 }.frame(minHeight: 44)
             }
         }
+        .preference(key: GradedBandKey.self, value: reveal.band)
         .onAppear {
             saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
                                           submittedInput: submittedInput))

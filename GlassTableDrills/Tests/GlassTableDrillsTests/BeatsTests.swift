@@ -196,8 +196,30 @@ final class BeatsTests: XCTestCase {
         for i in 0..<40 {
             let s = BlockerSpotGenerator.spot(baseSeed: 2, index: i)
             let beats = BeatScript.combos(s)
-            XCTAssertTrue(text(beats.first!).contains("\(s.baseline)"))
+            XCTAssertTrue(text(beats[1]).contains("\(s.baseline)"))
             XCTAssertTrue(text(beats.last!).contains("\(s.count)"))
+        }
+    }
+
+    /// "Combo" is defined before any count uses it: one exact two-card hand of this
+    /// spot's class, shown as cards and named in the copy.
+    func testCombosScriptDefinesAComboWithOneExampleFirst() {
+        for language in [LearningLanguage.korean, .english] {
+            for i in 0..<40 {
+                let s = BlockerSpotGenerator.spot(baseSeed: 2, index: i)
+                let first = BeatScript.combos(s, language: language)[0]
+                guard case let .grid(cards) = first.focus else {
+                    return XCTFail("\(language) \(s.className): the definition shows no cards")
+                }
+                XCTAssertEqual(cards.count, 2)
+                XCTAssertEqual(Set(cards.map(\.rank)), Set([s.rankA, s.rankB]))
+                if s.kind == .suited { XCTAssertEqual(cards[0].suit, cards[1].suit) }
+                else { XCTAssertNotEqual(cards[0].suit, cards[1].suit) }
+                let copy = text(first)
+                XCTAssertTrue(copy.contains(language == .korean ? "콤보" : "combo"), copy)
+                XCTAssertTrue(copy.contains(s.className), copy)
+                XCTAssertTrue(copy.contains(cards.map(\.display).joined(separator: " ")), copy)
+            }
         }
     }
 

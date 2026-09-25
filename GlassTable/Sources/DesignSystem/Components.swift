@@ -323,6 +323,18 @@ extension View {
         }
     }
 
+    /// A card that takes a graded verdict's tint and outline once there is one.
+    @ViewBuilder
+    func gtCard(radius: CGFloat, band: GradeBand?) -> some View {
+        if let band {
+            let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+            background(band.tint, in: shape)
+                .overlay(shape.strokeBorder(band.ink, lineWidth: 2))
+        } else {
+            gtCard(radius: radius)
+        }
+    }
+
 
     /// A quiet grouping directly on felt. Use it for supporting information that does
     /// not need to compete with the current task as an elevated card.
@@ -407,6 +419,9 @@ private struct GTChrome<V: View>: ViewModifier {
 /// The bottom action sheet. Rounded at the top, **bleeding to the bottom edge**, with
 /// a grabber so it reads as a sheet rather than a colour change.
 struct ActionSheet<Content: View>: View {
+    /// A graded result tints the whole sheet and outlines its top edge, so right and
+    /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
+    var band: GradeBand? = nil
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -422,10 +437,17 @@ struct ActionSheet<Content: View>: View {
         .padding(.bottom, 22)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
-            GlassBackground(shape: UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
-                                                          topTrailingRadius: GT.Radius.sheet,
-                                                          style: .continuous))
-                .ignoresSafeArea(edges: .bottom)
+            let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
+                                               topTrailingRadius: GT.Radius.sheet,
+                                               style: .continuous)
+            if let band {
+                shape.fill(band.tint)
+                    .overlay(shape.stroke(band.ink, lineWidth: 2))
+                    .ignoresSafeArea(edges: .bottom)
+            } else {
+                GlassBackground(shape: shape)
+                    .ignoresSafeArea(edges: .bottom)
+            }
         }
     }
 }
@@ -447,6 +469,96 @@ struct PrimaryCTAButton: View {
                                                  style: .continuous))
         }
         .buttonStyle(GTPress())
+    }
+}
+
+/// The label for anything tappable that is not a filled button: a bordered card that
+/// ends in a chevron, so it reads as a way forward rather than as information.
+/// `emphasized` marks the one card a screen leads with.
+struct TapCardLabel: View {
+    let title: String
+    var detail: String? = nil
+    var icon: String? = nil
+    var emphasized = false
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
+        HStack(spacing: 12) {
+            if let icon {
+                Image(systemName: icon).font(.system(size: 22)).foregroundStyle(GT.ink)
+                    .frame(width: 28).accessibilityHidden(true)
+            }
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title).font(GT.title(18)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let detail {
+                    Text(detail).font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                        .lineSpacing(GT.Typography.bodyLineSpacing)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right").font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(emphasized ? GT.cta : GT.inkSecondary)
+        }
+        .multilineTextAlignment(.leading)
+        .padding(18)
+        .frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
+        .background(GT.glass, in: shape)
+        .overlay(shape.strokeBorder(emphasized ? GT.cta : GT.borderStrong,
+                                    lineWidth: emphasized ? 2 : 1))
+        .contentShape(shape)
+    }
+}
+
+/// Every expandable section: its heading is a bordered row whose chevron turns, so
+/// "tap to see more" looks tappable. Applied once at the root.
+struct GTDisclosureStyle: DisclosureGroupStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        GTDisclosure(configuration: configuration)
+    }
+}
+
+private struct GTDisclosure: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.learningLanguage) private var language
+    let configuration: DisclosureGroupStyleConfiguration
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                    configuration.isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    configuration.label
+                        .font(GT.semibold(16)).foregroundStyle(GT.ink)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.down").font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(GT.inkSecondary)
+                        .rotationEffect(.degrees(configuration.isExpanded ? 180 : 0))
+                        .accessibilityHidden(true)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+                .background(GT.glass, in: shape)
+                .overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
+                .contentShape(shape)
+            }
+            .buttonStyle(GTPress())
+            .accessibilityValue(configuration.isExpanded
+                                ? language.text("펼침", "Expanded")
+                                : language.text("접힘", "Collapsed"))
+            if configuration.isExpanded {
+                configuration.content
+                    .padding(.horizontal, 4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
     }
 }
 

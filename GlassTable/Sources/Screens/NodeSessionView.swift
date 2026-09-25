@@ -862,13 +862,11 @@ struct FreePlayView: View {
                     }
                     seed = model.state.activeRound?.seed ?? seed
                 }
-                Button(language.text("다른 개념 고르기", "Choose another skill")) {
+                SecondaryCTAButton(title: language.text("다른 개념 고르기", "Choose another skill")) {
                     guard model.dismissFinishedRound(roundID: round.id,
                         expectedEpoch: sessionEpoch ?? model.epoch) else { return }
                     concept = nil
                 }
-                .frame(minHeight: 44)
-                .foregroundStyle(GT.onFelt)
             }
             .padding(20)
         }

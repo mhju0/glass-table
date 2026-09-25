@@ -1,6 +1,6 @@
 # Preserve honest progress when hints reveal calculations
 
-Status: needs-triage
+Status: ready-for-agent
 Type: task
 Blocked by: 01
 
@@ -17,3 +17,7 @@ double credit; preserve old progress and raw backups. Involve an independent
 read-only Astra review of planning and the frozen implementation candidate before
 integration. Verify the final native flow and record device-install evidence only
 if device delivery is subsequently in scope.
+
+## Comments
+
+2026-09-24: Owner scheduled this next (with 02, 03 and 04). Unblocked by 01.

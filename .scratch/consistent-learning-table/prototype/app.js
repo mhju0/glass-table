@@ -23,9 +23,9 @@ const REVISED = new Map([
   ['예시: 공용 카드 전에는 앞자리부터, 공용 카드 뒤에는 SB부터 행동해요. 버튼(D)은 공용 카드 뒤 마지막이에요.',
     ['예시: 공용 카드 전에는 BB가 마지막이에요. 공용 카드 뒤에는 SB부터 시계 방향으로 행동해요.',
      'Example: before shared cards, BB acts last. After them, play goes clockwise from SB.']],
-  ['공용 카드 전: 앞자리 → 버튼(D) → SB → BB. 공용 카드 뒤: SB → BB → 앞자리 → 버튼(D).',
-    ['공용 카드 전: 앞자리 → 버튼(D) → SB → BB<br>공용 카드 뒤: SB → BB → 앞자리 → 버튼(D)',
-     'Before: early seat → button (D) → SB → BB<br>After: SB → BB → early seat → button (D)']],
+  ['공용 카드 전: 앞자리 → 버튼(D) → SB → BB. 공용 카드 뒤: SB부터 시계 방향이에요.',
+    ['공용 카드 전: 앞자리 → 버튼(D) → SB → BB<br>공용 카드 뒤: SB부터 시계 방향',
+     'Before: early seat → button (D) → SB → BB<br>After: clockwise from SB']],
   ['같은 두 숫자라도 실제 카드 두 장의 종류는 여러 개예요.',
     ['같은 두 숫자라도 실제 카드 두 장의 종류는 여러 개예요.',
      'One hand label covers several real two-card hands.']],
@@ -154,7 +154,7 @@ function table(mode,example=false){
     const known=!example&&(state.assisted||state.answered!==null);
     center=chipStack(example?t('11칩','11 chips'):known?t('43칩','43 chips'):t('팟을 계산해요','Count the pot'),example||known);
   } else if(mode==='position'){
-    seats=seat({name:t('버튼','Button'),pos:'bottom-left',dealer:true,active:example||state.answered!==null})+
+    seats=seat({name:t('버튼','Button'),pos:'bottom-left',dealer:true,active:!example&&state.answered!==null})+
       seat({name:'SB',pos:'top-left',caption:example?t('먼저 행동','Acts first'):''})+
       seat({name:'BB',pos:'top-right'})+
       seat({name:t('앞자리','Early seat'),pos:'bottom-right'});
@@ -183,7 +183,7 @@ function intro(){
     play:[t('테이블에서 연습','Practice at the table'),t('상대 카드의 뒷면, 접은 자리, 가운데 칩을 보며 한 행동씩 따라가요.','Follow one action at a time using face-down opponent cards, folded seats, and center chips.'),t('예시: 상대 2가 폴드하면 그 카드도 뒷면으로 남아요.','Example: when Bot 2 folds, its cards stay face down.'),t('이 손은 화면 검토용 대본이에요. 실제 게임 판단이나 점수가 아니에요.','This hand is scripted for screen review. It is not a live game or a grade.')]
   }[m];
   const visual=m==='combos'?`<div class="card-study">${card('A','♠')}${card('A','♥')}</div>`:table(m,true);
-  const demo=m==='combos'?`<button class="button full" data-action="example" aria-expanded="${state.exampleExpanded}">${state.exampleExpanded?t('여섯 조합 접기','Hide six pairs'):t('가능한 두 장 보기','Show possible pairs')}</button>${state.exampleExpanded?`<div class="example-pairs" aria-label="${t('서로 다른 에이스 두 장의 여섯 조합','Six distinct ace pairs')}">${['♠♥','♠♦','♠♣','♥♦','♥♣','♦♣'].map(pair=>`<span>A${pair[0]} A${pair[1]}</span>`).join('')}</div><p class="small">${t('A♠를 빼면 남은 ♥, ♦, ♣ 중 두 장을 고르는 3가지가 남아요.','Remove A♠ and the remaining ♥, ♦, ♣ make 3 pairs.')}</p>`:''}`:m==='position'?`<button class="button full" data-action="example" aria-expanded="${state.exampleExpanded}">${state.exampleExpanded?t('행동 순서 접기','Hide action order'):t('행동 순서 비교','Compare action order')}</button>${state.exampleExpanded?`<div class="example-line">${t('공용 카드 전: 앞자리 → 버튼(D) → SB → BB. 공용 카드 뒤: SB → BB → 앞자리 → 버튼(D).','Before shared cards: early seat → button (D) → SB → BB. After shared cards: SB → BB → early seat → button (D).')}</div>`:''}`:'';
+  const demo=m==='combos'?`<button class="button full" data-action="example" aria-expanded="${state.exampleExpanded}">${state.exampleExpanded?t('여섯 조합 접기','Hide six pairs'):t('가능한 두 장 보기','Show possible pairs')}</button>${state.exampleExpanded?`<div class="example-pairs" aria-label="${t('서로 다른 에이스 두 장의 여섯 조합','Six distinct ace pairs')}">${['♠♥','♠♦','♠♣','♥♦','♥♣','♦♣'].map(pair=>`<span>A${pair[0]} A${pair[1]}</span>`).join('')}</div><p class="small">${t('A♠를 빼면 남은 ♥, ♦, ♣ 중 두 장을 고르는 3가지가 남아요.','Remove A♠ and the remaining ♥, ♦, ♣ make 3 pairs.')}</p>`:''}`:m==='position'?`<button class="button full" data-action="example" aria-expanded="${state.exampleExpanded}">${state.exampleExpanded?t('행동 순서 접기','Hide action order'):t('행동 순서 비교','Compare action order')}</button>${state.exampleExpanded?`<div class="example-line">${t('공용 카드 전: 앞자리 → 버튼(D) → SB → BB. 공용 카드 뒤: SB부터 시계 방향이에요.','Before shared cards: early seat → button (D) → SB → BB. After them: clockwise from SB.')}</div>`:''}`:'';
   return `<div class="shell">${header(info[0],true)}<p class="eyebrow">${t('따라 배우기','Worked example')}</p><h1 class="prompt">${info[0]}</h1><p class="support">${info[1]}</p><div class="intro-visual">${visual}<div class="example-line">${info[2]}</div>${demo}</div><p class="support">${info[3]}</p><div class="button-group intro-actions"><button class="button" data-action="skip">${t('건너뛰고 문제 풀기','Skip to practice')}</button><button class="button primary" data-action="start">${t('내 차례 시작','Start my turn')}</button></div><p class="footer-note">${t('화면 검토용 대본. 학습 기록에 저장되지 않아요.','Scripted screen review. No learning record is saved.')}</p></div>`;
 }
 function replay(count){return `<div class="progress" aria-hidden="true">${Array.from({length:count},(_,i)=>`<span class="${i===state.step?'current':''}"></span>`).join('')}</div><div class="button-group"><button class="button" data-action="back" ${state.step===0?'disabled':''}>${t('이전 행동','Back')}</button><button class="button" data-action="next" ${state.step===count-1?'disabled':''}>${t('다음 행동','Next action')}</button><button class="button" data-action="replay">${t('처음부터','Replay')}</button></div>`}

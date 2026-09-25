@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glass Table pot calculation interaction study</title>
+  <style>
+    @font-face { font-family: Pretendard; src: url("../../GlassTable/Resources/Pretendard-Regular.otf") format("opentype"); font-weight: 400; }
+    @font-face { font-family: Pretendard; src: url("../../GlassTable/Resources/Pretendard-SemiBold.otf") format("opentype"); font-weight: 600; }
+    @font-face { font-family: Pretendard; src: url("../../GlassTable/Resources/Pretendard-Bold.otf") format("opentype"); font-weight: 700; }
+    :root { color-scheme: dark; --felt: #0f211a; --surface: #16261e; --surface-2: #1c3026; --mint: #6fd3a0; --ivory: #f7f4ec; --muted: #c2cbc3; --edge: #8c938b; --ink: #09140f; --danger: #f1a69a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #09140f; color: var(--ivory); font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button { font: inherit; }
+    button:focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; }
+    button:active { transform: scale(.985); }
+    #stage { min-height: 100dvh; }
+    .harness { position: relative; min-height: 100dvh; display: grid; grid-template-columns: minmax(375px, 430px) minmax(250px, 330px); justify-content: center; align-items: start; gap: 42px; padding: 102px 24px 48px; background: #0b1712; }
+    .study-label { position: absolute; top: 72px; left: 50%; width: 375px; transform: translateX(calc(-50% - 186px)); margin: 0; color: var(--muted); font-size: 11px; text-align: center; }
+    .phone { width: 375px; min-height: 812px; background: var(--felt); border: 1px solid #405147; border-radius: 38px; overflow: clip; box-shadow: 0 24px 60px rgba(0,0,0,.38); }
+    .app { min-height: 812px; display: flex; flex-direction: column; }
+    .app-header { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 18px 16px 10px; }
+    .header-copy { text-align: center; min-width: 0; }
+    .eyebrow { margin: 0 0 3px; color: var(--muted); font-size: .72rem; font-weight: 600; }
+    h1 { margin: 0; font-size: 1.06rem; line-height: 1.25; }
+    .icon-button { width: 44px; height: 44px; border: 1px solid #56685d; border-radius: 50%; background: var(--surface); color: var(--ivory); font-weight: 700; cursor: pointer; }
+    .icon-button[hidden] { display: block; visibility: hidden; }
+    .lesson { flex: 1; padding: 8px 18px 28px; }
+    .intro { padding-top: 22px; }
+    .intro h2, .question-heading, .completion h2 { margin: 0; font-size: clamp(1.45rem, 6vw, 1.9rem); line-height: 1.25; letter-spacing: -.025em; }
+    .intro > p, .completion > p { margin: 13px 0 0; color: var(--muted); line-height: 1.65; }
+    .intro-visual { margin: 28px 0 22px; }
+    .chip-demo { display: flex; align-items: flex-end; justify-content: center; min-height: 132px; border-top: 1px solid #405147; border-bottom: 1px solid #405147; }
+    .chip-stack { position: relative; width: 64px; height: 72px; }
+    .chip { position: absolute; left: 9px; width: 46px; height: 18px; border: 2px solid #20372c; border-radius: 50%; background: var(--ivory); color: var(--ink); font-size: .7rem; font-weight: 700; text-align: center; line-height: 14px; }
+    .chip:nth-child(1) { bottom: 18px; } .chip:nth-child(2) { bottom: 28px; } .chip:nth-child(3) { bottom: 38px; }
+    .plus-mark { align-self: center; color: var(--mint); font-size: 1.6rem; padding: 0 13px 27px; }
+    .intro-formula { align-self: center; padding-bottom: 25px; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+    .worked { margin: 0 0 22px; padding: 14px 15px; border: 1px solid #56685d; border-radius: 14px; background: var(--surface); }
+    .worked summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--ivory); font-weight: 600; }
+    .worked p { margin: 7px 0 4px; color: var(--muted); font-size: .88rem; line-height: 1.6; }
+    .primary, .secondary { width: 100%; min-height: 50px; border-radius: 13px; cursor: pointer; font-weight: 700; }
+    .primary { border: 0; background: var(--mint); color: var(--ink); }
+    .secondary { border: 1px solid var(--edge); background: transparent; color: var(--ivory); }
+    .text-action { width: 100%; min-height: 44px; margin-top: 7px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+    .progress { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; color: var(--muted); font-size: .78rem; }
+    .progress-line { width: 90px; height: 3px; background: #405147; }
+    .progress-line span { display: block; height: 100%; background: var(--mint); }
+    .prompt { margin: 8px 0 14px; color: var(--muted); line-height: 1.55; }
+    .choices { display: grid; gap: 9px; margin: 17px 0 14px; }
+    .choice { min-height: 54px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--edge); border-radius: 12px; background: var(--surface); color: var(--ivory); cursor: pointer; text-align: left; }
+    .choice .amount { font-size: 1.13rem; font-weight: 700; }
+    .choice .choice-mark { width: 20px; height: 20px; border: 2px solid var(--edge); border-radius: 50%; }
+    .choice[aria-pressed="true"] { border-color: var(--mint); box-shadow: 0 0 0 1px var(--mint) inset; }
+    .choice[aria-pressed="true"] .choice-mark { border: 6px solid var(--mint); }
+    .choice.dim { opacity: .58; }
+    .choice.correct { border-color: var(--mint); }
+    .choice.wrong { border-color: var(--danger); }
+    .choice.wrong .choice-mark { border-color: var(--danger); }
+    .confirm[disabled] { opacity: .45; cursor: not-allowed; }
+    .feedback { margin: 18px 0 14px; padding: 16px; border-radius: 14px; background: var(--surface); border: 1px solid #56685d; }
+    .feedback h3 { margin: 0 0 7px; font-size: 1rem; }
+    .feedback h3[data-tone="correct"] { color: var(--mint); }
+    .feedback h3[data-tone="wrong"] { color: var(--danger); }
+    .feedback p { margin: 0; color: var(--muted); line-height: 1.55; font-size: .9rem; }
+    .math { margin-top: 12px; padding-top: 11px; border-top: 1px solid #405147; color: var(--ivory); font-weight: 600; line-height: 1.55; }
+    .help-backdrop { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; padding: 22px; background: rgba(5, 12, 8, .74); }
+    .help-panel { width: min(335px, 100%); padding: 20px; border: 1px solid var(--edge); border-radius: 18px; background: var(--surface); box-shadow: 0 14px 44px rgba(0,0,0,.42); }
+    .help-panel h2 { margin: 0 0 9px; font-size: 1.2rem; }
+    .help-panel p { margin: 0 0 17px; color: var(--muted); line-height: 1.6; }
+    .completion { padding-top: 52px; }
+    .completion .total-seal { width: 126px; height: 126px; display: grid; place-items: center; margin: 34px auto; border: 2px solid var(--mint); border-radius: 50%; color: var(--mint); font-size: 1.75rem; font-weight: 700; }
+    .aside { position: sticky; top: 96px; padding-top: 10px; }
+    .aside small { color: var(--mint); font-weight: 700; }
+    .aside h2 { margin: 9px 0 11px; font-size: 1.65rem; }
+    .aside p { color: var(--muted); line-height: 1.6; }
+    .aside .tradeoff { padding-top: 14px; border-top: 1px solid #405147; }
+    .preview-tools { margin-top: 22px; display: grid; gap: 8px; }
+    .preview-tools button { min-height: 44px; border: 1px solid #56685d; border-radius: 10px; background: var(--surface); color: var(--ivory); cursor: pointer; text-align: left; padding: 0 13px; }
+    .preview-tools button:hover { border-color: var(--mint); }
+    html:has(.text-200) { font-size: 200%; }
+    .text-200 .table-scene { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 6px; padding: 20px 8px; border-radius: 24px; }
+    .text-200 .pot-core, .text-200 .seat { position: static; width: auto; }
+    .text-200 .pot-core { grid-column: 1 / -1; }
+    .text-200 .tray-board { grid-template-columns: 1fr; }
+    .text-200 .tray.total { grid-column: auto; }
+    .text-200 .quantity-pair { grid-template-columns: 1fr; gap: 8px; }
+
+    /* Table replay: the table is the timeline, so action changes remain spatially anchored. */
+    .table-scene { position: relative; min-height: 264px; margin: 10px 0 18px; border: 2px solid #5a7464; border-radius: 46% 46% 42% 42% / 28% 28% 28% 28%; background: #132a20; }
+    .pot-core { position: absolute; inset: 94px 0 auto; text-align: center; }
+    .pot-core strong { display: block; font-size: 1.55rem; color: var(--ivory); }
+    .pot-core span { color: var(--muted); font-size: .73rem; }
+    .seat { position: absolute; width: 98px; text-align: center; }
+    .seat > strong { display: block; font-size: .78rem; }
+    .seat small { display: block; min-height: 1.2em; margin-top: 2px; color: var(--muted); font-size: .68rem; }
+    .seat .plaque { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 5px 8px; border-radius: 8px; background: var(--ivory); color: var(--ink); font-weight: 700; }
+    .seat .plaque strong { font-size: 1.05rem; line-height: 1; }
+    .mini-chips { position: relative; display: inline-block; width: 17px; height: 18px; }
+    .mini-chips i { position: absolute; left: 0; width: 17px; height: 7px; border: 1px solid #183026; border-radius: 50%; background: var(--mint); }
+    .mini-chips i:nth-child(1) { bottom: 0; } .mini-chips i:nth-child(2) { bottom: 4px; } .mini-chips i:nth-child(3) { bottom: 8px; }
+    .seat.active .plaque { background: var(--mint); }
+    .seat.a { left: 14px; bottom: 15px; } .seat.b { right: 14px; bottom: 15px; } .seat.bb { right: 16px; top: 18px; } .seat.sb { left: 16px; top: 18px; }
+    .replay-controls { display: grid; grid-template-columns: 44px 1fr 44px; gap: 8px; align-items: center; }
+    .replay-controls button { min-width: 44px; min-height: 44px; border: 1px solid var(--edge); border-radius: 50%; background: var(--surface); color: var(--ivory); cursor: pointer; }
+    .beat-label { text-align: center; color: var(--muted); font-size: .8rem; line-height: 1.4; }
+    .beat-label strong { display: block; color: var(--ivory); }
+
+    /* Contribution trays: grouping replaces chronology and exposes total versus newly added. */
+    .tray-board { margin: 14px 0 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .tray { min-height: 86px; padding: 11px; border: 1px solid #5a7464; border-radius: 12px 12px 20px 20px; background: var(--surface); }
+    .tray-head { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; }
+    .tray-head span { color: var(--muted); }
+    .tray strong { display: block; margin-top: 13px; font-size: 1.35rem; }
+    .tray small { color: var(--muted); }
+    .tray.total { border-color: var(--mint); grid-column: 1 / -1; min-height: 66px; display: flex; align-items: center; justify-content: space-between; border-radius: 12px; }
+    .tray.total strong { margin: 0; color: var(--mint); }
+    .raise-key { margin: 8px 0 17px; padding: 11px 13px; background: #20372c; border-radius: 10px; color: var(--muted); font-size: .82rem; line-height: 1.45; }
+    .raise-key b { color: var(--ivory); }
+
+    /* One decision: only the two quantities the learner must distinguish receive visual weight. */
+    .decision-board { margin: 18px 0 21px; padding: 22px 15px; border-top: 1px solid #5a7464; border-bottom: 1px solid #5a7464; }
+    .decision-actor { text-align: center; margin-bottom: 18px; }
+    .decision-actor .eyebrow { display: block; margin-bottom: 6px; }
+    .decision-actor strong { font-size: 1.15rem; }
+    .quantity-pair { display: grid; grid-template-columns: 1fr 42px 1fr; align-items: center; gap: 3px; }
+    .quantity { min-height: 96px; padding: 12px 6px; display: grid; align-content: center; text-align: center; border: 1px solid #5a7464; border-radius: 12px; background: var(--surface); }
+    .quantity span { color: var(--muted); font-size: .76rem; }
+    .quantity strong { margin-top: 5px; font-size: 1.55rem; }
+    .quantity.additional { border-color: var(--mint); }
+    .quantity.additional strong { color: var(--mint); }
+    .operator { text-align: center; color: var(--muted); font-weight: 700; }
+    .frozen-pot { margin-top: 17px; text-align: center; color: var(--muted); font-size: .82rem; }
+    .frozen-pot strong { display: block; margin-top: 3px; color: var(--ivory); font-size: 1.15rem; }
+
+    .proto-picker {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(10, 10, 10, 0.82);
+      -webkit-backdrop-filter: blur(12px) saturate(1.4);
+      backdrop-filter: blur(12px) saturate(1.4);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 8px 24px rgba(0, 0, 0, 0.24),
+        0 2px 6px rgba(0, 0, 0, 0.12);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .proto-picker-highlight {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      will-change: transform;
+    }
+
+    /* The slide is enabled only after first paint (data-ready), so load doesn't animate. */
+    .proto-picker[data-ready] .proto-picker-highlight {
+      transition:
+        transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+        width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .proto-picker[data-ready] .proto-picker-highlight { transition: none; }
+    }
+
+    .proto-picker-item {
+      position: relative; /* sits above the highlight */
+      display: flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.55);
+      font: inherit;
+      cursor: pointer;
+      transition: color 150ms ease-out;
+    }
+
+    .proto-picker-item:hover {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .proto-picker-item:active {
+      transform: scale(0.97);
+    }
+
+    .proto-picker-item:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.4);
+      outline-offset: 2px;
+    }
+
+    .proto-picker-item[data-active] {
+      color: #fff;
+    }
+
+    .proto-picker-divider {
+      width: 1px;
+      height: 16px;
+      margin: 0 4px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .proto-picker-replay {
+      padding: 0 10px;
+      font-size: 14px;
+    }
+
+    .proto-picker[data-position="top"] {
+      bottom: auto;
+      top: 24px;
+    }
+
+    @media (max-width: 760px) {
+      .harness { display: block; min-height: 100dvh; padding: 90px 0 0; background: var(--felt); }
+      .study-label { top: 66px; width: 100%; transform: translateX(-50%); }
+      .phone { width: 100%; min-height: calc(100dvh - 90px); border: 0; border-radius: 0; box-shadow: none; overflow: visible; }
+      .app { min-height: calc(100dvh - 90px); }
+      .aside { position: static; display: block; padding: 28px 18px 52px; border-top: 1px solid #405147; background: #0b1712; }
+      .lesson { padding-left: 18px; padding-right: 18px; }
+      .text-200 .harness { display: block; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <main id="stage"></main>
+  <nav class="proto-picker" data-position="top" aria-label="Prototype variants">
+    <span class="proto-picker-highlight" aria-hidden="true"></span>
+    <button class="proto-picker-item" data-active aria-current="true">Replay</button>
+    <button class="proto-picker-item">Trays</button>
+    <button class="proto-picker-item">Step</button>
+    <span class="proto-picker-divider" aria-hidden="true"></span>
+    <button class="proto-picker-item proto-picker-replay" aria-label="Replay animation (R)">↻</button>
+  </nav>
+  <script>
+    const directions = [
+      { name: 'Table replay', axis: 'Spatial action-by-action replay', win: 'A beginner needs to see who moved chips, in order.', cost: 'It asks for one extra control before answering.' },
+      { name: 'Contribution trays', axis: 'Simultaneous contribution grouping', win: 'The arithmetic should be scannable with very little prose.', cost: 'It deliberately gives up the story of how the chips arrived.' },
+      { name: 'One decision', axis: 'Guided freeze-frame scaffold', win: 'The key misconception is total raised to versus chips added now.', cost: 'It supplies the 31-chip intermediate pot, so it is guided practice rather than equally hard independent counting.' }
+    ];
+
+    const state = directions.map(() => ({ screen: 'intro', question: 0, selected: null, submitted: false, beat: 0, help: false, textScale: false }));
+    const questions = [
+      {
+        prompt: 'B가 아직 응답하지 않은 이 시점, 팟은 몇 칩일까요?',
+        correct: 43,
+        order: [[43,45,49],[49,43,45],[37,49,43]],
+        feedback: {
+          43: ['맞아요. 지금 팟은 43칩이에요', '각 플레이어가 실제로 가운데에 낸 칩만 한 번씩 더했어요.', 'SB 1 + BB 18 + A 18 + B 6 = 43'],
+          45: ['45칩은 BB의 2를 두 번 셌을 때 나오는 값이에요', 'BB의 총 18에 처음 낸 2를 또 더하면 BB의 칩을 2칩 많이 세어요.', 'SB 1 + BB 18 + A 18 + B 6 = 43'],
+          49: ['49칩은 A의 마지막 콜을 18로 더한 값이에요', 'A는 앞서 6을 냈어요. 총 18에 맞추려면 18을 또 내는 것이 아니라 12만 더 내요.', 'SB 1 + BB 18 + A 18 + B 6 = 43'],
+          37: ['37칩은 A가 6만 더한 값이에요', 'A는 이미 낸 6에 12를 더해 총 18을 맞춰요. 행동 직전 31칩에 12칩을 더하면 43칩이에요.', '31 + 12 = 43']
+        }
+      },
+      {
+        prompt: '43칩 팟의 절반을 가장 가까운 정수 칩으로 반올림하면 얼마일까요?',
+        correct: 22,
+        order: [[21,43,22],[22,21,43],[43,22,21]],
+        feedback: {
+          21: ['소수점 아래를 버리지 않아요', '43의 절반은 21.5예요. 가장 가까운 정수 칩으로 반올림하면 22칩이에요.', '43 ÷ 2 = 21.5 → 22'],
+          43: ['이 값은 전체 팟이에요', '문제는 43칩 전체가 아니라 그 절반을 묻고 있어요.', '43 ÷ 2 = 21.5 → 22'],
+          22: ['맞아요. 절반 팟은 22칩이에요', '43을 2로 나눈 21.5를 가장 가까운 정수 칩으로 반올림했어요.', '43 ÷ 2 = 21.5 → 22']
+        }
+      }
+    ];
+
+    function introMarkup() {
+      return `<section class="intro">
+        <h2>가운데 놓인 칩을<br>한 번씩 더해요</h2>
+        <p>콜 가격을 판단하려면 먼저 지금 팟이 얼마인지 알아야 해요. 이미 가운데 있던 칩과 이번 행동으로 새로 들어온 칩을 함께 세어 봐요.</p>
+        <div class="intro-visual" aria-hidden="true"><div class="chip-demo"><div class="chip-stack"><span class="chip">기존</span><span class="chip"></span><span class="chip"></span></div><span class="plus-mark">+</span><div class="intro-formula">새로 들어온 칩<br>각각 한 번만</div></div></div>
+        <details class="worked"><summary>따라 배우기 예시 보기</summary><p>SB 1, BB 2가 있어요. A가 총 4로 레이즈하고 B가 4를 콜하면 팟은 1 + 2 + 4 + 4 = 11칩이에요. 연습 문제와는 다른 예시예요.</p></details>
+        <button class="primary" data-action="start">문제로 확인해요</button>
+        <button class="text-action" data-action="skip">설명 건너뛰기</button>
+      </section>`;
+    }
+
+    function sceneMarkup(variant, q, st) {
+      if (q === 1) return `<div class="decision-board"><div class="decision-actor"><strong>절반 팟 계산</strong></div><div class="quantity-pair"><div class="quantity"><span>현재 팟</span><strong>43</strong></div><div class="operator">÷ 2</div><div class="quantity additional"><span>반올림</span><strong>?</strong></div></div><div class="frozen-pot">계산 규칙<strong>가장 가까운 정수 칩</strong></div></div>`;
+      if (variant === 0) {
+        const beats = [
+          ['블라인드', 'SB 1, BB 2'], ['A 레이즈', '총 6, 새로 6'], ['B 콜', '새로 6'], ['BB 리레이즈', '총 18, 새로 16'], ['A 콜', '이미 6, 새로 12']
+        ];
+        const b = Math.min(st.beat, beats.length - 1);
+        const contributions = [[1,2,0,0],[1,2,6,0],[1,2,6,6],[1,18,6,6],[1,18,18,6]][b];
+        return `<div class="table-scene" aria-label="행동 ${b+1}: ${beats[b][0]}, ${beats[b][1]}"><div class="pot-core"><strong>?</strong><span>현재 팟</span></div>
+          <div class="seat sb ${b===0?'active':''}"><strong>SB</strong><small>블라인드</small><span class="plaque"><span class="mini-chips"><i></i><i></i><i></i></span>총 <strong>${contributions[0]}</strong></span></div>
+          <div class="seat bb ${b===3?'active':''}"><strong>BB</strong><small>${b>=3?'리레이즈 · +16':'블라인드'}</small><span class="plaque"><span class="mini-chips"><i></i><i></i><i></i></span>총 <strong>${contributions[1]}</strong></span></div>
+          <div class="seat a ${b===1||b===4?'active':''}"><strong>A</strong><small>${b<1?'아직 행동 전':b===4?'콜 · +12':'레이즈 · +6'}</small><span class="plaque"><span class="mini-chips"><i></i><i></i><i></i></span>총 <strong>${contributions[2]}</strong></span></div>
+          <div class="seat b ${b===2?'active':''}"><strong>B</strong><small>${b<2?'아직 행동 전':'콜 · +6'}</small><span class="plaque"><span class="mini-chips"><i></i><i></i><i></i></span>총 <strong>${contributions[3]}</strong></span></div></div>
+          <div class="replay-controls"><button data-action="prev-beat" aria-label="이전 행동" ${b===0?'disabled':''}>‹</button><div class="beat-label">${b+1} / 5<strong>${beats[b][0]} · ${beats[b][1]}</strong></div><button data-action="next-beat" aria-label="다음 행동" ${b===4?'disabled':''}>›</button></div>`;
+      }
+      if (variant === 1) return `<div class="raise-key"><b>총 18</b>은 그 플레이어가 지금까지 낸 칩 전체예요. <b>+16</b>은 이번에 새로 낸 칩이에요.</div><div class="tray-board">
+        <div class="tray"><div class="tray-head"><b>SB</b><span>블라인드</span></div><strong>1</strong><small>총 1</small></div>
+        <div class="tray"><div class="tray-head"><b>BB</b><span>총 18 · +16</span></div><strong>18</strong><small>기존 2 포함</small></div>
+        <div class="tray"><div class="tray-head"><b>A</b><span>총 18 · +12</span></div><strong>18</strong><small>기존 6 포함</small></div>
+        <div class="tray"><div class="tray-head"><b>B</b><span>앞선 콜</span></div><strong>6</strong><small>BB의 리레이즈에는 아직 응답 전</small></div>
+        <div class="tray total"><span>네 트레이를 한 번씩 더하면</span><strong>?</strong></div></div>`;
+      return `<div class="decision-board"><div class="decision-actor"><span class="eyebrow">가장 최근 행동</span><strong>A가 총 18에 콜</strong></div><div class="quantity-pair"><div class="quantity"><span>이미 낸 칩</span><strong>6</strong></div><div class="operator">+</div><div class="quantity additional"><span>이번에 추가</span><strong>12</strong></div></div><div class="frozen-pot">A가 행동하기 직전 팟<strong>31칩</strong></div></div>`;
+    }
+
+    function questionMarkup(variant, st) {
+      const q = questions[st.question];
+      const feedback = st.submitted ? q.feedback[st.selected] : null;
+      const replaying = variant === 0 && st.question === 0 && st.beat < 4;
+      const choices = q.order[variant].map(value => {
+        const selected = st.selected === value;
+        const classes = ['choice'];
+        if (st.submitted && !selected) classes.push('dim');
+        if (st.submitted && selected) classes.push(value === q.correct ? 'correct' : 'wrong');
+        return `<button class="${classes.join(' ')}" data-action="choose" data-choice="${value}" aria-pressed="${selected}" ${st.submitted?'disabled':''}><span class="amount">${value}칩</span><span class="choice-mark" aria-hidden="true"></span></button>`;
+      }).join('');
+      const heading = replaying ? '행동을 차례로 확인해요' : st.question === 0 ? '지금 팟은 몇 칩일까요?' : '절반 팟은 몇 칩일까요?';
+      const context = replaying ? '지금은 행동을 복기 중이에요. 마지막 행동까지 이동하면 문제에 답할 수 있어요.' : st.question === 0 ? 'A가 콜했어요. B는 앞서 콜했지만 BB의 리레이즈에는 아직 응답하지 않았어요.' : '현재 팟은 43칩이에요. 가장 가까운 정수 칩으로 반올림해요.';
+      return `<section class="question"><div class="progress"><span>연습 ${st.question+1} / 2</span><span class="progress-line" aria-hidden="true"><span style="width:${(st.question+1)*50}%"></span></span></div><h2 class="question-heading" tabindex="-1">${heading}</h2><p class="prompt">${context}</p>${sceneMarkup(variant, st.question, st)}${replaying ? `<button class="primary" data-action="jump-final">문제 시점으로 이동</button>` : `<div class="choices" aria-label="답 선택">${choices}</div>
+        ${feedback ? `<div class="feedback" role="status"><h3 tabindex="-1" data-tone="${st.selected===q.correct?'correct':'wrong'}">${feedback[0]}</h3><p>${feedback[1]}</p><div class="math">${feedback[2]}</div></div>` : ''}
+        ${!st.submitted ? `<button class="primary confirm" data-action="confirm" ${st.selected===null?'disabled':''}>선택한 답 확인하기</button>` : st.selected === q.correct ? `<button class="primary" data-action="next">${st.question===0?'다음 문제로':'연습 마치기'}</button>` : `<button class="secondary" data-action="retry">다시 계산하기</button>`}`}
+      </section>`;
+    }
+
+    function completionMarkup() {
+      return `<section class="completion"><h2>두 계산을<br>끝까지 확인했어요</h2><p>칩은 플레이어별 총 기여액으로 한 번씩 세고, 레이즈 총액과 이번 추가액은 구분해요. 이 화면은 학습 수준을 평가하지 않아요.</p><div class="total-seal">2 / 2</div><button class="primary" data-action="restart">처음부터 다시 보기</button></section>`;
+    }
+
+    function returningMarkup() {
+      return `<section class="intro"><p class="eyebrow">다시 온 연습</p><h2>팟을 세고<br>콜 가격을 판단해요</h2><p>가운데 놓인 칩을 플레이어별로 한 번씩 더해요. 레이즈 총액에는 앞서 낸 칩이 포함돼요.</p><div class="intro-visual" aria-hidden="true"><div class="chip-demo"><div class="chip-stack"><span class="chip">기존</span><span class="chip"></span><span class="chip"></span></div><span class="plus-mark">+</span><div class="intro-formula">이번 추가액<br>겹치지 않게</div></div></div><button class="primary" data-action="start">바로 연습하기</button><button class="text-action" data-action="intro">소개 전체 다시 보기</button></section>`;
+    }
+
+    function appMarkup(variant) {
+      const st = state[variant];
+      const body = st.screen === 'intro' ? introMarkup() : st.screen === 'returning' ? returningMarkup() : st.screen === 'complete' ? completionMarkup() : questionMarkup(variant, st);
+      const dir = directions[variant];
+      return `<div class="harness ${st.textScale?'text-200':''}" data-variant="${variant}"><p class="study-label">인터랙션 디자인 연구 · 출시용 아님</p><div class="phone"><div class="app"><header class="app-header"><button class="icon-button" data-action="intro" aria-label="소개 다시 보기" ${st.screen==='intro'?'hidden':''}>↶</button><div class="header-copy"><p class="eyebrow">연습 2문제</p><h1>팟 계산</h1></div><button class="icon-button" data-action="help" aria-label="도움말 열기">?</button></header><div class="lesson">${body}</div></div></div>
+        <aside class="aside"><small>INTERACTIVE DESIGN STUDY · NOT SHIPPING</small><h2>${dir.name}</h2><p>${dir.axis}</p><p class="tradeoff"><b>Best when:</b> ${dir.win}<br><br><b>Cost:</b> ${dir.cost}</p><div class="preview-tools" aria-label="Preview controls"><button data-preview="intro">Introduction · first visit</button><button data-preview="returning">Introduction · returning</button><button data-preview="question">Question · main example</button><button data-preview="feedback">Feedback · wrong selection</button><button data-preview="complete">Completion</button><button data-action="text-scale">${st.textScale?'Standard text':'200% text preview'}</button></div></aside>
+        ${st.help ? `<div class="help-backdrop"><section class="help-panel" role="dialog" aria-modal="true" aria-labelledby="help-title" data-help-panel><h2 id="help-title">팟을 셀 때</h2><p>각 플레이어가 지금까지 가운데에 낸 총액을 한 번씩 더해요. 리레이즈의 총액과 이번에 추가한 칩을 함께 더하지 않도록 살펴보세요.</p><button class="primary" data-action="close-help" data-modal-close>도움말 닫기</button></section></div>` : ''}</div>`;
+    }
+
+    const variants = [0,1,2].map(i => () => appMarkup(i));
+
+    const stage = document.getElementById('stage');
+    const picker = document.querySelector('.proto-picker');
+    const highlight = picker.querySelector('.proto-picker-highlight');
+    const items = [...picker.querySelectorAll('.proto-picker-item:not(.proto-picker-replay)')];
+    const replay = picker.querySelector('.proto-picker-replay');
+    let current = 0;
+
+    function moveHighlight() {
+      const el = items[current];
+      highlight.style.width = el.offsetWidth + 'px';
+      highlight.style.transform = `translateX(${el.offsetLeft}px)`;
+    }
+
+    function mount(i) {
+      stage.innerHTML = '';
+      // Clear first, render next frame, so entrance animations re-run.
+      requestAnimationFrame(() => { stage.innerHTML = variants[i](); });
+    }
+
+    function setActive(i) {
+      if (i < 0 || i >= variants.length) return;
+      current = i;
+      items.forEach((el, j) => {
+        el.toggleAttribute('data-active', j === i);
+        if (j === i) el.setAttribute('aria-current', 'true');
+        else el.removeAttribute('aria-current');
+      });
+      moveHighlight();
+      const url = new URL(location);
+      url.searchParams.set('v', i + 1);
+      history.replaceState(null, '', url);
+      mount(i);
+    }
+
+    items.forEach((el, i) => el.addEventListener('click', () => setActive(i)));
+    replay?.addEventListener('click', () => mount(current));
+    window.addEventListener('resize', moveHighlight);
+
+    document.addEventListener('keydown', (e) => {
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (state[current].help) return;
+      const num = parseInt(e.key, 10);
+      if (num >= 1 && num <= variants.length) setActive(num - 1);
+      else if (e.key === 'ArrowRight') setActive((current + 1) % variants.length);
+      else if (e.key === 'ArrowLeft') setActive((current - 1 + variants.length) % variants.length);
+      else if (e.key === 'r' || e.key === 'R') mount(current);
+    });
+
+    setActive((parseInt(new URLSearchParams(location.search).get('v'), 10) || 1) - 1);
+    // Enable the slide only after first paint, so load doesn't animate.
+    requestAnimationFrame(() => requestAnimationFrame(() => picker.setAttribute('data-ready', '')));
+
+    function update(mutator, focusSelector) {
+      mutator(state[current]);
+      stage.innerHTML = variants[current]();
+      if (focusSelector) requestAnimationFrame(() => stage.querySelector(focusSelector)?.focus());
+    }
+
+    stage.addEventListener('click', (event) => {
+      const button = event.target.closest('button');
+      if (!button) return;
+      const action = button.dataset.action;
+      if (action === 'start' || action === 'skip') update(st => { st.screen='question'; st.question=0; st.selected=null; st.submitted=false; st.beat=0; }, '.question-heading');
+      else if (action === 'intro') update(st => { st.screen='intro'; st.selected=null; st.submitted=false; }, '[data-action="start"]');
+      else if (action === 'help') update(st => { st.help=true; }, '[data-modal-close]');
+      else if (action === 'close-help') update(st => { st.help=false; }, '[data-action="help"]');
+      else if (action === 'choose') { const value=Number(button.dataset.choice); update(st => { if (!st.submitted) st.selected=value; }, `[data-choice="${value}"]`); }
+      else if (action === 'confirm') update(st => { if (st.selected !== null) st.submitted=true; }, '.feedback h3');
+      else if (action === 'retry') update(st => { st.selected=null; st.submitted=false; }, '.choice');
+      else if (action === 'next') { const focus = state[current].question===0?'.question-heading':'[data-action="restart"]'; update(st => { if (st.question===0) { st.question=1; st.selected=null; st.submitted=false; } else st.screen='complete'; }, focus); }
+      else if (action === 'restart') update(st => { st.screen='intro'; st.question=0; st.selected=null; st.submitted=false; st.beat=0; }, '[data-action="start"]');
+      else if (action === 'prev-beat') update(st => { st.beat=Math.max(0, st.beat-1); }, '[data-action="prev-beat"]');
+      else if (action === 'next-beat') { const focus = state[current].beat===3?'.question-heading':'[data-action="next-beat"]'; update(st => { st.beat=Math.min(4, st.beat+1); }, focus); }
+      else if (action === 'jump-final') update(st => { st.beat=4; }, '.question-heading');
+      else if (action === 'text-scale') update(st => { st.textScale=!st.textScale; }, '[data-action="text-scale"]');
+      else if (button.dataset.preview) {
+        const view = button.dataset.preview;
+        update(st => {
+          st.help=false;
+          if (view==='intro') { st.screen='intro'; st.question=0; st.selected=null; st.submitted=false; st.beat=0; }
+          if (view==='returning') { st.screen='returning'; st.question=0; st.selected=null; st.submitted=false; st.beat=0; }
+          if (view==='question') { st.screen='question'; st.question=0; st.selected=null; st.submitted=false; st.beat=4; }
+          if (view==='feedback') { st.screen='question'; st.question=0; st.selected=current===0?45:49; st.submitted=true; st.beat=4; }
+          if (view==='complete') { st.screen='complete'; st.question=1; st.selected=22; st.submitted=true; }
+        });
+      }
+    });
+
+    stage.addEventListener('click', event => {
+      if (event.target.classList.contains('help-backdrop')) update(st => { st.help=false; }, '[data-action="help"]');
+    });
+
+    document.addEventListener('keydown', event => {
+      if (!state[current].help) return;
+      if (event.key === 'Escape') { event.preventDefault(); update(st => { st.help=false; }, '[data-action="help"]'); return; }
+      if (event.key === 'Tab') {
+        const focusable = [...stage.querySelectorAll('.help-panel button:not([disabled])')];
+        if (!focusable.length) return;
+        event.preventDefault();
+        const at = focusable.indexOf(document.activeElement);
+        focusable[(at + (event.shiftKey ? -1 : 1) + focusable.length) % focusable.length].focus();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -31,10 +31,10 @@ public extension Archetype {
 
     func beginnerDescription(in language: LearningLanguage) -> String {
         switch self {
-        case .nit: language.text("좋은 카드를 기다렸다가 들어와요", "Waits for strong cards before joining")
+        case .nit: language.text("좋은 카드일 때만 들어와요", "Joins only with strong cards")
         case .tag: language.text("카드를 골라서 들어오고, 들어오면 자주 올려요", "Chooses hands carefully, then often raises")
-        case .lag: language.text("여러 카드로 들어오고 자주 올려요", "Joins with more hands and often raises")
-        case .station: language.text("자주 들어오지만 금액은 잘 올리지 않아요", "Joins often but rarely raises")
+        case .lag: language.text("여러 카드로 들어오고 자주 올려요", "Plays many hands and raises")
+        case .station: language.text("자주 들어오지만 잘 안 올려요", "Joins often but rarely raises")
         case .maniac: language.text("아주 자주 들어오고 금액도 자주 올려요", "Joins very often and frequently raises")
         }
     }
@@ -55,7 +55,7 @@ public struct ConceptIntroduction: Sendable {
         case .position:
             copy = ("누가 먼저 행동할까요?", "Who acts first?", "나중에 행동하면 앞사람의 선택을 더 볼 수 있어요.", "Acting later lets you see more choices before making yours.", "버튼을 찾고, 공용 카드가 나오기 전과 후의 순서를 비교해요.", "Find the dealer button. Compare the order before and after shared cards appear.")
         case .combos:
-            copy = ("가능한 두 장 조합", "Possible two-card hands", "상대가 가질 수 있는 카드는 보이는 카드에 따라 달라져요.", "Visible cards change which hands an opponent can hold.", "보이는 카드와 겹치는 조합을 빼고 남은 수를 세요.", "Remove combinations that use visible cards, then count what remains.")
+            copy = ("가능한 두 장 조합", "Possible two-card hands", "콤보는 상대가 실제로 들 수 있는 두 장 한 쌍이에요.", "A combo is one exact two-card hand an opponent could hold.", "AK 같은 표기를 무늬까지 정한 콤보로 펼치고, 보이는 카드를 쓰는 콤보는 빼고 세요.", "Spell a label like AK out into combos with suits. Remove any that use a visible card, then count.")
         case .potOdds:
             copy = ("콜하려면 얼마나 자주 이겨야 할까요?", "How often must I win to call?", "이길 가능성과 내야 할 가격을 함께 봐야 해요.", "Your chance of winning needs to justify the price.", "지금 낼 금액을 콜한 뒤의 전체 팟으로 나눠요.", "Divide the amount to call by the whole pot after your call.")
         case .outs:

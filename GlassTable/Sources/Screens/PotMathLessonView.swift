@@ -2,19 +2,19 @@
 import SwiftUI
 import GlassTableDrills
 
-/// A compact table replay for pot counting. The middle never prints the aggregate
-/// before commitment; the learner has to add the visible seat contributions.
+/// Pot counting on the shared table. Seats show who is acting and who folded, never
+/// a running total: the learner adds the actions. The middle names the total only
+/// once `revealedPot` is set, after the answer.
 struct PotMathReplayView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
 
     let spot: PotMathSpot
     @Binding var stepIndex: Int
+    var revealedPot: Int?
     let showHelp: () -> Void
 
-    @State private var flyingActor: PotMathSpot.Actor?
-    @State private var chipReachedCenter = false
+    @State private var movingChip: (seatID: String, arrived: Bool)?
 
     private var steps: [PotMathReplayStep] { spot.replaySteps }
     private var visibleStepIndex: Int { min(max(0, stepIndex), steps.count - 1) }
@@ -23,145 +23,90 @@ struct PotMathReplayView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(language.text("자리별로 낸 칩", "Chips paid by each seat"))
-                    .font(GT.semibold(14))
-                    .foregroundStyle(GT.inkSecondary)
-                Spacer(minLength: 12)
-                Button(language.text("계산 방법", "How to count"), action: showHelp)
-                    .font(GT.semibold(14))
-                    .foregroundStyle(GT.cta)
-                    .frame(minHeight: 44)
+                Spacer(minLength: 0)
+                Button(action: showHelp) {
+                    Label(language.text("계산 방법", "How to count"), systemImage: "questionmark.circle")
+                        .font(GT.semibold(14)).foregroundStyle(GT.ink)
+                        .padding(.horizontal, 14).frame(minHeight: 44)
+                        .background(GT.surface, in: Capsule())
+                        .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
+                }
+                .buttonStyle(GTPress())
             }
+            TableSurface(seats: seats,
+                         center: TableCenter(potTotal: revealedPot.map {
+                             language.text("\($0)칩", englishChips($0))
+                         }),
+                         movingChip: movingChip)
+                .accessibilityIdentifier("pot-table-replay")
 
-            if dynamicTypeSize.isAccessibilitySize || dynamicTypeSize >= .xxLarge {
-                accessibleSeatList
-            } else {
-                table
-            }
-
+            actionLine
             replayControls
         }
         .onChange(of: stepIndex) { previous, next in
             guard next > previous, steps[next].addedChips > 0, !reduceMotion else {
-                flyingActor = nil
+                movingChip = nil
                 return
             }
-            flyingActor = steps[next].actor
-            chipReachedCenter = false
+            let seatID = steps[next].actor.rawValue
+            movingChip = (seatID, false)
             withAnimation(.timingCurve(0.77, 0, 0.175, 1, duration: 0.22)) {
-                chipReachedCenter = true
+                movingChip = (seatID, true)
             }
         }
         .task(id: stepIndex) {
-            guard flyingActor != nil else { return }
+            guard movingChip != nil else { return }
             do {
                 try await Task.sleep(for: .milliseconds(220))
             } catch {
                 return
             }
             guard !Task.isCancelled else { return }
-            flyingActor = nil
+            movingChip = nil
         }
     }
 
-    private var table: some View {
-        GeometryReader { geometry in
-            let size = geometry.size
-            ZStack {
-                RoundedRectangle(cornerRadius: 88, style: .continuous)
-                    .fill(GT.tableFelt)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 88, style: .continuous)
-                            .strokeBorder(GT.tableHairline, lineWidth: 3)
-                    }
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 12)
-
-                Text(centerPrompt)
-                    .font(GT.semibold(12))
-                    .foregroundStyle(GT.onTableSecondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: size.width * 0.34)
-                    .accessibilityIdentifier("pot-table-center-prompt")
-
-                ForEach(spot.actors, id: \.self) { actor in
-                    seat(actor)
-                        .frame(width: size.width * 0.42)
-                        .position(point(for: actor, in: size))
-                }
-
-                if let flyingActor {
-                    Circle()
-                        .fill(GT.tableAccent)
-                        .frame(width: 14, height: 14)
-                        .overlay(Circle().stroke(GT.onTableAccent.opacity(0.45), lineWidth: 1))
-                        .position(chipReachedCenter
-                                  ? CGPoint(x: size.width / 2, y: size.height / 2)
-                                  : point(for: flyingActor, in: size))
-                        .opacity(chipReachedCenter ? 0.35 : 1)
-                        .accessibilityHidden(true)
-                }
+    private var seats: [TableSeat] {
+        let others = spot.actors.filter { $0 != .sb && $0 != .bb }
+        return spot.actors.map { actor in
+            let place: TableSeat.Place
+            switch actor {
+            case .sb: place = .topLeading
+            case .bb: place = .topTrailing
+            default:
+                // Clockwise after the blinds: the first non-blind sits bottom right,
+                // or alone at the bottom in a three-player hand.
+                let order = others.firstIndex(of: actor) ?? 0
+                place = others.count == 1 ? .bottomCenter
+                    : order == 0 ? .bottomTrailing : .bottomLeading
             }
+            let folded = steps.prefix(visibleStepIndex + 1)
+                .contains { $0.actor == actor && $0.kind == .fold }
+            return TableSeat(id: actor.rawValue, place: place, name: actorName(actor),
+                             status: folded ? language.text("폴드", "Folded") : nil,
+                             tone: .neutral,
+                             isActive: currentStep.actor == actor,
+                             isFolded: folded)
         }
-        .frame(height: spot.participantCount == 3 ? 286 : 310)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("pot-table-replay")
     }
 
-    private var accessibleSeatList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(spot.actors, id: \.self) { actor in
-                seat(actor)
-            }
-            if spot.participantCount == 4, visibleStepIndex == steps.count - 1 {
-                Text(language.text("다음은 플레이어 B 차례예요", "Player B acts next"))
-                    .font(GT.body(14))
-                    .foregroundStyle(GT.onTableSecondary)
-                    .padding(.top, 4)
-            }
+    /// One short description beside the table for the acting seat, in place of
+    /// captions scattered over every seat.
+    private var actionLine: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(language.text("행동 \(visibleStepIndex + 1)/\(steps.count)",
+                               "Action \(visibleStepIndex + 1)/\(steps.count)"))
+                .font(GT.body(14).monospacedDigit())
+                .foregroundStyle(GT.inkSecondary)
+                .fixedSize()
+            Text("\(actorName(currentStep.actor)): \(caption(for: currentStep))")
+                .font(GT.semibold(15))
+                .foregroundStyle(GT.ink)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(12)
-        .background(GT.tableFelt,
-                    in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
-                .strokeBorder(GT.tableHairline, lineWidth: 2)
-        }
-        .accessibilityIdentifier("pot-table-replay")
-    }
-
-    private func seat(_ actor: PotMathSpot.Actor) -> some View {
-        let isActive = currentStep.actor == actor
-        let contributed = spot.contribution(of: actor, throughReplayStep: visibleStepIndex)
-        return VStack(alignment: .leading, spacing: 3) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(actorName(actor))
-                    .font(GT.semibold(13))
-                Spacer(minLength: 6)
-                Text(language.text("낸 칩 \(contributed)", "Paid \(englishChips(contributed))"))
-                    .font(GT.semibold(13).monospacedDigit())
-            }
-            .foregroundStyle(GT.onTable)
-
-            Text(isActive ? caption(for: currentStep) : " ")
-                .font(GT.body(12))
-                .foregroundStyle(isActive ? GT.tableAccent : GT.onTableMuted)
-                .modifier(PotCaptionLayout(accessibilitySize: dynamicTypeSize.isAccessibilitySize))
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(GT.tableFeltDeep,
-                    in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
-                .strokeBorder(isActive ? GT.tableAccent : GT.tableHairline,
-                              lineWidth: isActive ? 2 : 1)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(language.text("\(actor.rawValue), 낸 칩 \(contributed)칩",
-                                          "\(actorName(actor)), paid \(englishChips(contributed))")
-                            + (isActive ? ", \(caption(for: currentStep))" : ""))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("pot-active-action")
     }
 
     private var replayControls: some View {
@@ -211,14 +156,6 @@ struct PotMathReplayView: View {
         .disabled(!enabled)
     }
 
-    private var centerPrompt: String {
-        if spot.participantCount == 4, visibleStepIndex == steps.count - 1 {
-            return language.text("다음\n플레이어 B 차례", "Next\nPlayer B acts")
-        }
-        return language.text("행동 \(visibleStepIndex + 1) / \(steps.count)",
-                             "Action \(visibleStepIndex + 1) / \(steps.count)")
-    }
-
     private func caption(for step: PotMathReplayStep) -> String {
         switch step.kind {
         case .post: return language.text("\(step.addedChips)칩 먼저 내요", "Posts \(englishChips(step.addedChips))")
@@ -242,34 +179,6 @@ struct PotMathReplayView: View {
         case .opener: return language.text("플레이어 A", "Player A")
         case .caller1: return language.text("플레이어 B", "Player B")
         case .caller2: return language.text("플레이어 C", "Player C")
-        }
-    }
-
-    private func point(for actor: PotMathSpot.Actor, in size: CGSize) -> CGPoint {
-        let normalized: CGPoint
-        switch (spot.participantCount, actor) {
-        case (_, .sb): normalized = CGPoint(x: 0.25, y: 0.22)
-        case (_, .bb): normalized = CGPoint(x: 0.75, y: 0.22)
-        case (3, .opener): normalized = CGPoint(x: 0.5, y: 0.79)
-        case (_, .opener): normalized = CGPoint(x: 0.75, y: 0.78)
-        case (_, .caller1): normalized = CGPoint(x: 0.25, y: 0.78)
-        default: normalized = CGPoint(x: 0.5, y: 0.78)
-        }
-        return CGPoint(x: size.width * normalized.x, y: size.height * normalized.y)
-    }
-}
-
-private struct PotCaptionLayout: ViewModifier {
-    let accessibilitySize: Bool
-
-    func body(content: Content) -> some View {
-        if accessibilitySize {
-            content.fixedSize(horizontal: false, vertical: true)
-        } else {
-            content
-                .lineLimit(2)
-                .frame(minHeight: 30, alignment: .topLeading)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

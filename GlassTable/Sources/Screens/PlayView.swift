@@ -5,17 +5,21 @@ import GlassTableEngine
 struct PlayView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
-    @Environment(\.dynamicTypeSize) private var textSize
     @State private var failure = false
     @State private var revealAllCards = false
     @State private var raiseAmount = 0.0
     @State private var epoch: UUID?
     @State private var chooseNewOpponent = false
+    @State private var showSetup = false
+    @State private var showGraded = false
 
     var body: some View {
         Group {
             #if DEBUG
             if ProcessInfo.processInfo.environment["GT_DEMO_TABLE"] != nil { TableView() }
+            else if ProcessInfo.processInfo.environment["GT_DEMO_PLAY_SETUP"] != nil {
+                TableSetupView(epoch: model.epoch)
+            }
             else { playContent }
             #else
             playContent
@@ -24,89 +28,93 @@ struct PlayView: View {
     }
 
     private var playContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                Text(language.text("플레이", "Play")).font(GT.title(30))
-                if let table = model.state.tableState {
-                    HStack {
-                        Text(language.text("네 명의 연습 테이블", "Four-player practice")).font(GT.title(20))
-                        Spacer()
-                        Text(language.text("\(table.handNumber + 1)번째 핸드", "Hand \(table.handNumber + 1)"))
-                            .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-                    }
-                    tableDiagram(table)
-                    if let review = table.review {
-                        reviewContent(review)
-                        if table.seats.contains(where: { $0.stack == 0 }) {
-                            Text(language.text("칩이 없는 자리는 다음 핸드 전에 100칩을 새로 받아요. 이 칩은 이익으로 세지 않아요.", "Seats with no chips receive 100 before the next hand. Refills aren't counted as winnings."))
-                                .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+        GeometryReader { viewport in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    Text(language.text("플레이", "Play")).font(GT.title(30))
+                    if let table = model.state.tableState {
+                        HStack {
+                            Text(tableTitle(table.seatCount)).font(GT.title(20))
+                            Spacer()
+                            Text(language.text("\(table.handNumber + 1)번째 핸드", "Hand \(table.handNumber + 1)"))
+                                .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                         }
-                        FeltCTAButton(title: language.text("다음 핸드", "Next hand")) {
-                            perform {
-                                try model.nextTableHand(handID: UUID().uuidString, after: table.handID,
-                                                        expectedEpoch: epoch ?? model.epoch)
+                        tableDiagram(table)
+                        if let review = table.review {
+                            reviewContent(review, table: table)
+                            if table.seats.contains(where: { $0.stack == 0 }) {
+                                Text(language.text("칩이 없는 자리는 다음 핸드 전에 100칩을 새로 받아요. 이 칩은 이익으로 세지 않아요.", "Seats with no chips receive 100 before the next hand. Refills aren't counted as winnings."))
+                                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                             }
-                            revealAllCards = false
+                            FeltCTAButton(title: language.text("다음 핸드", "Next hand")) {
+                                perform {
+                                    try model.nextTableHand(handID: UUID().uuidString, after: table.handID,
+                                                            expectedEpoch: epoch ?? model.epoch)
+                                }
+                                revealAllCards = false
+                            }
+                            .disabled(model.saveError != nil)
+                            SecondaryCTAButton(title: language.text("테이블 바꾸기", "Change the table")) {
+                                chooseNewOpponent = true
+                            }
+                            .disabled(model.saveError != nil)
+                        } else {
+                            actions(table)
                         }
-                        .disabled(model.saveError != nil)
-                        Button(language.text("다른 상대 고르기", "Choose another opponent")) {
-                            chooseNewOpponent = true
+                        DisclosureGroup(language.text("행동 순서", "Action history")) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                ForEach(Array(table.events.enumerated()), id: \.element.id) { index, event in
+                                    Text("\(index + 1). \(seatName(event.seat)) · \(eventDescription(event))")
+                                        .font(GT.body(14)).frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }.padding(.top, 12)
                         }
-                        .frame(minHeight: 44)
-                        .disabled(model.saveError != nil)
+                        policyDetails(table)
+                        gradedCard
                     } else {
-                        actions(table)
-                    }
-                    DisclosureGroup(language.text("행동 순서", "Action history")) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            ForEach(Array(table.events.enumerated()), id: \.element.id) { index, event in
-                                Text("\(index + 1). \(seatName(event.seat)) · \(eventDescription(event))")
-                                    .font(GT.body(14)).frame(maxWidth: .infinity, alignment: .leading)
+                        Text(language.text("컴퓨터와 한 판씩 연습해요. 실제 돈은 쓰지 않아요.",
+                                           "Practice against computers. No real money."))
+                            .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
+                            .lineSpacing(GT.Typography.bodyLineSpacing)
+                        Spacer(minLength: 12)
+                        VStack(spacing: 12) {
+                            Button { showSetup = true } label: {
+                                TapCardLabel(title: language.text("자유 대전", "Free table"),
+                                             detail: language.text("컴퓨터 한 명에서 세 명과 한 판을 끝까지 쳐요. 여기서는 채점하지 않아요.",
+                                                                   "Play whole hands against one to three computers. No grading here."),
+                                             emphasized: true)
                             }
-                        }.padding(.top, 12)
-                    }
-                    policyDetails(table)
-                } else {
-                    Text(language.text("컴퓨터 세 명과 천천히 연습해요. 각자 100칩, 블라인드는 1·2칩이에요. 실제 돈은 쓰지 않아요.", "Play three computers at your pace. Each has 100 chips; blinds are 1 and 2. No real money."))
-                        .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
-                    OpponentPickerView { opponent in
-                        perform {
-                            try model.startTable(seed: UInt64.random(in: 0..<UInt64.max),
-                                                 styles: [opponent, .station, .tag],
-                                                 expectedEpoch: epoch ?? model.epoch)
+                            .buttonStyle(GTPress())
+                            .accessibilityIdentifier("play-free")
+                            .disabled(model.saveError != nil)
+                            gradedCard
                         }
                     }
-                    Text(language.text("고른 스타일은 컴퓨터 1이에요. 컴퓨터 2는 콜 위주형, 컴퓨터 3은 선별형이에요.", "Your choice sets Computer 1. Computer 2 is Caller; Computer 3 is Selective."))
-                        .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                 }
-                Divider()
-                NavigationLink {
-                    TableView()
-                } label: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(language.text("선택의 이유를 배우고 싶다면", "Want feedback on each decision?")).font(GT.title(18))
-                        Text(language.text("일대일 판단 연습 · 공개된 차트와 평균값으로 채점해요", "Heads-up decision exercise · Graded against a published chart and average-value model"))
-                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-                    }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 12)
-                }.buttonStyle(GTPress())
-            }.padding(18)
+                .padding(18)
+                .frame(minHeight: viewport.size.height, alignment: .top)
+            }
         }
         .background(FeltBackground())
         .gtTabBarClearance()
+        .navigationDestination(isPresented: $showSetup) { TableSetupView(epoch: epoch ?? model.epoch) }
+        .navigationDestination(isPresented: $showGraded) { TableView() }
         .modifier(ProgressSaveNotice())
         .onAppear {
             if epoch == nil { epoch = model.epoch }
             #if DEBUG
             if ProcessInfo.processInfo.environment["GT_DEMO_PRACTICE"] != nil,
                model.state.tableState == nil {
-                perform { try model.startTable(seed: 97, styles: [.tag, .station, .lag], expectedEpoch: model.epoch) }
+                let players = ProcessInfo.processInfo.environment["GT_DEMO_PLAYERS"].flatMap(Int.init) ?? 4
+                let styles = Array([Archetype.tag, .station, .lag].prefix(max(1, min(3, players - 1))))
+                perform { try model.startTable(seed: 97, styles: styles, expectedEpoch: model.epoch) }
             }
             #endif
         }
         .onChange(of: model.epoch) { _, value in epoch = value; revealAllCards = false }
         .confirmationDialog(language.text("새 테이블을 시작할까요?", "Start a fresh table?"),
                             isPresented: $chooseNewOpponent, titleVisibility: .visible) {
-            Button(language.text("상대 다시 고르기", "Choose new opponents")) {
+            Button(language.text("테이블 다시 만들기", "Set up a new table")) {
                 guard let table = model.state.tableState else { return }
                 _ = model.leaveFinishedTable(handID: table.handID, expectedEpoch: epoch ?? model.epoch)
                 revealAllCards = false
@@ -122,87 +130,68 @@ struct PlayView: View {
         }
     }
 
+    private func tableTitle(_ players: Int) -> String {
+        switch players {
+        case 2: language.text("두 명의 연습 테이블", "Two-player practice")
+        case 3: language.text("세 명의 연습 테이블", "Three-player practice")
+        default: language.text("네 명의 연습 테이블", "Four-player practice")
+        }
+    }
+
+    /// The graded 1:1 exercise lives in Play as its own mode, beside the free table.
+    private var gradedCard: some View {
+        Button { showGraded = true } label: {
+            TapCardLabel(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
+                         detail: language.text("상대 한 명과 쳐요. 판단마다 공개된 차트와 평균값으로 채점해요.",
+                                               "One opponent. Each decision is graded by a published chart and EV."))
+        }
+        .buttonStyle(GTPress())
+        .accessibilityIdentifier("play-graded")
+    }
+
     private func perform(_ operation: () throws -> Bool) {
         do { if try !operation(), model.saveError == nil { failure = true } }
         catch { failure = true }
     }
 
     private func tableDiagram(_ table: PracticeTableState) -> some View {
-        VStack(spacing: textSize.isAccessibilitySize ? 18 : 10) {
-            if textSize.isAccessibilitySize {
-                ForEach(1..<4, id: \.self) { seat in seatView(seat, table: table) }
-            } else {
-                seatView(2, table: table)
-                HStack(alignment: .top, spacing: 12) {
-                    seatView(1, table: table)
-                    Spacer(minLength: 0)
-                    seatView(3, table: table)
-                }
-            }
-            VStack(spacing: 10) {
-                Text(language.text("팟 \(table.pot)칩", "Pot · \(table.pot) chips"))
-                    .font(GT.title(22)).foregroundStyle(GT.onTable)
-                if table.visibleBoard.isEmpty {
-                    Text(language.text("아직 공용 카드가 없어요", "No shared cards yet"))
-                        .font(GT.body(13)).foregroundStyle(GT.onTable)
-                } else {
-                    HStack(spacing: 5) {
-                        ForEach(table.visibleBoard, id: \.self) { raw in
-                            if let card = Card(raw) { PlayingCardView(card: card, size: 48) }
-                        }
-                    }
-                }
-            }.frame(maxWidth: .infinity).padding(.vertical, 4)
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 12) {
-                    learnerCards(table)
-                    seatView(0, table: table)
-                }
-                VStack(spacing: 10) {
-                    learnerCards(table)
-                    seatView(0, table: table)
-                }
-            }
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity)
-        .background(GT.feltDeep, in: RoundedRectangle(cornerRadius: 30))
-        .accessibilityIdentifier("practice-table")
+        TableSurface(seats: (0..<table.seatCount).map { tableSeat($0, table: table) },
+                     center: TableCenter(board: table.visibleBoard.compactMap(Card.init),
+                                         reservesBoard: true,
+                                         potTotal: language.text("\(table.pot)칩", "\(table.pot) chips")))
+            .accessibilityIdentifier("practice-table")
     }
 
-    private func learnerCards(_ table: PracticeTableState) -> some View {
-        HStack(spacing: 6) {
-            ForEach(table.learnerHole, id: \.self) { raw in
-                if let card = Card(raw) { PlayingCardView(card: card, size: 54) }
-            }
-        }.fixedSize()
-    }
-
-    private func seatView(_ seat: Int, table: PracticeTableState) -> some View {
+    /// Clockwise from the learner: you bottom left, then the computers in seat order.
+    private func tableSeat(_ seat: Int, table: PracticeTableState) -> TableSeat {
         let player = table.seats[seat]
-        return VStack(spacing: 5) {
-            Text(seatName(seat) + (table.dealer == seat ? language.text(" · 버튼", " · Dealer") : ""))
-                .font(GT.semibold(14))
-            Text(table.street == .finished
-                 ? language.text("남은 칩 \(player.stack)", "\(player.stack) chips left")
-                 : language.text("남은 칩 \(player.stack) · 낸 칩 \(player.committed)", "\(player.stack) left · \(player.committed) in"))
-                .font(GT.body(12)).monospacedDigit()
-                .fixedSize(horizontal: false, vertical: true)
-            if let event = table.events.last(where: { $0.seat == seat }) {
-                Text(eventDescription(event)).font(GT.body(12))
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+        let places: [TableSeat.Place] = switch table.seatCount {
+        case 2: [.bottomLeading, .topTrailing]
+        case 3: [.bottomLeading, .topLeading, .topTrailing]
+        default: [.bottomLeading, .topLeading, .topTrailing, .bottomTrailing]
         }
-        .multilineTextAlignment(.center)
-        .foregroundStyle(GT.onTable)
-        .padding(textSize.isAccessibilitySize ? 10 : 6)
-        .frame(maxWidth: .infinity)
-        .overlay {
-            if table.currentSeat == seat {
-                RoundedRectangle(cornerRadius: 12).strokeBorder(GT.onTable, lineWidth: 2)
-            }
+        let hand: TableSeat.Hand
+        if seat == 0 {
+            hand = .faceUp(table.learnerHole.compactMap(Card.init))
+        } else if revealAllCards, let review = table.review {
+            hand = .faceUp(review.holeCards[seat].compactMap(Card.init))
+        } else {
+            hand = .faceDown
         }
-        .accessibilityElement(children: .combine)
+        return TableSeat(
+            id: "practice-\(seat)",
+            place: places[seat],
+            name: seatName(seat, styledBy: table),
+            detail: table.street == .finished
+                ? language.text("남은 칩 \(player.stack)", "\(player.stack) chips left")
+                : language.text("남은 칩 \(player.stack) · 낸 칩 \(player.committed)",
+                                "\(player.stack) left · \(player.committed) in"),
+            status: table.events.last(where: { $0.seat == seat }).map(eventDescription),
+            tone: .neutral,
+            isActive: table.currentSeat == seat,
+            isFolded: player.folded,
+            isDealer: table.dealer == seat,
+            hand: hand)
     }
 
     private func actions(_ table: PracticeTableState) -> some View {
@@ -254,14 +243,14 @@ struct PlayView: View {
         raiseAmount = 0
     }
 
-    private func reviewContent(_ review: PracticeTableReview) -> some View {
+    private func reviewContent(_ review: PracticeTableReview, table: PracticeTableState) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(language.text("이번 핸드 돌아보기", "Review this hand")).font(GT.title(22))
             Text(language.text("이긴 결과와 좋은 결정은 달라요. 여기서는 실제 칩 이동만 확인해요.", "Winning a hand and making a good decision aren't the same. This review shows the actual chip movement."))
                 .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-            ForEach(0..<4, id: \.self) { seat in
+            ForEach(0..<table.seatCount, id: \.self) { seat in
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(seatName(seat)).font(GT.semibold(16))
+                    Text(seatName(seat, styledBy: table)).font(GT.semibold(16))
                     Text(language.text("낸 칩 \(review.contributions[seat]) · 반환 \(review.refunds[seat]) · 받은 팟 \(review.payouts[seat])", "Paid \(review.contributions[seat]) · Returned \(review.refunds[seat]) · Won from pots \(review.payouts[seat])"))
                         .font(GT.body(14))
                     if revealAllCards || seat == 0 {
@@ -329,6 +318,12 @@ struct PlayView: View {
 
     private func seatName(_ seat: Int) -> String {
         seat == 0 ? language.text("나", "You") : language.text("컴퓨터 \(seat)", "Computer \(seat)")
+    }
+
+    /// A computer's seat also names its style, since each seat can play differently.
+    private func seatName(_ seat: Int, styledBy table: PracticeTableState) -> String {
+        guard seat > 0, let style = Archetype(rawValue: table.styles[seat - 1]) else { return seatName(seat) }
+        return "\(seatName(seat)) · \(style.beginnerTitle(in: language))"
     }
 
     private func actionTitle(_ action: PracticeAction) -> String {

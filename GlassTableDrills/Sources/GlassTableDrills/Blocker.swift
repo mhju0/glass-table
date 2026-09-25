@@ -23,6 +23,22 @@ public struct BlockerSpot: Equatable {
     public var baseline: Int {
         switch kind { case .pair: return 6; case .suited: return 4; default: return 16 }
     }
+
+    /// One exact two-card hand of this class, used to define "combo". It avoids the
+    /// visible cards when it can, so the example is never one the next beat removes.
+    var exampleCombo: [Card] {
+        let spade = 3, heart = 2
+        var candidates: [[Card]] = []
+        for first in [spade, heart, 1, 0] {
+            for second in [heart, spade, 1, 0] {
+                let pairOK = kind == .pair ? first != second : true
+                let suitOK = kind == .suited ? first == second : first != second
+                guard pairOK, suitOK else { continue }
+                candidates.append([Card(rank: rankA, suit: first), Card(rank: rankB, suit: second)])
+            }
+        }
+        return candidates.first { $0.allSatisfy { !removed.contains($0) } } ?? candidates[0]
+    }
 }
 
 /// T–A only; the generator never produces ranks below 10.

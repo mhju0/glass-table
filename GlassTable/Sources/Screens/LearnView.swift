@@ -20,14 +20,17 @@ struct LearnView: View {
                         .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
                 }
                 recommendation
+                if !hasFinishedALesson { startingPointCard }
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("내 방식으로 연습", "Practice your way")).font(GT.title(20))
                     NavigationLink {
                         PathView(onOpenNode: onOpenNode, onOpenFreePlay: onOpenPractice)
                     } label: {
                         learningRow(language.text("전체 학습 경로", "Full learning path"),
-                                    language.text("기초부터 깊이 있는 판단까지. 모든 레슨이 처음부터 열려 있어요.", "From the basics to deeper decisions. Every lesson is open now."), icon: "point.topleft.down.to.point.bottomright.curvepath")
-                    }.buttonStyle(GTPress())
+                                    language.text("기초부터 깊이 있는 판단까지. 모든 레슨이 처음부터 열려 있어요.", "From basics to deeper decisions. Every lesson is open."), icon: "point.topleft.down.to.point.bottomright.curvepath")
+                    }
+                    .buttonStyle(GTPress())
+                    .accessibilityIdentifier("learn-path")
                     Button(action: onOpenPractice) {
                         learningRow(language.text("한 가지 집중 연습", "Practice one skill"),
                                     language.text("원하는 주제를 골라 다섯 문제씩 풀어요.", "Pick a topic for a five-question round."), icon: "rectangle.stack")
@@ -38,14 +41,15 @@ struct LearnView: View {
                                         language.text("복습할 주제 \(due.count)개", "\(due.count) topics ready for review"), icon: "arrow.clockwise")
                         }.buttonStyle(GTPress())
                     }
-                }
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(language.text("어디서 시작할지 고민되나요?", "Not sure where to start?"))
-                        .font(GT.title(19))
-                    Text(language.text("짧은 확인으로 시작할 주제를 추천해 드려요. 점수나 자격시험이 아니라 출발점을 찾는 과정이에요.", "A short check suggests a starting topic. It isn't a score or a qualification, just a place to begin."))
-                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-                    Button(language.text("시작점 찾아보기", "Find a starting point")) { showPlacement = true }
-                        .font(GT.semibold(15)).frame(minHeight: 44)
+                    if hasFinishedALesson {
+                        Button { showPlacement = true } label: {
+                            learningRow(language.text("시작점 찾아보기", "Find a starting point"),
+                                        language.text("짧은 확인으로 시작할 주제를 추천받아요.", "A short check suggests a topic to start from."),
+                                        icon: "scope")
+                        }
+                        .buttonStyle(GTPress())
+                        .accessibilityIdentifier("placement-row")
+                    }
                 }
             }.padding(18)
         }
@@ -100,6 +104,30 @@ struct LearnView: View {
         .gtCard(radius: 22)
     }
 
+    /// The starting-point check leads until the learner finishes a lesson; after that
+    /// they have a place to begin, so it steps down to an ordinary row.
+    private var hasFinishedALesson: Bool {
+        Curriculum.allNodes.contains { model.status(of: $0) == .cleared }
+    }
+
+    private var startingPointCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(language.text("어디서 시작할지 고민되나요?", "Not sure where to start?"))
+                .font(GT.title(19))
+            Text(language.text("짧은 확인으로 시작할 주제를 추천해 드려요. 점수나 자격시험이 아니라 출발점을 찾는 과정이에요.", "A short check suggests a starting topic. It isn't a score or a qualification, just a place to begin."))
+                .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                .lineSpacing(GT.Typography.bodyLineSpacing)
+                .fixedSize(horizontal: false, vertical: true)
+            SecondaryCTAButton(title: language.text("시작점 찾아보기", "Find a starting point")) {
+                showPlacement = true
+            }
+            .accessibilityIdentifier("placement-start")
+            .padding(.top, 4)
+        }
+        .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+        .gtPanel()
+    }
+
     private var recommendedNode: CurriculumNode? {
         if let raw = model.state.placement?.recommendedConcept,
            let concept = Concept(rawValue: raw),
@@ -111,15 +139,7 @@ struct LearnView: View {
     }
 
     private func learningRow(_ title: String, _ detail: String, icon: String) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon).font(.system(size: 22)).frame(width: 28)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title).font(GT.title(17))
-                Text(detail).font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-            }
-            Spacer(minLength: 0)
-            Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
-        }.foregroundStyle(GT.ink).padding(.vertical, 12).contentShape(Rectangle())
+        TapCardLabel(title: title, detail: detail, icon: icon)
     }
 }
 

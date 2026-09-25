@@ -675,7 +675,7 @@ final class ProgressionModel {
     @discardableResult
     func startTable(seed: UInt64, styles: [Archetype],
                     expectedEpoch: UUID, now: Date = Date()) throws -> Bool {
-        guard expectedEpoch == epoch, state.tableState == nil, styles.count == 3 else {
+        guard expectedEpoch == epoch, state.tableState == nil, (1...3).contains(styles.count) else {
             return false
         }
         var table = PracticeTableState(seed: seed, styles: styles,
