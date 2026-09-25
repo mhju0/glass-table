@@ -24,6 +24,9 @@ struct SettingsView: View {
     @State private var confirmingImport = false
     @State private var fileFailure: ProgressFileFailure?
     @State private var confirmingReset = false
+    @AppStorage(DailyReminder.enabledKey) private var reminderOn = false
+    @AppStorage(DailyReminder.minutesKey) private var reminderMinutes = DailyReminder.defaultMinutes
+    @State private var reminderRefused = false
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
     private static let feedbackURL =
@@ -95,6 +98,7 @@ struct SettingsView: View {
                 }
                 .padding(16)
                 .gtCard(radius: 20)
+                reminderCard
                 VStack(spacing: 0) {
                     Button { showFirstLesson = true } label: {
                         row("suit.spade.fill", language.text("첫 포커 결정 다시 보기", "Replay the first decision"),
@@ -299,6 +303,11 @@ struct SettingsView: View {
             if ProcessInfo.processInfo.environment["GT_DEMO_RESPONSIBLE"] != nil {
                 showResponsible = true
             }
+            switch ProcessInfo.processInfo.environment["GT_DEMO_REMINDER"] {
+            case "on": reminderOn = true
+            case "refused": reminderRefused = true
+            default: break
+            }
             #endif
         }
     }
@@ -325,6 +334,68 @@ struct SettingsView: View {
             guard importRequestID == requestID else { return }
             isReadingImport = false
             importTask = nil
+        }
+    }
+
+    private var reminderTime: Binding<Date> {
+        Binding {
+            Calendar.current.date(bySettingHour: reminderMinutes / 60,
+                                  minute: reminderMinutes % 60, second: 0, of: Date()) ?? Date()
+        } set: { date in
+            let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+            reminderMinutes = (parts.hour ?? 20) * 60 + (parts.minute ?? 0)
+            if reminderOn { scheduleReminder() }
+        }
+    }
+
+    private var reminderCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle(isOn: Binding(get: { reminderOn }, set: { on in
+                reminderRefused = false
+                if on { scheduleReminder() } else { reminderOn = false; DailyReminder.disable() }
+            })) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(language.text("매일 알림", "Daily reminder"))
+                        .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    Text(language.text("정한 시간에 한 번만 알려 드려요.", "One gentle note at a time you choose."))
+                        .font(GT.body(12)).foregroundStyle(GT.inkMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .tint(GT.cta)
+            .accessibilityIdentifier("settings-reminder")
+            if reminderOn {
+                Divider()
+                DatePicker(language.text("알림 시간", "Time"), selection: reminderTime,
+                           displayedComponents: .hourAndMinute)
+                    .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    .accessibilityIdentifier("settings-reminder-time")
+            }
+            if reminderRefused {
+                Text(language.text("알림이 꺼져 있어요. 설정 앱에서 Glass Table 알림을 켤 수 있어요.",
+                                   "Notifications are off for Glass Table. You can allow them in the Settings app."))
+                    .font(GT.body(12)).foregroundStyle(GT.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                    Link(language.text("설정 열기", "Open Settings"), destination: url)
+                        .font(GT.semibold(14)).foregroundStyle(GT.green)
+                        .frame(minHeight: 44)
+                }
+            }
+        }
+        .padding(16)
+        .gtCard(radius: 20)
+        .onChange(of: language) { _, _ in if reminderOn { scheduleReminder() } }
+    }
+
+    /// The notification text is fixed when scheduled, so a language change reschedules.
+    private func scheduleReminder() {
+        let minutes = reminderMinutes
+        let language = language
+        Task {
+            let scheduled = await DailyReminder.enable(minutes: minutes, language: language)
+            reminderOn = scheduled
+            reminderRefused = !scheduled
         }
     }
 

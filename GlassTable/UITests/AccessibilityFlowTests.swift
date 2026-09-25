@@ -328,6 +328,31 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertTrue(firstStep.label.contains("누가 이길까요?"))
     }
 
+    func testReminderAndMilestoneShareStayReachableAtAccessibilityXXXL() {
+        let settings = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_SEED": "1",
+            "GT_DEMO_SETTINGS": "1",
+            "GT_DEMO_REMINDER": "on",
+        ])
+        XCTAssertTrue(scrollUntilHittable(settings.switches["settings-reminder"], in: settings),
+                      "The reminder switch must be reachable at AX XXXL.")
+        XCTAssertTrue(scrollUntilHittable(settings.datePickers["settings-reminder-time"], in: settings),
+                      "The reminder time must be reachable at AX XXXL.")
+        settings.terminate()
+
+        let summary = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_SEED": "1",
+            "GT_DEMO_NODE": "u2-potOdds",
+            "GT_DEMO_SESSION_COMPLETE": "1",
+            "GT_DEMO_MILESTONE": "unit",
+        ])
+        XCTAssertTrue(scrollUntilHittable(summary.buttons["milestone-share"], in: summary),
+                      "The share button must be reachable at AX XXXL.")
+        XCTAssertTrue(scrollUntilHittable(summary.buttons["길로 돌아가기"], in: summary))
+    }
+
     private func launch(environment: [String: String]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]

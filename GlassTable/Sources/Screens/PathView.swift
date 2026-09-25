@@ -246,8 +246,7 @@ struct PathView: View {
     }
 
     private func unitTitle(_ unit: CurriculumUnit, index: Int) -> String {
-        let titles = ["Read the table", "Price and probability", "Read hand charts", "Possible opponent hands", "Read the shared cards", "Compare decision value", "Read actions", "Respond to a raise", "Check defending frequency"]
-        return language.text(unit.title, titles[index])
+        language.text(unit.title, LearningMilestone.unitTitlesEnglish[index])
     }
 
     private func stageTitle(_ index: Int) -> String? {

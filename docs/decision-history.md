@@ -36,6 +36,27 @@ Read across the entries, a few preferences keep coming back:
 
 ---
 
+## 2026-09-26 — What counts as a milestone; when the rating prompt appears
+
+- **Decided by:** agent, within the owner's release plan ("rating prompt after a real
+  milestone only", "share card of a learning milestone").
+- **What:** a milestone is a unit finished for the first time, or a skill reaching
+  숙달 단계 (mastered in app). Both come from the unit's mixed check. The share card and
+  the rating prompt appear only on that lesson summary. The rating prompt runs when the
+  learner taps "Back to path", at most once per app version.
+- **Why:** 능숙 단계 comes from almost any clean lesson, so it would make the prompt and
+  card routine. A finished unit is rare enough to feel earned and is read from saved
+  progress, so no save-format change was needed.
+
+## 2026-09-26 — Daily reminder repeats at one time, even on days already practiced
+
+- **Decided by:** agent.
+- **What:** one repeating local notification at the chosen time (default 20:00). It is
+  not skipped on days the learner already practiced.
+- **Why:** skipping needs rescheduling on every launch and practice. The plan asked for
+  the simple version: one time of day, calm wording. Revisit if beta testers find it
+  nagging.
+
 ## 2026-09-26 — Help counts toward the streak, not toward accuracy
 
 - **Decided by:** agent, after an independent review of the issue 04 plan (owner delegated

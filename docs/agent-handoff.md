@@ -93,3 +93,18 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
   Route × feature checklist: `.scratch/consistent-learning-table/entry-routes.md`.
 - Decisions recorded in `decision-history.md` (full plan; help keeps the streak).
 - Next: step 4 (rating prompt, daily reminder, share card).
+
+## 2026-09-26: Phase 2 — engagement (rating prompt, daily reminder, share card)
+
+- Spec: `.scratch/engagement/spec.md`. Milestones (first unit clear, or a skill mastered)
+  are derived from saved `clearedAt` / `masteredAt` against the session's first answer;
+  no save-format change. The lesson summary shows a share card (felt image, no chips or
+  scores) and asks for a rating on "Back to path", once per app version, never under
+  `GT_TEST_STORE_ID`.
+- Settings has "매일 알림 / Daily reminder": off by default, asks permission when turned
+  on, one repeating local notification (default 20:00), rescheduled on language change.
+- Fix: drill and Play table headers stack when the title can't fit beside the new info
+  button (AX5 English broke words, e.g. "Positio/n", "Ha/nd").
+- Not verified: the real permission dialog, delivery of a notification, the share sheet
+  and the review dialog (system UI; unit tests cover the request and the gates).
+- Next: step 5 needs the owner (support Gmail, Team ID); then the step 6 matrix.

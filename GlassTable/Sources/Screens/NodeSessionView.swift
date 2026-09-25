@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import StoreKit
 import GlassTableEngine
 import GlassTableDrills
 
@@ -61,6 +62,7 @@ struct NodeSessionView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.requestReview) private var requestReview
     let node: CurriculumNode
 
     @State private var index = 0
@@ -442,7 +444,17 @@ struct NodeSessionView: View {
                 Text(summaryDetail)
                     .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+                let milestones = self.milestones
+                if let first = milestones.first {
+                    MilestoneShareSection(milestone: first, date: milestoneDate)
+                        .padding(.vertical, 4)
+                }
                 FeltCTAButton(title: language.text("길로 돌아가기", "Back to path")) {
+                    let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+                    if RatingPrompt.shouldRequest(milestones: milestones, version: version) {
+                        RatingPrompt.markRequested(version: version)
+                        requestReview()
+                    }
                     if let savedSession {
                         _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
                             expectedEpoch: sessionEpoch ?? model.epoch)
@@ -454,6 +466,23 @@ struct NodeSessionView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    /// Read from saved progress, so a relaunch into this summary shows the same ones.
+    private var milestones: [LearningMilestone] {
+        #if DEBUG
+        switch ProcessInfo.processInfo.environment["GT_DEMO_MILESTONE"] {
+        case "unit": return [.unitFinished(unitIndex: 0)]
+        case "mastered": return [.skillMastered(.potOdds)]
+        default: break
+        }
+        #endif
+        guard let savedSession else { return [] }
+        return LearningMilestone.reached(in: savedSession, state: model.state)
+    }
+
+    private var milestoneDate: Date {
+        savedSession?.answers.map(\.answer.submittedAt).max() ?? Date()
     }
 
     private var summaryDetail: String {
