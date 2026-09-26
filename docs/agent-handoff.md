@@ -28,58 +28,15 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
     and 04 (assisted attempts count as practice).
 - `.scratch/pot-calculation-redesign/` is untracked on purpose (unrelated).
 
-## 2026-09-25: First run, Play/Learn redesign, 2–4 player tables (autonomous)
+## 2026-09-25 — condensed 2026-09-27
 
-- Branch `feat/shared-learning-table`, not pushed. Owner chose on two research
-  pages (first run; Play/Learn), then delegated the rest while away. Owner-facing
-  record of every decision and why: [`decision-history.md`](decision-history.md).
-- Commits: `4aac931` first-run guide; `ff691fe` verdict-tinted sheets; `5b63deb`
-  Play home with two mode cards and per-seat table setup; `bda2056` bordered Learn
-  rows, starting-point card steps down after the first lesson; `fdf6ca3` pot
-  answers in the bottom sheet, app-wide tap-rule audit (`TapCardLabel`,
-  `GTDisclosureStyle`); `5e689ca` 2/3/4-player free tables (`seatCount =
-  styles.count + 1`, heads-up blind rule, four-seat deal pinned by fingerprint).
-- Line-parity audit of all screens changed this session (iPhone 12 mini, KO/EN,
-  large): 10 violations found and fixed by copy rewrites (Play, setup, Learn,
-  first lesson, three style descriptions); 0 remain. AX5 check found the first
-  lesson's ✓/✗ badge covering the card title; at accessibility sizes it now sits
-  above the title.
-- Exemptions from the tap rule (nav chrome, alerts, Settings rows, recovery
-  "새로 시작하기", the guide's inline retrieval questions) are listed in
-  `.scratch/first-run-and-play/issues/03-bottom-choice-audit.md`.
-- Open: push to `main` held until the owner confirms in their own words; issues
-  03/04 above; the setup's segmented control is low-contrast in dark mode.
-- Next: owner tries the installed build and confirms the push.
+Full entries: [the 09-27 archive](handoff-archive/2026-09-27-before-answer-pattern.md).
 
-## 2026-09-25: Release research and plan (no code)
-
-- Owner answered the release research page (https://claude.ai/artifact/5uBT6CLXkUkruLoYyxUgjN,
-  db docs `release/choices` and `release/followup`). `docs/ROADMAP.md` rewritten as a
-  phased release roadmap; the old one moved to `handoff-archive/`. Decisions and reasons are in
-  `decision-history.md`.
-- Key facts found: frequent simulated gambling = 18+ plus a Korean RCN, infrequent = 13+ with no RCN;
-  Apple shows an individual's email on Korean product pages even for free apps; charging
-  needs 사업자등록 plus the Paid Apps Agreement; the iPhone SE (375×667) has never been swept;
-  only the iOS 26/27 simulator runtimes are installed.
-- Open: push to main is still held for the owner's "yes, push". Phase 1 (counsel, Gmail,
-  privacy/support pages, enrolment) is owner work.
-- Next: the Phase 2 code items, each with a `.scratch/` spec first. Start with the Hold'em
-  basics and hand-rankings lesson.
-
-## 2026-09-25: Phase 2 — basics lesson and small fixes
-
-- Hold'em basics lesson shipped (c8abfd0; spec `.scratch/holdem-basics/spec.md`). The
-  engine recount showed high card (17.4%) is rarer than one pair and two pair, so the copy
-  says "rarer usually ranks higher, except high card" instead of "rarer = stronger".
-- Small fixes: table setup's player count uses the app's choice buttons (amber selection;
-  the grey system segment was unreadable in dark mode) and stacks at accessibility sizes;
-  Settings row "책임감 있게 이용하기 / Play responsibly" opens helplines (Korea 1336,
-  US 1-800-GAMBLER, tappable); one sentence on the welcome guide's second page; product
-  brief no longer says "free forever".
-- Position intro leaks: the native app has no Position intro table yet, so the owner's
-  "rule, not result" example is applied when issue 03 builds first-use explanations.
-- Open: AGENTS.md still lists "purchases" as excluded; that conflicts with the 1.1 unlock
-  and is the owner's call to edit. Next: issues 03 and 04.
+- Shipped: first-run guide, verdict-tinted sheets, Play home with 2–4 player tables,
+  the Hold'em basics lesson, release roadmap (`docs/ROADMAP.md`) and small fixes.
+- Still open: AGENTS.md lists "purchases" as excluded, which conflicts with the
+  1.1 unlock and is the owner's call; Phase 1 release work (counsel, Gmail, privacy and
+  support pages, enrolment) is owner work; the iPhone SE (375×667) has never been swept.
 
 ## 2026-09-26: Phase 2 — issues 03 and 04 (explanations and help)
 
@@ -181,3 +138,28 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
 - Open: after a swipe on Play, the audit reports screen-wide findings with no element on
   some runs (contrast locally on iOS 26.5, Dynamic Type on CI's iOS 26.2). Scrolled audits
   skip those two checks; the cause is not found. CI keeps only text logs, not the xcresult.
+
+## 2026-09-27: One answer pattern across lessons (build 13, branch `fix/lesson-answer-panel`)
+
+- Owner picked option A from the answer-reveal mockups and asked for it everywhere
+  (decision-history). A lesson answered in-session now keeps its live reveal:
+  `ConceptDrillView` shows `RestoredDrillView` only for an answer saved before a
+  relaunch. `RestoredDrillView` is rebuilt on `DrillShell` + `ActionSheet`; the showdown
+  replay draws the same centred table with the winning five lit.
+- `DrillShell` pins content to the top. On reveal it scrolls the drill's
+  `revealEvidenceStart()` mark to the top, or to the end when a drill has no mark. Defend, EV loss and notation add their grid or range below the question
+  instead of re-laying it out. The first lesson keeps the question and adds the marked
+  hands below; its explanation moved into the sheet.
+- `ActionSheet` folds when graded: tap the handle (`reveal-sheet-toggle`) or drag it.
+  Content hides under `RevealDetail` / `\.revealCollapsed`. `VerdictRow` takes optional
+  titles, used for the chart and EV verdicts.
+- Audit method: a temporary UI test (not committed) answered the first question of all
+  19 lessons with `GT_DEMO_NODE` and saved question / answer / folded screenshots at
+  `large` on iPhone 16e.
+- Open, reported, not fixed: hard-coded Korean particles after Latin seat names read
+  "BTN는" (should be "BTN은"); `KO.endsInConsonant` treats Latin as a vowel. Sites:
+  `Position.swift`, `DefendDrill.swift`, `RangeDrills.swift`, `Beats.swift`,
+  `ConceptDrillView.swift`, `RestoredDrillView.swift`.
+- Tests: full UI suite on iPhone 16e, 127 passed. `testShowdownWalkthroughAdvancesAtAccessibilityXXXL`
+  also fails on unmodified `main` on that simulator (at step 7 the button is still "다음");
+  CI passed it on its own device. Not investigated.

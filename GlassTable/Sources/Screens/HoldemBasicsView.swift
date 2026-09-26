@@ -473,21 +473,21 @@ struct HoldemBasicsView: View {
                 Image(systemName: band.glyph)
                     .font(.system(size: 26, weight: .semibold)).foregroundStyle(band.ink)
                     .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(correct ? language.text("맞았어요", "That's right")
-                                 : language.text("플러시가 이겨요", "The flush wins"))
-                        .font(GT.title(GT.Typography.resultSize)).foregroundStyle(band.ink)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(language.text("플러시(\(flush))가 스트레이트(\(straight))보다 드물어서 족보에서도 한 단계 더 위에 있어요.",
-                                       "A flush (\(flush)) is rarer than a straight (\(straight)), so it sits one step higher on the ladder."))
-                        .font(GT.body(15)).foregroundStyle(GT.ink)
-                        .lineSpacing(GT.Typography.bodyLineSpacing)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                Text(correct ? language.text("맞았어요", "That's right")
+                             : language.text("플러시가 이겨요", "The flush wins"))
+                    .font(GT.title(GT.Typography.resultSize)).foregroundStyle(band.ink)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("basics.verdict")
+            RevealDetail {
+                Text(language.text("플러시(\(flush))가 스트레이트(\(straight))보다 드물어서 족보에서도 한 단계 더 위에 있어요.",
+                                   "A flush (\(flush)) is rarer than a straight (\(straight)), so it sits one step higher on the ladder."))
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             PrimaryCTAButton(title: startsCourse ? language.text("다음 레슨 시작", "Start the next lesson")
                                                  : language.text("마치기", "Done")) {
                 onFinish(startsCourse)

@@ -15,7 +15,6 @@ extension SavedDrillReveal {
 /// A committed answer replays from the original seed and semantic input. No
 /// translated sentence is saved, so switching language regenerates the explanation.
 struct RestoredDrillView: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @State private var calculationExpanded = false
     let concept: Concept
@@ -37,117 +36,107 @@ struct RestoredDrillView: View {
             onNext(DrillOutcome(band: band, interval: stored?.interval,
                                 evLoss: stored?.evLoss, submittedInput: input))
         }
-        return Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 14) {
-                        context(detail: detail, input: input)
-                        VStack(alignment: .leading, spacing: GT.Space.related) {
-                            if answer.isAssisted { SolvedWithHelpLabel() }
-                            verdict(band: band, detail: detail, input: input)
-                            nextButton(next)
-                        }
-                        .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-                        .gtCard(radius: GT.Radius.panel, band: band)
-                        .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier("graded-sheet-\(band)")
-                    }
-                    .padding(20)
-                }
-            } else {
-                VStack(spacing: 0) {
-                    ScrollView {
-                        context(detail: detail, input: input).padding(20)
-                    }
-                    .scrollBounceBehavior(.basedOnSize)
-                    ActionSheet(band: band) {
-                        VStack(alignment: .leading, spacing: GT.Space.related) {
-                            if answer.isAssisted { SolvedWithHelpLabel() }
-                            verdict(band: band, detail: detail, input: input)
-                            nextButton(next)
-                        }
-                    }
-                    .accessibilityElement(children: .contain)
-                    .accessibilityIdentifier("graded-sheet-\(band)")
-                    .layoutPriority(1)
-                }
+        // The same shell as the question, so an answer restored after a relaunch keeps
+        // the question's header and puts its explanation in the graded sheet.
+        return DrillShell(title: ConceptDrillView.drillTitle(for: concept),
+                          progressText: progressText) {
+            RestoredDrillContextView(concept: concept, seed: seed, index: index,
+                                     assisted: answer.isAssisted, input: input,
+                                     answerID: "saved-answer-\(concept.rawValue)/\(seed)/\(index)")
+                .padding(.bottom, 12)
+        } sheet: {
+            VStack(alignment: .leading, spacing: GT.Space.related) {
+                if answer.isAssisted { SolvedWithHelpLabel() }
+                verdict(band: band, detail: detail, input: input)
+                RevealDetail { explanation(detail: detail, input: input) }
+                nextButton(next)
             }
+            .preference(key: GradedBandKey.self, value: band)
         }
         .background(FeltBackground())
     }
 
-    /// The question as it was, then the explanation; the verdict and Next sit below.
     @ViewBuilder
-    private func context(detail: RestoredDrillDescription?, input: DrillSubmittedInput?) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(ConceptIntroduction.make(concept, language: language).title)
-                .font(GT.title(22)).foregroundStyle(GT.onFelt)
-            Text(progressText).font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
-                .accessibilityIdentifier("saved-answer-\(concept.rawValue)/\(seed)/\(index)")
-            RestoredDrillContextView(concept: concept, seed: seed, index: index,
-                                     assisted: answer.isAssisted)
-            if concept == .evLoss, case let .boolean(calls)? = input {
-                RestoredEVLossResult(seed: seed, index: index, calls: calls)
-            } else if concept == .potMath {
-                DisclosureGroup(language.text("계산 보기", "See the calculation"),
-                                isExpanded: $calculationExpanded) {
-                    Text(detail?.why ?? "").font(GT.body(15).monospacedDigit())
-                        .foregroundStyle(GT.inkSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }.font(GT.semibold(15)).padding(14).gtPanel()
-            } else {
-                Text(detail?.why ?? language.text(
-                    "답은 저장됐어요. 다음 문제로 이어가세요.",
-                    "Your answer was saved. Continue to the next question."))
-                    .font(GT.body(GT.Typography.explanationSize))
+    private func explanation(detail: RestoredDrillDescription?, input: DrillSubmittedInput?) -> some View {
+        if concept == .evLoss, case let .boolean(calls)? = input {
+            RestoredEVLossResult(seed: seed, index: index, calls: calls)
+        } else if concept == .potMath {
+            DisclosureGroup(language.text("계산 보기", "See the calculation"),
+                            isExpanded: $calculationExpanded) {
+                Text(detail?.why ?? "").font(GT.body(15).monospacedDigit())
                     .foregroundStyle(GT.inkSecondary)
-                    .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                    .padding(.top, 8)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            .font(GT.semibold(15)).foregroundStyle(GT.ink)
+            .padding(14)
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                                         style: .continuous))
+        } else {
+            Text(detail?.why ?? language.text(
+                "답은 저장됐어요. 다음 문제로 이어가세요.",
+                "Your answer was saved. Continue to the next question."))
+                .font(GT.body(GT.Typography.explanationSize))
+                .foregroundStyle(GT.inkSecondary)
+                .lineSpacing(GT.Typography.explanationLineSpacing)
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                                             style: .continuous))
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// The same verdict row as the live reveal of each drill.
     @ViewBuilder
     private func verdict(band: GradeBand, detail: RestoredDrillDescription?,
                          input: DrillSubmittedInput?) -> some View {
+        let mine = detail?.mine ?? language.text("답변 저장됨", "Answer saved")
+        let correct = detail?.correct ?? language.text("결과 저장됨", "Result saved")
         switch concept {
-        case .potMath:
-            headline(band, band == .spotOn ? language.text("맞았어요", "That's right")
-                     : language.text("정답은 \(detail?.correct ?? "")예요", "The answer is \(detail?.correct ?? "")"))
         case .defend:
-            VStack(alignment: .leading, spacing: 4) {
-                headline(band, language.text(band == .spotOn ? "차트와 일치해요" : "차트와 달라요",
-                                             band == .spotOn ? "Matches this chart" : "Different from this chart"))
-                Text(language.text("내 선택: \(detail?.mine ?? "") · 차트: \(detail?.correct ?? "")",
-                                   "Your choice: \(detail?.mine ?? "") · Chart: \(detail?.correct ?? "")"))
-                    .font(GT.body(15)).foregroundStyle(GT.ink)
-            }
+            VerdictRow(band: band, mine: mine, correct: correct,
+                       title: band == .spotOn ? language.text("차트와 일치해요", "Matches the chart")
+                                              : language.text("차트와 달라요", "Different from the chart"),
+                       mineTitle: language.text("내 선택", "You chose"),
+                       correctTitle: language.text("차트", "Chart"))
         case .evLoss:
-            headline(band, band.label(in: language))
+            if case let .boolean(calls)? = input {
+                RestoredEVLossVerdict(seed: seed, index: index, calls: calls)
+            } else {
+                VerdictRow(band: band, mine: mine, correct: correct)
+            }
         default:
-            VerdictRow(band: band,
-                       mine: detail?.mine ?? language.text("답변 저장됨", "Answer saved"),
-                       correct: detail?.correct ?? language.text("결과 저장됨", "Result saved"))
-        }
-    }
-
-    private func headline(_ band: GradeBand, _ text: String) -> some View {
-        Label {
-            Text(text).font(GT.title(GT.Typography.resultSize)).foregroundStyle(band.ink)
-                .fixedSize(horizontal: false, vertical: true)
-        } icon: {
-            Image(systemName: band.glyph).font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(band.ink)
+            VerdictRow(band: band, mine: mine, correct: correct)
         }
     }
 
     private func nextButton(_ action: @escaping () -> Void) -> some View {
         PrimaryCTAButton(title: language.text("다음 문제", "Next question"), action: action)
             .accessibilityIdentifier("drill-completion-\(concept.rawValue)/\(seed)/\(index)")
+    }
+}
+
+/// The EV loss verdict as the live reveal draws it: the loss named, then your choice
+/// against the best one.
+private struct RestoredEVLossVerdict: View {
+    @Environment(\.learningLanguage) private var language
+    let seed: UInt64
+    let index: Int
+    let calls: Bool
+
+    var body: some View {
+        let reveal = gradeEVLoss(userCalls: calls,
+                                 spot: EVLossSpotGenerator.spot(baseSeed: seed, index: index),
+                                 language: language)
+        VerdictRow(band: reveal.band, mine: action(calls), correct: action(reveal.grade.best.ev > 0),
+                   title: evLossLabel(loss: reveal.grade.loss, language: language),
+                   mineTitle: language.text("내 선택", "You chose"),
+                   correctTitle: language.text("최선", "Best"))
+    }
+
+    private func action(_ isCall: Bool) -> String {
+        isCall ? language.text("콜", "Call") : language.text("폴드", "Fold")
     }
 }
 
@@ -169,14 +158,6 @@ private struct RestoredEVLossResult: View {
         let chosenValue = bbText(grade.chosen.ev)
         let chosenTerm = grade.chosen.ev < 0 ? "(\(chosenValue))" : chosenValue
         return VStack(alignment: .leading, spacing: 12) {
-            Text(grade.loss <= 0
-                 ? language.text("\(KO.subject(action(calls))) 최선이에요",
-                                 "\(action(calls)) is best here")
-                 : language.text("최선은 \(action(bestCalls))",
-                                 "Better choice: \(action(bestCalls))"))
-                .font(GT.title(20)).foregroundStyle(GT.ink)
-            Text(evLossLabel(loss: grade.loss, language: language))
-                .font(GT.semibold(12)).foregroundStyle(outcome.band.ink)
             VStack(alignment: .leading, spacing: 8) {
                 row(language.text("최선", "Best"), action(bestCalls), grade.best.ev)
                 Divider().overlay(GT.border)
@@ -366,15 +347,49 @@ private struct RestoredDrillContextView: View {
     let seed: UInt64
     let index: Int
     let assisted: Bool
+    let input: DrillSubmittedInput?
+    let answerID: String
 
     private var script: (beats: [Beat], rows: [(String, [Card])]) {
         Walkthrough.make(concept: concept, seed: seed, index: index, language: language)
     }
 
     var body: some View {
+        if concept == .showdown {
+            showdownTable
+        } else {
+            replayPanel
+        }
+    }
+
+    /// The question's own table, with the winning five lit as the live reveal lights them.
+    private var showdownTable: some View {
+        let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
+        let winner: Int? = {
+            guard case let .integer(answer)? = input else { return nil }
+            return gradeShowdown(answer: answer, spot: spot, language: language).winner
+        }()
+        let winningFive: [Card] = switch winner {
+        case 0: bestFiveCards(spot.hero + spot.board)
+        case 1: bestFiveCards(spot.villain + spot.board)
+        default: []
+        }
+        return ThreeRegionCardTable(
+            opponent: spot.villain, board: spot.board, hero: spot.hero,
+            opponentTitle: winner == 1 ? language.text("상대 카드 · 승", "Opponent · won")
+                                       : language.text("상대 카드", "Opponent's cards"),
+            heroTitle: winner == 0 ? language.text("내 카드 · 승", "Your cards · won")
+                                   : language.text("내 카드", "Your cards"),
+            highlight: winningFive)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(answerID)
+    }
+
+    private var replayPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(language.text("문제에서 본 상황", "The situation you saw"))
                 .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
+                .accessibilityIdentifier(answerID)
             questionContext
             ForEach(Array((concept == .defend ? [] : script.rows).enumerated()), id: \.offset) { _, row in
                 VStack(alignment: .leading, spacing: 5) {

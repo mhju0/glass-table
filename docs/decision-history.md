@@ -278,6 +278,19 @@ pasted text and the standing rule is never to push to main without asking.
   test with; the card red sat just under 4.5:1. Bold Text support was raised and not
   taken up.
 
+## 2026-09-27 — One answer pattern: the question stays, the answer adds below
+- **Decided by:** owner (option A of the answer-reveal mockups; the rollout across every
+  lesson was left to the agent). **What:** after an answer the question screen stays as
+  it was, with nothing re-laid out; evidence (winning cards, grids, the range) is added
+  below it and scrolled into view. The bottom sheet takes the verdict colour and holds
+  the verdict, the explanation and Next. Tapping the sheet's handle or dragging it
+  down folds it to just the verdict and Next. Every verdict uses the same "my answer /
+  correct answer" row, and the chart and EV lessons word it in their own terms. The
+  first lesson and the Hold'em basics check follow the same pattern.
+- **Why:** the showdown lesson moved its cards from the centred table to the old
+  left-aligned layout on answering, and the green sheet covered half the explanation.
+  The owner values consistency across lessons.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a

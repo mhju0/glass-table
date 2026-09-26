@@ -254,11 +254,12 @@ final class BeginnerReleaseTests: XCTestCase {
         let submit = app.buttons["Check answer"]
         XCTAssertTrue(submit.waitForExistence(timeout: 15))
         submit.tap()
-        let saved = app.staticTexts.matching(NSPredicate(
-            format: "identifier BEGINSWITH %@", "saved-answer-potOdds/"
+        // In-session the live reveal stays; the saved answer is drawn after a relaunch.
+        let live = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "drill-completion-potOdds/"
         )).firstMatch
-        XCTAssertTrue(saved.waitForExistence(timeout: 5))
-        let answerID = saved.identifier
+        XCTAssertTrue(live.waitForExistence(timeout: 5))
+        let answerID = live.identifier.replacingOccurrences(of: "drill-completion-", with: "saved-answer-")
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0"]
         app.launch()

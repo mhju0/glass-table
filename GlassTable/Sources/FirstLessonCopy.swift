@@ -11,7 +11,7 @@ enum FirstLessonCopy {
         case welcomeTitle, welcomeBody, noMoney, noAccount, offline, startWelcome
         case exampleQuestion, transferQuestion, examplePrompt, transferPrompt, pairRule
         case sharedCards, heroCards, villainCards, choiceHint, selectWinnerHint
-        case correctTitle, retryTitle, explanationTitle, higherPair, lowerPair
+        case correctTitle, retryTitle, higherPair, lowerPair
         case myPick, rightAnswer, pickCorrect, pickWrong
         case tryTransfer, beginCourse, returnToLearning
         case introductionTitle, introductionBody, responsibleNote, warmUpNote, startWarmUp
@@ -42,7 +42,6 @@ enum FirstLessonCopy {
         case .selectWinnerHint: language.text(selectWinnerHint, "Choose this hand as the winner")
         case .correctTitle: language.text(correctTitle, "You got it")
         case .retryTitle: language.text(retryTitle, "Let's look at the cards again")
-        case .explanationTitle: language.text(explanationTitle, "Why?")
         case .higherPair: language.text(higherPair, "Higher pair")
         case .lowerPair: language.text(lowerPair, "Lower pair")
         case .myPick: language.text(myPick, "My answer")
@@ -108,8 +107,6 @@ enum FirstLessonCopy {
                                      defaultValue: "맞았어요")
     static let retryTitle = String(localized: "firstLesson.feedback.retryTitle",
                                    defaultValue: "괜찮아요. 카드부터 다시 볼게요")
-    static let explanationTitle = String(localized: "firstLesson.feedback.explanationTitle",
-                                         defaultValue: "왜 그럴까요?")
     static let higherPair = String(localized: "firstLesson.feedback.higherPair",
                                    defaultValue: "더 높은 원 페어")
     static let lowerPair = String(localized: "firstLesson.feedback.lowerPair",

@@ -45,12 +45,21 @@ struct FirstLessonView: View {
                 }
             } else {
                 GeometryReader { geo in
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: GT.Space.section) { content }
-                            .padding(.horizontal, 18).padding(.vertical, 12)
-                            .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: GT.Space.section) { content }
+                                .padding(.horizontal, 18).padding(.vertical, 12)
+                                .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
+                        }
+                        .scrollBounceBehavior(.basedOnSize)
+                        // The result hands are added below the question; bring them into view.
+                        .onChange(of: panelBand) { _, band in
+                            guard band != nil else { return }
+                            withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                                proxy.scrollTo(Self.resultEnd, anchor: .bottom)
+                            }
+                        }
                     }
-                    .scrollBounceBehavior(.basedOnSize)
                 }
                 ActionSheet(band: panelBand) {
                     VStack(alignment: .leading, spacing: GT.Space.related) { panel }
@@ -137,9 +146,9 @@ struct FirstLessonView: View {
         case .welcome: welcome
         case .introduction: introduction
         case .example: question(spot: FirstLesson.example, guided: true)
-        case .exampleAnswer: answerContent(spot: FirstLesson.example)
+        case .exampleAnswer: answerContent(spot: FirstLesson.example, guided: true)
         case .transfer: question(spot: FirstLesson.transfer, guided: false)
-        case .transferAnswer: answerContent(spot: FirstLesson.transfer)
+        case .transferAnswer: answerContent(spot: FirstLesson.transfer, guided: false)
         }
     }
 
@@ -246,7 +255,6 @@ struct FirstLessonView: View {
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            Spacer(minLength: 0)
             board(spot.board)
             if guided {
                 Label(copy(.pairRule),
@@ -255,7 +263,6 @@ struct FirstLessonView: View {
                     .padding(14).frame(maxWidth: .infinity, alignment: .leading)
                     .gtPanel()
             }
-            Spacer(minLength: 0)
         }
     }
 
@@ -307,23 +314,18 @@ struct FirstLessonView: View {
 
     // MARK: Result
 
-    private func answerContent(spot: ShowdownSpot) -> some View {
-        let reveal = gradeShowdown(answer: answer ?? -1, spot: spot, language: language)
-        return VStack(alignment: .leading, spacing: GT.Space.section) {
-            board(spot.board)
+    private static var resultEnd: String { "first-lesson-result-end" }
+
+    /// The question stays where it was; the two hands, now marked, are added below it.
+    /// The explanation sits with the verdict in the sheet, as in every lesson.
+    private func answerContent(spot: ShowdownSpot, guided: Bool) -> some View {
+        VStack(alignment: .leading, spacing: GT.Space.section) {
+            question(spot: spot, guided: guided)
             VStack(spacing: 12) {
                 resultHand(title: copy(.heroCards), cards: spot.hero, value: 0, spot: spot)
                 resultHand(title: copy(.villainCards), cards: spot.villain, value: 1, spot: spot)
             }
-            VStack(alignment: .leading, spacing: 10) {
-                Text(copy(.explanationTitle)).font(GT.title(18)).foregroundStyle(GT.ink)
-                Text(reveal.whyText)
-                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
-                    .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-            .gtCard(radius: GT.Radius.panel)
+            .id(Self.resultEnd)
         }
     }
 
@@ -406,6 +408,12 @@ struct FirstLessonView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("firstLesson.verdict")
+            RevealDetail {
+                Text(gradeShowdown(answer: answer ?? -1, spot: spot, language: language).whyText)
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if isTransfer {
                 PrimaryCTAButton(title: context == .firstRun ? copy(.beginCourse)
                                                               : copy(.returnToLearning)) {

@@ -62,14 +62,20 @@ struct ConceptDrillView: View {
 
     var body: some View {
         Group {
-            if let restoredAnswer {
+            // An answer given on this screen keeps its own reveal, so the cards stay where
+            // the question put them. The saved reveal is only for an answer made before a
+            // relaunch.
+            if let restoredAnswer, !answerCommitted {
                 RestoredDrillView(concept: concept, seed: seed, index: index,
                                   progressText: progressText, answer: restoredAnswer,
                                   onNext: onAnswer)
+                    .environment(\.drillQuestionID, questionID)
+                    .environment(\.drillExplain, help == nil ? nil : concept)
             } else {
                 // The reveal sheets read these once; the drill views stay focused
                 // on spot generation and input.
                 drill
+                    .id(questionID)
                     .environment(\.glossaryTerm, Self.glossaryTerm(for: concept))
                     .environment(\.drillCommit, commit)
                     .environment(\.drillInitialDraft, initialDraft)
@@ -96,6 +102,30 @@ struct ConceptDrillView: View {
         let saved = onCommit(outcome)
         if saved { answerCommitted = true }
         return saved
+    }
+
+    /// The title each drill shows above its question; `DrillShell` translates it.
+    static func drillTitle(for concept: Concept) -> String {
+        switch concept {
+        case .showdown: "쇼다운"
+        case .potMath: "팟 계산"
+        case .position: "포지션"
+        case .equitySense: "에퀴티 감각"
+        case .evCall: "EV 계산"
+        case .combos: "콤보"
+        case .outs: "아웃"
+        case .potOdds: "팟 오즈"
+        case .mdf: "MDF"
+        case .callFold: "콜/폴드"
+        case .rangeNotation: "레인지 표기법"
+        case .rfi: "RFI 차트"
+        case .rangeRead: "레인지 리드"
+        case .hitFrequency: "히트 프리퀀시"
+        case .rangeAdvantage: "레인지 어드밴티지"
+        case .evLoss: "EV 손실"
+        case .actionRead: "액션 리드"
+        case .defend: "디펜드 차트"
+        }
     }
 
     /// Stable glossary IDs, independent of the current display language.
@@ -283,8 +313,26 @@ private func gradeHaptic(_ band: GradeBand) {
     UINotificationFeedbackGenerator().notificationOccurred(type)
 }
 
+/// Marks where the evidence a reveal adds begins. On reveal the shell scrolls that
+/// point to the top, so the evidence reads from its start; without a mark it scrolls
+/// to the end of the content.
+private struct RevealEvidenceKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
+
+private let revealEvidenceID = "drill-reveal-evidence"
+
+private extension View {
+    func revealEvidenceStart() -> some View {
+        id(revealEvidenceID).preference(key: RevealEvidenceKey.self, value: true)
+    }
+}
+
 /// A graded reveal reports its band so the sheet around it can take the verdict's tint.
-private struct GradedBandKey: PreferenceKey {
+struct GradedBandKey: PreferenceKey {
     static let defaultValue: GradeBand? = nil
     static func reduce(value: inout GradeBand?, nextValue: () -> GradeBand?) {
         value = value ?? nextValue()
@@ -292,12 +340,15 @@ private struct GradedBandKey: PreferenceKey {
 }
 
 /// Every drill shares the same skeleton: felt content zone, cream answer sheet.
-private struct DrillShell<Content: View, Sheet: View>: View {
+struct DrillShell<Content: View, Sheet: View>: View {
+    private static var contentEnd: String { "drill-content-end" }
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.drillExplain) private var explainConcept
     @State private var gradedBand: GradeBand?
+    @State private var hasEvidenceStart = false
     @State private var explaining = false
     let title: String
     let progressText: String
@@ -323,10 +374,31 @@ private struct DrillShell<Content: View, Sheet: View>: View {
                 VStack(spacing: 0) {
                     header.padding(.horizontal, 18)
                     GeometryReader { geo in
-                        ScrollView {
-                            content()
+                        // Pinned to the top, not centred: the graded sheet is a different
+                        // height from the answer sheet, and centred content would move
+                        // when the answer came in. Evidence a reveal adds goes below the
+                        // question and is scrolled into view.
+                        ScrollViewReader { proxy in
+                            ScrollView {
+                                VStack(spacing: 0) {
+                                    content()
+                                    Color.clear.frame(height: 1).id(Self.contentEnd)
+                                }
                                 .padding(.horizontal, 18)
-                                .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                                .padding(.top, 8)
+                                .frame(maxWidth: .infinity, minHeight: geo.size.height,
+                                       alignment: .top)
+                            }
+                            .onChange(of: gradedBand) { _, band in
+                                guard band != nil else { return }
+                                withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                                    if hasEvidenceStart {
+                                        proxy.scrollTo(revealEvidenceID, anchor: .top)
+                                    } else {
+                                        proxy.scrollTo(Self.contentEnd, anchor: .bottom)
+                                    }
+                                }
+                            }
                         }
                         .scrollBounceBehavior(.basedOnSize)
                     }
@@ -339,6 +411,7 @@ private struct DrillShell<Content: View, Sheet: View>: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onPreferenceChange(GradedBandKey.self) { gradedBand = $0 }
+        .onPreferenceChange(RevealEvidenceKey.self) { hasEvidenceStart = $0 }
         .sheet(isPresented: $explaining) {
             if let explainConcept {
                 ConceptExplainView(concept: explainConcept) { explaining = false }
@@ -429,6 +502,7 @@ private struct RevealSheet: View {
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.glossaryTerm) private var term
     @Environment(\.drillCommit) private var onCommit
+    @Environment(\.revealCollapsed) private var collapsed
     @Environment(ProgressionModel.self) private var model
     @State private var saved = false
     let band: GradeBand
@@ -453,15 +527,17 @@ private struct RevealSheet: View {
         VStack(alignment: .leading, spacing: 12) {
             VerdictRow(band: band, mine: localized?.mine ?? mine,
                        correct: localized?.correct ?? correct)
-            Text(localized?.why ?? why)
-                .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
-                .lineSpacing(GT.Typography.explanationLineSpacing)
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
-                                                             style: .continuous))
-                .fixedSize(horizontal: false, vertical: true)
-            if let term { GlossaryChip(term: term) }
+            if !collapsed {
+                Text(localized?.why ?? why)
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                                                 style: .continuous))
+                    .fixedSize(horizontal: false, vertical: true)
+                if let term { GlossaryChip(term: term) }
+            }
             PrimaryCTAButton(title: language.text("다음 문제", "Next question"), action: onNext)
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
@@ -870,6 +946,7 @@ private struct PotMathRevealSheet: View {
     @Environment(\.glossaryTerm) private var term
     @Environment(\.drillCommit) private var onCommit
     @Environment(\.drillHelp) private var help
+    @Environment(\.revealCollapsed) private var collapsed
     @Environment(ProgressionModel.self) private var model
     @State private var saved = false
     let reveal: PotMathReveal
@@ -887,33 +964,34 @@ private struct PotMathRevealSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if help?.isUsed == true { SolvedWithHelpLabel() }
-            Text(reveal.band == .spotOn ? language.text("맞았어요", "That's right")
-                 : language.text("정답은 \(reveal.correct)칩이에요", "The answer is \(reveal.correct) chips"))
-                .font(GT.title(GT.Typography.resultSize))
-                .foregroundStyle(reveal.band == .spotOn ? GTBand.spotOnInk : GTBand.offInk)
-            if reveal.band != .spotOn {
-                Text(language.text("각 자리가 실제로 더 낸 칩만 한 번씩 세어요.",
-                                   "Count only the chips each seat actually added, once."))
-                    .font(GT.body(GT.Typography.explanationSize))
-                    .foregroundStyle(GT.inkSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            VerdictRow(band: reveal.band,
+                       mine: language.text("\(reveal.answer)칩", "\(reveal.answer) chips"),
+                       correct: language.text("\(reveal.correct)칩", "\(reveal.correct) chips"))
+            if !collapsed {
+                if reveal.band != .spotOn {
+                    Text(language.text("각 자리가 실제로 더 낸 칩만 한 번씩 세어요.",
+                                       "Count only the chips each seat actually added, once."))
+                        .font(GT.body(GT.Typography.explanationSize))
+                        .foregroundStyle(GT.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                DisclosureGroup(language.text("계산 보기", "See the calculation"),
+                                isExpanded: $calculationExpanded) {
+                    Text(localizedWhy)
+                        .font(GT.body(15).monospacedDigit())
+                        .foregroundStyle(GT.inkSecondary)
+                        .lineSpacing(GT.Typography.explanationLineSpacing)
+                        .padding(.top, 8)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .font(GT.semibold(15))
+                .foregroundStyle(GT.ink)
+                .padding(14)
+                .background(GT.surface,
+                            in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                                                 style: .continuous))
+                if let term { GlossaryChip(term: term) }
             }
-            DisclosureGroup(language.text("계산 보기", "See the calculation"),
-                            isExpanded: $calculationExpanded) {
-                Text(localizedWhy)
-                    .font(GT.body(15).monospacedDigit())
-                    .foregroundStyle(GT.inkSecondary)
-                    .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .padding(.top, 8)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .font(GT.semibold(15))
-            .foregroundStyle(GT.ink)
-            .padding(14)
-            .background(GT.surface,
-                        in: RoundedRectangle(cornerRadius: GT.Radius.control,
-                                             style: .continuous))
-            if let term { GlossaryChip(term: term) }
             PrimaryCTAButton(title: language.text("다음 문제", "Next question"), action: onNext)
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
@@ -1465,37 +1543,24 @@ private struct RangeNotationDrill: View {
         DrillShell(title: "레인지 표기법", progressText: progressText) {
             VStack(alignment: .leading, spacing: 14) {
                 SectionLabel(text: language.text("레인지", "Possible hands"))
+                // One layout before and after the answer; the reveal only adds the grid.
+                // The grid stays post-reveal on purpose: shown earlier it turns combo
+                // arithmetic into cell counting.
+                Text(spot.notation)
+                    .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
+                    .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.8)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 3)
+                    .fixedSize(horizontal: false,
+                               vertical: dynamicTypeSize.isAccessibilitySize)
+                Text(language.text("페어 6 · 수티드 4 · 오프수트 12",
+                                   "Pair 6 · same suit 4 · different suits 12"))
+                    .font(GT.semibold(12)).foregroundStyle(GT.onFeltMuted)
                 if reveal != nil {
-                    Text(spot.notation)
-                        .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
-                        .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.8)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 3)
-                        .fixedSize(horizontal: false,
-                                   vertical: dynamicTypeSize.isAccessibilitySize)
                     SectionLabel(text: language.text("표에서 보면", "On the chart"))
                         .padding(.top, 6)
+                        .revealEvidenceStart()
                     RangeGridView(range: spot.range)
                         .frame(maxWidth: 320)
-                } else {
-                    // Pre-answer the notation IS the whole screen, so it is staged
-                    // like one — the hero treatment `.none` beats get — instead of two
-                    // small lines adrift on an empty felt. The grid stays post-reveal
-                    // on purpose: shown earlier it turns combo arithmetic into cell
-                    // counting.
-                    Spacer(minLength: 60)
-                    Text(spot.notation)
-                        .font(GT.title(38).monospaced()).foregroundStyle(GT.onFelt)
-                        .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.8)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 4)
-                        .fixedSize(horizontal: false,
-                                   vertical: dynamicTypeSize.isAccessibilitySize)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .multilineTextAlignment(.center)
-                    Text(language.text("페어 6 · 수티드 4 · 오프수트 12",
-                                       "Pair 6 · same suit 4 · different suits 12"))
-                        .font(GT.semibold(12)).foregroundStyle(GT.onFeltMuted)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, 4)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1550,6 +1615,7 @@ private struct RFIDrill: View {
                     SectionLabel(text: language.text("\(spot.seat.rawValue) 오픈 레인지",
                                                       "\(spot.seat.rawValue) first-raise hands"))
                         .padding(.top, 10)
+                        .revealEvidenceStart()
                     RangeGridView(range: RFIChart.range(for: spot.seat),
                                   highlight: spot.handClass)
                         .frame(maxWidth: 320)
@@ -1645,6 +1711,7 @@ private struct RangeReadDrill: View {
                     ? language.text("내가 보는 범위", "My possible hands")
                     : language.text("정답 · 내 답 비교", "Answer · my estimate"))
                     .padding(.top, 4)
+                    .revealEvidenceStart()
                 // The legend goes *above* the grid. Below it, the one thing that makes
                 // a two-channel grid readable sat under the answer sheet and was never
                 // seen — found by looking at the sweep rather than by reasoning.
@@ -1894,6 +1961,7 @@ private struct HitFrequencyDrill: View {
                                                        "\(spot.seat.rawValue) first-raise hands"),
                                   distribution: spot.distribution)
                         .padding(.top, 6)
+                        .revealEvidenceStart()
                     RangeGridView(range: spot.range).frame(maxWidth: 230).padding(.top, 4)
                 }
             }
@@ -2007,6 +2075,7 @@ private struct RangeAdvantageDrill: View {
                                       distribution: buckets.caller)
                     }
                     .padding(.top, 8)
+                    .revealEvidenceStart()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -2090,6 +2159,7 @@ private struct EVLossRevealSheet: View {
     @Environment(ProgressionModel.self) private var model
     @State private var saved = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.revealCollapsed) private var collapsed
     let reveal: EVLossReveal
     let submittedInput: DrillSubmittedInput
     let onNext: () -> Void
@@ -2112,39 +2182,27 @@ private struct EVLossRevealSheet: View {
         calls ? language.text("콜", "Call") : language.text("폴드", "Fold")
     }
 
-    private var lesson: String {
-        reveal.grade.loss <= 0
-            ? language.text("\(KO.subject(action(chosenCalls))) 최선이에요",
-                            "\(action(chosenCalls)) is best here")
-            : language.text("최선은 \(action(bestCalls))",
-                            "Better choice: \(action(bestCalls))")
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline, spacing: 9) {
-                Text(lesson)
-                    .font(GT.title(20))
-                    .foregroundStyle(GT.ink)
-                Spacer(minLength: 6)
-                Image(systemName: reveal.band.glyph)
-                    .font(.system(size: 11, weight: .bold)).foregroundStyle(reveal.band.ink)
-                Text(evLossLabel(loss: reveal.grade.loss, language: language))
-                    .font(GT.semibold(12)).foregroundStyle(reveal.band.ink)
-            }
-            evComparison
+            VerdictRow(band: reveal.band, mine: action(chosenCalls), correct: action(bestCalls),
+                       title: evLossLabel(loss: reveal.grade.loss, language: language),
+                       mineTitle: language.text("내 선택", "You chose"),
+                       correctTitle: language.text("최선", "Best"))
+            if !collapsed {
+                evComparison
 
-            Text(localizedWhy)
-                .font(GT.body(GT.Typography.explanationSize))
-                .foregroundStyle(GT.inkSecondary)
-                .lineSpacing(GT.Typography.explanationLineSpacing)
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
-                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control)
-                    .strokeBorder(GT.border, lineWidth: 1))
-                .fixedSize(horizontal: false, vertical: true)
-            if let term { GlossaryChip(term: term) }
+                Text(localizedWhy)
+                    .font(GT.body(GT.Typography.explanationSize))
+                    .foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                    .overlay(RoundedRectangle(cornerRadius: GT.Radius.control)
+                        .strokeBorder(GT.border, lineWidth: 1))
+                    .fixedSize(horizontal: false, vertical: true)
+                if let term { GlossaryChip(term: term) }
+            }
             PrimaryCTAButton(title: language.text("다음 문제", "Next question"), action: onNext)
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
@@ -2248,10 +2306,6 @@ private struct EVLossDrill: View {
         let spot = makeSpot()
         return DrillShell(title: "EV 손실", progressText: progressText) {
             VStack(alignment: .leading, spacing: 6) {
-                if reveal != nil {
-                    evRangeEvidence(spot)
-                        .padding(.bottom, 10)
-                }
                 SectionLabel(text: language.text("보드 · 리버", "Shared cards · river"))
                 CardRow(cards: spot.board)
                 SectionLabel(text: language.text("내 핸드", "Your hand"))
@@ -2259,11 +2313,10 @@ private struct EVLossDrill: View {
                 CardRow(cards: spot.hero)
                 // The range is stated, never guessed (spec §3.1). Printing it as the
                 // premise is the difference between this and 콜/폴드, where the
-                // villain's two cards are face up.
-                if reveal == nil {
-                    evRangeEvidence(spot)
-                        .padding(.top, 10)
-                }
+                // villain's two cards are face up. It stays in place after the answer,
+                // so the question does not rearrange under the reveal.
+                evRangeEvidence(spot)
+                    .padding(.top, 10)
                 Text(language.text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb",
                                    "Pot \(spot.pot)bb · Opponent bets \(spot.bet)bb"))
                     .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
@@ -2358,22 +2411,22 @@ private struct ActionReadDrill: View {
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                 Text("\(spot.villain.beginnerTitle(in: language)) · \(spot.villain.beginnerDescription(in: language))")
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                // The grid is fair game before the answer: the preflop range is the
+                // stated premise, the same way EV 손실 prints it.
+                RangeGridView(range: spot.range)
+                    .frame(height: 230)
+                    .padding(.top, 6)
                 if reveal != nil {
                     // The payload: the same range before and after the action. The
                     // number is graded, but the shape change is the lesson.
                     BucketBarView(label: language.text("오픈 레인지 전체", "All first-raise hands"),
                                   distribution: spot.full)
                         .padding(.top, 6)
+                        .revealEvidenceStart()
                     BucketBarView(label: language.text("\(spot.action.rawValue) 이후",
                                                        spot.action == .bet ? "After betting" : "After checking"),
                                   distribution: spot.acted.distribution)
                         .padding(.top, 8)
-                } else {
-                    // Pre-answer, the grid is fair game — the preflop range is the
-                    // stated premise, the same way EV 손실 prints it.
-                    RangeGridView(range: spot.range)
-                        .frame(height: 230)
-                        .padding(.top, 6)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -2439,14 +2492,6 @@ private struct DefendDrill: View {
     var body: some View {
         DrillShell(title: "디펜드 차트", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
-                if reveal != nil {
-                    // Lead with the evidence used to grade this exact hand. On a
-                    // compact screen the full 13×13 chart can extend below the fold;
-                    // the selected cell and its action must not.
-                    DefendGridView(opener: spot.opener, highlight: spot.handClass)
-                        .frame(maxWidth: 320)
-                        .padding(.bottom, 10)
-                }
                 SectionLabel(text: language.text("내 핸드", "Your hand"))
                 CardRow(cards: spot.hand)
                 SectionLabel(text: language.text("상황", "Situation")).padding(.top, 8)
@@ -2456,6 +2501,15 @@ private struct DefendDrill: View {
                 Text(language.text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
                                    "This seat starts with roughly the top \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands."))
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                if reveal != nil {
+                    // The evidence used to grade this exact hand, added below the
+                    // question. The shell scrolls its start to the top, and the graded
+                    // sheet folds down if the chart runs under it.
+                    DefendGridView(opener: spot.opener, highlight: spot.handClass)
+                        .frame(maxWidth: 320)
+                        .padding(.top, 10)
+                        .revealEvidenceStart()
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .onAppear {
@@ -2509,6 +2563,7 @@ private struct DefendRevealSheet: View {
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.glossaryTerm) private var term
     @Environment(\.drillCommit) private var onCommit
+    @Environment(\.revealCollapsed) private var collapsed
     @Environment(ProgressionModel.self) private var model
     @State private var saved = false
     let reveal: DefendReveal
@@ -2534,42 +2589,22 @@ private struct DefendRevealSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(matched ? language.text("차트와 일치해요", "Matches the chart")
-                             : language.text("차트와 달라요", "Different from the chart"))
-                    .font(GT.title(18))
-                    .foregroundStyle(matched ? GTBand.spotOnInk : GTBand.offInk)
-                if matched {
-                    Text(language.text("차트 판정 · \(action(reveal.correct))",
-                                       "Chart choice · \(action(reveal.correct))"))
-                        .font(GT.title(15)).foregroundStyle(GT.ink)
-                } else {
-                    HStack(spacing: 6) {
-                        Text(language.text("내 선택 \(action(reveal.chosen))",
-                                           "You chose \(action(reveal.chosen))"))
-                            .font(GT.body(13)).foregroundStyle(GT.inkMuted)
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 10, weight: .bold)).foregroundStyle(GT.inkMuted)
-                        Text(language.text("차트 \(action(reveal.correct))",
-                                           "Chart \(action(reveal.correct))"))
-                            .font(GT.title(15)).foregroundStyle(GT.ink)
-                    }
-                }
+            VerdictRow(band: reveal.band, mine: action(reveal.chosen),
+                       correct: action(reveal.correct),
+                       title: matched ? language.text("차트와 일치해요", "Matches the chart")
+                                      : language.text("차트와 달라요", "Different from the chart"),
+                       mineTitle: language.text("내 선택", "You chose"),
+                       correctTitle: language.text("차트", "Chart"))
+            if !collapsed {
+                Text(localizedWhy)
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                    .lineSpacing(GT.Typography.explanationLineSpacing)
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                    .fixedSize(horizontal: false, vertical: true)
+                if let term { GlossaryChip(term: term) }
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background((matched ? GTBand.spotOnTint : GTBand.offTint),
-                        in: RoundedRectangle(cornerRadius: 16))
-            .accessibilityElement(children: .combine)
-
-            Text(localizedWhy)
-                .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
-                .lineSpacing(GT.Typography.explanationLineSpacing)
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
-                .fixedSize(horizontal: false, vertical: true)
-            if let term { GlossaryChip(term: term) }
             PrimaryCTAButton(title: language.text("다음 문제", "Next question"), action: onNext)
                 .disabled(!saved)
                 .accessibilityIdentifier("drill-completion-\(questionID)")
