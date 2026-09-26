@@ -12,7 +12,8 @@ final class AccessibilityAuditTests: XCTestCase {
     private func audit(_ name: String, environment: [String: String], swipes: Int = 0,
                        ready: (XCUIApplication) -> XCUIElement) throws {
         let app = XCUIApplication()
-        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR"]
+        // The reminder preference outlives the per-test store; pin it off so Settings has one layout.
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-reminder.enabled", "NO"]
         app.launchEnvironment = environment.merging(
             ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_SEED": "1"]) { a, _ in a }
         app.launch()

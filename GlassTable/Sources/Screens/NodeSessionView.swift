@@ -628,8 +628,11 @@ struct FreePlayView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
-    var title = "자유 연습"
-    var blurb = "횟수 제한은 없어요. 아무거나 골라서 원하는 만큼 푸세요."
+    private var title: String { language.text("자유 연습", "Practice one skill") }
+    private var blurb: String {
+        language.text("횟수 제한은 없어요. 아무거나 골라서 원하는 만큼 푸세요.",
+                      "No limits. Pick any skill and practice as much as you like.")
+    }
     var concepts = Concept.allCases
     /// Shown in place of the roster when `concepts` runs dry — the 복습 flow ends by
     /// emptying its own list, which must read as finishing, not as a broken screen.
@@ -985,10 +988,12 @@ struct FreePlayView: View {
                     } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(conceptTitle(c)).font(GT.title(13.5))
-                                    .foregroundStyle(GT.ink)
-                                Text(conceptBlurb(c)).font(GT.body(11))
-                                    .foregroundStyle(GT.inkMuted).lineLimit(1)
+                                Text(language.text(conceptTitle(c),
+                                    ConceptIntroduction.make(c, language: language).title))
+                                    .font(GT.title(13.5)).foregroundStyle(GT.ink)
+                                Text(conceptBlurb(c, language: language)).font(GT.body(11))
+                                    .foregroundStyle(GT.inkMuted)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                             Spacer(minLength: 0)
                             Image(systemName: "chevron.right")

@@ -78,6 +78,24 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(free.isHittable && graded.isHittable)
         XCTAssertLessThan(graded.frame.maxY, app.tabBars.firstMatch.frame.minY,
                           "Both mode cards must clear the tab bar without scrolling")
+        let midline = app.windows.firstMatch.frame.midY
+        XCTAssertLessThanOrEqual(free.frame.maxY, midline, "The screen's midline falls between the two cards")
+        XCTAssertGreaterThanOrEqual(graded.frame.minY, midline, "The screen's midline falls between the two cards")
+    }
+
+    func testTableHabitsShowAProgressLineAndKeepTheEvidenceOneTapDown() {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Progress"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Progress"].tap()
+        let headline = app.staticTexts["Not enough hands yet"]
+        for _ in 0..<4 where !headline.exists { app.swipeUp() }
+        XCTAssertTrue(headline.exists)
+        XCTAssertTrue(app.staticTexts["0 of 100 hands · 0 of 5 days"].exists)
+        let fine = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Describes preflop play"))
+        XCTAssertFalse(fine.firstMatch.exists, "Thresholds stay out of the way until asked for")
+        app.buttons["records-style-details"].tap()
+        XCTAssertTrue(fine.firstMatch.waitForExistence(timeout: 5))
     }
 
     func testTableSetupGivesEachComputerItsOwnStyle() {

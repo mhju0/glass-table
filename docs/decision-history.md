@@ -36,6 +36,19 @@ Read across the entries, a few preferences keep coming back:
 
 ---
 
+## 2026-09-26 — Progress fine print moves one tap down; Play choices sit on the midline
+
+- **Decided by:** owner.
+- **What:** the Progress habits card shows a plain headline and one progress line
+  ("38 of 100 hands · 2 of 5 days"); the 30-day window, counts, 95% intervals and label
+  thresholds sit under "How this works". The confidence card's sample note moves under
+  "What this means". On Play, the screen's midline falls in the gap between the two
+  mode cards instead of the cards sitting in the bottom half.
+- **Why:** the detail read as too much for an average learner. The thresholds stay
+  disclosed (decisions.md: "disclosed evidence thresholds"), just not on first read.
+  The bottom-placed cards looked awkward; Hoober's observations favour the middle of
+  the screen for touch and reading, so centring costs no reach.
+
 ## 2026-09-26 — What counts as a milestone; when the rating prompt appears
 
 - **Decided by:** agent, within the owner's release plan ("rating prompt after a real

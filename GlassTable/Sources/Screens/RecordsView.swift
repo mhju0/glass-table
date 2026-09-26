@@ -258,49 +258,78 @@ struct RecordsView: View {
         let report = model.observedStyle()
         return VStack(alignment: .leading, spacing: 8) {
             SectionLabel(text: language.text("테이블에서 보인 습관", "Observed table habits"), onDark: false)
-            Text(styleName(report.style)).font(GT.title(20)).foregroundStyle(GT.ink)
-            Text(language.text("최근 30일, 현재 컴퓨터 규칙 · 최대 200핸드 중 \(report.hands)핸드 · \(report.days)일",
-                               "Last 30 days, current bot rules · \(report.hands) of up to 200 recent hands · \(report.days) days"))
+            Text(styleHeadline(report)).font(GT.title(20)).foregroundStyle(GT.ink)
+            Text(styleSummary(report))
                 .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-            if report.hands > 0 {
-                Text(language.text("자발적으로 참여 \(report.voluntaryEntries)/\(report.hands) · 그중 시작 전 레이즈 \(report.preflopRaises)/\(report.voluntaryEntries)",
-                                   "Voluntary entries \(report.voluntaryEntries)/\(report.hands) · raises among entries \(report.preflopRaises)/\(report.voluntaryEntries)"))
-                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let participation = report.participationInterval {
-                    Text(language.text(
-                        "참여 비율의 95% 추정 구간 \(Int((participation.lowerBound * 100).rounded()))–\(Int((participation.upperBound * 100).rounded()))%",
-                        "Estimated 95% interval for entering: \(Int((participation.lowerBound * 100).rounded()))–\(Int((participation.upperBound * 100).rounded()))%"))
-                        .font(GT.body(12)).foregroundStyle(GT.inkMuted)
-                }
-                if let raises = report.raiseShareInterval {
-                    Text(language.text(
-                        "참여 후 레이즈 비율의 95% 추정 구간 \(Int((raises.lowerBound * 100).rounded()))–\(Int((raises.upperBound * 100).rounded()))%",
-                        "Estimated 95% interval for raising after entering: \(Int((raises.lowerBound * 100).rounded()))–\(Int((raises.upperBound * 100).rounded()))%"))
-                        .font(GT.body(12)).foregroundStyle(GT.inkMuted)
-                }
-            }
-            if let first = report.firstDay, let last = report.lastDay {
-                Text("\(first) – \(last)").font(GT.body(12)).foregroundStyle(GT.inkMuted)
-            }
-            Text(language.text(
-                "공개된 컴퓨터 규칙 아래에서 시작 전 행동만 묘사해요. 최소 100핸드, 5일, 자발적 참여 40번이 필요하고, 경계에 걸치면 이름을 붙이지 않아요. 실력 평가는 아니에요.",
-                "Describes preflop play under the published bot rules. Labels need 100 hands, 5 days, 40 voluntary entries; borderline cases stay unnamed. Not a skill rating."))
-                .font(GT.body(12)).foregroundStyle(GT.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
+            // The evidence stays disclosed, one tap down, so the card reads at a glance.
+            DisclosureGroup(language.text("어떻게 정하나요", "How this works")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(language.text("최근 30일, 현재 컴퓨터 규칙 · 최대 200핸드 중 \(report.hands)핸드 · \(report.days)일",
+                                       "Last 30 days, current bot rules · \(report.hands) of up to 200 recent hands · \(report.days) days"))
+                    if report.hands > 0 {
+                        Text(language.text("자발적으로 참여 \(report.voluntaryEntries)/\(report.hands) · 그중 시작 전 레이즈 \(report.preflopRaises)/\(report.voluntaryEntries)",
+                                           "Voluntary entries \(report.voluntaryEntries)/\(report.hands) · raises among entries \(report.preflopRaises)/\(report.voluntaryEntries)"))
+                        if let participation = report.participationInterval {
+                            Text(language.text(
+                                "참여 비율의 95% 추정 구간 \(Int((participation.lowerBound * 100).rounded()))–\(Int((participation.upperBound * 100).rounded()))%",
+                                "Estimated 95% interval for entering: \(Int((participation.lowerBound * 100).rounded()))–\(Int((participation.upperBound * 100).rounded()))%"))
+                        }
+                        if let raises = report.raiseShareInterval {
+                            Text(language.text(
+                                "참여 후 레이즈 비율의 95% 추정 구간 \(Int((raises.lowerBound * 100).rounded()))–\(Int((raises.upperBound * 100).rounded()))%",
+                                "Estimated 95% interval for raising after entering: \(Int((raises.lowerBound * 100).rounded()))–\(Int((raises.upperBound * 100).rounded()))%"))
+                        }
+                    }
+                    if let first = report.firstDay, let last = report.lastDay {
+                        Text("\(first) – \(last)")
+                    }
+                    Text(language.text(
+                        "공개된 컴퓨터 규칙 아래에서 시작 전 행동만 묘사해요. 최소 100핸드, 5일, 자발적 참여 40번이 필요하고, 경계에 걸치면 이름을 붙이지 않아요. 실력 평가는 아니에요.",
+                        "Describes preflop play under the published bot rules. Labels need 100 hands, 5 days, 40 voluntary entries; borderline cases stay unnamed. Not a skill rating."))
+                }
+                .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 10)
+            }
+            .accessibilityIdentifier("records-style-details")
         }
         .padding(18).frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: GT.Radius.panel)
     }
 
-    private func styleName(_ style: PracticeObservedStyle?) -> String {
+    /// The label thresholds from `PracticeStyleAnalysis`, restated for the progress line.
+    private func styleIsUnlocked(_ report: PracticeStyleReport) -> Bool {
+        report.hands >= 100 && report.days >= 5 && report.voluntaryEntries >= 40
+    }
+
+    private func styleHeadline(_ report: PracticeStyleReport) -> String {
+        if let style = report.style { return styleName(style) }
+        return styleIsUnlocked(report)
+            ? language.text("아직 뚜렷한 습관이 없어요", "No clear pattern yet")
+            : language.text("아직 핸드가 부족해요", "Not enough hands yet")
+    }
+
+    private func styleSummary(_ report: PracticeStyleReport) -> String {
+        if styleIsUnlocked(report) {
+            return language.text("\(report.days)일 동안 \(report.hands)핸드 기준",
+                                 "Based on \(report.hands) hands over \(report.days) days")
+        }
+        if report.hands >= 100, report.days >= 5 {
+            return language.text("참여한 핸드 \(report.voluntaryEntries)/40",
+                                 "\(report.voluntaryEntries) of 40 hands joined")
+        }
+        return language.text("\(min(report.hands, 100))/100핸드 · \(min(report.days, 5))/5일",
+                             "\(min(report.hands, 100)) of 100 hands · \(min(report.days, 5)) of 5 days")
+    }
+
+    private func styleName(_ style: PracticeObservedStyle) -> String {
         switch style {
         case .selectiveRaiser: language.text("골라서 자주 올림", "Selective raiser")
         case .selectiveCaller: language.text("골라서 자주 따라감", "Selective caller")
         case .wideRaiser: language.text("여러 핸드로 자주 올림", "Frequent raiser")
         case .wideCaller: language.text("여러 핸드로 자주 따라감", "Frequent caller")
         case .mixed: language.text("참여와 레이즈 모두 중간", "Midrange participation and raising")
-        case nil: language.text("아직 이름을 붙이지 않았어요", "Not enough clear evidence yet")
         }
     }
 
@@ -354,10 +383,14 @@ struct RecordsView: View {
                     }
                 }
                 .frame(height: 11)
-                Text(calibrationDescription(count: sampleCount))
-                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-                    .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .fixedSize(horizontal: false, vertical: true)
+                DisclosureGroup(language.text("이 수치의 뜻", "What this means")) {
+                    Text(calibrationDescription(count: sampleCount))
+                        .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                        .lineSpacing(GT.Typography.explanationLineSpacing)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 10)
+                }
+                .accessibilityIdentifier("records-calibration-details")
             } else {
                 Text(language.text("범위로 답하는 문제의 기록이 여기에 쌓여요.",
                                    "Your range answers collect here."))

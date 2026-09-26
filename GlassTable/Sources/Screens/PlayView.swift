@@ -33,8 +33,8 @@ struct PlayView: View {
         GeometryReader { viewport in
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    Text(language.text("플레이", "Play")).font(GT.title(30))
                     if let table = model.state.tableState {
+                        playTitle
                         // At accessibility sizes the title takes its own row, so it
                         // wraps between words instead of squeezing beside the controls.
                         if typeSize.isAccessibilitySize {
@@ -78,12 +78,18 @@ struct PlayView: View {
                         policyDetails(table)
                         gradedCard
                     } else {
-                        Text(language.text("컴퓨터와 한 판씩 연습해요. 실제 돈은 쓰지 않아요.",
-                                           "Practice against computers. No real money."))
-                            .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
-                            .lineSpacing(GT.Typography.bodyLineSpacing)
-                        Spacer(minLength: 12)
-                        VStack(spacing: 12) {
+                        // The screen's midline falls in the gap between the two choices.
+                        // Content is padded 18 inside a viewport that starts below the top
+                        // safe area, so the midline is converted into this layout's space.
+                        let screenHeight = viewport.safeAreaInsets.top + viewport.size.height
+                            + viewport.safeAreaInsets.bottom
+                        MidlineSplitLayout(splitY: screenHeight / 2 - viewport.safeAreaInsets.top - 18,
+                                           spacing: 22, gap: 12) {
+                            playTitle
+                            Text(language.text("컴퓨터와 한 판씩 연습해요. 실제 돈은 쓰지 않아요.",
+                                               "Practice against computers. No real money."))
+                                .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
+                                .lineSpacing(GT.Typography.bodyLineSpacing)
                             Button { showSetup = true } label: {
                                 TapCardLabel(title: language.text("자유 대전", "Free table"),
                                              detail: language.text("컴퓨터 한 명에서 세 명과 한 판을 끝까지 쳐요. 여기서는 채점하지 않아요.",
@@ -193,6 +199,10 @@ struct PlayView: View {
     }
 
     /// The graded 1:1 exercise lives in Play as its own mode, beside the free table.
+    private var playTitle: some View {
+        Text(language.text("플레이", "Play")).font(GT.title(30))
+    }
+
     private var gradedCard: some View {
         Button { showGraded = true } label: {
             TapCardLabel(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
@@ -467,5 +477,42 @@ private struct PlayTableGuideView: View {
             .gtChrome(.topBarTrailing) { ChromeButton.close(onClose) }
         }
         .accessibilityIdentifier("play-table-guide-sheet")
+    }
+}
+
+/// Stacks a header, then two cards whose shared gap sits at `splitY`. When the header
+/// is too tall for that (large text), the cards simply follow it.
+private struct MidlineSplitLayout: Layout {
+    let splitY: CGFloat
+    let spacing: CGFloat
+    let gap: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 0
+        return CGSize(width: width, height: frames(width: width, subviews: subviews).last?.maxY ?? 0)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews,
+                       cache: inout ()) {
+        for (subview, frame) in zip(subviews, frames(width: bounds.width, subviews: subviews)) {
+            subview.place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
+                          proposal: ProposedViewSize(frame.size))
+        }
+    }
+
+    private func frames(width: CGFloat, subviews: Subviews) -> [CGRect] {
+        let sizes = subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)) }
+        guard sizes.count >= 2 else { return [] }
+        var frames: [CGRect] = []
+        var y: CGFloat = 0
+        for size in sizes.dropLast(2) {
+            frames.append(CGRect(x: 0, y: y, width: width, height: size.height))
+            y += size.height + spacing
+        }
+        let first = sizes[sizes.count - 2], second = sizes[sizes.count - 1]
+        let firstY = max(y, splitY - gap / 2 - first.height)
+        frames.append(CGRect(x: 0, y: firstY, width: width, height: first.height))
+        frames.append(CGRect(x: 0, y: firstY + first.height + gap, width: width, height: second.height))
+        return frames
     }
 }

@@ -127,3 +127,16 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
   Free practice list is Korean-only in English; tab-bar contrast; older KO/EN line-parity
   flags. Not verified: iOS 17 runtime (not installed), VoiceOver by hand, TestFlight.
 - Next: owner inputs (support Gmail, Team ID, iOS 17 test route).
+
+## 2026-09-26: Free practice in English, Progress fine print, Play midline
+
+- Free practice title, blurb and skill rows now follow the learning language (the row
+  lines come from `conceptBlurb(_:language:)`).
+- Progress: Table habits and Confidence check show a short headline and progress line;
+  the intervals, thresholds and explanation sit in "How this works" / "What this means"
+  disclosure rows (owner decision, see decision-history).
+- Play landing: `MidlineSplitLayout` puts the screen's midline in the gap between the two
+  choices; it falls back to a plain flow at accessibility sizes.
+- Accessibility audit pins `reminder.enabled` off: that preference outlives the per-test
+  store, and a reminder left on by another test pushed Settings text under the tab bar.
+- Next: reinstall on the owner's phone needs a data backup and build 11.
