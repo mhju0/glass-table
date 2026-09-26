@@ -36,6 +36,14 @@ Read across the entries, a few preferences keep coming back:
 
 ---
 
+## 2026-09-26 — Hand-run VoiceOver check postponed
+
+- **Decided by:** owner.
+- **What:** the manual VoiceOver pass is deferred until after the current release work.
+  XCTest's automated accessibility audit (contrast excluded) keeps running in the suite.
+- **Why:** owner priority; the audit covers labels, Dynamic Type and hit areas, not the
+  spoken flow, so the manual pass stays on the release checklist as open.
+
 ## 2026-09-26 — Progress fine print moves one tap down; Play choices sit on the midline
 
 - **Decided by:** owner.
