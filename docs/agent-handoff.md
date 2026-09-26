@@ -154,5 +154,5 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
   stacks at AX sizes; "combinations" becomes "combos"; 14 KO/EN copy rewrites (parity
   check: 0 violations on those screens). Contrast: 10 of 13 audit findings are text in the
   scroll fade bands; the audit edit on that branch is exploratory and not for merging as is.
-  Before/after page: https://claude.ai/artifact/95aUKLVyF21rPGQXc6kQtc
+  Before/after page: owner's private artifact "Glass Table Open Calls" (link not kept in repo).
 - Next: owner picks per section; cherry-pick the chosen parts, run the full suite, commit.
