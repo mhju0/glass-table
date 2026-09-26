@@ -251,25 +251,8 @@ struct HoldemBasicsView: View {
 
     /// Seven cards, the five that play outlined; the rest step back but stay readable.
     private var sevenCardRow: some View {
-        let best = HoldemBasics.bestFive
-        let cards = HoldemBasics.seven
-        return VStack(spacing: 9) {
-            HStack(spacing: 5) {
-                ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
-                    let plays = best.contains(card)
-                    PlayingCardView(card: card, size: 54)
-                        .overlay {
-                            if plays {
-                                RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: 54))
-                                    .strokeBorder(GT.mint, lineWidth: 3)
-                            }
-                        }
-                        .opacity(plays ? 1 : 0.55)
-                        .padding(.leading, index == 2 ? 8 : 0)
-                        .accessibilityLabel(card.spoken(in: language)
-                                            + (plays ? "" : language.text(", 쓰지 않음", ", not used")))
-                }
-            }
+        VStack(spacing: 9) {
+            sevenCards
             if dynamicTypeSize.isAccessibilitySize {
                 // The fixed-width captions would break words at these sizes.
                 Text(language.text("앞의 2장이 내 카드예요.", "The first two are yours."))
@@ -277,18 +260,47 @@ struct HoldemBasicsView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityHidden(true)
             } else {
-            HStack(spacing: 0) {
-                Text(language.text("내 카드", "Mine"))
-                    .frame(width: 2 * 54 * 0.72 + 5, alignment: .center)
-                Spacer(minLength: 8)
-                Text(language.text("공용 카드", "Shared"))
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-            .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
-            .frame(width: 7 * 54 * 0.72 + 6 * 5 + 8)
-            .accessibilityHidden(true)
+                sevenCardCaptions
             }
         }
+    }
+
+    // Split out so CI's compiler type-checks the row in reasonable time.
+    private var sevenCards: some View {
+        let best = HoldemBasics.bestFive
+        return HStack(spacing: 5) {
+            ForEach(Array(HoldemBasics.seven.enumerated()), id: \.offset) { index, card in
+                sevenCard(card, plays: best.contains(card), index: index)
+            }
+        }
+    }
+
+    private func sevenCard(_ card: Card, plays: Bool, index: Int) -> some View {
+        let unused = plays ? "" : language.text(", 쓰지 않음", ", not used")
+        return PlayingCardView(card: card, size: 54)
+            .overlay {
+                if plays {
+                    RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: 54))
+                        .strokeBorder(GT.mint, lineWidth: 3)
+                }
+            }
+            .opacity(plays ? 1 : 0.55)
+            .padding(.leading, index == 2 ? 8 : 0)
+            .accessibilityLabel(card.spoken(in: language) + unused)
+    }
+
+    private var sevenCardCaptions: some View {
+        let cardWidth: CGFloat = 54 * 0.72
+        return HStack(spacing: 0) {
+            Text(language.text("내 카드", "Mine"))
+                .frame(width: 2 * cardWidth + 5, alignment: .center)
+            Spacer(minLength: 8)
+            Text(language.text("공용 카드", "Shared"))
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
+        .frame(width: 7 * cardWidth + 6 * 5 + 8)
+        .accessibilityHidden(true)
     }
 
     private var ladderPage: some View {

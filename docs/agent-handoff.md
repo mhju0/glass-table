@@ -166,3 +166,15 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
 - #3 (contrast) still open; owner asked for more research. Prototype on branch
   `proposal/contrast` in `../glass-table-proposal`: Increase Contrast token variants and a
   darker card red. Not merged.
+
+## 2026-09-26: Contrast approved, CI type-check fix, build 12, merge to main
+
+- Owner approved all three contrast parts (decision-history). Bold Text support was
+  raised and not taken up; still open if wanted.
+- CI had failed on every PR #7 run: Xcode 26.3 timed out type-checking `sevenCardRow` in
+  `HoldemBasicsView.swift`. Split into `sevenCards`, `sevenCard` and `sevenCardCaptions`;
+  no visual change. Local Xcode 27 did not reproduce it, so CI is the check.
+- Audit pins `-glassTable.language korean`: the language preference leaked from other
+  tests and put Play in English, where the audit flags the hint line (5.6-5.9:1 on
+  screen; darkening it to 7.4:1 did not clear it).
+- Owner asked to merge everything to `main` and install on the 12 mini (build 12).

@@ -267,6 +267,17 @@ pasted text and the standing rule is never to push to main without asking.
 - **Why:** English AX5 had six mid-word breaks; the parity check flagged 15 lines. Both
   now read 0. Default-size layouts are unchanged.
 
+## 2026-09-26 — Follow Increase Contrast; contrast back in the audit
+- **Decided by:** owner. **What:** colours get stronger values when iOS Increase Contrast
+  is on (secondary text 7:1, borders 3:1); card-face red deepens from `#C0392B` to
+  `#B5352A` (4.48:1 to 5.03:1); the accessibility audit checks contrast again on the
+  unscrolled screens, skipping only elements under the tab bar or within 56 pt above it.
+  After a swipe the audit flagged plainly dark-on-cream labels on 2 of 3 runs, so scrolled
+  screens are audited for everything but contrast.
+- **Why:** the app ignored Increase Contrast, which Apple's App Store contrast criteria
+  test with; the card red sat just under 4.5:1. Bold Text support was raised and not
+  taken up.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a

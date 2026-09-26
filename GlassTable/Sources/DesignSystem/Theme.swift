@@ -77,20 +77,20 @@ enum GT {
     /// not the poker table; new table UI uses the explicit fixed roles below.
     static let felt = Color.adaptive(light: 0xF2EEE5, dark: 0x17191C)
     static let onFelt = Color.adaptive(light: 0x222C29, dark: 0xF4F0E6)
-    static let onFeltSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8)
-    static let onFeltMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8)
-    static let hairlineFelt = Color.adaptive(light: 0xC4BCB0, dark: 0x4A4F55)
+    static let onFeltSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8, lightHigh: 0x3F4A45)
+    static let onFeltMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8, lightHigh: 0x414A45, darkHigh: 0xC4C8CD)
+    static let hairlineFelt = Color.adaptive(light: 0xC4BCB0, dark: 0x4A4F55, lightHigh: 0x838077, darkHigh: 0x6C7075)
 
     static let glass = Color.adaptive(light: 0xFFFDF7, dark: 0x24272B)
     static let glassEdge = Color.adaptive(light: 0x817A70, dark: 0x757A81)
     static let surface = Color.adaptive(light: 0xE7E1D6, dark: 0x1D2024)
 
     static let ink = Color.adaptive(light: 0x222C29, dark: 0xF4F0E6)
-    static let inkSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8)
-    static let inkMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8)
+    static let inkSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8, lightHigh: 0x3F4A45)
+    static let inkMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8, lightHigh: 0x414A45, darkHigh: 0xC4C8CD)
 
-    static let border = Color.adaptive(light: 0xC4BCB0, dark: 0x4A4F55)
-    static let borderStrong = Color.adaptive(light: 0x746E65, dark: 0x989DA4)
+    static let border = Color.adaptive(light: 0xC4BCB0, dark: 0x4A4F55, lightHigh: 0x838077, darkHigh: 0x6C7075)
+    static let borderStrong = Color.adaptive(light: 0x746E65, dark: 0x989DA4, lightHigh: 0x57524B, darkHigh: 0xB8BDC3)
 
     // MARK: Fixed poker-table object
 
@@ -99,7 +99,7 @@ enum GT {
     static let tableHairline = Color(hex: 0x547A70)
     static let onTable = Color(hex: 0xF4F0E6)
     static let onTableSecondary = Color(hex: 0xC8D6D0)
-    static let onTableMuted = Color(hex: 0xA8BBB4)
+    static let onTableMuted = Color.adaptive(light: 0xA8BBB4, dark: 0xA8BBB4, lightHigh: 0xC0CFC9, darkHigh: 0xC0CFC9)
     static let tableAccent = Color(hex: 0xEDC17F)
     static let onTableAccent = Color(hex: 0x241B0E)
     /// The shared table's material: a rail darker than the felt, seats as darker
@@ -122,27 +122,27 @@ enum GT {
 
     /// Amber marks the action or selection under the user's control. The light
     /// appearance uses a deeper amber so the token remains legible as text.
-    static let cta = Color.adaptive(light: 0x8A5500, dark: 0xEDC17F)
+    static let cta = Color.adaptive(light: 0x8A5500, dark: 0xEDC17F, lightHigh: 0x644106)
     static let onCTA = Color.adaptive(light: 0xFFFFFF, dark: 0x241B0E)
     static let mint = cta
 
     /// Green is a result/status color, not the primary action color.
-    static let green = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4)
+    static let green = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4, lightHigh: 0x1C513B)
 
     /// Price-bar colors retain their poker meaning on the fixed table.
     static let segPot = Color(hex: 0x24593F)
     static let segBet = Color(hex: 0x2F7352)
     static let segCall = Color(hex: 0x7A5C18)
-    static let actionBet = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4)
-    static let actionCall = Color.adaptive(light: 0x8A5500, dark: 0xEDC17F)
+    static let actionBet = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4, lightHigh: 0x1C513B)
+    static let actionCall = Color.adaptive(light: 0x8A5500, dark: 0xEDC17F, lightHigh: 0x644106)
 
-    static let suitRed = Color.adaptive(light: 0x9B332D, dark: 0xF0A39A)
+    static let suitRed = Color.adaptive(light: 0x9B332D, dark: 0xF0A39A, lightHigh: 0x7E2C27)
 
     // MARK: Playing cards
 
     static let cardFace = Color(hex: 0xEFEBE0)
     static let cardInk = Color(hex: 0x1A2621)
-    static let cardSuitRed = Color(hex: 0xC0392B)
+    static let cardSuitRed = Color.adaptive(light: 0xB5352A, dark: 0xB5352A, lightHigh: 0x8F2920, darkHigh: 0x8F2920)
 
     // relativeTo: .body makes ordinary text follow Dynamic Type. Titles follow Apple's
     // title styles, which grow less at accessibility sizes, so a long word stays whole.
@@ -177,9 +177,9 @@ enum GT {
 
 /// Grade feedback remains text-first and changes tone with the app appearance.
 enum GTBand {
-    static let spotOnInk = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4)
-    static let closeInk = Color.adaptive(light: 0x805000, dark: 0xE8C089)
-    static let offInk = Color.adaptive(light: 0x9B332D, dark: 0xF0A39A)
+    static let spotOnInk = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4, lightHigh: 0x1C513B)
+    static let closeInk = Color.adaptive(light: 0x805000, dark: 0xE8C089, lightHigh: 0x644105)
+    static let offInk = Color.adaptive(light: 0x9B332D, dark: 0xF0A39A, lightHigh: 0x7E2C27)
     static let spotOnTint = Color.adaptive(light: 0xDCEDE4, dark: 0x263D34)
     static let closeTint = Color.adaptive(light: 0xF1E4CC, dark: 0x3B3325)
     static let offTint = Color.adaptive(light: 0xF2DEDB, dark: 0x3D2929)
@@ -210,9 +210,15 @@ extension Color {
                   blue: Double(hex & 0xff) / 255)
     }
 
-    static func adaptive(light: UInt32, dark: UInt32) -> Color {
+    /// Light and dark values, plus optional stronger values for Increase Contrast.
+    /// Text reaches 7:1 and borders 3:1 on every page surface with the setting on.
+    static func adaptive(light: UInt32, dark: UInt32,
+                         lightHigh: UInt32? = nil, darkHigh: UInt32? = nil) -> Color {
         Color(uiColor: UIColor { traits in
-            let value = traits.userInterfaceStyle == .dark ? dark : light
+            let high = traits.accessibilityContrast == .high
+            let value = traits.userInterfaceStyle == .dark
+                ? (high ? darkHigh ?? dark : dark)
+                : (high ? lightHigh ?? light : light)
             return UIColor(hex: value)
         })
     }
