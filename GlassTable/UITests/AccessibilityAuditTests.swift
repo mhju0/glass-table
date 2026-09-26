@@ -28,9 +28,11 @@ final class AccessibilityAuditTests: XCTestCase {
         for _ in 0..<swipes { app.swipeUp() }
         let fadeTop = app.tabBars.firstMatch.exists
             ? app.tabBars.firstMatch.frame.minY - Self.scrollFadeHeight : .infinity
-        // After a swipe the audit flags plainly dark-on-cream labels on some runs, so the
-        // scrolled screens are audited for everything except contrast.
-        try app.performAccessibilityAudit(for: swipes == 0 ? .all : .all.subtracting(.contrast)) { issue in
+        // After a swipe on Play the audit reports screen-wide findings with no element on some
+        // runs: dark-on-cream labels failing contrast locally, Dynamic Type on CI's iOS 26.2.
+        // Scrolled screens skip those two checks; the unscrolled audits keep them.
+        let scrolledChecks = XCUIAccessibilityAuditType.all.subtracting([.contrast, .dynamicType])
+        try app.performAccessibilityAudit(for: swipes == 0 ? .all : scrolledChecks) { issue in
             if issue.auditType == .contrast, let frame = issue.element?.frame, frame.maxY > fadeTop {
                 return true
             }

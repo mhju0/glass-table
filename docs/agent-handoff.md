@@ -178,3 +178,6 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
   tests and put Play in English, where the audit flags the hint line (5.6-5.9:1 on
   screen; darkening it to 7.4:1 did not clear it).
 - Owner asked to merge everything to `main` and install on the 12 mini (build 12).
+- Open: after a swipe on Play, the audit reports screen-wide findings with no element on
+  some runs (contrast locally on iOS 26.5, Dynamic Type on CI's iOS 26.2). Scrolled audits
+  skip those two checks; the cause is not found. CI keeps only text logs, not the xcresult.
