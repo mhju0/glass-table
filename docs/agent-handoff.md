@@ -140,3 +140,19 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
 - Accessibility audit pins `reminder.enabled` off: that preference outlives the per-test
   store, and a reminder left on by another test pushed Settings text under the tab bar.
 - Next: reinstall on the owner's phone needs a data backup and build 11.
+
+## 2026-09-26: Build 11 on device, PR #7, proposals for the open calls
+
+- Build 11 installed on the owner's 12 mini; progress backed up to
+  `.build/phone-backups/build11-pre/` and confirmed byte-identical after install.
+- Branch pushed; PR #7 opened into `main` (merges cleanly). Not merged: pushing to `main`
+  stays with the owner.
+- VoiceOver hand pass postponed by the owner (decision-history).
+- Proposal, unmerged: local branch `proposal/known-issues` in worktree
+  `../glass-table-proposal` (includes its `.uisweep` evidence). Title fonts follow Apple's
+  title text styles (AX5 growth 3.1x to 1.8x, no change at default size); the hand header
+  stacks at AX sizes; "combinations" becomes "combos"; 14 KO/EN copy rewrites (parity
+  check: 0 violations on those screens). Contrast: 10 of 13 audit findings are text in the
+  scroll fade bands; the audit edit on that branch is exploratory and not for merging as is.
+  Before/after page: https://claude.ai/artifact/95aUKLVyF21rPGQXc6kQtc
+- Next: owner picks per section; cherry-pick the chosen parts, run the full suite, commit.
