@@ -8,6 +8,7 @@ struct PathView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenFreePlay: () -> Void
+    let onOpenBasics: () -> Void
     @State private var expandedUnitIDs: Set<String> = []
     @State private var didScrollToCurrentNode = false
 
@@ -17,6 +18,7 @@ struct PathView: View {
                 VStack(alignment: .leading, spacing: GT.Space.section) {
                     header
                     freePlay
+                    basics
                     ForEach(Array(Curriculum.units.enumerated()), id: \.element.id) { index, unit in
                         if let stage = stageTitle(index) {
                             Text(stage).font(GT.title(24)).foregroundStyle(GT.ink)
@@ -67,6 +69,32 @@ struct PathView: View {
             .gtPanel().contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
+    }
+
+    /// Always open and never graded, so it sits outside the numbered units.
+    private var basics: some View {
+        let done = model.state.basicsLessonCompleted == true
+        return Button(action: onOpenBasics) {
+            HStack(spacing: 13) {
+                Image(systemName: done ? "checkmark.circle.fill" : "suit.spade.fill")
+                    .font(.system(size: 18, weight: .semibold)).foregroundStyle(GT.mint)
+                    .frame(width: 36, height: 36)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(language.text("홀덤 기초", "Hold'em basics")).font(GT.title(17)).foregroundStyle(GT.onFelt)
+                    Text(language.text("카드가 나오는 순서와 족보", "How cards are dealt, and hand ranks"))
+                        .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                        .lineSpacing(GT.Typography.bodyLineSpacing)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(GT.onFeltSecondary)
+            }
+            .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .gtPanel().contentShape(Rectangle())
+        }
+        .buttonStyle(GTPress())
+        .accessibilityValue(done ? language.text("완료", "Completed") : "")
+        .accessibilityIdentifier("path-basics")
     }
 
     private func unitSection(_ unit: CurriculumUnit, index: Int) -> some View {
@@ -218,8 +246,7 @@ struct PathView: View {
     }
 
     private func unitTitle(_ unit: CurriculumUnit, index: Int) -> String {
-        let titles = ["Read the table", "Price and probability", "Read hand charts", "Possible opponent hands", "Read the shared cards", "Compare decision value", "Read actions", "Respond to a raise", "Check defending frequency"]
-        return language.text(unit.title, titles[index])
+        language.text(unit.title, LearningMilestone.unitTitlesEnglish[index])
     }
 
     private func stageTitle(_ index: Int) -> String? {

@@ -43,6 +43,15 @@ final class AccessibilityFlowTests: XCTestCase {
             .waitForExistence(timeout: 15))
 
         for step in 1...7 {
+            // One step is covered until the learner taps to check it.
+            let reveal = app.buttons["walkthrough-reveal"]
+            if reveal.exists {
+                XCTAssertFalse(app.buttons[step == 7 ? "이해했어요" : "다음"].isEnabled,
+                               "The example can't advance before the learner checks the value.")
+                XCTAssertTrue(scrollUntilHittable(reveal, in: app),
+                              "The covered example value must be reachable at AX XXXL.")
+                reveal.tap()
+            }
             let title = step == 7 ? "이해했어요" : "다음"
             let advance = app.buttons[title]
             XCTAssertTrue(scrollUntilHittable(advance, in: app),
@@ -242,6 +251,23 @@ final class AccessibilityFlowTests: XCTestCase {
         add(attachment)
     }
 
+    func testTableSetupPlayerCountStacksAndStaysReachableAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_TEST_FIRST_LESSON": "0",
+            "GT_DEMO_TAB": "play",
+            "GT_DEMO_PLAY_SETUP": "1",
+        ])
+        let two = app.buttons["player-count-2"]
+        XCTAssertTrue(scrollUntilHittable(two, in: app))
+        let three = app.buttons["player-count-3"]
+        XCTAssertGreaterThan(three.frame.minY, two.frame.maxY,
+                             "At accessibility sizes the counts stack instead of squeezing into three columns.")
+        two.tap()
+        XCTAssertTrue(two.isSelected)
+        XCTAssertFalse(app.buttons["seat-style-2"].exists)
+    }
+
     func testFirstLessonReachesCourseAtAccessibilityXXXL() {
         let app = launch(environment: [
             "GT_TEST_STORE_ID": UUID().uuidString,
@@ -281,9 +307,50 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The transfer explanation and course entry must remain reachable at AX XXXL.")
         beginCourse.tap()
 
+        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 10))
+        let next = app.buttons["basics.next"]
+        for _ in 0..<6 {
+            XCTAssertTrue(scrollUntilHittable(next, in: app),
+                          "Every basics step must remain reachable at AX XXXL.")
+            next.tap()
+        }
+        let choice = app.buttons["basics.choice.flush"]
+        XCTAssertTrue(scrollUntilHittable(choice, in: app),
+                      "The basics check must remain reachable at AX XXXL.")
+        choice.tap()
+        let finish = app.buttons["basics.finish"]
+        XCTAssertTrue(scrollUntilHittable(finish, in: app),
+                      "The basics verdict and course entry must remain reachable at AX XXXL.")
+        finish.tap()
+
         let firstStep = app.descendants(matching: .any)["walkthrough-step-0"]
         XCTAssertTrue(firstStep.waitForExistence(timeout: 10))
         XCTAssertTrue(firstStep.label.contains("누가 이길까요?"))
+    }
+
+    func testReminderAndMilestoneShareStayReachableAtAccessibilityXXXL() {
+        let settings = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_SEED": "1",
+            "GT_DEMO_SETTINGS": "1",
+            "GT_DEMO_REMINDER": "on",
+        ])
+        XCTAssertTrue(scrollUntilHittable(settings.switches["settings-reminder"], in: settings),
+                      "The reminder switch must be reachable at AX XXXL.")
+        XCTAssertTrue(scrollUntilHittable(settings.datePickers["settings-reminder-time"], in: settings),
+                      "The reminder time must be reachable at AX XXXL.")
+        settings.terminate()
+
+        let summary = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_SEED": "1",
+            "GT_DEMO_NODE": "u2-potOdds",
+            "GT_DEMO_SESSION_COMPLETE": "1",
+            "GT_DEMO_MILESTONE": "unit",
+        ])
+        XCTAssertTrue(scrollUntilHittable(summary.buttons["milestone-share"], in: summary),
+                      "The share button must be reachable at AX XXXL.")
+        XCTAssertTrue(scrollUntilHittable(summary.buttons["길로 돌아가기"], in: summary))
     }
 
     private func launch(environment: [String: String]) -> XCUIApplication {

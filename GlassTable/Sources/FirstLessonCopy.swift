@@ -14,7 +14,7 @@ enum FirstLessonCopy {
         case correctTitle, retryTitle, explanationTitle, higherPair, lowerPair
         case myPick, rightAnswer, pickCorrect, pickWrong
         case tryTransfer, beginCourse, returnToLearning
-        case introductionTitle, introductionBody, warmUpNote, startWarmUp
+        case introductionTitle, introductionBody, responsibleNote, warmUpNote, startWarmUp
     }
 
     static func text(_ key: Key, in language: LearningLanguage) -> String {
@@ -54,6 +54,7 @@ enum FirstLessonCopy {
         case .returnToLearning: language.text(returnToLearning, "Back to Learn")
         case .introductionTitle: language.text(introductionTitle, "How you'll learn")
         case .introductionBody: language.text(introductionBody, "Watch the reasoning, try with help, then solve a different hand on your own. Later, return to review what you learned.")
+        case .responsibleNote: language.text(responsibleNote, "Need help with gambling? Settings has helplines.")
         case .warmUpNote: language.text(warmUpNote, "Start with two quick warm-up questions.")
         case .startWarmUp: language.text(startWarmUp, "Start the warm-up")
         }
@@ -131,6 +132,8 @@ enum FirstLessonCopy {
                                           defaultValue: "이렇게 배워요")
     static let introductionBody = String(localized: "firstLesson.introduction.body",
                                          defaultValue: "풀이를 보고, 도움을 받으며 풀고, 다른 상황을 혼자 해결해요. 잊을 만할 때는 배우기 화면에서 다시 만나요.")
+    static let responsibleNote = String(localized: "firstLesson.introduction.responsibleNote",
+                                        defaultValue: "도박이 부담된다면 설정에서 상담 번호를 볼 수 있어요.")
     static let warmUpNote = String(localized: "firstLesson.introduction.warmUpNote",
                                    defaultValue: "가볍게 몸풀기 문제 두 개로 시작해요.")
     static let startWarmUp = String(localized: "firstLesson.action.startWarmUp",

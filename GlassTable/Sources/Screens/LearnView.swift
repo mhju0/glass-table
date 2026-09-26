@@ -7,6 +7,7 @@ struct LearnView: View {
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenReview: () -> Void
     let onOpenPractice: () -> Void
+    let onOpenBasics: () -> Void
     @State private var showPlacement = false
 
     private var due: [Concept] { model.dueConcepts() }
@@ -24,7 +25,8 @@ struct LearnView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("내 방식으로 연습", "Practice your way")).font(GT.title(20))
                     NavigationLink {
-                        PathView(onOpenNode: onOpenNode, onOpenFreePlay: onOpenPractice)
+                        PathView(onOpenNode: onOpenNode, onOpenFreePlay: onOpenPractice,
+                                 onOpenBasics: onOpenBasics)
                     } label: {
                         learningRow(language.text("전체 학습 경로", "Full learning path"),
                                     language.text("기초부터 깊이 있는 판단까지. 모든 레슨이 처음부터 열려 있어요.", "From basics to deeper decisions. Every lesson is open."), icon: "point.topleft.down.to.point.bottomright.curvepath")
@@ -33,11 +35,11 @@ struct LearnView: View {
                     .accessibilityIdentifier("learn-path")
                     Button(action: onOpenPractice) {
                         learningRow(language.text("한 가지 집중 연습", "Practice one skill"),
-                                    language.text("원하는 주제를 골라 다섯 문제씩 풀어요.", "Pick a topic for a five-question round."), icon: "rectangle.stack")
+                                    language.text("원하는 주제를 골라 다섯 문제씩 풀어요.", "Five questions on a topic you pick."), icon: "rectangle.stack")
                     }.buttonStyle(GTPress())
                     if !due.isEmpty {
                         Button(action: onOpenReview) {
-                            learningRow(language.text("배운 내용 복습", "Review what you've learned"),
+                            learningRow(language.text("배운 내용 복습", "Review topics"),
                                         language.text("복습할 주제 \(due.count)개", "\(due.count) topics ready for review"), icon: "arrow.clockwise")
                         }.buttonStyle(GTPress())
                     }
@@ -87,6 +89,12 @@ struct LearnView: View {
                 Text(due.prefix(3).map { ConceptIntroduction.make($0, language: language).title }.joined(separator: " · "))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                 FeltCTAButton(title: language.text("복습 \(min(5, due.count))개 시작", "Review \(min(5, due.count)) topics"), action: onOpenReview)
+            } else if model.shouldSuggestBasicsLesson {
+                Text(language.text("홀덤 기초", "Hold'em basics")).font(GT.title(24))
+                Text(language.text("카드가 나오는 순서와 족보부터 알아봐요.", "Start with the deal and hand rankings."))
+                    .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                FeltCTAButton(title: language.text("레슨 시작", "Start lesson"), action: onOpenBasics)
+                    .accessibilityIdentifier("learn-basics-start")
             } else if let next = recommendedNode {
                 Text(learningNodeTitle(next, language: language)).font(GT.title(24))
                 Text(learningNodeDescription(next, language: language))

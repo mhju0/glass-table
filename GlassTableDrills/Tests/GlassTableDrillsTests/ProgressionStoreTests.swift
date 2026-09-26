@@ -160,6 +160,52 @@ final class ProgressionStoreTests: XCTestCase {
         XCTAssertThrowsError(try s.importData(JSONEncoder().encode(evState)))
     }
 
+    func testHelpFieldsAreOmittedUntilUsedAndOlderAnswersReadAsIndependent() throws {
+        let seed: UInt64 = 19
+        let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: 2)
+        let selected = gradeShowdown(answer: 0, spot: spot)
+        let input = try JSONEncoder().encode(SavedDrillInput.integer(0))
+        let reveal = try JSONEncoder().encode(SavedDrillReveal(band: selected.band.rawValue))
+        let plain = RoundAnswer(attemptID: "answer", ordinal: 0, band: selected.band,
+                                submittedAt: Date(), input: input, reveal: reveal)
+        let plainJSON = try XCTUnwrap(String(data: JSONEncoder().encode(plain), encoding: .utf8))
+        XCTAssertFalse(plainJSON.contains("assisted"))
+        XCTAssertNil(try JSONDecoder().decode(RoundAnswer.self, from: Data(plainJSON.utf8)).assisted)
+
+        var round = PracticeRound(id: "help", concept: Concept.showdown.rawValue, seed: seed)
+        XCTAssertFalse(try XCTUnwrap(String(data: JSONEncoder().encode(round), encoding: .utf8))
+            .contains("helpOrdinal"))
+        round.helpOrdinal = 0
+        round.answers = [RoundAnswer(attemptID: "answer", ordinal: 0, band: selected.band,
+                                     submittedAt: Date(), input: input, reveal: reveal,
+                                     assisted: true)]
+        round.phase = .reveal
+        var state = ProgressState()
+        state.activeRound = round
+        let s = store()
+        let imported = try s.importData(JSONEncoder().encode(state))
+        XCTAssertEqual(imported.activeRound?.helpOrdinal, 0)
+        XCTAssertEqual(imported.activeRound?.answers.first?.isAssisted, true)
+
+        // Help can't point past the current question, and a stored `false` is never written.
+        round.helpOrdinal = 1
+        state.activeRound = round
+        XCTAssertThrowsError(try s.importData(JSONEncoder().encode(state)))
+        round.helpOrdinal = nil
+        round.answers[0].assisted = false
+        state.activeRound = round
+        XCTAssertThrowsError(try s.importData(JSONEncoder().encode(state)))
+    }
+
+    func testRoundIntroductionCannotRecordHelp() throws {
+        var round = PracticeRound(id: "intro", concept: Concept.showdown.rawValue, seed: 3,
+                                  introPhase: .together)
+        round.helpOrdinal = 0
+        var state = ProgressState()
+        state.activeRound = round
+        XCTAssertThrowsError(try store().importData(JSONEncoder().encode(state)))
+    }
+
     /// Spec §8.2 — the bug being fixed. Garbage must never read as empty progress.
     func testCorruptFileReportsUnreadableAndNeverSilentlyResets() throws {
         let s = store()

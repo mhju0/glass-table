@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import StoreKit
 import GlassTableEngine
 import GlassTableDrills
 
@@ -61,10 +62,12 @@ struct NodeSessionView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.requestReview) private var requestReview
     let node: CurriculumNode
 
     @State private var index = 0
     @State private var missed = 0
+    @State private var helped = 0
     @State private var evidence: [Concept: SessionEvidence] = [:]
     @State private var finished = false
     @State private var stage: Stage = .solo
@@ -131,7 +134,7 @@ struct NodeSessionView: View {
                 restore(savedSession)
                 return
             }
-            let totals = Curriculum.concepts(of: node).map { model.record(for: $0).total }
+            let totals = Curriculum.concepts(of: node).map { model.seedCount(for: $0) }
             let seed = NodeSessionSeed.make(nodeID: node.id, conceptTotals: totals)
             guard model.beginNodeSession(node, seed: seed,
                                          expectedEpoch: sessionEpoch ?? model.epoch),
@@ -218,7 +221,7 @@ struct NodeSessionView: View {
                 .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
             FeltCTAButton(title: language.text("이 레슨 시작", "Start this lesson")) {
                 guard model.abandonNodeSession(expectedEpoch: sessionEpoch ?? model.epoch) else { return }
-                let totals = Curriculum.concepts(of: node).map { model.record(for: $0).total }
+                let totals = Curriculum.concepts(of: node).map { model.seedCount(for: $0) }
                 let seed = NodeSessionSeed.make(nodeID: node.id, conceptTotals: totals)
                 guard model.beginNodeSession(node, seed: seed,
                                              expectedEpoch: sessionEpoch ?? model.epoch),
@@ -241,9 +244,13 @@ struct NodeSessionView: View {
         for item in session.answers {
             guard let concept = Concept(rawValue: item.concept) else { continue }
             evidence[concept, default: SessionEvidence()].record(
-                spotOn: item.answer.band == GradeBand.spotOn.rawValue)
+                spotOn: item.answer.band == GradeBand.spotOn.rawValue,
+                assisted: item.answer.isAssisted)
         }
-        missed = session.answers.filter { $0.answer.band != GradeBand.spotOn.rawValue }.count
+        helped = session.answers.filter(\.answer.isAssisted).count
+        missed = session.answers.filter {
+            !$0.answer.isAssisted && $0.answer.band != GradeBand.spotOn.rawValue
+        }.count
         finished = session.phase == .finished
         switch session.phase {
         case .show: stage = .show
@@ -265,8 +272,8 @@ struct NodeSessionView: View {
             // 보여주기: the app solves one out loud. The user answers nothing.
             let w = Walkthrough.make(concept: taughtConcept, seed: baseSeed, index: 0,
                                      language: language)
-            WalkthroughView(title: ConceptIntroduction.make(taughtConcept,
-                                language: language).title,
+            let introduction = ConceptIntroduction.make(taughtConcept, language: language)
+            WalkthroughView(title: introduction.title, purpose: introduction.why,
                             beats: w.beats, rows: w.rows,
                             initialIndex: savedSession?.showBeatIndex ?? 0,
                             onStep: { next in
@@ -351,10 +358,16 @@ struct NodeSessionView: View {
         let spotIndex = index + 2
         let restoredAnswer = savedSession?.phase == .reveal
             ? savedSession?.answers.last?.answer : nil
+        let help = savedSession.map { session in
+            DrillHelp(isUsed: model.helpUsed(.lesson, sessionID: session.id, ordinal: index),
+                      mark: { model.markHelpUsed(.lesson, sessionID: session.id, ordinal: index,
+                                                 expectedEpoch: sessionEpoch ?? model.epoch) })
+        }
         return ConceptDrillView(concept: concept, seed: baseSeed, index: spotIndex,
                          progressText: "\(index + 1)/\(itemCount)",
                          restoredAnswer: restoredAnswer,
                          initialDraft: savedSession?.draft?.input,
+                         help: help,
                          onDraft: { input in
             guard let savedSession else { return }
             pendingDraftTask?.cancel()
@@ -417,15 +430,31 @@ struct NodeSessionView: View {
     private var summary: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                Text(missed == 0
+                let onTarget = itemCount - missed - helped
+                Text(missed == 0 && helped == 0
                      ? language.text("모두 목표 안에 들었어요", "All answers were on target")
-                     : language.text("\(itemCount - missed)/\(itemCount) 목표 안에 들었어요",
-                                     "\(itemCount - missed)/\(itemCount) on target"))
+                     : language.text("\(onTarget)/\(itemCount) 목표 안에 들었어요",
+                                     "\(onTarget)/\(itemCount) on target"))
                     .font(GT.title(24)).foregroundStyle(GT.onFelt)
+                if helped > 0 {
+                    Text(language.text("도움 받은 연습 \(helped)문제", "\(helped) solved with help"))
+                        .font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
+                        .accessibilityIdentifier("summary-helped")
+                }
                 Text(summaryDetail)
                     .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+                let milestones = self.milestones
+                if let first = milestones.first {
+                    MilestoneShareSection(milestone: first, date: milestoneDate)
+                        .padding(.vertical, 4)
+                }
                 FeltCTAButton(title: language.text("길로 돌아가기", "Back to path")) {
+                    let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+                    if RatingPrompt.shouldRequest(milestones: milestones, version: version) {
+                        RatingPrompt.markRequested(version: version)
+                        requestReview()
+                    }
                     if let savedSession {
                         _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
                             expectedEpoch: sessionEpoch ?? model.epoch)
@@ -439,18 +468,49 @@ struct NodeSessionView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
+    /// Read from saved progress, so a relaunch into this summary shows the same ones.
+    private var milestones: [LearningMilestone] {
+        #if DEBUG
+        switch ProcessInfo.processInfo.environment["GT_DEMO_MILESTONE"] {
+        case "unit": return [.unitFinished(unitIndex: 0)]
+        case "mastered": return [.skillMastered(.potOdds)]
+        default: break
+        }
+        #endif
+        guard let savedSession else { return [] }
+        return LearningMilestone.reached(in: savedSession, state: model.state)
+    }
+
+    private var milestoneDate: Date {
+        savedSession?.answers.map(\.answer.submittedAt).max() ?? Date()
+    }
+
     private var summaryDetail: String {
-        let missedConcepts = evidence.compactMap { concept, result in
-            result.isPerfect ? nil : ConceptIntroduction.make(concept, language: language).title
-        }.sorted()
-        if missedConcepts.isEmpty {
+        func titles(_ include: (SessionEvidence) -> Bool) -> [String] {
+            evidence.compactMap { concept, result in
+                include(result) ? ConceptIntroduction.make(concept, language: language).title : nil
+            }.sorted()
+        }
+        let missedConcepts = titles { $0.spotOn < $0.attempted }
+        let helpedConcepts = titles { $0.assisted > 0 }
+        if missedConcepts.isEmpty && helpedConcepts.isEmpty {
             return language.text(
                 "모든 답이 목표 안에 들었어요. 개념별 단계와 다음 복습 시점은 기록 화면에서 확인할 수 있어요.",
                 "Every answer was on target. Your skill levels and next review dates are in Progress.")
         }
-        return language.text(
-            "다시 볼 개념: \(missedConcepts.joined(separator: " · ")). 복습에서 한 문제씩 다시 만나요.",
-            "Review these skills: \(missedConcepts.joined(separator: " · ")). You will see them again in review.")
+        var lines: [String] = []
+        if !missedConcepts.isEmpty {
+            lines.append(language.text(
+                "다시 볼 개념: \(missedConcepts.joined(separator: " · ")). 복습에서 한 문제씩 다시 만나요.",
+                "Review these skills: \(missedConcepts.joined(separator: " · ")). You will see them again in review."))
+        }
+        if !helpedConcepts.isEmpty {
+            // Help leaves accuracy and the review schedule alone, so no review is promised.
+            lines.append(language.text(
+                "도움 받은 개념: \(helpedConcepts.joined(separator: " · ")). 혼자 푼 답만 정확도와 복습 일정에 들어가요.",
+                "Solved with help: \(helpedConcepts.joined(separator: " · ")). Only answers without help count toward accuracy and reviews."))
+        }
+        return lines.joined(separator: "\n")
     }
 }
 
@@ -568,8 +628,11 @@ struct FreePlayView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
-    var title = "자유 연습"
-    var blurb = "횟수 제한은 없어요. 아무거나 골라서 원하는 만큼 푸세요."
+    private var title: String { language.text("자유 연습", "Practice one skill") }
+    private var blurb: String {
+        language.text("횟수 제한은 없어요. 아무거나 골라서 원하는 만큼 푸세요.",
+                      "No limits. Pick any skill and practice as much as you like.")
+    }
     var concepts = Concept.allCases
     /// Shown in place of the roster when `concepts` runs dry — the 복습 flow ends by
     /// emptying its own list, which must read as finishing, not as a broken screen.
@@ -620,6 +683,12 @@ struct FreePlayView: View {
                                      progressText: "\(round.ordinal + 1)/\(round.questionCount)",
                                      restoredAnswer: restored,
                                      initialDraft: round.draft?.input,
+                                     help: DrillHelp(
+                                        isUsed: model.helpUsed(.round, sessionID: round.id,
+                                                               ordinal: round.ordinal),
+                                        mark: { model.markHelpUsed(.round, sessionID: round.id,
+                                            ordinal: round.ordinal,
+                                            expectedEpoch: sessionEpoch ?? model.epoch) }),
                                      onDraft: { input in
                         pendingDraftTask?.cancel()
                         let write = PendingDraftWrite(sessionID: round.id,
@@ -758,29 +827,24 @@ struct FreePlayView: View {
         case .show:
             let worked = Walkthrough.make(concept: concept, seed: seed, index: 0,
                                           language: language)
-            VStack(alignment: .leading, spacing: 10) {
-                Text(introduction.title).font(GT.title(22)).foregroundStyle(GT.onFelt)
-                Text(introduction.why).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
-                Text(introduction.how).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
-                WalkthroughView(title: introduction.title, beats: worked.beats,
-                                rows: worked.rows,
-                                initialIndex: activeRound?.showBeatIndex ?? 0,
-                                onStep: { next in
-                                    guard let round = activeRound else { return false }
-                                    return model.setRoundShowBeat(roundID: round.id,
-                                        index: next, expectedEpoch: sessionEpoch ?? model.epoch)
-                                },
-                                onFinish: {
-                                    guard let round = activeRound,
-                                          model.advanceRoundIntroduction(roundID: round.id,
-                                              skip: false,
-                                              expectedEpoch: sessionEpoch ?? model.epoch)
-                                    else { return }
-                                    introStage = .together
-                                },
-                                onSkip: { finishIntro(concept) })
-            }
-            .padding(16)
+            WalkthroughView(title: introduction.title, purpose: introduction.why,
+                            beats: worked.beats,
+                            rows: worked.rows,
+                            initialIndex: activeRound?.showBeatIndex ?? 0,
+                            onStep: { next in
+                                guard let round = activeRound else { return false }
+                                return model.setRoundShowBeat(roundID: round.id,
+                                    index: next, expectedEpoch: sessionEpoch ?? model.epoch)
+                            },
+                            onFinish: {
+                                guard let round = activeRound,
+                                      model.advanceRoundIntroduction(roundID: round.id,
+                                          skip: false,
+                                          expectedEpoch: sessionEpoch ?? model.epoch)
+                                else { return }
+                                introStage = .together
+                            },
+                            onSkip: { finishIntro(concept) })
         case .together:
             ConceptDrillView(concept: concept, seed: seed, index: 1,
                 progressText: language.text("함께 연습", "Try together"),
@@ -838,21 +902,27 @@ struct FreePlayView: View {
     }
 
     private func roundSummary(_ round: PracticeRound) -> some View {
-        let exact = round.answers.filter { $0.band == GradeBand.spotOn.rawValue }.count
-        let near = round.answers.filter { $0.band == GradeBand.close.rawValue }.count
+        let independent = round.answers.filter { !$0.isAssisted }
+        let helped = round.answers.count - independent.count
+        let exact = independent.filter { $0.band == GradeBand.spotOn.rawValue }.count
+        let near = independent.filter { $0.band == GradeBand.close.rawValue }.count
+        let revisit = independent.count - exact - near
         return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text(language.text("5문제를 마쳤어요", "Five questions complete"))
                     .font(GT.title(24)).foregroundStyle(GT.onFelt)
-                Text(language.text("목표 안 \(exact) · 근접 \(near) · 다시 보기 \(round.answers.count - exact - near)",
-                                   "On target \(exact) · Close \(near) · Revisit \(round.answers.count - exact - near)"))
+                Text(helped == 0
+                     ? language.text("목표 안 \(exact) · 근접 \(near) · 다시 보기 \(revisit)",
+                                     "On target \(exact) · Close \(near) · Revisit \(revisit)")
+                     : language.text("목표 안 \(exact) · 근접 \(near) · 다시 보기 \(revisit) · 도움 \(helped)",
+                                     "On target \(exact) · Close \(near) · Revisit \(revisit) · With help \(helped)"))
                     .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                 FeltCTAButton(title: language.text("다섯 문제 더", "Another five")) {
                     guard model.dismissFinishedRound(roundID: round.id,
                           expectedEpoch: sessionEpoch ?? model.epoch),
                           let concept = Concept(rawValue: round.concept) else { return }
                     _ = model.beginRound(concept: concept,
-                        seed: 0x5EED &+ UInt64(model.record(for: concept).total),
+                        seed: 0x5EED &+ UInt64(model.seedCount(for: concept)),
                         expectedEpoch: sessionEpoch ?? model.epoch)
                     if let newRound = activeRound {
                         createdRoundID = newRound.id
@@ -902,7 +972,7 @@ struct FreePlayView: View {
                         }
                         if model.state.activeRound == nil {
                             guard model.beginRound(concept: c,
-                                seed: 0x5EED &+ UInt64(model.record(for: c).total),
+                                seed: 0x5EED &+ UInt64(model.seedCount(for: c)),
                                 expectedEpoch: sessionEpoch ?? model.epoch) else { return }
                             if let newRound = activeRound {
                                 createdRoundID = newRound.id
@@ -918,10 +988,12 @@ struct FreePlayView: View {
                     } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(conceptTitle(c)).font(GT.title(13.5))
-                                    .foregroundStyle(GT.ink)
-                                Text(conceptBlurb(c)).font(GT.body(11))
-                                    .foregroundStyle(GT.inkMuted).lineLimit(1)
+                                Text(language.text(conceptTitle(c),
+                                    ConceptIntroduction.make(c, language: language).title))
+                                    .font(GT.title(13.5)).foregroundStyle(GT.ink)
+                                Text(conceptBlurb(c, language: language)).font(GT.body(11))
+                                    .foregroundStyle(GT.inkMuted)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                             Spacer(minLength: 0)
                             Image(systemName: "chevron.right")
@@ -950,6 +1022,7 @@ struct ReviewSessionView: View {
     @State private var queue: [Concept] = []
     @State private var index = 0
     @State private var outcomes: [Concept: GradeBand] = [:]
+    @State private var helpedConcepts: Set<Concept> = []
     @State private var seed: UInt64 = 0
     @State private var initialized = false
     @State private var finished = false
@@ -992,6 +1065,12 @@ struct ReviewSessionView: View {
                                                              "Review \(index + 1)/\(queue.count)"),
                                  restoredAnswer: restored,
                                  initialDraft: session.draft?.input,
+                                 help: DrillHelp(
+                                    isUsed: model.helpUsed(.review, sessionID: session.id,
+                                                           ordinal: index),
+                                    mark: { model.markHelpUsed(.review, sessionID: session.id,
+                                        ordinal: index,
+                                        expectedEpoch: sessionEpoch ?? model.epoch) }),
                                  onDraft: { input in
                     pendingDraftTask?.cancel()
                     let write = PendingDraftWrite(sessionID: session.id, ordinal: index,
@@ -1120,13 +1199,39 @@ struct ReviewSessionView: View {
                   let band = GradeBand(rawValue: graded.answer.band) else { return nil }
             return (concept, band)
         })
+        helpedConcepts = Set(session.answers.compactMap { graded in
+            graded.answer.isAssisted ? Concept(rawValue: graded.concept) : nil
+        })
         finished = session.phase == .finished
         questionReadyAt = nil
     }
 
+    private func reviewDetail(missed: [String], helped: [String]) -> String {
+        var lines: [String] = []
+        if missed.isEmpty && helped.isEmpty {
+            lines.append(language.text(
+                "각 개념을 목표 안에 답했어요. 다음 복습은 기록에서 볼 수 있어요.",
+                "Each skill was on target. Progress shows the next review."))
+        }
+        if !missed.isEmpty {
+            lines.append(language.text(
+                "다시 볼 개념: \(missed.joined(separator: " · ")). 오늘 답은 저장됐어요.",
+                "Review these skills: \(missed.joined(separator: " · ")). Today's answers are saved."))
+        }
+        if !helped.isEmpty {
+            // Help leaves the schedule alone: these skills stay due.
+            lines.append(language.text(
+                "도움 받은 개념: \(helped.joined(separator: " · ")). 혼자 풀 때까지 복습에 남아 있어요.",
+                "Solved with help: \(helped.joined(separator: " · ")). They stay in review until you answer on your own."))
+        }
+        return lines.joined(separator: "\n")
+    }
+
     private var summary: some View {
-        let exact = outcomes.values.filter { $0 == .spotOn }.count
-        let missed = queue.filter { outcomes[$0] != .spotOn }
+        let exact = outcomes.filter { $0.value == .spotOn && !helpedConcepts.contains($0.key) }.count
+        let missed = queue.filter { outcomes[$0] != .spotOn && !helpedConcepts.contains($0) }
+            .map { ConceptIntroduction.make($0, language: language).title }
+        let helped = queue.filter { helpedConcepts.contains($0) }
             .map { ConceptIntroduction.make($0, language: language).title }
         return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
@@ -1137,13 +1242,7 @@ struct ReviewSessionView: View {
                     .font(GT.title(24)).foregroundStyle(GT.onFelt)
                 Text(queue.isEmpty
                      ? language.text("지금 복습할 개념이 없어요.", "No skills are due right now.")
-                     : missed.isEmpty
-                        ? language.text(
-                            "각 개념을 목표 안에 답했어요. 다음 복습은 기록에서 볼 수 있어요.",
-                            "Each skill was on target. Progress shows the next review.")
-                        : language.text(
-                            "다시 볼 개념: \(missed.joined(separator: " · ")). 오늘 답은 저장됐어요.",
-                            "Review these skills: \(missed.joined(separator: " · ")). Today's answers are saved."))
+                     : reviewDetail(missed: missed, helped: helped))
                     .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 FeltCTAButton(title: language.text("학습으로 돌아가기", "Back to Learn")) {
@@ -1167,7 +1266,7 @@ struct ReviewSessionView: View {
                 hash ^= UInt64(byte)
                 hash &*= 0x0000_0100_0000_01b3
             }
-            hash &+= UInt64(model.record(for: concept).total)
+            hash &+= UInt64(model.seedCount(for: concept))
         }
         return hash
     }

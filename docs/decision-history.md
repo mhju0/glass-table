@@ -36,6 +36,67 @@ Read across the entries, a few preferences keep coming back:
 
 ---
 
+## 2026-09-26 — Hand-run VoiceOver check postponed
+
+- **Decided by:** owner.
+- **What:** the manual VoiceOver pass is deferred until after the current release work.
+  XCTest's automated accessibility audit (contrast excluded) keeps running in the suite.
+- **Why:** owner priority; the audit covers labels, Dynamic Type and hit areas, not the
+  spoken flow, so the manual pass stays on the release checklist as open.
+
+## 2026-09-26 — Progress fine print moves one tap down; Play choices sit on the midline
+
+- **Decided by:** owner.
+- **What:** the Progress habits card shows a plain headline and one progress line
+  ("38 of 100 hands · 2 of 5 days"); the 30-day window, counts, 95% intervals and label
+  thresholds sit under "How this works". The confidence card's sample note moves under
+  "What this means". On Play, the screen's midline falls in the gap between the two
+  mode cards instead of the cards sitting in the bottom half.
+- **Why:** the detail read as too much for an average learner. The thresholds stay
+  disclosed (decisions.md: "disclosed evidence thresholds"), just not on first read.
+  The bottom-placed cards looked awkward; Hoober's observations favour the middle of
+  the screen for touch and reading, so centring costs no reach.
+
+## 2026-09-26 — What counts as a milestone; when the rating prompt appears
+
+- **Decided by:** agent, within the owner's release plan ("rating prompt after a real
+  milestone only", "share card of a learning milestone").
+- **What:** a milestone is a unit finished for the first time, or a skill reaching
+  숙달 단계 (mastered in app). Both come from the unit's mixed check. The share card and
+  the rating prompt appear only on that lesson summary. The rating prompt runs when the
+  learner taps "Back to path", at most once per app version.
+- **Why:** 능숙 단계 comes from almost any clean lesson, so it would make the prompt and
+  card routine. A finished unit is rare enough to feel earned and is read from saved
+  progress, so no save-format change was needed.
+
+## 2026-09-26 — Daily reminder repeats at one time, even on days already practiced
+
+- **Decided by:** agent.
+- **What:** one repeating local notification at the chosen time (default 20:00). It is
+  not skipped on days the learner already practiced.
+- **Why:** skipping needs rescheduling on every launch and practice. The plan asked for
+  the simple version: one time of day, calm wording. Revisit if beta testers find it
+  nagging.
+
+## 2026-09-26 — Help counts toward the streak, not toward accuracy
+
+- **Decided by:** agent, after an independent review of the issue 04 plan (owner delegated
+  the "full plan" build).
+- **What:** an answer given after "Show totals" is recorded as practice with help. It keeps
+  the daily streak and moves the seeds, but adds nothing to accuracy, the miss streak,
+  review scheduling, timing or mastery. A review answered with help stays due.
+- **Why:** the streak rewards showing up; accuracy and reviews must describe what the learner
+  can do alone. Breaking the streak for asking for help would teach people not to ask.
+
+## 2026-09-26 — Issues 03 and 04: full plan
+
+- **Decided by:** owner (chose "Full plan" when asked for scope).
+- **What:** first-use explanations reachable from every graded route (explain button,
+  worked example, rule example for position, play-table guide), and assisted attempts
+  stored as practice rather than accuracy, across lessons, single-skill practice and review.
+- **Why:** beginners should never meet a mode without a way to see what it asks, and help
+  should not quietly inflate grades.
+
 ## 2026-09-25 — Age rating: 18+, frequent simulated gambling
 
 - **Decided by:** owner ("I will just play safe and go with 18+ frequent. I can't consult
@@ -197,6 +258,25 @@ pasted text and the standing rule is never to push to main without asking.
 - **Decided by:** owner. **What:** Learn / Play / Progress / Settings in the bottom
   bar; no gear or globe buttons at the top; language lives in Settings.
 - **Why:** fewer top controls, more room for learning content.
+
+## 2026-09-26 — Whole words at large text, KO/EN line parity rewrites
+- **Decided by:** owner. **What:** titles follow Apple's title text styles so they grow
+  less at accessibility sizes; the table hand header stacks at those sizes; "combinations"
+  becomes the glossary's "combos"; 14 Korean/English copy pairs rewritten to the same line
+  count.
+- **Why:** English AX5 had six mid-word breaks; the parity check flagged 15 lines. Both
+  now read 0. Default-size layouts are unchanged.
+
+## 2026-09-26 — Follow Increase Contrast; contrast back in the audit
+- **Decided by:** owner. **What:** colours get stronger values when iOS Increase Contrast
+  is on (secondary text 7:1, borders 3:1); card-face red deepens from `#C0392B` to
+  `#B5352A` (4.48:1 to 5.03:1); the accessibility audit checks contrast again on the
+  unscrolled screens, skipping only elements under the tab bar or within 56 pt above it.
+  After a swipe the audit flagged plainly dark-on-cream labels on 2 of 3 runs, so scrolled
+  screens are audited for everything but contrast.
+- **Why:** the app ignored Increase Contrast, which Apple's App Store contrast criteria
+  test with; the card red sat just under 4.5:1. Bold Text support was raised and not
+  taken up.
 
 ## Earlier (2026-07 → 2026-09)
 

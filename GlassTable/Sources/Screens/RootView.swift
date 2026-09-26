@@ -13,6 +13,10 @@ struct RootView: View {
     @State private var showReview = false
     @State private var showPath = false
     @State private var showPlacement = false
+    @State private var showBasics = false
+    /// Set when the basics lesson ends with "start the next lesson"; the node opens
+    /// once the lesson's cover has finished dismissing.
+    @State private var nodeAfterBasics: CurriculumNode?
 
     var body: some View {
         Group {
@@ -41,7 +45,11 @@ struct RootView: View {
                 FirstLessonView(context: .firstRun,
                                 onFinish: {
                                     model.completeFirstLesson()
-                                    openNode = model.nextNode
+                                    if model.state.basicsLessonCompleted == true {
+                                        openNode = model.nextNode
+                                    } else {
+                                        showBasics = true
+                                    }
                                 },
                                 onSkip: { model.completeFirstLesson() })
             } else {
@@ -56,7 +64,8 @@ struct RootView: View {
             NavigationStack {
                 LearnView(onOpenNode: { openNode = $0 },
                           onOpenReview: { showReview = true },
-                          onOpenPractice: { showFreePlay = true })
+                          onOpenPractice: { showFreePlay = true },
+                          onOpenBasics: { showBasics = true })
                     .modifier(ProgressSaveNotice())
                     .toolbar(.hidden, for: .navigationBar)
             }
@@ -94,6 +103,21 @@ struct RootView: View {
                 NodeSessionView(node: node).modifier(ProgressSaveNotice())
             }.environment(model)
         }
+        .fullScreenCover(isPresented: $showBasics, onDismiss: {
+            if let node = nodeAfterBasics {
+                nodeAfterBasics = nil
+                openNode = node
+            }
+        }) {
+            HoldemBasicsView(onClose: { showBasics = false },
+                             onFinish: { startNext in
+                                 model.completeBasicsLesson()
+                                 if startNext { nodeAfterBasics = model.nextNode }
+                                 showBasics = false
+                             })
+                .modifier(ProgressSaveNotice())
+                .environment(model)
+        }
         .fullScreenCover(isPresented: $showFreePlay) {
             NavigationStack {
                 FreePlayView().modifier(ProgressSaveNotice())
@@ -109,7 +133,8 @@ struct RootView: View {
         .sheet(isPresented: $showPath) {
             NavigationStack {
                 PathView(onOpenNode: { showPath = false; openNode = $0 },
-                         onOpenFreePlay: { showPath = false; showFreePlay = true })
+                         onOpenFreePlay: { showPath = false; showFreePlay = true },
+                         onOpenBasics: { showPath = false; showBasics = true })
                     .gtChrome(.topBarLeading) { ChromeButton.close { showPath = false } }
             }
         }
@@ -149,6 +174,7 @@ struct RootView: View {
             if env["GT_DEMO_SETTINGS"] != nil { tab = .settings }
             if env["GT_DEMO_TAB"] == "path" { showPath = true }
             if env["GT_DEMO_PLACEMENT"] != nil { showPlacement = true }
+            if env["GT_DEMO_BASICS"] != nil { showBasics = true }
             #endif
         }
     }

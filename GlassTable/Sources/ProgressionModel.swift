@@ -147,7 +147,56 @@ final class ProgressionModel {
         Mastery.shouldOfferWalkthrough(state.record(for: concept))
     }
 
+    /// The count that seeds a concept's next spot. Answers with help add to it, so
+    /// opening help, leaving and starting again deals a different spot. Without help
+    /// it equals the graded total, keeping earlier seeds unchanged.
+    func seedCount(for concept: Concept) -> Int {
+        state.record(for: concept).total + state.assistedAttempts(for: concept)
+    }
+
     // MARK: - writes
+
+    enum HelpRoute { case lesson, round, review }
+
+    /// Records that the learner opened help showing the current question's calculation.
+    /// Only a question awaiting its answer can be marked; a round's guided "together"
+    /// step never is. The UI shows the help only after this returns true.
+    @discardableResult
+    func markHelpUsed(_ route: HelpRoute, sessionID: String, ordinal: Int,
+                      expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch else { return false }
+        switch route {
+        case .lesson:
+            guard let session = state.activeNodeSession, session.id == sessionID,
+                  session.phase == .question, session.ordinal == ordinal else { return false }
+            if session.helpOrdinal == ordinal { return true }
+            return commit { $0.activeNodeSession?.helpOrdinal = ordinal }
+        case .round:
+            guard let round = state.activeRound, round.id == sessionID,
+                  round.introPhase == nil, round.phase == .question,
+                  round.ordinal == ordinal else { return false }
+            if round.helpOrdinal == ordinal { return true }
+            return commit { $0.activeRound?.helpOrdinal = ordinal }
+        case .review:
+            guard let session = state.activeReviewSession, session.id == sessionID,
+                  session.phase == .question, session.ordinal == ordinal else { return false }
+            if session.helpOrdinal == ordinal { return true }
+            return commit { $0.activeReviewSession?.helpOrdinal = ordinal }
+        }
+    }
+
+    /// Whether the given question's help was opened. Restored screens read this so
+    /// shown totals stay shown.
+    func helpUsed(_ route: HelpRoute, sessionID: String, ordinal: Int) -> Bool {
+        switch route {
+        case .lesson:
+            state.activeNodeSession.map { $0.id == sessionID && $0.helpOrdinal == ordinal } ?? false
+        case .round:
+            state.activeRound.map { $0.id == sessionID && $0.helpOrdinal == ordinal } ?? false
+        case .review:
+            state.activeReviewSession.map { $0.id == sessionID && $0.helpOrdinal == ordinal } ?? false
+        }
+    }
 
     /// One graded answer: counts, miss streak, FSRS schedule, calibration log.
     @discardableResult
@@ -160,7 +209,9 @@ final class ProgressionModel {
         if let expectedEpoch, expectedEpoch != epoch { return false }
         if let attemptID, state.processedAttemptIDs.contains(attemptID) { return true }
         return commit { candidate in
-        if !assisted {
+        if assisted {
+            ReviewQueue.recordAssistedPractice(&candidate, concept: concept, now: now)
+        } else {
             ReviewQueue.recordReview(&candidate, concept: concept, rating: .forBand(band),
                                      interval: interval, now: now, scheduler: scheduler,
                                      evLoss: evLoss)
@@ -197,7 +248,8 @@ final class ProgressionModel {
         let viaBoss: Bool
         if case .boss = node.kind { viaBoss = true } else { viaBoss = false }
         for concept in Set(scheduled) {
-            guard let conceptEvidence = evidence[concept] else { continue }
+            guard let conceptEvidence = evidence[concept],
+                  conceptEvidence.attempted > 0 else { continue }
             candidate.updateRecord(for: concept) {
                 Mastery.promote(&$0, evidence: conceptEvidence, viaBoss: viaBoss, now: now)
             }
@@ -215,6 +267,20 @@ final class ProgressionModel {
     /// only this marker: no answer, streak, review date, node, or mastery changes.
     func completeFirstLesson() {
         _ = commit { $0.firstLessonCompleted = true }
+    }
+
+    /// Learn leads with the basics lesson only for someone who has not started the
+    /// course: nothing cleared, no starting-point recommendation, lesson unfinished.
+    var shouldSuggestBasicsLesson: Bool {
+        state.basicsLessonCompleted != true
+            && state.placement?.recommendedConcept == nil
+            && !Curriculum.allNodes.contains { status(of: $0) == .cleared }
+    }
+
+    /// Like the first lesson, the basics lesson is practice: finishing it writes only
+    /// its marker.
+    func completeBasicsLesson() {
+        _ = commit { $0.basicsLessonCompleted = true }
     }
 
     // MARK: - beginner sessions and durable summaries
@@ -320,8 +386,11 @@ final class ProgressionModel {
               round.ordinal == ordinal,
               let concept = Concept(rawValue: round.concept),
               round.formatVersion == formatVersion else { return false }
+        let assisted = assisted || round.helpOrdinal == ordinal
         return commit { candidate in
-            if !assisted {
+            if assisted {
+                ReviewQueue.recordAssistedPractice(&candidate, concept: concept, now: now)
+            } else {
                 ReviewQueue.recordReview(&candidate, concept: concept,
                                          rating: .forBand(band), interval: interval,
                                          now: now, scheduler: scheduler, evLoss: evLoss)
@@ -336,7 +405,7 @@ final class ProgressionModel {
                 eligibleCorrectSeconds: seconds, decisionLossBB: evLoss))
             candidate.activeRound?.answers.append(RoundAnswer(
                 attemptID: attemptID, ordinal: ordinal, band: band,
-                submittedAt: now, input: input, reveal: reveal))
+                submittedAt: now, input: input, reveal: reveal, assisted: assisted))
             candidate.activeRound?.phase = .reveal
             candidate.activeRound?.draft = nil
         }
@@ -357,6 +426,7 @@ final class ProgressionModel {
                 candidate.activeRound?.phase = .question
             }
             candidate.activeRound?.draft = nil
+            candidate.activeRound?.helpOrdinal = nil
         }
     }
 
@@ -396,7 +466,8 @@ final class ProgressionModel {
     @discardableResult
     func commitReviewAnswer(sessionID: String, attemptID: String, ordinal: Int,
                             band: GradeBand, input: Data, reveal: Data,
-                            language: LearningLanguage, interval: IntervalAnswer? = nil,
+                            language: LearningLanguage, assisted: Bool = false,
+                            interval: IntervalAnswer? = nil,
                             evLoss: Double? = nil, eligibleSeconds: Double? = nil,
                             now: Date = Date(), expectedEpoch: UUID) -> Bool {
         guard expectedEpoch == epoch, let session = state.activeReviewSession,
@@ -407,21 +478,28 @@ final class ProgressionModel {
         guard session.phase == .question, session.ordinal == ordinal,
               let concept = Concept(rawValue: session.scheduledConcepts[ordinal])
         else { return false }
+        // Help leaves the concept unscheduled, so it stays due and returns later.
+        let assisted = assisted || session.helpOrdinal == ordinal
         return commit { candidate in
-            ReviewQueue.recordReview(&candidate, concept: concept, rating: .forBand(band),
-                                     interval: interval, now: now, scheduler: scheduler,
-                                     evLoss: evLoss)
+            if assisted {
+                ReviewQueue.recordAssistedPractice(&candidate, concept: concept, now: now)
+            } else {
+                ReviewQueue.recordReview(&candidate, concept: concept, rating: .forBand(band),
+                                         interval: interval, now: now, scheduler: scheduler,
+                                         evLoss: evLoss)
+            }
             let key = DailyPracticeKey(day: DayKey(now), concept: concept.rawValue,
                 mode: "review", formatVersion: session.formatVersion,
-                language: language.rawValue, assisted: false)
+                language: language.rawValue, assisted: assisted)
             candidate.recordDetailedAttempt(PracticeEvidence(
                 attemptID: attemptID, key: key, at: now, band: band,
-                eligibleCorrectSeconds: band == .spotOn && (evLoss == nil || evLoss == 0)
-                    ? eligibleSeconds : nil, decisionLossBB: evLoss))
+                eligibleCorrectSeconds: !assisted && band == .spotOn
+                    && (evLoss == nil || evLoss == 0) ? eligibleSeconds : nil,
+                decisionLossBB: evLoss))
             candidate.activeReviewSession?.answers.append(NodeGradedAnswer(
                 concept: concept.rawValue, answer: RoundAnswer(attemptID: attemptID,
                     ordinal: ordinal, band: band, submittedAt: now,
-                    input: input, reveal: reveal)))
+                    input: input, reveal: reveal, assisted: assisted)))
             candidate.activeReviewSession?.phase = .reveal
             candidate.activeReviewSession?.draft = nil
         }
@@ -442,6 +520,7 @@ final class ProgressionModel {
                 candidate.activeReviewSession?.phase = .question
             }
             candidate.activeReviewSession?.draft = nil
+            candidate.activeReviewSession?.helpOrdinal = nil
         }
     }
 
@@ -562,14 +641,17 @@ final class ProgressionModel {
                           now: Date = Date(), expectedEpoch: UUID) -> Bool {
         guard expectedEpoch == epoch,
               let session = state.activeNodeSession, session.id == sessionID,
-              !assisted, !attemptID.isEmpty, !input.isEmpty, !reveal.isEmpty,
+              !attemptID.isEmpty, !input.isEmpty, !reveal.isEmpty,
               eligibleSeconds.map({ $0.isFinite && $0 >= 0 }) ?? true else { return false }
         if session.answers.contains(where: { $0.answer.attemptID == attemptID }) { return true }
         guard session.phase == .question, session.ordinal == ordinal,
               let concept = Concept(rawValue: session.scheduledConcepts[ordinal]),
               let node = Curriculum.node(id: session.nodeID) else { return false }
+        let assisted = assisted || session.helpOrdinal == ordinal
         return commit { candidate in
-            if !assisted {
+            if assisted {
+                ReviewQueue.recordAssistedPractice(&candidate, concept: concept, now: now)
+            } else {
                 ReviewQueue.recordReview(&candidate, concept: concept,
                     rating: .forBand(band), interval: interval, now: now,
                     scheduler: scheduler, evLoss: evLoss)
@@ -583,7 +665,8 @@ final class ProgressionModel {
                     && (evLoss == nil || evLoss == 0)
                     ? eligibleSeconds : nil, decisionLossBB: evLoss))
             let answer = RoundAnswer(attemptID: attemptID, ordinal: ordinal,
-                band: band, submittedAt: now, input: input, reveal: reveal)
+                band: band, submittedAt: now, input: input, reveal: reveal,
+                assisted: assisted)
             candidate.activeNodeSession?.answers.append(
                 NodeGradedAnswer(concept: concept.rawValue, answer: answer))
             candidate.activeNodeSession?.phase = .reveal
@@ -594,7 +677,8 @@ final class ProgressionModel {
                 for graded in candidate.activeNodeSession?.answers ?? [] {
                     guard let gradedConcept = Concept(rawValue: graded.concept) else { continue }
                     evidence[gradedConcept, default: SessionEvidence()].record(
-                        spotOn: graded.answer.band == GradeBand.spotOn.rawValue)
+                        spotOn: graded.answer.band == GradeBand.spotOn.rawValue,
+                        assisted: graded.answer.isAssisted)
                 }
                 if Curriculum.isValidSession(scheduled, for: node),
                    SessionEvidence.validates(evidence, scheduled: scheduled) {
@@ -605,7 +689,7 @@ final class ProgressionModel {
                     candidate.nodes[node.id] = nodeRecord
                     let viaBoss: Bool
                     if case .boss = node.kind { viaBoss = true } else { viaBoss = false }
-                    for (gradedConcept, result) in evidence {
+                    for (gradedConcept, result) in evidence where result.attempted > 0 {
                         candidate.updateRecord(for: gradedConcept) {
                             Mastery.promote(&$0, evidence: result,
                                             viaBoss: viaBoss, now: now)
@@ -631,6 +715,7 @@ final class ProgressionModel {
                 candidate.activeNodeSession?.phase = .question
             }
             candidate.activeNodeSession?.draft = nil
+            candidate.activeNodeSession?.helpOrdinal = nil
         }
     }
 

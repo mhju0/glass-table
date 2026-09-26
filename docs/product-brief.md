@@ -60,7 +60,7 @@ The full glossary is finalized during UI-copy work (developer-owned as the Korea
 | Villain modeled as | — | A hand | **A range that narrows on screen** |
 | Headline metric | GTO frequencies | Win rate | **Equity vs required equity vs action EV** |
 | Numbers | Always on | Always on | **Hidden until you commit** |
-| Price | $40–130/mo | Paid | **Free, forever** |
+| Price | $40–130/mo | Paid | **Free 1.0; one-time unlock later, no ads** |
 
 ## Modes
 
@@ -109,12 +109,13 @@ Glass Table will **not**, at launch or by design:
 - Model rake. Play is rake-free, like every solver.
 - Offer continuous bet sizing. A **fixed sizing menu** (e.g. 33 / 50 / 75 / 100 / 150% pot + all-in) keeps the bot's decision tree and the EV math tractable.
 - Run a backend. Fully on-device: local progress, no accounts, no sync, no receipt validation.
-- Charge money or show ads. Free forever.
+- Show ads, sell subscriptions, or sell chips. 1.0 is free; a one-time unlock (about
+  ₩9,900 / $6.99) is planned for 1.1 (`decision-history.md`, 2026-09-25 release plan).
 - Compete with GTO Wizard on equilibrium/solver depth. Different axis (read-and-exploit, transparency).
 - Give the launch bot multi-street planning. Post-flop is single-street-lookahead heuristics; deeper planning is deferred.
 
 The continuous-sizing non-goal above describes the graded heads-up model. The
 four-seat chip-practice rules support legal integer-chip actions; those hands are
 reviewed factually and do not inherit the heads-up EV grade. The original
-"free forever" and "iPhone only forever" statements were founding positions,
-not new distribution or pricing commitments.
+"free forever" position was replaced by the 2026-09-25 release plan; "iPhone only
+forever" remains a founding position, not a new distribution commitment.

@@ -5,6 +5,7 @@ import GlassTableEngine
 struct PlayView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var failure = false
     @State private var revealAllCards = false
     @State private var raiseAmount = 0.0
@@ -12,6 +13,7 @@ struct PlayView: View {
     @State private var chooseNewOpponent = false
     @State private var showSetup = false
     @State private var showGraded = false
+    @State private var showTableGuide = false
 
     var body: some View {
         Group {
@@ -31,13 +33,17 @@ struct PlayView: View {
         GeometryReader { viewport in
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    Text(language.text("플레이", "Play")).font(GT.title(30))
                     if let table = model.state.tableState {
-                        HStack {
-                            Text(tableTitle(table.seatCount)).font(GT.title(20))
-                            Spacer()
-                            Text(language.text("\(table.handNumber + 1)번째 핸드", "Hand \(table.handNumber + 1)"))
-                                .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                        playTitle
+                        // At accessibility sizes the title takes its own row, so it
+                        // wraps between words instead of squeezing beside the controls.
+                        if typeSize.isAccessibilitySize {
+                            VStack(alignment: .leading, spacing: 4) {
+                                tableTitleText(table)
+                                HStack { tableHeaderControls(table) }
+                            }
+                        } else {
+                            HStack { tableTitleText(table); tableHeaderControls(table) }
                         }
                         tableDiagram(table)
                         if let review = table.review {
@@ -72,12 +78,18 @@ struct PlayView: View {
                         policyDetails(table)
                         gradedCard
                     } else {
-                        Text(language.text("컴퓨터와 한 판씩 연습해요. 실제 돈은 쓰지 않아요.",
-                                           "Practice against computers. No real money."))
-                            .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
-                            .lineSpacing(GT.Typography.bodyLineSpacing)
-                        Spacer(minLength: 12)
-                        VStack(spacing: 12) {
+                        // The screen's midline falls in the gap between the two choices.
+                        // Content is padded 18 inside a viewport that starts below the top
+                        // safe area, so the midline is converted into this layout's space.
+                        let screenHeight = viewport.safeAreaInsets.top + viewport.size.height
+                            + viewport.safeAreaInsets.bottom
+                        MidlineSplitLayout(splitY: screenHeight / 2 - viewport.safeAreaInsets.top - 18,
+                                           spacing: 22, gap: 12) {
+                            playTitle
+                            Text(language.text("컴퓨터와 한 판씩 연습해요. 실제 돈은 쓰지 않아요.",
+                                               "Practice against computers. No real money."))
+                                .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
+                                .lineSpacing(GT.Typography.bodyLineSpacing)
                             Button { showSetup = true } label: {
                                 TapCardLabel(title: language.text("자유 대전", "Free table"),
                                              detail: language.text("컴퓨터 한 명에서 세 명과 한 판을 끝까지 쳐요. 여기서는 채점하지 않아요.",
@@ -112,6 +124,20 @@ struct PlayView: View {
             #endif
         }
         .onChange(of: model.epoch) { _, value in epoch = value; revealAllCards = false }
+        .onChange(of: model.state.tableState != nil, initial: true) { _, hasTable in
+            // The first table explains itself once; the info button reopens it.
+            guard hasTable, !Self.guideSeen else { return }
+            #if DEBUG
+            // Demo tables are for screenshots of the table itself unless asked.
+            let env = ProcessInfo.processInfo.environment
+            if env["GT_DEMO_PRACTICE"] != nil, env["GT_DEMO_PLAY_GUIDE"] == nil { return }
+            #endif
+            Self.guideSeen = true
+            showTableGuide = true
+        }
+        .sheet(isPresented: $showTableGuide) {
+            PlayTableGuideView { showTableGuide = false }
+        }
         .confirmationDialog(language.text("새 테이블을 시작할까요?", "Start a fresh table?"),
                             isPresented: $chooseNewOpponent, titleVisibility: .visible) {
             Button(language.text("테이블 다시 만들기", "Set up a new table")) {
@@ -130,6 +156,40 @@ struct PlayView: View {
         }
     }
 
+    private static var guideKey: String {
+        #if DEBUG
+        let suffix = ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"] ?? "shared"
+        #else
+        let suffix = "shared"
+        #endif
+        return "play.tableGuideSeen.v1.\(suffix)"
+    }
+
+    private static var guideSeen: Bool {
+        get { UserDefaults.standard.bool(forKey: guideKey) }
+        set { UserDefaults.standard.set(newValue, forKey: guideKey) }
+    }
+
+    private func tableTitleText(_ table: PracticeTableState) -> some View {
+        Text(tableTitle(table.seatCount)).font(GT.title(20))
+    }
+
+    @ViewBuilder private func tableHeaderControls(_ table: PracticeTableState) -> some View {
+        Button { showTableGuide = true } label: {
+            Image(systemName: "info.circle")
+                .font(GT.title(18))
+                .foregroundStyle(GT.inkSecondary)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel(language.text("테이블 보는 법", "How to read the table"))
+        .accessibilityIdentifier("play-table-guide")
+        Spacer()
+        Text(language.text("\(table.handNumber + 1)번째 핸드", "Hand \(table.handNumber + 1)"))
+            .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+    }
+
     private func tableTitle(_ players: Int) -> String {
         switch players {
         case 2: language.text("두 명의 연습 테이블", "Two-player practice")
@@ -139,6 +199,10 @@ struct PlayView: View {
     }
 
     /// The graded 1:1 exercise lives in Play as its own mode, beside the free table.
+    private var playTitle: some View {
+        Text(language.text("플레이", "Play")).font(GT.title(30))
+    }
+
     private var gradedCard: some View {
         Button { showGraded = true } label: {
             TapCardLabel(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
@@ -345,5 +409,110 @@ struct PlayView: View {
         case "bet": language.text("베팅 +\(event.chips)", "Bet +\(event.chips)")
         default: language.text("올리기 +\(event.chips)", "Raised +\(event.chips)")
         }
+    }
+}
+
+/// What each part of the free table shows, in the order a new player looks at it.
+private struct PlayTableGuideView: View {
+    @Environment(\.learningLanguage) private var language
+    let onClose: () -> Void
+
+    private var items: [(symbol: String, title: String, detail: String)] {
+        [
+            ("person.crop.square", language.text("내 카드", "Your cards"),
+             language.text("왼쪽 아래 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요.",
+                           "You sit bottom left. Only you can see your two cards; others can't.")),
+            ("rectangle.on.rectangle", language.text("상대 카드", "Opponents' cards"),
+             language.text("상대 카드는 뒤집혀 있어요. 핸드가 끝나면 그때 한꺼번에 공개돼요.",
+                           "Opponents' cards stay face down. You see them once the hand ends.")),
+            ("square.grid.3x1.below.line.grid.1x2", language.text("공용 카드", "Shared cards"),
+             language.text("가운데 카드는 모두가 함께 써요. 세 장, 한 장, 다시 한 장 순서로 펼쳐져요.",
+                           "Everyone uses the middle cards. They come out three, one, one.")),
+            ("circle.grid.cross", language.text("팟", "The pot"),
+             language.text("가운데 숫자는 이번 핸드에 모인 칩이에요. 이긴 사람이 모두 가져가요.",
+                           "The middle number is every chip bet this hand. The winner takes it.")),
+            ("hand.point.right", language.text("차례", "Whose turn"),
+             language.text("밝게 표시된 자리가 행동할 차례예요. 내 차례에만 버튼이 열려요.",
+                           "The highlighted seat acts next. Your buttons open on your turn.")),
+            ("arrow.up.arrow.down", language.text("행동의 가격", "What each action costs"),
+             language.text("폴드는 무료로 핸드를 떠나요. 콜은 버튼에 적힌 칩을 내고, 레이즈는 가격을 더 올려요.",
+                           "Folding leaves the hand for free. Calling pays the chips on the button; raising sets a higher price.")),
+        ]
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(language.text("테이블 보는 법", "How to read the table"))
+                        .font(GT.title(26)).foregroundStyle(GT.ink)
+                    Text(language.text("실제 돈은 쓰지 않아요. 칩은 연습용이에요.",
+                                       "No real money. The chips are for practice."))
+                        .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                    ForEach(items, id: \.title) { item in
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Image(systemName: item.symbol)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(GT.inkSecondary)
+                                .frame(width: 24)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(item.title).font(GT.semibold(16)).foregroundStyle(GT.ink)
+                                Text(item.detail).font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(14)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .gtPanel()
+                        .accessibilityElement(children: .combine)
+                    }
+                    FeltCTAButton(title: language.text("테이블로 가기", "Go to the table"), action: onClose)
+                        .accessibilityIdentifier("play-table-guide-close")
+                }
+                .padding(20)
+            }
+            .background(FeltBackground())
+            .gtChrome(.topBarTrailing) { ChromeButton.close(onClose) }
+        }
+        .accessibilityIdentifier("play-table-guide-sheet")
+    }
+}
+
+/// Stacks a header, then two cards whose shared gap sits at `splitY`. When the header
+/// is too tall for that (large text), the cards simply follow it.
+private struct MidlineSplitLayout: Layout {
+    let splitY: CGFloat
+    let spacing: CGFloat
+    let gap: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 0
+        return CGSize(width: width, height: frames(width: width, subviews: subviews).last?.maxY ?? 0)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews,
+                       cache: inout ()) {
+        for (subview, frame) in zip(subviews, frames(width: bounds.width, subviews: subviews)) {
+            subview.place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
+                          proposal: ProposedViewSize(frame.size))
+        }
+    }
+
+    private func frames(width: CGFloat, subviews: Subviews) -> [CGRect] {
+        let sizes = subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)) }
+        guard sizes.count >= 2 else { return [] }
+        var frames: [CGRect] = []
+        var y: CGFloat = 0
+        for size in sizes.dropLast(2) {
+            frames.append(CGRect(x: 0, y: y, width: width, height: size.height))
+            y += size.height + spacing
+        }
+        let first = sizes[sizes.count - 2], second = sizes[sizes.count - 1]
+        let firstY = max(y, splitY - gap / 2 - first.height)
+        frames.append(CGRect(x: 0, y: firstY, width: width, height: first.height))
+        frames.append(CGRect(x: 0, y: firstY + first.height + gap, width: width, height: second.height))
+        return frames
     }
 }

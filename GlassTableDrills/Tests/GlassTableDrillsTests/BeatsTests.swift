@@ -182,14 +182,15 @@ final class BeatsTests: XCTestCase {
     func testPositionScriptListsTheSeatsThatActBehind() {
         let beats = BeatScript.position(PositionSpot(question: .behind(.hj, preflop: true)))
         let all = text(beats)
-        XCTAssertTrue(all.contains("뒤에 4명"))
+        XCTAssertEqual(beats[2].value, "4명")
         XCTAssertTrue(all.contains("CO"))
         XCTAssertTrue(all.contains("BTN"))
     }
 
     func testLastSeatScriptDoesNotClaimSeatsBehind() {
         let beats = BeatScript.position(PositionSpot(question: .behind(.bb, preflop: true)))
-        XCTAssertTrue(beats.map(\.caption).joined().contains("뒤에 아무도 없어요"))
+        XCTAssertEqual(beats[2].value, "0명")
+        XCTAssertTrue(beats[2].detail?.contains("뒤에 아무도 없어요") == true)
     }
 
     func testCombosScriptWalksFromBaselineToCount() {

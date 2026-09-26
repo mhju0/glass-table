@@ -250,12 +250,12 @@ public enum BeatScript {
             return [
                 Beat("\(preflop ? "프리플랍" : "플랍 이후") 행동 순서예요",
                      detail: order.map(\.rawValue).joined(separator: " → ")),
-                Beat("내 자리는 \(p.rawValue)",
+                Beat("내 자리", value: p.rawValue,
                      detail: preflop
                         ? "프리플랍은 블라인드가 마지막에 행동해요."
                         : "플랍 이후에는 블라인드가 먼저, 버튼이 마지막이에요."),
-                Beat(after.isEmpty ? "뒤에 아무도 없어요" : "뒤에 \(after.count)명 남았어요",
-                     detail: after.isEmpty ? "\(p.rawValue)가 마지막이에요."
+                Beat("내 뒤에 남은 사람", value: "\(after.count)명",
+                     detail: after.isEmpty ? "뒤에 아무도 없어요. \(p.rawValue)가 마지막이에요."
                                            : after.map(\.rawValue).joined(separator: " · ")),
                 Beat("뒤에 사람이 많을수록 좁게 플레이해요",
                      detail: "누군가 좋은 패를 들고 있을 확률이 그만큼 올라가니까요."),
@@ -265,9 +265,10 @@ public enum BeatScript {
             return [
                 Beat("플랍 이후 행동 순서예요",
                      detail: Position.postflopOrder.map(\.rawValue).joined(separator: " → ")),
-                Beat("\(a.rawValue) vs \(b.rawValue)",
+                Beat("자리 비교", value: "\(a.rawValue) vs \(b.rawValue)",
                      detail: "늦게 행동할수록 상대의 행동을 먼저 보고 결정할 수 있어요."),
-                Beat("\(later.rawValue)가 더 좋아요", detail: "더 늦게 행동하니까요."),
+                Beat("더 늦은 자리", value: later.rawValue,
+                     detail: "상대의 행동을 먼저 보고 정할 수 있어요."),
             ]
         }
     }
@@ -315,24 +316,24 @@ public enum BeatScript {
     public static func potOdds(_ s: BetSpot, language: LearningLanguage = .korean) -> [Beat] {
         if language == .english { return EnglishBeatScript.potOdds(s) }
         return [
-            Beat("콜하면 얼마를 걸고 얼마를 받나요",
-                 detail: "\(s.bet)bb를 내고, 이기면 팟 \(s.pot) + 벳 \(s.bet) + 내 콜 \(s.bet)을 가져와요."),
-            Beat("필요 에퀴티 = 내 콜 ÷ 전체 팟",
-                 detail: "\(s.bet) ÷ (\(s.pot) + \(s.bet) + \(s.bet))"),
-            Beat("\(pctText(s.requiredPct))%보다 이길 확률이 높으면 콜",
-                 detail: "낮으면 폴드가 이득이에요."),
+            Beat("콜 가격", value: "\(s.bet)bb",
+                 detail: "상대가 벳하기 전 팟은 \(s.pot)bb예요."),
+            Beat("콜한 뒤 전체 팟", value: "\(s.pot + s.bet * 2)bb",
+                 detail: "팟 \(s.pot) + 상대 벳 \(s.bet) + 내 콜 \(s.bet)."),
+            Beat("필요 에퀴티", value: "\(pctText(s.requiredPct))%",
+                 detail: "내 콜 ÷ 전체 팟. 이길 확률이 이보다 높으면 콜해요."),
         ]
     }
 
     public static func mdf(_ s: BetSpot, language: LearningLanguage = .korean) -> [Beat] {
         if language == .english { return EnglishBeatScript.mdf(s) }
         return [
-            Beat("상대는 \(s.bet)bb로 팟 \(s.pot)bb를 노려요",
-                 detail: "내가 너무 자주 폴드하면 상대의 블러프가 공짜가 돼요."),
-            Beat("MDF = 팟 ÷ (팟 + 벳)",
-                 detail: "\(s.pot) ÷ (\(s.pot) + \(s.bet)) = \(pctText(s.mdfPct))%"),
-            Beat("최소 \(pctText(s.mdfPct))%는 지켜요",
-                 detail: "그래야 상대의 블러프가 자동 이익이 되지 않아요."),
+            Beat("상대의 블러프", value: "\(s.bet)bb 걸기",
+                 detail: "팟 \(s.pot)bb를 가져가려고 해요."),
+            Beat("MDF · 전체 방어 비율", value: "\(pctText(s.mdfPct))%",
+                 detail: "팟 \(s.pot) ÷ (팟 \(s.pot) + 벳 \(s.bet))."),
+            Beat("충분히 지켜요",
+                 detail: "전체 핸드에서 너무 자주 폴드하면 빈 벳이 저절로 이익이 돼요. 한 핸드의 정답은 아니에요."),
         ]
     }
 
@@ -695,11 +696,11 @@ public enum BeatScript {
     public static func callFold(_ s: CallFoldSpot, language: LearningLanguage = .korean) -> [Beat] {
         if language == .english { return EnglishBeatScript.callFold(s) }
         return [
-            Beat("지금 상황이에요", detail: "팟 \(s.pot)bb, 상대 벳 \(s.bet)bb.", focus: .table),
-            Beat("이길 확률", detail: "\(pctText(s.equityPct))%", focus: .table,
+            Beat("결정의 가격", value: "팟 \(s.pot)bb · 벳 \(s.bet)bb", focus: .table),
+            Beat("이길 확률", value: "\(pctText(s.equityPct))%", focus: .table,
                  highlight: s.hero),
-            Beat("낼 가격", detail: "필요 에퀴티 \(pctText(s.requiredPct))%"),
-            Beat(s.correctIsCall ? "이길 확률이 더 커요 → 콜" : "낼 가격이 더 비싸요 → 폴드",
+            Beat("필요 에퀴티", value: "\(pctText(s.requiredPct))%"),
+            Beat("두 값을 비교해요", value: s.correctIsCall ? "콜" : "폴드",
                  detail: "\(pctText(s.equityPct))% vs \(pctText(s.requiredPct))%"),
         ]
     }
