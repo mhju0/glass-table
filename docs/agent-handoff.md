@@ -156,3 +156,13 @@ and, for older work, [the 09-23 archive](handoff-archive/2026-09-23-before-combi
   scroll fade bands; the audit edit on that branch is exploratory and not for merging as is.
   Before/after page: owner's private artifact "Glass Table Open Calls" (link not kept in repo).
 - Next: owner picks per section; cherry-pick the chosen parts, run the full suite, commit.
+
+## 2026-09-26: Open calls #1 and #2 merged into the feature branch
+
+- Owner approved #1 (whole words at large text) and #2 (KO/EN parity rewrites); applied
+  from `proposal/known-issues` without its audit-test change. Full suite: 69 UI tests,
+  one timeout in `testIntervalAnswerSurvivesRelaunchBeforeNext` while a second simulator
+  ran in parallel; it passed 3 of 3 reruns.
+- #3 (contrast) still open; owner asked for more research. Prototype on branch
+  `proposal/contrast` in `../glass-table-proposal`: Increase Contrast token variants and a
+  darker card red. Not merged.

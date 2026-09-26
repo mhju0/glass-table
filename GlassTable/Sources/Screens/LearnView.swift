@@ -35,11 +35,11 @@ struct LearnView: View {
                     .accessibilityIdentifier("learn-path")
                     Button(action: onOpenPractice) {
                         learningRow(language.text("한 가지 집중 연습", "Practice one skill"),
-                                    language.text("원하는 주제를 골라 다섯 문제씩 풀어요.", "Pick a topic for a five-question round."), icon: "rectangle.stack")
+                                    language.text("원하는 주제를 골라 다섯 문제씩 풀어요.", "Five questions on a topic you pick."), icon: "rectangle.stack")
                     }.buttonStyle(GTPress())
                     if !due.isEmpty {
                         Button(action: onOpenReview) {
-                            learningRow(language.text("배운 내용 복습", "Review what you've learned"),
+                            learningRow(language.text("배운 내용 복습", "Review topics"),
                                         language.text("복습할 주제 \(due.count)개", "\(due.count) topics ready for review"), icon: "arrow.clockwise")
                         }.buttonStyle(GTPress())
                     }

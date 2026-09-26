@@ -218,15 +218,15 @@ struct HoldemBasicsView: View {
                               "Flop · Three shared cards at once, then bet.")
         case 2: language.text("턴 · 공용 카드 1장을 더 펼치고 베팅해요.",
                               "Turn · One more shared card, then bet.")
-        default: language.text("리버 · 마지막 1장 뒤 베팅하고, 남은 사람끼리 패를 비교해요.",
-                               "River · The last card and a bet, then hands are compared.")
+        default: language.text("리버 · 마지막 1장을 펼치고 베팅한 뒤, 남은 사람끼리 패를 비교해요.",
+                               "River · The last card, a final bet, then the hands are compared.")
         }
     }
 
     private var bestFivePage: some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
             intro(language.text("일곱 장 중 가장 좋은 다섯 장", "Best five of seven"),
-                  language.text("내 카드 2장과 공용 카드 5장, 모두 7장에서 가장 좋은 5장으로 겨뤄요.",
+                  language.text("내 카드 2장과 공용 카드 5장을 합친 7장 중에서 가장 좋은 5장끼리 승부를 겨뤄요.",
                                 "Your two cards and the five shared cards make seven. Your best five play."))
             VStack(alignment: .center, spacing: 12) {
                 sevenCardRow
@@ -236,8 +236,8 @@ struct HoldemBasicsView: View {
             }
             .frame(maxWidth: .infinity)
             VStack(alignment: .leading, spacing: 10) {
-                Text(language.text("하트 5장이 플러시를 만들어요. 테두리가 없는 두 장은 쓰지 않아요.",
-                                   "Five hearts make a flush. The two unmarked cards don't play."))
+                Text(language.text("하트 5장이 플러시를 만들어요. 테두리가 없는 나머지 두 장은 이번에 쓰지 않아요.",
+                                   "Five hearts make a flush. The two cards without an outline don't play this time."))
                 Text(language.text("내 카드를 꼭 두 장 다 쓸 필요는 없어요. 공용 카드 5장이 가장 좋으면 그대로 써요.",
                                    "You needn't use both of yours. If the shared five are best, they play."))
             }
@@ -294,7 +294,7 @@ struct HoldemBasicsView: View {
     private var ladderPage: some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
             intro(language.text("족보: 위로 갈수록 강해요", "Hand ranks, top down"),
-                  language.text("대체로 드문 조합일수록 강해요. 하이 카드만 예외예요. 7장으로 아무 조합도 못 만들기가 오히려 드물거든요. 무늬에는 우열이 없어요.",
+                  language.text("대체로 드문 조합일수록 강해요. 하이 카드만 예외예요. 7장으로 아무 조합도 못 만드는 경우가 오히려 드물거든요. 무늬에는 우열이 없어요.",
                                 "Rarer hands usually rank higher. High card is the exception: with seven cards, making nothing is uncommon. Suits never rank."))
             VStack(spacing: 0) {
                 ForEach(Array(HoldemBasics.ladder.enumerated()), id: \.element.id) { index, rank in
@@ -342,8 +342,8 @@ struct HoldemBasicsView: View {
     private var checkPage: some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
             intro(language.text("어느 쪽이 이길까요?", "Which hand wins?"),
-                  language.text("플러시와 스트레이트예요. 방금 본 족보를 떠올려 보세요.",
-                                "A flush against a straight. Recall the ladder you just saw."))
+                  language.text("플러시 대 스트레이트예요. 족보를 떠올려 보세요.",
+                                "A flush against a straight. Recall the ladder."))
             VStack(spacing: 12) {
                 checkHand(HoldemBasics.checkFlush)
                 checkHand(HoldemBasics.checkStraight)
@@ -466,8 +466,8 @@ struct HoldemBasicsView: View {
                                  : language.text("플러시가 이겨요", "The flush wins"))
                         .font(GT.title(GT.Typography.resultSize)).foregroundStyle(band.ink)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text(language.text("플러시(\(flush))가 스트레이트(\(straight))보다 드물어서 더 강해요.",
-                                       "A flush (\(flush)) is rarer than a straight (\(straight)), so it ranks higher."))
+                    Text(language.text("플러시(\(flush))가 스트레이트(\(straight))보다 드물어서 족보에서도 한 단계 더 위에 있어요.",
+                                       "A flush (\(flush)) is rarer than a straight (\(straight)), so it sits one step higher on the ladder."))
                         .font(GT.body(15)).foregroundStyle(GT.ink)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                         .fixedSize(horizontal: false, vertical: true)

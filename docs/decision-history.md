@@ -259,6 +259,14 @@ pasted text and the standing rule is never to push to main without asking.
   bar; no gear or globe buttons at the top; language lives in Settings.
 - **Why:** fewer top controls, more room for learning content.
 
+## 2026-09-26 — Whole words at large text, KO/EN line parity rewrites
+- **Decided by:** owner. **What:** titles follow Apple's title text styles so they grow
+  less at accessibility sizes; the table hand header stacks at those sizes; "combinations"
+  becomes the glossary's "combos"; 14 Korean/English copy pairs rewritten to the same line
+  count.
+- **Why:** English AX5 had six mid-word breaks; the parity check flagged 15 lines. Both
+  now read 0. Default-size layouts are unchanged.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a

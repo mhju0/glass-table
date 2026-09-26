@@ -75,7 +75,7 @@ struct TablePolicyReferenceView: View {
     private var rangeSummary: some View {
         VStack(alignment: .leading, spacing: 8) {
             SectionLabel(text: language.text("현재 상대 레인지", "Possible opponent hands now"))
-            Text(language.text("\(hand.villainCombos.count)콤보", "\(hand.villainCombos.count) combinations"))
+            Text(language.text("\(hand.villainCombos.count)콤보", "\(hand.villainCombos.count) combos"))
                 .font(GT.title(28).monospacedDigit()).foregroundStyle(GT.onFelt)
             Text(language.text(
                 "\(hand.villainSeat.rawValue) 오픈 레인지에서 내 카드와 공개된 보드를 빼고, "

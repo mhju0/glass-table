@@ -372,8 +372,8 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings-reminder-time")
             }
             if reminderRefused {
-                Text(language.text("알림이 꺼져 있어요. 설정 앱에서 Glass Table 알림을 켤 수 있어요.",
-                                   "Notifications are off for Glass Table. You can allow them in the Settings app."))
+                Text(language.text("알림이 꺼져 있어요. 설정 앱에서 Glass Table 알림을 켜 주세요.",
+                                   "Notifications are off. Allow them in the Settings app."))
                     .font(GT.body(12)).foregroundStyle(GT.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
                 if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
@@ -455,8 +455,8 @@ private struct ResponsiblePlayView: View {
                     .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(language.text("도박 때문에 힘들다면 혼자 버티지 말고 상담을 받아 보세요.",
-                                   "If gambling is hurting you or someone close, talk to someone."))
+                Text(language.text("도박 때문에 힘들다면 혼자 버티지 말고, 아래 상담 기관에 연락해 도움을 받아 보세요.",
+                                   "If gambling is hurting you or someone close to you, reach out to a helpline below."))
                     .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)

@@ -359,11 +359,15 @@ struct TableView: View {
     /// The action history remains directly below so it does not compete with ownership.
     private func seatRow(_ hand: TableHand) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
+            // At accessibility sizes the two halves stack, so neither breaks inside a word.
+            let header = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+            header {
                 Text(language.text("상대 카드 · \(hand.villainSeat.rawValue) · \(hand.villain.beginnerTitle(in: language))",
                                    "Opponent cards · \(hand.villainSeat.rawValue) · \(hand.villain.beginnerTitle(in: language))"))
                     .font(GT.title(16)).foregroundStyle(GT.onFelt)
-                Spacer(minLength: 8)
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
                 // The bot's live range, always countable — the printable claim at
                 // the table (spec §4).
                 Button { showPolicyReference = true } label: {

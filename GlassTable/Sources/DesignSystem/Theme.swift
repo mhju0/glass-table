@@ -144,9 +144,20 @@ enum GT {
     static let cardInk = Color(hex: 0x1A2621)
     static let cardSuitRed = Color(hex: 0xC0392B)
 
-    // relativeTo: .body makes ordinary text follow Dynamic Type.
+    // relativeTo: .body makes ordinary text follow Dynamic Type. Titles follow Apple's
+    // title styles, which grow less at accessibility sizes, so a long word stays whole.
     static func title(_ s: CGFloat) -> Font {
-        .custom("Pretendard-Bold", size: s, relativeTo: .body)
+        .custom("Pretendard-Bold", size: s, relativeTo: titleStyle(s))
+    }
+
+    private static func titleStyle(_ s: CGFloat) -> Font.TextStyle {
+        switch s {
+        case 30...: .largeTitle
+        case 26..<30: .title
+        case 21..<26: .title2
+        case 19..<21: .title3
+        default: .body
+        }
     }
 
     /// Card ranks and suits are pictograms sized to the card. VoiceOver carries the
