@@ -1081,7 +1081,7 @@ private struct PositionDrill: View {
                 "\(p.rawValue) 자리예요. \(preflop ? "프리플랍" : "플랍 이후")에 내 뒤에 몇 명이 남았나요?",
                 "You are in \(p.rawValue). How many players act after you \(preflop ? "before the flop" : "after the flop")?")
         case let .whichIsLater(a, b):
-            return language.text("\(a.rawValue)와 \(b.rawValue) 중 어느 쪽이 더 늦게 행동하나요?",
+            return language.text("\(KO.and(a.rawValue)) \(b.rawValue) 중 어느 쪽이 더 늦게 행동하나요?",
                                  "Which seat acts later: \(a.rawValue) or \(b.rawValue)?")
         }
     }
@@ -2495,7 +2495,7 @@ private struct DefendDrill: View {
                 SectionLabel(text: language.text("내 핸드", "Your hand"))
                 CardRow(cards: spot.hand)
                 SectionLabel(text: language.text("상황", "Situation")).padding(.top, 8)
-                Text(language.text("\(spot.opener.rawValue)가 3bb 오픈했어요",
+                Text(language.text("\(KO.subject(spot.opener.rawValue)) 3bb 오픈했어요",
                                    "\(spot.opener.rawValue) raises first to 3bb"))
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                 Text(language.text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",

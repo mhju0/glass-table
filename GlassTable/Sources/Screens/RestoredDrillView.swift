@@ -469,7 +469,7 @@ private struct RestoredDrillContextView: View {
                                    "\(seat.rawValue) · \(preflop ? "before" : "after") the flop"))
                     .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
             } else if case let .whichIsLater(a, b) = spot.question {
-                Text(language.text("\(a.rawValue)와 \(b.rawValue) 중 늦은 자리",
+                Text(language.text("\(KO.and(a.rawValue)) \(b.rawValue) 중 늦은 자리",
                                    "Which acts later: \(a.rawValue) or \(b.rawValue)?"))
                     .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
             }
@@ -516,7 +516,7 @@ private struct RestoredDrillContextView: View {
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .defend:
             let spot = DefendSpotGenerator.spot(baseSeed: seed, index: index)
-            Text(language.text("\(spot.opener.rawValue)가 3bb 오픈",
+            Text(language.text("\(KO.subject(spot.opener.rawValue)) 3bb 오픈",
                                "\(spot.opener.rawValue) raises first to 3bb"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .combos:

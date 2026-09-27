@@ -67,7 +67,7 @@ struct OpponentDetailView: View {
                 DisclosureGroup(language.text("숫자와 포커 용어", "Numbers and poker terms")) {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("VPIP \(Int(opponent.vpip))% · PFR \(Int(opponent.pfr))%")
-                        Text(language.text("VPIP는 스스로 칩을 내고 들어오는 비율, PFR은 공용 카드 전에 올리는 비율이에요. 원래 이름은 \(opponent.name)이에요.", "VPIP is voluntary participation; PFR is raising before shared cards. The traditional name is \(opponent.rawValue)."))
+                        Text(language.text("VPIP는 스스로 칩을 내고 들어오는 비율, PFR은 공용 카드 전에 올리는 비율이에요. 원래 이름은 \(KO.copula(opponent.name))", "VPIP is voluntary participation; PFR is raising before shared cards. The traditional name is \(opponent.rawValue)."))
                         Text(language.text("공개된 모델의 기준값이에요. 두 비율 모두 전체 핸드 기준이며, 실제 선택은 카드와 베팅 상황에 따라 달라져요. 관측한 성적이나 난이도가 아니에요.", "These are published model reference values, both measured per hand. Choices vary with cards and the betting situation. They aren't observed results or difficulty ratings."))
                     }
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary).padding(.top, 10)
