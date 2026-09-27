@@ -297,6 +297,16 @@ pasted text and the standing rule is never to push to main without asking.
   still never carry or buy value.
 - **Why:** the rule contradicted the business model chosen on 2026-09-25.
 
+## 2026-09-27 — Play grades like the lessons; the app follows Bold Text
+- **Decided by:** owner (option A of the Play grading mockup, and "do bold text").
+  **What:** a graded decision at the table uses the lessons' verdict row ("내 선택 →
+  최선" or "→ 차트"). The sheet takes the verdict colour, and the prices and chart button
+  fold away with the handle so the hole cards can be read. With iOS Bold Text on, every
+  Pretendard weight steps up one (Regular→SemiBold→Bold→ExtraBold). Card faces stay
+  fixed.
+- **Why:** Play was the last place with its own verdict wording, and its sheet covered
+  the hero cards. Custom fonts ignore Bold Text, so the setting only reached system text.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a

@@ -162,3 +162,25 @@ Full entries: [the 09-27 archive](handoff-archive/2026-09-27-before-answer-patte
 - Tests: full UI suite on iPhone 16e, 127 passed. `testShowdownWalkthroughAdvancesAtAccessibilityXXXL`
   also fails on unmodified `main` on that simulator (at step 7 the button is still "다음");
   CI passed it on its own device. Not investigated.
+
+## 2026-09-27: Play grades like the lessons; Bold Text (branch `fix/lesson-answer-panel`)
+
+- Resolved since the last entry: Korean particles after Latin seat names, digits and
+  hand names now follow how they are read (`KO.finalSound`, commit 1739ab7).
+- Play: `TableView.turnReveal` uses `VerdictRow` with the lesson words. `evPrices` and
+  the chart button sit in `RevealDetail`. `sheetBand` tints the `ActionSheet` or the AX
+  card only while a turn is graded and the hand is not over. At AX sizes `priceRow`
+  puts its tag above the row, which fixes 최/선 and 내/선/택 breaking one syllable per line.
+- Bold Text: `GT.title/semibold/body` read `UIAccessibility.isBoldTextEnabled` and step
+  one Pretendard weight up. `Pretendard-ExtraBold.otf` is added: v1.309, from the same
+  release as the bundled weights; its Bold is byte-identical. `GT.fixed` card glyphs
+  stay Bold. `Font.custom("Pretendard").weight(_)` was tried: SwiftUI does not apply
+  Bold Text to a custom family.
+- Limit (open, by choice): the fonts are built when a view is built. A live toggle
+  therefore reaches only views that redraw; reopening the app makes it consistent.
+  An `.id(legibilityWeight)` rebuild would reset in-progress state such as a table hand,
+  and above `RootView` it would create a second `ProgressionModel`.
+- `tools/uisweep.sh` takes `GT_BOLD_TEXT=1`: it writes
+  `com.apple.Accessibility EnhancedTextLegibilityEnabled` on the disposable simulator.
+  A full bold sweep on the iPhone 16e (large + AX5) showed no mid-word breaks.
+- Next: owner decides on merging to `main` and on a build 14 phone install.
