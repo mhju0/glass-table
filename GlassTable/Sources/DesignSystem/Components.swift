@@ -299,7 +299,7 @@ struct SolvedWithHelpLabel: View {
     }
 }
 
-/// "용어 · 팟 오즈" — opens the glossary scrolled to one term, from inside a reveal.
+/// "용어 · 팟 오즈" — opens the glossary from inside a reveal.
 /// Owns its own sheet state so a call site is one line.
 struct GlossaryChip: View {
     @Environment(\.learningLanguage) private var language
@@ -322,7 +322,7 @@ struct GlossaryChip: View {
         .buttonStyle(GTPress())
         .accessibilityLabel(language.text("용어집에서 \(term) 보기",
                                           "Open glossary entry for \(GlossaryView.displayName(for: term, language: language))"))
-        .sheet(isPresented: $open) { GlossaryView(focus: term) }
+        .sheet(isPresented: $open) { GlossaryView() }
     }
 }
 
@@ -370,26 +370,80 @@ extension View {
         background(GT.onFelt.opacity(0.08),
                    in: RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
+
+    /// Pads content so the visible gap above its first line equals the gap beside it.
+    /// Use `GT.Space.card` inside a card and `GT.Space.sheet` inside a sheet.
+    func gtInset(_ inset: CGFloat) -> some View {
+        padding(.horizontal, inset)
+            .padding(.top, inset - GT.Space.leading)
+            .padding(.bottom, inset)
+    }
 }
 
 // MARK: - navigation chrome
 
-/// The one nav-bar control, drawn by us rather than by the system.
+/// What a screen sits on. A page runs to the screen edge; a sheet has a rounded top
+/// corner to clear, so its content and its close control sit further in.
+enum GTSurface {
+    case page, sheet
+
+    /// The content edge, and the distance from the top and side to the close control.
+    var inset: CGFloat { self == .page ? GT.Space.edge : GT.Space.sheet }
+}
+
+private struct GTSurfaceKey: EnvironmentKey { static let defaultValue = GTSurface.page }
+private struct ChromeEdgeKey: EnvironmentKey { static let defaultValue = HorizontalEdge.leading }
+
+extension EnvironmentValues {
+    var gtSurface: GTSurface {
+        get { self[GTSurfaceKey.self] }
+        set { self[GTSurfaceKey.self] = newValue }
+    }
+
+    fileprivate var chromeEdge: HorizontalEdge {
+        get { self[ChromeEdgeKey.self] }
+        set { self[ChromeEdgeKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Marks the content of a `.sheet`, so its chrome and content edge clear the corner.
+    func gtSheetSurface() -> some View { environment(\.gtSurface, .sheet) }
+
+    /// Side and bottom padding for content under a `gtChrome` bar: the surface's edge.
+    /// No top padding — the bar already leaves the gap under its controls.
+    func gtContentEdge() -> some View { modifier(GTContentEdge()) }
+}
+
+private struct GTContentEdge: ViewModifier {
+    @Environment(\.gtSurface) private var surface
+    func body(content: Content) -> some View {
+        content.padding(.horizontal, surface.inset).padding(.bottom, surface.inset)
+    }
+}
+
+/// The one top-bar control, drawn by us rather than by the system.
 ///
 /// Under iOS 26 a toolbar item is handed a Liquid Glass capsule whose material samples
 /// whatever sits behind it. On a sheet that is the *outgoing* screen, so the button
-/// visibly changes shade while the sheet settles — the flicker this replaces — and the
-/// ring around it reads as a floating bubble rather than a control. A bare glyph has
-/// no material to resolve, so there is nothing to settle.
+/// visibly changes shade while the sheet settles, and the ring around it reads as a
+/// floating bubble rather than a control. A bare glyph has no material to resolve.
 ///
 /// Direction carries the meaning, which is why these are arrows and not words: ∨ puts
 /// the sheet back down the way it came up, ‹ steps back one level inside it.
 struct ChromeButton: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.chromeEdge) private var edge
     let symbol: String
     /// Never rendered — the arrow is the label. Spoken by VoiceOver, which cannot see it.
     let spoken: String
     let action: () -> Void
+
+    /// The glyph's distance from the tap target's outer edge, and from its top.
+    static let glyphInset: CGFloat = 12
+    static let glyphTop: CGFloat = 18.5
+    /// Empty space an SF Symbol's image keeps beside its ink.
+    private static let bearing: CGFloat = 2
 
     /// Dismisses the sheet. It rose from the bottom; it leaves the same way.
     static func close(_ action: @escaping () -> Void) -> ChromeButton {
@@ -406,41 +460,82 @@ struct ChromeButton: View {
             Image(systemName: symbol)
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(GT.onFelt)
-                // 44pt target: the glyph is small and the felt around it is not tappable.
-                .frame(width: 44, height: 44)
+                .padding(.horizontal, Self.glyphInset - Self.bearing)
+                // 44pt target, with the glyph at its outer edge so it lines up with the
+                // text below instead of floating 13pt inside it.
+                .frame(minWidth: 44, minHeight: 44, alignment: edge == .leading ? .leading : .trailing)
                 .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
+        // The target reaches past the content edge; the glyph stays on it.
+        .padding(edge == .leading ? .leading : .trailing, -Self.glyphInset)
         .accessibilityLabel(spoken == "닫기" ? language.text("닫기", "Close") : spoken)
     }
 }
 
-extension View {
-    /// Every nav bar in the app: no background, and its item drawn by us.
-    func gtChrome<V: View>(_ placement: ToolbarItemPlacement,
-                           @ViewBuilder item: @escaping () -> V) -> some View {
-        modifier(GTChrome(placement: placement, item: item))
+/// A top-bar action that is a decision rather than a direction, so it stays a word.
+struct ChromeTextButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(title, action: action)
+            .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
     }
 }
 
-private struct GTChrome<V: View>: ViewModifier {
-    let placement: ToolbarItemPlacement
-    @ViewBuilder let item: () -> V
+/// The top bar: its glyphs sit as far from the top as from the side, and the content
+/// starts just under them rather than under a 44pt system bar.
+struct GTChromeBar<Leading: View, Trailing: View>: View {
+    @Environment(\.gtSurface) private var surface
+    let leading: Leading
+    let trailing: Trailing
 
-    func body(content: Content) -> some View {
-        content
-            .toolbar { bar }
-            .toolbarBackground(.hidden, for: .navigationBar)
+    /// How far the 44pt targets hang below the bar into the content under it.
+    static var overhang: CGFloat { 9 }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            leading.environment(\.chromeEdge, .leading)
+            Spacer(minLength: 0)
+            trailing.environment(\.chromeEdge, .trailing)
+        }
+        .padding(.horizontal, surface.inset)
+        .padding(.top, max(surface.inset - ChromeButton.glyphTop, 0))
+        .padding(.bottom, -Self.overhang)
+    }
+}
+
+extension View {
+    /// Every screen's top bar: no system bar, our controls on the content edge.
+    func gtChrome<L: View, T: View>(@ViewBuilder leading: () -> L,
+                                    @ViewBuilder trailing: () -> T) -> some View {
+        modifier(GTChrome(bar: GTChromeBar(leading: leading(), trailing: trailing())))
     }
 
-    @ToolbarContentBuilder
-    private var bar: some ToolbarContent {
-        if #available(iOS 26.0, *) {
-            ToolbarItem(placement: placement) { item() }
-                .sharedBackgroundVisibility(.hidden)
-        } else {
-            ToolbarItem(placement: placement) { item() }
-        }
+    func gtChrome<L: View>(@ViewBuilder leading: () -> L) -> some View {
+        gtChrome(leading: leading, trailing: { EmptyView() })
+    }
+
+    func gtChrome<T: View>(@ViewBuilder trailing: () -> T) -> some View {
+        gtChrome(leading: { EmptyView() }, trailing: trailing)
+    }
+}
+
+private struct GTChrome<L: View, T: View>: ViewModifier {
+    let bar: GTChromeBar<L, T>
+
+    func body(content: Content) -> some View {
+        // Content scrolls under a strip of page ground rather than under the system's
+        // scroll-edge fade: the fade reaches past the bar and would wash out the title
+        // that now starts right under the chevron.
+        content
+            .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                bar.background(alignment: .top) { GT.felt.ignoresSafeArea(edges: .top) }
+            }
     }
 }
 
@@ -491,11 +586,11 @@ struct ActionSheet<Content: View>: View {
             content()
                 .environment(\.revealCollapsed, band != nil && collapsed)
         }
-        .padding(.horizontal, 18)
-        .padding(.top, band == nil ? 20 : 2)
+        .padding(.horizontal, GT.Space.sheet)
+        .padding(.top, band == nil ? GT.Space.sheet : 2)
         // Floating, the card's own padding matches its top. Attached, the home-indicator
         // inset already sits below this, so only a small step is added.
-        .padding(.bottom, floats ? 20 : 8)
+        .padding(.bottom, floats ? GT.Space.sheet : 8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background { sheetBackground }
         .padding(.horizontal, floats ? Self.margin : 0)

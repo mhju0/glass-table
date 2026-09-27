@@ -72,9 +72,12 @@ struct RecordsView: View {
                                 onFinish: {
                                     model.completeWalkthrough(concept: concept)
                                     replay = nil
-                                },
-                                onSkip: { replay = nil })
+                                })
+                .gtChrome(trailing: {
+                    ChromeTextButton(title: WalkthroughView.skipTitle(language)) { replay = nil }
+                })
             }
+            .gtSheetSurface()
         }
     }
 

@@ -420,7 +420,11 @@ private struct RestoredDrillContextView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(GT.onFelt.opacity(0.07), in: RoundedRectangle(cornerRadius: GT.Radius.control))
         .sheet(isPresented: $showingPotHelp) {
-            PotMathIntroView { showingPotHelp = false }
+            NavigationStack {
+                PotMathIntroView { showingPotHelp = false }
+                    .gtChrome(leading: { ChromeButton.close { showingPotHelp = false } })
+                    .gtSheetSurface()
+            }
         }
     }
 

@@ -75,26 +75,24 @@ struct TableView: View {
         .sheet(isPresented: $showChart) {
             if let hand {
                 ScrollView {
-                  VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        ChromeButton.close { showChart = false }
-                        Spacer()
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(language.text("디펜드 차트 · \(hand.villainSeat.rawValue) 오픈에 맞서",
+                                           "Defend chart · facing a \(hand.villainSeat.rawValue) open"))
+                            .font(GT.title(22)).foregroundStyle(GT.onFelt)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(language.text("오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요.",
+                                           "A baseline from this seat's opening range. The app shows how."))
+                            .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                        DefendGridView(opener: hand.villainSeat,
+                                       highlight: HandClass(hand.hero), cards: hand.hero)
+                            .padding(.top, 8)
                     }
-                    Text(language.text("디펜드 차트 · \(hand.villainSeat.rawValue) 오픈에 맞서",
-                                       "Defend chart · facing a \(hand.villainSeat.rawValue) open"))
-                        .font(GT.title(16)).foregroundStyle(GT.onFelt)
-                        .padding(.horizontal, 18)
-                    Text(language.text("오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요.",
-                                       "A baseline from this seat's opening range. The app shows how."))
-                        .font(GT.body(11)).foregroundStyle(GT.onFeltSecondary)
-                        .padding(.horizontal, 18)
-                    DefendGridView(opener: hand.villainSeat,
-                                   highlight: HandClass(hand.hero), cards: hand.hero)
-                        .padding(18)
-                  }
+                    .gtContentEdge()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(FeltBackground())
+                .gtChrome(leading: { ChromeButton.close { showChart = false } })
+                .gtSheetSurface()
             }
         }
         .sheet(isPresented: $showPolicyReference) {

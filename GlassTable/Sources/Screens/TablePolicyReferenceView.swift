@@ -14,6 +14,11 @@ struct TablePolicyReferenceView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: GT.Space.section) {
+                    // A title in the content, like every other sheet, rather than centred
+                    // in a system bar beside the close control.
+                    Text("\(hand.villain.beginnerTitle(in: language)) \(language.text("전략과 레인지", "policy and possible hands"))")
+                        .font(GT.title(22)).foregroundStyle(GT.onFelt)
+                        .accessibilityAddTraits(.isHeader)
                     rangeSummary
                     policySection(title: language.text("포스트플랍 기본 · 상대가 먼저 행동할 때",
                                                        "After the first betting round · opponent acts first")) { bucket in
@@ -59,16 +64,11 @@ struct TablePolicyReferenceView: View {
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(18)
+                .gtContentEdge()
             }
             .background(FeltBackground())
-            .navigationTitle("\(hand.villain.beginnerTitle(in: language)) \(language.text("전략과 레인지", "policy and possible hands"))")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    ChromeButton.close(onClose)
-                }
-            }
+            .gtChrome(leading: { ChromeButton.close(onClose) })
+            .gtSheetSurface()
         }
     }
 

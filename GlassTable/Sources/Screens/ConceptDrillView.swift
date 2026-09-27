@@ -442,7 +442,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                 HStack(alignment: .center, spacing: 8) { headerControls }
             }
         }
-        .padding(.top, 6).padding(.bottom, 12)
+        .padding(.bottom, 12)
     }
 
     private var titleText: some View {
@@ -459,6 +459,9 @@ struct DrillShell<Content: View, Sheet: View>: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(GTPress())
+            // The 44 pt target overhangs the row, so the row is as tall as the title
+            // whether or not this button is shown.
+            .padding(.vertical, -12)
             .accessibilityLabel(language.text("개념 설명", "Explain this skill"))
             .accessibilityIdentifier("drill-explain")
         }
@@ -844,9 +847,8 @@ private struct PotMathDrill: View {
         .sheet(isPresented: $showingHelp) {
             NavigationStack {
                 PotMathIntroView { showingHelp = false }
-                    .navigationTitle(language.text("계산 방법", "How to count"))
-                    .navigationBarTitleDisplayMode(.inline)
-                    .gtChrome(.topBarTrailing) { ChromeButton.close { showingHelp = false } }
+                    .gtChrome(leading: { ChromeButton.close { showingHelp = false } })
+                    .gtSheetSurface()
             }
         }
         .onChange(of: index) { _, _ in
@@ -913,12 +915,11 @@ private struct PotMathChoicesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if !reachedLastAction {
-                Text(language.text("마지막 행동까지 넘기면 답을 고를 수 있어요.",
-                                   "Follow the actions to the end, then choose an answer."))
-                    .font(GT.body(14))
-                    .foregroundStyle(GT.inkSecondary)
-            }
+            // Stays at the last action too, so the sheet never changes height mid-question.
+            Text(language.text("마지막 행동까지 넘기면 답을 고를 수 있어요.",
+                               "Follow the actions to the end, then choose an answer."))
+                .font(GT.body(14))
+                .foregroundStyle(GT.inkSecondary)
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(spacing: 8) { choices }
             } else {

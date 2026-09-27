@@ -108,7 +108,7 @@ struct LearnView: View {
                 FeltCTAButton(title: language.text("주제 골라 연습", "Choose a skill"), action: onOpenPractice)
             }
         }
-        .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+        .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: 22)
     }
 
@@ -132,7 +132,7 @@ struct LearnView: View {
             .accessibilityIdentifier("placement-start")
             .padding(.top, 4)
         }
-        .padding(20).frame(maxWidth: .infinity, alignment: .leading)
+        .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
         .gtPanel()
     }
 

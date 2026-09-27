@@ -352,6 +352,77 @@ final class LearningFlowTests: XCTestCase {
                                  "A floating sheet keeps 8 pt margin + 20 pt padding under its content")
     }
 
+    func testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question"]
+        app.launch()
+        let title = app.staticTexts["팟 계산"].firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 15))
+        let close = app.buttons["닫기"].firstMatch
+        XCTAssertTrue(close.exists)
+        // The 44 pt target reaches 12 pt past the edge the glyph and the title share.
+        XCTAssertEqual(title.frame.minX - close.frame.minX, 12, accuracy: 2,
+                       "The chevron glyph lines up with the title's left edge")
+        XCTAssertLessThanOrEqual(title.frame.minY - close.frame.minY, 40,
+                                 "The title starts just under the chevron, not under a 44 pt bar")
+    }
+
+    func testPotMathKeepsItsInstructionAndHeightAtTheLastAction() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question"]
+        app.launch()
+        let sheet = app.descendants(matching: .any)["answer-sheet"]
+        XCTAssertTrue(sheet.waitForExistence(timeout: 15))
+        let height = sheet.frame.height
+        let next = app.buttons["다음 행동"]
+        for _ in 0..<12 where next.exists && next.isEnabled { next.tap() }
+        XCTAssertFalse(next.exists && next.isEnabled, "Stepped to the last action")
+        XCTAssertTrue(app.staticTexts["마지막 행동까지 넘기면 답을 고를 수 있어요."].exists,
+                      "The instruction stays, so the screen does not change at the last action")
+        XCTAssertEqual(sheet.frame.height, height, accuracy: 1)
+    }
+
+    func testHintPopoverFitsItsTextAndHasOneWayOut() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_NODE": "u1-showdown",
+                                 "GT_DEMO_STAGE": "together"]
+        app.launch()
+        let hint = app.buttons["힌트"]
+        XCTAssertTrue(hint.waitForExistence(timeout: 15))
+        hint.tap()
+        // The popover itself: the hint view's own frame also counts the felt watermark,
+        // which overflows it.
+        let popover = app.popovers.firstMatch
+        let cue = app.descendants(matching: .any)["guided-hint-cue"]
+        XCTAssertTrue(cue.waitForExistence(timeout: 5))
+        XCTAssertLessThanOrEqual(popover.frame.maxY - cue.frame.maxY, 24,
+                                 "No blank band under the last line")
+        XCTAssertFalse(app.buttons["문제로 돌아가기"].exists, "The X is the only close control")
+        XCTAssertTrue(app.buttons["힌트 닫기"].isHittable)
+    }
+
+    func testOpponentDetailShowsItsPokerTermsWithoutADisclosure() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_TAB": "play", "GT_DEMO_PLAY_SETUP": "1",
+                                 "GT_DEMO_OPPONENT": "tag"]
+        app.launch()
+        let terms = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "VPIP")).firstMatch
+        XCTAssertTrue(terms.waitForExistence(timeout: 15), "VPIP and PFR are on screen without a tap")
+        XCTAssertTrue(app.buttons["스타일 목록"].exists, "Pushed from the style list, the leading edge steps back")
+    }
+
     func testPotMathChoiceCommitsExactlyOnceBeforeNext() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
@@ -545,7 +616,7 @@ final class LearningFlowTests: XCTestCase {
         )).firstMatch
         XCTAssertTrue(policy.waitForExistence(timeout: 5))
         policy.tap()
-        XCTAssertTrue(app.navigationBars["선별형 전략과 레인지"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["선별형 전략과 레인지"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["table-policy-range-summary"].exists)
         XCTAssertTrue(app.staticTexts["포스트플랍 기본 · 상대가 먼저 행동할 때"].exists)
         app.buttons["닫기"].tap()

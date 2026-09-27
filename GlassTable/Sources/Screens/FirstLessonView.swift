@@ -293,7 +293,7 @@ struct FirstLessonView: View {
             pulse = !reduceMotion
         } label: {
             handLayout(label: handChoiceLabel(title), cards: cards)
-                .padding(14).frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
+                .gtInset(GT.Space.card).frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
                 .background(GT.surface,
                             in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)

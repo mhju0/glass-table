@@ -49,6 +49,15 @@ enum GT {
         static let related: CGFloat = 12
         static let section: CGFloat = 20
         static let screen: CGFloat = 24
+        /// The one content edge of a page. Controls in the top bar line up with it too.
+        static let edge: CGFloat = 18
+        /// Inside a card: the gap above the text equals the gap beside it.
+        static let card: CGFloat = 16
+        /// Inside a sheet or popover, whose larger corner needs more room than a card's.
+        static let sheet: CGFloat = 20
+        /// A line of text carries this much empty leading above its ink, so a container
+        /// pads its top by this much less to make the visible gaps match.
+        static let leading: CGFloat = 2
     }
 
     enum Radius {

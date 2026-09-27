@@ -57,7 +57,7 @@ struct LearningGuideView: View {
                     }
                 }
             }
-            .padding(24)
+            .gtContentEdge()
             .id(page)
         }
         .background(FeltBackground())
@@ -76,9 +76,10 @@ struct LearningGuideView: View {
                     }
                 }
             }
-            .padding(.horizontal, 24).padding(.vertical, 12).background(GT.felt)
+            .padding(.horizontal, GT.Space.sheet).padding(.vertical, 12).background(GT.felt)
         }
-        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+        .gtChrome(leading: { ChromeButton.close { dismiss() } })
+        .gtSheetSurface()
         .onAppear {
             #if DEBUG
             if let requested = ProcessInfo.processInfo.environment["GT_DEMO_GUIDE_PAGE"].flatMap(Int.init) {

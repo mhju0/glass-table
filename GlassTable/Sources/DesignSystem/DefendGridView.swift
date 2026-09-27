@@ -226,10 +226,11 @@ private struct DefendChartExplorer: View {
                         }
                     }
                 }
-                .padding(18)
+                .gtContentEdge()
             }
             .background(FeltBackground())
-            .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+            .gtChrome(leading: { ChromeButton.close { dismiss() } })
+            .gtSheetSurface()
         }
     }
 }

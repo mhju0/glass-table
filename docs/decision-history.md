@@ -322,6 +322,23 @@ pasted text and the standing rule is never to push to main without asking.
   real sheets on both old and new versions. Glass would fight the verdict tints and
   hurt legibility.
 
+## 2026-09-28 — Four spacing rules; one close control
+- **Decided by:** owner (R1–R4 and items 1A, 2A, 3A, 4A, 5A from the spacing audit, then
+  "title 12pt below", "keep X in popover" and "keep 건너뛰기" on the follow-ups).
+  **What:** R1, one 18 pt content edge. R2, the top control sits on that edge and the
+  title starts 12 pt under it; in a sheet the control is as far from the top as from the
+  side (20 pt). R3, the gap above a container's text equals the gap beside it: 16 in
+  cards, 20 in sheets and popovers. R4, one close control, a chevron down at top left; a
+  chevron left only goes back inside the same sheet, and a sheet with both puts close on
+  the right. The hint popover keeps its X as the one exception; "건너뛰기" stays as text
+  on the right. Opponent detail shows its poker terms without a disclosure; "no real
+  money" stays only in Responsible play and the first-run chip; the hint popover fits its
+  text and loses "문제로 돌아가기"; the glossary is a plain list; the pot-math
+  instruction line never disappears.
+- **Why:** the audit found titles 46–61 pt below their control, four kinds of close
+  button (word, X, glass circle, chevron on either side) and card insets from 11 to 25
+  pt. One rule per question makes every screen start the same way.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a

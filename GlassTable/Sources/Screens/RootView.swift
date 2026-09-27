@@ -135,7 +135,8 @@ struct RootView: View {
                 PathView(onOpenNode: { showPath = false; openNode = $0 },
                          onOpenFreePlay: { showPath = false; showFreePlay = true },
                          onOpenBasics: { showPath = false; showBasics = true })
-                    .gtChrome(.topBarLeading) { ChromeButton.close { showPath = false } }
+                    .gtChrome(leading: { ChromeButton.close { showPath = false } })
+                    .gtSheetSurface()
             }
         }
         .sheet(isPresented: $showPlacement) { NavigationStack { PlacementView() } }

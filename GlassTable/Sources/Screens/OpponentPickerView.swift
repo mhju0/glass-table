@@ -28,6 +28,7 @@ struct OpponentPickerView: View {
                     onStart(opponent)
                 }
             }
+            .gtSheetSurface()
             .presentationDetents([.large])
         }
         .onAppear {
@@ -40,14 +41,15 @@ struct OpponentPickerView: View {
     }
 }
 
-/// One style's habits in plain words, with the numbers one level down. `onStart`
+/// One style's habits in plain words, then the same habits in poker terms. `onStart`
 /// adds the button that picks this style; the table setup's guide leaves it out.
-/// The caller supplies the navigation stack; the close button sits on the leading
-/// edge unless a pushed screen keeps that edge for the back button.
+/// The caller supplies the navigation stack. Pushed from a list, the leading edge
+/// steps back to that list and close moves to the trailing edge.
 struct OpponentDetailView: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dismiss) private var dismiss
     let opponent: Archetype
-    var closePlacement: ToolbarItemPlacement = .topBarLeading
+    var pushed = false
     let onClose: () -> Void
     var onStart: (() -> Void)?
 
@@ -64,24 +66,34 @@ struct OpponentDetailView: View {
                     scale(language.text("자발적으로 들어와요", "Chooses to join"), value: opponent.vpip)
                     scale(language.text("금액을 올려요", "Raises the price"), value: opponent.pfr)
                 }
-                DisclosureGroup(language.text("숫자와 포커 용어", "Numbers and poker terms")) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("VPIP \(Int(opponent.vpip))% · PFR \(Int(opponent.pfr))%")
-                        Text(language.text("VPIP는 스스로 칩을 내고 들어오는 비율, PFR은 공용 카드 전에 올리는 비율이에요. 원래 이름은 \(KO.copula(opponent.name))", "VPIP is voluntary participation; PFR is raising before shared cards. The traditional name is \(opponent.rawValue)."))
-                        Text(language.text("공개된 모델의 기준값이에요. 두 비율 모두 전체 핸드 기준이며, 실제 선택은 카드와 베팅 상황에 따라 달라져요. 관측한 성적이나 난이도가 아니에요.", "These are published model reference values, both measured per hand. Choices vary with cards and the betting situation. They aren't observed results or difficulty ratings."))
-                    }
-                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary).padding(.top, 10)
+                // There is room for all of it, so none of it hides behind a disclosure.
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(language.text("포커 용어로 보면", "In poker terms"))
+                        .font(GT.title(18))
+                    Text("VPIP \(Int(opponent.vpip))% · PFR \(Int(opponent.pfr))%")
+                        .font(GT.semibold(16).monospacedDigit())
+                    Text(language.text("VPIP는 스스로 칩을 내고 들어오는 비율, PFR은 공용 카드 전에 올리는 비율이에요. 원래 이름은 \(KO.copula(opponent.name))", "VPIP is voluntary participation; PFR is raising before shared cards. The traditional name is \(opponent.rawValue)."))
+                        .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                    Text(language.text("공개된 모델의 기준값이에요. 두 비율 모두 전체 핸드 기준이며, 실제 선택은 카드와 베팅 상황에 따라 달라져요. 관측한 성적이나 난이도가 아니에요.", "These are published model reference values, both measured per hand. Choices vary with cards and the betting situation. They aren't observed results or difficulty ratings."))
+                        .font(GT.body(13)).foregroundStyle(GT.inkMuted)
                 }
+                .lineSpacing(GT.Typography.bodyLineSpacing)
+                .fixedSize(horizontal: false, vertical: true)
                 if let onStart {
                     FeltCTAButton(title: language.text("이 상대와 연습", "Practice with this opponent"),
                                   action: onStart)
                         .accessibilityIdentifier("opponent-start")
                 }
             }
-            .padding(20)
+            .gtContentEdge()
         }
         .background(FeltBackground())
-        .gtChrome(closePlacement) { ChromeButton.close(onClose) }
+        .gtChrome(leading: {
+            if pushed { ChromeButton.back(language.text("스타일 목록", "Styles"), { dismiss() }) }
+            else { ChromeButton.close(onClose) }
+        }, trailing: {
+            if pushed { ChromeButton.close(onClose) }
+        })
     }
 
     private func scale(_ title: String, value: Double) -> some View {

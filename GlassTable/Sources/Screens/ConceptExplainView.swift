@@ -33,10 +33,11 @@ struct ConceptExplainView: View {
                     }
                     .accessibilityIdentifier("explain-example")
                 }
-                .padding(20)
+                .gtContentEdge()
             }
             .background(FeltBackground())
-            .gtChrome(.topBarTrailing) { ChromeButton.close(onClose) }
+            .gtChrome(leading: { ChromeButton.close(onClose) })
+            .gtSheetSurface()
             .navigationDestination(isPresented: $showingExample) { example }
         }
         .accessibilityIdentifier("concept-explain")
@@ -62,8 +63,13 @@ struct ConceptExplainView: View {
                                  index: 0, language: language)
         return WalkthroughView(title: ConceptIntroduction.make(concept, language: language).title,
                                beats: w.beats, rows: w.rows,
-                               onFinish: { showingExample = false },
-                               onSkip: { showingExample = false })
+                               onFinish: { showingExample = false })
+            .gtChrome(leading: {
+                ChromeButton.back(language.text("설명으로", "Back to explanation")) { showingExample = false }
+            }, trailing: {
+                ChromeTextButton(title: WalkthroughView.skipTitle(language)) { showingExample = false }
+            })
+            .gtSheetSurface()
     }
 
     static func ruleExample(_ concept: Concept, language: LearningLanguage) -> String? {

@@ -123,10 +123,13 @@ struct NodeSessionView: View {
             else { current }
         }
         .background(FeltBackground())
-        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
-        .gtChrome(.topBarTrailing) {
-            if stage == .together { hintButton }
-        }
+        .gtChrome(leading: { ChromeButton.close { dismiss() } }, trailing: {
+            if stage == .show, !finished, !sessionConcepts.isEmpty {
+                ChromeTextButton(title: WalkthroughView.skipTitle(language)) {
+                    advanceTeaching(skip: true)
+                }
+            } else if stage == .together { hintButton }
+        })
         .onAppear {
             if sessionEpoch == nil { sessionEpoch = model.epoch }
             guard sessionSeed == nil else { return }
@@ -281,8 +284,7 @@ struct NodeSessionView: View {
                                 return model.setNodeShowBeat(sessionID: savedSession.id,
                                     index: next, expectedEpoch: sessionEpoch ?? model.epoch)
                             },
-                            onFinish: { advanceTeaching(skip: false) },
-                            onSkip: { advanceTeaching(skip: true) })
+                            onFinish: { advanceTeaching(skip: false) })
         case .together:
             // 함께 풀기: a *different* spot, the user answers, and the full reasoning
             // is one tap away via 힌트 — which is never penalised because nothing here
@@ -342,9 +344,12 @@ struct NodeSessionView: View {
             // The toolbar may propose less width than the pill needs; it must not truncate.
             .fixedSize()
             .foregroundStyle(GT.onCTA)
-            .padding(.horizontal, 13).padding(.vertical, 9)
-            .frame(minHeight: 44)
+            .padding(.horizontal, 13).padding(.vertical, 7)
             .background(GT.cta, in: Capsule())
+            // A 28 pt pill centred on the close chevron's row, with the full 44 pt target
+            // around it, so it does not hang over the title below.
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
         .popover(isPresented: $showHint, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
@@ -464,7 +469,7 @@ struct NodeSessionView: View {
                     dismiss()
                 }
             }
-            .padding(20)
+            .gtContentEdge()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -521,42 +526,57 @@ private struct GuidedHintView: View {
     @Environment(\.learningLanguage) private var language
     let concept: Concept
     let onClose: () -> Void
+    @State private var contentHeight: CGFloat?
 
     var body: some View {
+        // Sized to its text: a fixed ideal height left a blank band under short cues, and
+        // a ScrollView alone asks for more than its content. The measured height becomes
+        // the ideal; at large text the popover caps it and the text scrolls.
+        // The X is the one way out besides tapping outside, which every popover allows.
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack(alignment: .center) {
-                    Text(language.text("풀이 순서", "How to work it out"))
-                        .font(GT.title(GT.Typography.resultSize))
-                        .foregroundStyle(GT.onFelt)
-                    Spacer(minLength: 12)
-                    Button {
-                        onClose()
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(GT.onFelt)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(GTPress())
-                    .accessibilityLabel(language.text("힌트 닫기", "Close hint"))
+            content
+                .onGeometryChange(for: CGFloat.self) { $0.size.height.rounded(.up) } action: {
+                    contentHeight = $0
                 }
-                Text(cue)
-                    .font(GT.body(GT.Typography.explanationSize))
-                    .foregroundStyle(GT.onFeltSecondary)
-                    .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .fixedSize(horizontal: false, vertical: true)
-                FeltCTAButton(title: language.text("문제로 돌아가기", "Back to question")) {
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .frame(idealWidth: 330, idealHeight: contentHeight)
+        .background(FeltBackground())
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("guided-hint")
+    }
+
+    private var content: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                Text(language.text("풀이 순서", "How to work it out"))
+                    .font(GT.title(GT.Typography.resultSize))
+                    .foregroundStyle(GT.onFelt)
+                Spacer(minLength: 12)
+                Button {
                     onClose()
                     dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(GT.onFelt)
+                        .frame(width: 44, height: 44, alignment: .topTrailing)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(GTPress())
+                // The glyph sits on the same 20 pt inset as the title; its target
+                // spreads down and in, where there is room for it.
+                .frame(width: 20, height: 20, alignment: .topTrailing)
+                .accessibilityLabel(language.text("힌트 닫기", "Close hint"))
             }
-            .padding(20)
+            Text(cue)
+                .font(GT.body(GT.Typography.explanationSize))
+                .foregroundStyle(GT.onFeltSecondary)
+                .lineSpacing(GT.Typography.explanationLineSpacing)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("guided-hint-cue")
         }
-        .frame(idealWidth: 330, idealHeight: 280)
-        .background(FeltBackground())
+        .gtInset(GT.Space.sheet)
     }
 
     private var cue: String {
@@ -761,12 +781,16 @@ struct FreePlayView: View {
         .background(FeltBackground())
         // Two different jobs, so two different arrows: at the picker the button leaves
         // free play altogether, inside a drill it only steps back to the picker.
-        .gtChrome(.topBarLeading) {
+        .gtChrome(leading: {
             if concept == nil { ChromeButton.close { dismiss() } }
             else { ChromeButton.back(language.text("드릴 바꾸기", "Change skill")) {
                 concept = nil
             } }
-        }
+        }, trailing: {
+            if let concept, introStage == .show {
+                ChromeTextButton(title: WalkthroughView.skipTitle(language)) { finishIntro(concept) }
+            }
+        })
         .onAppear {
             if sessionEpoch == nil { sessionEpoch = model.epoch }
             if let round = activeRound,
@@ -845,8 +869,7 @@ struct FreePlayView: View {
                                           expectedEpoch: sessionEpoch ?? model.epoch)
                                 else { return }
                                 introStage = .together
-                            },
-                            onSkip: { finishIntro(concept) })
+                            })
         case .together:
             ConceptDrillView(concept: concept, seed: seed, index: 1,
                 progressText: language.text("함께 연습", "Try together"),
@@ -1002,14 +1025,14 @@ struct FreePlayView: View {
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundStyle(GT.inkMuted)
                         }
-                        .padding(14)
+                        .gtInset(GT.Space.card)
                         .frame(maxWidth: .infinity)
                         .gtCard(radius: 14)
                     }
                     .buttonStyle(GTPress())
                 }
             }
-            .padding(.horizontal, 18).padding(.top, 12).padding(.bottom, 28)
+            .gtContentEdge()
         }
     }
 }
@@ -1140,7 +1163,7 @@ struct ReviewSessionView: View {
             }
         }
         .background(FeltBackground())
-        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+        .gtChrome(leading: { ChromeButton.close { dismiss() } })
         .onAppear {
             if sessionEpoch == nil { sessionEpoch = model.epoch }
             guard !initialized else { return }
@@ -1255,7 +1278,7 @@ struct ReviewSessionView: View {
                     dismiss()
                 }
             }
-            .padding(20)
+            .gtContentEdge()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
