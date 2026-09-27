@@ -291,6 +291,12 @@ pasted text and the standing rule is never to push to main without asking.
   left-aligned layout on answering, and the green sheet covered half the explanation.
   The owner values consistency across lessons.
 
+## 2026-09-27 — The purchase rule plans for the 1.1 unlock
+- **Decided by:** owner. **What:** AGENTS.md no longer excludes purchases outright.
+  1.0 ships with none; 1.1 plans the one-time unlock already in the roadmap. Chips
+  still never carry or buy value.
+- **Why:** the rule contradicted the business model chosen on 2026-09-25.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a
