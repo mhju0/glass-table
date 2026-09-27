@@ -294,6 +294,28 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(verdict.exists, "The tint must match the verdict shown")
     }
 
+    func testPlayGradeUsesTheLessonVerdictAndFoldsToShowTheHand() {
+        let app = app()
+        app.launchEnvironment["GT_DEMO_TABLE"] = "tag"
+        app.launchEnvironment["GT_DEMO_TABLE_STEP"] = "2"
+        app.launch()
+        let verdict = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@ AND label CONTAINS %@", "You chose", "Best"
+        )).firstMatch
+        XCTAssertTrue(verdict.waitForExistence(timeout: 15),
+                      "Play must grade with the same verdict row as the lessons")
+        let detail = app.staticTexts["This is the estimated value lost versus the best choice."]
+        XCTAssertTrue(detail.exists)
+        let toggle = app.buttons["reveal-sheet-toggle"]
+        XCTAssertTrue(toggle.exists)
+        toggle.tap()
+        XCTAssertTrue(detail.waitForNonExistence(timeout: 5), "Folding hides the explanation")
+        XCTAssertTrue(verdict.exists, "Folding keeps the verdict")
+        let hero = app.otherElements["table-hero-cards"]
+        XCTAssertLessThanOrEqual(hero.frame.maxY, toggle.frame.minY,
+                                 "The folded sheet must uncover the hero cards")
+    }
+
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<10 {
             if element.exists && element.isHittable { return }

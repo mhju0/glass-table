@@ -187,7 +187,7 @@ struct TableView: View {
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet(hand) }
                             .padding(18)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .gtCard(radius: GT.Radius.panel)
+                            .gtCard(radius: GT.Radius.panel, band: sheetBand(hand))
                     }
                     .padding(.horizontal, 18).padding(.bottom, 28)
                 }
@@ -211,7 +211,7 @@ struct TableView: View {
                 }
                 .scrollBounceBehavior(.basedOnSize)
                     }
-                    ActionSheet { sheet(hand) }.layoutPriority(1)
+                    ActionSheet(band: sheetBand(hand)) { sheet(hand) }.layoutPriority(1)
                 }
             }
         }
@@ -515,25 +515,17 @@ struct TableView: View {
         }
     }
 
-    /// The reveal, lesson first.
-    ///
-    /// The old order led with the score at 28pt and dropped the lesson — "최선은 폴드" —
-    /// into 12pt grey underneath, which is backwards: the number is the mark, the
-    /// sentence is the thing worth carrying to the next hand. The severity keeps its
-    /// band ink and glyph but moves to a pill beside the headline.
-    ///
-    /// Exact and near-best choices share a progression band, while the pill names the
-    /// distinction directly. The cost below remains the evidence for that judgment.
+    /// The reveal in the lessons' shape: the verdict row names the band, your choice and
+    /// the best (or chart) choice; the prices and the chart button are the explanation,
+    /// which folds away with the sheet so the hole cards above it can be read.
     private func turnReveal(_ turn: TurnRecord) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                headlineText(turn).font(GT.title(20))
-                bandPill(turn)
-                Spacer(minLength: 0)
-            }
-            evPrices(turn)
-            if case .chart = turn.verdict {
-                SecondaryCTAButton(title: language.text("차트 보기", "View chart")) { showChart = true }
+            verdictRow(turn)
+            RevealDetail {
+                evPrices(turn)
+                if case .chart = turn.verdict {
+                    SecondaryCTAButton(title: language.text("차트 보기", "View chart")) { showChart = true }
+                }
             }
             PrimaryCTAButton(title: language.text("계속", "Continue")) {
                 lastTurn = nil
@@ -542,38 +534,28 @@ struct TableView: View {
         }
     }
 
-    /// 은/는 attaches to 최선, a fixed word, so the opponent's action never needs a
-    /// computed particle — the reason this phrasing survived from the old reveal.
-    private func headlineText(_ turn: TurnRecord) -> Text {
+    /// The same words as the EV 손실 and 디펜드 차트 lessons.
+    private func verdictRow(_ turn: TurnRecord) -> some View {
+        let mineTitle = language.text("내 선택", "You chose")
         switch turn.verdict {
         case let .ev(loss, best):
-            if loss <= 0 { return Text(language.text("최선의 선택", "Best choice")).foregroundStyle(GT.ink) }
-            return Text(language.text("최선은 ", "Better choice: ")).foregroundStyle(GT.ink)
-                 + Text(best.label(in: language)).foregroundStyle(GT.green)
+            return VerdictRow(band: turn.band, mine: turn.label(in: language),
+                              correct: best.label(in: language),
+                              title: evLossLabel(loss: loss, language: language),
+                              mineTitle: mineTitle, correctTitle: language.text("최선", "Best"))
         case let .chart(v):
-            if v.matched { return Text(language.text("차트대로", "Matches the chart")).foregroundStyle(GT.ink) }
-            return Text(language.text("차트는 ", "Chart suggests: ")).foregroundStyle(GT.ink)
-                 + Text(chartAction(v.chart)).foregroundStyle(GT.green)
+            return VerdictRow(band: turn.band, mine: turn.label(in: language),
+                              correct: chartAction(v.chart),
+                              title: v.matched ? language.text("차트와 일치해요", "Matches the chart")
+                                               : language.text("차트와 달라요", "Different from the chart"),
+                              mineTitle: mineTitle, correctTitle: language.text("차트", "Chart"))
         }
     }
 
-    private func bandPill(_ turn: TurnRecord) -> some View {
-        let word: String = {
-            if case let .ev(loss, _) = turn.verdict {
-                return language == .korean ? evLossLabel(loss: loss)
-                    : (loss <= 0 ? "Best" : loss <= 0.5 ? "Close" : "Needs work")
-            }
-            return turn.band == .spotOn ? language.text("일치", "Match")
-                : language.text("불일치", "Different")
-        }()
-        return HStack(spacing: 4) {
-            Image(systemName: turn.band.glyph).font(.system(size: 10, weight: .bold))
-            Text(word).font(GT.semibold(11))
-        }
-        .foregroundStyle(turn.band.ink)
-        .padding(.horizontal, 9).padding(.vertical, 4)
-        .background(turn.band.tint, in: Capsule())
-        .accessibilityLabel(language.text("판정 \(word)", "Result: \(word)"))
+    /// The graded sheet takes its verdict's tint; the action and summary sheets stay glass.
+    private func sheetBand(_ hand: TableHand) -> GradeBand? {
+        if case .over = hand.phase { return nil }
+        return lastTurn?.band
     }
 
     /// Where the number came from: the best line and the chosen line, side by side.
@@ -600,12 +582,19 @@ struct TableView: View {
 
     private func priceRow(tag: String, action: String,
                           amount: String, ink: Color) -> some View {
-        HStack(spacing: 8) {
-            Text(tag).font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
-                .frame(width: 46, alignment: .leading)
-            Text(action).font(GT.semibold(13)).foregroundStyle(GT.ink)
-            Spacer(minLength: 6)
-            Text(amount).font(GT.title(14).monospacedDigit()).foregroundStyle(ink)
+        // At accessibility sizes the fixed tag column breaks 최선 and 내 선택 one syllable
+        // per line, so the tag moves above the row instead.
+        let stacked = dynamicTypeSize.isAccessibilitySize
+        let tagText = Text(tag).font(GT.semibold(11)).foregroundStyle(GT.inkMuted)
+        return VStack(alignment: .leading, spacing: 2) {
+            if stacked { tagText }
+            HStack(spacing: 8) {
+                if !stacked { tagText.frame(width: 46, alignment: .leading) }
+                Text(action).font(GT.semibold(13)).foregroundStyle(GT.ink)
+                Spacer(minLength: 6)
+                Text(amount).font(GT.title(14).monospacedDigit()).foregroundStyle(ink)
+                    .fixedSize()
+            }
         }
         .accessibilityElement(children: .combine)
     }

@@ -119,6 +119,26 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The complete hand summary must remain scrollable at AX XXXL.")
     }
 
+    func testTableGradeVerdictAndContinueStayReachableAtAccessibilityXXXL() {
+        let app = launch(environment: [
+            "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_TABLE": "tag",
+            "GT_DEMO_TABLE_STEP": "2",
+        ])
+
+        let verdict = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@ AND label CONTAINS %@", "내 선택", "최선"
+        )).firstMatch
+        XCTAssertTrue(scrollUntilHittable(verdict, in: app),
+                      "The graded verdict must be reachable at AX XXXL.")
+        XCTAssertTrue(scrollUntilHittable(app.buttons["계속"], in: app),
+                      "Continue must remain reachable below the explanation at AX XXXL.")
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        attachment.name = "table-grade-continue-ax5"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     func testTableHeroCardsCanBeFullyExposedAboveTabBarAtAccessibilityXXXL() {
         let app = launch(environment: [
             "GT_TEST_STORE_ID": UUID().uuidString,
