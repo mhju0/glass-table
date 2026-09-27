@@ -35,6 +35,7 @@ targets:
           - Pretendard-Regular.otf
           - Pretendard-SemiBold.otf
           - Pretendard-Bold.otf
+          - Pretendard-ExtraBold.otf
         # Drill layout (green zone + bottom sheet) is portrait-designed; lock it.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
