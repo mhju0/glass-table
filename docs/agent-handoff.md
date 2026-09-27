@@ -184,3 +184,23 @@ Full entries: [the 09-27 archive](handoff-archive/2026-09-27-before-answer-patte
   `com.apple.Accessibility EnhancedTextLegibilityEnabled` on the disposable simulator.
   A full bold sweep on the iPhone 16e (large + AX5) showed no mid-word breaks.
 - Next: owner decides on merging to `main` and on a build 14 phone install.
+
+## 2026-09-28: Floating sheets, light-mode contrast, hint pill (branch `feat/sheet-refresh`)
+
+- Owner picked 1A/2B/3C/5A from the sheet-fixes options page (decision-history).
+- `ActionSheet`: floats on iOS 26 (8 pt margin, `ConcentricRectangle` with a 28 pt
+  minimum for Home-button screens); attached with 8 pt bottom padding on iOS 17–18 and at
+  AX sizes. Grabber only when `band != nil`. The card reaches into the bottom inset only
+  when that inset is the window's home indicator alone; under a tab bar (Play) it floats
+  above the bar. `ignoresSafeArea` did not work from inside the screens' stacks, so the
+  inset is measured with `onGeometryChange` and **rounded**: unrounded, it jittered and
+  re-laid out ~1,750 times a second, which hung every UI query.
+- Light mode: `felt` #EBE6DB (muted text 4.82:1), `cardFace` white, new `cardEdge` at 1 pt;
+  dark mode unchanged. Hint pill `.fixedSize()`.
+- New UI test `testAnswerSheetLeavesNoDeadBandUnderTheLastChoice` (old code: 56 pt, fails).
+  Full suite on iPhone 16e (iOS 26): 71/72 UI pass; the known AX walkthrough failure remains.
+- Open: the iOS 17–18 attached path is compiled but not seen. Xcode 27's CLI refuses to
+  download any iOS 18 runtime; the owner needs to fetch it via Xcode Settings → Components
+  or developer.apple.com, then `xcodebuild -importPlatform`.
+- Open (carried): the handoff still names `../glass-table-proposal` for the proposal
+  evidence; it was archived to `.build/archive/glass-table-proposal-uisweep`.

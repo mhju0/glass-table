@@ -329,6 +329,29 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertGreaterThan(choice.frame.minY, app.windows.firstMatch.frame.height * 0.6)
     }
 
+    /// The answer sheet ends where the system's sheets do: on iOS 26 it floats just above
+    /// the screen's bottom edge, with no dead band between the last choice and the home
+    /// indicator.
+    func testAnswerSheetLeavesNoDeadBandUnderTheLastChoice() throws {
+        guard #available(iOS 26.0, *) else { throw XCTSkip("Pre-26 sheets stay attached") }
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question"]
+        app.launch()
+        let sheet = app.descendants(matching: .any)["answer-sheet"]
+        XCTAssertTrue(sheet.waitForExistence(timeout: 15))
+        let choices = sheet.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "pot-answer-"
+        )).allElementsBoundByIndex
+        let lastChoiceBottom = try XCTUnwrap(choices.map(\.frame.maxY).max())
+        let screenBottom = app.windows.firstMatch.frame.maxY
+        XCTAssertLessThanOrEqual(screenBottom - lastChoiceBottom, 40,
+                                 "A floating sheet keeps 8 pt margin + 20 pt padding under its content")
+    }
+
     func testPotMathChoiceCommitsExactlyOnceBeforeNext() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]

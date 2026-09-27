@@ -337,8 +337,10 @@ struct NodeSessionView: View {
         Button { showHint = true } label: {
             HStack(spacing: 5) {
                 Image(systemName: "lightbulb.fill").font(.system(size: 11))
-                Text(language.text("힌트", "Hint")).font(GT.semibold(12))
+                Text(language.text("힌트", "Hint")).font(GT.semibold(12)).lineLimit(1)
             }
+            // The toolbar may propose less width than the pill needs; it must not truncate.
+            .fixedSize()
             .foregroundStyle(GT.onCTA)
             .padding(.horizontal, 13).padding(.vertical, 9)
             .frame(minHeight: 44)

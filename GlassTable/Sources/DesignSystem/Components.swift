@@ -444,41 +444,74 @@ private struct GTChrome<V: View>: ViewModifier {
     }
 }
 
-/// The bottom action sheet. Rounded at the top, **bleeding to the bottom edge**, with
-/// a grabber so it reads as a sheet rather than a colour change.
+/// The bottom action sheet, shaped like the system's own sheets on the running iOS.
+///
+/// iOS 26 floats a partial-height sheet: inset from the screen edges, every corner
+/// concentric with the display's. Earlier systems attach it to the bottom edge with only
+/// the top corners rounded. The app's real `.sheet`s already follow the system, so this
+/// one does too. At the accessibility sizes the sheet grows toward full height, where
+/// iOS 26 also goes edge to edge, so it attaches there as well.
+///
+/// Only a graded sheet can fold, so only it shows a grabber; a grabber on a sheet that
+/// cannot move promises a drag that does nothing.
 struct ActionSheet<Content: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
-    /// A graded result tints the whole sheet and outlines its top edge, so right and
+    /// A graded result tints the whole sheet and outlines its edge, so right and
     /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
     var band: GradeBand? = nil
     @ViewBuilder var content: () -> Content
     /// A graded sheet folds down to its verdict and Next, so evidence the reveal added
     /// above it can be read without scrolling past the sheet.
     @State private var collapsed = false
+    /// The home-indicator inset under the sheet, 0 on a Home-button phone.
+    @State private var bottomInset: CGFloat = 0
+
+    /// The gap between a floating sheet and the screen edges.
+    private static var margin: CGFloat { 8 }
+
+    /// How far a floating card reaches into the inset below it: all of it when that is
+    /// the home indicator alone. A tab bar below the sheet adds its height to the inset,
+    /// and the card then floats above the bar instead of sliding under it.
+    private var reach: CGFloat {
+        let indicator = UIApplication.shared.connectedScenes.lazy
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }.first?.safeAreaInsets.bottom ?? 0
+        return bottomInset <= indicator + 0.5 ? bottomInset : 0
+    }
+
+    private var floats: Bool {
+        if #available(iOS 26.0, *) { return !dynamicTypeSize.isAccessibilitySize }
+        return false
+    }
 
     var body: some View {
         VStack(spacing: 0) {
-            grabber
+            if band != nil { grabber }
             content()
                 .environment(\.revealCollapsed, band != nil && collapsed)
         }
         .padding(.horizontal, 18)
-        .padding(.top, band == nil ? 12 : 2)
-        .padding(.bottom, 22)
+        .padding(.top, band == nil ? 20 : 2)
+        // Floating, the card's own padding matches its top. Attached, the home-indicator
+        // inset already sits below this, so only a small step is added.
+        .padding(.bottom, floats ? 20 : 8)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background { sheetBackground }
+        .padding(.horizontal, floats ? Self.margin : 0)
+        // A floating card reaches into the home-indicator inset the way system sheets do,
+        // ending one margin above the screen edge; its inner padding keeps the content
+        // clear of the indicator. `ignoresSafeArea` cannot do this from inside the
+        // screens' stacks, so the inset is measured and padded away.
+        .padding(.bottom, floats ? Self.margin - reach : 0)
         .background {
-            let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
-                                               topTrailingRadius: GT.Radius.sheet,
-                                               style: .continuous)
-            if let band {
-                shape.fill(band.tint)
-                    .overlay(shape.stroke(band.ink, lineWidth: 2))
-                    .ignoresSafeArea(edges: .bottom)
-            } else {
-                GlassBackground(shape: shape)
-                    .ignoresSafeArea(edges: .bottom)
-            }
+            Color.clear
+                .ignoresSafeArea(edges: .bottom)
+                // Rounded: the inset jitters in its last bits as the sheet moves, and each
+                // jitter would lay the sheet out again, forever.
+                .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.bottom.rounded() } action: {
+                    bottomInset = $0
+                }
         }
         .simultaneousGesture(DragGesture(minimumDistance: 16).onEnded { value in
             guard band != nil else { return }
@@ -491,24 +524,43 @@ struct ActionSheet<Content: View>: View {
     }
 
     @ViewBuilder
-    private var grabber: some View {
-        let capsule = Capsule().fill(GT.ink.opacity(0.30)).frame(width: 36, height: 4)
-        if band != nil {
-            Button { setCollapsed(!collapsed) } label: {
-                capsule
-                    .frame(maxWidth: .infinity, minHeight: 24)
-                    .contentShape(Rectangle())
+    private var sheetBackground: some View {
+        if #available(iOS 26.0, *), floats {
+            // Concentric with the display on Face ID phones; the minimum is what a
+            // square-cornered Home-button screen gets.
+            let shape = ConcentricRectangle(corners: .concentric(minimum: .fixed(GT.Radius.sheet)),
+                                            isUniform: true)
+            if let band {
+                shape.fill(band.tint).overlay(shape.stroke(band.ink, lineWidth: 2))
+            } else {
+                shape.fill(GT.glass).overlay(shape.stroke(GT.glassEdge, lineWidth: 1))
             }
-            .buttonStyle(.plain)
-            .padding(.bottom, 3)
-            .accessibilityLabel(collapsed ? language.text("설명 펼치기", "Show explanation")
-                                          : language.text("설명 접기", "Hide explanation"))
-            .accessibilityIdentifier("reveal-sheet-toggle")
         } else {
-            capsule
-                .padding(.bottom, 13)
-                .accessibilityHidden(true)
+            let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
+                                               topTrailingRadius: GT.Radius.sheet,
+                                               style: .continuous)
+            if let band {
+                shape.fill(band.tint)
+                    .overlay(shape.stroke(band.ink, lineWidth: 2))
+                    .ignoresSafeArea(edges: .bottom)
+            } else {
+                GlassBackground(shape: shape)
+                    .ignoresSafeArea(edges: .bottom)
+            }
         }
+    }
+
+    private var grabber: some View {
+        Button { setCollapsed(!collapsed) } label: {
+            Capsule().fill(GT.ink.opacity(0.30)).frame(width: 36, height: 4)
+                .frame(maxWidth: .infinity, minHeight: 24)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, 3)
+        .accessibilityLabel(collapsed ? language.text("설명 펼치기", "Show explanation")
+                                      : language.text("설명 접기", "Hide explanation"))
+        .accessibilityIdentifier("reveal-sheet-toggle")
     }
 
     private func setCollapsed(_ value: Bool) {

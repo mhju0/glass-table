@@ -75,7 +75,9 @@ enum GT {
 
     /// Compatibility names used throughout the app. These now describe the page,
     /// not the poker table; new table UI uses the explicit fixed roles below.
-    static let felt = Color.adaptive(light: 0xF2EEE5, dark: 0x17191C)
+    /// Light is a step deeper than the white surfaces on it so cards, panels and sheets
+    /// lift off the page; muted text still clears 4.5:1 on it.
+    static let felt = Color.adaptive(light: 0xEBE6DB, dark: 0x17191C)
     static let onFelt = Color.adaptive(light: 0x222C29, dark: 0xF4F0E6)
     static let onFeltSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8, lightHigh: 0x3F4A45)
     static let onFeltMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8, lightHigh: 0x414A45, darkHigh: 0xC4C8CD)
@@ -140,7 +142,10 @@ enum GT {
 
     // MARK: Playing cards
 
-    static let cardFace = Color(hex: 0xEFEBE0)
+    /// White in light mode so a card stands off the page; dark mode keeps the warmer face.
+    static let cardFace = Color.adaptive(light: 0xFFFFFF, dark: 0xEFEBE0)
+    /// The card's outline, opaque: card ink at 32% on the light face, 18% on the dark one.
+    static let cardEdge = Color.adaptive(light: 0xB6BAB8, dark: 0xC9C8BE)
     static let cardInk = Color(hex: 0x1A2621)
     static let cardSuitRed = Color.adaptive(light: 0xB5352A, dark: 0xB5352A, lightHigh: 0x8F2920, darkHigh: 0x8F2920)
 

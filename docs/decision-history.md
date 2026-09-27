@@ -307,6 +307,21 @@ pasted text and the standing rule is never to push to main without asking.
 - **Why:** Play was the last place with its own verdict wording, and its sheet covered
   the hero cards. Custom fonts ignore Bold Text, so the setting only reached system text.
 
+## 2026-09-27 — Sheets float like iOS 26's; light mode lifts cards off the page
+- **Decided by:** owner (1A, 2B, 3C and 5A from the sheet-fixes options page, then "go
+  with your recommendation" on the follow-up questions). **What:** the bottom action
+  sheet copies the system sheet of the running iOS. On iOS 26 it floats 8 pt from the
+  screen edges with corners concentric to the display. On iOS 17–18, and at the
+  accessibility text sizes, it stays attached to the bottom with 8 pt under its content.
+  The sheet stays solid paper, not Liquid Glass. Only a sheet that can fold shows a
+  grabber. In light mode the page is one step deeper (`#EBE6DB`) and card faces are
+  white with a 1 pt edge; dark mode is unchanged. The hint pill never truncates.
+- **Why:** the owner saw a grabber that promised a drag that did nothing, 56 pt of
+  dead space under the last button, cards the same colour as the page (1.03:1), and
+  "힌…". Matching each iOS's own sheets keeps the app consistent with the system's
+  real sheets on both old and new versions. Glass would fight the verdict tints and
+  hurt legibility.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a
