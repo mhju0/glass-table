@@ -36,7 +36,7 @@ Full entries: [the 09-27 archive](handoff-archive/2026-09-27-before-answer-patte
   the Hold'em basics lesson, release roadmap (`docs/ROADMAP.md`) and small fixes.
 - Still open: AGENTS.md lists "purchases" as excluded, which conflicts with the
   1.1 unlock and is the owner's call; Phase 1 release work (counsel, Gmail, privacy and
-  support pages, enrolment) is owner work; the iPhone SE (375×667) has never been swept.
+  support pages, enrolment) is owner work.
 
 ## 2026-09-26: Phase 2 — issues 03 and 04 (explanations and help)
 
