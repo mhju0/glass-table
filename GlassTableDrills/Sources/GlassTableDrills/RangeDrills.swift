@@ -124,13 +124,13 @@ public func gradeRFI(userOpens: Bool, spot: RFISpot,
     let h = spot.handClass
     let pct = RFIChart.openPercent[spot.seat] ?? 0
     var why = "\(h.description) · \(Chen.explain(h))\n"
-        + "\(spot.seat.rawValue)는 상위 \(Int(pct))%를 열어요."
+        + "\(KO.topic(spot.seat.rawValue)) 상위 \(Int(pct))%를 열어요."
     if spot.opens {
-        why += " \(h.description)는 그 안에 들어와요."
+        why += " \(KO.topic(h.description)) 그 안에 들어와요."
     } else if let earliest = RFIChart.earliestSeatOpening(spot.hand) {
-        why += " \(h.description)는 \(earliest.rawValue)부터 열어요."
+        why += " \(KO.topic(h.description)) \(earliest.rawValue)부터 열어요."
     } else {
-        why += " \(h.description)는 어느 자리에서도 열지 않아요."
+        why += " \(KO.topic(h.description)) 어느 자리에서도 열지 않아요."
     }
     if language == .english {
         why = "\(h.description) · \(DrillTerms.chen(h, in: language))\n\(spot.seat.rawValue) opens the top \(Int(pct))% of hands. "

@@ -254,11 +254,12 @@ final class BeginnerReleaseTests: XCTestCase {
         let submit = app.buttons["Check answer"]
         XCTAssertTrue(submit.waitForExistence(timeout: 15))
         submit.tap()
-        let saved = app.staticTexts.matching(NSPredicate(
-            format: "identifier BEGINSWITH %@", "saved-answer-potOdds/"
+        // In-session the live reveal stays; the saved answer is drawn after a relaunch.
+        let live = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "drill-completion-potOdds/"
         )).firstMatch
-        XCTAssertTrue(saved.waitForExistence(timeout: 5))
-        let answerID = saved.identifier
+        XCTAssertTrue(live.waitForExistence(timeout: 5))
+        let answerID = live.identifier.replacingOccurrences(of: "drill-completion-", with: "saved-answer-")
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0"]
         app.launch()
@@ -291,6 +292,28 @@ final class BeginnerReleaseTests: XCTestCase {
             format: "label BEGINSWITH %@", expected ?? "-"
         )).firstMatch
         XCTAssertTrue(verdict.exists, "The tint must match the verdict shown")
+    }
+
+    func testPlayGradeUsesTheLessonVerdictAndFoldsToShowTheHand() {
+        let app = app()
+        app.launchEnvironment["GT_DEMO_TABLE"] = "tag"
+        app.launchEnvironment["GT_DEMO_TABLE_STEP"] = "2"
+        app.launch()
+        let verdict = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@ AND label CONTAINS %@", "You chose", "Best"
+        )).firstMatch
+        XCTAssertTrue(verdict.waitForExistence(timeout: 15),
+                      "Play must grade with the same verdict row as the lessons")
+        let detail = app.staticTexts["This is the estimated value lost versus the best choice."]
+        XCTAssertTrue(detail.exists)
+        let toggle = app.buttons["reveal-sheet-toggle"]
+        XCTAssertTrue(toggle.exists)
+        toggle.tap()
+        XCTAssertTrue(detail.waitForNonExistence(timeout: 5), "Folding hides the explanation")
+        XCTAssertTrue(verdict.exists, "Folding keeps the verdict")
+        let hero = app.otherElements["table-hero-cards"]
+        XCTAssertLessThanOrEqual(hero.frame.maxY, toggle.frame.minY,
+                                 "The folded sheet must uncover the hero cards")
     }
 
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {

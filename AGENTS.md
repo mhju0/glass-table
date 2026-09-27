@@ -38,9 +38,11 @@ regressions and verification limits. Detailed historical handoff: `docs/PROJECT_
   describe the same spot and the published policy/chart. Preflop table choices
   use the defend chart; postflop EV uses the disclosed checkdown approximation.
   Do not reveal the correct choice before the user commits.
-- The product is offline, with no accounts, analytics, ads, purchases, or
-  real-money wagering. Preserve local progress and recovery bytes when changing
-  the `progression.json` schema or persistence flows.
+- The product is offline, with no accounts, analytics, ads, or real-money
+  wagering. 1.0 has no purchases; 1.1 plans one one-time unlock (StoreKit, no
+  subscriptions, consumables or ads) after Korean business registration, per
+  `docs/ROADMAP.md`. Chips never have or buy value. Preserve local progress and
+  recovery bytes when changing the `progression.json` schema or persistence flows.
 - Korean terminology is canonical in `docs/glossary.md`; use `KO` helpers for
   particles attached to dynamic text. Card-face glyphs stay fixed-size while
   ordinary text follows Dynamic Type.

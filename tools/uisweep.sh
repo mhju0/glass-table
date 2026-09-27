@@ -5,6 +5,7 @@
 # Default: capture large and AX5. GT_CONTENT_SIZE selects a single category instead.
 # GT_APPEARANCE selects light or dark (default: dark).
 # GT_LANGUAGE selects ko or en (default: ko).
+# GT_BOLD_TEXT=1 turns on the system Bold Text setting before the app launches.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE=com.michaelju.glasstable
@@ -266,6 +267,7 @@ printf 'device=%s\nruntime=%s\nsource=%s\n' "$DEV" "$RUNTIME" "$fingerprint" >"$
 printf 'content_size=%s\n' "${CONTENT_SIZES[@]}" >>"$OUT/run.txt"
 printf 'appearance=%s\n' "$APPEARANCE" >>"$OUT/run.txt"
 printf 'language=%s\n' "$LANGUAGE" >>"$OUT/run.txt"
+printf 'bold_text=%s\n' "${GT_BOLD_TEXT:-0}" >>"$OUT/run.txt"
 xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
 if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1; then
   echo "First boot stalled; restarting the disposable device once."
@@ -273,6 +275,9 @@ if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.lo
 fi
 
 xcrun simctl ui "$DEV" appearance "$APPEARANCE" >>"$OUT/simulator.log" 2>&1
+if [ "${GT_BOLD_TEXT:-0}" = 1 ]; then
+  xcrun simctl spawn "$DEV" defaults write com.apple.Accessibility EnhancedTextLegibilityEnabled -bool YES >>"$OUT/simulator.log" 2>&1
+fi
 xcrun simctl status_bar "$DEV" override --time '9:41' --batteryState charged --batteryLevel 100 >>"$OUT/simulator.log" 2>&1
 # First-boot system announcements can cover the first app frame.
 sleep 8

@@ -146,9 +146,15 @@ enum GT {
 
     // relativeTo: .body makes ordinary text follow Dynamic Type. Titles follow Apple's
     // title styles, which grow less at accessibility sizes, so a long word stays whole.
+    //
+    // A custom face ignores the system Bold Text setting, so each role steps up one
+    // Pretendard weight itself when it is on, the way system text does.
     static func title(_ s: CGFloat) -> Font {
-        .custom("Pretendard-Bold", size: s, relativeTo: titleStyle(s))
+        .custom(boldText ? "Pretendard-ExtraBold" : "Pretendard-Bold",
+                size: s, relativeTo: titleStyle(s))
     }
+
+    private static var boldText: Bool { UIAccessibility.isBoldTextEnabled }
 
     private static func titleStyle(_ s: CGFloat) -> Font.TextStyle {
         switch s {
@@ -167,11 +173,11 @@ enum GT {
     }
 
     static func semibold(_ s: CGFloat) -> Font {
-        .custom("Pretendard-SemiBold", size: s, relativeTo: .body)
+        .custom(boldText ? "Pretendard-Bold" : "Pretendard-SemiBold", size: s, relativeTo: .body)
     }
 
     static func body(_ s: CGFloat) -> Font {
-        .custom("Pretendard-Regular", size: s, relativeTo: .body)
+        .custom(boldText ? "Pretendard-SemiBold" : "Pretendard-Regular", size: s, relativeTo: .body)
     }
 }
 

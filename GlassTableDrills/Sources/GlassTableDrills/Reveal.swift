@@ -64,5 +64,5 @@ func whyText(for spot: OutsSpot, language: LearningLanguage = .korean) -> String
     let apparent = spot.outCount + spot.excluded.count
     // Always-true reason: these cards complete the draw but hero still loses (the board
     // pairs villain up, villain out-flushes, etc.). Spot-specific reasoning is deferred.
-    return "\(apparent) 아웃처럼 보이지만, \(ex)는 완성해도 상대가 더 강해 제외돼요. 진짜 아웃은 \(spot.outCount)장."
+    return "\(apparent) 아웃처럼 보이지만, \(KO.topic(ex)) 완성해도 상대가 더 강해 제외돼요. 진짜 아웃은 \(spot.outCount)장."
 }

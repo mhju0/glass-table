@@ -127,7 +127,7 @@ struct RangeGridView: View {
         }
         guard let highlight else { return language.text("레인지 표, 상위 \(pct)%", "Range chart, top \(pct)%") }
         let inside = range.weight(highlight) > 0
-        return language.text("레인지 표, 상위 \(pct)%. \(highlight.description)는 \(inside ? "포함" : "제외").",
+        return language.text("레인지 표, 상위 \(pct)%. \(KO.topic(highlight.description)) \(inside ? "포함" : "제외").",
                              "Range chart, top \(pct)%. \(highlight.description) is \(inside ? "included" : "excluded").")
     }
 }

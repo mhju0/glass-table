@@ -66,7 +66,7 @@ public func gradeMDF(estimatePct: Int, spot: BetSpot,
         // second sentence derives the first and is always true (no rounding branch).
         whyText: language.text(
             "팟 \(spot.pot) ÷ (팟 \(spot.pot) + 벳 \(spot.bet)) = \(pctText(correct))%. "
-            + "상대는 벳 \(spot.bet)로 팟 \(spot.pot)을 노려요. 블러프가 "
+            + "상대는 벳 \(KO.instrumental("\(spot.bet)")) 팟 \(KO.object("\(spot.pot)")) 노려요. 블러프가 "
             + "\(pctText(100 - correct))%보다 자주 통하면 이득이에요. "
             + "그래서 최소 \(pctText(correct))%는 지켜요.",
             "Pot \(spot.pot) ÷ (pot \(spot.pot) + bet \(spot.bet)) = \(pctText(correct))%. "

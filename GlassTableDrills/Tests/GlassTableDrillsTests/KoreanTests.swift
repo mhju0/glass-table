@@ -24,12 +24,44 @@ final class KoreanTests: XCTestCase {
         XCTAssertEqual(KO.copula("하이"), "하이예요.")
     }
 
-    /// Hand names are built from a rank letter plus Korean, so a latin or digit tail
-    /// must not be treated as a consonant ending.
-    func testNonHangulTailsTakeTheVowelForm() {
+    /// Latin and digit tails follow their Korean reading. "BTN는" shipped: the seat is
+    /// read 버튼, so it takes 은. Rank letters (A, K, Q, J, T) stay vowel endings.
+    func testNonHangulTailsFollowTheirKoreanReading() {
         XCTAssertEqual(KO.subject("K"), "K가")
-        XCTAssertEqual(KO.subject("10"), "10가")
+        XCTAssertEqual(KO.topic("A"), "A는")
+        XCTAssertEqual(KO.topic("BTN"), "BTN은")
+        XCTAssertEqual(KO.topic("UTG+1"), "UTG+1은")
+        XCTAssertEqual(KO.topic("UTG"), "UTG는")
+        XCTAssertEqual(KO.subject("CO"), "CO가")
+        XCTAssertEqual(KO.and("SB"), "SB와")
+        XCTAssertEqual(KO.and("BTN"), "BTN과")
+        XCTAssertEqual(KO.topic("77"), "77은")
+        XCTAssertEqual(KO.topic("A9s"), "A9s는")
+        XCTAssertEqual(KO.subject("10"), "10이")
+        XCTAssertEqual(KO.subject("2"), "2가")
         XCTAssertEqual(KO.subject(""), "가")
+        XCTAssertEqual(KO.copula("Nit"), "Nit이에요.")
+        XCTAssertEqual(KO.copula("TAG"), "TAG예요.")
+        XCTAssertEqual(KO.topic("7♥·8♥"), "7♥·8♥는")
+    }
+
+    /// 로 after a vowel or ㄹ, 으로 after any other final consonant: "벳 20로" shipped.
+    func testInstrumentalParticleTreatsRieulLikeAVowel() {
+        XCTAssertEqual(KO.instrumental("20"), "20으로")
+        XCTAssertEqual(KO.instrumental("12"), "12로")
+        XCTAssertEqual(KO.instrumental("7"), "7로")
+        XCTAssertEqual(KO.instrumental("트리플"), "트리플로")
+        XCTAssertEqual(KO.instrumental("팟"), "팟으로")
+        XCTAssertEqual(KO.instrumental("하이"), "하이로")
+    }
+
+    /// Every seat name takes the particle its reading calls for.
+    func testEverySeatTakesTheRightTopicParticle() {
+        let consonant: Set<String> = ["BTN", "UTG+1"]
+        for seat in Position.allCases {
+            XCTAssertEqual(KO.topic(seat.rawValue),
+                           seat.rawValue + (consonant.contains(seat.rawValue) ? "은" : "는"))
+        }
     }
 
     /// iOS breaks a line between a digit or % and the Hangul after it ("최소 100 / 핸드",

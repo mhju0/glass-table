@@ -159,10 +159,21 @@ struct VerdictRow: View {
     let correct: String
     /// "2 차이" — how far off, so 근접 reads as a measured distance rather than a soft pass.
     var delta: String?
+    /// Wording for drills graded against a chart or an EV rather than a right answer
+    /// ("차트와 일치해요", "내 선택 → 차트"). The shape stays the same everywhere.
+    var title: String?
+    var mineTitle: String?
+    var correctTitle: String?
 
-    init(band: GradeBand, mine: String, correct: String, delta: String? = nil) {
+    init(band: GradeBand, mine: String, correct: String, delta: String? = nil,
+         title: String? = nil, mineTitle: String? = nil, correctTitle: String? = nil) {
         self.band = band; self.mine = mine; self.correct = correct; self.delta = delta
+        self.title = title; self.mineTitle = mineTitle; self.correctTitle = correctTitle
     }
+
+    private var heading: String { title ?? band.label(in: language) }
+    private var mineName: String { mineTitle ?? language.text("내 답", "My answer") }
+    private var correctName: String { correctTitle ?? language.text("정답", "Correct") }
     /// Counts: the gap is computed here rather than at nine call sites.
     init(band: GradeBand, mine: Int, correct: Int, unit: String) {
         self.band = band
@@ -187,7 +198,7 @@ struct VerdictRow: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 7) {
-                    Text(band.label(in: language)).font(GT.title(18)).foregroundStyle(band.ink)
+                    Text(heading).font(GT.title(18)).foregroundStyle(band.ink)
                     if let delta {
                         Text(localizedDelta(delta)).font(GT.semibold(12)).foregroundStyle(band.ink.opacity(0.85))
                     }
@@ -201,10 +212,14 @@ struct VerdictRow: View {
         .background(band.tint, in: RoundedRectangle(cornerRadius: 16))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(band == .spotOn
-            ? language.text("\(band.label). 정답 \(correct), 내 답과 같아요.",
-                            "\(band.label(in: language)). Correct answer \(correct), same as my answer.")
-            : language.text("\(band.label). 내 답 \(mine), 정답 \(correct).",
-                            "\(band.label(in: language)). My answer \(mine), correct answer \(correct).")
+            ? (title == nil
+               ? language.text("\(band.label). 정답 \(correct), 내 답과 같아요.",
+                               "\(band.label(in: language)). Correct answer \(correct), same as my answer.")
+               : "\(heading). \(correctName) \(correct).")
+            : (title == nil
+               ? language.text("\(band.label). 내 답 \(mine), 정답 \(correct).",
+                               "\(band.label(in: language)). My answer \(mine), correct answer \(correct).")
+               : "\(heading). \(mineName) \(mine), \(correctName) \(correct).")
               + (delta.map { " \(localizedDelta($0))." } ?? ""))
     }
 
@@ -213,15 +228,15 @@ struct VerdictRow: View {
     @ViewBuilder
     private var answers: some View {
         if band == .spotOn {
-            Text(language.text("정답 \(correct)", "Correct \(correct)"))
+            Text("\(correctName) \(correct)")
                 .font(GT.title(15)).foregroundStyle(GT.ink)
         } else {
             HStack(spacing: 6) {
-                Text(language.text("내 답 \(mine)", "My answer \(mine)"))
+                Text("\(mineName) \(mine)")
                     .font(GT.body(13)).foregroundStyle(GT.inkMuted)
                 Image(systemName: "arrow.right").font(.system(size: 10, weight: .bold))
                     .foregroundStyle(GT.inkMuted)
-                Text(language.text("정답 \(correct)", "Correct \(correct)"))
+                Text("\(correctName) \(correct)")
                     .font(GT.title(15)).foregroundStyle(GT.ink)
             }
         }
@@ -432,21 +447,24 @@ private struct GTChrome<V: View>: ViewModifier {
 /// The bottom action sheet. Rounded at the top, **bleeding to the bottom edge**, with
 /// a grabber so it reads as a sheet rather than a colour change.
 struct ActionSheet<Content: View>: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.learningLanguage) private var language
     /// A graded result tints the whole sheet and outlines its top edge, so right and
     /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
     var band: GradeBand? = nil
     @ViewBuilder var content: () -> Content
+    /// A graded sheet folds down to its verdict and Next, so evidence the reveal added
+    /// above it can be read without scrolling past the sheet.
+    @State private var collapsed = false
 
     var body: some View {
         VStack(spacing: 0) {
-            Capsule().fill(GT.ink.opacity(0.30))
-                .frame(width: 36, height: 4)
-                .padding(.bottom, 13)
-                .accessibilityHidden(true)
+            grabber
             content()
+                .environment(\.revealCollapsed, band != nil && collapsed)
         }
         .padding(.horizontal, 18)
-        .padding(.top, 12)
+        .padding(.top, band == nil ? 12 : 2)
         .padding(.bottom, 22)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
@@ -462,6 +480,61 @@ struct ActionSheet<Content: View>: View {
                     .ignoresSafeArea(edges: .bottom)
             }
         }
+        .simultaneousGesture(DragGesture(minimumDistance: 16).onEnded { value in
+            guard band != nil else { return }
+            if value.translation.height > 30 { setCollapsed(true) }
+            if value.translation.height < -30 { setCollapsed(false) }
+        })
+        .onChange(of: band) { _, newBand in
+            if newBand == nil { collapsed = false }
+        }
+    }
+
+    @ViewBuilder
+    private var grabber: some View {
+        let capsule = Capsule().fill(GT.ink.opacity(0.30)).frame(width: 36, height: 4)
+        if band != nil {
+            Button { setCollapsed(!collapsed) } label: {
+                capsule
+                    .frame(maxWidth: .infinity, minHeight: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(.bottom, 3)
+            .accessibilityLabel(collapsed ? language.text("설명 펼치기", "Show explanation")
+                                          : language.text("설명 접기", "Hide explanation"))
+            .accessibilityIdentifier("reveal-sheet-toggle")
+        } else {
+            capsule
+                .padding(.bottom, 13)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private func setCollapsed(_ value: Bool) {
+        withAnimation(reduceMotion ? nil : GT.Motion.change) { collapsed = value }
+    }
+}
+
+private struct RevealCollapsedKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// True while a graded sheet is folded down; reveal sheets then show only the
+    /// verdict and Next.
+    var revealCollapsed: Bool {
+        get { self[RevealCollapsedKey.self] }
+        set { self[RevealCollapsedKey.self] = newValue }
+    }
+}
+
+/// Shows its content only while the graded sheet is unfolded.
+struct RevealDetail<Content: View>: View {
+    @Environment(\.revealCollapsed) private var collapsed
+    @ViewBuilder var content: () -> Content
+    var body: some View {
+        if !collapsed { content() }
     }
 }
 

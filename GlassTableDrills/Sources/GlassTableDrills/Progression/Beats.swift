@@ -255,7 +255,7 @@ public enum BeatScript {
                         ? "프리플랍은 블라인드가 마지막에 행동해요."
                         : "플랍 이후에는 블라인드가 먼저, 버튼이 마지막이에요."),
                 Beat("내 뒤에 남은 사람", value: "\(after.count)명",
-                     detail: after.isEmpty ? "뒤에 아무도 없어요. \(p.rawValue)가 마지막이에요."
+                     detail: after.isEmpty ? "뒤에 아무도 없어요. \(KO.subject(p.rawValue)) 마지막이에요."
                                            : after.map(\.rawValue).joined(separator: " · ")),
                 Beat("뒤에 사람이 많을수록 좁게 플레이해요",
                      detail: "누군가 좋은 패를 들고 있을 확률이 그만큼 올라가니까요."),
@@ -284,7 +284,7 @@ public enum BeatScript {
                  detail: comboMeaning(s) + " "
                     + "\(example.map(\.display).joined(separator: " "))처럼 무늬까지 정하면 콤보 하나예요.",
                  focus: .grid(example)),
-            Beat("\(s.className)는 원래 \(s.baseline)가지예요",
+            Beat("\(KO.topic(s.className)) 원래 \(s.baseline)가지예요",
                  detail: kindExplain(s.kind)),
             Beat("그런데 이 카드들이 보여요", detail: removedNames,
                  focus: .grid(s.removed), highlight: s.removed),
@@ -297,9 +297,9 @@ public enum BeatScript {
 
     private static func comboMeaning(_ s: BlockerSpot) -> String {
         switch s.kind {
-        case .pair: return "\(s.className)는 \(rankName(s.rankA)) 두 장이라는 뜻이에요."
+        case .pair: return "\(KO.topic(s.className)) \(rankName(s.rankA)) 두 장이라는 뜻이에요."
         case .suited: return "\(s.className)의 s는 두 장의 무늬가 같다는 뜻이에요."
-        default: return "\(s.className)는 두 장의 무늬를 가리지 않아요."
+        default: return "\(KO.topic(s.className)) 두 장의 무늬를 가리지 않아요."
         }
     }
 
@@ -414,22 +414,22 @@ public enum BeatScript {
             Beat("이 핸드의 점수", value: "\(pctTextScore(Chen.score(h)))점",
                  detail: Chen.explain(h),
                  focus: .table, highlight: s.hand),
-            Beat("\(s.seat.rawValue)가 여는 범위", value: "상위 \(Int(pct))%",
+            Beat("\(KO.subject(s.seat.rawValue)) 여는 범위", value: "상위 \(Int(pct))%",
                  detail: "점수 순으로 위에서 \(Int(pct))%까지예요.",
                  focus: .rangeGrid(chart, highlight: h)),
         ]
         if s.opens {
             beats.append(Beat("그래서 오픈", value: "레이즈",
-                              detail: "\(h.description)는 \(s.seat.rawValue) 범위 안에 있어요.",
+                              detail: "\(KO.topic(h.description)) \(s.seat.rawValue) 범위 안에 있어요.",
                               focus: .rangeGrid(chart, highlight: h)))
         } else if let earliest = RFIChart.earliestSeatOpening(s.hand) {
             beats.append(Beat("그래서 폴드", value: "폴드",
-                              detail: "\(h.description)는 \(earliest.rawValue)부터 열어요. "
+                              detail: "\(KO.topic(h.description)) \(earliest.rawValue)부터 열어요. "
                                     + "\(s.seat.rawValue)에서는 아직 일러요.",
                               focus: .rangeGrid(chart, highlight: h)))
         } else {
             beats.append(Beat("그래서 폴드", value: "폴드",
-                              detail: "\(h.description)는 어느 자리에서도 열지 않아요.",
+                              detail: "\(KO.topic(h.description)) 어느 자리에서도 열지 않아요.",
                               focus: .rangeGrid(chart, highlight: h)))
         }
         return beats
@@ -464,7 +464,7 @@ public enum BeatScript {
                       + "콜은 그 사이 \(Int(a.vpip - a.pfr))%p예요.",
                  focus: .actionList(s.actionLines, lit: nil)),
             Beat("자리를 반영하면", value: "상위 \(pctText(truth.percent))%",
-                 detail: "\(s.seat.rawValue)는 뒤에 \(s.seat.playersBehind(preflop: true))명 남았어요. "
+                 detail: "\(KO.topic(s.seat.rawValue)) 뒤에 \(s.seat.playersBehind(preflop: true))명 남았어요. "
                        + "\(statName) \(Int(headline))%는 모든 자리 평균이라 여기선 "
                        + "\(truth.percent >= headline ? "더 넓어" : "더 좁아")져요.",
                  focus: .actionList(s.actionLines, lit: nil)),
@@ -500,7 +500,7 @@ public enum BeatScript {
                  detail: "먼저 보드가 어떤 종류인지 봐요. 하이카드, 무늬, 페어 여부.",
                  focus: .table, highlight: s.board),
             Beat("상대 레인지", value: "\(s.seat.rawValue) 오픈",
-                 detail: "\(s.seat.rawValue)가 여는 범위는 상위 "
+                 detail: "\(KO.subject(s.seat.rawValue)) 여는 범위는 상위 "
                        + "\(pctText(RFIChart.openPercent[s.seat] ?? 0))%예요.",
                  focus: .rangeGrid(s.range, highlight: nil)),
             Beat("보드가 지운 콤보", value: "\(d.liveCombos)콤보 남음",
@@ -544,7 +544,7 @@ public enum BeatScript {
                  detail: "먼저 들어온 쪽은 좁고 센 범위예요.",
                  focus: .rangeGrid(s.openerRange, highlight: nil)),
             Beat("콜러의 레인지", value: "상위 \(pctText(s.callerRange.percent))%",
-                 detail: "\(s.caller.name)가 콜만 하는 구간이에요. 올리기에는 아까운 패들이에요. "
+                 detail: "\(KO.subject(s.caller.name)) 콜만 하는 구간이에요. 올리기에는 아까운 패들이에요. "
                        + "\(s.caller.blurb).",
                  focus: .rangeGrid(s.callerRange, highlight: nil)),
             // The bucket that actually separates them, not a fixed one — on many
@@ -631,7 +631,7 @@ public enum BeatScript {
                        + "갈래는 셋: 폴드, 콜, 3벳.",
                  focus: .table),
             Beat("상대의 폭", value: "상위 \(pctText(openPct))%",
-                 detail: "\(s.opener.rawValue)가 여는 범위예요. 수비 기준은 전부 "
+                 detail: "\(KO.subject(s.opener.rawValue)) 여는 범위예요. 수비 기준은 전부 "
                        + "이 폭에서 나와요.",
                  focus: .rangeGrid(RFIChart.range(for: s.opener), highlight: nil)),
             Beat("기준 유도", value: "폭에 비례해요",
