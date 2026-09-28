@@ -17,6 +17,7 @@ struct RootView: View {
     /// Set when the basics lesson ends with "start the next lesson"; the node opens
     /// once the lesson's cover has finished dismissing.
     @State private var nodeAfterBasics: CurriculumNode?
+    @State private var homeIndicatorInset: CGFloat = 0
 
     var body: some View {
         Group {
@@ -31,7 +32,11 @@ struct RootView: View {
             #endif
         }
         .environment(model)
+        .environment(\.homeIndicatorInset, homeIndicatorInset)
         .tint(GT.onFelt)
+        .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.bottom.rounded() } action: {
+            homeIndicatorInset = $0
+        }
     }
 
     @ViewBuilder

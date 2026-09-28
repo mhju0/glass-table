@@ -553,6 +553,7 @@ struct ActionSheet<Content: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
+    @Environment(\.homeIndicatorInset) private var indicator
     /// A graded result tints the whole sheet and outlines its edge, so right and
     /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
     var band: GradeBand? = nil
@@ -570,9 +571,7 @@ struct ActionSheet<Content: View>: View {
     /// the home indicator alone. A tab bar below the sheet adds its height to the inset,
     /// and the card then floats above the bar instead of sliding under it.
     private var reach: CGFloat {
-        let indicator = UIApplication.shared.connectedScenes.lazy
-            .compactMap { ($0 as? UIWindowScene)?.keyWindow }.first?.safeAreaInsets.bottom ?? 0
-        return bottomInset <= indicator + 0.5 ? bottomInset : 0
+        bottomInset <= indicator + 0.5 ? bottomInset : 0
     }
 
     private var floats: Bool {
@@ -667,7 +666,19 @@ private struct RevealCollapsedKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct HomeIndicatorInsetKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
 extension EnvironmentValues {
+    /// The window's own bottom inset — the home indicator, 0 on a Home-button phone —
+    /// measured once at the root. Reading it from UIKit inside a view's body made iOS 27
+    /// re-query the status bar mid-update and spin the main thread in a graph cycle.
+    var homeIndicatorInset: CGFloat {
+        get { self[HomeIndicatorInsetKey.self] }
+        set { self[HomeIndicatorInsetKey.self] = newValue }
+    }
+
     /// True while a graded sheet is folded down; reveal sheets then show only the
     /// verdict and Next.
     var revealCollapsed: Bool {

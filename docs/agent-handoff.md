@@ -137,3 +137,15 @@ Full entries: [the 09-28 archive](handoff-archive/2026-09-28-before-spacing-rule
 - Resolved: the proposal evidence path (see the 09-26 summary above).
 - Left alone on purpose: the Play landing's midline gap (`MidlineSplitLayout`).
 - Open (carried): iOS 17–18 attached-sheet path still unseen (runtime download needed).
+
+## 2026-09-28: iOS 27 launch freeze (branch `feat/spacing-rules`)
+
+- Owner's iPhone 12 mini (iOS 27.0) opened to an unresponsive app; two watchdog reports
+  (0x8BADF00D) showed the main thread in `AG::Graph::print_cycle` via
+  `UIKitStatusBarBridge` ← `UIWindow.safeAreaInsets` ← `ActionSheet.reach` ← `body`.
+- Fix: `RootView` measures its bottom safe-area inset and passes it down as
+  `\.homeIndicatorInset`; `ActionSheet` no longer reads UIKit windows in `body`.
+- Not reproduced on the iOS 27 simulator (Release build + the phone's own data ran at
+  0% CPU), so the device is the only proof; check it after install.
+- Next: intro redesign option A (owner chose it with all recommendations: "이렇게
+  배워요" folds into the wrap-up, 족보 stays as 홀덤 기초 ladder + check, split-pot line).
