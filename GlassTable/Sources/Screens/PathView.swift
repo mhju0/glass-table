@@ -54,7 +54,7 @@ struct PathView: View {
             HStack(spacing: 13) {
                 Image(systemName: "infinity")
                     .font(.system(size: 18, weight: .semibold)).foregroundStyle(GT.mint)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 36, height: 36, alignment: .leading)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(language.text("한 가지 집중 연습", "Practice one skill")).font(GT.title(17)).foregroundStyle(GT.onFelt)
                     Text(language.text("원하는 주제를 다섯 문제씩 연습해요", "Five questions on one topic"))
@@ -65,7 +65,7 @@ struct PathView: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold)).foregroundStyle(GT.onFeltSecondary)
             }
-            .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
             .gtPanel().contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
@@ -78,10 +78,10 @@ struct PathView: View {
             HStack(spacing: 13) {
                 Image(systemName: done ? "checkmark.circle.fill" : "suit.spade.fill")
                     .font(.system(size: 18, weight: .semibold)).foregroundStyle(GT.mint)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 36, height: 36, alignment: .leading)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(language.text("홀덤 기초", "Hold'em basics")).font(GT.title(17)).foregroundStyle(GT.onFelt)
-                    Text(language.text("카드가 나오는 순서와 족보", "How cards are dealt, and hand ranks"))
+                    Text(language.text("족보와 확인 문제", "Hand ranks and a quick check"))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                 }
@@ -89,7 +89,7 @@ struct PathView: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold)).foregroundStyle(GT.onFeltSecondary)
             }
-            .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
             .gtPanel().contentShape(Rectangle())
         }
         .buttonStyle(GTPress())

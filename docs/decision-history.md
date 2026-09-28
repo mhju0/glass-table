@@ -307,6 +307,52 @@ pasted text and the standing rule is never to push to main without asking.
 - **Why:** Play was the last place with its own verdict wording, and its sheet covered
   the hero cards. Custom fonts ignore Bold Text, so the setting only reached system text.
 
+## 2026-09-27 — Sheets float like iOS 26's; light mode lifts cards off the page
+- **Decided by:** owner (1A, 2B, 3C and 5A from the sheet-fixes options page, then "go
+  with your recommendation" on the follow-up questions). **What:** the bottom action
+  sheet copies the system sheet of the running iOS. On iOS 26 it floats 8 pt from the
+  screen edges with corners concentric to the display. On iOS 17–18, and at the
+  accessibility text sizes, it stays attached to the bottom with 8 pt under its content.
+  The sheet stays solid paper, not Liquid Glass. Only a sheet that can fold shows a
+  grabber. In light mode the page is one step deeper (`#EBE6DB`) and card faces are
+  white with a 1 pt edge; dark mode is unchanged. The hint pill never truncates.
+- **Why:** the owner saw a grabber that promised a drag that did nothing, 56 pt of
+  dead space under the last button, cards the same colour as the page (1.03:1), and
+  "힌…". Matching each iOS's own sheets keeps the app consistent with the system's
+  real sheets on both old and new versions. Glass would fight the verdict tints and
+  hurt legibility.
+
+## 2026-09-28 — Four spacing rules; one close control
+- **Decided by:** owner (R1–R4 and items 1A, 2A, 3A, 4A, 5A from the spacing audit, then
+  "title 12pt below", "keep X in popover" and "keep 건너뛰기" on the follow-ups).
+  **What:** R1, one 18 pt content edge. R2, the top control sits on that edge and the
+  title starts 12 pt under it; in a sheet the control is as far from the top as from the
+  side (20 pt). R3, the gap above a container's text equals the gap beside it: 16 in
+  cards, 20 in sheets and popovers. R4, one close control, a chevron down at top left; a
+  chevron left only goes back inside the same sheet, and a sheet with both puts close on
+  the right. The hint popover keeps its X as the one exception; "건너뛰기" stays as text
+  on the right. Opponent detail shows its poker terms without a disclosure; "no real
+  money" stays only in Responsible play and the first-run chip; the hint popover fits its
+  text and loses "문제로 돌아가기"; the glossary is a plain list; the pot-math
+  instruction line never disappears.
+- **Why:** the audit found titles 46–61 pt below their control, four kinds of close
+  button (word, X, glass circle, chevron on either side) and card insets from 11 to 25
+  pt. One rule per question makes every screen start the same way.
+
+## 2026-09-28 — The first-run guide follows one hand
+- **Decided by:** owner ("I like A", with the recommendations: "이렇게 배워요" folds into
+  the wrap-up, 족보 stays on the path as 홀덤 기초, the split-pot line is included).
+  **What:** after the welcome, six numbered screens follow one hand as it is played:
+  the pot and two ways to win, blinds and the deal, the four actions, a static timeline
+  with a betting round on each street (replacing the tap-to-deal stepper), and best
+  five of seven with the split-pot line. The two warm-ups follow, and their answers
+  outline the five cards each side uses. A wrap-up lists what was covered and how
+  lessons work, then opens 홀덤 기초, now just the ladder and its check question.
+- **Why:** the old guide asked "who wins?" before saying that only five of seven cards
+  count, taught betting only in a caption, and asked the same question three times.
+  Each rule now appears where it happens in a hand, just before the question that
+  needs it.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a

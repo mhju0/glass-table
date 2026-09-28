@@ -3,10 +3,9 @@ import SwiftUI
 import GlassTableDrills
 
 /// Static term list from docs/glossary.md — only terms the app actually uses.
-/// `focus` scrolls to one term: how a drill's 용어 chip explains a word in place,
-/// at the moment of confusion, instead of a starter guide explaining it once up front.
+/// Always the whole list from the top, with no term singled out: a drill's 용어 chip
+/// opens the same plain reference Settings does.
 struct GlossaryView: View {
-    var focus: String? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.learningLanguage) private var language
 
@@ -68,11 +67,6 @@ struct GlossaryView: View {
              englishDefinition: "The whole-number unit in pot-counting practice. The small blind posts 1 chip and the big blind 2."),
     ]
 
-    private var focusID: String? {
-        guard let focus else { return nil }
-        return Self.terms.first(where: { $0.id == focus || $0.korean == focus || $0.english == focus })?.id
-    }
-
     static func displayName(for focus: String, language: LearningLanguage) -> String {
         guard let term = terms.first(where: { $0.id == focus || $0.korean == focus || $0.english == focus })
         else { return focus }
@@ -83,58 +77,36 @@ struct GlossaryView: View {
         VStack(alignment: .leading, spacing: 4) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(language == .korean ? term.korean : term.english)
-                    .font(GT.title(16)).foregroundStyle(GT.ink)
+                    .font(GT.title(16)).foregroundStyle(GT.onFelt)
                 Text(language == .korean ? term.english : term.korean)
-                    .font(GT.body(12)).foregroundStyle(GT.inkMuted)
+                    .font(GT.body(12)).foregroundStyle(GT.onFeltMuted)
             }
             Text(language == .korean ? term.koreanDefinition : term.englishDefinition)
-                .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 11)
-        .padding(.horizontal, focusID == term.id ? 12 : 0)
         .frame(maxWidth: .infinity, alignment: .leading)
-        // The chip that opened this screen names one term; tint it so the answer is
-        // findable without reading the other nine.
-        .background(focusID == term.id ? GT.surface : .clear,
-                    in: RoundedRectangle(cornerRadius: 14))
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Presented as a bare sheet from both entry points, so there is no nav bar
-            // to hang a toolbar item on — the chevron lives in the header instead.
-            HStack {
-                ChromeButton.close { dismiss() }
-                Spacer()
-            }
-            .padding(.leading, 4)
-            HStack {
-                Text(language.text("용어집", "Glossary")).font(GT.title(16)).foregroundStyle(GT.onFelt)
-                Spacer()
-            }
-            .padding(.horizontal, 18).padding(.bottom, 18)
-
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(spacing: 0) {
-                        ForEach(Array(Self.terms.enumerated()), id: \.offset) { i, term in
-                            row(term)
-                                .id(term.id)
-                            if i < Self.terms.count - 1 { Divider() }
-                        }
-                    }
-                    .padding(.horizontal, 18).padding(.top, 10).padding(.bottom, 24)
-                }
-                .onAppear {
-                    if let focusID { proxy.scrollTo(focusID, anchor: .top) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(language.text("용어집", "Glossary"))
+                    .font(GT.title(22)).foregroundStyle(GT.onFelt)
+                    .accessibilityAddTraits(.isHeader)
+                    .padding(.bottom, 8)
+                ForEach(Array(Self.terms.enumerated()), id: \.offset) { i, term in
+                    row(term)
+                    if i < Self.terms.count - 1 { Divider() }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .gtCard(radius: 24)
+            .gtContentEdge()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(GT.felt.ignoresSafeArea())
+        .background(FeltBackground())
+        .gtChrome(leading: { ChromeButton.close { dismiss() } })
+        .gtSheetSurface()
     }
 }
 

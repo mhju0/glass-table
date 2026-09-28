@@ -55,8 +55,8 @@ struct TableSetupView: View {
                     }
                     .buttonStyle(GTPress())
                     .accessibilityIdentifier("style-guide")
-                    Text(language.text("각자 100칩 · 블라인드 1·2칩 · 실제 돈은 쓰지 않아요.",
-                                       "100 chips each · blinds 1 and 2 · no real money."))
+                    Text(language.text("각자 100칩 · 블라인드 1·2칩",
+                                       "100 chips each · blinds 1 and 2"))
                         .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                 }
                 .padding(18)
@@ -146,8 +146,9 @@ private struct StyleGuideView: View {
                         .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                     ForEach(Archetype.allCases, id: \.self) { style in
                         NavigationLink {
-                            OpponentDetailView(opponent: style, closePlacement: .topBarTrailing,
+                            OpponentDetailView(opponent: style, pushed: true,
                                                onClose: onClose)
+                                .gtSheetSurface()
                         } label: {
                             TapCardLabel(title: style.beginnerTitle(in: language),
                                          detail: style.beginnerDescription(in: language))
@@ -156,13 +157,15 @@ private struct StyleGuideView: View {
                         .accessibilityIdentifier("opponent-\(style.rawValue)")
                     }
                 }
-                .padding(20)
+                .gtContentEdge()
             }
             .background(FeltBackground())
-            .gtChrome(.topBarLeading) { ChromeButton.close(onClose) }
+            .gtChrome(leading: { ChromeButton.close(onClose) })
+            .gtSheetSurface()
             .navigationDestination(isPresented: demoDetail) {
-                OpponentDetailView(opponent: demoStyle ?? .tag, closePlacement: .topBarTrailing,
+                OpponentDetailView(opponent: demoStyle ?? .tag, pushed: true,
                                    onClose: onClose)
+                    .gtSheetSurface()
             }
         }
         .presentationDetents([.large])

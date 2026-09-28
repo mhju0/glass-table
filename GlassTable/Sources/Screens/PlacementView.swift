@@ -63,13 +63,14 @@ struct PlacementView: View {
                         }
                     }
                 }
-                .padding(20)
+                .gtContentEdge()
                 .frame(minHeight: viewport.size.height, alignment: .top)
             }
         }
         .background(FeltBackground())
         .modifier(ProgressSaveNotice())
-        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+        .gtChrome(leading: { ChromeButton.close { dismiss() } })
+        .gtSheetSurface()
         .onAppear { if epoch == nil { epoch = model.epoch } }
         .onChange(of: model.epoch) { _, _ in dismiss() }
     }

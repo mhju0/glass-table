@@ -67,7 +67,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-                .padding(16)
+                .gtInset(GT.Space.card)
                 .gtCard(radius: 20)
                 VStack(alignment: .leading, spacing: 10) {
                     Text(language.text("화면 모드", "Appearance")).font(GT.semibold(15)).foregroundStyle(GT.ink)
@@ -96,7 +96,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-                .padding(16)
+                .gtInset(GT.Space.card)
                 .gtCard(radius: 20)
                 reminderCard
                 VStack(spacing: 0) {
@@ -485,10 +485,11 @@ private struct ResponsiblePlayView: View {
                 }
                 .gtCard(radius: 20)
             }
-            .padding(24)
+            .gtContentEdge()
         }
         .background(FeltBackground())
-        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+        .gtChrome(leading: { ChromeButton.close { dismiss() } })
+        .gtSheetSurface()
     }
 }
 
@@ -517,10 +518,11 @@ private struct OpenSourceLicenseView: View {
                 Text(license(named: "FSRS-LICENSE"))
                     .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                     .textSelection(.enabled)
-            }.padding(24)
+            }.gtContentEdge()
         }
         .background(FeltBackground())
-        .gtChrome(.topBarLeading) { ChromeButton.close { dismiss() } }
+        .gtChrome(leading: { ChromeButton.close { dismiss() } })
+        .gtSheetSurface()
     }
 }
 

@@ -86,8 +86,8 @@ struct PlayView: View {
                         MidlineSplitLayout(splitY: screenHeight / 2 - viewport.safeAreaInsets.top - 18,
                                            spacing: 22, gap: 12) {
                             playTitle
-                            Text(language.text("컴퓨터와 한 판씩 연습해요. 실제 돈은 쓰지 않아요.",
-                                               "Practice against computers. No real money."))
+                            Text(language.text("컴퓨터와 한 판씩 연습해요.",
+                                               "Practice against computers."))
                                 .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
                                 .lineSpacing(GT.Typography.bodyLineSpacing)
                             Button { showSetup = true } label: {
@@ -446,9 +446,6 @@ private struct PlayTableGuideView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     Text(language.text("테이블 보는 법", "How to read the table"))
                         .font(GT.title(26)).foregroundStyle(GT.ink)
-                    Text(language.text("실제 돈은 쓰지 않아요. 칩은 연습용이에요.",
-                                       "No real money. The chips are for practice."))
-                        .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                     ForEach(items, id: \.title) { item in
                         HStack(alignment: .firstTextBaseline, spacing: 12) {
                             Image(systemName: item.symbol)
@@ -471,10 +468,11 @@ private struct PlayTableGuideView: View {
                     FeltCTAButton(title: language.text("테이블로 가기", "Go to the table"), action: onClose)
                         .accessibilityIdentifier("play-table-guide-close")
                 }
-                .padding(20)
+                .gtContentEdge()
             }
             .background(FeltBackground())
-            .gtChrome(.topBarTrailing) { ChromeButton.close(onClose) }
+            .gtChrome(leading: { ChromeButton.close(onClose) })
+            .gtSheetSurface()
         }
         .accessibilityIdentifier("play-table-guide-sheet")
     }

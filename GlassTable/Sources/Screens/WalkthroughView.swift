@@ -24,7 +24,6 @@ struct WalkthroughView: View {
     let initialIndex: Int
     let onStep: (Int) -> Bool
     let onFinish: () -> Void
-    let onSkip: () -> Void
 
     @State private var index = 0
     /// The learner's one action in the example: the first computed value stays covered
@@ -33,10 +32,10 @@ struct WalkthroughView: View {
 
     init(title: String, purpose: String? = nil, beats: [Beat], rows: [(String, [Card])],
          initialIndex: Int = 0, onStep: @escaping (Int) -> Bool = { _ in true },
-         onFinish: @escaping () -> Void, onSkip: @escaping () -> Void) {
+         onFinish: @escaping () -> Void) {
         self.title = title; self.purpose = purpose; self.beats = beats; self.rows = rows
         self.initialIndex = initialIndex; self.onStep = onStep
-        self.onFinish = onFinish; self.onSkip = onSkip
+        self.onFinish = onFinish
     }
 
     private var beat: Beat { beats[min(index, beats.count - 1)] }
@@ -94,13 +93,13 @@ struct WalkthroughView: View {
             }
             #endif
         }
-        // Stays a word, and stays opposite 닫기. Skipping a lesson is a decision, not a
-        // direction — an arrow would leave the user guessing what they were giving up.
-        .gtChrome(.topBarTrailing) {
-            Button(language.text("건너뛰기", "Skip"), action: onSkip)
-                .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-                .frame(minHeight: 44)
-        }
+    }
+
+    /// Skipping stays a word: it is a decision, not a direction, and an arrow would
+    /// leave the learner guessing what they were giving up. The screen hosting the
+    /// walkthrough puts it in its top bar, opposite the close control.
+    static func skipTitle(_ language: LearningLanguage) -> String {
+        language.text("건너뛰기", "Skip")
     }
 
     private var header: some View {

@@ -299,7 +299,7 @@ struct SolvedWithHelpLabel: View {
     }
 }
 
-/// "용어 · 팟 오즈" — opens the glossary scrolled to one term, from inside a reveal.
+/// "용어 · 팟 오즈" — opens the glossary from inside a reveal.
 /// Owns its own sheet state so a call site is one line.
 struct GlossaryChip: View {
     @Environment(\.learningLanguage) private var language
@@ -322,7 +322,7 @@ struct GlossaryChip: View {
         .buttonStyle(GTPress())
         .accessibilityLabel(language.text("용어집에서 \(term) 보기",
                                           "Open glossary entry for \(GlossaryView.displayName(for: term, language: language))"))
-        .sheet(isPresented: $open) { GlossaryView(focus: term) }
+        .sheet(isPresented: $open) { GlossaryView() }
     }
 }
 
@@ -370,26 +370,80 @@ extension View {
         background(GT.onFelt.opacity(0.08),
                    in: RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
+
+    /// Pads content so the visible gap above its first line equals the gap beside it.
+    /// Use `GT.Space.card` inside a card and `GT.Space.sheet` inside a sheet.
+    func gtInset(_ inset: CGFloat) -> some View {
+        padding(.horizontal, inset)
+            .padding(.top, inset - GT.Space.leading)
+            .padding(.bottom, inset)
+    }
 }
 
 // MARK: - navigation chrome
 
-/// The one nav-bar control, drawn by us rather than by the system.
+/// What a screen sits on. A page runs to the screen edge; a sheet has a rounded top
+/// corner to clear, so its content and its close control sit further in.
+enum GTSurface {
+    case page, sheet
+
+    /// The content edge, and the distance from the top and side to the close control.
+    var inset: CGFloat { self == .page ? GT.Space.edge : GT.Space.sheet }
+}
+
+private struct GTSurfaceKey: EnvironmentKey { static let defaultValue = GTSurface.page }
+private struct ChromeEdgeKey: EnvironmentKey { static let defaultValue = HorizontalEdge.leading }
+
+extension EnvironmentValues {
+    var gtSurface: GTSurface {
+        get { self[GTSurfaceKey.self] }
+        set { self[GTSurfaceKey.self] = newValue }
+    }
+
+    fileprivate var chromeEdge: HorizontalEdge {
+        get { self[ChromeEdgeKey.self] }
+        set { self[ChromeEdgeKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Marks the content of a `.sheet`, so its chrome and content edge clear the corner.
+    func gtSheetSurface() -> some View { environment(\.gtSurface, .sheet) }
+
+    /// Side and bottom padding for content under a `gtChrome` bar: the surface's edge.
+    /// No top padding — the bar already leaves the gap under its controls.
+    func gtContentEdge() -> some View { modifier(GTContentEdge()) }
+}
+
+private struct GTContentEdge: ViewModifier {
+    @Environment(\.gtSurface) private var surface
+    func body(content: Content) -> some View {
+        content.padding(.horizontal, surface.inset).padding(.bottom, surface.inset)
+    }
+}
+
+/// The one top-bar control, drawn by us rather than by the system.
 ///
 /// Under iOS 26 a toolbar item is handed a Liquid Glass capsule whose material samples
 /// whatever sits behind it. On a sheet that is the *outgoing* screen, so the button
-/// visibly changes shade while the sheet settles — the flicker this replaces — and the
-/// ring around it reads as a floating bubble rather than a control. A bare glyph has
-/// no material to resolve, so there is nothing to settle.
+/// visibly changes shade while the sheet settles, and the ring around it reads as a
+/// floating bubble rather than a control. A bare glyph has no material to resolve.
 ///
 /// Direction carries the meaning, which is why these are arrows and not words: ∨ puts
 /// the sheet back down the way it came up, ‹ steps back one level inside it.
 struct ChromeButton: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.chromeEdge) private var edge
     let symbol: String
     /// Never rendered — the arrow is the label. Spoken by VoiceOver, which cannot see it.
     let spoken: String
     let action: () -> Void
+
+    /// The glyph's distance from the tap target's outer edge, and from its top.
+    static let glyphInset: CGFloat = 12
+    static let glyphTop: CGFloat = 18.5
+    /// Empty space an SF Symbol's image keeps beside its ink.
+    private static let bearing: CGFloat = 2
 
     /// Dismisses the sheet. It rose from the bottom; it leaves the same way.
     static func close(_ action: @escaping () -> Void) -> ChromeButton {
@@ -406,79 +460,152 @@ struct ChromeButton: View {
             Image(systemName: symbol)
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(GT.onFelt)
-                // 44pt target: the glyph is small and the felt around it is not tappable.
-                .frame(width: 44, height: 44)
+                .padding(.horizontal, Self.glyphInset - Self.bearing)
+                // 44pt target, with the glyph at its outer edge so it lines up with the
+                // text below instead of floating 13pt inside it.
+                .frame(minWidth: 44, minHeight: 44, alignment: edge == .leading ? .leading : .trailing)
                 .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
+        // The target reaches past the content edge; the glyph stays on it.
+        .padding(edge == .leading ? .leading : .trailing, -Self.glyphInset)
         .accessibilityLabel(spoken == "닫기" ? language.text("닫기", "Close") : spoken)
     }
 }
 
-extension View {
-    /// Every nav bar in the app: no background, and its item drawn by us.
-    func gtChrome<V: View>(_ placement: ToolbarItemPlacement,
-                           @ViewBuilder item: @escaping () -> V) -> some View {
-        modifier(GTChrome(placement: placement, item: item))
+/// A top-bar action that is a decision rather than a direction, so it stays a word.
+struct ChromeTextButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(title, action: action)
+            .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
     }
 }
 
-private struct GTChrome<V: View>: ViewModifier {
-    let placement: ToolbarItemPlacement
-    @ViewBuilder let item: () -> V
+/// The top bar: its glyphs sit as far from the top as from the side, and the content
+/// starts just under them rather than under a 44pt system bar.
+struct GTChromeBar<Leading: View, Trailing: View>: View {
+    @Environment(\.gtSurface) private var surface
+    let leading: Leading
+    let trailing: Trailing
+
+    /// How far the 44pt targets hang below the bar into the content under it.
+    static var overhang: CGFloat { 9 }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            leading.environment(\.chromeEdge, .leading)
+            Spacer(minLength: 0)
+            trailing.environment(\.chromeEdge, .trailing)
+        }
+        .padding(.horizontal, surface.inset)
+        .padding(.top, max(surface.inset - ChromeButton.glyphTop, 0))
+        .padding(.bottom, -Self.overhang)
+    }
+}
+
+extension View {
+    /// Every screen's top bar: no system bar, our controls on the content edge.
+    func gtChrome<L: View, T: View>(@ViewBuilder leading: () -> L,
+                                    @ViewBuilder trailing: () -> T) -> some View {
+        modifier(GTChrome(bar: GTChromeBar(leading: leading(), trailing: trailing())))
+    }
+
+    func gtChrome<L: View>(@ViewBuilder leading: () -> L) -> some View {
+        gtChrome(leading: leading, trailing: { EmptyView() })
+    }
+
+    func gtChrome<T: View>(@ViewBuilder trailing: () -> T) -> some View {
+        gtChrome(leading: { EmptyView() }, trailing: trailing)
+    }
+}
+
+private struct GTChrome<L: View, T: View>: ViewModifier {
+    let bar: GTChromeBar<L, T>
 
     func body(content: Content) -> some View {
+        // Content scrolls under a strip of page ground rather than under the system's
+        // scroll-edge fade: the fade reaches past the bar and would wash out the title
+        // that now starts right under the chevron.
         content
-            .toolbar { bar }
-            .toolbarBackground(.hidden, for: .navigationBar)
-    }
-
-    @ToolbarContentBuilder
-    private var bar: some ToolbarContent {
-        if #available(iOS 26.0, *) {
-            ToolbarItem(placement: placement) { item() }
-                .sharedBackgroundVisibility(.hidden)
-        } else {
-            ToolbarItem(placement: placement) { item() }
-        }
+            .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                bar.background(alignment: .top) { GT.felt.ignoresSafeArea(edges: .top) }
+            }
     }
 }
 
-/// The bottom action sheet. Rounded at the top, **bleeding to the bottom edge**, with
-/// a grabber so it reads as a sheet rather than a colour change.
+/// The bottom action sheet, shaped like the system's own sheets on the running iOS.
+///
+/// iOS 26 floats a partial-height sheet: inset from the screen edges, every corner
+/// concentric with the display's. Earlier systems attach it to the bottom edge with only
+/// the top corners rounded. The app's real `.sheet`s already follow the system, so this
+/// one does too. At the accessibility sizes the sheet grows toward full height, where
+/// iOS 26 also goes edge to edge, so it attaches there as well.
+///
+/// Only a graded sheet can fold, so only it shows a grabber; a grabber on a sheet that
+/// cannot move promises a drag that does nothing.
 struct ActionSheet<Content: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
-    /// A graded result tints the whole sheet and outlines its top edge, so right and
+    @Environment(\.homeIndicatorInset) private var indicator
+    /// A graded result tints the whole sheet and outlines its edge, so right and
     /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
     var band: GradeBand? = nil
     @ViewBuilder var content: () -> Content
     /// A graded sheet folds down to its verdict and Next, so evidence the reveal added
     /// above it can be read without scrolling past the sheet.
     @State private var collapsed = false
+    /// The home-indicator inset under the sheet, 0 on a Home-button phone.
+    @State private var bottomInset: CGFloat = 0
+
+    /// The gap between a floating sheet and the screen edges.
+    private static var margin: CGFloat { 8 }
+
+    /// How far a floating card reaches into the inset below it: all of it when that is
+    /// the home indicator alone. A tab bar below the sheet adds its height to the inset,
+    /// and the card then floats above the bar instead of sliding under it.
+    private var reach: CGFloat {
+        bottomInset <= indicator + 0.5 ? bottomInset : 0
+    }
+
+    private var floats: Bool {
+        if #available(iOS 26.0, *) { return !dynamicTypeSize.isAccessibilitySize }
+        return false
+    }
 
     var body: some View {
         VStack(spacing: 0) {
-            grabber
+            if band != nil { grabber }
             content()
                 .environment(\.revealCollapsed, band != nil && collapsed)
         }
-        .padding(.horizontal, 18)
-        .padding(.top, band == nil ? 12 : 2)
-        .padding(.bottom, 22)
+        .padding(.horizontal, GT.Space.sheet)
+        .padding(.top, band == nil ? GT.Space.sheet : 2)
+        // Floating, the card's own padding matches its top. Attached, the home-indicator
+        // inset already sits below this, so only a small step is added.
+        .padding(.bottom, floats ? GT.Space.sheet : 8)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background { sheetBackground }
+        .padding(.horizontal, floats ? Self.margin : 0)
+        // A floating card reaches into the home-indicator inset the way system sheets do,
+        // ending one margin above the screen edge; its inner padding keeps the content
+        // clear of the indicator. `ignoresSafeArea` cannot do this from inside the
+        // screens' stacks, so the inset is measured and padded away.
+        .padding(.bottom, floats ? Self.margin - reach : 0)
         .background {
-            let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
-                                               topTrailingRadius: GT.Radius.sheet,
-                                               style: .continuous)
-            if let band {
-                shape.fill(band.tint)
-                    .overlay(shape.stroke(band.ink, lineWidth: 2))
-                    .ignoresSafeArea(edges: .bottom)
-            } else {
-                GlassBackground(shape: shape)
-                    .ignoresSafeArea(edges: .bottom)
-            }
+            Color.clear
+                .ignoresSafeArea(edges: .bottom)
+                // Rounded: the inset jitters in its last bits as the sheet moves, and each
+                // jitter would lay the sheet out again, forever.
+                .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.bottom.rounded() } action: {
+                    bottomInset = $0
+                }
         }
         .simultaneousGesture(DragGesture(minimumDistance: 16).onEnded { value in
             guard band != nil else { return }
@@ -491,24 +618,43 @@ struct ActionSheet<Content: View>: View {
     }
 
     @ViewBuilder
-    private var grabber: some View {
-        let capsule = Capsule().fill(GT.ink.opacity(0.30)).frame(width: 36, height: 4)
-        if band != nil {
-            Button { setCollapsed(!collapsed) } label: {
-                capsule
-                    .frame(maxWidth: .infinity, minHeight: 24)
-                    .contentShape(Rectangle())
+    private var sheetBackground: some View {
+        if #available(iOS 26.0, *), floats {
+            // Concentric with the display on Face ID phones; the minimum is what a
+            // square-cornered Home-button screen gets.
+            let shape = ConcentricRectangle(corners: .concentric(minimum: .fixed(GT.Radius.sheet)),
+                                            isUniform: true)
+            if let band {
+                shape.fill(band.tint).overlay(shape.stroke(band.ink, lineWidth: 2))
+            } else {
+                shape.fill(GT.glass).overlay(shape.stroke(GT.glassEdge, lineWidth: 1))
             }
-            .buttonStyle(.plain)
-            .padding(.bottom, 3)
-            .accessibilityLabel(collapsed ? language.text("설명 펼치기", "Show explanation")
-                                          : language.text("설명 접기", "Hide explanation"))
-            .accessibilityIdentifier("reveal-sheet-toggle")
         } else {
-            capsule
-                .padding(.bottom, 13)
-                .accessibilityHidden(true)
+            let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
+                                               topTrailingRadius: GT.Radius.sheet,
+                                               style: .continuous)
+            if let band {
+                shape.fill(band.tint)
+                    .overlay(shape.stroke(band.ink, lineWidth: 2))
+                    .ignoresSafeArea(edges: .bottom)
+            } else {
+                GlassBackground(shape: shape)
+                    .ignoresSafeArea(edges: .bottom)
+            }
         }
+    }
+
+    private var grabber: some View {
+        Button { setCollapsed(!collapsed) } label: {
+            Capsule().fill(GT.ink.opacity(0.30)).frame(width: 36, height: 4)
+                .frame(maxWidth: .infinity, minHeight: 24)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, 3)
+        .accessibilityLabel(collapsed ? language.text("설명 펼치기", "Show explanation")
+                                      : language.text("설명 접기", "Hide explanation"))
+        .accessibilityIdentifier("reveal-sheet-toggle")
     }
 
     private func setCollapsed(_ value: Bool) {
@@ -520,7 +666,19 @@ private struct RevealCollapsedKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct HomeIndicatorInsetKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
 extension EnvironmentValues {
+    /// The window's own bottom inset — the home indicator, 0 on a Home-button phone —
+    /// measured once at the root. Reading it from UIKit inside a view's body made iOS 27
+    /// re-query the status bar mid-update and spin the main thread in a graph cycle.
+    var homeIndicatorInset: CGFloat {
+        get { self[HomeIndicatorInsetKey.self] }
+        set { self[HomeIndicatorInsetKey.self] = newValue }
+    }
+
     /// True while a graded sheet is folded down; reveal sheets then show only the
     /// verdict and Next.
     var revealCollapsed: Bool {

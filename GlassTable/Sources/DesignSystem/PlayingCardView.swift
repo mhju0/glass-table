@@ -5,6 +5,7 @@ import GlassTableDrills
 
 struct PlayingCardView: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.colorScheme) private var colorScheme
     static let canonicalSize: CGFloat = 68
     static func cornerRadius(for size: CGFloat) -> CGFloat { size * 0.07 }
 
@@ -61,7 +62,7 @@ struct PlayingCardView: View {
         .background(GT.cardFace, in: RoundedRectangle(cornerRadius: Self.cornerRadius(for: size)))
         .overlay {
             RoundedRectangle(cornerRadius: Self.cornerRadius(for: size))
-                .strokeBorder(GT.cardInk.opacity(0.18), lineWidth: 0.6)
+                .strokeBorder(GT.cardEdge, lineWidth: colorScheme == .dark ? 0.6 : 1)
         }
         .overlay {
             if dead {

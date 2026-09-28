@@ -14,7 +14,18 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["안내 건너뛰기"].exists)
         XCTAssertFalse(app.staticTexts["어느 쪽이 이길까요?"].exists)
         app.buttons["시작하기"].tap()
-        XCTAssertTrue(app.staticTexts["이렇게 배워요"].waitForExistence(timeout: 5))
+
+        // One hand in the order it is played; the showdown rule comes before any question.
+        let next = app.buttons["firstLesson.next"]
+        for title in ["포커는 팟을 가져가는 게임이에요", "블라인드를 내고 카드 2장을 받아요",
+                      "내 차례엔 넷 중 하나를 골라요", "카드가 나올 때마다 베팅해요"] {
+            XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5), title)
+            XCTAssertFalse(app.staticTexts["어느 쪽이 이길까요?"].exists)
+            next.tap()
+        }
+        XCTAssertTrue(app.staticTexts["7장 중 가장 좋은 5장만 세요"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["firstLesson.bestHand"].label, "K 원 페어")
+        XCTAssertTrue(app.staticTexts["firstLesson.splitPot"].exists)
         app.buttons["워밍업 시작"].tap()
 
         XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 5))
@@ -30,23 +41,18 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["워밍업 2/2"].exists)
         firstButton(prefix: "상대 카드", in: app).tap()
         XCTAssertTrue(app.staticTexts["방금 배운 규칙을 다른 카드에도 적용했어요."].waitForExistence(timeout: 5))
-        app.buttons["첫 레슨 시작"].tap()
+        next.tap()
 
-        // The basics lesson comes before the course's first node.
-        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 10))
-        let next = app.buttons["basics.next"]
-        XCTAssertEqual(next.label, "플랍 펼치기")
-        next.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["basics.streetCaption"].label.contains("플랍"))
-        next.tap(); next.tap()
-        XCTAssertEqual(next.label, "다음")
-        next.tap()
-        XCTAssertTrue(app.staticTexts["basics.bestHand"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["basics.bestHand"].label, "A 하이 플러시")
-        next.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["이제 한 판의 흐름을 알아요"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["6단계 중 6단계"].exists)
+        let finish = app.buttons["firstLesson.finish"]
+        XCTAssertEqual(finish.label, "족보 보기")
+        finish.tap()
+
+        // The hand-ranks lesson comes before the course's first node.
+        XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].label.contains("0.0032%"))
-        next.tap()
+        app.buttons["basics.next"].tap()
         app.buttons["basics.choice.straight"].tap()
         let basicsVerdict = app.descendants(matching: .any)["basics.verdict"]
         XCTAssertTrue(basicsVerdict.waitForExistence(timeout: 5))
@@ -67,7 +73,7 @@ final class LearningFlowTests: XCTestCase {
         let start = app.buttons["learn-basics-start"]
         XCTAssertTrue(start.waitForExistence(timeout: 10))
         start.tap()
-        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["족보: 위로 갈수록 강해요"].waitForExistence(timeout: 5))
         app.buttons["basics.close"].tap()
         XCTAssertTrue(start.waitForExistence(timeout: 5), "Closing early must not mark the lesson finished.")
     }
@@ -76,8 +82,7 @@ final class LearningFlowTests: XCTestCase {
         let app = firstLessonApp()
         app.launch()
         XCTAssertTrue(app.buttons["시작하기"].waitForExistence(timeout: 15))
-        app.buttons["시작하기"].tap()
-        app.buttons["워밍업 시작"].tap()
+        startWarmUp(in: app)
         XCTAssertTrue(firstButton(prefix: "상대 카드", in: app).waitForExistence(timeout: 5))
         firstButton(prefix: "상대 카드", in: app).tap()
 
@@ -124,8 +129,7 @@ final class LearningFlowTests: XCTestCase {
         let environment = app.launchEnvironment
         app.launch()
         XCTAssertTrue(app.buttons["시작하기"].waitForExistence(timeout: 15))
-        app.buttons["시작하기"].tap()
-        app.buttons["워밍업 시작"].tap()
+        startWarmUp(in: app)
         XCTAssertTrue(firstButton(prefix: "내 카드", in: app).waitForExistence(timeout: 5))
         firstButton(prefix: "내 카드", in: app).tap()
         XCTAssertTrue(app.descendants(matching: .any)["firstLesson.verdict"].waitForExistence(timeout: 5))
@@ -329,6 +333,100 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertGreaterThan(choice.frame.minY, app.windows.firstMatch.frame.height * 0.6)
     }
 
+    /// The answer sheet ends where the system's sheets do: on iOS 26 it floats just above
+    /// the screen's bottom edge, with no dead band between the last choice and the home
+    /// indicator.
+    func testAnswerSheetLeavesNoDeadBandUnderTheLastChoice() throws {
+        guard #available(iOS 26.0, *) else { throw XCTSkip("Pre-26 sheets stay attached") }
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question"]
+        app.launch()
+        let sheet = app.descendants(matching: .any)["answer-sheet"]
+        XCTAssertTrue(sheet.waitForExistence(timeout: 15))
+        let choices = sheet.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "pot-answer-"
+        )).allElementsBoundByIndex
+        let lastChoiceBottom = try XCTUnwrap(choices.map(\.frame.maxY).max())
+        let screenBottom = app.windows.firstMatch.frame.maxY
+        XCTAssertLessThanOrEqual(screenBottom - lastChoiceBottom, 40,
+                                 "A floating sheet keeps 8 pt margin + 20 pt padding under its content")
+    }
+
+    func testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question"]
+        app.launch()
+        let title = app.staticTexts["팟 계산"].firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 15))
+        let close = app.buttons["닫기"].firstMatch
+        XCTAssertTrue(close.exists)
+        // The 44 pt target reaches 12 pt past the edge the glyph and the title share.
+        XCTAssertEqual(title.frame.minX - close.frame.minX, 12, accuracy: 2,
+                       "The chevron glyph lines up with the title's left edge")
+        XCTAssertLessThanOrEqual(title.frame.minY - close.frame.minY, 40,
+                                 "The title starts just under the chevron, not under a 44 pt bar")
+    }
+
+    func testPotMathKeepsItsInstructionAndHeightAtTheLastAction() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-potMath",
+                                 "GT_DEMO_POT_STATE": "question"]
+        app.launch()
+        let sheet = app.descendants(matching: .any)["answer-sheet"]
+        XCTAssertTrue(sheet.waitForExistence(timeout: 15))
+        let height = sheet.frame.height
+        let next = app.buttons["다음 행동"]
+        for _ in 0..<12 where next.exists && next.isEnabled { next.tap() }
+        XCTAssertFalse(next.exists && next.isEnabled, "Stepped to the last action")
+        XCTAssertTrue(app.staticTexts["마지막 행동까지 넘기면 답을 고를 수 있어요."].exists,
+                      "The instruction stays, so the screen does not change at the last action")
+        XCTAssertEqual(sheet.frame.height, height, accuracy: 1)
+    }
+
+    func testHintPopoverFitsItsTextAndHasOneWayOut() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_NODE": "u1-showdown",
+                                 "GT_DEMO_STAGE": "together"]
+        app.launch()
+        let hint = app.buttons["힌트"]
+        XCTAssertTrue(hint.waitForExistence(timeout: 15))
+        hint.tap()
+        // The popover itself: the hint view's own frame also counts the felt watermark,
+        // which overflows it.
+        let popover = app.popovers.firstMatch
+        let cue = app.descendants(matching: .any)["guided-hint-cue"]
+        XCTAssertTrue(cue.waitForExistence(timeout: 5))
+        XCTAssertLessThanOrEqual(popover.frame.maxY - cue.frame.maxY, 24,
+                                 "No blank band under the last line")
+        XCTAssertFalse(app.buttons["문제로 돌아가기"].exists, "The X is the only close control")
+        XCTAssertTrue(app.buttons["힌트 닫기"].isHittable)
+    }
+
+    func testOpponentDetailShowsItsPokerTermsWithoutADisclosure() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_TAB": "play", "GT_DEMO_PLAY_SETUP": "1",
+                                 "GT_DEMO_OPPONENT": "tag"]
+        app.launch()
+        let terms = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "VPIP")).firstMatch
+        XCTAssertTrue(terms.waitForExistence(timeout: 15), "VPIP and PFR are on screen without a tap")
+        XCTAssertTrue(app.buttons["스타일 목록"].exists, "Pushed from the style list, the leading edge steps back")
+    }
+
     func testPotMathChoiceCommitsExactlyOnceBeforeNext() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
@@ -522,7 +620,7 @@ final class LearningFlowTests: XCTestCase {
         )).firstMatch
         XCTAssertTrue(policy.waitForExistence(timeout: 5))
         policy.tap()
-        XCTAssertTrue(app.navigationBars["선별형 전략과 레인지"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["선별형 전략과 레인지"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["table-policy-range-summary"].exists)
         XCTAssertTrue(app.staticTexts["포스트플랍 기본 · 상대가 먼저 행동할 때"].exists)
         app.buttons["닫기"].tap()
@@ -693,6 +791,18 @@ final class LearningFlowTests: XCTestCase {
         let recorded = app.descendants(matching: .any)["record-\(concept)"].firstMatch
         XCTAssertTrue(recorded.waitForExistence(timeout: 10), "The revealed answer must be saved before Next.")
         XCTAssertTrue(recorded.label.contains("1문제"))
+    }
+
+    /// From the welcome, through the five rule screens, to the first warm-up.
+    private func startWarmUp(in app: XCUIApplication) {
+        app.buttons["시작하기"].tap()
+        let next = app.buttons["firstLesson.next"]
+        for _ in 0..<4 {
+            XCTAssertTrue(next.waitForExistence(timeout: 5))
+            next.tap()
+        }
+        XCTAssertTrue(app.buttons["워밍업 시작"].waitForExistence(timeout: 5))
+        app.buttons["워밍업 시작"].tap()
     }
 
     private func firstLessonApp() -> XCUIApplication {

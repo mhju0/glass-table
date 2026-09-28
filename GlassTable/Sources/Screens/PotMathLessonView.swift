@@ -245,7 +245,7 @@ struct PotMathIntroView: View {
                         .font(GT.title(19).monospacedDigit())
                         .foregroundStyle(GT.ink)
                 }
-                .padding(16)
+                .gtInset(GT.Space.card)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.surface,
                             in: RoundedRectangle(cornerRadius: GT.Radius.panel,
@@ -253,7 +253,7 @@ struct PotMathIntroView: View {
 
                 PrimaryCTAButton(title: language.text("문제 풀기", "Try a question"), action: onStart)
             }
-            .padding(20)
+            .gtContentEdge()
         }
         .accessibilityIdentifier("pot-math-intro")
     }
