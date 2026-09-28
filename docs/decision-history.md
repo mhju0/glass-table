@@ -339,6 +339,20 @@ pasted text and the standing rule is never to push to main without asking.
   button (word, X, glass circle, chevron on either side) and card insets from 11 to 25
   pt. One rule per question makes every screen start the same way.
 
+## 2026-09-28 — The first-run guide follows one hand
+- **Decided by:** owner ("I like A", with the recommendations: "이렇게 배워요" folds into
+  the wrap-up, 족보 stays on the path as 홀덤 기초, the split-pot line is included).
+  **What:** after the welcome, six numbered screens follow one hand as it is played:
+  the pot and two ways to win, blinds and the deal, the four actions, a static timeline
+  with a betting round on each street (replacing the tap-to-deal stepper), and best
+  five of seven with the split-pot line. The two warm-ups follow, and their answers
+  outline the five cards each side uses. A wrap-up lists what was covered and how
+  lessons work, then opens 홀덤 기초, now just the ladder and its check question.
+- **Why:** the old guide asked "who wins?" before saying that only five of seven cards
+  count, taught betting only in a caption, and asked the same question three times.
+  Each rule now appears where it happens in a hand, just before the question that
+  needs it.
+
 ## Earlier (2026-07 → 2026-09)
 
 Founding decisions: offline, no accounts, no ads or purchases, Korean-first, a

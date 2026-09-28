@@ -81,7 +81,7 @@ struct PathView: View {
                     .frame(width: 36, height: 36, alignment: .leading)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(language.text("홀덤 기초", "Hold'em basics")).font(GT.title(17)).foregroundStyle(GT.onFelt)
-                    Text(language.text("카드가 나오는 순서와 족보", "How cards are dealt, and hand ranks"))
+                    Text(language.text("족보와 확인 문제", "Hand ranks and a quick check"))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                 }

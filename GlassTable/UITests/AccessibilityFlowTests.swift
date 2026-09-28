@@ -299,10 +299,17 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertTrue(scrollUntilHittable(start, in: app),
                       "The welcome action must remain reachable at AX XXXL.")
         start.tap()
+        let next = app.buttons["firstLesson.next"]
+        for _ in 0..<4 {
+            XCTAssertTrue(next.waitForExistence(timeout: 10))
+            XCTAssertTrue(scrollUntilHittable(next, in: app),
+                          "Every rule screen's action must remain reachable at AX XXXL.")
+            next.tap()
+        }
         let warmUp = app.buttons["워밍업 시작"]
         XCTAssertTrue(warmUp.waitForExistence(timeout: 10))
         XCTAssertTrue(scrollUntilHittable(warmUp, in: app),
-                      "The how-it-works action must remain reachable at AX XXXL.")
+                      "The best-five screen's action must remain reachable at AX XXXL.")
         warmUp.tap()
 
         XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 15))
@@ -322,18 +329,20 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The transfer hand choice must remain reachable at AX XXXL.")
         transferAnswer.tap()
 
-        let beginCourse = app.buttons["첫 레슨 시작"]
-        XCTAssertTrue(scrollUntilHittable(beginCourse, in: app),
-                      "The transfer explanation and course entry must remain reachable at AX XXXL.")
-        beginCourse.tap()
+        XCTAssertTrue(scrollUntilHittable(next, in: app),
+                      "The transfer explanation and its next action must remain reachable at AX XXXL.")
+        next.tap()
+        let finishGuide = app.buttons["firstLesson.finish"]
+        XCTAssertTrue(finishGuide.waitForExistence(timeout: 10))
+        XCTAssertTrue(scrollUntilHittable(finishGuide, in: app),
+                      "The wrap-up's action must remain reachable at AX XXXL.")
+        finishGuide.tap()
 
-        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 10))
-        let next = app.buttons["basics.next"]
-        for _ in 0..<6 {
-            XCTAssertTrue(scrollUntilHittable(next, in: app),
-                          "Every basics step must remain reachable at AX XXXL.")
-            next.tap()
-        }
+        let basicsNext = app.buttons["basics.next"]
+        XCTAssertTrue(basicsNext.waitForExistence(timeout: 10))
+        XCTAssertTrue(scrollUntilHittable(basicsNext, in: app),
+                      "The ladder's action must remain reachable at AX XXXL.")
+        basicsNext.tap()
         let choice = app.buttons["basics.choice.flush"]
         XCTAssertTrue(scrollUntilHittable(choice, in: app),
                       "The basics check must remain reachable at AX XXXL.")

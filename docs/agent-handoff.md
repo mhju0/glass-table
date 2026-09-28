@@ -149,3 +149,13 @@ Full entries: [the 09-28 archive](handoff-archive/2026-09-28-before-spacing-rule
   0% CPU), so the device is the only proof; check it after install.
 - Next: intro redesign option A (owner chose it with all recommendations: "이렇게
   배워요" folds into the wrap-up, 족보 stays as 홀덤 기초 ladder + check, split-pot line).
+
+## 2026-09-28: First-run guide follows one hand (option A)
+
+- `FirstLessonView` steps: welcome → pot, blinds, actions, flow, bestFive (1–5/6) →
+  warm-ups → wrapUp (6/6). Demo hooks `GT_DEMO_FIRST_LESSON=pot|blinds|actions|flow|
+  best|wrap-up`; sweep screens renamed to match. `HoldemBasics.hole/board` is now the
+  guide's hand (A♠K♥ on K♦7♣2♥9♠Q♥, a pair of kings leaving 7♣ 2♥ out).
+- `HoldemBasicsView` keeps only ladder and check (1–2/2); the deal stepper is gone.
+- Saved progress is untouched: `firstLessonCompleted` and `basicsLessonCompleted` keep
+  their meaning.

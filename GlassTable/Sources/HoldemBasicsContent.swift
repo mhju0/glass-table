@@ -7,10 +7,10 @@ import GlassTableDrills
 /// on screen is derived from the engine; `HoldemBasicsContentTests` pins the examples
 /// to the categories their rows claim.
 enum HoldemBasics {
-    /// The hand dealt on the first page and read on the second: a heart flush that
-    /// uses both private cards and leaves two shared cards out.
-    static let hole = Card.parse("AhTh")!
-    static let board = Card.parse("Kh9h2c4hJs")!
+    /// The hand the first-run guide follows from the deal to the showdown: a pair of
+    /// kings that uses both private cards and leaves two shared cards out.
+    static let hole = Card.parse("AsKh")!
+    static let board = Card.parse("Kd7c2h9sQh")!
     static var seven: [Card] { hole + board }
     static var bestFive: [Card] { bestFiveCards(seven) }
     static var bestBrief: HandBrief { bestHand(seven) }

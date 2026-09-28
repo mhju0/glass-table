@@ -27,11 +27,13 @@ final class HoldemBasicsContentTests: XCTestCase {
         XCTAssertEqual(shares, shares.sorted())
     }
 
-    func testWorkedHandIsAFlushThatLeavesTwoCardsOut() {
-        XCTAssertEqual(HoldemBasics.bestBrief.category, 5)
+    func testGuideHandIsAPairOfKingsThatLeavesTwoSharedCardsOut() {
+        XCTAssertEqual(HoldemBasics.bestBrief.category, 1)
+        XCTAssertEqual(HoldemBasics.bestBrief.topRank, 13)
         XCTAssertEqual(HoldemBasics.bestFive.count, 5)
-        XCTAssertTrue(HoldemBasics.bestFive.allSatisfy { $0.suit == 2 })
         XCTAssertTrue(HoldemBasics.hole.allSatisfy(HoldemBasics.bestFive.contains))
+        XCTAssertEqual(Set(HoldemBasics.seven.filter { !HoldemBasics.bestFive.contains($0) }),
+                       Set(Card.parse("7c2h")!))
     }
 
     func testPercentTextMatchesThePublishedRoundings() {

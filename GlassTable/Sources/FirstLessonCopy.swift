@@ -14,7 +14,7 @@ enum FirstLessonCopy {
         case correctTitle, retryTitle, higherPair, lowerPair
         case myPick, rightAnswer, pickCorrect, pickWrong
         case tryTransfer, beginCourse, returnToLearning
-        case introductionTitle, introductionBody, responsibleNote, warmUpNote, startWarmUp
+        case responsibleNote, warmUpNote, startWarmUp
     }
 
     static func text(_ key: Key, in language: LearningLanguage) -> String {
@@ -32,7 +32,7 @@ enum FirstLessonCopy {
         case .startWelcome: language.text(startWelcome, "Get started")
         case .exampleQuestion: language.text(exampleQuestion, "Which hand wins?")
         case .transferQuestion: language.text(transferQuestion, "Use the same rule with new cards")
-        case .examplePrompt: language.text(examplePrompt, "The five cards in the middle are shared. Choose the stronger hand.")
+        case .examplePrompt: language.text(examplePrompt, "Each side compares its best five of seven.")
         case .transferPrompt: language.text(transferPrompt, "Only the cards changed. Find the higher pair.")
         case .pairRule: language.text(pairRule, "Two cards of the same rank make one pair.\nAn ace is higher than a king.")
         case .sharedCards: language.text(sharedCards, "Shared cards")
@@ -51,10 +51,8 @@ enum FirstLessonCopy {
         case .tryTransfer: language.text(tryTransfer, "Try different cards")
         case .beginCourse: language.text(beginCourse, "Start the first lesson")
         case .returnToLearning: language.text(returnToLearning, "Back to Learn")
-        case .introductionTitle: language.text(introductionTitle, "How you'll learn")
-        case .introductionBody: language.text(introductionBody, "Watch the reasoning, try with help, then solve a different hand on your own. Later, return to review what you learned.")
         case .responsibleNote: language.text(responsibleNote, "Need help with gambling? Settings has helplines.")
-        case .warmUpNote: language.text(warmUpNote, "Start with two quick warm-up questions.")
+        case .warmUpNote: language.text(warmUpNote, "Try the rule on two quick warm-up questions.")
         case .startWarmUp: language.text(startWarmUp, "Start the warm-up")
         }
     }
@@ -88,7 +86,7 @@ enum FirstLessonCopy {
     static let transferQuestion = String(localized: "firstLesson.transfer.question",
                                          defaultValue: "같은 규칙으로 골라보세요")
     static let examplePrompt = String(localized: "firstLesson.example.prompt",
-                                      defaultValue: "가운데 다섯 장은 함께 쓰는 카드예요. 더 강한 패를 골라보세요.")
+                                      defaultValue: "둘 다 7장 중 가장 좋은 5장으로 비교해요.")
     static let transferPrompt = String(localized: "firstLesson.transfer.prompt",
                                        defaultValue: "카드만 바뀌었어요. 더 높은 원 페어를 찾아보세요.")
     static let pairRule = String(localized: "firstLesson.example.rule",
@@ -125,14 +123,10 @@ enum FirstLessonCopy {
                                     defaultValue: "첫 레슨 시작")
     static let returnToLearning = String(localized: "firstLesson.action.returnToLearning",
                                          defaultValue: "학습 화면으로 돌아가기")
-    static let introductionTitle = String(localized: "firstLesson.introduction.title",
-                                          defaultValue: "이렇게 배워요")
-    static let introductionBody = String(localized: "firstLesson.introduction.body",
-                                         defaultValue: "풀이를 보고, 도움을 받으며 풀고, 다른 상황을 혼자 해결해요. 잊을 만할 때는 배우기 화면에서 다시 만나요.")
     static let responsibleNote = String(localized: "firstLesson.introduction.responsibleNote",
                                         defaultValue: "도박이 부담된다면 설정에서 상담 번호를 볼 수 있어요.")
     static let warmUpNote = String(localized: "firstLesson.introduction.warmUpNote",
-                                   defaultValue: "가볍게 몸풀기 문제 두 개로 시작해요.")
+                                   defaultValue: "이 규칙으로 몸풀기 문제 두 개를 풀어봐요.")
     static let startWarmUp = String(localized: "firstLesson.action.startWarmUp",
                                     defaultValue: "워밍업 시작")
 }

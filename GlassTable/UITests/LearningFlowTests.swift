@@ -14,7 +14,18 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["안내 건너뛰기"].exists)
         XCTAssertFalse(app.staticTexts["어느 쪽이 이길까요?"].exists)
         app.buttons["시작하기"].tap()
-        XCTAssertTrue(app.staticTexts["이렇게 배워요"].waitForExistence(timeout: 5))
+
+        // One hand in the order it is played; the showdown rule comes before any question.
+        let next = app.buttons["firstLesson.next"]
+        for title in ["포커는 팟을 가져가는 게임이에요", "블라인드를 내고 카드 2장을 받아요",
+                      "내 차례엔 넷 중 하나를 골라요", "카드가 나올 때마다 베팅해요"] {
+            XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5), title)
+            XCTAssertFalse(app.staticTexts["어느 쪽이 이길까요?"].exists)
+            next.tap()
+        }
+        XCTAssertTrue(app.staticTexts["7장 중 가장 좋은 5장만 세요"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["firstLesson.bestHand"].label, "K 원 페어")
+        XCTAssertTrue(app.staticTexts["firstLesson.splitPot"].exists)
         app.buttons["워밍업 시작"].tap()
 
         XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 5))
@@ -30,23 +41,18 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["워밍업 2/2"].exists)
         firstButton(prefix: "상대 카드", in: app).tap()
         XCTAssertTrue(app.staticTexts["방금 배운 규칙을 다른 카드에도 적용했어요."].waitForExistence(timeout: 5))
-        app.buttons["첫 레슨 시작"].tap()
+        next.tap()
 
-        // The basics lesson comes before the course's first node.
-        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 10))
-        let next = app.buttons["basics.next"]
-        XCTAssertEqual(next.label, "플랍 펼치기")
-        next.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["basics.streetCaption"].label.contains("플랍"))
-        next.tap(); next.tap()
-        XCTAssertEqual(next.label, "다음")
-        next.tap()
-        XCTAssertTrue(app.staticTexts["basics.bestHand"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["basics.bestHand"].label, "A 하이 플러시")
-        next.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["이제 한 판의 흐름을 알아요"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["6단계 중 6단계"].exists)
+        let finish = app.buttons["firstLesson.finish"]
+        XCTAssertEqual(finish.label, "족보 보기")
+        finish.tap()
+
+        // The hand-ranks lesson comes before the course's first node.
+        XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].label.contains("0.0032%"))
-        next.tap()
+        app.buttons["basics.next"].tap()
         app.buttons["basics.choice.straight"].tap()
         let basicsVerdict = app.descendants(matching: .any)["basics.verdict"]
         XCTAssertTrue(basicsVerdict.waitForExistence(timeout: 5))
@@ -67,7 +73,7 @@ final class LearningFlowTests: XCTestCase {
         let start = app.buttons["learn-basics-start"]
         XCTAssertTrue(start.waitForExistence(timeout: 10))
         start.tap()
-        XCTAssertTrue(app.staticTexts["카드는 이렇게 나와요"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["족보: 위로 갈수록 강해요"].waitForExistence(timeout: 5))
         app.buttons["basics.close"].tap()
         XCTAssertTrue(start.waitForExistence(timeout: 5), "Closing early must not mark the lesson finished.")
     }
@@ -76,8 +82,7 @@ final class LearningFlowTests: XCTestCase {
         let app = firstLessonApp()
         app.launch()
         XCTAssertTrue(app.buttons["시작하기"].waitForExistence(timeout: 15))
-        app.buttons["시작하기"].tap()
-        app.buttons["워밍업 시작"].tap()
+        startWarmUp(in: app)
         XCTAssertTrue(firstButton(prefix: "상대 카드", in: app).waitForExistence(timeout: 5))
         firstButton(prefix: "상대 카드", in: app).tap()
 
@@ -124,8 +129,7 @@ final class LearningFlowTests: XCTestCase {
         let environment = app.launchEnvironment
         app.launch()
         XCTAssertTrue(app.buttons["시작하기"].waitForExistence(timeout: 15))
-        app.buttons["시작하기"].tap()
-        app.buttons["워밍업 시작"].tap()
+        startWarmUp(in: app)
         XCTAssertTrue(firstButton(prefix: "내 카드", in: app).waitForExistence(timeout: 5))
         firstButton(prefix: "내 카드", in: app).tap()
         XCTAssertTrue(app.descendants(matching: .any)["firstLesson.verdict"].waitForExistence(timeout: 5))
@@ -787,6 +791,18 @@ final class LearningFlowTests: XCTestCase {
         let recorded = app.descendants(matching: .any)["record-\(concept)"].firstMatch
         XCTAssertTrue(recorded.waitForExistence(timeout: 10), "The revealed answer must be saved before Next.")
         XCTAssertTrue(recorded.label.contains("1문제"))
+    }
+
+    /// From the welcome, through the five rule screens, to the first warm-up.
+    private func startWarmUp(in app: XCUIApplication) {
+        app.buttons["시작하기"].tap()
+        let next = app.buttons["firstLesson.next"]
+        for _ in 0..<4 {
+            XCTAssertTrue(next.waitForExistence(timeout: 5))
+            next.tap()
+        }
+        XCTAssertTrue(app.buttons["워밍업 시작"].waitForExistence(timeout: 5))
+        app.buttons["워밍업 시작"].tap()
     }
 
     private func firstLessonApp() -> XCUIApplication {
