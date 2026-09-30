@@ -269,9 +269,17 @@ struct RestoredDrillDescription {
                 estimate: RangeEstimate(width: width, tendencies: selected),
                 spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index),
                 language: language)
-            let prefix = language.text("상위 ", "Top ")
-            return Self(mine: "\(prefix)\(pctText(result.guess.percent))%",
-                        correct: "\(prefix)\(pctText(result.truth.percent))%",
+            return Self(mine: "\(pctText(result.guess.percent))%",
+                        correct: "\(pctText(result.truth.percent))%",
+                        why: result.whyText)
+        case let (.rangeRead, .rangeBand(width, excludedTop, tendencies)):
+            let selected = Set(tendencies.compactMap(RangeTendency.init(rawValue:)))
+            let result = gradeRangeRead(
+                estimate: RangeEstimate(width: width, tendencies: selected, excludedTop: excludedTop),
+                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index),
+                language: language)
+            return Self(mine: "\(pctText(result.guess.percent))%",
+                        correct: "\(pctText(result.truth.percent))%",
                         why: result.whyText)
         case let (.evLoss, .boolean(value)):
             let result = gradeEVLoss(userCalls: value,

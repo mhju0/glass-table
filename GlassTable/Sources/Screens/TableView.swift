@@ -13,6 +13,7 @@ import GlassTableDrills
 struct TableView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dismiss) private var dismiss
     @State private var hand: TableHand?
     @State private var options: [GradedOption]?
     @State private var lastTurn: TurnRecord?
@@ -72,6 +73,10 @@ struct TableView: View {
             if let hand { table(hand) } else { picker }
         }
         .background(FeltBackground())
+        // The table needs the whole height: the tab bar hid the hero's cards under the
+        // sheet, and the felt strip keeps scrolled content off the status bar.
+        .toolbar(.hidden, for: .tabBar)
+        .gtChrome(leading: { ChromeButton.back(language.text("플레이로", "Back to Play")) { dismiss() } })
         .sheet(isPresented: $showChart) {
             if let hand {
                 ScrollView {
@@ -208,6 +213,9 @@ struct TableView: View {
                     .frame(maxWidth: .infinity, minHeight: geo.size.height)
                 }
                 .scrollBounceBehavior(.basedOnSize)
+                // When the zones overflow, the hero's own cards stay in view above the
+                // sheet; the opponent row is the part that scrolls away.
+                .defaultScrollAnchor(.bottom)
                     }
                     ActionSheet(band: sheetBand(hand)) { sheet(hand) }.layoutPriority(1)
                 }

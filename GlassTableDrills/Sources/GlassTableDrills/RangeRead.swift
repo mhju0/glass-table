@@ -84,12 +84,26 @@ public enum RangeReadSpotGenerator {
 public struct RangeEstimate: Equatable, Sendable {
     public let width: Double
     public let tendencies: Set<RangeTendency>
+    /// For a call: the strongest hands, as a percent of all hands, that would have
+    /// raised instead. The estimate is then the band of `width` directly below them.
+    /// Zero reads the range from the top, which is what an open is.
+    public let excludedTop: Double
 
-    public init(width: Double, tendencies: Set<RangeTendency> = []) {
-        self.width = width; self.tendencies = tendencies
+    public init(width: Double, tendencies: Set<RangeTendency> = [], excludedTop: Double = 0) {
+        self.width = width; self.tendencies = tendencies; self.excludedTop = excludedTop
     }
 
-    public var range: HandRange { .shaped(width: width, tendencies: tendencies) }
+    public var range: HandRange {
+        guard excludedTop > 0 else { return .shaped(width: width, tendencies: tendencies) }
+        return HandRange.shaped(width: excludedTop + width, tendencies: tendencies)
+            .subtracting(.topByChen(percent: excludedTop))
+    }
+}
+
+/// Input bounds shared by the drill and saved-answer validation.
+public enum RangeReadInput {
+    /// The most a call read can take off the top: past the widest raising range.
+    public static let excludedTopLimit = 40.0
 }
 
 public struct RangeReadReveal: Equatable {
@@ -117,47 +131,62 @@ public func gradeRangeRead(estimate: RangeEstimate, spot: RangeReadSpot,
         : (overlap >= RangeReadGrading.close ? .close : .off)
 
     return RangeReadReveal(band: band, overlap: overlap, guess: guess, truth: truth,
-                           whyText: explain(guess: guess, truth: truth, spot: spot, language: language))
+                           whyText: explain(guess: guess, truth: truth, spot: spot, band: band,
+                                            language: language))
 }
 
-/// "0.52" teaches nothing. Name the direction: too wide, too tight, or the right width
-/// with the wrong shape — and when it is shape, name the category that differed most.
-func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot,
+/// "0.52" teaches nothing. Name the direction: too wide, too tight, the raising hands
+/// left in a call, or the right width with the wrong shape. The sentence follows the
+/// band, so a 정답 is never told it misread and a miss is never told it matched.
+func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot, band: GradeBand,
              language: LearningLanguage = .korean) -> String {
     let gw = guess.percent, tw = truth.percent
-    if language == .english {
-        let head = "\(spot.archetype.beginnerTitle(in: language))'s \(actionWord(spot, language: language)) range is the top \(pctText(tw))% of hands. You estimated \(pctText(gw))%."
-        if gw > tw * 1.2 { return head + " Your range was too wide." }
-        if gw < tw * 0.8 { return head + " Your range was too narrow." }
-        let worst = RangeTendency.allCases.max {
-            (truth.tendencyShare($0) - guess.tendencyShare($0))
-                < (truth.tendencyShare($1) - guess.tendencyShare($1))
-        }
-        if let tendency = worst, truth.tendencyShare(tendency) - guess.tendencyShare(tendency) > 0.08 {
-            return head + " The width is close, but the shape differs. There are more \(DrillTerms.tendency(tendency, in: language).lowercased())."
-        }
-        return head + " The shape is close too."
-    }
-    let head = "\(spot.archetype.name)의 \(actionWord(spot)) 레인지는 상위 "
-             + "\(pctText(tw))%예요. 내 추정은 \(pctText(gw))%."
+    let missed = truth.subtracting(guess), extra = guess.subtracting(truth)
+    let raised: HandRange? = if case .called = spot.action {
+        spot.archetype.raiseRange(from: spot.seat)
+    } else { nil }
+    // The raising hands a call estimate still holds, as a share of the estimate.
+    let keptRaises = raised.map { guess.comboCount > 0
+        ? guess.intersection($0).comboCount / guess.comboCount : 0 } ?? 0
+    // The category that holds most of what was missed, if one clearly does.
+    let missedTendency = RangeTendency.allCases
+        .map { t in (t, missed.comboCount > 0 ? missed.tendencyShare(t) : 0) }
+        .max { $0.1 < $1.1 }
+        .flatMap { $0.1 >= 0.5 ? $0.0 : nil }
 
-    // A fifth off in width is the line where width, rather than shape, is the story.
-    if gw > tw * 1.2 {
-        return head + " 너무 넓게 봤어요. \(spot.archetype.blurb)."
+    enum Story { case match, wide, narrow, raises, shape(RangeTendency?) }
+    let story: Story
+    if band == .spotOn { story = .match }
+    else if gw > tw * 1.2, extra.comboCount >= missed.comboCount { story = .wide }
+    else if gw < tw * 0.8, missed.comboCount >= extra.comboCount { story = .narrow }
+    else if keptRaises > 0.15 { story = .raises }
+    else { story = .shape(missedTendency) }
+
+    if language == .english {
+        var text = "\(spot.archetype.beginnerTitle(in: language))'s \(actionWord(spot, language: language)) range is \(pctText(tw))% of all hands. You estimated \(pctText(gw))%."
+        if raised != nil { text += " The strongest hands raise instead, so they are not in a calling range." }
+        switch story {
+        case .match: text += " Most hands overlap: a good read."
+        case .wide: text += " Your range was too wide."
+        case .narrow: text += " Your range was too narrow."
+        case .raises: text += " Your estimate kept hands this player would have raised. Take more off the top."
+        case .shape(let t?): text += " The width is close, but the shape differs. Most missed hands are \(DrillTerms.tendency(t, in: language).lowercased())."
+        case .shape(nil): text += " The width is close, but few of the same hands overlap."
+        }
+        return text
     }
-    if gw < tw * 0.8 {
-        return head + " 너무 좁게 봤어요. \(spot.archetype.blurb)."
+    var text = "\(spot.archetype.name)의 \(actionWord(spot)) 레인지는 전체 조합의 "
+        + "\(pctText(tw))%예요. 내 추정은 \(pctText(gw))%."
+    if raised != nil { text += " 가장 강한 핸드는 콜 대신 레이즈하니까 콜 레인지에는 없어요." }
+    switch story {
+    case .match: text += " 대부분 겹쳐요. 잘 읽었어요."
+    case .wide: text += " 너무 넓게 봤어요. \(spot.archetype.blurb)."
+    case .narrow: text += " 너무 좁게 봤어요. \(spot.archetype.blurb)."
+    case .raises: text += " 이 상대라면 레이즈했을 핸드까지 넣었어요. 위쪽을 더 빼 보세요."
+    case .shape(let t?): text += " 넓이는 비슷한데 모양이 달라요. 놓친 핸드는 주로 \(tendencyWord(t))예요."
+    case .shape(nil): text += " 넓이는 비슷한데 겹치는 핸드가 적어요."
     }
-    // Similar widths: whichever category the truth leans on hardest that the guess
-    // does not is the thing that was actually misread.
-    let worst = RangeTendency.allCases.max {
-        (truth.tendencyShare($0) - guess.tendencyShare($0))
-            < (truth.tendencyShare($1) - guess.tendencyShare($1))
-    }
-    if let t = worst, truth.tendencyShare(t) - guess.tendencyShare(t) > 0.08 {
-        return head + " 넓이는 비슷한데 모양이 달라요. \(tendencyWord(t))가 더 많아요."
-    }
-    return head + " 모양도 비슷해요."
+    return text
 }
 
 func actionWord(_ spot: RangeReadSpot, language: LearningLanguage = .korean) -> String {

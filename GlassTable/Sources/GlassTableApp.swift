@@ -4,6 +4,7 @@ import GlassTableDrills
 
 @main
 struct GlassTableApp: App {
+    @UIApplicationDelegateAdaptor(OrientationDelegate.self) private var orientationDelegate
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system
 

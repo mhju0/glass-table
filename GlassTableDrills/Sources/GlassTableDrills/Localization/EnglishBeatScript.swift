@@ -264,7 +264,7 @@ enum EnglishBeatScript {
                      detail: opened ? "They raise first with about \(Int(opponent.pfr))% of hands on average."
                         : "They join with \(Int(opponent.vpip))%, raise with \(Int(opponent.pfr))%, and call with the gap.",
                      focus: .actionList(lines, lit: nil)),
-                Beat("Now account for the seat", value: "Top \(pctText(range.percent))%",
+                Beat("Now account for the seat", value: opened ? "Top \(pctText(range.percent))%" : "\(pctText(range.percent))% of hands",
                      detail: "\(s.seat.playersBehind(preflop: true)) players still act after \(s.seat.rawValue). The \(Int(headline))% average becomes \(range.percent >= headline ? "wider" : "narrower") here.",
                      focus: .actionList(lines, lit: nil)),
                 Beat("That gives this shape", value: "\(range.classes.count) hand classes",

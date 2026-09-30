@@ -123,8 +123,7 @@ final class BeginnerReleaseTests: XCTestCase {
 
         app.buttons["table-start"].tap()
         closeTableGuide(in: app)
-        XCTAssertTrue(app.staticTexts["Your turn"].waitForExistence(timeout: 10)
-                      || app.staticTexts["Review this hand"].exists)
+        waitForYourTurnOrResult(in: app)
         let table = app.descendants(matching: .any)["practice-table"]
         let second = table.descendants(matching: .any)
             .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer 2 · ")).firstMatch
@@ -162,7 +161,7 @@ final class BeginnerReleaseTests: XCTestCase {
         closeTableGuide(in: app)
         let table = app.descendants(matching: .any)["practice-table"]
         XCTAssertTrue(table.waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Two-player practice"].exists)
+        XCTAssertTrue(app.staticTexts["Two players · Hand 1"].exists)
         func seat(_ n: Int) -> XCUIElement {
             table.descendants(matching: .any)
                 .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(n) · ")).firstMatch
@@ -220,7 +219,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let headsUp = app.buttons["play-graded"]
         XCTAssertTrue(headsUp.waitForExistence(timeout: 5))
         headsUp.tap()
-        let tableBack = app.navigationBars.buttons.firstMatch
+        let tableBack = app.buttons["Back to Play"]
         XCTAssertTrue(tableBack.waitForExistence(timeout: 5))
         XCTAssertTrue(tableBack.isHittable)
         tableBack.tap()
@@ -395,10 +394,34 @@ final class BeginnerReleaseTests: XCTestCase {
         app.terminate()
         app.launchEnvironment["GT_DEMO_TAB"] = "play"
         app.launch()
-        XCTAssertTrue(reopen.waitForExistence(timeout: 15))
+        // Play opens on its landing; the table in progress is one tap away.
+        let resume = app.buttons["play-free"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 15))
+        XCTAssertTrue(resume.label.hasPrefix("Continue the free table"), resume.label)
+        resume.tap()
+        XCTAssertTrue(reopen.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["How to read the table"].exists, "The guide shows only once")
         reopen.tap()
         XCTAssertTrue(app.staticTexts["How to read the table"].waitForExistence(timeout: 5))
+    }
+
+    /// The free table replays the computers' moves before the turn comes back, so the
+    /// buttons open a moment after the screen appears.
+    private func waitForYourTurnOrResult(in app: XCUIApplication) {
+        let status = app.descendants(matching: .any)["free-table-status"]
+        let next = app.buttons["free-next-hand"]
+        let deadline = Date().addingTimeInterval(20)
+        while Date() < deadline {
+            if next.exists || (status.exists && status.label.hasPrefix("Your turn")) { return }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+        }
+        XCTFail("Neither the learner's turn nor the result appeared: \(status.label)")
+    }
+
+    private func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval = 20) {
+        let enabled = expectation(for: NSPredicate(format: "exists == true AND isEnabled == true"),
+                                  evaluatedWith: element)
+        wait(for: [enabled], timeout: timeout)
     }
 
     private func closeTableGuide(in app: XCUIApplication) {
@@ -414,19 +437,22 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launchEnvironment["GT_DEMO_PRACTICE"] = "1"
         app.launchEnvironment["GT_DEMO_TAB"] = "play"
         app.launch()
-        let fold = app.buttons["Fold · leave this hand"]
-        XCTAssertTrue(fold.waitForExistence(timeout: 15))
-        scrollTo(fold, in: app)
+        let fold = app.buttons["free-fold"]
+        waitUntilEnabled(fold)
         fold.tap()
-        XCTAssertTrue(app.staticTexts["Review this hand"].waitForExistence(timeout: 10))
-        let next = app.buttons["Next hand"]
-        scrollTo(next, in: app)
+        let next = app.buttons["free-next-hand"]
+        XCTAssertTrue(next.waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["free-review"].exists)
         next.tap()
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0",
                                  "GT_DEMO_TAB": "play"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["Hand 2"].waitForExistence(timeout: 15))
+        let resume = app.buttons["play-free"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 15))
+        XCTAssertTrue(resume.label.contains("hand 2"), resume.label)
+        resume.tap()
+        XCTAssertTrue(app.staticTexts["Four players · Hand 2"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["practice-table"].exists)
     }
 
@@ -437,7 +463,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launchEnvironment["GT_DEMO_PRACTICE"] = "1"
         app.launchEnvironment["GT_DEMO_TAB"] = "play"
         app.launch()
-        XCTAssertTrue(app.buttons["Fold · leave this hand"].waitForExistence(timeout: 15))
+        waitUntilEnabled(app.buttons["free-fold"])
         let table = app.descendants(matching: .any)["practice-table"]
         for seat in 1...3 {
             let label = table.descendants(matching: .any)

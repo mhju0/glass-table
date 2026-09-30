@@ -49,6 +49,8 @@ struct TableSurface: View {
     var center = TableCenter()
     /// A seat whose chip is travelling to the middle; `arrived` animates it there.
     var movingChip: (seatID: String, arrived: Bool)?
+    /// Sends `movingChip` the other way: from the pot to the seat, as a payout.
+    var chipFromPot = false
 
     static let radius: CGFloat = 32
     static let rail: CGFloat = 3
@@ -259,7 +261,11 @@ struct TableSurface: View {
         VStack(spacing: 8) {
             if center.reservesBoard || !center.board.isEmpty {
                 HStack(spacing: 4) {
-                    ForEach(center.board, id: \.self) { TableCard(card: $0) }
+                    ForEach(center.board, id: \.self) {
+                        TableCard(card: $0)
+                            .transition(.asymmetric(insertion: .scale(scale: 0.6).combined(with: .opacity),
+                                                    removal: .opacity))
+                    }
                 }
                 .frame(height: TableCard.height)
                 .accessibilityElement(children: .ignore)
@@ -276,6 +282,7 @@ struct TableSurface: View {
                     .foregroundStyle(GT.onTable)
                     .lineLimit(1)
                     .fixedSize()
+                    .contentTransition(.numericText())
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(center.potTotal.map { language.text("팟 \($0)", "Pot, \($0)") }
@@ -289,13 +296,14 @@ struct TableSurface: View {
     private var chipInFlight: some View {
         if let movingChip, let start = seatCenters[movingChip.seatID] {
             GeometryReader { proxy in
-                let end = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+                let pot = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+                let (from, end) = chipFromPot ? (pot, start) : (start, pot)
                 Circle()
                     .fill(GT.chipTop)
                     .overlay(Circle().strokeBorder(GT.chipEdge, style: StrokeStyle(lineWidth: 1.2, dash: [2.2, 1.8])))
                     .frame(width: 14, height: 14)
                     .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
-                    .position(movingChip.arrived ? end : start)
+                    .position(movingChip.arrived ? end : from)
                     .opacity(movingChip.arrived ? 0.35 : 1)
             }
             .allowsHitTesting(false)

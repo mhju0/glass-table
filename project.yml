@@ -36,8 +36,9 @@ targets:
           - Pretendard-SemiBold.otf
           - Pretendard-Bold.otf
           - Pretendard-ExtraBold.otf
-        # Drill layout (green zone + bottom sheet) is portrait-designed; lock it.
-        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        # Drill layout (green zone + bottom sheet) is portrait-designed. Only the free
+        # table unlocks landscape, at runtime through OrientationDelegate.
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         ITSAppUsesNonExemptEncryption: false
     settings:
       base:

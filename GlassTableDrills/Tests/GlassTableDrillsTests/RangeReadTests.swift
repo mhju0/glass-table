@@ -223,6 +223,71 @@ final class RangeReadDrillTests: XCTestCase {
         XCTAssertFalse(why.contains("너무 좁게"), why)
     }
 
+    /// A calling range is the band between raising and folding. Before the estimate
+    /// could take the top off, no call read except the Station's could reach 정답.
+    func testEveryCallingRangeIsReachableWithTheBandInput() {
+        for archetype in Archetype.allCases {
+            for seat in RFIChart.seats {
+                guard let opener = RFIChart.seats.first(where: {
+                    $0.playersBehind(preflop: true) > seat.playersBehind(preflop: true)
+                }) else { continue }
+                let spot = RangeReadSpot(archetype: archetype,
+                                         action: .called(seat: seat, opener: opener),
+                                         archetypeShown: true)
+                let top = archetype.raiseRange(from: seat).percent
+                let estimate = RangeEstimate(width: spot.trueRange.percent, excludedTop: top)
+                let reveal = gradeRangeRead(estimate: estimate, spot: spot)
+                XCTAssertEqual(reveal.band, .spotOn, "\(archetype) \(seat): \(reveal.overlap)")
+            }
+        }
+    }
+
+    /// The sentence follows the band: a 정답 is never told it misread, and a miss is
+    /// never told everything matched (audit: 20.1% vs 26.8% graded 정답 with "너무 좁게").
+    func testTheExplanationNeverContradictsTheBand() {
+        for i in 0..<120 {
+            let spot = RangeReadSpotGenerator.spot(baseSeed: 23, index: i)
+            for width in stride(from: 3.0, through: 60, by: 3) {
+                for top in [0.0, 4, 10] {
+                    let r = gradeRangeRead(estimate: RangeEstimate(width: width, excludedTop: top),
+                                           spot: spot)
+                    let misread = ["너무 넓게", "너무 좁게", "모양이 달라요", "겹치는 핸드가 적어요", "위쪽을 더 빼"]
+                    if r.band == .spotOn {
+                        XCTAssertFalse(misread.contains(where: r.whyText.contains), r.whyText)
+                    } else {
+                        XCTAssertFalse(r.whyText.contains("대부분 겹쳐요"), r.whyText)
+                        XCTAssertFalse(r.whyText.contains("모양도 비슷해요"), r.whyText)
+                    }
+                }
+            }
+        }
+    }
+
+    /// A calling range is not the strongest N% of hands, so it is never called "top".
+    func testRangeWidthIsQuotedAsAShareOfAllHands() {
+        let call = RangeReadSpot(archetype: .tag, action: .called(seat: .btn, opener: .co),
+                                 archetypeShown: true)
+        let ko = gradeRangeRead(estimate: RangeEstimate(width: 10), spot: call).whyText
+        XCTAssertFalse(ko.contains("상위"), ko)
+        XCTAssertTrue(ko.contains("전체 조합의"), ko)
+        XCTAssertTrue(ko.contains("레이즈"), ko)
+        let en = gradeRangeRead(estimate: RangeEstimate(width: 10), spot: call, language: .english).whyText
+        XCTAssertFalse(en.lowercased().contains("top"), en)
+    }
+
+    func testABandAnswerRoundTripsAsASavedInput() throws {
+        let input = SavedDrillInput.rangeBand(width: 6, excludedTop: 4, tendencies: ["pairs"])
+        XCTAssertTrue(input.isValid(for: .rangeRead))
+        XCTAssertFalse(SavedDrillInput.rangeBand(width: 6, excludedTop: 41, tendencies: [])
+            .isValid(for: .rangeRead))
+        let data = try JSONEncoder().encode(input)
+        XCTAssertEqual(try JSONDecoder().decode(SavedDrillInput.self, from: data), input)
+        // Answers saved before the band existed still decode as plain top reads.
+        let old = try JSONEncoder().encode(SavedDrillInput.range(width: 20, tendencies: []))
+        XCTAssertEqual(try JSONDecoder().decode(SavedDrillInput.self, from: old),
+                       .range(width: 20, tendencies: []))
+    }
+
     func testEveryGeneratedSpotIsGradableWithoutCrashing() {
         for i in 0..<200 {
             let s = RangeReadSpotGenerator.spot(baseSeed: 11, index: i)

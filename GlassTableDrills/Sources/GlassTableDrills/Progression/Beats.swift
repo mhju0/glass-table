@@ -463,7 +463,8 @@ public enum BeatScript {
                     : "들어오는 건 VPIP \(Int(a.vpip))%인데 그중 \(Int(a.pfr))%는 레이즈해요. "
                       + "콜은 그 사이 \(Int(a.vpip - a.pfr))%p예요.",
                  focus: .actionList(s.actionLines, lit: nil)),
-            Beat("자리를 반영하면", value: "상위 \(pctText(truth.percent))%",
+            Beat("자리를 반영하면", value: raising ? "상위 \(pctText(truth.percent))%"
+                                            : "전체의 \(pctText(truth.percent))%",
                  detail: "\(KO.topic(s.seat.rawValue)) 뒤에 \(s.seat.playersBehind(preflop: true))명 남았어요. "
                        + "\(statName) \(Int(headline))%는 모든 자리 평균이라 여기선 "
                        + "\(truth.percent >= headline ? "더 넓어" : "더 좁아")져요.",
@@ -543,7 +544,7 @@ public enum BeatScript {
             Beat("오프너의 레인지", value: "상위 \(pctText(s.openerRange.percent))%",
                  detail: "먼저 들어온 쪽은 좁고 센 범위예요.",
                  focus: .rangeGrid(s.openerRange, highlight: nil)),
-            Beat("콜러의 레인지", value: "상위 \(pctText(s.callerRange.percent))%",
+            Beat("콜러의 레인지", value: "전체의 \(pctText(s.callerRange.percent))%",
                  detail: "\(KO.subject(s.caller.name)) 콜만 하는 구간이에요. 올리기에는 아까운 패들이에요. "
                        + "\(s.caller.blurb).",
                  focus: .rangeGrid(s.callerRange, highlight: nil)),

@@ -139,20 +139,20 @@ final class AccessibilityFlowTests: XCTestCase {
         add(attachment)
     }
 
-    func testTableHeroCardsCanBeFullyExposedAboveTabBarAtAccessibilityXXXL() {
+    func testTableHeroCardsCanBeFullyExposedOnScreenAtAccessibilityXXXL() {
         let app = launch(environment: [
             "GT_TEST_STORE_ID": UUID().uuidString,
             "GT_DEMO_TABLE": "tag",
         ])
 
         let hero = app.otherElements["table-hero-cards"]
-        let tabBar = app.tabBars.firstMatch
         XCTAssertTrue(hero.waitForExistence(timeout: 15))
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
-        XCTAssertTrue(scrollUntilFullyVisible(hero, above: tabBar, in: app),
-                      "Both fixed-size hero cards must fit wholly above the real tab bar at AX XXXL.")
+        // The graded table hides the tab bar, so the screen edge is the only bound.
+        XCTAssertFalse(app.tabBars.firstMatch.exists)
+        XCTAssertTrue(scrollUntilFullyVisible(hero, above: app, in: app),
+                      "Both fixed-size hero cards must fit wholly on screen at AX XXXL.")
         XCTAssertGreaterThanOrEqual(hero.frame.minY, app.frame.minY)
-        XCTAssertLessThanOrEqual(hero.frame.maxY, tabBar.frame.minY)
+        XCTAssertLessThanOrEqual(hero.frame.maxY, app.frame.maxY)
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = "table-hero-cards-fully-visible-ax5"
         attachment.lifetime = .keepAlways
@@ -406,13 +406,19 @@ final class AccessibilityFlowTests: XCTestCase {
                                          maximumSwipes: Int = 12) -> Bool {
         for _ in 0...maximumSwipes {
             let frame = element.frame
-            if frame.minY >= app.frame.minY, frame.maxY <= obstruction.frame.minY {
+            if frame.minY >= app.frame.minY, frame.maxY <= bottom(of: obstruction, in: app) {
                 return true
             }
             app.swipeUp()
         }
         let frame = element.frame
-        return frame.minY >= app.frame.minY && frame.maxY <= obstruction.frame.minY
+        return frame.minY >= app.frame.minY && frame.maxY <= bottom(of: obstruction, in: app)
+    }
+
+    /// The lowest y an element may reach: the obstruction's top, or the screen's bottom
+    /// when the obstruction is the app itself.
+    private func bottom(of obstruction: XCUIElement, in app: XCUIApplication) -> CGFloat {
+        obstruction == app ? app.frame.maxY : obstruction.frame.minY
     }
 
     private func scrollForwardUntilMaterializedAndHittable(_ element: XCUIElement,

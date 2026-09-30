@@ -159,3 +159,64 @@ Full entries: [the 09-28 archive](handoff-archive/2026-09-28-before-spacing-rule
 - `HoldemBasicsView` keeps only ladder and check (1–2/2); the deal stepper is gone.
 - Saved progress is untouched: `firstLessonCompleted` and `basicsLessonCompleted` keep
   their meaning.
+
+## 2026-09-30: Whole-app UX audit crawl and report
+
+- New, uncommitted: `GlassTable/UITests/UXAuditCrawl.swift` (XCUITest crawler, skips
+  unless `TEST_RUNNER_GT_AUDIT_OUT` is set), `tools/uxaudit/run.sh` (one simulator per
+  call; `GT_AUDIT_NODES`, `GT_AUDIT_DD`), `tools/uxaudit/report.py` (HTML), and
+  `tools/uxaudit/notes.json` (reviewer findings). Output: `.build/uxaudit-report/`.
+- Each lesson runs twice on a fresh fixture (same seed): pass A answers first/default,
+  pass B aims for the opposite band using pass A's reveal. Settings persist in
+  UserDefaults across launches; run.sh clears them, and the crawler no longer pins
+  `glassTable.language` so Settings can switch it.
+- Findings (not fixed, owner to choose): crash in `PlayView.policyDetails` on 2–3 player
+  tables; range-read grade vs explanation contradiction (RangeRead.swift); graded-play
+  action sheet covers hole cards; raise control under tab bar; pot answers look enabled
+  while locked; see notes.json for the rest.
+- Next: owner reviews the report and picks fixes; decide whether to commit the tooling.
+
+## 2026-09-30: Codex review of Claude UX audit
+
+- Created a separate local report at `.build/uxaudit-report-codex/index.html`, preserving
+  the original section/flow/screenshot order and distinguishing Claude findings from
+  Codex assessments and additions. Generator: `tools/uxaudit/codex_report.py`;
+  review data and evidence: `.scratch/uxaudit-codex/`. Original report/tooling preserved.
+- Current-source and retained-capture review confirms the policy crash, Range Read
+  feedback contradiction and cited compact-screen usability issues. Added calling-range
+  “top N%” wording and fixed-size chart-label legibility findings; Position's visible
+  answer order is a qualified instructional concern. Daily-history emptiness is explained
+  by the demo fixture; crawler target/VoiceOver flags need qualification.
+- No app fixes or fresh native crawl. Report browser inspection was blocked by the
+  browser tool's URL policy; static validation is recorded separately. Next: owner
+  reviews the highlighted issues and decides remediation scope.
+
+## 2026-09-30: Audit fixes and full-screen free table
+
+- Fixed the audit findings (Claude + Codex): policy-details crash (now
+  `PracticeTableState.computerSeats`), Range Read grade/explanation contradiction and
+  unreachable calling ranges (new `excludedTop` band input, saved as the additive
+  `rangeBand` case), "상위 N%" wording for call ranges, range difference list under the
+  reveal grid, locked pot answers now look locked, nested example gets a close button,
+  Position hides the action order until answered, graded play hides the tab bar and uses
+  `gtChrome` with `defaultScrollAnchor(.bottom)`, 반환 explained, "테이블 다시 만들기"
+  lands on setup.
+- Free table redesign: `FreeTableView` opens as a full-screen cover from the Play landing
+  ("자유 대전 이어서" when a table exists). Table fills the screen; bottom bar has the
+  status line, 힌트, and fold/call/raise; raise opens presets (최소, ½ 팟, 팟, 올인).
+  Slide-up panel has 힌트 (facts only, never a pick), 이번 핸드, 도움말.
+- Motion: the model still settles bots synchronously; the view replays
+  `PracticeTableState.replaySteps` / `frame(after:)` (Drills, tested) one seat at a time
+  with think delays, chip flights, dealt cards and `TableHaptics`. Reduce Motion halves
+  delays and drops chip flights.
+- Landscape: Info.plist allows landscape; `OrientationDelegate` keeps every screen
+  portrait except while the free table is on screen (compact height → table left,
+  controls right).
+- Decisions: showdown hands reveal automatically; folded hands stay hidden unless the
+  review toggle is on. Hint shows Chen percentile, made hand, pot-odds break-even; no
+  recommendation.
+- Open: EV-loss range grid labels are still ~6pt; backup exporter/importer unverified;
+  empty 연습 변화 is a demo-fixture artifact. Audit tooling (`UXAuditCrawl.swift`,
+  `tools/uxaudit/`) and the crawl's Play steps were not updated for the new table.
+- Test note: app language persists in the simulator's UserDefaults; uninstall the app on
+  a simulator used by the Korean crawl before running the English UI tests.

@@ -916,10 +916,14 @@ private struct PotMathChoicesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Stays at the last action too, so the sheet never changes height mid-question.
-            Text(language.text("마지막 행동까지 넘기면 답을 고를 수 있어요.",
-                               "Follow the actions to the end, then choose an answer."))
+            Label(reachedLastAction
+                  ? language.text("이제 답을 고를 수 있어요.", "Now choose an answer.")
+                  : language.text("마지막 행동까지 넘기면 답을 고를 수 있어요.",
+                                  "Follow the actions to the end, then choose an answer."),
+                  systemImage: reachedLastAction ? "lock.open" : "lock")
                 .font(GT.body(14))
-                .foregroundStyle(GT.inkSecondary)
+                .foregroundStyle(reachedLastAction ? GT.ink : GT.inkSecondary)
+                .contentTransition(.opacity)
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(spacing: 8) { choices }
             } else {
@@ -1028,7 +1032,9 @@ private struct PositionDrill: View {
     var body: some View {
         DrillShell(title: "포지션", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
-                SectionLabel(text: language.text("8맥스 테이블 · 행동 순서", "8-player table · action order"))
+                SectionLabel(text: reveal == nil
+                    ? language.text("8맥스 테이블 · 버튼부터 시계 방향", "8-player table · clockwise from the button")
+                    : language.text("8맥스 테이블 · 행동 순서", "8-player table · action order"))
                 seatStrip
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1055,8 +1061,12 @@ private struct PositionDrill: View {
         return false
     }
 
+    /// Before the answer the seats are drawn as they sit, from the dealer button; the
+    /// action order is the answer, so it appears only in the reveal.
     private var seatStrip: some View {
-        let order = isPreflop ? Position.preflopOrder : Position.postflopOrder
+        let seated: [Position] = [.btn, .sb, .bb, .utg, .utg1, .lj, .hj, .co]
+        let order = reveal == nil ? seated
+            : (isPreflop ? Position.preflopOrder : Position.postflopOrder)
         let mine: Position? = { if case let .behind(p, _) = spot.question { return p }; return nil }()
         return HStack(spacing: 5) {
             ForEach(order, id: \.self) { p in
@@ -1698,10 +1708,21 @@ private struct RangeReadDrill: View {
     let onAnswer: (DrillOutcome) -> Void
     @State private var width: Double = 20
     @State private var tendencies: Set<RangeTendency> = []
+    /// Calls only: the strongest hands taken off the top, because they would raise.
+    @State private var excludedTop: Double = 0
     @State private var reveal: RangeReadReveal?
 
     private var spot: RangeReadSpot { RangeReadSpotGenerator.spot(baseSeed: seed, index: index) }
-    private var estimate: RangeEstimate { RangeEstimate(width: width, tendencies: tendencies) }
+    private var isCall: Bool { if case .called = spot.action { true } else { false } }
+    private var estimate: RangeEstimate {
+        RangeEstimate(width: width, tendencies: tendencies, excludedTop: isCall ? excludedTop : 0)
+    }
+    private var submitted: DrillSubmittedInput {
+        let raw = tendencies.map(\.rawValue).sorted()
+        return isCall && excludedTop > 0
+            ? .rangeBand(width: width, excludedTop: excludedTop, tendencies: raw)
+            : .range(width: width, tendencies: raw)
+    }
 
     var body: some View {
         DrillShell(title: "레인지 리드", progressText: progressText) {
@@ -1721,6 +1742,8 @@ private struct RangeReadDrill: View {
                               outline: reveal?.guess)
                     .frame(maxWidth: 250)
                     .animation(GT.Motion.change, value: width)
+                    .animation(GT.Motion.change, value: excludedTop)
+                if let reveal { RangeDifferenceList(truth: reveal.truth, guess: reveal.guess) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .onAppear {
@@ -1740,13 +1763,12 @@ private struct RangeReadDrill: View {
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: "상위 \(pctText(reveal.guess.percent))%",
-                            correct: "상위 \(pctText(reveal.truth.percent))%",
+                            mine: "\(pctText(reveal.guess.percent))%",
+                            correct: "\(pctText(reveal.truth.percent))%",
                             why: reveal.whyText,
-                            submittedInput: .range(width: width,
-                                tendencies: tendencies.map(\.rawValue).sorted())) {
+                            submittedInput: submitted) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
-                    self.reveal = nil; width = 20; tendencies = []
+                    self.reveal = nil; width = 20; tendencies = []; excludedTop = 0
                 }
             } else {
                 input
@@ -1756,17 +1778,26 @@ private struct RangeReadDrill: View {
         .onChange(of: index) { _, _ in restoreDraft() }
         .onChange(of: width) { _, _ in saveRangeDraft() }
         .onChange(of: tendencies) { _, _ in saveRangeDraft() }
+        .onChange(of: excludedTop) { _, _ in saveRangeDraft() }
     }
 
     private func restoreDraft() {
-        if case let .range(savedWidth, raw)? = initialDraft {
+        switch initialDraft {
+        case let .range(savedWidth, raw)?:
             width = savedWidth
             tendencies = Set(raw.compactMap(RangeTendency.init(rawValue:)))
+        case let .rangeBand(savedWidth, top, raw)?:
+            width = savedWidth; excludedTop = top
+            tendencies = Set(raw.compactMap(RangeTendency.init(rawValue:)))
+        default: break
         }
     }
 
     private func saveRangeDraft() {
-        saveDraft(.range(width: width, tendencies: tendencies.map(\.rawValue).sorted()))
+        let raw = tendencies.map(\.rawValue).sorted()
+        saveDraft(isCall && excludedTop > 0
+                  ? .rangeBand(width: width, excludedTop: excludedTop, tendencies: raw)
+                  : .range(width: width, tendencies: raw))
     }
 
     // MARK: what the user is told
@@ -1845,11 +1876,12 @@ private struct RangeReadDrill: View {
             }
             Slider(value: $width, in: 3...80, step: 1).tint(GT.cta)
                 .accessibilityLabel(language.text("범위 넓이", "Range width"))
-                .accessibilityValue(language.text("상위 \(pctText(width))퍼센트",
-                                                   "Top \(pctText(width)) percent"))
+                .accessibilityValue(language.text("전체의 \(pctText(width))퍼센트",
+                                                   "\(pctText(width)) percent of hands"))
             AdjustmentButtons(label: language.text("범위 넓이", "Range width"),
                               decrement: { width = max(3, width - 1) },
                               increment: { width = min(80, width + 1) })
+            if isCall { raisedTopControl }
 
             SectionLabel(text: language.text("어디에 몰려 있나요 (선택)",
                                              "Which hands are more common? (optional)"), onDark: false)
@@ -1869,6 +1901,36 @@ private struct RangeReadDrill: View {
     private var actionVerb: String {
         if case .opened = spot.action { return language.text("오픈", "raise first") }
         return language.text("콜", "call")
+    }
+
+    /// A caller's best hands raise instead, so a calling range is a band with the top
+    /// taken off. This control is that top; without it no call read could match.
+    private var raisedTopControl: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(language.text("레이즈했을 강한 핸드 빼기", "Take off hands they'd raise"))
+                    .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                Spacer(minLength: 8)
+                Text(language.text("상위 \(pctText(excludedTop))%", "Top \(pctText(excludedTop))%"))
+                    .font(GT.title(17).monospacedDigit()).foregroundStyle(GT.ink)
+                    .contentTransition(.numericText())
+            }
+            Text(language.text("가장 강한 핸드는 보통 콜하지 않고 레이즈해요. 위에서부터 몇 %를 뺄지 정해요.",
+                               "The strongest hands usually raise instead of calling. Choose how much to take off the top."))
+                .font(GT.body(12)).foregroundStyle(GT.inkSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 8) {
+                Slider(value: $excludedTop, in: 0...RangeReadInput.excludedTopLimit, step: 1).tint(GT.cta)
+                    .accessibilityLabel(language.text("위에서 뺄 넓이", "Hands taken off the top"))
+                    .accessibilityValue(language.text("상위 \(pctText(excludedTop))퍼센트",
+                                                       "Top \(pctText(excludedTop)) percent"))
+                AdjustmentButtons(label: language.text("위에서 뺄 넓이", "Hands taken off the top"),
+                                  decrement: { excludedTop = max(0, excludedTop - 1) },
+                                  increment: { excludedTop = min(RangeReadInput.excludedTopLimit,
+                                                                 excludedTop + 1) })
+            }
+        }
+        .accessibilityIdentifier("range-read-excluded-top")
     }
 
     /// Two rows of two, because four chips across a mini would each be ~78pt and the

@@ -9,6 +9,8 @@ public enum SavedDrillInput: Codable, Equatable, Sendable {
     case boolean(Bool)
     case interval(point: Double, lo: Double, hi: Double)
     case range(width: Double, tendencies: [String])
+    /// A calling-range read: `width` below the `excludedTop` hands that would raise.
+    case rangeBand(width: Double, excludedTop: Double, tendencies: [String])
     case action(String)
 
     public func isValid(for concept: Concept) -> Bool {
@@ -27,6 +29,9 @@ public enum SavedDrillInput: Codable, Equatable, Sendable {
                 && tendencies.count <= RangeTendency.allCases.count
                 && Set(tendencies).count == tendencies.count
                 && tendencies.allSatisfy { RangeTendency(rawValue: $0) != nil }
+        case let (.rangeRead, .rangeBand(width, excludedTop, tendencies)):
+            return excludedTop.isFinite && (0...RangeReadInput.excludedTopLimit).contains(excludedTop)
+                && SavedDrillInput.range(width: width, tendencies: tendencies).isValid(for: .rangeRead)
         case let (.defend, .action(raw)):
             return DefendAction(rawValue: raw) != nil
         case let (.equitySense, .interval(point, lo, hi)),
@@ -110,6 +115,11 @@ enum SavedDrillScore {
             let selected = Set(tendencies.compactMap(RangeTendency.init(rawValue:)))
             actual = (gradeRangeRead(
                 estimate: RangeEstimate(width: width, tendencies: selected),
+                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+        case let (.rangeRead, .rangeBand(width, excludedTop, tendencies)):
+            let selected = Set(tendencies.compactMap(RangeTendency.init(rawValue:)))
+            actual = (gradeRangeRead(
+                estimate: RangeEstimate(width: width, tendencies: selected, excludedTop: excludedTop),
                 spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
         case let (.evLoss, .boolean(value)):
             let result = gradeEVLoss(userCalls: value,

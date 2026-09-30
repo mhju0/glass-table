@@ -67,7 +67,8 @@ struct ConceptExplainView: View {
             .gtChrome(leading: {
                 ChromeButton.back(language.text("설명으로", "Back to explanation")) { showingExample = false }
             }, trailing: {
-                ChromeTextButton(title: WalkthroughView.skipTitle(language)) { showingExample = false }
+                // Back returns to the explanation; close returns to the question.
+                ChromeButton.close(onClose)
             })
             .gtSheetSurface()
     }

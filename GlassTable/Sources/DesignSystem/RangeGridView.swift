@@ -120,14 +120,60 @@ struct RangeGridView: View {
         if let outline {
             let missed = range.subtracting(outline).comboCount
             let over = outline.subtracting(range).comboCount
-            return language.text("레인지 비교 표. 정답 상위 \(pct)%. "
+            return language.text("레인지 비교 표. 정답은 전체 조합의 \(pct)%. "
                                  + "놓친 콤보 \(missed)개, 넣지 않았어야 할 콤보 \(over)개.",
-                                 "Range comparison. Answer covers the top \(pct)%. "
+                                 "Range comparison. The answer is \(pct)% of all hands. "
                                  + "\(missed) missed combinations and \(over) extra combinations.")
         }
-        guard let highlight else { return language.text("레인지 표, 상위 \(pct)%", "Range chart, top \(pct)%") }
+        guard let highlight else { return language.text("레인지 표, 전체 조합의 \(pct)%", "Range chart, \(pct)% of all hands") }
         let inside = range.weight(highlight) > 0
-        return language.text("레인지 표, 상위 \(pct)%. \(KO.topic(highlight.description)) \(inside ? "포함" : "제외").",
-                             "Range chart, top \(pct)%. \(highlight.description) is \(inside ? "included" : "excluded").")
+        return language.text("레인지 표, 전체 조합의 \(pct)%. \(KO.topic(highlight.description)) \(inside ? "포함" : "제외").",
+                             "Range chart, \(pct)% of all hands. \(highlight.description) is \(inside ? "included" : "excluded").")
+    }
+}
+
+/// The comparison grid's cells are about 6pt at a phone's width, so the hands that
+/// differ are also listed in text: which were missed and which were extra.
+struct RangeDifferenceList: View {
+    @Environment(\.learningLanguage) private var language
+    let truth: HandRange
+    let guess: HandRange
+    /// Past this many, the row ends with a count instead of more names.
+    var limit = 12
+
+    var body: some View {
+        let missed = hands(truth.subtracting(guess))
+        let extra = hands(guess.subtracting(truth))
+        if !missed.isEmpty || !extra.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                if !missed.isEmpty {
+                    row(language.text("놓친 핸드", "Missed"), missed)
+                }
+                if !extra.isEmpty {
+                    row(language.text("넘친 핸드", "Extra"), extra)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier("range-difference-list")
+        }
+    }
+
+    /// Strongest first, so the most costly differences are the ones that get named.
+    private func hands(_ range: HandRange) -> [HandClass] {
+        range.classes.sorted { ($0.high, $0.low, $0.suited ? 1 : 0) > ($1.high, $1.low, $1.suited ? 1 : 0) }
+    }
+
+    private func row(_ title: String, _ hands: [HandClass]) -> some View {
+        let names = hands.prefix(limit).map(\.description).joined(separator: " ")
+        let more = hands.count > limit
+            ? language.text(" 외 \(hands.count - limit)개", " and \(hands.count - limit) more") : ""
+        return VStack(alignment: .leading, spacing: 2) {
+            Text("\(title) · \(language.text("\(hands.count)종류", "\(hands.count) kinds"))")
+                .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
+            Text(names + more)
+                .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.onFelt)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
     }
 }

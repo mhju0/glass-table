@@ -844,24 +844,30 @@ struct FeltCTAButton: View {
 /// A choice in an answer sheet: translucent ivory on glass, with a selected state that
 /// moves fill, border and weight together so it never leans on colour alone.
 struct GTChoiceButton: View {
+    @Environment(\.isEnabled) private var isEnabled
     let title: String
     var selected: Bool = false
     var minHeight: CGFloat = 54
     let action: () -> Void
 
+    /// A locked choice drops its fill and draws a dashed edge, so it never reads as
+    /// tappable (audit: pot answers looked live while waiting for the last action).
     var body: some View {
         Button(action: action) {
             Text(title)
                 .font(selected ? GT.title(GT.Typography.buttonSize)
                                : GT.semibold(GT.Typography.buttonSize))
-                .foregroundStyle(selected ? GT.onCTA : GT.ink)
+                .foregroundStyle(selected ? GT.onCTA : (isEnabled ? GT.ink : GT.inkMuted))
                 .frame(maxWidth: .infinity, minHeight: minHeight)
-                .background(selected ? AnyShapeStyle(GT.cta) : AnyShapeStyle(GT.surface),
+                .background(selected ? AnyShapeStyle(GT.cta)
+                                     : AnyShapeStyle(GT.surface.opacity(isEnabled ? 1 : 0.35)),
                             in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
-                    .strokeBorder(selected ? Color.clear : GT.borderStrong, lineWidth: 1))
+                    .strokeBorder(selected ? Color.clear : GT.borderStrong.opacity(isEnabled ? 1 : 0.6),
+                                  style: StrokeStyle(lineWidth: 1, dash: isEnabled ? [] : [4, 3])))
         }
         .buttonStyle(GTPress())
+        .animation(GT.Motion.change, value: isEnabled)
     }
 }
 

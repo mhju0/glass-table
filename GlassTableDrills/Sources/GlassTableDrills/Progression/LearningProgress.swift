@@ -81,6 +81,7 @@ public enum SavedDrillDraftInput: Codable, Equatable, Sendable {
     case integer(Int)
     case interval(point: Double, halfWidth: Double)
     case range(width: Double, tendencies: [String])
+    case rangeBand(width: Double, excludedTop: Double, tendencies: [String])
     case potReplay(stepIndex: Int)
 
     public func isValid(for concept: Concept) -> Bool {
@@ -106,6 +107,9 @@ public enum SavedDrillDraftInput: Codable, Equatable, Sendable {
         case let .range(width, tendencies):
             return SavedDrillInput.range(width: width, tendencies: tendencies)
                 .isValid(for: concept)
+        case let .rangeBand(width, excludedTop, tendencies):
+            return SavedDrillInput.rangeBand(width: width, excludedTop: excludedTop,
+                                             tendencies: tendencies).isValid(for: concept)
         case let .potReplay(stepIndex):
             return concept == .potMath && (0...32).contains(stepIndex)
         }

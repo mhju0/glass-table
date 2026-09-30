@@ -10,6 +10,8 @@ struct TableSetupView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.dismiss) private var dismiss
     let epoch: UUID
+    /// Presents the new table. Without it, setup just closes.
+    var onStarted: (() -> Void)? = nil
     @State private var styles: [Archetype] = [.nit, .station, .lag]
     @State private var players = 4
     @State private var showGuide = false
@@ -122,7 +124,7 @@ struct TableSetupView: View {
             if try model.startTable(seed: UInt64.random(in: 0..<UInt64.max),
                                     styles: Array(styles.prefix(players - 1)),
                                     expectedEpoch: epoch) {
-                dismiss()
+                if let onStarted { onStarted() } else { dismiss() }
             } else if model.saveError == nil {
                 failure = true
             }

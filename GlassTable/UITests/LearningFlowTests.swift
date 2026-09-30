@@ -389,8 +389,8 @@ final class LearningFlowTests: XCTestCase {
         let next = app.buttons["다음 행동"]
         for _ in 0..<12 where next.exists && next.isEnabled { next.tap() }
         XCTAssertFalse(next.exists && next.isEnabled, "Stepped to the last action")
-        XCTAssertTrue(app.staticTexts["마지막 행동까지 넘기면 답을 고를 수 있어요."].exists,
-                      "The instruction stays, so the screen does not change at the last action")
+        XCTAssertTrue(app.staticTexts["이제 답을 고를 수 있어요."].exists,
+                      "The instruction line unlocks in place at the last action")
         XCTAssertEqual(sheet.frame.height, height, accuracy: 1)
     }
 
