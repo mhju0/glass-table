@@ -38,7 +38,10 @@ struct FreeTableView: View {
     @State private var replaySpeed = 1.0
     @ScaledMetric(relativeTo: .body) private var resultProseHeight = 51
     @ScaledMetric(relativeTo: .title) private var resultNetHeight = 36
-    @ScaledMetric(relativeTo: .title3) private var raiseAmountHeight = 44
+    @ScaledMetric(relativeTo: .title2) private var raiseAmountHeight = 36
+    @ScaledMetric(relativeTo: .body) private var frontTitleMetric = 18
+    @ScaledMetric(relativeTo: .title2) private var raiseTitleMetric = 24
+    @ScaledMetric(relativeTo: .body) private var raiseContextHeight = 32
     #if DEBUG
     @State private var demoTable: PracticeTableState?
     #endif
@@ -297,9 +300,10 @@ struct FreeTableView: View {
             }
         }
         VStack(alignment: .leading, spacing: 12) {
-            dockHeader(language.text("내 차례", "Your turn"), warning: nil, onMath: {})
-            raiseBody(minimum: 4, maximum: 100, amount: 100, currentBet: 2, potAfterCall: 8,
-                      onCancel: {}, onAmount: { _ in }, onConfirm: {})
+            let sizing = FreeRaisePresentation(street: .preflop, minimum: 4, maximum: 100,
+                                               committed: 0, currentBet: 2, pot: 3, toCall: 2)
+            raiseHeader(sizing, amount: 100, onCancel: {}, onMath: {})
+            raiseBody(sizing, amount: 100, onAmount: { _ in }, onStep: { _ in }, onConfirm: {})
         }
         VStack(alignment: .leading, spacing: 12) {
             dockHeader(language.text("핸드가 끝났어요", "Hand over"), warning: nil, onMath: {})
@@ -317,8 +321,13 @@ struct FreeTableView: View {
 
     private func controls(_ table: PracticeTableState, minimumHeight: CGFloat) -> some View {
         GTAnchoredDockFaceLayout(minimumHeight: minimumHeight,
-                                 scrollsBody: !isReplaying(table) && (table.review != nil || raising)) {
-            statusRow(table)
+                                 scrollsBody: !isReplaying(table) && table.review != nil) {
+            if raising && !isReplaying(table), table.review == nil {
+                raiseHeader(FreeRaisePresentation(table: table), amount: raiseAmount,
+                            onCancel: { raising = false }, onMath: { helpTab = .hint; showHelp = true })
+            } else {
+                statusRow(table)
+            }
             Group {
             if isReplaying(table) {
                 VStack(alignment: .leading, spacing: 12) {
@@ -334,8 +343,7 @@ struct FreeTableView: View {
                 ScrollView { result(review, table: table).frame(maxWidth: .infinity, alignment: .leading) }
                     .accessibilityIdentifier("free-result-body")
             } else if raising {
-                ScrollView { raisePanel(table).frame(maxWidth: .infinity, alignment: .leading) }
-                    .accessibilityIdentifier("free-raise-body")
+                raisePanel(table)
             } else {
                 actionRow(table, enabled: table.currentSeat == 0)
             }
@@ -417,17 +425,7 @@ struct FreeTableView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("free-table-status")
                 Spacer(minLength: 0)
-                Button(action: onMath) {
-                    Label(language.text("계산", "Math"), systemImage: "function")
-                        .fixedSize(horizontal: true, vertical: false)
-                        .font(GT.semibold(14)).foregroundStyle(GT.ink)
-                        .padding(.horizontal, 12).frame(minHeight: 36)
-                        .background(GT.surface, in: Capsule())
-                        .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
-                        .frame(minHeight: 44).contentShape(Rectangle())
-                }
-                .buttonStyle(GTPress())
-                .accessibilityIdentifier("free-table-help")
+                mathPill(onMath: onMath)
             }
             if let warning {
                 Text(warning).font(GT.body(13)).foregroundStyle(GT.cta)
@@ -518,74 +516,157 @@ struct FreeTableView: View {
             .accessibilityHint(enabled ? "" : reason)
     }
 
+    private func mathPill(onMath: @escaping () -> Void) -> some View {
+        Button(action: onMath) {
+            Label(language.text("계산", "Math"), systemImage: "function")
+                .fixedSize(horizontal: true, vertical: false)
+                .font(GT.semibold(14)).foregroundStyle(GT.ink)
+                .padding(.horizontal, 12).frame(minHeight: 36)
+                .background(GT.surface, in: Capsule())
+                .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
+                .frame(minHeight: 44).contentShape(Rectangle())
+        }
+        .buttonStyle(GTPress())
+        .accessibilityIdentifier("free-table-help")
+    }
+
+    private func raiseHeader(_ sizing: FreeRaisePresentation, amount: Int,
+                             onCancel: @escaping () -> Void, onMath: @escaping () -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if typeSize.isAccessibilitySize {
+                HStack(alignment: .top) {
+                    raiseBack(onCancel: onCancel)
+                    Spacer(minLength: 8)
+                    mathPill(onMath: onMath)
+                }
+                raiseAmountTitle(sizing, amount: amount)
+            } else {
+                HStack(alignment: .top, spacing: 8) {
+                    raiseBack(onCancel: onCancel)
+                    raiseAmountTitle(sizing, amount: amount)
+                    mathPill(onMath: onMath)
+                }
+            }
+            ScrollView {
+                Text(sizing.context(amount: amount, language: language))
+                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("free-raise-context")
+            }
+            .frame(height: raiseContextHeight)
+            .accessibilityIdentifier("free-raise-context-scroll")
+        }
+        .padding(.top, typeSize.isAccessibilitySize
+                 ? min(GT.Space.sheet, GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18) : 0)
+    }
+
+    private func raiseBack(onCancel: @escaping () -> Void) -> some View {
+        Button(action: onCancel) {
+            Image(systemName: "chevron.left").font(GT.semibold(18))
+                .frame(width: 44, height: 44, alignment: .leading).contentShape(Rectangle())
+        }
+        .foregroundStyle(GT.ink).buttonStyle(GTPress())
+        .accessibilityLabel(language.text("금액 선택 닫기", "Back to actions"))
+        .accessibilityIdentifier("free-raise-cancel")
+    }
+
+    private func raiseAmountTitle(_ sizing: FreeRaisePresentation, amount: Int) -> some View {
+        ScrollView {
+            Text(sizing.title(amount: amount, language: language))
+                .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .contentTransition(.numericText())
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier("free-raise-amount")
+        }
+        .frame(height: raiseAmountHeight)
+        .offset(y: GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18
+                - GT.TextRole.title(24).inkLeading(in: language) * raiseTitleMetric / 24)
+        .accessibilityIdentifier("free-raise-amount-scroll")
+    }
+
     private func raisePanel(_ table: PracticeTableState) -> some View {
-        let minimum = table.legalActions.compactMap { action -> Int? in
-            if case let .raise(to: amount) = action { return amount }; return nil
-        }.first ?? 0
-        let me = table.seats[0]
-        let maximum = me.stack + me.streetCommitted
-        let currentBet = me.streetCommitted + table.amountToCall
-        let potAfterCall = table.pot + table.amountToCall
-        let amount = max(minimum, min(maximum, raiseAmount))
-        return raiseBody(minimum: minimum, maximum: maximum, amount: amount, currentBet: currentBet,
-                         potAfterCall: potAfterCall, onCancel: { raising = false },
-                         onAmount: { raiseAmount = $0 }, onConfirm: {
+        let sizing = FreeRaisePresentation(table: table)
+        let amount = max(sizing.minimum, min(sizing.maximum, raiseAmount))
+        return raiseBody(sizing, amount: amount, onAmount: { raiseAmount = $0 }, onStep: { delta in
+            let current = max(sizing.minimum, min(sizing.maximum, raiseAmount))
+            if delta < 0, current > sizing.minimum { raiseAmount = current - 1 }
+            if delta > 0, current < sizing.maximum { raiseAmount = current + 1 }
+        }, onConfirm: {
             raising = false
             choose(.raise(to: amount), table: table)
         })
     }
 
-    private func raiseBody(minimum: Int, maximum: Int, amount: Int, currentBet: Int, potAfterCall: Int,
-                           onCancel: @escaping () -> Void, onAmount: @escaping (Int) -> Void,
+    private func raiseBody(_ sizing: FreeRaisePresentation, amount: Int,
+                           onAmount: @escaping (Int) -> Void, onStep: @escaping (Int) -> Void,
                            onConfirm: @escaping () -> Void) -> some View {
-        let presets: [(String, Int)] = [
-            (language.text("최소", "Min"), minimum),
-            (language.text("½ 팟", "½ pot"), currentBet + potAfterCall / 2),
-            (language.text("팟", "Pot"), currentBet + potAfterCall),
-            (language.text("올인", "All-in"), maximum),
-        ].map { ($0.0, max(minimum, min(maximum, $0.1))) }
-            // Small pots make several presets the same amount; keep the first name for each.
-            .reduce(into: [(String, Int)]()) { kept, preset in
-                if !kept.contains(where: { $0.1 == preset.1 }) { kept.append(preset) }
-            }
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                ScrollView {
-                    Text(language.text("총 \(amount)칩까지", "To \(amount) chips"))
-                        .font(GT.title(20).monospacedDigit()).foregroundStyle(GT.ink)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .contentTransition(.numericText())
-                        .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 12) {
+            if typeSize.isAccessibilitySize {
+                ScrollView(.horizontal) { raisePresets(sizing, amount: amount, width: nil, onAmount: onAmount) }
+                    .accessibilityIdentifier("free-raise-presets")
+            } else {
+                GeometryReader { geometry in
+                    raisePresets(sizing, amount: amount, width: max(0, (geometry.size.width - 24) / 5), onAmount: onAmount)
                 }
-                .frame(height: raiseAmountHeight)
-                Spacer()
-                Button(language.text("취소", "Cancel"), action: onCancel)
-                    .font(GT.semibold(15)).foregroundStyle(GT.inkSecondary)
-                    .frame(minHeight: 44)
-                    .accessibilityIdentifier("free-raise-cancel")
+                .frame(height: 62)
             }
-            HStack(spacing: 6) {
-                ForEach(presets, id: \.0) { preset in
-                    GTChoiceButton(title: preset.0, selected: amount == preset.1, minHeight: 40) {
-                        TableHaptics.pass()
-                        withAnimation(GT.Motion.change) { onAmount(preset.1) }
-                    }
-                }
+            HStack(alignment: .bottom, spacing: 8) {
+                raiseStep("−", enabled: amount > sizing.minimum, spoken: language.text("1칩 줄이기", "Decrease by 1 chip")) { onStep(-1) }
+                    .accessibilityIdentifier("free-raise-minus")
+                PrimaryCTAButton(title: amount == sizing.maximum
+                    ? language.text("올인 \(amount)", "All in \(amount)")
+                    : sizing.title(amount: amount, language: language), action: onConfirm)
+                    .accessibilityIdentifier("free-raise-confirm")
+                raiseStep("+", enabled: amount < sizing.maximum, spoken: language.text("1칩 늘리기", "Increase by 1 chip")) { onStep(1) }
+                    .accessibilityIdentifier("free-raise-plus")
             }
-            if minimum < maximum {
-                HStack(spacing: 10) {
-                    Slider(value: Binding(get: { Double(amount) }, set: { onAmount(Int($0)) }),
-                           in: Double(minimum)...Double(maximum), step: 1)
-                        .accessibilityLabel(language.text("올릴 총 금액", "Total raise amount"))
-                        .accessibilityValue(language.text("\(amount)칩", "\(amount) chips"))
-                    AdjustmentButtons(label: language.text("금액", "Amount"),
-                                      decrement: { onAmount(max(minimum, amount - 1)) },
-                                      increment: { onAmount(min(maximum, amount + 1)) })
-                }
-            }
-            PrimaryCTAButton(title: language.text("\(amount)칩까지 올리기", "Raise to \(amount)"), action: onConfirm)
-            .accessibilityIdentifier("free-raise-confirm")
         }
+    }
+
+    private func raisePresets(_ sizing: FreeRaisePresentation, amount: Int, width: CGFloat?,
+                              onAmount: @escaping (Int) -> Void) -> some View {
+        HStack(spacing: 6) {
+            ForEach(Array(sizing.presets.enumerated()), id: \.offset) { index, preset in
+                let legal = (sizing.minimum...sizing.maximum).contains(preset.amount)
+                Button { if legal { onAmount(preset.amount) } } label: {
+                    VStack(spacing: 4) {
+                        Text(language == .korean ? preset.korean : preset.english).font(GT.semibold(12))
+                        Text("\(preset.amount)").font(GT.title(13).monospacedDigit())
+                    }
+                    .fixedSize(horizontal: typeSize.isAccessibilitySize, vertical: true)
+                    .padding(.horizontal, 8).padding(.vertical, 10)
+                    .frame(width: width).frame(minHeight: 44)
+                    .foregroundStyle(amount == preset.amount ? GT.onCTA : GT.ink)
+                    .background(amount == preset.amount ? GT.cta : GT.surface,
+                                in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                    .overlay(RoundedRectangle(cornerRadius: GT.Radius.control)
+                        .strokeBorder(GT.borderStrong, lineWidth: 1))
+                }
+                .buttonStyle(GTPress()).disabled(!legal).opacity(legal ? 1 : 0.45)
+                .accessibilityIdentifier("free-raise-preset-\(index)")
+                .accessibilityAddTraits(amount == preset.amount ? .isSelected : [])
+                .accessibilityHint(legal ? "" : preset.amount < sizing.minimum
+                    ? language.text("최소 레이즈 금액보다 작아요", "Below the minimum raise")
+                    : language.text("남은 칩보다 커요", "More than your remaining chips"))
+            }
+        }
+    }
+
+    private func raiseStep(_ title: String, enabled: Bool, spoken: String,
+                           action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: title == "−" ? "minus" : "plus")
+                .font(.system(size: 24, weight: .semibold)).foregroundStyle(GT.ink)
+                .frame(width: 68, height: 68)
+                .background { GTDockControlBackground(side: title == "−" ? .leading : .trailing) }
+        }
+        .buttonStyle(GTHoldStepStyle(enabled: enabled)).disabled(!enabled).opacity(enabled ? 1 : 0.45)
+        .accessibilityLabel(spoken)
+        .accessibilityHint(enabled ? "" : title == "−"
+            ? language.text("최소 레이즈 금액이에요", "At the minimum raise")
+            : language.text("남은 칩 전부를 선택했어요", "All your remaining chips are selected"))
     }
 
     private func result(_ review: PracticeTableReview, table: PracticeTableState) -> some View {
@@ -753,8 +834,24 @@ struct FreeTableView: View {
         if phase == "result-tie" {
             fixture = PracticeTableState(seed: 311, styles: [.station, .station, .station], handID: "demo-tie")
         }
+        if phase.hasPrefix("raise-postflop") {
+            fixture = PracticeTableState(seed: phase == "raise-postflop-raise" ? 99 : 97,
+                                         styles: [.nit, .station, .lag], handID: "demo-postflop")
+        }
         try? fixture.advanceBots()
-        if phase == "all-in-call" {
+        if phase == "raise-short-stack" {
+            fixture = PracticeTableState(seed: 97, styles: [.station, .station, .station], handID: "demo-short-stack")
+            for (index, action) in [PracticeAction.call, .raise(to: 97), .call, .call, .raise(to: 100), .fold].enumerated() {
+                try? fixture.apply(action, actionID: "demo-short-\(index)")
+            }
+            try? fixture.advanceBots()
+            try? fixture.nextHand(handID: "demo-short-next")
+            precondition(fixture.currentSeat == 0 && fixture.seats[0].stack == 3, "Short-stack fixture must preserve a legal three-chip learner stack")
+        } else if phase == "raise-facing" {
+            fixture = PracticeTableState(seed: 31, styles: [.station], handID: "demo-raise-facing")
+            try? fixture.apply(.call, actionID: "demo-hero-call")
+            try? fixture.apply(.raise(to: 4), actionID: "demo-computer-raise")
+        } else if phase == "all-in-call" {
             fixture = PracticeTableState(seed: 97, styles: styles, handID: "demo-face")
             try? fixture.apply(.raise(to: 100), actionID: "demo-bot-all-in")
             try? fixture.advanceBots()
@@ -771,12 +868,12 @@ struct FreeTableView: View {
                     break
                 }
             }
-        } else if phase == "dealing" || phase == "result" || phase == "result-tie" {
+        } else if phase == "dealing" || phase == "result" || phase == "result-tie" || phase.hasPrefix("raise-postflop") {
             for index in 0..<40 where fixture.review == nil {
                 let action: PracticeAction = fixture.legalActions.contains(.check) ? .check : .call
                 try? fixture.apply(action, actionID: "demo-\(index)")
                 try? fixture.advanceBots()
-                if phase == "dealing", fixture.visibleBoard.count > 0 { break }
+                if (phase == "dealing" || phase.hasPrefix("raise-postflop")), fixture.visibleBoard.count > 0 { break }
             }
         }
         if phase == "short-all-in" {
@@ -808,6 +905,12 @@ struct FreeTableView: View {
         precondition(phase != "computer" || thinkingSeat != nil, "Computer demo requires an actual bot action")
         precondition(phase != "dealing" || count < steps.count, "Dealing demo requires an actual deal")
         print("Free dock demo phase=\(phase), shown=\(count)/\(steps.count), seed=\(fixture.seed)")
+        if phase.hasPrefix("raise-") {
+            let sizing = FreeRaisePresentation(table: fixture)
+            precondition(fixture.currentSeat == 0 && sizing.minimum > 0, "Raise demo must be an actual legal learner decision")
+            raising = true
+            raiseAmount = sizing.minimum
+        }
         demoTable = fixture
         shownHandID = fixture.handID
         shownSteps = count
@@ -1131,5 +1234,84 @@ private struct FreeTablePolicyDetails: View {
         case .call: language.text("콜", "call")
         case .raise: language.text("최소 금액으로 올리기. 올릴 수 없으면 콜", "minimum raise; call if raising is not allowed")
         }
+    }
+}
+
+struct FreeRaisePresentation {
+    struct Preset: Equatable {
+        let korean: String
+        let english: String
+        let amount: Int
+    }
+    let street: PracticeStreet
+    let minimum: Int
+    let maximum: Int
+    let committed: Int
+    let currentBet: Int
+    let pot: Int
+    let toCall: Int
+
+    init(street: PracticeStreet, minimum: Int, maximum: Int, committed: Int,
+         currentBet: Int, pot: Int, toCall: Int) {
+        self.street = street; self.minimum = minimum; self.maximum = maximum
+        self.committed = committed; self.currentBet = currentBet; self.pot = pot; self.toCall = toCall
+    }
+
+    init(table: PracticeTableState) {
+        let me = table.seats[0]
+        self.init(street: table.street,
+                  minimum: table.legalActions.compactMap { if case let .raise(to: value) = $0 { value } else { nil } }.first ?? 0,
+                  maximum: me.stack + me.streetCommitted, committed: me.streetCommitted,
+                  currentBet: me.streetCommitted + table.amountToCall, pot: table.pot, toCall: table.amountToCall)
+    }
+
+    var isBet: Bool { street != .preflop && currentBet == 0 }
+
+    var presets: [Preset] {
+        let allIn = Preset(korean: "올인", english: "All in", amount: maximum)
+        if street == .preflop, currentBet <= 2 {
+            return [2.0, 2.5, 3.0, 4.0].map { factor in
+                let label = factor == factor.rounded() ? "\(Int(factor))BB" : "2.5BB"
+                return Preset(korean: label, english: label, amount: rounded(factor * 2))
+            } + [allIn]
+        }
+        if street == .preflop {
+            return [2.5, 3.0, 4.0].map { factor in
+                let label = factor == factor.rounded() ? "\(Int(factor))×" : "2.5×"
+                return Preset(korean: label, english: label, amount: rounded(factor * Double(currentBet)))
+            } + [Preset(korean: "팟", english: "Pot", amount: potTarget(1)), allIn]
+        }
+        return [Preset(korean: "⅓", english: "⅓", amount: potTarget(1.0 / 3)),
+                Preset(korean: "½", english: "½", amount: potTarget(0.5)),
+                Preset(korean: "¾", english: "¾", amount: potTarget(0.75)),
+                Preset(korean: "팟", english: "Pot", amount: potTarget(1)), allIn]
+    }
+
+    func title(amount: Int, language: LearningLanguage) -> String {
+        isBet ? language.text("\(amount)칩 벳", "Bet \(amount)")
+            : language.text("\(amount)칩까지 레이즈", "Raise to \(amount)")
+    }
+
+    func context(amount: Int, language: LearningLanguage) -> String {
+        let cost = max(0, amount - committed)
+        if street == .preflop {
+            let bb = Double(amount) / 2
+            let value = bb == bb.rounded() ? "\(amount / 2)" : String(format: "%.1f", bb)
+            return language.text("스택에서 \(cost) · \(value)BB", "\(cost) from your stack · \(value) BB")
+        }
+        let denominator = isBet ? pot : pot + toCall
+        let percent = denominator > 0 ? rounded(Double(amount - currentBet) * 100 / Double(denominator)) : 0
+        return language.text("스택에서 \(cost) · 팟의 \(percent)%", "\(cost) from your stack · \(percent)% of pot")
+    }
+
+    private func potTarget(_ fraction: Double) -> Int {
+        let increment = rounded(fraction * Double(isBet ? pot : pot + toCall))
+        let addition = currentBet.addingReportingOverflow(increment)
+        return addition.overflow ? Int.max : addition.partialValue
+    }
+
+    private func rounded(_ value: Double) -> Int {
+        guard value < Double(Int.max) else { return Int.max }
+        return max(0, Int(value.rounded()))
     }
 }

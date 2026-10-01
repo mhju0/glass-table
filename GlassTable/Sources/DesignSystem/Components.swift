@@ -411,7 +411,7 @@ extension EnvironmentValues {
 
 enum GTCornerSide { case none, leading, trailing }
 
-private struct GTDockControlBackground: View {
+struct GTDockControlBackground: View {
     @Environment(\.floatingDock) private var floats
     let side: GTCornerSide
 
@@ -1149,5 +1149,100 @@ struct GTAnchoredDockFaceLayout: Layout {
         let bodyHeight = scrollsBody ? max(0, bounds.height - headerHeight - 12) : nil
         subviews[1].place(at: CGPoint(x: bounds.minX, y: bounds.maxY), anchor: .bottomLeading,
                           proposal: ProposedViewSize(width: bounds.width, height: bodyHeight))
+    }
+}
+
+/// Native button presses allow the dock's scroll view to cancel an adjustment.
+struct GTHoldStepStyle: PrimitiveButtonStyle {
+    var enabled: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        GTHoldStepBody(enabled: enabled, trigger: configuration.trigger) {
+            configuration.label
+        }
+    }
+}
+
+private struct GTHoldStepBody<Label: View>: View {
+    @Environment(\.isEnabled) private var parentEnabled
+    @Environment(\.scenePhase) private var scenePhase
+    let enabled: Bool
+    let trigger: () -> Void
+    @ViewBuilder let label: () -> Label
+    @State private var repeated = false
+
+    private var available: Bool { enabled && parentEnabled }
+
+    var body: some View {
+        Button {
+            guard available, scenePhase == .active, !repeated else { return }
+            trigger()
+        } label: {
+            label()
+        }
+        .buttonStyle(GTHoldStepPressStyle(available: available, repeated: $repeated, step: trigger))
+        .accessibilityAction {
+            guard available, scenePhase == .active else { return }
+            trigger()
+        }
+    }
+}
+
+private struct GTHoldStepPressStyle: ButtonStyle {
+    let available: Bool
+    @Binding var repeated: Bool
+    let step: () -> Void
+
+    func makeBody(configuration: Configuration) -> some View {
+        GTHoldStepPressBody(isPressed: configuration.isPressed, available: available,
+                            repeated: $repeated, step: step) {
+            configuration.label
+        }
+    }
+}
+
+private struct GTHoldStepPressBody<Label: View>: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let isPressed: Bool
+    let available: Bool
+    @Binding var repeated: Bool
+    let step: () -> Void
+    @ViewBuilder let label: () -> Label
+    @State private var pressed = false
+    @State private var repeatTask: Task<Void, Never>?
+
+    var body: some View {
+        label()
+            .scaleEffect(pressed && !reduceMotion ? 0.97 : 1)
+            .animation(reduceMotion ? nil : GT.Motion.press, value: pressed)
+            .onChange(of: isPressed) { _, isPressed in
+                if isPressed { start() } else { stop() }
+            }
+            .onChange(of: available) { _, available in if !available { stop() } }
+            .onChange(of: scenePhase) { _, phase in if phase != .active { stop() } }
+            .onDisappear { stop() }
+    }
+
+    private func start() {
+        guard available, scenePhase == .active, !pressed else { return }
+        pressed = true
+        // Keep this latch through release: the native action can precede or follow it.
+        repeated = false
+        repeatTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled, pressed, available, scenePhase == .active else { return }
+            repeated = true
+            while !Task.isCancelled, pressed, available, scenePhase == .active {
+                step()
+                try? await Task.sleep(for: .milliseconds(100))
+            }
+        }
+    }
+
+    private func stop() {
+        repeatTask?.cancel()
+        repeatTask = nil
+        pressed = false
     }
 }
