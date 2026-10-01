@@ -352,3 +352,12 @@ tools/uisweep.sh                      # full sweep before the last commit
 - Keep the native concentric dock/control corners. The measured step 1 candidate
   has 19.235 pt minimum corner clearance versus 20 pt at its straight sides; the
   owner accepts this 0.765 pt R4 exception. Do not replace it with a custom curve.
+- At accessibility sizes, action buttons may grow to fit full scaled labels and
+  prices, including wrapped Korean prices; normal-size buttons remain 87 pt.
+- Raise − / + uses one-chip steps instead of two, so every legal whole amount is
+  reachable. Holding and limit behavior otherwise follow §4.
+- Fix the Drills Facts made-hand evaluation call to use the existing engine
+  `bestHandOfAny` for five-to-seven cards, with regression tests. No engine changes.
+- Correct short-call Math using publicly contestable pot amounts instead of the
+  raw pot-plus-call denominator. Include short-call/refund regression coverage.
+  These four recommendations were explicitly approved by the owner on 2026-10-01.

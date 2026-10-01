@@ -35,10 +35,24 @@ struct FreeTableView: View {
     @State private var showGuide = false
     @State private var confirmNewTable = false
     @State private var failure = false
+    @State private var replaySpeed = 1.0
+    @ScaledMetric(relativeTo: .body) private var resultProseHeight = 51
+    @ScaledMetric(relativeTo: .title) private var resultNetHeight = 36
+    @ScaledMetric(relativeTo: .title3) private var raiseAmountHeight = 44
+    #if DEBUG
+    @State private var demoTable: PracticeTableState?
+    #endif
+
+    private var presentationTable: PracticeTableState? {
+        #if DEBUG
+        if let demoTable { return demoTable }
+        #endif
+        return model.state.tableState
+    }
 
     var body: some View {
         Group {
-            if let table = model.state.tableState {
+            if let table = presentationTable {
                 content(table)
             } else {
                 FeltBackground()
@@ -48,6 +62,9 @@ struct FreeTableView: View {
         .onAppear {
             TableHaptics.prepare()
             guard let table = model.state.tableState else { return }
+            #if DEBUG
+            if configureDemoPhase(table) { return }
+            #endif
             shownHandID = table.handID
             shownSteps = replayFromStart ? 0 : table.replaySteps.count
             startReplay()
@@ -69,6 +86,7 @@ struct FreeTableView: View {
                 shownHandID = table.handID
                 shownSteps = 0
                 revealFolded = false
+                replaySpeed = 1
             }
             startReplay()
         }
@@ -114,19 +132,22 @@ struct FreeTableView: View {
 
     @ViewBuilder
     private func content(_ table: PracticeTableState) -> some View {
-        Group {
+        GeometryReader { geometry in
+            let availableHeight = geometry.size.height
+            Group {
             if typeSize.isAccessibilitySize {
                 VStack(spacing: 0) {
                     ScrollView { tableSurface(table).padding(.horizontal, 8) }
-                    ActionSheet { controls(table) }
+                    stableDock(table, heightLimit: availableHeight * 0.55 - 40)
                 }
             } else {
                 VStack(spacing: 12) {
                     tableSurface(table).padding(.horizontal, 8)
                     Spacer(minLength: 0)
-                    ActionSheet { controls(table) }
+                    stableDock(table, heightLimit: nil)
                 }
             }
+        }
         }
         .gtChrome(leading: {
             HStack(alignment: .top, spacing: 10) {
@@ -231,17 +252,93 @@ struct FreeTableView: View {
 
     // MARK: Controls
 
-    private func controls(_ table: PracticeTableState) -> some View {
+    private func stableDock(_ table: PracticeTableState, heightLimit: CGFloat?) -> some View {
+        ActionSheet {
+            GTStableDockLayout(heightLimit: heightLimit) {
+                GeometryReader { geometry in
+                    if heightLimit != nil {
+                        ScrollView { controls(table, minimumHeight: geometry.size.height) }
+                            .accessibilityIdentifier("free-dock-content")
+                    } else {
+                        controls(table, minimumHeight: geometry.size.height)
+                    }
+                }
+                dockSizingTemplates
+                    .hidden().accessibilityHidden(true).allowsHitTesting(false)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("free-dock-faces")
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("free-dock")
+    }
+
+    // Reachable structures share the live presentation views; sizing never reads future cards.
+    @ViewBuilder
+    private var dockSizingTemplates: some View {
+        ForEach([nil, language.text("남은 칩 전부로 콜해요", "Calling puts you all in"),
+                 language.text("올인이 작아서 다시 올릴 수 없어요", "Their all-in was short, so no re-raise")], id: \.self) { warning in
+            VStack(alignment: .leading, spacing: 12) {
+                dockHeader(language.text("내 차례", "Your turn"), warning: warning, onMath: {})
+                actionSlots(owed: 14, price: 14, allIn: true, bet: false,
+                            foldEnabled: false, middleEnabled: false, raiseEnabled: false,
+                            reason: "", onFold: {}, onMiddle: {}, onRaise: {})
+            }
+        }
+        ForEach([language.text("컴퓨터 3 차례", "Computer 3's turn"),
+                 language.text("카드를 나눠요", "Dealing"),
+                 language.text("끝까지 펼쳐요", "Running it out")], id: \.self) { title in
+            VStack(alignment: .leading, spacing: 12) {
+                dockHeader(title, warning: nil, onMath: {})
+                actionSlots(owed: 14, price: 14, allIn: true, bet: false,
+                            foldEnabled: false, middleEnabled: false, raiseEnabled: false,
+                            reason: "", onFold: {}, onMiddle: {}, onRaise: {})
+                skipLink(enabled: false, action: {})
+            }
+        }
         VStack(alignment: .leading, spacing: 12) {
+            dockHeader(language.text("내 차례", "Your turn"), warning: nil, onMath: {})
+            raiseBody(minimum: 4, maximum: 100, amount: 100, currentBet: 2, potAfterCall: 8,
+                      onCancel: {}, onAmount: { _ in }, onConfirm: {})
+        }
+        VStack(alignment: .leading, spacing: 12) {
+            dockHeader(language.text("핸드가 끝났어요", "Hand over"), warning: nil, onMath: {})
+            resultBody(netText: language.text("+100칩", "+100 chips"), positive: true,
+                       onNext: {}, onReview: {}, onChange: {}) { Color.clear }
+        }
+    }
+
+    private func skipLink(enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(language.text("결과로 넘기기", "Skip to result"), action: action)
+            .font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
+            .frame(minHeight: 44).accessibilityIdentifier("free-skip-result")
+            .disabled(!enabled)
+    }
+
+    private func controls(_ table: PracticeTableState, minimumHeight: CGFloat) -> some View {
+        GTAnchoredDockFaceLayout(minimumHeight: minimumHeight,
+                                 scrollsBody: !isReplaying(table) && (table.review != nil || raising)) {
             statusRow(table)
+            Group {
             if isReplaying(table) {
+                VStack(alignment: .leading, spacing: 12) {
                 actionRow(table, enabled: false)
+                if table.frame(after: shownCount(table)).folded[0] {
+                    skipLink(enabled: replaySpeed != 3) {
+                        replaySpeed = 3
+                        startReplay()
+                    }
+                }
+                }
             } else if let review = table.review {
-                result(review, table: table)
+                ScrollView { result(review, table: table).frame(maxWidth: .infinity, alignment: .leading) }
+                    .accessibilityIdentifier("free-result-body")
             } else if raising {
-                raisePanel(table)
+                ScrollView { raisePanel(table).frame(maxWidth: .infinity, alignment: .leading) }
+                    .accessibilityIdentifier("free-raise-body")
             } else {
                 actionRow(table, enabled: table.currentSeat == 0)
+            }
             }
         }
         .disabled(model.saveError != nil)
@@ -249,83 +346,176 @@ struct FreeTableView: View {
         .animation(reduceMotion ? nil : GT.Motion.change, value: isReplaying(table))
     }
 
-    private func statusRow(_ table: PracticeTableState) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            VStack(alignment: .leading, spacing: 2) {
-                if let thinking = thinkingSeat {
-                    Text(language.text("\(seatName(thinking)) 차례", "\(seatName(thinking))'s turn"))
-                        .font(GT.title(18)).foregroundStyle(GT.ink)
-                } else if isReplaying(table) {
-                    Text(language.text("카드를 나눠요", "Dealing")).font(GT.title(18)).foregroundStyle(GT.ink)
-                } else if table.review != nil {
-                    Text(language.text("핸드가 끝났어요", "Hand over")).font(GT.title(18)).foregroundStyle(GT.ink)
-                } else if table.currentSeat == 0 {
-                    Text(language.text("내 차례예요", "Your turn")).font(GT.title(18)).foregroundStyle(GT.ink)
-                    Text(table.amountToCall > 0
-                         ? language.text("따라가려면 \(table.amountToCall)칩", "\(table.amountToCall) chips to call")
-                         : language.text("더 내지 않고 넘길 수 있어요", "You can check for free"))
-                        .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+    private func dockTitle(_ table: PracticeTableState) -> String {
+        if let thinkingSeat {
+            return language.text("\(seatName(thinkingSeat)) 차례", "\(seatName(thinkingSeat))'s turn")
+        }
+        if isReplaying(table) {
+            let frame = table.frame(after: shownCount(table))
+            let live = frame.folded.indices.filter { !frame.folded[$0] }
+            let funded = live.filter { frame.stacks[$0] > 0 }
+            let shownBet = max(frame.street == .preflop ? 2 : 0, frame.streetCommitted.max() ?? 0)
+            let runningOut = live.count > 1 && funded.count <= 1
+                && funded.allSatisfy { frame.streetCommitted[$0] >= shownBet }
+            return runningOut ? language.text("끝까지 펼쳐요", "Running it out")
+                : language.text("카드를 나눠요", "Dealing")
+        }
+        return table.review == nil ? language.text("내 차례", "Your turn")
+            : language.text("핸드가 끝났어요", "Hand over")
+    }
+
+    private func warning(_ table: PracticeTableState) -> String? {
+        guard !isReplaying(table), table.review == nil, table.currentSeat == 0,
+              table.legalActions.contains(.call) else { return nil }
+        if table.amountToCall >= table.seats[0].stack {
+            return language.text("남은 칩 전부로 콜해요", "Calling puts you all in")
+        }
+        if !table.legalActions.contains(where: { if case .raise = $0 { true } else { false } }),
+           table.seats[0].stack > table.amountToCall, publicShortAllIn(table) {
+            return language.text("올인이 작아서 다시 올릴 수 없어요", "Their all-in was short, so no re-raise")
+        }
+        return nil
+    }
+
+    private func publicShortAllIn(_ table: PracticeTableState) -> Bool {
+        let frame = table.frame(after: shownCount(table))
+        guard frame.stacks.indices.contains(where: { $0 != 0 && !frame.folded[$0] && frame.stacks[$0] > 0 })
+        else { return false }
+        var committed = Array(repeating: 0, count: table.seatCount)
+        var currentBet = frame.street == .preflop ? 2 : 0
+        var fullRaise = 2
+        var heroFacing: Int?
+        var shortAfterHero = false
+        for event in table.events where event.street == frame.street {
+            committed[event.seat] += event.chips
+            if event.label == "raise" || event.label == "bet" {
+                let increment = committed[event.seat] - currentBet
+                if increment >= fullRaise {
+                    fullRaise = increment
+                    shortAfterHero = false
+                } else if event.seat != 0, heroFacing != nil, frame.stacks[event.seat] == 0 {
+                    shortAfterHero = true
                 }
+                currentBet = committed[event.seat]
             }
-            .contentTransition(.opacity)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("free-table-status")
-            Spacer(minLength: 0)
-            Button {
-                helpTab = table.review != nil ? .hand : .hint
-                showHelp = true
-            } label: {
-                Label(language.text("힌트", "Hint"), systemImage: "lightbulb")
-                    .font(GT.semibold(14)).foregroundStyle(GT.ink)
-                    .padding(.horizontal, 12)
-                    .frame(minHeight: 36)
-                    .background(GT.surface, in: Capsule())
-                    .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
+            if event.seat == 0, event.action != nil { heroFacing = currentBet }
+        }
+        return shortAfterHero && heroFacing.map { currentBet - $0 < fullRaise } == true
+    }
+
+    private func statusRow(_ table: PracticeTableState) -> some View {
+        dockHeader(dockTitle(table), warning: warning(table)) {
+            helpTab = table.review != nil && !isReplaying(table) ? .hand : .hint
+            showHelp = true
+        }
+    }
+
+    private func dockHeader(_ title: String, warning: String?, onMath: @escaping () -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 8) {
+                Text(title).font(GT.title(18)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("free-table-status")
+                Spacer(minLength: 0)
+                Button(action: onMath) {
+                    Label(language.text("계산", "Math"), systemImage: "function")
+                        .fixedSize(horizontal: true, vertical: false)
+                        .font(GT.semibold(14)).foregroundStyle(GT.ink)
+                        .padding(.horizontal, 12).frame(minHeight: 36)
+                        .background(GT.surface, in: Capsule())
+                        .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
+                        .frame(minHeight: 44).contentShape(Rectangle())
+                }
+                .buttonStyle(GTPress())
+                .accessibilityIdentifier("free-table-help")
             }
-            .buttonStyle(GTPress())
-            .accessibilityLabel(language.text("힌트와 이번 핸드 보기", "Hint and hand details"))
-            .accessibilityIdentifier("free-table-help")
+            if let warning {
+                Text(warning).font(GT.body(13)).foregroundStyle(GT.cta)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
     private func actionRow(_ table: PracticeTableState, enabled: Bool) -> some View {
+        let frame = table.frame(after: shownCount(table))
+        let choices = FreeDockChoices(frame: frame)
+        let owed = choices.owed
+        let price = choices.price
+        let allIn = choices.allIn
+        let bet = choices.bet
         let actions = table.legalActions
         let minimumRaise = actions.compactMap { action -> Int? in
             if case let .raise(to: amount) = action { return amount }; return nil
         }.first
-        let facingBet = table.amountToCall > 0
-        return HStack(spacing: 8) {
-            if actions.contains(.fold) {
-                GTActionButton(title: language.text("폴드", "Fold"), price: language.text("0칩", "0 chips"),
-                               role: .fold, minHeight: 87, cornerSide: .leading) { choose(.fold, table: table) }
-                    .accessibilityIdentifier("free-fold")
-            }
-            if actions.contains(.check) {
-                GTActionButton(title: language.text("체크", "Check"), price: language.text("0칩", "0 chips"),
-                               role: .passive, minHeight: 87) { choose(.check, table: table) }
-                    .accessibilityIdentifier("free-check")
-            }
-            if actions.contains(.call) {
-                GTActionButton(title: language.text("콜", "Call"),
-                               price: language.text("\(table.amountToCall)칩", "\(table.amountToCall) chips"),
-                               role: .passive, minHeight: 87) { choose(.call, table: table) }
-                    .accessibilityIdentifier("free-call")
-            }
-            if let minimumRaise {
-                GTActionButton(title: facingBet ? language.text("레이즈", "Raise") : language.text("베팅", "Bet"),
-                               price: language.text("\(minimumRaise)칩부터", "from \(minimumRaise)"),
-                               role: .aggressive, minHeight: 87, cornerSide: .trailing) {
-                    raiseAmount = minimumRaise
-                    TableHaptics.pass()
-                    raising = true
-                }
-                .accessibilityIdentifier("free-raise")
-            }
+        let reason: String
+        if model.saveError != nil {
+            reason = language.text("저장 문제를 해결한 뒤 선택해 주세요", "Resolve the save problem before choosing")
+        } else if frame.folded[0] {
+            reason = language.text("이미 폴드했어요", "You have folded")
+        } else if isReplaying(table) {
+            reason = thinkingSeat.map { language.text("\(seatName($0)) 차례예요", "\(seatName($0)) is taking their turn") }
+                ?? language.text("카드를 나누는 동안 기다려 주세요", "Wait while the cards are dealt")
+        } else {
+            reason = language.text("현재 차례에 선택할 수 없어요", "Unavailable on this turn")
         }
-        .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.45)
+        let raiseReason: String
+        if !enabled || model.saveError != nil {
+            raiseReason = reason
+        } else if frame.stacks[0] <= owed {
+            raiseReason = language.text("콜 뒤에 더 낼 칩이 없어요", "You have no chips beyond the call")
+        } else if !frame.stacks.indices.contains(where: { $0 != 0 && !frame.folded[$0] && frame.stacks[$0] > 0 }) {
+            raiseReason = language.text("추가 벳을 받을 상대 칩이 없어요", "No opponent has chips to answer another wager")
+        } else if publicShortAllIn(table) {
+            raiseReason = language.text("작은 올인으로 레이즈가 다시 열리지 않았어요", "The short all-in did not reopen raising")
+        } else {
+            raiseReason = reason
+        }
+        let canAct = enabled && model.saveError == nil
+        return actionSlots(owed: owed, price: price, allIn: allIn, bet: bet,
+                           foldEnabled: canAct && actions.contains(.fold),
+                           middleEnabled: canAct && actions.contains(owed == 0 ? .check : .call),
+                           raiseEnabled: canAct && minimumRaise != nil,
+                           reason: reason, raiseReason: raiseReason,
+                           onFold: { choose(.fold, table: table) },
+                           onMiddle: { choose(owed == 0 ? .check : .call, table: table) },
+                           onRaise: {
+            guard let minimumRaise else { return }
+            raiseAmount = minimumRaise
+            TableHaptics.pass()
+            raising = true
+        })
+    }
+
+    private func actionSlots(owed: Int, price: Int, allIn: Bool, bet: Bool,
+                             foldEnabled: Bool, middleEnabled: Bool, raiseEnabled: Bool,
+                             reason: String, raiseReason: String? = nil, onFold: @escaping () -> Void,
+                             onMiddle: @escaping () -> Void, onRaise: @escaping () -> Void) -> some View {
+        HStack(spacing: 8) {
+            freeAction(language.text("폴드", "Fold"), price: "", role: .fold, side: .leading,
+                       enabled: foldEnabled,
+                       reason: owed == 0 ? language.text("따라갈 금액이 없어 폴드할 수 없어요", "Fold is unavailable because nothing is owed") : reason,
+                       action: onFold)
+                .accessibilityIdentifier("free-fold")
+            freeAction(owed == 0 ? language.text("체크", "Check")
+                       : allIn ? language.text("올인", "All in") : language.text("콜", "Call"),
+                       price: owed == 0 ? "" : language.text("\(price)칩", "\(price)"), role: .passive,
+                       enabled: middleEnabled, reason: reason, action: onMiddle)
+                .accessibilityIdentifier(owed == 0 ? "free-check" : "free-call")
+            freeAction(bet ? language.text("벳", "Bet") : language.text("레이즈", "Raise"),
+                       price: "", role: .aggressive, side: .trailing, enabled: raiseEnabled,
+                       reason: raiseReason ?? reason,
+                       action: onRaise)
+                .accessibilityIdentifier("free-raise")
+        }
+    }
+
+    private func freeAction(_ title: String, price: String, role: GTActionRole,
+                            side: GTCornerSide = .none, enabled: Bool, reason: String,
+                            action: @escaping () -> Void) -> some View {
+        GTActionButton(title: title, price: price, role: role, freeTablePresentation: true,
+                       minHeight: 87, cornerSide: side, action: action)
+            .disabled(!enabled).opacity(enabled ? 1 : 0.45)
+            .accessibilityHint(enabled ? "" : reason)
     }
 
     private func raisePanel(_ table: PracticeTableState) -> some View {
@@ -337,6 +527,17 @@ struct FreeTableView: View {
         let currentBet = me.streetCommitted + table.amountToCall
         let potAfterCall = table.pot + table.amountToCall
         let amount = max(minimum, min(maximum, raiseAmount))
+        return raiseBody(minimum: minimum, maximum: maximum, amount: amount, currentBet: currentBet,
+                         potAfterCall: potAfterCall, onCancel: { raising = false },
+                         onAmount: { raiseAmount = $0 }, onConfirm: {
+            raising = false
+            choose(.raise(to: amount), table: table)
+        })
+    }
+
+    private func raiseBody(minimum: Int, maximum: Int, amount: Int, currentBet: Int, potAfterCall: Int,
+                           onCancel: @escaping () -> Void, onAmount: @escaping (Int) -> Void,
+                           onConfirm: @escaping () -> Void) -> some View {
         let presets: [(String, Int)] = [
             (language.text("최소", "Min"), minimum),
             (language.text("½ 팟", "½ pot"), currentBet + potAfterCall / 2),
@@ -349,11 +550,16 @@ struct FreeTableView: View {
             }
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(language.text("총 \(amount)칩까지", "To \(amount) chips"))
-                    .font(GT.title(20).monospacedDigit()).foregroundStyle(GT.ink)
-                    .contentTransition(.numericText())
+                ScrollView {
+                    Text(language.text("총 \(amount)칩까지", "To \(amount) chips"))
+                        .font(GT.title(20).monospacedDigit()).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .contentTransition(.numericText())
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(height: raiseAmountHeight)
                 Spacer()
-                Button(language.text("취소", "Cancel")) { raising = false }
+                Button(language.text("취소", "Cancel"), action: onCancel)
                     .font(GT.semibold(15)).foregroundStyle(GT.inkSecondary)
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("free-raise-cancel")
@@ -362,39 +568,37 @@ struct FreeTableView: View {
                 ForEach(presets, id: \.0) { preset in
                     GTChoiceButton(title: preset.0, selected: amount == preset.1, minHeight: 40) {
                         TableHaptics.pass()
-                        withAnimation(GT.Motion.change) { raiseAmount = preset.1 }
+                        withAnimation(GT.Motion.change) { onAmount(preset.1) }
                     }
                 }
             }
             if minimum < maximum {
                 HStack(spacing: 10) {
-                    Slider(value: Binding(get: { Double(amount) }, set: { raiseAmount = Int($0) }),
+                    Slider(value: Binding(get: { Double(amount) }, set: { onAmount(Int($0)) }),
                            in: Double(minimum)...Double(maximum), step: 1)
                         .accessibilityLabel(language.text("올릴 총 금액", "Total raise amount"))
                         .accessibilityValue(language.text("\(amount)칩", "\(amount) chips"))
                     AdjustmentButtons(label: language.text("금액", "Amount"),
-                                      decrement: { raiseAmount = max(minimum, amount - 1) },
-                                      increment: { raiseAmount = min(maximum, amount + 1) })
+                                      decrement: { onAmount(max(minimum, amount - 1)) },
+                                      increment: { onAmount(min(maximum, amount + 1)) })
                 }
             }
-            PrimaryCTAButton(title: language.text("\(amount)칩까지 올리기", "Raise to \(amount)")) {
-                raising = false
-                choose(.raise(to: amount), table: table)
-            }
+            PrimaryCTAButton(title: language.text("\(amount)칩까지 올리기", "Raise to \(amount)"), action: onConfirm)
             .accessibilityIdentifier("free-raise-confirm")
         }
     }
 
     private func result(_ review: PracticeTableReview, table: PracticeTableState) -> some View {
         let net = review.endingStacks[0] - review.startingStacks[0]
+        let text = net > 0 ? language.text("+\(net)칩", "+\(net) chips")
+            : net < 0 ? language.text("−\(-net)칩", "−\(-net) chips") : language.text("±0칩", "±0 chips")
         let winners = (0..<table.seatCount).filter { review.payouts[$0] > 0 }
-        return VStack(alignment: .leading, spacing: 10) {
-            Text(net > 0 ? language.text("+\(net)칩", "+\(net) chips")
-                 : net < 0 ? language.text("−\(-net)칩", "−\(-net) chips")
-                 : language.text("±0칩", "±0 chips"))
-                .font(GT.title(26).monospacedDigit())
-                .foregroundStyle(net > 0 ? GT.cta : GT.ink)
-                .accessibilityIdentifier("free-table-net")
+        return resultBody(netText: text, positive: net > 0, onNext: {
+            TableHaptics.commit()
+            perform {
+                try model.nextTableHand(handID: UUID().uuidString, after: table.handID, expectedEpoch: epoch)
+            }
+        }, onReview: { helpTab = .hand; showHelp = true }, onChange: { confirmNewTable = true }) {
             ForEach(winners, id: \.self) { seat in
                 Text(winnerLine(seat, review: review, table: table))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
@@ -404,24 +608,36 @@ struct FreeTableView: View {
                 Text(language.text("칩이 없는 자리는 다음 핸드 전에 100칩을 새로 받아요.",
                                    "Seats with no chips get 100 before the next hand."))
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            PrimaryCTAButton(title: language.text("다음 핸드", "Next hand")) {
-                TableHaptics.commit()
-                perform {
-                    try model.nextTableHand(handID: UUID().uuidString, after: table.handID,
-                                            expectedEpoch: epoch)
-                }
+        }
+    }
+
+    private func resultBody<Prose: View>(netText: String, positive: Bool,
+                                        onNext: @escaping () -> Void, onReview: @escaping () -> Void,
+                                        onChange: @escaping () -> Void, @ViewBuilder prose: () -> Prose) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ScrollView {
+                Text(netText).font(GT.title(26).monospacedDigit())
+                    .foregroundStyle(positive ? GT.cta : GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("free-table-net")
             }
-            .accessibilityIdentifier("free-next-hand")
+            .frame(height: resultNetHeight)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10, content: prose)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: resultProseHeight)
+            .accessibilityIdentifier("free-result-prose")
+            PrimaryCTAButton(title: language.text("다음 핸드", "Next hand"), action: onNext)
+                .accessibilityIdentifier("free-next-hand")
             HStack(spacing: 8) {
-                SecondaryCTAButton(title: language.text("핸드 돌아보기", "Review this hand")) {
-                    helpTab = .hand; showHelp = true
-                }
-                .accessibilityIdentifier("free-review")
-                SecondaryCTAButton(title: language.text("테이블 바꾸기", "Change the table")) {
-                    confirmNewTable = true
-                }
-                .accessibilityIdentifier("free-change-table")
+                SecondaryCTAButton(title: language.text("핸드 돌아보기", "Review this hand"), action: onReview)
+                    .accessibilityIdentifier("free-review")
+                SecondaryCTAButton(title: language.text("테이블 바꾸기", "Change the table"), action: onChange)
+                    .accessibilityIdentifier("free-change-table")
             }
         }
     }
@@ -470,7 +686,7 @@ struct FreeTableView: View {
     }
 
     private func pause(_ beat: Beat) async -> Bool {
-        let scale = reduceMotion ? 0.5 : 1.0
+        let scale = (reduceMotion ? 0.5 : 1.0) / replaySpeed
         try? await Task.sleep(for: .milliseconds(Int(Double(beat.milliseconds) * scale)))
         return !Task.isCancelled
     }
@@ -478,6 +694,9 @@ struct FreeTableView: View {
     /// Steps the screen from what it shows to what the model holds.
     private func startReplay() {
         replay?.cancel()
+        #if DEBUG
+        if demoTable != nil { return }
+        #endif
         replay = Task { @MainActor in
             while let table = model.state.tableState, table.handID == shownHandID {
                 let steps = table.replaySteps
@@ -525,6 +744,77 @@ struct FreeTableView: View {
         }
     }
 
+    #if DEBUG
+    /// Frozen public replay prefixes for screenshot inspection; never writes the app store.
+    private func configureDemoPhase(_ current: PracticeTableState) -> Bool {
+        guard let phase = ProcessInfo.processInfo.environment["GT_DEMO_FREE_PHASE"] else { return false }
+        let styles = current.computerSeats.map(\.style)
+        var fixture = PracticeTableState(seed: 97, styles: styles, handID: "demo-face")
+        if phase == "result-tie" {
+            fixture = PracticeTableState(seed: 311, styles: [.station, .station, .station], handID: "demo-tie")
+        }
+        try? fixture.advanceBots()
+        if phase == "all-in-call" {
+            fixture = PracticeTableState(seed: 97, styles: styles, handID: "demo-face")
+            try? fixture.apply(.raise(to: 100), actionID: "demo-bot-all-in")
+            try? fixture.advanceBots()
+        } else if phase == "runout" || phase == "result-all-in" || phase == "short-all-in" {
+            for seed in 97..<147 {
+                var candidate = PracticeTableState(seed: UInt64(seed), styles: styles, handID: "demo-face")
+                try? candidate.advanceBots()
+                guard candidate.legalActions.contains(where: { if case .raise = $0 { true } else { false } }) else { continue }
+                try? candidate.apply(.raise(to: candidate.seats[0].stack + candidate.seats[0].streetCommitted), actionID: "demo-all-in")
+                try? candidate.advanceBots()
+                if candidate.review?.board.count == 5,
+                   phase != "short-all-in" || (candidate.review?.endingStacks[0] ?? 0) > 100 {
+                    fixture = candidate
+                    break
+                }
+            }
+        } else if phase == "dealing" || phase == "result" || phase == "result-tie" {
+            for index in 0..<40 where fixture.review == nil {
+                let action: PracticeAction = fixture.legalActions.contains(.check) ? .check : .call
+                try? fixture.apply(action, actionID: "demo-\(index)")
+                try? fixture.advanceBots()
+                if phase == "dealing", fixture.visibleBoard.count > 0 { break }
+            }
+        }
+        if phase == "short-all-in" {
+            try? fixture.nextHand(handID: "demo-short-all-in")
+            try? fixture.apply(.raise(to: 80), actionID: "demo-hero-raise")
+            try? fixture.apply(.call, actionID: "demo-bot-1-call")
+            try? fixture.apply(.call, actionID: "demo-bot-2-call")
+            try? fixture.apply(.raise(to: 100), actionID: "demo-bot-short-all-in")
+        }
+        precondition(phase != "all-in-call" || (fixture.currentSeat == 0 && fixture.amountToCall >= fixture.seats[0].stack), "All-in call demo must require the learner's remaining stack")
+        precondition(phase != "short-all-in" || (fixture.currentSeat == 0 && fixture.seats[0].stack > fixture.amountToCall && !fixture.legalActions.contains(where: { if case .raise = $0 { true } else { false } })), "Short all-in demo must block reopening with chips left")
+        precondition((phase != "runout" && phase != "result-all-in") || fixture.review?.board.count == 5, "Run-out demo requires a real all-in showdown")
+        precondition(phase != "result" || fixture.review != nil, "Result demo must settle")
+        precondition(phase != "result-tie" || (fixture.review?.payouts.filter { $0 > 0 }.count ?? 0) >= 3,
+                     "Result tie demo must have three public winners")
+        let steps = fixture.replaySteps
+        let count: Int
+        if phase == "computer", let index = steps.firstIndex(where: { step in
+            if case let .action(index) = step { return fixture.events[index].seat != 0 && fixture.events[index].action != nil }
+            return false
+        }), case let .action(eventIndex) = steps[index] {
+            count = index
+            thinkingSeat = fixture.events[eventIndex].seat
+        } else if phase == "dealing" || phase == "runout" {
+            count = steps.firstIndex(where: { if case .deal = $0 { true } else { false } }) ?? steps.count
+        } else {
+            count = steps.count
+        }
+        precondition(phase != "computer" || thinkingSeat != nil, "Computer demo requires an actual bot action")
+        precondition(phase != "dealing" || count < steps.count, "Dealing demo requires an actual deal")
+        print("Free dock demo phase=\(phase), shown=\(count)/\(steps.count), seed=\(fixture.seed)")
+        demoTable = fixture
+        shownHandID = fixture.handID
+        shownSteps = count
+        return true
+    }
+    #endif
+
     private func flyChip(seat: Int, fromPot: Bool) {
         guard !reduceMotion else { return }
         let id = "practice-\(seat)"
@@ -546,6 +836,21 @@ struct FreeTableView: View {
 
     private func eventDescription(_ event: PracticeEvent) -> String {
         FreeTableWords.event(event, language: language)
+    }
+}
+
+struct FreeDockChoices: Equatable {
+    let owed: Int
+    let price: Int
+    let allIn: Bool
+    let bet: Bool
+
+    init(frame: PracticeTableFrame) {
+        let publicBet = max(frame.street == .preflop ? 2 : 0, frame.streetCommitted.max() ?? 0)
+        owed = max(0, publicBet - frame.streetCommitted[0])
+        price = min(owed, frame.stacks[0])
+        allIn = owed > 0 && price == frame.stacks[0]
+        bet = frame.street != .preflop && publicBet == 0
     }
 }
 

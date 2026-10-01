@@ -5,13 +5,14 @@ import GlassTableDrills
 
 /// Immediate press feedback. Reduced Motion keeps the highlight and removes scale.
 struct GTPress: ButtonStyle {
+    var pressedScale: CGFloat = 0.98
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         let pressed = configuration.isPressed && isEnabled
         configuration.label
-            .scaleEffect(pressed && !reduceMotion ? 0.98 : 1)
+            .scaleEffect(pressed && !reduceMotion ? pressedScale : 1)
             .opacity(pressed ? 0.78 : 1)
             .animation(reduceMotion ? nil : GT.Motion.press, value: pressed)
     }
@@ -994,11 +995,13 @@ enum GTActionRole {
 /// to be parsed out of a sentence. Splitting it puts the numbers in a column the eye can
 /// compare, which is the comparison the decision actually turns on.
 struct GTActionButton: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     let title: String
     /// Always present, 폴드 included: "0bb" is the fact that makes the EV comparison on
     /// the next screen legible, and an empty slot here would break the column.
     let price: String
     let role: GTActionRole
+    var freeTablePresentation = false
     var minHeight: CGFloat = 56
     var cornerSide: GTCornerSide = .none
     let action: () -> Void
@@ -1008,20 +1011,43 @@ struct GTActionButton: View {
             // The accent is laid out, not overlaid. As an overlay it took no part in
             // sizing, so at the accessibility text sizes it painted straight over the
             // price line while the button kept its compact height.
-            VStack(spacing: 3) {
-                Text(title).font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
-                    .lineLimit(1).minimumScaleFactor(0.6)
-                Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
-                    .lineLimit(1).minimumScaleFactor(0.6)
-                Capsule().fill(role.accent)
-                    .frame(height: 3).padding(.horizontal, 8).padding(.top, 1)
+            Group {
+                if freeTablePresentation {
+                    ZStack {
+                        VStack(spacing: 3) {
+                            Text(title).font(GT.semibold(12))
+                                .foregroundStyle(price.isEmpty ? GT.ink : GT.inkSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if !price.isEmpty {
+                                Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(.bottom, price.isEmpty ? 0 : 8)
+                        VStack {
+                            Spacer(minLength: 0)
+                            Capsule().fill(role.accent).frame(height: 3).padding(.horizontal, 8)
+                        }
+                    }
+                } else {
+                    VStack(spacing: 3) {
+                        Text(title).font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
+                            .lineLimit(1).minimumScaleFactor(0.6)
+                        Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
+                            .lineLimit(1).minimumScaleFactor(0.6)
+                        Capsule().fill(role.accent)
+                            .frame(height: 3).padding(.horizontal, 8).padding(.top, 1)
+                    }
+                }
             }
             .padding(.horizontal, 6).padding(.vertical, 10)
-            .frame(maxWidth: .infinity, minHeight: minHeight)
+            .frame(maxWidth: .infinity, minHeight: minHeight,
+                   maxHeight: freeTablePresentation ? .infinity : nil)
+            .frame(height: freeTablePresentation && !typeSize.isAccessibilitySize ? 87 : nil)
             .background { GTDockControlBackground(side: cornerSide) }
         }
-        .buttonStyle(GTPress())
-        .accessibilityLabel("\(title), \(price)")
+        .buttonStyle(GTPress(pressedScale: freeTablePresentation ? 0.97 : 0.98))
+        .accessibilityLabel(price.isEmpty ? title : "\(title), \(price)")
     }
 }
 
@@ -1076,5 +1102,52 @@ struct AdjustmentButtons: View {
                     .strokeBorder(GT.borderStrong, lineWidth: 1))
         }
         .buttonStyle(GTPress()).accessibilityLabel(spoken)
+    }
+}
+
+
+/// Measures passive face templates before placing the active dock content.
+/// Templates must contain no tasks, gestures, or model mutations.
+struct GTStableDockLayout: Layout {
+    var heightLimit: CGFloat?
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 360
+        let heights = subviews.dropFirst().map {
+            $0.sizeThatFits(ProposedViewSize(width: width, height: nil)).height
+        }
+        let height = heights.max() ?? 0
+        return CGSize(width: width, height: min(height, heightLimit ?? height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: bounds.origin, anchor: .topLeading,
+                          proposal: ProposedViewSize(width: bounds.width, height: index == 0 ? bounds.height : nil))
+        }
+    }
+}
+
+
+/// Keeps the leading title and the last controls against the dock's visible insets.
+struct GTAnchoredDockFaceLayout: Layout {
+    var minimumHeight: CGFloat = 0
+    var scrollsBody = false
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 360
+        let heights = subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)).height }
+        let height = (heights.first ?? 0) + 12 + (scrollsBody ? 0 : heights.dropFirst().reduce(0, +))
+        return CGSize(width: width, height: max(height, minimumHeight, proposal.height ?? height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 2 else { return }
+        subviews[0].place(at: bounds.origin, anchor: .topLeading,
+                          proposal: ProposedViewSize(width: bounds.width, height: nil))
+        let headerHeight = subviews[0].sizeThatFits(ProposedViewSize(width: bounds.width, height: nil)).height
+        let bodyHeight = scrollsBody ? max(0, bounds.height - headerHeight - 12) : nil
+        subviews[1].place(at: CGPoint(x: bounds.minX, y: bounds.maxY), anchor: .bottomLeading,
+                          proposal: ProposedViewSize(width: bounds.width, height: bodyHeight))
     }
 }

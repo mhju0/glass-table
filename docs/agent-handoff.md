@@ -330,3 +330,41 @@ Full entries: [the 09-28 archive](handoff-archive/2026-09-28-before-spacing-rule
   belongs to step 5 once all three exist; long back content scrolls in a bounded body.
   Restore Rules-based guide reopening coverage then. Steps 3–8 and the queued support
   task remain unfinished. Engine, persistence and excluded audit paths are untouched.
+
+## 2026-10-01 19:14 KST — Direction A step 3 verified, owner decisions pending
+
+- Step 2 committed locally as `a52b094`; nothing pushed. Step 3 remains uncommitted
+  in Components.swift, FreeTableView.swift, FreeDockPresentationTests.swift,
+  FreeDockFlowTests.swift and tools/uisweep.sh. It adds fixed action slots, public
+  replay titles/prices, the two warnings, Skip, passive stable dock sizing and
+  bounded accessible scrolling. Existing raise/Math faces await steps 4/5.
+- Generic/sweep builds and `git diff --check` pass. App units: 61 XCTest + 8 Swift
+  Testing; Drills: 363 XCTest + 31 Swift Testing. All 17 selected unique UI methods
+  passed across preserved gates and focused rechecks, not one green aggregate run.
+  Initial child-ID containment defect was fixed; invalid overflow fixtures, Skip
+  query race and scroll gestures were corrected in tests. All failed attempts and
+  exact commands are retained in `.build/direction-a/step3/`.
+- Inspected KO/EN 2/3/4-player large/AX5 matrix, replay/warning states and native
+  full-control/prose reachability. Rejected black EN4 AX capture was replaced by
+  `.uisweep/20261001-190334-844O9K/.../play-hand.png`. Normal painted dock height
+  315 pt; measured title top 20.33, action sides 20.33 and bottom 20 pt. Normal
+  native buttons 87.17 pt; AX buttons 87–172 pt, including wrapped Korean price.
+- Four async owner choices remain unanswered: permit AX button growth/price wrap;
+  choose 1-chip raise increments versus unreachable odd legal amounts with ±2;
+  permit the small Drills Facts fix (bestHandOfAny) versus app-only adapter; correct
+  short-call Math using public contestable pot versus show unavailable. Preflight
+  reports prove the parity conflict, flop Facts crash and 19% versus 24% discrepancy.
+  Do not infer approval or commit step 3 until its AX exception is settled (§11).
+- Next: record owner decisions in spec §13, commit accepted step 3 with explicit
+  paths, then continue steps 4–8. Final all-face sizing proof belongs to step 5.
+  Support/email/privacy/Pages work remains strictly last and has not started.
+- No owned jobs remain; owned iPhone 17 is shut down, user Audit devices untouched.
+  No Engine, progression, saved-setting, excluded audit-path edits or pushes.
+
+## 2026-10-01 — Owner approved four recommendations
+
+- Owner explicitly approved AX action growth/price wrapping, one-chip raise steps,
+  the small Drills Facts evaluator-call fix and public contestable-pot Math.
+  Recorded in spec §13. Step 3 verified candidate is accepted; continue step 4,
+  with the two Facts/Math fixes in step 5. Existing evidence remains valid because
+  this approval changes no implementation. No push; support task stays last.
