@@ -220,3 +220,24 @@ Full entries: [the 09-28 archive](handoff-archive/2026-09-28-before-spacing-rule
   `tools/uxaudit/`) and the crawl's Play steps were not updated for the new table.
 - Test note: app language persists in the simulator's UserDefaults; uninstall the app on
   a simulator used by the Korean crawl before running the English UI tests.
+
+## 2026-10-01 — Free table Direction A, round-3 exploration (no code changes)
+- Artifacts: Direction A spec https://claude.ai/artifact/MXxoJp3TdKd5MTpLxZrR8n; round 3
+  (seat box, style label, My-turn line, raise amounts, Math levels, cards, gold rule,
+  app-wide consistency) https://claude.ai/artifact/HvDQgUSKkWnAKAxH8hVZmJ.
+- Proposed, awaiting go-ahead: seat box = name / status-or-style / cards + stack
+  bottom-right; no sub line under the turn title except all-in call and short-all-in
+  no-reraise; fixed fold/call/raise slots (dim, don't hide); spot-aware raise presets;
+  Math level 1 always, level 2 unlocked by lessons, equity only after the hand; gold
+  outline = now, gold fill = pick/primary, paper = you; one card back.
+- Open: table-side outs need a hand-only draw-outs helper (`countOuts` takes the villain
+  hand, would leak). This file is over ~200 lines and needs condensing.
+- Later 2026-10-01: user approved all round-3/4 recommendations. Final spec with the
+  app-wide spacing rules (R1 equal visible inset with per-font top correction, R2 one
+  content edge, R3 left = right, R4 concentric corner children, R5 few insets/radii):
+  https://claude.ai/artifact/HaBQzPo6uRnpwTrgrv5GUR. Measured: dock top reads 25 pt vs
+  20-21 sides; sheet corner ~46 pt vs 14 pt corner buttons; felt 16 pt vs dock 8 pt edge.
+  Next: build in the spec's order, starting with the spacing foundation.
+- Build handed to Codex with `docs/specs/2026-10-01-free-table-direction-a.md` as the
+  source of truth (supersedes the exploration pages where they differ). Deferred: Math
+  level 2 (needs a hand-only outs helper), "fast table" setting.
