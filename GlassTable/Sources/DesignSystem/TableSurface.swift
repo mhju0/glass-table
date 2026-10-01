@@ -22,6 +22,10 @@ struct TableSeat: Identifiable {
     var isFolded = false
     var isDealer = false
     var hand: Hand = .none
+    var stack: Int?
+    var committed: Int?
+    var isHero = false
+    var isEmpty = false
 }
 
 /// The middle of the table: shared cards above one fixed-size chip stack.
@@ -44,6 +48,8 @@ struct TableCenter {
 struct TableSurface: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.learningLanguage) private var language
+    @ScaledMetric(relativeTo: .body) private var nameLineHeight: CGFloat = 18
+    @ScaledMetric(relativeTo: .body) private var statusLineHeight: CGFloat = 16
 
     let seats: [TableSeat]
     var center = TableCenter()
@@ -71,7 +77,11 @@ struct TableSurface: View {
     private var tableLayout: some View {
         VStack(spacing: 0) {
             row(leading: seat(at: .topLeading), trailing: seat(at: .topTrailing))
-            Spacer(minLength: centerHeight + 16)
+            if seats.contains(where: { $0.stack != nil }) {
+                Color.clear.frame(height: centerHeight + 32).accessibilityHidden(true)
+            } else {
+                Spacer(minLength: centerHeight + 16)
+            }
             if let middle = seat(at: .bottomCenter) {
                 HStack(spacing: Self.seatGap) {
                     Color.clear.frame(maxWidth: .infinity).accessibilityHidden(true)
@@ -95,7 +105,12 @@ struct TableSurface: View {
     /// Accessibility sizes: one column inside the felt instead of shrinking names.
     private var stackedLayout: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(seats) { seat in seatView(seat, place: nil) }
+            ForEach(seats) { seat in
+                VStack(spacing: 4) {
+                    seatView(seat, place: nil)
+                    if let committed = seat.committed, committed > 0 { committedLabel(committed) }
+                }
+            }
             centerGroup.frame(maxWidth: .infinity).padding(.vertical, 8)
         }
         .padding(Self.rail + Self.inset)
@@ -136,7 +151,13 @@ struct TableSurface: View {
 
     @State private var seatCenters: [String: CGPoint] = [:]
 
+    @ViewBuilder
     private func seatView(_ seat: TableSeat, place: TableSeat.Place?) -> some View {
+        if seat.stack != nil || seat.isEmpty { practiceSeat(seat, place: place) }
+        else { legacySeat(seat, place: place) }
+    }
+
+    private func legacySeat(_ seat: TableSeat, place: TableSeat.Place?) -> some View {
         let shape = seatShape(place)
         return ViewThatFits(in: .horizontal) {
             HStack(spacing: 8) {
@@ -170,6 +191,105 @@ struct TableSurface: View {
         .accessibilityAddTraits(seat.isActive ? .isSelected : [])
     }
 
+    private func practiceSeat(_ seat: TableSeat, place: TableSeat.Place?) -> some View {
+        let shape = seatShape(place)
+        let ink = seat.isHero ? Color(hex: 0x1D221F) : seat.isEmpty ? GT.onTableSecondary : GT.onTable
+        let secondary = seat.isHero ? Color(hex: 0x5D625B) : GT.tableStatus
+        let actionInk = seat.isHero ? Color(hex: 0x88600F) : GT.tableSeatActive
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Text(seat.name).font(GT.semibold(14)).foregroundStyle(ink)
+                    .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+                    .fixedSize(horizontal: false, vertical: true)
+                if seat.isDealer { DealerDisc() }
+            }
+            .frame(minHeight: nameLineHeight, alignment: .topLeading)
+            Text(seat.status ?? " ")
+                .font(seat.tone == .action ? GT.semibold(13) : GT.body(13))
+                .foregroundStyle(seat.tone == .action ? actionInk : secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+                .frame(minHeight: statusLineHeight, alignment: .topLeading)
+                .id(seat.status)
+                .transition(.opacity)
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    practiceCards(seat).frame(height: 43, alignment: .bottom)
+                    stackLabel(seat, ink: ink).frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .bottom, spacing: 4) {
+                        practiceCards(seat).frame(height: 43, alignment: .bottom)
+                        Spacer(minLength: 0)
+                        stackLabel(seat, ink: ink)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        practiceCards(seat).frame(height: 43, alignment: .bottom)
+                        stackLabel(seat, ink: ink).frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                }
+            }
+        }
+        .gtInset(GT.Space.seat, firstText: .semibold(14))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(seat.isEmpty ? Color.clear : seat.isHero ? Color(hex: 0xF3EDE0) : GT.tableSeat, in: shape)
+        .overlay {
+            shape.strokeBorder(seat.isActive ? GT.tableSeatActive
+                : seat.isHero ? Color(hex: 0xE5DCC8) : GT.tableSeatLine, lineWidth: 2)
+                .opacity(seat.isEmpty ? 0.35 : 1)
+        }
+        .overlay(alignment: place == .bottomLeading || place == .bottomTrailing ? .top : .bottom) {
+            if !typeSize.isAccessibilitySize, let committed = seat.committed, committed > 0 {
+                committedLabel(committed)
+                .offset(y: place == .bottomLeading || place == .bottomTrailing ? -20 : 20)
+                .accessibilityHidden(true)
+            }
+        }
+        .background {
+            GeometryReader { proxy in
+                Color.clear.preference(key: SeatCentersKey.self, value: [seat.id: CGPoint(
+                    x: proxy.frame(in: .named(TableSurfaceSpace.name)).midX,
+                    y: proxy.frame(in: .named(TableSurfaceSpace.name)).midY)])
+            }
+        }
+        .animation(.easeInOut(duration: 0.15), value: seat.status)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(spokenLabel(seat))
+        .accessibilityIdentifier(seat.id)
+        .accessibilityAddTraits(seat.isActive ? .isSelected : [])
+    }
+
+    @ViewBuilder
+    private func practiceCards(_ seat: TableSeat) -> some View {
+        if seat.isEmpty { Color.clear.frame(height: 43).accessibilityHidden(true) }
+        else { cards(seat) }
+    }
+
+    private func committedLabel(_ amount: Int) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: "circle.fill").font(.system(size: 7))
+            Text("\(amount)").font(GT.semibold(12)).monospacedDigit()
+        }
+        .foregroundStyle(GT.onTable)
+        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private func stackLabel(_ seat: TableSeat, ink: Color) -> some View {
+        if let stack = seat.stack {
+            HStack(spacing: 3) {
+                Image(systemName: "circle.fill").font(.system(size: 7))
+                Text(stack == 0 ? language.text("올인", "All in") : "\(stack)")
+                    .font(GT.semibold(13)).monospacedDigit().fixedSize()
+            }
+            .foregroundStyle(stack == 0 ? (seat.isHero ? Color(hex: 0x88600F) : GT.tableSeatActive) : ink)
+        } else if seat.isEmpty, typeSize.isAccessibilitySize {
+            Text(" ").font(GT.semibold(13)).frame(minHeight: statusLineHeight)
+                .accessibilityHidden(true)
+        }
+    }
+
     private func seatDetail(_ seat: TableSeat) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
@@ -200,11 +320,14 @@ struct TableSurface: View {
         case .none:
             EmptyView()
         case .faceDown:
-            HStack(spacing: 3) { TableCardBack(); TableCardBack() }
+            HStack(spacing: 3) {
+                PlayingCardView(card: Card(rank: 2, suit: 0), size: 36, faceDown: true)
+                PlayingCardView(card: Card(rank: 2, suit: 0), size: 36, faceDown: true)
+            }
                 .opacity(seat.isFolded ? 0.45 : 1)
         case let .faceUp(cards):
             HStack(spacing: 3) {
-                ForEach(cards, id: \.self) { TableCard(card: $0) }
+                ForEach(cards, id: \.self) { PlayingCardView(card: $0, size: seat.isHero ? 43 : 36) }
             }
             .opacity(seat.isFolded ? 0.45 : 1)
         }
@@ -239,9 +362,13 @@ struct TableSurface: View {
     private func spokenLabel(_ seat: TableSeat) -> String {
         var parts = [seat.name]
         if seat.isDealer { parts.append(language.text("딜러 버튼", "dealer button")) }
-        if let detail = seat.detail { parts.append(detail) }
-        if seat.isFolded, seat.status == nil { parts.append(language.text("폴드", "folded")) }
         if let status = seat.status { parts.append(status) }
+        if let detail = seat.detail { parts.append(detail) }
+        if let stack = seat.stack { parts.append(language.text("남은 칩 \(stack)", "\(stack) chips left")) }
+        if let committed = seat.committed, committed > 0 {
+            parts.append(language.text("낸 칩 \(committed)", "\(committed) committed"))
+        }
+        if seat.isFolded, seat.status == nil { parts.append(language.text("폴드", "folded")) }
         switch seat.hand {
         case .none: break
         case .faceDown: parts.append(language.text("뒷면 카드 두 장", "two face-down cards"))
@@ -329,22 +456,6 @@ struct TableCard: View {
     var body: some View {
         PlayingCardView(card: card, size: Self.height)
             .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
-    }
-}
-
-/// Solid deep slate with a cream inset line: distinct from the felt and from suit red.
-struct TableCardBack: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(GT.cardBack)
-            .overlay {
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .strokeBorder(GT.cardBackLine.opacity(0.7), lineWidth: 1)
-                    .padding(3)
-            }
-            .frame(width: 26, height: TableCard.height)
-            .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
-            .accessibilityHidden(true)
     }
 }
 

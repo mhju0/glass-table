@@ -11,6 +11,104 @@ final class AccessibilityFlowTests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testFreeTableKO2SeatsStayReachableAtAccessibilityXXXL() { verifyFreeTableSeats(code: "ko", players: 2) }
+    func testFreeTableKO3SeatsStayReachableAtAccessibilityXXXL() { verifyFreeTableSeats(code: "ko", players: 3) }
+    func testFreeTableKO4SeatsStayReachableAtAccessibilityXXXL() { verifyFreeTableSeats(code: "ko", players: 4) }
+    func testFreeTableEN2SeatsStayReachableAtAccessibilityXXXL() { verifyFreeTableSeats(code: "en", players: 2) }
+    func testFreeTableEN3SeatsStayReachableAtAccessibilityXXXL() { verifyFreeTableSeats(code: "en", players: 3) }
+    func testFreeTableEN4SeatsStayReachableAtAccessibilityXXXL() { verifyFreeTableSeats(code: "en", players: 4) }
+
+    private func verifyFreeTableSeats(code: String, players: Int) {
+        let setting = code == "ko" ? "korean" : "english"
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(\(code))", "-glassTable.language", setting]
+            + accessibilityXXXL
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_TAB": "play",
+            "GT_DEMO_PRACTICE": "1", "GT_DEMO_PLAYERS": "\(players)"]
+        app.launch()
+        let hero = app.otherElements["practice-0"]
+        XCTAssertTrue(hero.waitForExistence(timeout: 15))
+        if players == 2 {
+            XCUIDevice.shared.orientation = .landscapeLeft
+            XCTAssertGreaterThan(app.frame.height, app.frame.width, "The free table stays portrait")
+            let rotation = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            rotation.name = "free-table-portrait-after-rotation-\(code)"
+            rotation.lifetime = .keepAlways
+            add(rotation)
+            XCUIDevice.shared.orientation = .portrait
+        }
+        let fold = app.buttons["free-fold"]
+        expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: fold)
+        waitForExpectations(timeout: 20)
+        let scroll = app.scrollViews.firstMatch
+        let names = code == "ko" ? ["두 명", "세 명", "네 명"] : ["Two players", "Three players", "Four players"]
+        let title = code == "ko" ? "\(names[players - 2]) · 1번째 핸드" : "\(names[players - 2]) · Hand 1"
+        let header = app.staticTexts[title]
+        XCTAssertTrue(header.exists)
+        var ids = (0..<players).map { "practice-\($0)" }
+        if players == 3 { ids.append("practice-empty") }
+        for id in ids {
+            let seat = app.otherElements[id]
+            var fullyVisible = false
+            for _ in 0..<20 {
+                let viewport = scroll.frame
+                let top = max(viewport.minY, header.frame.maxY)
+                let frame = seat.frame
+                if frame.minY >= top, frame.maxY <= viewport.maxY {
+                    fullyVisible = true
+                    break
+                }
+                let targetCenter = (top + viewport.maxY) / 2
+                let delta = min(80, max(-80, frame.midY - targetCenter))
+                let startY = (top + viewport.maxY) / 2
+                let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY / app.frame.height))
+                let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: (startY - delta) / app.frame.height))
+                start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.5)
+            }
+            XCTAssertTrue(fullyVisible, "\(code) \(players) \(id): seat=\(seat.frame), viewport=\(scroll.frame)")
+            print("Free table AX5 \(code) \(players) \(id): seat=\(seat.frame), viewport=\(scroll.frame), chromeBottom=\(header.frame.maxY)")
+            if id == "practice-0" {
+                XCTAssertTrue(seat.label.contains(code == "ko" ? "남은 칩" : "chips left"), seat.label)
+            } else if id != "practice-empty" {
+                XCTAssertTrue(seat.label.contains(code == "ko" ? "뒷면 카드 두 장" : "two face-down cards"))
+            }
+            let capture = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            capture.name = "free-table-seat-AX5-\(code)-\(players)-\(id)"
+            capture.lifetime = .keepAlways
+            add(capture)
+        }
+        XCTAssertTrue(fold.isHittable)
+        fold.tap()
+        XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 20))
+        app.terminate()
+    }
+
+
+    func testFreeTableStatusToneKeepsSeatHeightAtAccessibilityXXXL() {
+        for (code, setting) in [("ko", "korean"), ("en", "english")] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-AppleLanguages", "(\(code))", "-glassTable.language", setting]
+                + accessibilityXXXL
+            app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_TAB": "play",
+                "GT_DEMO_PRACTICE": "1", "GT_DEMO_PLAYERS": "2"]
+            app.launch()
+            let computer = app.otherElements["practice-1"]
+            XCTAssertTrue(computer.waitForExistence(timeout: 15))
+            let fold = app.buttons["free-fold"]
+            expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: fold)
+            waitForExpectations(timeout: 20)
+            let before = computer.frame.height
+            let beforeLabel = computer.label
+            fold.tap()
+            XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 20))
+            let after = computer.frame.height
+            print("Seat status stability \(code): before=\(before), after=\(after), labels=\(beforeLabel) → \(computer.label)")
+            XCTAssertTrue(computer.label.contains("+"), computer.label)
+            XCTAssertEqual(before, after, accuracy: 0.01, "A status/tone change must not move the seat rows")
+            app.terminate()
+        }
+    }
+
     func testLearnStartingPointCardIsReachableInBothLanguagesAtAccessibilityXXXL() {
         for (code, setting, heading, title) in [("ko", "korean", "어디서 시작할지 고민되나요?", "확인 없이 시작하기"),
                                                  ("en", "english", "Not sure where to start?", "Start without the check")] {

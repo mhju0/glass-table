@@ -13,7 +13,6 @@ struct FreeTableView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var typeSize
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let epoch: UUID
     /// A table that was just dealt replays from the blinds; a reopened one does not.
@@ -47,7 +46,6 @@ struct FreeTableView: View {
         }
         .background(FeltBackground())
         .onAppear {
-            OrientationDelegate.setLandscapeAllowed(true)
             TableHaptics.prepare()
             guard let table = model.state.tableState else { return }
             shownHandID = table.handID
@@ -64,7 +62,6 @@ struct FreeTableView: View {
         }
         .onDisappear {
             replay?.cancel()
-            OrientationDelegate.setLandscapeAllowed(false)
         }
         .onChange(of: replayKey) { _, _ in
             guard let table = model.state.tableState else { return }
@@ -117,53 +114,27 @@ struct FreeTableView: View {
 
     @ViewBuilder
     private func content(_ table: PracticeTableState) -> some View {
-        let wide = verticalSizeClass == .compact && !typeSize.isAccessibilitySize
         Group {
-            if wide {
-                HStack(alignment: .top, spacing: 12) {
-                    tableSurface(table)
-                    // Controls sit at the bottom of their column, under the thumb.
-                    VStack {
-                        Spacer(minLength: 0)
-                        controls(table)
-                            .padding(GT.Space.sheet)
-                        .background(GT.glass, in: RoundedRectangle(cornerRadius: GT.Radius.sheet, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: GT.Radius.sheet, style: .continuous)
-                            .strokeBorder(GT.glassEdge, lineWidth: 1))
-                    }
-                    .frame(width: 300)
-                }
-                .padding(.horizontal, 16).padding(.bottom, 8)
-            } else if typeSize.isAccessibilitySize {
+            if typeSize.isAccessibilitySize {
                 VStack(spacing: 0) {
-                    ScrollView { tableSurface(table).padding(.horizontal, 16) }
+                    ScrollView { tableSurface(table).padding(.horizontal, 8) }
                     ActionSheet { controls(table) }
                 }
             } else {
                 VStack(spacing: 12) {
-                    tableSurface(table).padding(.horizontal, 16)
+                    tableSurface(table).padding(.horizontal, 8)
+                    Spacer(minLength: 0)
                     ActionSheet { controls(table) }
                 }
             }
         }
         .gtChrome(leading: {
-            HStack(spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
                 ChromeButton.close(onClose)
                 Text(title(table)).font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
-                    .lineLimit(1).minimumScaleFactor(0.8)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-        }, trailing: {
-            Button { showGuide = true } label: {
-                Image(systemName: "info.circle")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(GT.onFelt)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(GTPress())
-            .accessibilityLabel(language.text("테이블 보는 법", "How to read the table"))
-            .accessibilityIdentifier("play-table-guide")
-        })
+        }, trailing: { EmptyView() })
     }
 
     private func title(_ table: PracticeTableState) -> String {
@@ -182,12 +153,13 @@ struct FreeTableView: View {
         let frame = table.frame(after: shownCount(table))
         let board = (table.review?.board ?? table.visibleBoard).prefix(frame.boardCount)
         return TableSurface(
-            seats: (0..<table.seatCount).map { seat($0, table: table, frame: frame) },
+            seats: (0..<table.seatCount).map { seat($0, table: table, frame: frame) }
+                + (table.seatCount == 3 ? [TableSeat(id: "practice-empty", place: .bottomLeading,
+                    name: language.text("빈 자리", "Empty seat"), isEmpty: true)] : []),
             center: TableCenter(board: board.compactMap(Card.init), reservesBoard: true,
                                 potTotal: language.text("\(frame.committed.reduce(0, +))칩",
                                                         "\(frame.committed.reduce(0, +)) chips")),
             movingChip: movingChip, chipFromPot: chipFromPot)
-            .frame(maxHeight: typeSize.isAccessibilitySize ? nil : .infinity)
             .accessibilityIdentifier("practice-table")
     }
 
@@ -195,12 +167,12 @@ struct FreeTableView: View {
         table.handID == shownHandID ? min(shownSteps, table.replaySteps.count) : 0
     }
 
-    /// Clockwise from the learner: you bottom left, then the computers in seat order.
+    /// Clockwise from the learner at the bottom right.
     private func seat(_ seat: Int, table: PracticeTableState, frame: PracticeTableFrame) -> TableSeat {
         let places: [TableSeat.Place] = switch table.seatCount {
-        case 2: [.bottomLeading, .topTrailing]
-        case 3: [.bottomLeading, .topLeading, .topTrailing]
-        default: [.bottomLeading, .topLeading, .topTrailing, .bottomTrailing]
+        case 2: [.bottomTrailing, .topLeading]
+        case 3: [.bottomTrailing, .topLeading, .topTrailing]
+        default: [.bottomTrailing, .bottomLeading, .topLeading, .topTrailing]
         }
         let review = frame.settled ? table.review : nil
         let hand: TableSeat.Hand
@@ -211,31 +183,46 @@ struct FreeTableView: View {
         } else {
             hand = .faceDown
         }
+        let won = review?.pots.contains { $0.winners.contains(seat) } == true
+        let style = table.computerSeats.first(where: { $0.seat == seat })?.style
         let status: String?
-        if thinkingSeat == seat {
+        if won, let review {
+            status = "+\(review.payouts[seat])"
+        } else if thinkingSeat == seat {
             status = language.text("생각 중…", "Thinking…")
-        } else if let review, review.payouts[seat] > 0 {
-            status = language.text("팟 +\(review.payouts[seat])", "Won +\(review.payouts[seat])")
-        } else if let event = frame.lastEvent[seat] {
-            status = eventDescription(event)
+        } else if let event = frame.lastEvent[seat], event.action != nil {
+            if frame.stacks[seat] == 0, event.chips > 0 {
+                status = language.text("올인 \(frame.streetCommitted[seat])", "All in \(frame.streetCommitted[seat])")
+            } else if event.label == "raise" {
+                status = language.text("\(frame.streetCommitted[seat])까지 레이즈", "Raise to \(frame.streetCommitted[seat])")
+            } else if event.label == "bet" {
+                status = language.text("벳 \(event.chips)", "Bet \(event.chips)")
+            } else if event.label == "fold" {
+                status = language.text("폴드", "Fold")
+            } else if event.label == "check" {
+                status = language.text("체크", "Check")
+            } else if event.label == "call" {
+                status = language.text("콜 \(event.chips)", "Call \(event.chips)")
+            } else {
+                status = eventDescription(event)
+            }
         } else {
-            status = frame.folded[seat] ? language.text("포기", "Folded") : nil
+            status = seat == 0 ? nil : style?.beginnerTitle(in: language)
         }
         let myTurn = seat == 0 && !isReplaying(table) && table.currentSeat == 0
         return TableSeat(
             id: "practice-\(seat)",
             place: places[seat],
-            name: seatName(seat, table: table),
-            detail: frame.settled
-                ? language.text("남은 칩 \(frame.stacks[seat])", "\(frame.stacks[seat]) chips left")
-                : language.text("남은 칩 \(frame.stacks[seat]) · 낸 칩 \(frame.committed[seat])",
-                                "\(frame.stacks[seat]) left · \(frame.committed[seat]) in"),
+            name: seatName(seat),
             status: status,
-            tone: thinkingSeat == seat || (review?.payouts[seat] ?? 0) > 0 ? .action : .neutral,
+            tone: thinkingSeat == seat || won ? .action : .neutral,
             isActive: thinkingSeat == seat || myTurn,
             isFolded: frame.folded[seat],
             isDealer: table.dealer == seat,
-            hand: hand)
+            hand: hand,
+            stack: frame.stacks[seat],
+            committed: frame.streetCommitted[seat],
+            isHero: seat == 0)
     }
 
     static func wentToShowdown(_ review: PracticeTableReview) -> Bool {
@@ -555,12 +542,6 @@ struct FreeTableView: View {
 
     private func seatName(_ seat: Int) -> String {
         seat == 0 ? language.text("나", "You") : language.text("컴퓨터 \(seat)", "Computer \(seat)")
-    }
-
-    /// A computer's seat also names its style, since each seat can play differently.
-    private func seatName(_ seat: Int, table: PracticeTableState) -> String {
-        guard let style = table.computerSeats.first(where: { $0.seat == seat })?.style else { return seatName(seat) }
-        return "\(seatName(seat)) · \(style.beginnerTitle(in: language))"
     }
 
     private func eventDescription(_ event: PracticeEvent) -> String {

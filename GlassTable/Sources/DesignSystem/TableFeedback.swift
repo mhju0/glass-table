@@ -2,30 +2,6 @@
 import SwiftUI
 import UIKit
 
-/// The window's orientations. Portrait everywhere; the free table opens landscape while
-/// it is on screen.
-final class OrientationDelegate: NSObject, UIApplicationDelegate {
-    static var allowsLandscape = false
-
-    func application(_ application: UIApplication,
-                     supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        Self.allowsLandscape ? .allButUpsideDown : .portrait
-    }
-
-    /// Called from appear/disappear handlers, never from a view's body.
-    @MainActor static func setLandscapeAllowed(_ allowed: Bool) {
-        allowsLandscape = allowed
-        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
-            for window in scene.windows {
-                window.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
-            }
-            if !allowed {
-                scene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { _ in }
-            }
-        }
-    }
-}
-
 /// Haptics for the free table. Each fires on the frame its cause appears: a chip moving,
 /// a card landing, the turn arriving. Nothing buzzes twice for one event.
 @MainActor enum TableHaptics {

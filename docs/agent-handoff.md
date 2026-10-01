@@ -281,3 +281,52 @@ Full entries: [the 09-28 archive](handoff-archive/2026-09-28-before-spacing-rule
   roughly 50-minute window. Stop only when asked to pause; record the exact unfinished
   state then. Local commits/files survive the laptop break; interrupted tests may rerun.
 - The separate support task stays queued until the full redesign is finished.
+
+## 2026-10-01 15:37 KST — Direction A paused at owner's request
+
+- Step 1 is committed as `22bb963`; branch remains `feat/free-table-direction-a`.
+  Nothing pushed. Step 2 is implemented but uncommitted; preserve its nine modified
+  source/config/test files and this handoff edit. Steps 3–8 have not started.
+- Step 2 adds portrait-only/natural-height 8 pt felt, the approved seat map and empty
+  seat, paper hero, separate public status/stack/committed chips, and shared 36/43 pt
+  cards. Legacy lesson seats keep their detail layout. Paper-only gold ink is #88600F
+  (4.83:1 against cream); the existing acting border gold is unchanged.
+- Automatic first-use guide remains temporarily; the removed ⓘ no longer reopens it.
+  Relevant tests/copy reflect this. Restore Rules-based reopening coverage in step 5.
+- Builds and Drills passed (363 XCTest + 31 Swift Testing, zero failures). The selected
+  app unit/UI gate has NOT started; its prepared command is
+  `.build/direction-a/step2/run-tests.sh`. New six-launch AX5 reachability/rotation
+  test is unverified. Do not commit step 2 until its remaining gate and review pass.
+- Final KO captures: `.uisweep/20261001-153301-2QyvyH`; EN captures:
+  `.uisweep/20261001-152912-hzWe3z`. Replacement EN AX3:
+  `.uisweep/20261001-153613-RuOnF1/accessibility-extra-extra-extra-large/play-hand-3.png`
+  exists but was NOT inspected/measured before pause. The replacement reserves the
+  empty seat's AX5 stack line. Evidence/report/commands/measurements are under
+  `.build/direction-a/step2/` and remain a partial checkpoint.
+- No owned process remains active; disposable sweeps cleaned themselves. Test iPhone
+  17 is shut down; existing Audit simulators were left untouched. No Engine,
+  progression, persisted-setting, excluded-path, or support-task edits.
+- Resume: inspect replacement AX3 and final KO matrix at root; run selected gate;
+  inspect native reachability/rotation evidence; finalize step 2 report and commit
+  after acceptance, then continue in order. Support work remains strictly last.
+
+## 2026-10-01 17:24 KST — Direction A resumed, step 2 verified
+
+- Resumed on the same branch with local changes preserved. Step 2 now passes its
+  builds and Drills (363 XCTest + 31 Swift Testing), 61 app unit tests, nine existing
+  selected UI checks, six KO/EN 2/3/4-player AX5 seat/portrait checks, and one bilingual
+  status-height check. No app changes were needed after the paused screenshots.
+- The first aggregate scroll test failed: fixed drags overshot KO4 C2 and its viewport
+  bounds also allowed chrome-covered names. Reject that proof. Six bounded tests now
+  use the actual title's bottom and measured slow drags; all pass, with 22 inspected
+  attachments in `.build/direction-a/step2/native-final/`. Style-to-winner seat height
+  is unchanged in both languages. Empty/other seat heights differ by up to 0.667 pt.
+- Final 2/3/4 KO/EN large/AX5 sweep images and legacy freeplay/Pot Math images were
+  inspected. Felt margins measure 8/8 pt; cards measure 26×36 and 31×43 pt. Name ink
+  measures 10 pt top/10.667 pt left against 10 pt content inset (glyph bearing).
+  Commands, verbatim failure, source references and limits: `.build/direction-a/step2/`.
+- Step 3 will establish passive maximum-height measurement using existing faces;
+  step 4 supplies the new raise face and step 5 the back. Final all-face height proof
+  belongs to step 5 once all three exist; long back content scrolls in a bounded body.
+  Restore Rules-based guide reopening coverage then. Steps 3–8 and the queued support
+  task remain unfinished. Engine, persistence and excluded audit paths are untouched.

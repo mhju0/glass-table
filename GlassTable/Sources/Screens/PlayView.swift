@@ -162,8 +162,8 @@ struct PlayTableGuideList: View {
     private var items: [(symbol: String, title: String, detail: String)] {
         [
             ("person.crop.square", language.text("내 카드", "Your cards"),
-             language.text("왼쪽 아래 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요.",
-                           "You sit bottom left. Only you can see your two cards; others can't.")),
+             language.text("오른쪽 아래 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요.",
+                           "You sit bottom right. Only you can see your two cards; others can't.")),
             ("rectangle.on.rectangle", language.text("상대 카드", "Opponents' cards"),
              language.text("상대 카드는 뒤집혀 있어요. 끝까지 간 핸드는 끝날 때 공개돼요.",
                            "Opponents' cards stay face down. Hands that reach a showdown are shown at the end.")),

@@ -126,8 +126,9 @@ final class BeginnerReleaseTests: XCTestCase {
         waitForYourTurnOrResult(in: app)
         let table = app.descendants(matching: .any)["practice-table"]
         let second = table.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer 2 · ")).firstMatch
-        XCTAssertTrue(second.label.contains("Very aggressive"), second.label)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer 2,")).firstMatch
+        XCTAssertTrue(second.exists)
+        XCTAssertTrue(second.label.contains("two face-down cards"), second.label)
     }
 
     func testSettingsListsProblemGamblingHelplines() {
@@ -164,7 +165,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Two players · Hand 1"].exists)
         func seat(_ n: Int) -> XCUIElement {
             table.descendants(matching: .any)
-                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(n) · ")).firstMatch
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(n),")).firstMatch
         }
         XCTAssertTrue(seat(1).exists)
         XCTAssertFalse(seat(2).exists)
@@ -370,8 +371,8 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "saved-answer-")).firstMatch.exists)
     }
 
-    /// The first table explains what each part shows once; the info button reopens it.
-    func testFirstTableExplainsItselfOnceAndReopens() {
+    /// The first table explains itself once; Rules will restore reopening in the dock.
+    func testFirstTableExplainsItselfOnceAndDoesNotRepeat() {
         let app = app()
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
@@ -387,8 +388,9 @@ final class BeginnerReleaseTests: XCTestCase {
         }
         for _ in 0..<6 where !close.isHittable { app.swipeUp() }
         close.tap()
-        let reopen = app.buttons["play-table-guide"]
-        XCTAssertTrue(reopen.waitForExistence(timeout: 5))
+        let table = app.descendants(matching: .any)["practice-table"]
+        XCTAssertTrue(table.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["play-table-guide"].exists)
         XCTAssertFalse(app.staticTexts["How to read the table"].exists)
 
         app.terminate()
@@ -399,10 +401,9 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(resume.waitForExistence(timeout: 15))
         XCTAssertTrue(resume.label.hasPrefix("Continue the free table"), resume.label)
         resume.tap()
-        XCTAssertTrue(reopen.waitForExistence(timeout: 10))
+        XCTAssertTrue(table.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["How to read the table"].exists, "The guide shows only once")
-        reopen.tap()
-        XCTAssertTrue(app.staticTexts["How to read the table"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["play-table-guide"].exists)
     }
 
     /// The free table replays the computers' moves before the turn comes back, so the
@@ -467,7 +468,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let table = app.descendants(matching: .any)["practice-table"]
         for seat in 1...3 {
             let label = table.descendants(matching: .any)
-                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(seat) · ")).firstMatch
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(seat),")).firstMatch
             XCTAssertTrue(label.exists, "Computer \(seat) seat")
             XCTAssertTrue(label.label.contains("two face-down cards"), label.label)
         }

@@ -53,7 +53,7 @@ final class AccessibilityAuditTests: XCTestCase {
 
     func testPlayTable() throws {
         try audit("play", environment: ["GT_DEMO_TAB": "play", "GT_DEMO_PRACTICE": "1"]) {
-            $0.descendants(matching: .any)["play-table-guide"]
+            $0.descendants(matching: .any)["practice-table"]
         }
     }
 
@@ -65,7 +65,7 @@ final class AccessibilityAuditTests: XCTestCase {
 
     func testPlayTableScrolled() throws {
         try audit("play-scrolled", environment: ["GT_DEMO_TAB": "play", "GT_DEMO_PRACTICE": "1"], swipes: 1) {
-            $0.descendants(matching: .any)["play-table-guide"]
+            $0.descendants(matching: .any)["practice-table"]
         }
     }
 
