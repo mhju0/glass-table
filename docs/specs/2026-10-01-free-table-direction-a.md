@@ -344,3 +344,11 @@ tools/uisweep.sh                      # full sweep before the last commit
 - `.build/freeplay-direction-a-3/index.html`: round 4, buttons, raise, Math tiles.
   Its docks use 10–11 pt insets (mock scale); use §1 instead.
 - `.build/freeplay-final/index.html`: spacing rules with measurements.
+
+## 13. Owner-approved exceptions (2026-10-01)
+
+- At accessibility text sizes, exact dock titles may wrap instead of shrinking or
+  being shortened. Apply the same treatment to the table chrome when needed.
+- Keep the native concentric dock/control corners. The measured step 1 candidate
+  has 19.235 pt minimum corner clearance versus 20 pt at its straight sides; the
+  owner accepts this 0.765 pt R4 exception. Do not replace it with a custom curve.

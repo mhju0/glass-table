@@ -25,6 +25,14 @@ final class AccessibilityAuditTests: XCTestCase {
             ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_SEED": "1"]) { a, _ in a }
         app.launch()
         XCTAssertTrue(ready(app).waitForExistence(timeout: 15), "\(name) did not open")
+        if name == "play" {
+            // Replay deliberately dims actions. Audit the settled decision once the
+            // fold control unlocks, with the same full set of accessibility checks.
+            let fold = app.buttons["free-fold"]
+            XCTAssertTrue(fold.waitForExistence(timeout: 15))
+            let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: fold)
+            XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 15), .completed)
+        }
         for _ in 0..<swipes { app.swipeUp() }
         let fadeTop = app.tabBars.firstMatch.exists
             ? app.tabBars.firstMatch.frame.minY - Self.scrollFadeHeight : .infinity

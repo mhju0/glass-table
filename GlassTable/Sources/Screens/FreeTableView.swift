@@ -263,7 +263,7 @@ struct FreeTableView: View {
     }
 
     private func statusRow(_ table: PracticeTableState) -> some View {
-        HStack(alignment: .center, spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
                 if let thinking = thinkingSeat {
                     Text(language.text("\(seatName(thinking)) 차례", "\(seatName(thinking))'s turn"))
@@ -312,24 +312,24 @@ struct FreeTableView: View {
         return HStack(spacing: 8) {
             if actions.contains(.fold) {
                 GTActionButton(title: language.text("폴드", "Fold"), price: language.text("0칩", "0 chips"),
-                               role: .fold) { choose(.fold, table: table) }
+                               role: .fold, minHeight: 87, cornerSide: .leading) { choose(.fold, table: table) }
                     .accessibilityIdentifier("free-fold")
             }
             if actions.contains(.check) {
                 GTActionButton(title: language.text("체크", "Check"), price: language.text("0칩", "0 chips"),
-                               role: .passive) { choose(.check, table: table) }
+                               role: .passive, minHeight: 87) { choose(.check, table: table) }
                     .accessibilityIdentifier("free-check")
             }
             if actions.contains(.call) {
                 GTActionButton(title: language.text("콜", "Call"),
                                price: language.text("\(table.amountToCall)칩", "\(table.amountToCall) chips"),
-                               role: .passive) { choose(.call, table: table) }
+                               role: .passive, minHeight: 87) { choose(.call, table: table) }
                     .accessibilityIdentifier("free-call")
             }
             if let minimumRaise {
                 GTActionButton(title: facingBet ? language.text("레이즈", "Raise") : language.text("베팅", "Bet"),
                                price: language.text("\(minimumRaise)칩부터", "from \(minimumRaise)"),
-                               role: .aggressive) {
+                               role: .aggressive, minHeight: 87, cornerSide: .trailing) {
                     raiseAmount = minimumRaise
                     TableHaptics.pass()
                     raising = true

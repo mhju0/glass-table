@@ -108,8 +108,8 @@ struct LearnView: View {
                 FeltCTAButton(title: language.text("주제 골라 연습", "Choose a skill"), action: onOpenPractice)
             }
         }
-        .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
-        .gtCard(radius: 22)
+        .gtInset(GT.Space.card, firstText: .semibold(13)).frame(maxWidth: .infinity, alignment: .leading)
+        .gtCard(radius: GT.Radius.panel)
     }
 
     /// The starting-point check leads until the learner finishes a lesson; after that
@@ -132,8 +132,10 @@ struct LearnView: View {
             .accessibilityIdentifier("placement-start")
             .padding(.top, 4)
         }
-        .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
+        .gtInset(GT.Space.card, firstText: .title(19)).frame(maxWidth: .infinity, alignment: .leading)
         .gtPanel()
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("learn-starting-point-card")
     }
 
     private var recommendedNode: CurriculumNode? {

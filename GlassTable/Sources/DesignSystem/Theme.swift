@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
 import UIKit
+import CoreText
 import GlassTableDrills
 
 /// The appearance applied to the app and to system-presented UI.
@@ -55,12 +56,11 @@ enum GT {
         static let card: CGFloat = 16
         /// Inside a sheet or popover, whose larger corner needs more room than a card's.
         static let sheet: CGFloat = 20
-        /// A line of text carries this much empty leading above its ink, so a container
-        /// pads its top by this much less to make the visible gaps match.
-        static let leading: CGFloat = 2
+        static let seat: CGFloat = 10
     }
 
     enum Radius {
+        static let tile: CGFloat = 8
         static let control: CGFloat = 14
         static let panel: CGFloat = 20
         static let sheet: CGFloat = 28
@@ -170,13 +170,47 @@ enum GT {
 
     private static var boldText: Bool { UIAccessibility.isBoldTextEnabled }
 
-    private static func titleStyle(_ s: CGFloat) -> Font.TextStyle {
+    static func titleStyle(_ s: CGFloat) -> Font.TextStyle {
         switch s {
         case 30...: .largeTitle
         case 26..<30: .title
         case 21..<26: .title2
         case 19..<21: .title3
         default: .body
+        }
+    }
+
+    enum TextRole {
+        case title(CGFloat), semibold(CGFloat), body(CGFloat)
+
+        var size: CGFloat {
+            switch self { case .title(let size), .semibold(let size), .body(let size): size }
+        }
+
+        var style: Font.TextStyle {
+            if case .title = self { return GT.titleStyle(size) }
+            return .body
+        }
+
+        /// Hangul reaches higher than Latin capitals in Pretendard. Measure the
+        /// matching script's ink, then scale with the text's Dynamic Type role.
+        func inkLeading(in language: LearningLanguage) -> CGFloat {
+            let name: String
+            switch self {
+            case .title: name = GT.boldText ? "Pretendard-ExtraBold" : "Pretendard-Bold"
+            case .semibold: name = GT.boldText ? "Pretendard-Bold" : "Pretendard-SemiBold"
+            case .body: name = GT.boldText ? "Pretendard-SemiBold" : "Pretendard-Regular"
+            }
+            let font = UIFont(name: name, size: size) ?? UIFont.systemFont(ofSize: size)
+            let character: UniChar = language == .korean ? 0xAC00 : 0x0048
+            var glyph = CGGlyph()
+            var characters = character
+            let ctFont = CTFontCreateWithName(name as CFString, size, nil)
+            guard CTFontGetGlyphsForCharacters(ctFont, &characters, &glyph, 1) else {
+                return max(0, font.ascender - font.capHeight)
+            }
+            let bounds = CTFontGetBoundingRectsForGlyphs(ctFont, .default, &glyph, nil, 1)
+            return max(0, font.ascender - bounds.maxY)
         }
     }
 

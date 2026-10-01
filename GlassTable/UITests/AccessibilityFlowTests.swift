@@ -11,6 +11,37 @@ final class AccessibilityFlowTests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testLearnStartingPointCardIsReachableInBothLanguagesAtAccessibilityXXXL() {
+        for (code, setting, heading, title) in [("ko", "korean", "어디서 시작할지 고민되나요?", "확인 없이 시작하기"),
+                                                 ("en", "english", "Not sure where to start?", "Start without the check")] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-AppleLanguages", "(\(code))", "-glassTable.language", setting]
+                + accessibilityXXXL
+            app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_TAB": "learn"]
+            app.launch()
+            let card = app.otherElements["learn-starting-point-card"]
+            XCTAssertTrue(card.waitForExistence(timeout: 15))
+            print("AX5 Learn \(code): card=\(card.frame), viewport=\(app.frame), tabBar=\(app.tabBars.firstMatch.frame)")
+            let headingElement = app.staticTexts[heading]
+            XCTAssertTrue(scrollUntilFullyVisible(headingElement, above: app.tabBars.firstMatch, in: app))
+            attachLearnCapture(app, name: "learn-starting-point-top-AX5-\(code)")
+            let start = app.buttons["placement-start"]
+            XCTAssertTrue(scrollUntilFullyVisible(start, above: app.tabBars.firstMatch, in: app))
+            XCTAssertTrue(start.isHittable)
+            attachLearnCapture(app, name: "learn-starting-point-bottom-AX5-\(code)")
+            start.tap()
+            XCTAssertTrue(app.buttons[title].waitForExistence(timeout: 5))
+            app.terminate()
+        }
+    }
+
+    private func attachLearnCapture(_ app: XCUIApplication, name: String) {
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = name
+        capture.lifetime = .keepAlways
+        add(capture)
+    }
+
     func testEquityAnswerCanBeSubmittedAtAccessibilityXXXL() {
         let app = launch(environment: [
             "GT_TEST_STORE_ID": UUID().uuidString,

@@ -241,3 +241,43 @@ Full entries: [the 09-28 archive](handoff-archive/2026-09-28-before-spacing-rule
 - Build handed to Codex with `docs/specs/2026-10-01-free-table-direction-a.md` as the
   source of truth (supersedes the exploration pages where they differ). Deferred: Math
   level 2 (needs a hand-only outs helper), "fast table" setting.
+
+## 2026-10-01 — Direction A step 1 candidate, awaiting owner choices
+
+- Created `feat/free-table-direction-a` from `33e5384`; step 0 committed as `6dc95b6`
+  (`docs: add free table Direction A spec`). No push. Step 1 remains uncommitted;
+  steps 2–8 have not started.
+- Implemented script/font-aware ink-leading correction, spacing/radius tokens, native
+  dock corner children, attached-dock home-indicator compensation, and two Learn card
+  roles. Added settled-Play audit readiness and KO/EN AX5 Learn scroll/tap verification.
+- Brought only the already-approved 87 pt table-button minimum height forward from
+  step 3: the old 62.33 pt height clamped the required concentric corner radius.
+  Shared button defaults and accessibility growth remain unchanged.
+- Final generic build passed; Drills passed 363 XCTest + 31 Swift Testing tests.
+  Exact candidate passed 61 app unit + 19 UI tests, zero failures, with saved xcresult.
+  Reviewed 2/3/4-player KO/EN large/AX5 captures and native Learn scroll captures.
+- Normal dock top/left/right/bottom: 25.67/21.67/20.33/20.33 →
+  20.33/21.67/20.00/20.00 pt. AX5 baseline bottom 64 pt (intermediate 42) → 20 pt.
+  R1 retains title ink bearings beyond the content edge: 1.67 pt normal, 3.33 pt AX5.
+- Owner choices pending: exact AX5 titles cannot fit one line beside Math without
+  shrinking (§11); allow wrapping or supply shorter titles. R4 corner clearance is
+  19.235 pt versus 20 pt sides, independently measured/reviewed; accept the native
+  0.765 pt exception or require a custom offset curve. Do not claim full R4 compliance.
+- Evidence, exact commands, verbatim failures, rejected/recovered captures, all 22
+  unchanged 베팅 source sites, and pending on-phone haptics checklist are in
+  `.build/direction-a/step1/report.md`; final tests in `final-candidate-tests.xcresult`.
+  Temporary diagnostic/failed container code was removed. No Engine, progression,
+  persisted-setting, or excluded audit-path changes. Outs and fast-table remain deferred.
+- Next: resolve owner choices, finish/accept and commit step 1, then continue steps 2–8
+  in order. The separate support-contact/privacy/support-page/submission-doc task is
+  queued strictly after the redesign finishes; do not start it while this work is paused.
+
+## 2026-10-01 — Direction A owner decisions accepted
+
+- Owner approved wrapping exact AX5 titles and retaining native concentric corners
+  with the measured 0.765 pt R4 exception. Recorded both in spec §13; they supersede
+  the pending choices above. Step 1 is accepted with its reported optical bearings.
+- Continue in build order, targeting a verified table-layout commit within the owner's
+  roughly 50-minute window. Stop only when asked to pause; record the exact unfinished
+  state then. Local commits/files survive the laptop break; interrupted tests may rerun.
+- The separate support task stays queued until the full redesign is finished.

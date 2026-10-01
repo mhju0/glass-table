@@ -292,7 +292,7 @@ for content_size in "${CONTENT_SIZES[@]}"; do
     name="${entry%%:*}"
     rest="${entry#*:}"
     slp="${rest##*:}"
-    if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=4; fi
+    if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=${GT_CAPTURE_DELAY:-8}; fi
     args=("SIMCTL_CHILD_GT_DEMO_LANGUAGE=$LANGUAGE")
     for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
     # Uninstall clears progress written by the preceding demo. Empty-state captures

@@ -344,7 +344,7 @@ private struct GlassBackground<S: InsettableShape>: View {
 extension View {
     /// A grouped surface. The border supplies separation without dark shadows
     /// accumulating between panels in the light appearance.
-    func gtCard(radius: CGFloat = 20) -> some View {
+    func gtCard(radius: CGFloat = GT.Radius.panel) -> some View {
         self.background {
             GlassBackground(shape: RoundedRectangle(cornerRadius: radius, style: .continuous),
                             litEdge: false)
@@ -373,10 +373,60 @@ extension View {
 
     /// Pads content so the visible gap above its first line equals the gap beside it.
     /// Use `GT.Space.card` inside a card and `GT.Space.sheet` inside a sheet.
-    func gtInset(_ inset: CGFloat) -> some View {
-        padding(.horizontal, inset)
-            .padding(.top, inset - GT.Space.leading)
+    func gtInset(_ inset: CGFloat, firstText: GT.TextRole = .semibold(13)) -> some View {
+        modifier(GTInkInset(inset: inset, firstText: firstText))
+    }
+}
+
+private struct GTInkInset: ViewModifier {
+    @Environment(\.learningLanguage) private var language
+    let inset: CGFloat
+    let firstText: GT.TextRole
+    @ScaledMetric private var textSize: CGFloat
+
+    init(inset: CGFloat, firstText: GT.TextRole) {
+        self.inset = inset
+        self.firstText = firstText
+        _textSize = ScaledMetric(wrappedValue: firstText.size, relativeTo: firstText.style)
+    }
+
+    func body(content: Content) -> some View {
+        let leading = firstText.inkLeading(in: language) * textSize / firstText.size
+        content.padding(.horizontal, inset)
+            .padding(.top, max(0, inset - leading))
             .padding(.bottom, inset)
+    }
+}
+
+/// The outer bottom corner follows its floating sheet; all other corners keep the
+/// control radius. Attached sheets deliberately keep ordinary button corners.
+private struct DockCornerKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var floatingDock: Bool {
+        get { self[DockCornerKey.self] }
+        set { self[DockCornerKey.self] = newValue }
+    }
+}
+
+enum GTCornerSide { case none, leading, trailing }
+
+private struct GTDockControlBackground: View {
+    @Environment(\.floatingDock) private var floats
+    let side: GTCornerSide
+
+    var body: some View {
+        if #available(iOS 26.0, *), floats {
+            let shape = ConcentricRectangle(
+                topLeadingCorner: .fixed(GT.Radius.control),
+                topTrailingCorner: .fixed(GT.Radius.control),
+                bottomLeadingCorner: side == .leading ? .concentric(minimum: .fixed(GT.Radius.control)) : .fixed(GT.Radius.control),
+                bottomTrailingCorner: side == .trailing ? .concentric(minimum: .fixed(GT.Radius.control)) : .fixed(GT.Radius.control))
+            shape.fill(GT.surface)
+                .overlay(shape.stroke(GT.borderStrong, lineWidth: 1).padding(0.5))
+        } else {
+            let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+            shape.fill(GT.surface).overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
+        }
     }
 }
 
@@ -549,6 +599,22 @@ private struct GTChrome<L: View, T: View>: ViewModifier {
 ///
 /// Only a graded sheet can fold, so only it shows a grabber; a grabber on a sheet that
 /// cannot move promises a drag that does nothing.
+private struct GTDockTopInset: ViewModifier {
+    @Environment(\.learningLanguage) private var language
+    let graded: Bool
+    let firstText: GT.TextRole
+    @ScaledMetric private var textSize: CGFloat
+    init(firstText: GT.TextRole, graded: Bool) {
+        self.graded = graded
+        self.firstText = firstText
+        _textSize = ScaledMetric(wrappedValue: firstText.size, relativeTo: firstText.style)
+    }
+    func body(content: Content) -> some View {
+        let leading = firstText.inkLeading(in: language) * textSize / firstText.size
+        content.padding(.top, graded ? 2 : max(0, GT.Space.sheet - leading))
+    }
+}
+
 struct ActionSheet<Content: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -557,6 +623,7 @@ struct ActionSheet<Content: View>: View {
     /// A graded result tints the whole sheet and outlines its edge, so right and
     /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
     var band: GradeBand? = nil
+    var firstText: GT.TextRole = .title(18)
     @ViewBuilder var content: () -> Content
     /// A graded sheet folds down to its verdict and Next, so evidence the reveal added
     /// above it can be read without scrolling past the sheet.
@@ -584,12 +651,11 @@ struct ActionSheet<Content: View>: View {
             if band != nil { grabber }
             content()
                 .environment(\.revealCollapsed, band != nil && collapsed)
+                .environment(\.floatingDock, floats)
         }
+        .modifier(GTDockTopInset(firstText: firstText, graded: band != nil))
         .padding(.horizontal, GT.Space.sheet)
-        .padding(.top, band == nil ? GT.Space.sheet : 2)
-        // Floating, the card's own padding matches its top. Attached, the home-indicator
-        // inset already sits below this, so only a small step is added.
-        .padding(.bottom, floats ? GT.Space.sheet : 8)
+        .padding(.bottom, GT.Space.sheet)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background { sheetBackground }
         .padding(.horizontal, floats ? Self.margin : 0)
@@ -597,7 +663,7 @@ struct ActionSheet<Content: View>: View {
         // ending one margin above the screen edge; its inner padding keeps the content
         // clear of the indicator. `ignoresSafeArea` cannot do this from inside the
         // screens' stacks, so the inset is measured and padded away.
-        .padding(.bottom, floats ? Self.margin - reach : 0)
+        .padding(.bottom, floats ? Self.margin - reach : -reach)
         .background {
             Color.clear
                 .ignoresSafeArea(edges: .bottom)
@@ -934,6 +1000,7 @@ struct GTActionButton: View {
     let price: String
     let role: GTActionRole
     var minHeight: CGFloat = 56
+    var cornerSide: GTCornerSide = .none
     let action: () -> Void
 
     var body: some View {
@@ -951,9 +1018,7 @@ struct GTActionButton: View {
             }
             .padding(.horizontal, 6).padding(.vertical, 10)
             .frame(maxWidth: .infinity, minHeight: minHeight)
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
-                .strokeBorder(GT.borderStrong, lineWidth: 1))
+            .background { GTDockControlBackground(side: cornerSide) }
         }
         .buttonStyle(GTPress())
         .accessibilityLabel("\(title), \(price)")
