@@ -1,13 +1,12 @@
 # Agent handoff
 
-## Through 2026-09-30 — condensed 2026-10-01
+## Through 2026-09-30 — condensed 2026-10-02
 
 Full detail: [the 10-01 archive](handoff-archive/2026-10-01-before-direction-a.md), which retains the earlier archive links and all historical entries.
 
-- Shipped through 09-30: combined beginner release and four-tab navigation; lessons,
-  answer reveals, accessibility/Bold Text, floating sheets and spacing rules;
-  first-run guide and Hold'em basics; policy-details, Range Read, locked-choice and
-  Position-order audit fixes; initial full-screen free table with replay and help.
+- Shipped through 09-30: combined beginner release, four tabs, first-run guide and
+  Hold'em basics; lessons/reveals, accessibility/Bold Text, sheets/spacing;
+  policy/Range Read/locked-choice/Position fixes; full-screen free table replay/help.
 - Open human/release checks: physical VoiceOver, minimum iOS 17, novice comprehension,
   signed Store/distribution validation, screenshots, age rating/territories,
   very-large-history save latency, and system permission/notification/share/review
@@ -187,3 +186,15 @@ Full entries: [steps 2–4 archive](handoff-archive/2026-10-02-direction-a-steps
   on the same base. See docs/verification/2026-10-02-support-publication.md.
   No emails, Notion/ASC changes or submission. Remaining owner checks are real
   phone haptics, VoiceOver, older runtimes and existing release gates.
+
+## 2026-10-02 — Phone install and HTML delivery report
+
+- Signed Release 1.0(14) installed in place and launched on physical iPhone12mini
+  /iOS27.0.1. Learn screenshot inspected;4114-byte progress identical before,
+  after install and launch. Private backups ignored; no uninstall/reset.
+- Local standalone HTML: docs/reports/2026-10-02-direction-a-delivery.html.
+  Xcode/GitHub MCP evidence plus Playwright desktop/mobile/nav/expander checks;
+  root inspected final layout, no overflow/errors. Phone haptics/VO still pending.
+- Device ledger: docs/verification/2026-10-02-iphone-install.md. Report local,
+  redesign unpushed; support pages live. Final GitHub MCP refresh confirms app
+  CI36976489966 success on support/main8e808ca (not the unpushed redesign).
