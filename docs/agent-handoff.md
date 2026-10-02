@@ -166,3 +166,31 @@ Full exploration, step1 candidate/approval and step2 pause details remain in
   docs/handoff-archive/2026-10-01-direction-a-early-checkpoints.md. Next: step6
   supervised public replay/motion/haptics, then7–8; support work remains last.
   No Engine/progression/new saved setting/excluded audit edits or push.
+
+## 2026-10-02 — Direction A step 6 verified
+
+- Step5 committed5513364. Step6 adds app-local typed public replay, integer chip
+  projection, real seat/pot/card flights, public runout/refunds/reverse side-pot
+  payouts/odd chips, winner5pt lift and next-hand clear/refill/dealer/deal. One
+  supervised clock freezes on background and resumes exact cursor/cues; shown
+  actions/cards drive Facts/history and settlement unlocks only after visual pay.
+- SwiftUI sensoryFeedback replaces UIKit generators with the specified meanings,
+  highest-priority collision choice and150ms wall-time spacing. Same-hand RM
+  changes preserve completed/active phase timings; renderer suppresses motion
+  immediately, future phases use new timing. Old-clear cards retain provenance.
+- Astra reviewed successive fixes and approved current core hashes. Root visual
+  inspection caught detached winner edges then stale final front bet piles; both
+  fixed, including next-hand clear. Settled frame has0pot/transit/front bets.
+- Generic build passes. Drills363XCTest+35Swift pass; app61XCTest+37Swift pass.
+  Round3 native9methods pass, followup2public-control methods pass, and final
+  settlement/caption gate12pure+3UI pass; finalclear16pure+2UI pass. Exact commands and every failed attempt
+  verbatim are retained in .build/direction-a/step6/report.md and siblings.
+- Root inspected KO/EN2/3/4large/AX motion matrix, actual recorded blind/deal/
+  runout/refund/award phases, all6 settled endpoints and full scrolled AX named
+  pot+Total captions. Native winning edge+card translate15px=5pt at3x; outer
+  felt8pt, board center0.167pt offset. Runout face-on intervals average597.1ms
+  at approximate70ms recording tolerance; source timings not all observed exactly.
+- Physical haptics, VoiceOver and older-runtime visuals remain unverified. Native
+  XCTest/recorded evidence substitutes for unavailable GUI. No Engine/Drills/
+  progression/new saved setting/excluded audit edits or push. Next7app-wide,
+  then8full verification; support/email/privacy/Pages work strictly afterward.

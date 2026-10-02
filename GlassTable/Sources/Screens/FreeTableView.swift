@@ -14,7 +14,8 @@ struct FreeTableView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var typeSize
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     let epoch: UUID
     /// A table that was just dealt replays from the blinds; a reopened one does not.
     var replayFromStart = false
@@ -25,9 +26,15 @@ struct FreeTableView: View {
     @State private var shownSteps = 0
     @State private var shownHandID = ""
     @State private var thinkingSeat: Int?
-    @State private var movingChip: (seatID: String, arrived: Bool)?
-    @State private var chipFromPot = false
     @State private var replay: Task<Void, Never>?
+    @State private var replayPlan: FreeTableReplayPlan?
+    @State private var replayCursor = FreeTableReplayCursor()
+    @State private var replayGeneration = 0
+    @State private var previousHand: PracticeTableState?
+    @State private var feedback = TableFeedbackCoalescer()
+    @State private var feedbackTask: Task<Void, Never>?
+    @State private var feedbackPulse: TableFeedbackPulse?
+    @State private var lastTurn = ""
     @State private var raising = false
     @State private var raiseAmount = 0
     @State private var showHelp = false
@@ -44,6 +51,9 @@ struct FreeTableView: View {
     @ScaledMetric(relativeTo: .body) private var raiseContextHeight = 32
     #if DEBUG
     @State private var demoTable: PracticeTableState?
+    @State private var motionStarted = false
+    @State private var pausedSnapshot = ""
+    @State private var resumedSnapshot = ""
     #endif
 
     private var presentationTable: PracticeTableState? {
@@ -51,6 +61,13 @@ struct FreeTableView: View {
         if let demoTable { return demoTable }
         #endif
         return model.state.tableState
+    }
+
+    private var reduceMotion: Bool {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["GT_DEMO_REDUCE_MOTION"] == "1" { return true }
+        #endif
+        return systemReduceMotion
     }
 
     var body: some View {
@@ -62,14 +79,23 @@ struct FreeTableView: View {
             }
         }
         .background(FeltBackground())
+        .overlay(alignment: .topTrailing) {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION_MANUAL"] != nil, !motionStarted {
+                Button("Start replay") { motionStarted = true; startReplay() }
+                    .buttonStyle(.borderedProminent).accessibilityIdentifier("motion-start")
+            }
+            #endif
+        }
         .onAppear {
-            TableHaptics.prepare()
             guard let table = model.state.tableState else { return }
             #if DEBUG
+            if configureMotion() { return }
             if configureDemoPhase(table) { return }
             #endif
             shownHandID = table.handID
             shownSteps = replayFromStart ? 0 : table.replaySteps.count
+            resetPlan(table, shown: shownSteps)
             startReplay()
             if !PlayTableGuide.seen {
                 #if DEBUG
@@ -82,15 +108,35 @@ struct FreeTableView: View {
             }
         }
         .onDisappear {
-            replay?.cancel()
+            stopReplay()
+            cancelFeedback()
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                startReplay()
+                #if DEBUG
+                resumedSnapshot = replaySnapshot
+                #endif
+            } else {
+                #if DEBUG
+                pausedSnapshot = replaySnapshot
+                #endif
+                stopReplay(); cancelFeedback()
+            }
+        }
+        .onChange(of: reduceMotion) { _, _ in cancelFeedback(); startReplay() }
+        .onChange(of: showHelp) { _, _ in requestFeedback(.tick) }
+        .onChange(of: helpTab) { _, _ in requestFeedback(.tick) }
+        .onChange(of: raiseAmount) { old, new in if old != new, raising { requestFeedback(.tick) } }
+        .sensoryFeedback(trigger: feedbackPulse) { _, pulse in pulse?.kind.sensory }
         .onChange(of: replayKey) { _, _ in
-            guard let table = model.state.tableState else { return }
+            guard let table = presentationTable else { return }
             if table.handID != shownHandID {
                 shownHandID = table.handID
                 shownSteps = 0
                 revealFolded = false
                 replaySpeed = 1
+                resetPlan(table, shown: 0)
             }
             startReplay()
         }
@@ -117,12 +163,14 @@ struct FreeTableView: View {
     }
 
     private var replayKey: String {
-        guard let table = model.state.tableState else { return "" }
+        guard let table = presentationTable else { return "" }
         return "\(table.handID)-\(table.replaySteps.count)"
     }
 
     private func isReplaying(_ table: PracticeTableState) -> Bool {
         table.handID != shownHandID || shownSteps < table.replaySteps.count
+            || (replayPlan?.table.handID == table.handID && replayCursor.elapsed < (replayPlan?.duration ?? 0))
+            || (table.review != nil && visualProjection(table)?.frame.settled == false)
     }
 
     // MARK: Layout
@@ -168,17 +216,28 @@ struct FreeTableView: View {
     // MARK: Table
 
     private func tableSurface(_ table: PracticeTableState) -> some View {
-        let frame = table.frame(after: shownCount(table))
-        let board = (table.review?.board ?? table.visibleBoard).prefix(frame.boardCount)
+        let projection = visualProjection(table)
+        let frame = projection?.frame ?? table.frame(after: shownCount(table))
+        let board = projection?.visibleBoard ?? Array((table.review?.board ?? table.visibleBoard).prefix(frame.boardCount))
+        let pot = projection?.pot ?? frame.pot
+        let potText = projection?.potIndex.map { index in
+            let remaining = projection!.remainingPots[index]
+            let name = index == 0 ? language.text("메인 팟 · \(remaining)칩", "Main pot · \(remaining)")
+                : language.text("사이드 팟 \(index) · \(remaining)칩", "Side pot \(index) · \(remaining)")
+            return name + language.text("\n전체 \(pot)칩", "\nTotal \(pot)")
+        } ?? language.text("\(pot)칩", "\(pot) chips")
         return TableSurface(
             seats: (0..<table.seatCount).map { seat($0, table: table, frame: frame) }
                 + (table.seatCount == 3 ? [TableSeat(id: "practice-empty", place: .bottomLeading,
                     name: language.text("빈 자리", "Empty seat"), isEmpty: true)] : []),
             center: TableCenter(board: board.compactMap(Card.init), reservesBoard: true,
-                                potTotal: language.text("\(frame.committed.reduce(0, +))칩",
-                                                        "\(frame.committed.reduce(0, +)) chips")),
-            movingChip: movingChip, chipFromPot: chipFromPot)
+                                potTotal: potText),
+            freeVisuals: projection?.visuals,
+            freeReduceMotion: reduceMotion,
+            freeHoles: projection?.transitioning == true ? projection!.visibleHole : table.review?.holeCards ?? [table.learnerHole],
+            freeBoard: projection?.transitioning == true ? projection!.visibleBoard : table.review?.board ?? table.visibleBoard)
             .accessibilityIdentifier("practice-table")
+            .accessibilityValue(replayDebugValue)
     }
 
     private func shownCount(_ table: PracticeTableState) -> Int {
@@ -187,6 +246,7 @@ struct FreeTableView: View {
 
     /// Clockwise from the learner at the bottom right.
     private func seat(_ seat: Int, table: PracticeTableState, frame: PracticeTableFrame) -> TableSeat {
+        let projection = visualProjection(table)
         let places: [TableSeat.Place] = switch table.seatCount {
         case 2: [.bottomTrailing, .topLeading]
         case 3: [.bottomTrailing, .topLeading, .topTrailing]
@@ -194,7 +254,11 @@ struct FreeTableView: View {
         }
         let review = frame.settled ? table.review : nil
         let hand: TableSeat.Hand
-        if seat == 0 {
+        if let projection, !projection.visuals.exposed.contains(seat), !(frame.settled && revealFolded) {
+            hand = .faceDown
+        } else if let projection, projection.visuals.exposed.contains(seat) {
+            hand = .faceUp(projection.visibleHole[seat].compactMap(Card.init))
+        } else if seat == 0 {
             hand = .faceUp(table.learnerHole.compactMap(Card.init))
         } else if let review, revealFolded || (Self.wentToShowdown(review) && !frame.folded[seat]) {
             hand = .faceUp(review.holeCards[seat].compactMap(Card.init))
@@ -204,10 +268,21 @@ struct FreeTableView: View {
         let won = review?.pots.contains { $0.winners.contains(seat) } == true
         let style = table.computerSeats.first(where: { $0.seat == seat })?.style
         let status: String?
-        if won, let review {
+        if projection?.oddAward.contains(seat) == true {
+            status = "+1"
+        } else if let amount = projection?.refilling[seat] {
+            status = language.text("+\(amount) 채움", "+\(amount) refill")
+        } else if let amount = projection?.returned[seat], frame.settled == false {
+            status = language.text("반환 \(amount)", "Returned \(amount)")
+        } else if let amount = projection?.credits[seat], frame.settled == false {
+            status = "+\(amount)"
+        } else if won, let review {
             status = "+\(review.payouts[seat])"
         } else if thinkingSeat == seat {
             status = language.text("생각 중…", "Thinking…")
+        } else if frame.stacks[seat] == 0, !frame.folded[seat] {
+            let amount = replayPlan?.allInAmount(seat: seat, after: shownCount(table)) ?? frame.streetCommitted[seat]
+            status = language.text("올인 \(amount)", "All in \(amount)")
         } else if let event = frame.lastEvent[seat], event.action != nil {
             if frame.stacks[seat] == 0, event.chips > 0 {
                 status = language.text("올인 \(frame.streetCommitted[seat])", "All in \(frame.streetCommitted[seat])")
@@ -236,7 +311,7 @@ struct FreeTableView: View {
             tone: thinkingSeat == seat || won ? .action : .neutral,
             isActive: thinkingSeat == seat || myTurn,
             isFolded: frame.folded[seat],
-            isDealer: table.dealer == seat,
+            isDealer: table.dealer == seat && projection?.visuals.dealerMoving != true,
             hand: hand,
             stack: frame.stacks[seat],
             committed: frame.streetCommitted[seat],
@@ -279,8 +354,9 @@ struct FreeTableView: View {
                         active: DockFlipModifier(angle: -90), identity: DockFlipModifier(angle: 0)))
             }
             if showHelp {
-                FreeTableBackFace(table: table, frame: table.frame(after: shownCount(table)),
-                                  shownSteps: shownCount(table), tab: $helpTab,
+                FreeTableBackFace(table: table, frame: factsFrame(table),
+                                  shownSteps: shownCount(table), heroExposed: visualProjection(table)?.heroExposed ?? true,
+                                  shownPot: visualProjection(table)?.pot, tab: $helpTab,
                                   revealFolded: $revealFolded, minimumHeight: minimumHeight) { showHelp = false }
                     .transition(reduceMotion ? .opacity : .modifier(
                         active: DockFlipModifier(angle: 90), identity: DockFlipModifier(angle: 0)))
@@ -497,7 +573,7 @@ struct FreeTableView: View {
                            onRaise: {
             guard let minimumRaise else { return }
             raiseAmount = minimumRaise
-            TableHaptics.pass()
+            requestFeedback(.tick)
             raising = true
         })
     }
@@ -693,10 +769,20 @@ struct FreeTableView: View {
             : net < 0 ? language.text("−\(-net)칩", "−\(-net) chips") : language.text("±0칩", "±0 chips")
         let winners = (0..<table.seatCount).filter { review.payouts[$0] > 0 }
         return resultBody(netText: text, positive: net > 0, onNext: {
-            TableHaptics.commit()
-            perform {
-                try model.nextTableHand(handID: UUID().uuidString, after: table.handID, expectedEpoch: epoch)
+            previousHand = table
+            #if DEBUG
+            if demoTable != nil, ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION"] != nil {
+                var next = table
+                do {
+                    try next.nextHand(handID: "\(table.handID)-next")
+                    demoTable = next
+                } catch { failure = true }
+                return
             }
+            #endif
+            if perform({
+                try model.nextTableHand(handID: UUID().uuidString, after: table.handID, expectedEpoch: epoch)
+            }) { requestFeedback(.commit(allIn: false)) }
         }, onReview: { helpTab = .hand; showHelp = true }, onChange: { confirmNewTable = true }) {
             ForEach(winners, id: \.self) { seat in
                 Text(winnerLine(seat, review: review, table: table))
@@ -756,94 +842,151 @@ struct FreeTableView: View {
     // MARK: Acting
 
     private func choose(_ action: PracticeAction, table: PracticeTableState) {
-        TableHaptics.commit()
-        perform {
+        let allIn: Bool
+        switch action {
+        case .call: allIn = table.amountToCall == table.seats[0].stack
+        case let .raise(to: amount): allIn = amount == table.seats[0].streetCommitted + table.seats[0].stack
+        default: allIn = false
+        }
+        if perform({
             try model.applyTableAction(action, actionID: "\(table.handID)-learner-\(table.events.count)",
                                        handID: table.handID, expectedEpoch: epoch)
-        }
+        }) { requestFeedback(.commit(allIn: allIn)) }
     }
 
-    private func perform(_ operation: () throws -> Bool) {
-        do { if try !operation(), model.saveError == nil { failure = true } }
-        catch { failure = true }
+    @discardableResult private func perform(_ operation: () throws -> Bool) -> Bool {
+        do {
+            let accepted = try operation()
+            if !accepted, model.saveError == nil { failure = true }
+            return accepted
+        } catch { failure = true; return false }
     }
 
     // MARK: Replay
 
-    private enum Beat {
-        case think, blind, afterAction, beforeDeal, afterDeal, beforeSettle
-        var milliseconds: Int {
-            switch self {
-            case .think: 650
-            case .blind: 180
-            case .afterAction: 280
-            case .beforeDeal: 300
-            case .afterDeal: 380
-            case .beforeSettle: 450
+    private func resetPlan(_ table: PracticeTableState, shown: Int) {
+        let plan = FreeTableReplayPlan(table: table, previous: previousHand, reduceMotion: reduceMotion)
+        replayPlan = plan
+        replayCursor = FreeTableReplayCursor(elapsed: plan.boundary(after: shown),
+            cueIndex: plan.cues.prefix { $0.time <= plan.boundary(after: shown) }.count)
+    }
+
+    private func visualProjection(_ table: PracticeTableState) -> FreeTableReplayProjection? {
+        guard let plan = replayPlan, plan.table.handID == table.handID else { return nil }
+        return replayCursor.projection(plan: plan)
+    }
+
+    private func factsFrame(_ table: PracticeTableState) -> PracticeTableFrame {
+        var frame = table.frame(after: shownCount(table))
+        if let projection = visualProjection(table) {
+            frame.boardCount = projection.visibleBoard.count
+            if frame.street != projection.frame.street {
+                frame.streetCommitted = Array(repeating: 0, count: table.seatCount)
+                frame.lastEvent = Array(repeating: nil, count: table.seatCount)
+            }
+            frame.street = projection.frame.street
+        }
+        return frame
+    }
+
+    private func stopReplay() {
+        replayGeneration += 1
+        replay?.cancel()
+        replay = nil
+    }
+
+    /// One active clock owns all visual progress. Inactivity leaves its cursor in place.
+    private func startReplay() {
+        stopReplay()
+        guard scenePhase == .active else { return }
+        #if DEBUG
+        if demoTable != nil, ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION"] == nil { return }
+        if ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION_FREEZE"] != nil { return }
+        if ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION_MANUAL"] != nil, !motionStarted { return }
+        #endif
+        guard let table = presentationTable else { return }
+        var plan = FreeTableReplayPlan(table: table, previous: previousHand, reduceMotion: reduceMotion)
+        if let old = replayPlan, old.table.handID == table.handID {
+            plan.preservePrefix(from: old, at: replayCursor.elapsed)
+        }
+        replayPlan = plan
+        let generation = replayGeneration
+        replay = Task { @MainActor in
+            var last = ProcessInfo.processInfo.systemUptime
+            while !Task.isCancelled, generation == replayGeneration, scenePhase == .active,
+                  replayCursor.elapsed < plan.duration {
+                do { try await Task.sleep(for: .milliseconds(16)) } catch { return }
+                guard !Task.isCancelled, generation == replayGeneration, scenePhase == .active else { return }
+                let now = ProcessInfo.processInfo.systemUptime
+                let requests = replayCursor.advance(by: (now - last) * 1000 * replaySpeed, plan: plan)
+                last = now
+                let projection = replayCursor.projection(plan: plan)
+                shownSteps = projection.shownSteps
+                thinkingSeat = projection.thinkingSeat
+                for request in requests { requestFeedback(request) }
+            }
+            guard !Task.isCancelled, generation == replayGeneration else { return }
+            thinkingSeat = nil
+            if table.currentSeat == 0, table.review == nil, !table.legalActions.isEmpty {
+                let decision = "\(table.handID)-\(table.events.count)"
+                if decision != lastTurn { lastTurn = decision; requestFeedback(.yourTurn) }
             }
         }
     }
 
-    private func pause(_ beat: Beat) async -> Bool {
-        let scale = (reduceMotion ? 0.5 : 1.0) / replaySpeed
-        try? await Task.sleep(for: .milliseconds(Int(Double(beat.milliseconds) * scale)))
-        return !Task.isCancelled
+    private func cancelFeedback() {
+        feedbackTask?.cancel()
+        feedbackTask = nil
+        feedback.invalidate()
     }
 
-    /// Steps the screen from what it shows to what the model holds.
-    private func startReplay() {
-        replay?.cancel()
-        #if DEBUG
-        if demoTable != nil { return }
-        #endif
-        replay = Task { @MainActor in
-            while let table = model.state.tableState, table.handID == shownHandID {
-                let steps = table.replaySteps
-                guard shownSteps < steps.count else { break }
-                switch steps[shownSteps] {
-                case let .action(index):
-                    let event = table.events[index]
-                    let isComputer = event.seat != 0 && event.action != nil
-                    if isComputer {
-                        withAnimation(GT.Motion.change) { thinkingSeat = event.seat }
-                        guard await pause(.think) else { return }
-                    } else if event.action == nil {
-                        guard await pause(.blind) else { return }
-                    }
-                    withAnimation(GT.Motion.change) {
-                        thinkingSeat = nil
-                        shownSteps += 1
-                    }
-                    if event.chips > 0 { flyChip(seat: event.seat, fromPot: false) }
-                    if isComputer { event.chips > 0 ? TableHaptics.chips() : TableHaptics.pass() }
-                    guard await pause(.afterAction) else { return }
-                case .deal:
-                    guard await pause(.beforeDeal) else { return }
-                    withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.85)) {
-                        shownSteps += 1
-                    }
-                    TableHaptics.deal()
-                    guard await pause(.afterDeal) else { return }
-                case .settle:
-                    guard await pause(.beforeSettle) else { return }
-                    withAnimation(GT.Motion.change) { shownSteps += 1 }
-                    if let review = table.review {
-                        if let winner = review.payouts.firstIndex(where: { $0 > 0 }) {
-                            flyChip(seat: winner, fromPot: true)
-                        }
-                        if review.endingStacks[0] > review.startingStacks[0] { TableHaptics.won() }
-                    }
-                }
-            }
-            thinkingSeat = nil
-            if let table = model.state.tableState, table.currentSeat == 0, table.review == nil,
-               table.events.last?.seat != 0 {
-                TableHaptics.yourTurn()
-            }
+    private func requestFeedback(_ kind: TableFeedbackKind) {
+        guard scenePhase == .active else { return }
+        feedback.request(kind, at: ProcessInfo.processInfo.systemUptime * 1000)
+        guard feedbackTask == nil, let deadline = feedback.deadline else { return }
+        let generation = feedback.generation
+        feedbackTask = Task { @MainActor in
+            let remaining = max(0, deadline - ProcessInfo.processInfo.systemUptime * 1000)
+            do { try await Task.sleep(for: .milliseconds(remaining)) } catch { return }
+            guard !Task.isCancelled, scenePhase == .active, generation == feedback.generation else { return }
+            feedbackPulse = feedback.emit(at: ProcessInfo.processInfo.systemUptime * 1000, generation: generation)
+            feedbackTask = nil
         }
     }
 
     #if DEBUG
+    private func configureMotion() -> Bool {
+        let env = ProcessInfo.processInfo.environment
+        guard let kind = env["GT_DEMO_FREE_MOTION"] else { return false }
+        do {
+            let table: PracticeTableState
+            if kind.hasPrefix("deal-") {
+                var fresh = PracticeTableState(seed: 97, styles: Array(repeating: .station, count: max(1, (Int(kind.suffix(1)) ?? 4) - 1)), handID: kind)
+                try fresh.advanceBots()
+                table = fresh
+            } else { table = try FreeTableReplayFixtures.table(kind) }
+            demoTable = table
+            shownHandID = table.handID
+            shownSteps = 0
+            replaySpeed = env["GT_DEMO_FREE_MOTION_SPEED"].flatMap(Double.init) ?? 1
+            resetPlan(table, shown: 0)
+            if let start = env["GT_DEMO_FREE_MOTION_START"], let plan = replayPlan {
+                let phase = plan.phases.first { String(describing: $0.work).hasPrefix(start) }
+                let fraction = env["GT_DEMO_FREE_MOTION_FRACTION"].flatMap(Double.init) ?? 0
+                let time = (phase?.start ?? 0) + (phase?.duration ?? 0) * max(0, min(1, fraction))
+                replayCursor.elapsed = time
+                replayCursor.cueIndex = plan.cues.prefix { $0.time < time }.count
+                shownSteps = plan.projection(at: time).shownSteps
+            }
+            if let time = env["GT_DEMO_FREE_MOTION_TIME"].flatMap(Double.init), let plan = replayPlan {
+                replayCursor.elapsed = time
+                shownSteps = plan.projection(at: time).shownSteps
+            }
+            startReplay()
+            return true
+        } catch { preconditionFailure("Invalid legal motion fixture: \(kind): \(error)") }
+    }
+
     /// Frozen public replay prefixes for screenshot inspection; never writes the app store.
     private func configureDemoPhase(_ current: PracticeTableState) -> Bool {
         guard let phase = ProcessInfo.processInfo.environment["GT_DEMO_FREE_PHASE"] else { return false }
@@ -957,17 +1100,26 @@ struct FreeTableView: View {
     }
     #endif
 
-    private func flyChip(seat: Int, fromPot: Bool) {
-        guard !reduceMotion else { return }
-        let id = "practice-\(seat)"
-        chipFromPot = fromPot
-        movingChip = (id, false)
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(16))
-            withAnimation(.timingCurve(0.77, 0, 0.175, 1, duration: 0.32)) { movingChip = (id, true) }
-            try? await Task.sleep(for: .milliseconds(340))
-            if movingChip?.seatID == id { movingChip = nil }
+    private var replaySnapshot: String {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION"] != nil,
+           let plan = replayPlan {
+            let p = replayCursor.projection(plan: plan)
+            let phase = plan.phases.first { $0.end > replayCursor.elapsed }
+            return "\(phase.map { String(describing: $0.work) } ?? "finished")|\(Int(replayCursor.elapsed))|\(p.shownSteps)|\(p.frame.stacks)|\(p.pot)|\(p.inTransit)|cue=\(replayCursor.cueIndex)|credits=\(p.credits.sorted { $0.key < $1.key })"
         }
+        #endif
+        return ""
+    }
+
+    private var replayDebugValue: String {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION"] != nil {
+            return replaySnapshot + "#paused=" + pausedSnapshot + "#resumed=" + resumedSnapshot
+                + "#feedback=\(feedbackPulse?.sequence ?? 0):\(String(describing: feedbackPulse?.kind))"
+        }
+        #endif
+        return ""
     }
 
     // MARK: Words
@@ -1243,6 +1395,8 @@ private struct FreeTableBackFace: View {
     let table: PracticeTableState
     let frame: PracticeTableFrame
     let shownSteps: Int
+    var heroExposed = true
+    var shownPot: Int?
     @Binding var tab: FreeTableHelpTab
     @Binding var revealFolded: Bool
     let minimumHeight: CGFloat
@@ -1282,9 +1436,9 @@ private struct FreeTableBackFace: View {
     // MARK: Hint
 
     @ViewBuilder private var hint: some View {
-        if let facts = PracticeDecisionFacts(frame: frame, learnerHole: table.learnerHole,
+        if heroExposed, let facts = PracticeDecisionFacts(frame: frame, learnerHole: table.learnerHole,
                                              visibleBoard: table.review?.board ?? table.visibleBoard) {
-            FreeTableMathSummary(pot: facts.pot, call: facts.toCall, need: facts.requiredEquityPercent,
+            FreeTableMathSummary(pot: shownPot ?? facts.pot, call: facts.toCall, need: facts.requiredEquityPercent,
                                  hand: facts.madeHand.map { DrillTerms.hand($0, in: language) },
                                  top: facts.startingHandTopPercent, hole: table.learnerHole)
         }

@@ -48,6 +48,7 @@ struct TableCenter {
 struct TableSurface: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.learningLanguage) private var language
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @ScaledMetric(relativeTo: .body) private var nameLineHeight: CGFloat = 18
     @ScaledMetric(relativeTo: .body) private var statusLineHeight: CGFloat = 16
 
@@ -57,6 +58,12 @@ struct TableSurface: View {
     var movingChip: (seatID: String, arrived: Bool)?
     /// Sends `movingChip` the other way: from the pot to the seat, as a payout.
     var chipFromPot = false
+    var freeVisuals: FreeTableVisuals?
+    var freeReduceMotion: Bool?
+    var freeHoles: [[String]] = []
+    var freeBoard: [String] = []
+    @State private var freeAnchors: [FreeTableFlight.Anchor: CGPoint] = [:]
+    private var reduceMotion: Bool { freeReduceMotion ?? systemReduceMotion }
 
     static let radius: CGFloat = 32
     static let rail: CGFloat = 3
@@ -68,6 +75,10 @@ struct TableSurface: View {
         Group {
             if typeSize.isAccessibilitySize { stackedLayout } else { tableLayout }
         }
+        .coordinateSpace(.named(TableSurfaceSpace.name))
+        .onPreferenceChange(FreeTableAnchorsKey.self) { freeAnchors = $0 }
+        .onPreferenceChange(SeatCentersKey.self) { seatCenters = $0 }
+        .overlay { freeFlights }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(language.text("포커 테이블", "Poker table"))
     }
@@ -210,6 +221,7 @@ struct TableSurface: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
                 .frame(minHeight: statusLineHeight, alignment: .topLeading)
+                .scaleEffect(reduceMotion ? 1 : 1 + 0.12 * sin(.pi * (freeVisuals?.checkProgress[Int(seat.id.replacingOccurrences(of: "practice-", with: "")) ?? -1] ?? 0)))
                 .id(seat.status)
                 .transition(.opacity)
             if typeSize.isAccessibilitySize {
@@ -263,6 +275,29 @@ struct TableSurface: View {
     @ViewBuilder
     private func practiceCards(_ seat: TableSeat) -> some View {
         if seat.isEmpty { Color.clear.frame(height: 43).accessibilityHidden(true) }
+        else if let visuals = freeVisuals, let index = Int(seat.id.replacingOccurrences(of: "practice-", with: "")),
+                visuals.arrived.indices.contains(index) {
+            HStack(spacing: 3) {
+                ForEach(0..<2) { slot in
+                    let size: CGFloat = seat.isHero ? 43 : 36
+                    let arrived = slot < visuals.arrived[index]
+                    let flip = visuals.flipping[index] ?? (visuals.exposed.contains(index) ? 1 : 0)
+                    let cards: [Card] = if case let .faceUp(cards) = seat.hand { cards } else { [] }
+                    let actual = cards.indices.contains(slot) ? cards[slot]
+                        : freeHoles.indices.contains(index) && freeHoles[index].indices.contains(slot)
+                            ? Card(freeHoles[index][slot]) : nil
+                    PlayingCardView(card: actual ?? Card(rank: 2, suit: 0), size: size,
+                                    faceDown: flip < 0.5 && cards.isEmpty)
+                        .rotation3DEffect(.degrees(reduceMotion ? 0 : flip < 0.5 ? -180 * flip : 180 * (1 - flip)), axis: (x: 0, y: 1, z: 0))
+                        .opacity(arrived ? (reduceMotion && flip > 0 && flip < 1 ? flip : 1) : 0)
+                        .modifier(FreeWinnerCardModifier(card: actual, visuals: visuals, reduceMotion: reduceMotion))
+                        .background { anchorProbe(.hole(index, slot)) }
+                }
+            }
+            .opacity(1 - 0.55 * (visuals.foldProgress[index] ?? (seat.isFolded ? 1 : 0)))
+            .offset(y: reduceMotion ? 0 : (seat.place == .bottomLeading || seat.place == .bottomTrailing ? -8 : 8) * (visuals.foldProgress[index] ?? 0))
+            .opacity(1 - visuals.clearProgress)
+        }
         else { cards(seat) }
     }
 
@@ -371,7 +406,10 @@ struct TableSurface: View {
         if seat.isFolded, seat.status == nil { parts.append(language.text("폴드", "folded")) }
         switch seat.hand {
         case .none: break
-        case .faceDown: parts.append(language.text("뒷면 카드 두 장", "two face-down cards"))
+        case .faceDown:
+            let index = Int(seat.id.replacingOccurrences(of: "practice-", with: ""))
+            let count = index.flatMap { freeVisuals?.arrived.indices.contains($0) == true ? freeVisuals?.arrived[$0] : nil } ?? 2
+            if count > 0 { parts.append(language.text("뒷면 카드 \(count)장", "\(count) face-down cards")) }
         case let .faceUp(cards): parts.append(cards.map { $0.spoken(in: language) }.joined(separator: ", "))
         }
         return parts.joined(separator: ", ")
@@ -388,10 +426,22 @@ struct TableSurface: View {
         VStack(spacing: 8) {
             if center.reservesBoard || !center.board.isEmpty {
                 HStack(spacing: 4) {
+                    if let visuals = freeVisuals {
+                        ForEach(0..<5) { index in
+                            let actual = freeBoard.indices.contains(index) ? Card(freeBoard[index]) : nil
+                            let flip = visuals.boardFlips[index] ?? (index < center.board.count ? 1 : 0)
+                            PlayingCardView(card: actual ?? Card(rank: 2, suit: 0), size: 36, faceDown: flip < 0.5)
+                                .rotation3DEffect(.degrees(reduceMotion ? 0 : flip < 0.5 ? -180 * flip : 180 * (1 - flip)), axis: (x: 0, y: 1, z: 0))
+                                .opacity(index < max(visuals.boardArrived, center.board.count) ? 1 - visuals.clearProgress : 0)
+                                .modifier(FreeWinnerCardModifier(card: actual, visuals: visuals, reduceMotion: reduceMotion))
+                                .background { anchorProbe(.board(index)) }
+                        }
+                    } else {
                     ForEach(center.board, id: \.self) {
                         TableCard(card: $0)
                             .transition(.asymmetric(insertion: .scale(scale: 0.6).combined(with: .opacity),
                                                     removal: .opacity))
+                    }
                     }
                 }
                 .frame(height: TableCard.height)
@@ -407,10 +457,11 @@ struct TableSurface: View {
                     .font(center.potTotal == nil ? GT.semibold(13) : GT.title(14))
                     .monospacedDigit()
                     .foregroundStyle(GT.onTable)
-                    .lineLimit(1)
-                    .fixedSize()
+                    .lineLimit(freeVisuals == nil ? 1 : 2)
+                    .fixedSize(horizontal: freeVisuals == nil, vertical: true)
                     .contentTransition(.numericText())
             }
+            .background { anchorProbe(.pot) }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(center.potTotal.map { language.text("팟 \($0)", "Pot, \($0)") }
                 ?? language.text("가운데 칩. 팟 총액은 아직 숨겨져 있어요",
@@ -436,6 +487,72 @@ struct TableSurface: View {
             .allowsHitTesting(false)
             .accessibilityHidden(true)
         }
+    }
+
+    private func anchorProbe(_ anchor: FreeTableFlight.Anchor) -> some View {
+        GeometryReader { proxy in
+            Color.clear.preference(key: FreeTableAnchorsKey.self, value: [anchor: CGPoint(
+                x: proxy.frame(in: .named(TableSurfaceSpace.name)).midX,
+                y: proxy.frame(in: .named(TableSurfaceSpace.name)).midY)])
+        }
+    }
+
+    private func flightPoint(_ anchor: FreeTableFlight.Anchor, pot: CGPoint) -> CGPoint {
+        if let point = freeAnchors[anchor] { return point }
+        switch anchor {
+        case .pot, .board: return pot
+        case let .seat(seat), let .hole(seat, _): return seatCenters["practice-\(seat)"] ?? pot
+        case let .street(seat):
+            let origin = seatCenters["practice-\(seat)"] ?? pot
+            return CGPoint(x: origin.x + (pot.x - origin.x) * 0.4, y: origin.y + (pot.y - origin.y) * 0.4)
+        }
+    }
+
+    @ViewBuilder private var freeFlights: some View {
+        if let visuals = freeVisuals, !reduceMotion {
+            GeometryReader { proxy in
+                let pot = freeAnchors[.pot] ?? CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+                ForEach(visuals.flights) { flight in
+                    let from = flightPoint(flight.from, pot: pot), to = flightPoint(flight.to, pot: pot)
+                    let t = flight.progress
+                    let eased = flight.cargo == .dealer ? 1 - (1 + 10 * t) * exp(-10 * t) : t * t * (3 - 2 * t)
+                    Group {
+                        switch flight.cargo {
+                        case .card: PlayingCardView(card: Card(rank: 2, suit: 0), size: 36, faceDown: true)
+                        case .dealer: DealerDisc()
+                        case let .chips(amount):
+                            VStack(spacing: 1) {
+                                ChipStack()
+                                Text("\(amount)").font(GT.fixed(11)).foregroundStyle(GT.onTable)
+                            }
+                        }
+                    }
+                    .position(x: from.x + (to.x - from.x) * eased, y: from.y + (to.y - from.y) * eased)
+                }
+            }.allowsHitTesting(false).accessibilityHidden(true)
+        }
+    }
+}
+
+private struct FreeWinnerCardModifier: ViewModifier {
+    let card: Card?
+    let visuals: FreeTableVisuals
+    let reduceMotion: Bool
+    func body(content: Content) -> some View {
+        let wins = card.map { visuals.winnerCards.contains($0) } ?? false
+        content
+            .opacity(visuals.winnerCards.isEmpty || wins ? 1 : 0.45)
+            .overlay {
+                if wins { RoundedRectangle(cornerRadius: 3).strokeBorder(GT.tableSeatActive, lineWidth: 1.5) }
+            }
+            .offset(y: wins && !reduceMotion ? -5 * visuals.winnerProgress : 0)
+    }
+}
+
+private struct FreeTableAnchorsKey: PreferenceKey {
+    static let defaultValue: [FreeTableFlight.Anchor: CGPoint] = [:]
+    static func reduce(value: inout [FreeTableFlight.Anchor: CGPoint], nextValue: () -> [FreeTableFlight.Anchor: CGPoint]) {
+        value.merge(nextValue()) { $1 }
     }
 }
 
