@@ -109,9 +109,15 @@ public struct PracticeDecisionFacts: Equatable {
     public let requiredEquityPercent: Int?
 
     public init?(table: PracticeTableState) {
-        guard table.street != .finished, table.currentSeat == 0,
-              let hole = Card.parse(table.learnerHole.joined()), hole.count == 2 else { return nil }
-        let board = Card.parse(table.visibleBoard.joined()) ?? []
+        guard table.street != .finished, table.currentSeat == 0 else { return nil }
+        self.init(frame: table.frame(after: table.replaySteps.count),
+                  learnerHole: table.learnerHole, visibleBoard: table.visibleBoard)
+    }
+
+    /// Uses only the rendered public prefix, even when the model has already settled.
+    public init?(frame: PracticeTableFrame, learnerHole: [String], visibleBoard: [String]) {
+        guard let hole = Card.parse(learnerHole.joined()), hole.count == 2 else { return nil }
+        let board = Card.parse(visibleBoard.prefix(frame.boardCount).joined()) ?? []
         if board.isEmpty, let hand = HandClass(hole),
            let rank = Chen.ranked.firstIndex(of: hand) {
             let combos = Chen.ranked.prefix(rank + 1).reduce(0) { $0 + $1.comboCount }
@@ -121,10 +127,25 @@ public struct PracticeDecisionFacts: Equatable {
             startingHandTopPercent = nil
             startingHand = nil
         }
-        madeHand = board.count >= 3 ? bestHand(hole + board) : nil
-        toCall = table.amountToCall
-        pot = table.pot
-        requiredEquityPercent = toCall > 0
-            ? Int((Double(toCall) / Double(pot + toCall) * 100).rounded()) : nil
+        madeHand = board.count >= 3 ? bestHandOfAny(hole + board) : nil
+        let currentBet = max(frame.street == .preflop ? 2 : 0, frame.streetCommitted.max() ?? 0)
+        toCall = frame.settled || frame.folded[0] ? 0
+            : min(frame.stacks[0], max(0, currentBet - frame.streetCommitted[0]))
+        pot = frame.pot
+        requiredEquityPercent = Self.requiredEquityPercent(contributions: frame.committed, call: toCall)
+    }
+
+    /// Only the learner's contestable chips count; unmatched excess is returned.
+    public static func requiredEquityPercent(contributions: [Int], call: Int) -> Int? {
+        guard call > 0, let hero = contributions.first else { return nil }
+        let opponents = contributions.dropFirst()
+        let maximum = opponents.max() ?? 0
+        let after = hero + call
+        let refundBefore = max(0, hero - maximum)
+        let refundAfter = max(0, after - maximum)
+        let contestable = after + opponents.reduce(0) { $0 + min($1, after) } - refundAfter
+        guard contestable > 0 else { return nil }
+        let cost = call - (refundAfter - refundBefore)
+        return Int((Double(cost) / Double(contestable) * 100).rounded())
     }
 }

@@ -162,8 +162,8 @@ struct PlayTableGuideList: View {
     private var items: [(symbol: String, title: String, detail: String)] {
         [
             ("person.crop.square", language.text("내 카드", "Your cards"),
-             language.text("오른쪽 아래 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요.",
-                           "You sit bottom right. Only you can see your two cards; others can't.")),
+             language.text("오른쪽 아래 크림색 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요.",
+                           "The cream seat at the bottom right is yours. Only you can see your two cards; others can't.")),
             ("rectangle.on.rectangle", language.text("상대 카드", "Opponents' cards"),
              language.text("상대 카드는 뒤집혀 있어요. 끝까지 간 핸드는 끝날 때 공개돼요.",
                            "Opponents' cards stay face down. Hands that reach a showdown are shown at the end.")),
@@ -179,9 +179,9 @@ struct PlayTableGuideList: View {
             ("arrow.up.arrow.down", language.text("행동의 가격", "What each action costs"),
              language.text("폴드는 무료로 핸드를 떠나요. 콜은 버튼에 적힌 칩을 내고, 레이즈는 가격을 더 올려요.",
                            "Folding leaves the hand for free. Calling pays the chips on the button; raising sets a higher price.")),
-            ("lightbulb", language.text("힌트", "Hint"),
-             language.text("힌트 버튼은 필요할 때만 열어요. 내 핸드와 콜 가격 같은 사실을 보여 주고, 무엇을 고를지는 정해 주지 않아요.",
-                           "Open Hint only when you want it. It shows facts like your hand and the price to call, never a pick.")),
+            ("lightbulb", language.text("계산", "Math"),
+             language.text("계산 버튼은 필요할 때만 열어요. 내 핸드와 콜 가격 같은 사실을 보여 주고, 무엇을 고를지는 정해 주지 않아요.",
+                           "Open Math only when you want it. It shows facts like your hand and the price to call, never a pick.")),
         ]
     }
 

@@ -371,7 +371,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "saved-answer-")).firstMatch.exists)
     }
 
-    /// The first table explains itself once; Rules will restore reopening in the dock.
+    /// First-use Rules explain the table once and can be reopened manually.
     func testFirstTableExplainsItselfOnceAndDoesNotRepeat() {
         let app = app()
         app.launch()
@@ -380,18 +380,24 @@ final class BeginnerReleaseTests: XCTestCase {
         app.buttons["play-free"].tap()
         XCTAssertTrue(app.buttons["table-start"].waitForExistence(timeout: 5))
         app.buttons["table-start"].tap()
-        let close = app.buttons["play-table-guide-close"]
-        XCTAssertTrue(app.staticTexts["How to read the table"].waitForExistence(timeout: 10))
+        let close = app.buttons["free-table-back-close"]
+        XCTAssertTrue(app.staticTexts["Your cards"].waitForExistence(timeout: 10))
+        let guide = app.scrollViews["free-back-content"]
+        let firstUse = XCTAttachment(screenshot: app.screenshot())
+        firstUse.name = "actual-first-use-Rules-clipped"
+        firstUse.lifetime = .keepAlways
+        add(firstUse)
         for title in ["Your cards", "Opponents' cards", "Shared cards", "The pot",
                       "Whose turn", "What each action costs"] {
-            XCTAssertTrue(app.staticTexts[title].exists, title)
+            let item = app.staticTexts[title]
+            for _ in 0..<12 where !item.isHittable { guide.swipeUp() }
+            XCTAssertTrue(item.exists, title)
         }
-        for _ in 0..<6 where !close.isHittable { app.swipeUp() }
         close.tap()
         let table = app.descendants(matching: .any)["practice-table"]
         XCTAssertTrue(table.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["play-table-guide"].exists)
-        XCTAssertFalse(app.staticTexts["How to read the table"].exists)
+        XCTAssertFalse(app.staticTexts["Your cards"].exists)
 
         app.terminate()
         app.launchEnvironment["GT_DEMO_TAB"] = "play"
@@ -402,8 +408,15 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(resume.label.hasPrefix("Continue the free table"), resume.label)
         resume.tap()
         XCTAssertTrue(table.waitForExistence(timeout: 10))
-        XCTAssertFalse(app.staticTexts["How to read the table"].exists, "The guide shows only once")
+        XCTAssertFalse(app.staticTexts["Your cards"].exists, "The guide shows only once")
         XCTAssertFalse(app.buttons["play-table-guide"].exists)
+        app.buttons["free-table-help"].tap()
+        XCTAssertTrue(app.buttons["free-back-rules"].waitForExistence(timeout: 5))
+        app.buttons["free-back-rules"].tap()
+        XCTAssertTrue(app.staticTexts["Your cards"].waitForExistence(timeout: 5))
+        app.buttons["free-table-back-close"].tap()
+        XCTAssertTrue(table.waitForExistence(timeout: 5))
+
     }
 
     /// The free table replays the computers' moves before the turn comes back, so the
@@ -426,7 +439,7 @@ final class BeginnerReleaseTests: XCTestCase {
     }
 
     private func closeTableGuide(in app: XCUIApplication) {
-        let close = app.buttons["play-table-guide-close"]
+        let close = app.buttons["free-table-back-close"]
         guard close.waitForExistence(timeout: 10) else { return }
         for _ in 0..<6 where !close.isHittable { app.swipeUp() }
         close.tap()

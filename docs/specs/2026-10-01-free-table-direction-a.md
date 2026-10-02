@@ -361,3 +361,10 @@ tools/uisweep.sh                      # full sweep before the last commit
 - Correct short-call Math using publicly contestable pot amounts instead of the
   raw pot-plus-call denominator. Include short-call/refund regression coverage.
   These four recommendations were explicitly approved by the owner on 2026-10-01.
+
+- Math odds use N dots in two columns for 1 in N (N = 2–6), with one filled
+  dot. The 1-in-4 case remains a 2×2 square. This replaces the contradictory
+  fixed 2×2 requirement for other denominators; the owner explicitly approved it.
+- At AX5, the three Math tiles stay in one horizontally scrollable row, each
+  wide enough for full text and an unsplit percentage. Normal-size Math remains
+  three tiles across. The owner explicitly approved this accessibility layout.

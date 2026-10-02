@@ -1,9 +1,10 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import UIKit
 import GlassTableDrills
 import GlassTableEngine
 
-/// The free table, full screen: the felt, your turn, and three buttons. Explanations
+/// The free table: the felt, your turn, and three buttons. Explanations
 /// wait in a panel the learner opens only when they want one.
 ///
 /// The model settles every computer action the moment the learner acts. This screen
@@ -32,7 +33,6 @@ struct FreeTableView: View {
     @State private var showHelp = false
     @State private var helpTab = FreeTableHelpTab.hint
     @State private var revealFolded = false
-    @State private var showGuide = false
     @State private var confirmNewTable = false
     @State private var failure = false
     @State private var replaySpeed = 1.0
@@ -77,7 +77,8 @@ struct FreeTableView: View {
                 if env["GT_DEMO_PRACTICE"] != nil, env["GT_DEMO_PLAY_GUIDE"] == nil { return }
                 #endif
                 PlayTableGuide.seen = true
-                showGuide = true
+                helpTab = .rules
+                showHelp = true
             }
         }
         .onDisappear {
@@ -94,13 +95,6 @@ struct FreeTableView: View {
             startReplay()
         }
         .onChange(of: model.epoch) { _, _ in onClose() }
-        .sheet(isPresented: $showHelp) {
-            if let table = model.state.tableState {
-                FreeTableHelpSheet(table: table, tab: $helpTab, revealFolded: $revealFolded,
-                                   replaying: isReplaying(table)) { showHelp = false }
-            }
-        }
-        .sheet(isPresented: $showGuide) { PlayTableGuideView { showGuide = false } }
         .confirmationDialog(language.text("새 테이블을 시작할까요?", "Start a fresh table?"),
                             isPresented: $confirmNewTable, titleVisibility: .visible) {
             Button(language.text("테이블 다시 만들기", "Set up a new table")) {
@@ -260,10 +254,10 @@ struct FreeTableView: View {
             GTStableDockLayout(heightLimit: heightLimit) {
                 GeometryReader { geometry in
                     if heightLimit != nil {
-                        ScrollView { controls(table, minimumHeight: geometry.size.height) }
+                        ScrollView { dockFace(table, minimumHeight: geometry.size.height) }
                             .accessibilityIdentifier("free-dock-content")
                     } else {
-                        controls(table, minimumHeight: geometry.size.height)
+                        dockFace(table, minimumHeight: geometry.size.height)
                     }
                 }
                 dockSizingTemplates
@@ -274,6 +268,25 @@ struct FreeTableView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("free-dock")
+    }
+
+    @ViewBuilder
+    private func dockFace(_ table: PracticeTableState, minimumHeight: CGFloat) -> some View {
+        ZStack(alignment: .top) {
+            if !showHelp {
+                controls(table, minimumHeight: minimumHeight)
+                    .transition(reduceMotion ? .opacity : .modifier(
+                        active: DockFlipModifier(angle: -90), identity: DockFlipModifier(angle: 0)))
+            }
+            if showHelp {
+                FreeTableBackFace(table: table, frame: table.frame(after: shownCount(table)),
+                                  shownSteps: shownCount(table), tab: $helpTab,
+                                  revealFolded: $revealFolded, minimumHeight: minimumHeight) { showHelp = false }
+                    .transition(reduceMotion ? .opacity : .modifier(
+                        active: DockFlipModifier(angle: 90), identity: DockFlipModifier(angle: 0)))
+            }
+        }
+        .animation(.easeOut(duration: reduceMotion ? 0.15 : 0.45), value: showHelp)
     }
 
     // Reachable structures share the live presentation views; sizing never reads future cards.
@@ -309,6 +322,11 @@ struct FreeTableView: View {
             dockHeader(language.text("핸드가 끝났어요", "Hand over"), warning: nil, onMath: {})
             resultBody(netText: language.text("+100칩", "+100 chips"), positive: true,
                        onNext: {}, onReview: {}, onChange: {}) { Color.clear }
+        }
+        VStack(alignment: .leading, spacing: 12) {
+            FreeTableBackHeader(tab: .constant(.hint), onClose: {})
+            FreeTableMathSummary(pot: 100, call: 14, need: 25,
+                                 hand: language.text("Q 원페어", "Pair of queens"), top: nil, hole: [])
         }
     }
 
@@ -413,7 +431,7 @@ struct FreeTableView: View {
 
     private func statusRow(_ table: PracticeTableState) -> some View {
         dockHeader(dockTitle(table), warning: warning(table)) {
-            helpTab = table.review != nil && !isReplaying(table) ? .hand : .hint
+            helpTab = .hint
             showHelp = true
         }
     }
@@ -830,8 +848,25 @@ struct FreeTableView: View {
     private func configureDemoPhase(_ current: PracticeTableState) -> Bool {
         guard let phase = ProcessInfo.processInfo.environment["GT_DEMO_FREE_PHASE"] else { return false }
         let styles = current.computerSeats.map(\.style)
+        let backTab = ProcessInfo.processInfo.environment["GT_DEMO_FREE_BACK"]
         var fixture = PracticeTableState(seed: 97, styles: styles, handID: "demo-face")
-        if phase == "result-tie" {
+        if phase == "result-fold" {
+            fixture = PracticeTableState(seed: 31, styles: [.station], handID: "demo-fold-review")
+            try? fixture.apply(.fold, actionID: "demo-hero-fold")
+            precondition(fixture.review != nil, "Fold review fixture must settle")
+        } else if phase == "result-review" {
+            fixture = PracticeTableState(seed: 31, styles: [.station], handID: "demo-review-one")
+            try? fixture.apply(.fold, actionID: "demo-hand-one-fold")
+            try? fixture.nextHand(handID: "demo-review-two")
+            try? fixture.apply(.call, actionID: "demo-computer-limp")
+            try? fixture.apply(.check, actionID: "demo-hero-check")
+            for index in 0..<3 {
+                try? fixture.apply(.check, actionID: "demo-hero-check-\(index)")
+                try? fixture.apply(.raise(to: 2), actionID: "demo-computer-bet-\(index)")
+                try? fixture.apply(.call, actionID: "demo-hero-call-\(index)")
+            }
+            precondition(fixture.review?.board.count == 5, "Review fixture must be a legal settled showdown")
+        } else if phase == "result-tie" {
             fixture = PracticeTableState(seed: 311, styles: [.station, .station, .station], handID: "demo-tie")
         }
         if phase.hasPrefix("raise-postflop") {
@@ -911,6 +946,10 @@ struct FreeTableView: View {
             raising = true
             raiseAmount = sizing.minimum
         }
+        if let backTab {
+            showHelp = true
+            helpTab = backTab == "rules" ? .rules : backTab == "hand" ? .hand : .hint
+        }
         demoTable = fixture
         shownHandID = fixture.handID
         shownSteps = count
@@ -984,45 +1023,249 @@ enum FreeTableWords {
 
 enum FreeTableHelpTab: Hashable { case hint, hand, rules }
 
-/// The slide-up panel: facts about the current decision, this hand's story, and how the
-/// table works. The hint never names an action to take.
-private struct FreeTableHelpSheet: View {
+private struct DockFlipModifier: ViewModifier {
+    let angle: Double
+    func body(content: Content) -> some View {
+        content.rotation3DEffect(.degrees(angle), axis: (x: 1, y: 0, z: 0), anchor: .top)
+    }
+}
+
+@MainActor
+enum FreeTableCloseSymbol {
+    private static let cropped = crop()
+    static var image: UIImage { cropped.image }
+    static var sourceBounds: CGRect { cropped.bounds }
+    static var opaquePixelCount: Int { cropped.count }
+
+    // SF Symbols include transparent alignment gutters. Crop only those pixels,
+    // then let the body-scaled canvas and the minimum target size handle layout.
+    private static func crop() -> (image: UIImage, bounds: CGRect, count: Int) {
+        let symbol = UIImage(systemName: "arrow.clockwise",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 128, weight: .regular))
+        guard let symbol else { return (UIImage(), .zero, 0) }
+        let template = symbol.withTintColor(.white, renderingMode: .alwaysOriginal)
+        let raster = UIGraphicsImageRenderer(size: template.size).image { _ in template.draw(at: .zero) }
+        guard let source = raster.cgImage else { return (symbol.withRenderingMode(.alwaysTemplate), .zero, 0) }
+        let width = source.width, height = source.height
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        guard let context = CGContext(data: &bytes, width: width, height: height,
+            bitsPerComponent: 8, bytesPerRow: width * 4,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+            return (symbol.withRenderingMode(.alwaysTemplate), .zero, 0)
+        }
+        context.draw(source, in: CGRect(x: 0, y: 0, width: width, height: height))
+        var left = width, top = height, right = 0, bottom = 0, count = 0
+        for y in 0..<height {
+            for x in 0..<width where bytes[(y * width + x) * 4 + 3] > 0 {
+                left = min(left, x); top = min(top, y)
+                right = max(right, x + 1); bottom = max(bottom, y + 1); count += 1
+            }
+        }
+        let bounds = CGRect(x: left, y: top, width: right - left, height: bottom - top)
+        guard let visible = source.cropping(to: bounds) else {
+            return (symbol.withRenderingMode(.alwaysTemplate), .zero, 0)
+        }
+        let image = UIImage(cgImage: visible, scale: raster.scale,
+                            orientation: .up).withRenderingMode(.alwaysTemplate)
+        return (image, bounds, count)
+    }
+}
+
+private struct FreeTableBackHeader: View {
+    @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .body) private var firstRoleMetric = 18
+    @ScaledMetric(relativeTo: .body) private var closeSymbolSize = 17
+    @Binding var tab: FreeTableHelpTab
+    let onClose: () -> Void
+    var body: some View {
+        Group {
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 6) {
+                    close
+                    ScrollView(.horizontal) { tabs }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("free-back-tabs")
+                }
+            } else {
+                HStack(alignment: .top, spacing: 6) { tabs; close }
+            }
+        }
+        .padding(.top, min(GT.Space.sheet,
+            GT.TextRole.title(18).inkLeading(in: language) * firstRoleMetric / 18))
+    }
+    private var tabs: some View {
+        HStack(spacing: 6) {
+            button(.hint, language.text("계산", "Math"))
+            button(.hand, language.text("이번 핸드", "This hand"))
+            button(.rules, language.text("규칙", "Rules"))
+        }
+    }
+    private var close: some View {
+        Button(action: onClose) {
+            if typeSize.isAccessibilitySize {
+                Image(uiImage: FreeTableCloseSymbol.image).resizable().scaledToFit()
+                    .frame(width: closeSymbolSize, height: closeSymbolSize, alignment: .leading)
+                    .frame(minWidth: 44, minHeight: 44, alignment: .topLeading)
+            } else {
+                Image(uiImage: FreeTableCloseSymbol.image).resizable().scaledToFit()
+                    .frame(width: closeSymbolSize, height: closeSymbolSize, alignment: .trailing)
+                    .frame(width: 44, height: 44, alignment: .trailing)
+            }
+        }
+            .foregroundStyle(GT.ink).accessibilityLabel(language.text("테이블로 돌아가기", "Back to table"))
+            .accessibilityIdentifier("free-table-back-close")
+    }
+    private func button(_ value: FreeTableHelpTab, _ title: String) -> some View {
+        GTChoiceButton(title: title, selected: tab == value, minHeight: 44) { tab = value }
+            .fixedSize(horizontal: typeSize.isAccessibilitySize, vertical: false)
+            .accessibilityIdentifier("free-back-\(value)")
+            .accessibilityAddTraits(tab == value ? .isSelected : [])
+    }
+}
+
+struct FreeMathDots {
+    static func count(neededPercent: Int?) -> Int? {
+        guard let neededPercent, Double(neededPercent) >= 100.0 / 6 else { return nil }
+        return (2...6).min { abs(Double(neededPercent) / 100 - 1.0 / Double($0))
+            < abs(Double(neededPercent) / 100 - 1.0 / Double($1)) }
+    }
+}
+
+private struct FreeTableMathTiles: View {
+    @Environment(\.learningLanguage) private var language
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .body) private var dotSize = 6
+    @ScaledMetric(relativeTo: .body) private var dotGap = 4
+    let pot: Int
+    let call: Int
+    let need: Int?
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if typeSize.isAccessibilitySize {
+                ScrollView(.horizontal) { tiles }
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("free-math-row")
+            } else { tiles }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("free-math-tiles")
+    }
+    private var tiles: some View {
+        HStack(alignment: .top, spacing: 6) {
+            tile(language.text("팟", "Pot"), value: "\(pot)", id: "pot",
+                 background: GT.tableFelt, ink: .white)
+            tile(language.text("콜", "Call"), value: "\(call)", id: "call",
+                 labelInk: scheme == .dark ? GT.cta : Color(hex: 0x8A5500),
+                 background: scheme == .dark ? GT.cta.opacity(0.12) : Color(hex: 0xF5E6C8),
+                 ink: scheme == .dark ? GT.cta : Color(hex: 0x6B4300))
+            tile(language.text("필요 승률", "Need to win"), value: need.map { "\($0)%" } ?? "—", id: "need",
+                 background: scheme == .dark ? GT.glass : .white, ink: GT.ink,
+                 dots: FreeMathDots.count(neededPercent: need))
+        }
+    }
+    private func tile(_ label: String, value: String, id: String, labelInk: Color? = nil,
+                      background: Color, ink: Color, dots: Int? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label).font(GT.semibold(13)).foregroundStyle(labelInk ?? ink)
+                .fixedSize(horizontal: typeSize.isAccessibilitySize, vertical: true)
+            HStack(spacing: 6) {
+                Text(value).font(GT.title(24)).monospacedDigit()
+                    .fixedSize(horizontal: typeSize.isAccessibilitySize, vertical: true)
+                if let dots { dotGrid(dots) }
+            }
+        }
+        .frame(maxWidth: typeSize.isAccessibilitySize ? nil : .infinity, alignment: .leading)
+        .gtInset(10, firstText: .semibold(13))
+        .fixedSize(horizontal: typeSize.isAccessibilitySize, vertical: false)
+        .foregroundStyle(ink).background(background, in: RoundedRectangle(cornerRadius: GT.Radius.tile))
+        .overlay(RoundedRectangle(cornerRadius: GT.Radius.tile)
+            .strokeBorder(scheme == .dark ? GT.border : Color(hex: 0xE3DAC7), lineWidth: 1))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("free-math-\(id)")
+    }
+    private func dotGrid(_ count: Int) -> some View {
+        VStack(spacing: dotGap) {
+            ForEach(0..<((count + 1) / 2), id: \.self) { row in
+                HStack(spacing: dotGap) {
+                    ForEach(0..<2, id: \.self) { column in
+                        let index = row * 2 + column
+                        if index < count {
+                            if index == 0 {
+                                Circle().fill(Color(hex: 0xB37A12)).frame(width: dotSize, height: dotSize)
+                            } else {
+                                Circle().strokeBorder(GT.borderStrong, lineWidth: 1)
+                                    .frame(width: dotSize, height: dotSize)
+                            }
+                        } else { Color.clear.frame(width: dotSize, height: dotSize) }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(language.text("\(count)번 중 1번", "1 in \(count)"))
+    }
+}
+
+private struct FreeTableMathSummary: View {
+    @Environment(\.learningLanguage) private var language
+    let pot: Int
+    let call: Int
+    let need: Int?
+    let hand: String?
+    let top: Int?
+    let hole: [String]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            FreeTableMathTiles(pot: pot, call: call, need: need)
+            HStack(alignment: .top, spacing: 8) {
+                Text(language.text("내 패", "Hand")).font(GT.semibold(13))
+                if let hand { Text(hand).font(GT.semibold(15)) }
+                else {
+                    ForEach(hole, id: \.self) { raw in
+                        if let card = Card(raw) { PlayingCardView(card: card, size: 36) }
+                    }
+                    if let top {
+                        Text(language.text("상위 \(top)%", "Top \(top)%")).font(GT.semibold(13))
+                            .padding(6).background(GT.glass, in: Capsule())
+                    }
+                }
+            }.foregroundStyle(GT.ink).fixedSize(horizontal: false, vertical: true)
+             .accessibilityElement(children: .contain)
+             .accessibilityIdentifier("free-math-hand")
+        }
+    }
+}
+
+private struct FreeTableBackFace: View {
     @Environment(\.learningLanguage) private var language
     let table: PracticeTableState
+    let frame: PracticeTableFrame
+    let shownSteps: Int
     @Binding var tab: FreeTableHelpTab
     @Binding var revealFolded: Bool
-    let replaying: Bool
+    let minimumHeight: CGFloat
     let onClose: () -> Void
 
     var body: some View {
-        NavigationStack {
+        GTAnchoredDockFaceLayout(minimumHeight: minimumHeight, scrollsBody: true) {
+            FreeTableBackHeader(tab: $tab, onClose: onClose)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    HStack(spacing: 6) {
-                        tabButton(.hint, language.text("힌트", "Hint"))
-                        tabButton(.hand, language.text("이번 핸드", "This hand"))
-                        tabButton(.rules, language.text("도움말", "Help"))
-                    }
                     switch tab {
                     case .hint: hint
                     case .hand: hand
                     case .rules: rules
                     }
-                }
-                .gtContentEdge()
+                }.frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(FeltBackground())
-            .gtChrome(leading: { ChromeButton.close(onClose) })
-            .gtSheetSurface()
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("free-back-content")
+            .clipped()
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("free-table-help-sheet")
-    }
-
-    private func tabButton(_ value: FreeTableHelpTab, _ title: String) -> some View {
-        GTChoiceButton(title: title, selected: tab == value, minHeight: 40) { tab = value }
-            .accessibilityAddTraits(tab == value ? .isSelected : [])
     }
 
     private func panel<C: View>(_ label: String, @ViewBuilder _ content: () -> C) -> some View {
@@ -1039,62 +1282,21 @@ private struct FreeTableHelpSheet: View {
     // MARK: Hint
 
     @ViewBuilder private var hint: some View {
-        if !replaying, let facts = PracticeDecisionFacts(table: table) {
-            panel(language.text("내 핸드", "Your hand")) {
-                if let name = facts.startingHand, let top = facts.startingHandTopPercent {
-                    Text(language.text("\(name) · 시작 핸드 중 상위 \(top)%", "\(name) · top \(top)% of starting hands"))
-                        .font(GT.semibold(16))
-                    Text(language.text("Chen 점수로 줄 세운 순서예요. 자리와 상대에 따라 같은 핸드도 다르게 쳐요.",
-                                       "Ranked by Chen score. Seat and opponents change how the same hand plays."))
-                        .foregroundStyle(GT.inkSecondary)
-                } else if let made = facts.madeHand {
-                    Text(DrillTerms.hand(made, in: language)).font(GT.semibold(16))
-                    Text(language.text("내 카드 두 장과 공용 카드로 만든 지금의 족보예요.",
-                                       "Your best hand right now with the shared cards."))
-                        .foregroundStyle(GT.inkSecondary)
-                }
-            }
-            panel(language.text("가격", "The price")) {
-                if let equity = facts.requiredEquityPercent {
-                    Text(language.text("콜 \(facts.toCall)칩 · 팟 \(facts.pot + facts.toCall)칩",
-                                       "Call \(facts.toCall) · pot becomes \(facts.pot + facts.toCall)"))
-                        .font(GT.semibold(16)).monospacedDigit()
-                    Text(language.text("팟 오즈로 보면 이 콜은 끝까지 갔을 때 \(equity)% 넘게 이기면 본전 이상이에요. 앞으로 더 낼 칩은 빼고 본 값이에요.",
-                                       "By pot odds, this call breaks even if you win more than \(equity)% of the time. It ignores chips still to come."))
-                        .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    Text(language.text("지금은 칩을 더 내지 않고 넘길 수 있어요.", "You can check without paying."))
-                }
-            }
-            panel(language.text("상대", "Opponents")) {
-                ForEach(table.computerSeats.filter { !table.seats[$0.seat].folded }, id: \.seat) { entry in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(language.text("컴퓨터 \(entry.seat) · \(entry.style.beginnerTitle(in: language))",
-                                           "Computer \(entry.seat) · \(entry.style.beginnerTitle(in: language))"))
-                            .font(GT.semibold(15))
-                        Text(entry.style.beginnerDescription(in: language))
-                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-            Text(language.text("힌트는 사실만 보여 줘요. 무엇을 고를지는 정해 주지 않아요.",
-                               "Hints show facts only. They never pick for you."))
-                .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-        } else {
-            panel(language.text("힌트", "Hint")) {
-                Text(table.review != nil
-                     ? language.text("핸드가 끝났어요. ‘이번 핸드’에서 돌아볼 수 있어요.",
-                                     "The hand is over. See ‘This hand’ to look back.")
-                     : language.text("힌트는 내 차례에 열려요.", "Hints open on your turn."))
-            }
+        if let facts = PracticeDecisionFacts(frame: frame, learnerHole: table.learnerHole,
+                                             visibleBoard: table.review?.board ?? table.visibleBoard) {
+            FreeTableMathSummary(pot: facts.pot, call: facts.toCall, need: facts.requiredEquityPercent,
+                                 hand: facts.madeHand.map { DrillTerms.hand($0, in: language) },
+                                 top: facts.startingHandTopPercent, hole: table.learnerHole)
         }
     }
 
     // MARK: This hand
 
     @ViewBuilder private var hand: some View {
-        let events = table.review?.events ?? table.events
+        let visibleIndices = table.replaySteps.prefix(shownSteps).compactMap { step -> Int? in
+            if case let .action(index) = step { return index }; return nil
+        }
+        let events = visibleIndices.map { table.events[$0] }
         panel(language.text("행동 순서", "Action history")) {
             ForEach(Array(Dictionary(grouping: events.indices, by: { events[$0].street })
                 .sorted { order($0.key) < order($1.key) }), id: \.key) { street, indices in
@@ -1108,7 +1310,14 @@ private struct FreeTableHelpSheet: View {
             }
         }
         .accessibilityIdentifier("free-table-history")
-        if let review = table.review, !replaying {
+        ForEach(table.computerSeats, id: \.seat) { entry in
+            VStack(alignment: .leading, spacing: 4) {
+                Text(seatName(entry.seat)).font(GT.semibold(15))
+                Text(entry.style.beginnerDescription(in: language)).font(GT.body(14))
+            }.foregroundStyle(GT.ink)
+        }
+        if let review = table.review, frame.settled {
+            FreeTableDecisionReview(table: table)
             panel(language.text("칩 이동", "Chip movement")) {
                 Text(language.text("이긴 결과와 좋은 결정은 달라요. 여기서는 실제 칩 이동만 확인해요.",
                                    "Winning a hand and making a good decision aren't the same. This shows the actual chip movement."))
@@ -1126,6 +1335,7 @@ private struct FreeTableHelpSheet: View {
                 }
             }
             Toggle(language.text("폴드한 상대 카드도 보기", "Show folded opponents' cards"), isOn: $revealFolded)
+                .accessibilityIdentifier("free-review-folded")
                 .font(GT.body(14)).foregroundStyle(GT.ink)
             Text(language.text("상대 카드는 플레이할 때 알 수 없었던 정보예요.",
                                "Opponent cards were not available to you while playing."))
@@ -1185,10 +1395,14 @@ private struct FreeTableHelpSheet: View {
 
     @ViewBuilder private var rules: some View {
         PlayTableGuideList()
-        DisclosureGroup(language.text("컴퓨터는 어떻게 고를까요?", "How do the computers choose?")) {
+        DisclosureGroup {
             FreeTablePolicyDetails(table: table).padding(.top, 12)
+        } label: {
+            Text(language.text("컴퓨터는 어떻게 고를까요?", "How do the computers choose?"))
+                .accessibilityIdentifier("free-table-policy-toggle")
         }
         .font(GT.semibold(15)).foregroundStyle(GT.ink)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("free-table-policy")
     }
 }

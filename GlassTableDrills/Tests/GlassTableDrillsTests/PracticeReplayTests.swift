@@ -101,3 +101,63 @@ func computerSeatsMatchTheTableSize(computers: Int) {
     }
     #expect(found)
 }
+
+@Test func decisionFactsExcludeUnmatchedOpponentChips() throws {
+    var table = PracticeTableState.fixture(seed: 31, stacks: [9, 3, 6, 15])
+    try table.apply(.raise(to: 4), actionID: "raise4")
+    try table.apply(.call, actionID: "hero4")
+    try table.apply(.fold, actionID: "sb-fold")
+    try table.apply(.fold, actionID: "bb-fold")
+    try table.apply(.raise(to: 11), actionID: "bet11")
+    let facts = try #require(PracticeDecisionFacts(table: table))
+    #expect(facts.pot == 22)
+    #expect(facts.toCall == 5)
+    #expect(facts.requiredEquityPercent == 24)
+    #expect(facts.madeHand != nil)
+    try table.apply(.call, actionID: "hero-allin")
+    #expect(table.review?.refunds[3] == 6)
+    #expect(table.review?.pots.reduce(0) { $0 + $1.amount } == 21)
+}
+
+@Test func decisionFactsSubtractNewShortBlindRefund() throws {
+    var table = PracticeTableState.fixture(seed: 23, stacks: [100, 1, 1, 1], dealer: 0)
+    try table.apply(.call, actionID: "last-opponent-call")
+    let facts = try #require(PracticeDecisionFacts(table: table))
+    #expect(facts.pot == 3)
+    #expect(facts.toCall == 2)
+    #expect(facts.requiredEquityPercent == 25)
+    try table.apply(.call, actionID: "hero-call")
+    #expect(table.review?.refunds[0] == 1)
+    #expect(table.review?.pots.reduce(0) { $0 + $1.amount } == 4)
+}
+
+@Test func publicFactsStayAtTheirRenderedPrefix() throws {
+    var table = PracticeTableState(seed: 97, styles: [.station])
+    try table.advanceBots()
+    let count = table.replaySteps.count
+    let board = table.visibleBoard
+    let before = PracticeDecisionFacts(frame: table.frame(after: count),
+                                       learnerHole: table.learnerHole, visibleBoard: board)
+    for index in 0..<30 where table.review == nil {
+        try table.apply(table.legalActions.contains(.call) ? .call : .check, actionID: "hero-\(index)")
+        try table.advanceBots()
+    }
+    let after = PracticeDecisionFacts(frame: table.frame(after: count),
+                                      learnerHole: table.learnerHole,
+                                      visibleBoard: table.review?.board ?? table.visibleBoard)
+    #expect(before == after)
+}
+
+@Test func publicFactsSafelyEvaluateFlopAndTurn() {
+    let table = PracticeTableState(seed: 1, styles: [.station])
+    let hole = table.learnerHole
+    var frame = table.frame(after: 2)
+    for board in [["2c", "7d", "Jh"], ["2c", "7d", "Jh", "9s"]] {
+        frame.boardCount = board.count
+        frame.street = board.count == 3 ? .flop : .turn
+        #expect(PracticeDecisionFacts(frame: frame, learnerHole: ["As", "Kd"], visibleBoard: board)?.madeHand != nil)
+    }
+    frame.folded[0] = true
+    #expect(PracticeDecisionFacts(frame: frame, learnerHole: hole, visibleBoard: [])?.toCall == 0)
+    #expect(PracticeDecisionFacts(frame: frame, learnerHole: hole, visibleBoard: [])?.requiredEquityPercent == nil)
+}
