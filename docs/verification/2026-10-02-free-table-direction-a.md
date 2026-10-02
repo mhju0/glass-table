@@ -127,3 +127,24 @@ affected gate 13/17, final back helper 6/6. No failing tracked method remains.
 Only excluded untracked UXAuditCrawl is skipped; no audit tool was changed.
 The exact commands and all failures are reproduced in the companion
 [Step 8 command and failure ledger](2026-10-02-direction-a-step-8-ledger.md).
+
+## Retained 베팅 source strings, verbatim
+
+These 14 occurrences refer to rounds, future betting assumptions or the general process; uncertain general/process cases remain listed for owner review. Named action labels use 벳.
+
+```text
+GlassTable/Sources/Screens/LearningGuideView.swift:108:                  example: "블라인드 → 프리플랍 베팅 → 플랍 3장 → 턴 1장 → 리버 1장\n\n폴드는 포기, 체크는 칩을 더 내지 않고 넘기기, 콜은 상대 금액에 맞추기, 레이즈는 금액을 더 올리기예요.",
+GlassTable/Sources/Screens/LearningGuideView.swift:121:                  question: "추가 베팅과 수수료가 없다고 할 때, 이 콜에 필요한 에퀴티는 얼마일까요?",
+GlassTable/Sources/Screens/LearningGuideView.swift:123:                  explanation: "낼 돈 4 ÷ 콜한 뒤 팟 20 = 20%예요. 실제 여러 스트리트의 결정에는 이후 베팅도 영향을 줘요."),
+GlassTable/Sources/Screens/LearningGuideView.swift:131:                  body: "이 앱의 상대는 전략이 공개된 연습용 모델이에요. 프리플랍은 앱의 차트로, 포스트플랍 EV는 현재 벳 뒤 추가 베팅이 없다는 가정으로 평가해요. 실제 상대의 전략이나 GTO 해답은 아니에요.",
+GlassTable/Sources/Screens/LearningGuideView.swift:132:                  example: "확인할 것\n어떤 레인지인가요?\n어떤 행동과 크기를 허용하나요?\n이후 베팅을 어떻게 가정하나요?",
+GlassTable/Sources/Screens/FirstLessonView.swift:413:            intro(language.text("카드가 나올 때마다 베팅해요", "A round of betting after each deal"),
+GlassTable/Sources/Screens/FirstLessonView.swift:414:                  language.text("공용 카드 5장은 세 번에 나눠 펼쳐요. 펼칠 때마다 한 바퀴씩 베팅하고, 폴드하지 않은 사람만 다음으로 가요.",
+GlassTable/Sources/Screens/FirstLessonView.swift:447:                Text(language.text("→ 베팅", "→ betting"))
+GlassTable/Sources/Screens/FirstLessonView.swift:471:                             language.text("베팅", "betting")].joined(separator: ", "))
+GlassTable/Sources/Screens/FirstLessonView.swift:521:                checkRow(language.text("프리플랍 · 플랍 · 턴 · 리버마다 베팅", "A betting round on every street"))
+GlassTable/Sources/Screens/FreeTableView.swift:1593:            Text(language.text("컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요.", "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."))
+GlassTable/Sources/Screens/TableView.swift:509:            Text(language.text("체크다운 근사 · 이후 베팅 없음, 레이크 제외",
+GlassTable/Sources/Screens/PlacementView.swift:114:        default: language.text("팟 10칩에 상대가 5칩을 걸었어요. 5칩을 콜하고 추가 베팅이 없다면, 최소 얼마나 자주 이겨야 손해가 아닐까요?", "The pot is 10 chips and an opponent bets 5. With no later betting, how often must you win to break even on a 5-chip call?")
+GlassTable/Sources/Screens/OpponentPickerView.swift:77:                    Text(language.text("공개된 모델의 기준값이에요. 두 비율 모두 전체 핸드 기준이며, 실제 선택은 카드와 베팅 상황에 따라 달라져요. 관측한 성적이나 난이도가 아니에요.", "These are published model reference values, both measured per hand. Choices vary with cards and the betting situation. They aren't observed results or difficulty ratings."))
+```

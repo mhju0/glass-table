@@ -170,3 +170,20 @@ Full entries: [steps 2–4 archive](handoff-archive/2026-10-02-direction-a-steps
   VoiceOver and older-runtime checks remain.14 retained 베팅 strings listed in
   report. Next: queued support email/privacy/support-page task, publish separately
   without pushing the redesign branch. No email/App Store/Notion actions.
+
+## 2026-10-02 — Support contact and public pages verified
+
+- After Direction A0–8, isolated support branch from published main79ce374;
+  four-file PR10 merged as8e808ca. No redesign commits pushed. Local support
+  cherry-pick46e6ff5 preserves existing UI; feedback subject/Link unchanged.
+- MJ Apps Support / mj.apps.support@gmail.com in Settings, bilingual policy and
+  new docs/support.html. Submission Support URL updated. Historical plans kept.
+  Policy clarifies voluntary email and local/export/OS-backup distinctions.
+- XcodeGen/generic build +67 main-base units pass; integrated Direction A build
+  passes. Pages deploy36976488804 succeeds; actual support/privacy200, desktop/
+  mobile PNGs and mail/privacy links verified. Stale browser cache refreshed;
+  rejected capture preserved. GitHub app CI running at snapshot, not claimed.
+- URLs: https://mhju0.github.io/glass-table/support.html and privacy-policy.html
+  on the same base. See docs/verification/2026-10-02-support-publication.md.
+  No emails, Notion/ASC changes or submission. Remaining owner checks are real
+  phone haptics, VoiceOver, older runtimes and existing release gates.
