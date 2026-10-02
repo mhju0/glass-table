@@ -128,7 +128,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let second = table.descendants(matching: .any)
             .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer 2,")).firstMatch
         XCTAssertTrue(second.exists)
-        XCTAssertTrue(second.label.contains("two face-down cards"), second.label)
+        XCTAssertTrue(second.label.contains("2 face-down cards"), second.label)
     }
 
     func testSettingsListsProblemGamblingHelplines() {
@@ -227,21 +227,40 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(headsUp.waitForExistence(timeout: 5))
     }
 
-    func testSettingsLastRowAndOtherTabsStayReachableAtAccessibilityXXXL() {
+    func testSettingsLastRowAndOtherTabsStayReachableAtAccessibilityXXXL() { settingsLastRow(code: "en") }
+    func testSettingsKOLastRowAndOtherTabsStayReachableAtAccessibilityXXXL() { settingsLastRow(code: "ko") }
+
+    private func settingsLastRow(code: String) {
         let app = app()
-        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launchArguments = ["-AppleLanguages", "(\(code))", "-glassTable.language", code == "ko" ? "korean" : "english",
+                               "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
         let tabs = app.tabBars.buttons
-        XCTAssertTrue(tabs["Settings"].waitForExistence(timeout: 15))
-        tabs["Settings"].tap()
-        let version = app.staticTexts["Version"]
-        for _ in 0..<14 where !version.isHittable { app.swipeUp() }
-        XCTAssertTrue(version.isHittable, "The last Settings row must clear the tab bar")
-        for title in ["Learn", "Play", "Progress", "Settings"] {
+        let titles = code == "ko" ? ["배우기", "플레이", "기록", "설정"] : ["Learn", "Play", "Progress", "Settings"]
+        XCTAssertTrue(tabs[titles[3]].waitForExistence(timeout: 15))
+        tabs[titles[3]].tap()
+        let version = app.staticTexts[code == "ko" ? "버전" : "Version"]
+        XCTAssertTrue(version.waitForExistence(timeout: 10))
+        let values = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", #"[0-9]+(?:\.[0-9]+)* \([0-9]+\)"#))
+        XCTAssertEqual(values.count, 1, "The displayed app version and build value")
+        let value = values.firstMatch
+        var visible = false
+        for _ in 0..<40 {
+            let scroll = app.scrollViews.firstMatch.frame
+            let top = max(scroll.minY, app.frame.minY + 60)
+            let bottom = app.tabBars.firstMatch.frame.minY
+            if min(version.frame.minY, value.frame.minY) >= top, max(version.frame.maxY, value.frame.maxY) <= bottom, version.isHittable { visible = true; break }
+            print("Version traversal \(code): label=\(version.frame), value=\(value.frame), viewport=\(top)...\(bottom)")
+            let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 25, dy: app.frame.midY))
+            start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -min(220, max(40, max(version.frame.maxY, value.frame.maxY) - bottom)))), withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
+        XCTAssertTrue(visible, "Version frame=\(version.frame), tabbar=\(app.tabBars.firstMatch.frame)")
+        print("Version full bounds \(code): frame=\(version.frame), value=\(value.label) \(value.frame), scroll=\(app.scrollViews.firstMatch.frame), tabbar=\(app.tabBars.firstMatch.frame)")
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = "settings-version-full-AX5-\(code)"; capture.lifetime = .keepAlways; add(capture)
+        for title in titles {
             let tab = tabs[title]
-            XCTAssertTrue(tab.isHittable)
-            tab.tap()
-            XCTAssertTrue(tab.isSelected)
+            XCTAssertTrue(tab.isHittable); tab.tap(); XCTAssertTrue(tab.isSelected)
         }
     }
 
@@ -483,7 +502,7 @@ final class BeginnerReleaseTests: XCTestCase {
             let label = table.descendants(matching: .any)
                 .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(seat),")).firstMatch
             XCTAssertTrue(label.exists, "Computer \(seat) seat")
-            XCTAssertTrue(label.label.contains("two face-down cards"), label.label)
+            XCTAssertTrue(label.label.contains("2 face-down cards"), label.label)
         }
         let you = table.descendants(matching: .any)
             .matching(NSPredicate(format: "label BEGINSWITH %@", "You,")).firstMatch

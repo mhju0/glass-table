@@ -123,7 +123,7 @@ final class FreeTableBackFlowTests: XCTestCase {
         reveal(policy, app: app, scroll: body)
         policy.tap()
         let text = language == "ko"
-            ? "컴퓨터는 각 베팅 라운드에 베팅하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 베팅 횟수를 제한하는 규칙은 아니에요."
+            ? "컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요."
             : "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."
         let end = app.staticTexts.matching(NSPredicate(format: "label == %@", text)).firstMatch
         XCTAssertTrue(end.waitForExistence(timeout: 5))
@@ -261,18 +261,21 @@ final class FreeTableBackFlowTests: XCTestCase {
     private func reveal(_ target: XCUIElement, app: XCUIApplication, scroll: XCUIElement, windowBottomInset: CGFloat = 20) {
         XCTAssertTrue(target.waitForExistence(timeout: 5))
         let window = app.windows.firstMatch.frame
-        for _ in 0..<16 {
+        for _ in 0..<40 {
             let frame = target.frame
             let top = max(130, scroll.frame.minY)
             let bottom = min(window.maxY - windowBottomInset, scroll.frame.maxY)
             if frame.minY >= top - 0.5 && frame.maxY <= bottom + 0.5 { return }
+            print("reveal \(target.identifier): target=\(frame), viewport=\(top)...\(bottom)")
             let startY = min(bottom - 50, window.maxY - 80)
-            let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: window.midX, dy: startY))
+            let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: max(25, scroll.frame.minX + 5), dy: startY))
             let delta: CGFloat = frame.maxY > bottom
-                ? max(-70, min(-24, bottom - frame.maxY - 2))
-                : min(70, max(24, top - frame.minY + 2))
-            start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: delta)))
+                ? max(-120, min(-24, bottom - frame.maxY - 2))
+                : min(120, max(24, top - frame.minY + 2))
+            start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: delta)),
+                        withVelocity: .slow, thenHoldForDuration: 0.3)
         }
+        attach(app, "unreachable-\(target.identifier)")
         XCTFail("Unreachable target \(target.identifier): \(target.frame), scroll \(scroll.frame)")
     }
 

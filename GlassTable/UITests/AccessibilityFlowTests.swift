@@ -70,7 +70,7 @@ final class AccessibilityFlowTests: XCTestCase {
             if id == "practice-0" {
                 XCTAssertTrue(seat.label.contains(code == "ko" ? "남은 칩" : "chips left"), seat.label)
             } else if id != "practice-empty" {
-                XCTAssertTrue(seat.label.contains(code == "ko" ? "뒷면 카드 두 장" : "two face-down cards"))
+                XCTAssertTrue(seat.label.contains(code == "ko" ? "뒷면 카드 2장" : "2 face-down cards"), seat.label)
             }
             let capture = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
             capture.name = "free-table-seat-AX5-\(code)-\(players)-\(id)"

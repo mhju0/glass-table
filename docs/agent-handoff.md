@@ -151,3 +151,22 @@ Full entries: [steps 2–4 archive](handoff-archive/2026-10-02-direction-a-steps
   No Engine/progression/new saved setting/excluded audit edits or push. Next8
   full tracked suite plus exact RangeRead/Settings/Basics scroll reach. Physical
   haptics/VoiceOver/older runtimes remain unverified; support task remains last.
+
+## 2026-10-02 — Direction A step 8 complete
+
+- Added real RangeRead KO/EN large/AX5 comparison/last-row/Next outcomes, bilingual
+  AX Basics navigation and complete Settings Version label/value reach checks.
+  Updated stale hidden-card/action selectors; scrolling helpers use gutters and
+  bounded slow drags. Product sources remain identical to Step7 fingerprint.
+- Generic build and Drills398 pass; app units99 pass. Full UI123/134 initially
+  passed; affected13/17 then final6/6 passed. All134 unique tracked methods now
+  have passing outcomes with failure history preserved, not one green full run.
+  See docs/verification/2026-10-02-free-table-direction-a.md and companion ledger.
+- Accepted544 sweep slots plus focused native evidence; root inspected final17
+  back-face,22 seat/rotation and2 Version PNGs. AX paragraphs require scrolling;
+  one-pixel native frame allowance and debug-review settlement limits documented.
+- All Steps0–8 committed locally without push. Engine/progression/settings and
+  excluded audits untouched; Math outs/fast-table deferred. Owner phone haptics,
+  VoiceOver and older-runtime checks remain.14 retained 베팅 strings listed in
+  report. Next: queued support email/privacy/support-page task, publish separately
+  without pushing the redesign branch. No email/App Store/Notion actions.
