@@ -181,8 +181,7 @@ struct TableSurface: View {
                 cards(seat)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .gtInset(GT.Space.seat, firstText: .semibold(14))
         .frame(maxWidth: .infinity, minHeight: 60, maxHeight: .infinity, alignment: .leading)
         .background(GT.tableSeat, in: shape)
         .overlay {
@@ -515,7 +514,7 @@ struct TableSurface: View {
                 ForEach(visuals.flights) { flight in
                     let from = flightPoint(flight.from, pot: pot), to = flightPoint(flight.to, pot: pot)
                     let t = flight.progress
-                    let eased = flight.cargo == .dealer ? 1 - (1 + 10 * t) * exp(-10 * t) : t * t * (3 - 2 * t)
+                    let eased = flight.cargo == .dealer ? t : t * t * (3 - 2 * t)
                     Group {
                         switch flight.cargo {
                         case .card: PlayingCardView(card: Card(rank: 2, suit: 0), size: 36, faceDown: true)

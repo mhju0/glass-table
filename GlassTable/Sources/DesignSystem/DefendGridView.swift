@@ -102,9 +102,9 @@ struct DefendGridView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(10)
+        .gtInset(GT.Space.card, firstText: .title(17))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(GT.surface, in: RoundedRectangle(cornerRadius: 12))
+        .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(language.text("내 핸드 \(hand.description), 디펜드 차트 판정 \(verdict.rawValue)", "My hand \(hand.description), chart action \(verdict.englishTitle)"))
         .accessibilityIdentifier("defend-selected-evidence")

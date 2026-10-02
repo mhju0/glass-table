@@ -33,7 +33,7 @@ struct ProgressSaveNotice: ViewModifier {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .foregroundStyle(GT.ink)
-                .padding(.horizontal, 18).padding(.bottom, 12)
+                .padding(.horizontal, GT.Space.edge).padding(.bottom, 12)
                 .background(GT.glass)
             }
         }

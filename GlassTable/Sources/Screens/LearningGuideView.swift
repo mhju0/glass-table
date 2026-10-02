@@ -22,8 +22,8 @@ struct LearningGuideView: View {
                 Text(lesson.body).font(GT.body(17)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(lesson.example).font(GT.semibold(19)).foregroundStyle(GT.onFelt)
-                    .padding(20).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(GT.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .gtInset(GT.Space.card, firstText: .semibold(19)).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
                 if let question = lesson.question {
                     Text(question).font(GT.semibold(17)).foregroundStyle(GT.onFelt)
                     VStack(spacing: 12) {
@@ -35,9 +35,9 @@ struct LearningGuideView: View {
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                                 .font(GT.semibold(16)).foregroundStyle(GT.onFelt)
-                                .padding(16).frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
-                                .background(GT.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .gtInset(GT.Space.card, firstText: .semibold(16)).frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+                                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                                     .strokeBorder(answer == index ? GT.mint : GT.borderStrong, lineWidth: 1))
                             }
                             .buttonStyle(GTPress())
@@ -128,14 +128,14 @@ private struct StudyNote {
                   choices: ["네, 졌으니 잘못된 콜이에요", "아니요, 결정할 때의 확률과 가격을 봐요"], correct: 1,
                   explanation: "결정할 때 알 수 있었던 정보로 평가해요. 결과만 보고 판단을 바꾸면 운과 실력을 혼동하기 쉬워요."),
         StudyNote(title: "정답의 조건도 배워요",
-                  body: "이 앱의 상대는 전략이 공개된 연습용 모델이에요. 프리플랍은 앱의 차트로, 포스트플랍 EV는 현재 베팅 뒤 추가 베팅이 없다는 가정으로 평가해요. 실제 상대의 전략이나 GTO 해답은 아니에요.",
+                  body: "이 앱의 상대는 전략이 공개된 연습용 모델이에요. 프리플랍은 앱의 차트로, 포스트플랍 EV는 현재 벳 뒤 추가 베팅이 없다는 가정으로 평가해요. 실제 상대의 전략이나 GTO 해답은 아니에요.",
                   example: "확인할 것\n어떤 레인지인가요?\n어떤 행동과 크기를 허용하나요?\n이후 베팅을 어떻게 가정하나요?",
                   question: "여기서 배운 차트가 모든 게임의 정답일까요?",
                   choices: ["아니요, 조건과 상대에 따라 달라져요", "네, 차트의 답은 항상 같아요"],
                   explanation: "차트와 모델은 생각하는 법을 익히는 도구예요. 조건이 달라지면 최선의 결정도 달라질 수 있어요."),
         StudyNote(title: "더 깊이 공부하는 순서예요",
                   body: "기초를 익힌 뒤에는 한 번에 한 조건을 바꿔 보세요. 답을 보기 전에 달라질 방향을 예상하고, 이유를 설명한 뒤, 며칠 후 다시 풀어 보세요.",
-                  example: "기초와 가격 → 포지션과 레인지 → 보드와 행동 → EV 결정 → 핸드 복기\n\n그다음 공부할 것: 스택 깊이, 베팅 크기, 레이크, 여러 스트리트의 전략과 분산. 코스를 마쳐도 프로 실력이나 수익이 보장되지는 않아요.")
+                  example: "기초와 가격 → 포지션과 레인지 → 보드와 행동 → EV 결정 → 핸드 복기\n\n그다음 공부할 것: 스택 깊이, 벳 크기, 레이크, 여러 스트리트의 전략과 분산. 코스를 마쳐도 프로 실력이나 수익이 보장되지는 않아요.")
     ]
 
     static let englishLessons: [StudyNote] = [

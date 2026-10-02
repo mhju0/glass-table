@@ -40,7 +40,7 @@ struct FirstLessonView: View {
                     VStack(alignment: .leading, spacing: GT.Space.section) {
                         content
                         VStack(alignment: .leading, spacing: GT.Space.related) { panel }
-                            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(GT.Space.sheet).frame(maxWidth: .infinity, alignment: .leading)
                             .background(panelBand?.tint ?? GT.glass,
                                         in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
                             .overlay {
@@ -285,7 +285,7 @@ struct FirstLessonView: View {
                             detail: language.text("마지막까지 남은 사람끼리 패를 보여주고, 더 좋은 패가 이겨요.",
                                                   "Players still in at the end show their hands, and the better hand wins."))
             }
-            .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
+            .gtInset(GT.Space.card, firstText: .title(16)).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
         }
     }
@@ -362,7 +362,7 @@ struct FirstLessonView: View {
     private var actionsPage: some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
             intro(language.text("내 차례엔 넷 중 하나를 골라요", "On your turn, pick one of four"),
-                  language.text("베팅은 한 사람씩 돌아가며 해요.", "Players act one at a time, in turn."))
+                  language.text("행동은 한 사람씩 돌아가며 해요.", "Players act one at a time, in turn."))
             VStack(spacing: 0) {
                 let rows = [
                     (language.text("폴드", "Fold"),
@@ -506,7 +506,7 @@ struct FirstLessonView: View {
             .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
             .lineSpacing(GT.Typography.explanationLineSpacing)
             .fixedSize(horizontal: false, vertical: true)
-            .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
+            .gtInset(GT.Space.card, firstText: .body(16)).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
         }
     }
@@ -521,7 +521,7 @@ struct FirstLessonView: View {
                 checkRow(language.text("프리플랍 · 플랍 · 턴 · 리버마다 베팅", "A betting round on every street"))
                 checkRow(language.text("7장 중 가장 좋은 5장", "Best five of seven"))
             }
-            .gtInset(GT.Space.card).frame(maxWidth: .infinity, alignment: .leading)
+            .gtInset(GT.Space.card, firstText: .semibold(15)).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
             if opensBasics {
                 Text(language.text("다음은 족보예요. 어떤 5장이 더 강한지 알아봐요.",
@@ -578,7 +578,7 @@ struct FirstLessonView: View {
                 Label(copy(.pairRule),
                       systemImage: "lightbulb.fill")
                     .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-                    .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                    .gtInset(GT.Space.card, firstText: .semibold(14)).frame(maxWidth: .infinity, alignment: .leading)
                     .gtPanel()
             }
         }
@@ -611,7 +611,7 @@ struct FirstLessonView: View {
             pulse = !reduceMotion
         } label: {
             handLayout(label: handChoiceLabel(title), cards: cards)
-                .gtInset(GT.Space.card).frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
+                .gtInset(GT.Space.card, firstText: dynamicTypeSize.isAccessibilitySize ? .title(17) : nil).frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
                 .background(GT.surface,
                             in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
@@ -665,7 +665,7 @@ struct FirstLessonView: View {
             sevenCards(hole: cards, board: spot.board, size: 44)
                 .frame(maxWidth: .infinity)
         }
-            .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+            .gtInset(GT.Space.card, firstText: inline && mark != nil ? .semibold(12) : .title(16)).frame(maxWidth: .infinity, alignment: .leading)
             .background(mark?.band.tint ?? GT.glass,
                         in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
             .overlay {

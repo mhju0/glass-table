@@ -18,11 +18,11 @@ struct TodayView: View {
                 recommendation
                 context
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, GT.Space.edge)
         }
         .safeAreaInset(edge: .bottom) {
             primaryAction
-                .padding(.horizontal, 18).padding(.vertical, 10)
+                .padding(.horizontal, GT.Space.edge).padding(.vertical, 10)
                 .background(GT.felt)
         }
         .gtTabBarClearance(20)
@@ -106,7 +106,7 @@ struct TodayView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(20)
+        .gtInset(GT.Space.card, firstText: .semibold(13))
         .frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: GT.Radius.panel)
     }

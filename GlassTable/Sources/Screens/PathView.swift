@@ -27,7 +27,7 @@ struct PathView: View {
                         unitSection(unit, index: index)
                     }
                 }
-                .padding(.horizontal, 18)
+                .padding(.horizontal, GT.Space.edge)
             }
             .gtTabBarClearance()
             .background(FeltBackground())

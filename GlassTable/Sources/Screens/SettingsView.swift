@@ -237,7 +237,7 @@ struct SettingsView: View {
                         Text(version).font(GT.body(14)).foregroundStyle(GT.inkMuted)
                             .monospacedDigit()
                     }
-                    .padding(16)
+                    .padding(GT.Space.card)
                 }
                 .gtCard(radius: 20)
             }
@@ -383,7 +383,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .padding(16)
+        .gtInset(GT.Space.card, firstText: .semibold(15))
         .gtCard(radius: 20)
         .onChange(of: language) { _, _ in if reminderOn { scheduleReminder() } }
     }
@@ -420,7 +420,7 @@ struct SettingsView: View {
                     .foregroundStyle(GT.inkMuted)
             }
         }
-        .padding(16)
+        .padding(GT.Space.card)
         .contentShape(Rectangle())
     }
 }
@@ -475,7 +475,7 @@ private struct ResponsiblePlayView: View {
                                     .font(.system(size: 15, weight: .semibold))
                                     .foregroundStyle(GT.green)
                             }
-                            .padding(16).contentShape(Rectangle())
+                            .padding(GT.Space.card).contentShape(Rectangle())
                         }
                         .buttonStyle(GTPress())
                         .accessibilityLabel(language.text("\(line.region.ko) 상담 \(line.number)에 전화",

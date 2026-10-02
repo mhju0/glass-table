@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import GlassTableDrills
 import GlassTableEngine
 
@@ -48,6 +49,8 @@ struct FreeTableReplayProjection {
 
 /// Local visual work reads model facts and never applies a game action.
 struct FreeTableReplayPlan {
+    static let dealerSpring = Spring(response: 0.4, dampingRatio: 1)
+
     enum Work: Equatable {
         case clear, refill([Int]), dealer, blinds([Int]), holes
         case think(Int), action(Int, Int), sweep, deal(Int, PracticeStreet, Bool), reveal(Int)
@@ -135,7 +138,7 @@ struct FreeTableReplayPlan {
             add(.clear, 300)
             let seats = previous.review?.endingStacks.indices.filter { previous.review?.endingStacks[$0] == 0 } ?? []
             if !seats.isEmpty { add(.refill(seats), 400) }
-            add(.dealer, 400)
+            add(.dealer, Self.dealerSpring.settlingDuration * 1_000)
         }
         var exposed: Set<Int> = [0]
         var runout = false
@@ -257,7 +260,8 @@ struct FreeTableReplayPlan {
         case let .refill(seats):
             for seat in seats { p.frame.stacks[seat] = Int(100 * progress); if !complete { p.refilling[seat] = p.frame.stacks[seat] } }
         case .dealer:
-            if !complete, let previous { p.visuals.dealerMoving = true; flight("dealer", .seat(previous.dealer), .seat(table.dealer), .dealer, progress) }
+            if !complete, let previous { p.visuals.dealerMoving = true; flight("dealer", .seat(previous.dealer), .seat(table.dealer), .dealer,
+                    Self.dealerSpring.value(target: 1.0, initialVelocity: 0, time: local / 1_000)) }
         case let .blinds(indices):
             for (offset, eventIndex) in indices.enumerated() {
                 let event = table.events[eventIndex]

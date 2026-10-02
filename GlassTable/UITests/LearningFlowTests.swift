@@ -608,7 +608,7 @@ final class LearningFlowTests: XCTestCase {
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_DEMO_TABLE": "tag"]
         app.launch()
-        XCTAssertTrue(app.buttons["폴드, 0bb"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["table-fold"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(
             format: "label CONTAINS %@", "프리플랍 판정은 디펜드 차트 기준"
         )).firstMatch.exists)
@@ -624,7 +624,7 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["table-policy-range-summary"].exists)
         XCTAssertTrue(app.staticTexts["포스트플랍 기본 · 상대가 먼저 행동할 때"].exists)
         app.buttons["닫기"].tap()
-        let fold = app.buttons["폴드, 0bb"]
+        let fold = app.buttons["table-fold"]
         XCTAssertTrue(fold.waitForExistence(timeout: 10))
         fold.tap()
         XCTAssertTrue(app.buttons["다음 핸드"].waitForExistence(timeout: 5))

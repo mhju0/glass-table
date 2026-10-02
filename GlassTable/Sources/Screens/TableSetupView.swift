@@ -66,7 +66,7 @@ struct TableSetupView: View {
             PrimaryCTAButton(title: language.text("이 테이블로 시작", "Start this table")) { start() }
                 .accessibilityIdentifier("table-start")
                 .disabled(model.saveError != nil)
-                .padding(.horizontal, 18).padding(.top, 10).padding(.bottom, 12)
+                .padding(.horizontal, GT.Space.edge).padding(.top, 10).padding(.bottom, 12)
         }
         .background(FeltBackground())
         .toolbar(.hidden, for: .tabBar)
@@ -115,7 +115,7 @@ struct TableSetupView: View {
                                               "Computer \(seat + 1) style, \(styles[seat].beginnerTitle(in: language))"))
             .accessibilityIdentifier("seat-style-\(seat + 1)")
         }
-        .padding(14)
+        .gtInset(GT.Space.card, firstText: .semibold(16))
         .gtPanel()
     }
 

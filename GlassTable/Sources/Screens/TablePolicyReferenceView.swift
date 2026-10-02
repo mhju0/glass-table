@@ -87,7 +87,7 @@ struct TablePolicyReferenceView: View {
                 .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(16)
+        .gtInset(GT.Space.card, firstText: .semibold(13))
         .frame(maxWidth: .infinity, alignment: .leading)
         .gtPanel()
         .accessibilityElement(children: .combine)
@@ -115,7 +115,7 @@ struct TablePolicyReferenceView: View {
                     }
                 }
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, GT.Space.card)
             .gtPanel()
         }
     }

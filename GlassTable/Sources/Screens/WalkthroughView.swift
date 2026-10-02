@@ -60,7 +60,7 @@ struct WalkthroughView: View {
                         header
                         content.frame(maxWidth: .infinity, alignment: .leading)
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet }
-                            .padding(18)
+                            .gtInset(GT.Space.card, firstText: sheetFirstText)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .gtCard(radius: GT.Radius.panel)
                     }
@@ -77,7 +77,7 @@ struct WalkthroughView: View {
                         }
                         .scrollBounceBehavior(.basedOnSize)
                     }
-                    ActionSheet { sheet }.layoutPriority(1)
+                    ActionSheet(firstText: sheetFirstText) { sheet }.layoutPriority(1)
                 }
             }
         }
@@ -198,9 +198,9 @@ struct WalkthroughView: View {
                     }
                 }
             }
-            .padding(18)
+            .gtInset(GT.Space.card, firstText: .semibold(13))
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
+            .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: GT.Radius.panel))
         case let .buckets(bars):
             VStack(alignment: .leading, spacing: 18) {
                 ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
@@ -282,6 +282,15 @@ struct WalkthroughView: View {
     /// `value` the caption demotes to a small label above it and the value becomes the
     /// biggest thing on screen — "지금 내 패" is the label, "10 하이" is the lesson, and
     /// the previous layout had those the wrong way round.
+    private var sheetFirstText: GT.TextRole? {
+        if beat.value != nil, beat.focus != .none { return .semibold(13) }
+        if beat.focus == .none {
+            if beat.value != nil { return .semibold(15) }
+            return beat.detail != nil ? .body(GT.Typography.explanationSize) : nil
+        }
+        return .title(GT.Typography.resultSize)
+    }
+
     private var sheet: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let value = beat.value, beat.focus != .none {
@@ -339,8 +348,8 @@ struct WalkthroughView: View {
                     .font(GT.semibold(GT.Typography.buttonSize)).foregroundStyle(GT.ink)
             }
             .frame(maxWidth: .infinity, minHeight: 54)
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                 .strokeBorder(GT.borderStrong, style: StrokeStyle(lineWidth: 1, dash: [5, 4])))
         }
         .buttonStyle(GTPress())

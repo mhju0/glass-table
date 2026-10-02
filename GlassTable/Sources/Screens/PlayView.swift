@@ -158,12 +158,17 @@ enum PlayTableGuide {
 /// What each part of the free table shows, in the order a new player looks at it.
 struct PlayTableGuideList: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var items: [(symbol: String, title: String, detail: String)] {
         [
             ("person.crop.square", language.text("내 카드", "Your cards"),
-             language.text("오른쪽 아래 크림색 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요.",
-                           "The cream seat at the bottom right is yours. Only you can see your two cards; others can't.")),
+             language.text(dynamicTypeSize.isAccessibilitySize
+                ? "크림색 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요."
+                : "오른쪽 아래 크림색 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요.",
+                dynamicTypeSize.isAccessibilitySize
+                ? "The cream seat is yours. Only you can see your two cards; others can't."
+                : "The cream seat at the bottom right is yours. Only you can see your two cards; others can't.")),
             ("rectangle.on.rectangle", language.text("상대 카드", "Opponents' cards"),
              language.text("상대 카드는 뒤집혀 있어요. 끝까지 간 핸드는 끝날 때 공개돼요.",
                            "Opponents' cards stay face down. Hands that reach a showdown are shown at the end.")),
@@ -201,7 +206,7 @@ struct PlayTableGuideList: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                .padding(14)
+                .gtInset(GT.Space.card, firstText: .semibold(16))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .gtPanel()
                 .accessibilityElement(children: .combine)

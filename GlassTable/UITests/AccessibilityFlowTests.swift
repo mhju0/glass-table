@@ -232,7 +232,7 @@ final class AccessibilityFlowTests: XCTestCase {
             "GT_DEMO_TABLE": "tag",
         ])
 
-        let fold = app.buttons["폴드, 0bb"]
+        let fold = app.buttons["table-fold"]
         XCTAssertTrue(scrollUntilHittable(fold, in: app),
                       "The preflop fold action must remain reachable below the table context at AX XXXL.")
         fold.tap()
@@ -495,6 +495,10 @@ final class AccessibilityFlowTests: XCTestCase {
         ])
         XCTAssertTrue(scrollUntilHittable(settings.switches["settings-reminder"], in: settings),
                       "The reminder switch must be reachable at AX XXXL.")
+        let reminderCapture = XCTAttachment(screenshot: settings.screenshot())
+        reminderCapture.name = "settings-reminder-row-AX5-KO"
+        reminderCapture.lifetime = .keepAlways
+        add(reminderCapture)
         XCTAssertTrue(scrollUntilHittable(settings.datePickers["settings-reminder-time"], in: settings),
                       "The reminder time must be reachable at AX XXXL.")
         settings.terminate()

@@ -627,13 +627,13 @@ private struct GuidedHintView: View {
             "두 선택의 예상 가치를 비교하고, 더 좋은 선택과의 차이를 보세요.",
             "Compare the two choices' expected value, then find the gap from the better one.")
         case .actionRead: return language.text(
-            "이 크기로 베팅할 법한 손패가 무엇인지 좁혀 보세요.",
+            "이 크기로 벳할 법한 손패가 무엇인지 좁혀 보세요.",
             "Narrow down which hands would likely choose this bet size.")
         case .defend: return language.text(
             "내 자리와 상대가 처음 올린 자리를 확인하고 표에서 손패를 찾으세요.",
             "Check both seats, then find your hand on the defend chart.")
         case .mdf: return language.text(
-            "1 − 베팅/(기존 팟 + 베팅)으로 전체 방어 비율을 구하세요. 한 손패의 콜 여부는 따로 판단해요.",
+            "1 − 벳/(기존 팟 + 벳)으로 전체 방어 비율을 구하세요. 한 손패의 콜 여부는 따로 판단해요.",
             "Use 1 − bet/(pot + bet) for the overall defend share. One hand's call is a separate decision.")
         }
     }

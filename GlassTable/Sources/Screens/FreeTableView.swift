@@ -1156,7 +1156,7 @@ enum FreeTableWords {
         case "fold": language.text("포기", "Folded")
         case "check": language.text("체크", "Checked")
         case "call": language.text("콜 +\(event.chips)", "Called +\(event.chips)")
-        case "bet": language.text("베팅 +\(event.chips)", "Bet +\(event.chips)")
+        case "bet": language.text("벳 +\(event.chips)", "Bet +\(event.chips)")
         default: language.text("레이즈 +\(event.chips)", "Raised +\(event.chips)")
         }
     }
@@ -1582,15 +1582,15 @@ private struct FreeTablePolicyDetails: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(DrillTerms.madeHand(bucket, in: language)).font(GT.semibold(14))
                         Text(language.text("먼저 행동: ", "When checked to: ")
-                             + (policy.opens(with: bucket) ? language.text("최소 베팅", "minimum bet") : language.text("체크", "check")))
+                             + (policy.opens(with: bucket) ? language.text("최소 벳", "minimum bet") : language.text("체크", "check")))
                         Text(language.text("상대가 걸면: ", "Facing a bet: ") + responseName(policy.response(toBetWith: bucket)))
                     }.padding(.vertical, 5)
                 }
                 Divider()
             }
-            Text(language.text("공용 카드 전에는 Chen 점수 순으로 고른 핸드를 사용해요. 이후에는 공개된 족보별 행동 규칙을 따라 최소 금액으로 베팅하거나 올려요. 자기 카드와 공개된 정보만 보고 골라요. 최적 전략이라는 뜻은 아니에요.", "Before shared cards, bots select hands ranked by Chen score. Afterward, they follow published hand-category rules and bet or raise the minimum. They see only their own cards and public information. This is not an optimal-strategy claim."))
+            Text(language.text("공용 카드 전에는 Chen 점수 순으로 고른 핸드를 사용해요. 이후에는 공개된 족보별 행동 규칙을 따라 최소 금액으로 벳하거나 올려요. 자기 카드와 공개된 정보만 보고 골라요. 최적 전략이라는 뜻은 아니에요.", "Before shared cards, bots select hands ranked by Chen score. Afterward, they follow published hand-category rules and bet or raise the minimum. They see only their own cards and public information. This is not an optimal-strategy claim."))
             Text(language.text("D는 딜러 버튼이에요. 버튼 다음 두 사람이 1칩과 2칩을 먼저 내요. 매 핸드 버튼이 이동해요.", "D is the dealer button. The next two players post 1 and 2 chips. The button moves after each hand."))
-            Text(language.text("컴퓨터는 각 베팅 라운드에 베팅하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 베팅 횟수를 제한하는 규칙은 아니에요.", "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."))
+            Text(language.text("컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요.", "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."))
         }
         .font(GT.body(14)).foregroundStyle(GT.ink)
         .fixedSize(horizontal: false, vertical: true)

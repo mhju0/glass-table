@@ -235,8 +235,8 @@ final class FreeTableBackFlowTests: XCTestCase {
         let app = launch(language, ax: true, back: "rules")
         let body = app.scrollViews["free-back-content"]
         let text = language == "ko"
-            ? "오른쪽 아래 크림색 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요."
-            : "The cream seat at the bottom right is yours. Only you can see your two cards; others can't."
+            ? "크림색 자리가 나예요. 내 카드 두 장은 나만 볼 수 있고, 상대는 못 봐요."
+            : "The cream seat is yours. Only you can see your two cards; others can't."
         let detail = app.staticTexts.matching(NSPredicate(format: "label == %@", text)).firstMatch
         XCTAssertTrue(detail.waitForExistence(timeout: 5))
         let window = app.windows.firstMatch.frame

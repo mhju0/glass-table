@@ -140,7 +140,8 @@ struct PotMathReplayView: View {
             HStack(spacing: 6) {
                 ForEach(steps.indices, id: \.self) { index in
                     Capsule()
-                        .fill(index == visibleStepIndex ? GT.cta : GT.borderStrong)
+                        .fill(index < visibleStepIndex ? GT.ink : Color.clear)
+                        .overlay(Capsule().strokeBorder(index == visibleStepIndex ? GT.cta : GT.borderStrong, lineWidth: 1))
                         .frame(width: index == visibleStepIndex ? 18 : 7, height: 7)
                         .accessibilityHidden(true)
                 }
@@ -245,7 +246,7 @@ struct PotMathIntroView: View {
                         .font(GT.title(19).monospacedDigit())
                         .foregroundStyle(GT.ink)
                 }
-                .gtInset(GT.Space.card)
+                .gtInset(GT.Space.card, firstText: .semibold(14))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.surface,
                             in: RoundedRectangle(cornerRadius: GT.Radius.panel,

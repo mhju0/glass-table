@@ -208,9 +208,9 @@ struct VerdictRow: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 14).padding(.vertical, 12)
+        .gtInset(GT.Space.card, firstText: .title(18))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(band.tint, in: RoundedRectangle(cornerRadius: 16))
+        .background(band.tint, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(band == .spotOn
             ? (title == nil
@@ -281,9 +281,9 @@ struct RiverExplainPanel: View {
                 .font(GT.title(13))
                 .foregroundStyle(ex.heroWins ? GTBand.spotOnInk : GTBand.offInk)
         }
-        .padding(14)
+        .padding(GT.Space.card)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(GT.onFelt.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+        .background(GT.onFelt.opacity(0.12), in: RoundedRectangle(cornerRadius: GT.Radius.panel))
     }
 }
 
@@ -374,7 +374,7 @@ extension View {
 
     /// Pads content so the visible gap above its first line equals the gap beside it.
     /// Use `GT.Space.card` inside a card and `GT.Space.sheet` inside a sheet.
-    func gtInset(_ inset: CGFloat, firstText: GT.TextRole = .semibold(13)) -> some View {
+    func gtInset(_ inset: CGFloat, firstText: GT.TextRole? = .semibold(13)) -> some View {
         modifier(GTInkInset(inset: inset, firstText: firstText))
     }
 }
@@ -382,17 +382,17 @@ extension View {
 private struct GTInkInset: ViewModifier {
     @Environment(\.learningLanguage) private var language
     let inset: CGFloat
-    let firstText: GT.TextRole
+    let firstText: GT.TextRole?
     @ScaledMetric private var textSize: CGFloat
 
-    init(inset: CGFloat, firstText: GT.TextRole) {
+    init(inset: CGFloat, firstText: GT.TextRole?) {
         self.inset = inset
         self.firstText = firstText
-        _textSize = ScaledMetric(wrappedValue: firstText.size, relativeTo: firstText.style)
+        _textSize = ScaledMetric(wrappedValue: firstText?.size ?? 1, relativeTo: firstText?.style ?? .body)
     }
 
     func body(content: Content) -> some View {
-        let leading = firstText.inkLeading(in: language) * textSize / firstText.size
+        let leading = firstText.map { $0.inkLeading(in: language) * textSize / $0.size } ?? 0
         content.padding(.horizontal, inset)
             .padding(.top, max(0, inset - leading))
             .padding(.bottom, inset)
@@ -603,15 +603,15 @@ private struct GTChrome<L: View, T: View>: ViewModifier {
 private struct GTDockTopInset: ViewModifier {
     @Environment(\.learningLanguage) private var language
     let graded: Bool
-    let firstText: GT.TextRole
+    let firstText: GT.TextRole?
     @ScaledMetric private var textSize: CGFloat
-    init(firstText: GT.TextRole, graded: Bool) {
+    init(firstText: GT.TextRole?, graded: Bool) {
         self.graded = graded
         self.firstText = firstText
-        _textSize = ScaledMetric(wrappedValue: firstText.size, relativeTo: firstText.style)
+        _textSize = ScaledMetric(wrappedValue: firstText?.size ?? 1, relativeTo: firstText?.style ?? .body)
     }
     func body(content: Content) -> some View {
-        let leading = firstText.inkLeading(in: language) * textSize / firstText.size
+        let leading = firstText.map { $0.inkLeading(in: language) * textSize / $0.size } ?? 0
         content.padding(.top, graded ? 2 : max(0, GT.Space.sheet - leading))
     }
 }
@@ -624,7 +624,7 @@ struct ActionSheet<Content: View>: View {
     /// A graded result tints the whole sheet and outlines its edge, so right and
     /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
     var band: GradeBand? = nil
-    var firstText: GT.TextRole = .title(18)
+    var firstText: GT.TextRole? = .title(18)
     @ViewBuilder var content: () -> Content
     /// A graded sheet folds down to its verdict and Next, so evidence the reveal added
     /// above it can be read without scrolling past the sheet.
@@ -813,7 +813,7 @@ struct TapCardLabel: View {
                 .foregroundStyle(emphasized ? GT.cta : GT.inkSecondary)
         }
         .multilineTextAlignment(.leading)
-        .padding(18)
+        .gtInset(GT.Space.card, firstText: .title(18))
         .frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
         .background(GT.glass, in: shape)
         .overlay(shape.strokeBorder(emphasized ? GT.cta : GT.borderStrong,
@@ -854,7 +854,7 @@ private struct GTDisclosure: View {
                         .rotationEffect(.degrees(configuration.isExpanded ? 180 : 0))
                         .accessibilityHidden(true)
                 }
-                .padding(.horizontal, 16).padding(.vertical, 12)
+                .gtInset(GT.Space.card, firstText: .semibold(16))
                 .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
                 .background(GT.glass, in: shape)
                 .overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
@@ -928,8 +928,8 @@ struct GTChoiceButton: View {
                 .frame(maxWidth: .infinity, minHeight: minHeight)
                 .background(selected ? AnyShapeStyle(GT.cta)
                                      : AnyShapeStyle(GT.surface.opacity(isEnabled ? 1 : 0.35)),
-                            in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                     .strokeBorder(selected ? Color.clear : GT.borderStrong.opacity(isEnabled ? 1 : 0.6),
                                   style: StrokeStyle(lineWidth: 1, dash: isEnabled ? [] : [4, 3])))
         }

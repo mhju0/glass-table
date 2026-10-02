@@ -363,7 +363,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                         header
                         content().frame(maxWidth: .infinity, alignment: .leading)
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
-                            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(GT.Space.sheet).frame(maxWidth: .infinity, alignment: .leading)
                             .gtCard(radius: GT.Radius.panel, band: gradedBand)
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier(sheetIdentifier)
@@ -534,7 +534,7 @@ private struct RevealSheet: View {
                 Text(localized?.why ?? why)
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .padding(14)
+                    .gtInset(GT.Space.card, firstText: .body(16))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                                  style: .continuous))
@@ -991,7 +991,7 @@ private struct PotMathRevealSheet: View {
                 }
                 .font(GT.semibold(15))
                 .foregroundStyle(GT.ink)
-                .padding(14)
+                .gtInset(GT.Space.card, firstText: .semibold(15))
                 .background(GT.surface,
                             in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                  style: .continuous))
@@ -1071,10 +1071,10 @@ private struct PositionDrill: View {
         return HStack(spacing: 5) {
             ForEach(order, id: \.self) { p in
                 Text(p.rawValue)
-                    .font(GT.semibold(10)).foregroundStyle(p == mine ? GT.onCTA : GT.onFelt)
+                    .font(GT.semibold(10)).foregroundStyle(p == mine ? GT.cardInk : GT.onFelt)
                     .lineLimit(1).minimumScaleFactor(0.7)
                     .frame(maxWidth: .infinity, minHeight: 34)
-                    .background(p == mine ? GT.cta : GT.onFelt.opacity(0.12),
+                    .background(p == mine ? Color(hex: 0xF3EDE0) : GT.onFelt.opacity(0.12),
                                 in: RoundedRectangle(cornerRadius: 8))
             }
         }
@@ -1683,11 +1683,11 @@ private struct RFIDrill: View {
     private func seatChip(_ position: Position, compact: Bool) -> some View {
         Text(position.rawValue)
             .font(GT.semibold(compact ? 9.5 : 12))
-            .foregroundStyle(position == spot.seat ? GT.onCTA : GT.onFelt.opacity(0.75))
+            .foregroundStyle(position == spot.seat ? GT.cardInk : GT.onFelt.opacity(0.75))
             .lineLimit(1).minimumScaleFactor(compact ? 0.8 : 1)
             .frame(maxWidth: .infinity, minHeight: compact ? 32 : 44)
-            .background(position == spot.seat ? GT.cta : GT.onFelt.opacity(0.10),
-                        in: RoundedRectangle(cornerRadius: 7))
+            .background(position == spot.seat ? Color(hex: 0xF3EDE0) : GT.onFelt.opacity(0.10),
+                        in: RoundedRectangle(cornerRadius: GT.Radius.tile))
     }
 }
 
@@ -1827,7 +1827,7 @@ private struct RangeReadDrill: View {
                 }
             }
         }
-        .padding(.horizontal, 12).padding(.vertical, 10)
+        .gtInset(GT.Space.card, firstText: .semibold(13))
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
     }
@@ -1977,8 +1977,8 @@ private struct RangeReadDrill: View {
             .frame(maxWidth: .infinity, minHeight: 44)
             .padding(.horizontal, 6)
             .background(on ? AnyShapeStyle(GT.cta) : AnyShapeStyle(GT.surface),
-                        in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                 .strokeBorder(on ? Color.clear : GT.borderStrong, lineWidth: 1))
         }
         .buttonStyle(GTPress())
@@ -2125,7 +2125,7 @@ private struct RangeAdvantageDrill: View {
                                        "\(spot.callerSeat.rawValue) calls · \(spot.caller.beginnerTitle(in: language))"))
                 }
                 .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-                .padding(.horizontal, 12).padding(.vertical, 10)
+                .gtInset(GT.Space.card, firstText: .semibold(14))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
                 if reveal != nil, let buckets {
@@ -2258,7 +2258,7 @@ private struct EVLossRevealSheet: View {
                     .font(GT.body(GT.Typography.explanationSize))
                     .foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .padding(14)
+                    .gtInset(GT.Space.card, firstText: .body(16))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
                     .overlay(RoundedRectangle(cornerRadius: GT.Radius.control)
@@ -2309,8 +2309,8 @@ private struct EVLossRevealSheet: View {
                 .font(GT.body(11).monospacedDigit()).foregroundStyle(GT.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(12)
-        .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+        .gtInset(GT.Space.card, firstText: dynamicTypeSize.isAccessibilitySize ? .semibold(11) : .title(14))
+        .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
     }
 
     private var lossEquation: String {
@@ -2662,7 +2662,7 @@ private struct DefendRevealSheet: View {
                 Text(localizedWhy)
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .padding(14)
+                    .gtInset(GT.Space.card, firstText: .body(16))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
                     .fixedSize(horizontal: false, vertical: true)

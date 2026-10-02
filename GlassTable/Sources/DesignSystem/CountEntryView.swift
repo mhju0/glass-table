@@ -30,8 +30,8 @@ struct CountEntryView: View {
                             .foregroundStyle(GT.ink)
                             .frame(width: 48, height: 48)
                             .background(GT.surface,
-                                        in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                        in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                                 .strokeBorder(GT.borderStrong, lineWidth: 1))
                     }
                     .buttonStyle(GTPress())
@@ -47,8 +47,8 @@ struct CountEntryView: View {
                                 .foregroundStyle(GT.ink)
                                 .frame(maxWidth: .infinity, minHeight: 48)
                                 .background(GT.surface,
-                                            in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                                     .strokeBorder(GT.borderStrong, lineWidth: 1))
                         }
                         .buttonStyle(GTPress())
@@ -64,8 +64,8 @@ struct CountEntryView: View {
                             .foregroundStyle(entry.isEmpty ? GT.inkMuted : GT.ink)
                             .frame(maxWidth: .infinity, minHeight: 54)
                             .background(GT.surface,
-                                        in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                        in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                                 .strokeBorder(GT.borderStrong, lineWidth: 1))
                     }
                     .buttonStyle(GTPress())
@@ -74,7 +74,7 @@ struct CountEntryView: View {
                             .foregroundStyle(entry.isEmpty ? GT.inkMuted : GT.onCTA)
                             .frame(maxWidth: .infinity, minHeight: 54)
                             .background(entry.isEmpty ? GT.surface : GT.cta,
-                                        in: RoundedRectangle(cornerRadius: 15,
+                                        in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                              style: .continuous))
                     }
                     .buttonStyle(GTPress())

@@ -16,6 +16,8 @@ struct TableView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var hand: TableHand?
     @State private var options: [GradedOption]?
+    @State private var choosingBetSize = false
+    @ScaledMetric(relativeTo: .body) private var sizeChooserHeight: CGFloat = 186
     @State private var lastTurn: TurnRecord?
     @State private var decisions: [TurnRecord] = []
     @State private var baseSeed = UInt64.random(in: 0..<UInt64.max)
@@ -143,6 +145,10 @@ struct TableView: View {
                 if env["GT_DEMO_TABLE_CHART"] != nil { showChart = true }
                 if env["GT_DEMO_TABLE_POLICY"] != nil { showPolicyReference = true }
                 prepareOptions(for: h)
+                if env["GT_DEMO_TABLE_SIZES"] != nil,
+                   h.choices().contains(where: { if case .bet = $0 { return true }; return false }) {
+                    choosingBetSize = true
+                }
             }
             #endif
         }
@@ -153,14 +159,14 @@ struct TableView: View {
     private var picker: some View {
         ScrollView {
             OpponentPickerView { start(vs: $0) }
-                .padding(18)
+                .padding(GT.Space.edge)
         }
         .gtTabBarClearance(20)
     }
 
     private func start(vs villain: Archetype?) {
         villainPick = villain
-        decisions = []; lastTurn = nil; options = nil
+        decisions = []; lastTurn = nil; options = nil; choosingBetSize = false
         let h = TableDealer.deal(baseSeed: baseSeed, index: handIndex, villain: villain)
         handIndex += 1
         hand = h
@@ -188,7 +194,7 @@ struct TableView: View {
                         boardBlock(hand)
                         heroBlock(hand)
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet(hand) }
-                            .padding(18)
+                            .gtInset(GT.Space.sheet, firstText: .title(18))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .gtCard(radius: GT.Radius.panel, band: sheetBand(hand))
                     }
@@ -444,28 +450,60 @@ struct TableView: View {
         } else if let options {
             actionButtons(hand, options)
         } else {
-            HStack(spacing: 10) {
-                ProgressView().tint(GT.inkMuted)
-                Text(language.text("계산 중…", "Calculating…"))
-                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-            }
-            .frame(maxWidth: .infinity, minHeight: 80)
+            actionButtons(hand, [])
         }
     }
 
     private func actionButtons(_ hand: TableHand, _ options: [GradedOption]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                ForEach(options.filter(\.isCompact), id: \.choice) { opt in
-                    GTActionButton(title: opt.actionName(in: language), price: opt.priceText,
-                                   role: opt.role) { act(opt.choice) }
+        let fold = options.first { $0.choice == .fold }
+        let passive = options.first { $0.choice == .check || $0.choice == .call }
+        let raise = options.first { $0.choice == .raise }
+        let bets = options.filter { if case .bet = $0.choice { return true }; return false }
+        return VStack(alignment: .leading, spacing: GT.Space.related) {
+            if choosingBetSize {
+                HStack {
+                    Button { choosingBetSize = false } label: {
+                        Label(language.text("뒤로", "Back"), systemImage: "chevron.left")
+                            .font(GT.semibold(14)).foregroundStyle(GT.ink)
+                            .frame(minHeight: 44)
+                    }.buttonStyle(GTPress(pressedScale: 0.97))
+                        .accessibilityIdentifier("table-size-back")
+                    Spacer(minLength: 0)
+                    Text(language.text("벳 크기", "Bet size")).font(GT.title(18)).foregroundStyle(GT.ink)
                 }
-            }
-            let bets = options.filter { !$0.isCompact }
-            if !bets.isEmpty {
-                // §A: headline is the pro unit (% of pot), resolved bb underneath.
+                ScrollView {
+                    VStack(spacing: GT.Space.related) {
+                        ForEach(bets, id: \.choice) { option in
+                            PrimaryCTAButton(title: "\(option.headline(in: language)) · \(option.subline(in: language))") {
+                                choosingBetSize = false
+                                act(option.choice)
+                            }
+                            .accessibilityIdentifier("table-bet-size-\(option.headline(in: .english))")
+                        }
+                    }
+                }
+                .frame(height: sizeChooserHeight)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("table-bet-sizes")
+            } else {
+                Text(language.text("내 차례", "Your turn")).font(GT.title(18)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: 8) {
-                    ForEach(bets, id: \.choice) { opt in bviewButton(opt) }
+                    gradedAction(language.text("폴드", "Fold"), role: .fold, side: .leading,
+                                 enabled: fold != nil,
+                                 reason: options.isEmpty ? language.text("선택을 계산하고 있어요", "The choices are being calculated") : language.text("따라갈 금액이 없어 폴드할 수 없어요", "Fold is unavailable because nothing is owed")) {
+                        if let fold { act(fold.choice) }
+                    }.accessibilityIdentifier("table-fold")
+                    gradedAction(passive?.actionName(in: language) ?? language.text("체크", "Check"),
+                                 price: passive?.choice == .call ? (passive?.priceText ?? "") : "", role: .passive,
+                                 enabled: passive != nil, reason: language.text("선택을 계산하고 있어요", "The choices are being calculated")) {
+                        if let passive { act(passive.choice) }
+                    }.accessibilityIdentifier("table-passive")
+                    gradedAction(bets.isEmpty ? language.text("레이즈", "Raise") : language.text("벳", "Bet"),
+                                 role: .aggressive, side: .trailing, enabled: raise != nil || !bets.isEmpty,
+                                 reason: options.isEmpty ? language.text("선택을 계산하고 있어요", "The choices are being calculated") : language.text("이 결정에서는 레이즈가 허용되지 않아요", "This decision does not allow another raise")) {
+                        if let raise { act(raise.choice) } else { choosingBetSize = true }
+                    }.accessibilityIdentifier("table-aggressive")
                 }
             }
             Text(language.text("체크다운 근사 · 이후 베팅 없음, 레이크 제외",
@@ -475,44 +513,29 @@ struct TableView: View {
         }
     }
 
-    /// A bet keeps its own emphasis order — §A puts the pro unit (% of pot) on top and
-    /// the resolved bb underneath, the reverse of `GTActionButton` — so it stays a
-    /// separate view. It takes the aggressive accent so the row still reads as one set.
-    private func bviewButton(_ opt: GradedOption) -> some View {
-        Button { act(opt.choice) } label: {
-            VStack(spacing: 3) {
-                Text(opt.headline(in: language)).font(GT.title(15)).foregroundStyle(GT.ink)
-                    .lineLimit(1).minimumScaleFactor(0.8)
-                Text(opt.subline(in: language)).font(GT.body(14).monospacedDigit())
-                    .foregroundStyle(GT.inkMuted)
-                    .lineLimit(1).minimumScaleFactor(0.8)
-                Capsule().fill(GTActionRole.aggressive.accent)
-                    .frame(height: 3).padding(.horizontal, 8).padding(.top, 1)
-            }
-            .padding(.horizontal, 6).padding(.vertical, 10)
-            .frame(maxWidth: .infinity, minHeight: 56)
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous)
-                .strokeBorder(GT.borderStrong, lineWidth: 1))
-        }
-        .buttonStyle(GTPress())
-        .accessibilityLabel(language.text("벳 \(opt.headline(in: language)), \(opt.subline(in: language))",
-                                           "Bet \(opt.headline(in: language)), \(opt.subline(in: language))"))
+    private func gradedAction(_ title: String, price: String = "", role: GTActionRole,
+                              side: GTCornerSide = .none, enabled: Bool = true,
+                              reason: String = "", action: @escaping () -> Void) -> some View {
+        GTActionButton(title: title, price: price, role: role, freeTablePresentation: true,
+                       minHeight: 87, cornerSide: side, action: action)
+            .disabled(!enabled).opacity(enabled ? 1 : 0.45)
+            .accessibilityHint(enabled ? "" : reason)
     }
 
-    /// 폴드 / 콜 3bb / 3벳 9bb. No pricing pass — the grade here is the chart.
     private func preflopButtons(_ hand: TableHand, open b: Double) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: GT.Space.related) {
+            Text(language.text("내 차례", "Your turn")).font(GT.title(18)).foregroundStyle(GT.ink)
+                .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 8) {
-                GTActionButton(title: language.text("폴드", "Fold"), price: "0bb", role: .fold) {
+                gradedAction(language.text("폴드", "Fold"), role: .fold, side: .leading) {
                     actPreflop(.fold, hand)
-                }
-                GTActionButton(title: language.text("콜", "Call"), price: "\(bbText(b))bb", role: .passive) {
+                }.accessibilityIdentifier("table-fold")
+                gradedAction(language.text("콜", "Call"), price: "\(bbText(b))bb", role: .passive) {
                     actPreflop(.call, hand)
-                }
-                GTActionButton(title: language.text("3벳", "3-bet"),
-                               price: "\(bbText(b * TableHand.raiseFactor))bb",
-                               role: .aggressive) { actPreflop(.raise, hand) }
+                }.accessibilityIdentifier("table-passive")
+                gradedAction(language.text("레이즈", "Raise"), role: .aggressive, side: .trailing) {
+                    actPreflop(.raise, hand)
+                }.accessibilityIdentifier("table-aggressive")
             }
             Text(language.text("프리플랍은 앱의 디펜드 차트와 비교해요. 최적 전략은 아니에요.",
                                "Preflop is graded on the app's defend chart, not perfect play."))
@@ -581,8 +604,8 @@ struct TableView: View {
                     .font(GT.body(10)).foregroundStyle(GT.inkMuted)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(12)
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+            .gtInset(GT.Space.card, firstText: .semibold(12.5))
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
         }
     }
 
@@ -613,6 +636,7 @@ struct TableView: View {
         hand = h
         lastTurn = decisions.last
         options = nil
+        choosingBetSize = false
         _ = current
     }
 
@@ -664,7 +688,7 @@ struct TableView: View {
                         .font(GT.semibold(12.5)).foregroundStyle(highestCost.0.band.ink)
                 }
             }
-            .padding(12)
+            .gtInset(GT.Space.card, firstText: .semibold(12.5))
             .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                          style: .continuous))
             VStack(alignment: .leading, spacing: 5) {
@@ -698,8 +722,8 @@ struct TableView: View {
                     }
                 }
             }
-            .padding(.horizontal, 12).padding(.vertical, 10)
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: 13))
+            .gtInset(GT.Space.card, firstText: .semibold(11.5))
+            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
             PrimaryCTAButton(title: language.text("다음 핸드", "Next hand")) { start(vs: villainPick) }
             // Text rather than a filled secondary: it is the rarer of the two actions,
             // and a full 50pt surface here bought nothing but height on the sheet that
@@ -765,6 +789,7 @@ struct TableView: View {
     private func prepareOptions(for hand: TableHand) {
         guard case .hero = hand.phase else { return }
         options = nil
+        choosingBetSize = false
         Task.detached(priority: .userInitiated) {
             let priced = hand.gradedOptions()
             await MainActor.run {

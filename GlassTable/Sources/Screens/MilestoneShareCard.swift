@@ -71,7 +71,7 @@ struct MilestoneShareSection: View {
             if let image {
                 Image(uiImage: image).resizable().scaledToFit()
                     .frame(maxWidth: 240)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
                     .accessibilityLabel("\(milestone.kind(in: language)): \(milestone.title(in: language))")
                 ShareLink(item: Image(uiImage: image),
                           preview: SharePreview(milestone.title(in: language),

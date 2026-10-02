@@ -13,7 +13,8 @@ DEVICE_NAME="${GT_SIM:-iPhone 17}"
 APPEARANCE="${GT_APPEARANCE:-dark}"
 LANGUAGE="${GT_LANGUAGE:-ko}"
 case "$LANGUAGE" in
-  ko|en) ;;
+  ko) LANGUAGE_PREFERENCE=korean ;;
+  en) LANGUAGE_PREFERENCE=english ;;
   *) echo "unknown language: $LANGUAGE" >&2; exit 2 ;;
 esac
 case "$APPEARANCE" in
@@ -136,6 +137,7 @@ SCREENS=(
   "drill-outs:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-outs"
   "drill-equity:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-equitySense"
   "drill-ev:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-evCall"
+  "teach-evcall-zero:GT_DEMO_NODE=u2-evCall GT_DEMO_BEAT=0"
   "drill-callfold:GT_DEMO_CONCEPT=callFold"
   "drill-notation:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-notation"
   "drill-rfi:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-rfi"
@@ -186,6 +188,8 @@ SCREENS=(
   "table-policy:GT_DEMO_TABLE=tag GT_DEMO_TABLE_POLICY=1"
   "table-preflop-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1:6"
   "table-chart:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CHART=1:6"
+  "table-bet-sizes:GT_DEMO_TABLE=station GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CONTINUE=1 GT_DEMO_TABLE_SIZES=1:12"
+  "table-check:GT_DEMO_TABLE=station GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CONTINUE=1:12"
   "table-hand:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=1 GT_DEMO_TABLE_CONTINUE=1:12"
   "table-grade:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=2:14"
   "table-summary:GT_DEMO_TABLE=tag GT_DEMO_TABLE_STEP=10:24"
@@ -297,7 +301,7 @@ echo "Starting disposable simulator; logs and captures: $OUT"
 printf 'device=%s\nruntime=%s\nsource=%s\n' "$DEV" "$RUNTIME" "$fingerprint" >"$OUT/run.txt"
 printf 'content_size=%s\n' "${CONTENT_SIZES[@]}" >>"$OUT/run.txt"
 printf 'appearance=%s\n' "$APPEARANCE" >>"$OUT/run.txt"
-printf 'language=%s\n' "$LANGUAGE" >>"$OUT/run.txt"
+printf 'language=%s\ninitial_language_preference=%s\n' "$LANGUAGE" "$LANGUAGE_PREFERENCE" >>"$OUT/run.txt"
 printf 'bold_text=%s\n' "${GT_BOLD_TEXT:-0}" >>"$OUT/run.txt"
 xcrun simctl boot "$DEV" >>"$OUT/simulator.log" 2>&1
 if ! run_with_timeout 120 xcrun simctl bootstatus "$DEV" -b >>"$OUT/simulator.log" 2>&1; then
@@ -331,11 +335,11 @@ for content_size in "${CONTENT_SIZES[@]}"; do
     fi
     xcrun simctl install "$DEV" "$APP" >>"$OUT/simulator.log" 2>&1
     touch "$OUT/installed"
-    if ! run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$capture_dir/$name.log" 2>&1; then
+    if ! run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" -glassTable.language "$LANGUAGE_PREFERENCE" >>"$capture_dir/$name.log" 2>&1; then
       echo "Launch failed for $name; restarting the disposable device once."
       restart_device
       xcrun simctl ui "$DEV" content_size "$content_size" >>"$OUT/simulator.log" 2>&1
-      run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" >>"$capture_dir/$name.log" 2>&1
+      run_with_timeout 60 env "${args[@]}" xcrun simctl launch "$DEV" "$BUNDLE" -glassTable.language "$LANGUAGE_PREFERENCE" >>"$capture_dir/$name.log" 2>&1
     fi
     sleep "$slp"
     xcrun simctl io "$DEV" screenshot "$capture_dir/$name.png" >>"$capture_dir/$name.log" 2>&1

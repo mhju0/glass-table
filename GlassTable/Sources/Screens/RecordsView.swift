@@ -47,7 +47,7 @@ struct RecordsView: View {
                 evLossCard
                 if studied.isEmpty { emptyState } else { conceptList }
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, GT.Space.edge)
         }
         .gtTabBarClearance()
         .background(FeltBackground())
@@ -184,7 +184,7 @@ struct RecordsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+        .gtInset(GT.Space.card, firstText: .semibold(13)).frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: GT.Radius.panel)
     }
 
@@ -297,7 +297,7 @@ struct RecordsView: View {
             }
             .accessibilityIdentifier("records-style-details")
         }
-        .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+        .gtInset(GT.Space.card, firstText: .semibold(13)).frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: GT.Radius.panel)
     }
 
@@ -401,7 +401,7 @@ struct RecordsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(18)
+        .gtInset(GT.Space.card, firstText: .semibold(13))
         .frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: GT.Radius.panel)
     }
@@ -431,7 +431,7 @@ struct RecordsView: View {
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(18)
+            .gtInset(GT.Space.card, firstText: .semibold(13))
             .frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
         }

@@ -182,6 +182,27 @@ struct FreeTableReplayTests {
         #expect(middle.remainingPots.reduce(0, +) == middle.pot)
     }
 
+    @Test func dealerUsesSpecifiedSpringAndPausedCursor() throws {
+        let previous = try FreeTableReplayFixtures.table("sidepots")
+        var next = previous
+        try next.nextHand(handID: "spring-next")
+        let plan = FreeTableReplayPlan(table: next, previous: previous)
+        let phase = try #require(plan.phases.first { $0.work == .dealer })
+        #expect(phase.duration == FreeTableReplayPlan.dealerSpring.settlingDuration * 1_000)
+        var cursor = FreeTableReplayCursor()
+        _ = cursor.advance(by: phase.start + 100, plan: plan)
+        let before = cursor.projection(plan: plan)
+        let flight = try #require(before.visuals.flights.first { $0.cargo == .dealer })
+        #expect(abs(flight.progress - FreeTableReplayPlan.dealerSpring.value(target: 1.0, initialVelocity: 0, time: 0.1)) < 0.000_001)
+        #expect(flight.from == .seat(previous.dealer))
+        #expect(flight.to == .seat(next.dealer))
+        _ = cursor.advance(by: 0, plan: plan)
+        #expect(cursor.projection(plan: plan).visuals == before.visuals)
+        let ended = plan.projection(at: phase.end)
+        #expect(!ended.visuals.dealerMoving)
+        #expect(!ended.visuals.flights.contains { $0.cargo == .dealer })
+    }
+
     @Test func changingSpeedAdvancesTheSameCursorWithoutReplayingCues() throws {
         let plan = FreeTableReplayPlan(table: try FreeTableReplayFixtures.table("runout"))
         var cursor = FreeTableReplayCursor()

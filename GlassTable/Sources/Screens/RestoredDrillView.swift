@@ -69,7 +69,7 @@ struct RestoredDrillView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .font(GT.semibold(15)).foregroundStyle(GT.ink)
-            .padding(14)
+            .gtInset(GT.Space.card, firstText: .semibold(15))
             .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                          style: .continuous))
         } else {
@@ -79,7 +79,7 @@ struct RestoredDrillView: View {
                 .font(GT.body(GT.Typography.explanationSize))
                 .foregroundStyle(GT.inkSecondary)
                 .lineSpacing(GT.Typography.explanationLineSpacing)
-                .padding(14)
+                .gtInset(GT.Space.card, firstText: .body(16))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                              style: .continuous))
@@ -167,12 +167,12 @@ private struct RestoredEVLossResult: View {
                     .font(GT.body(11).monospacedDigit()).foregroundStyle(GT.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(12)
+            .gtInset(GT.Space.card, firstText: .semibold(13))
             .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
             Text(outcome.whyText)
                 .font(GT.body(GT.Typography.explanationSize))
                 .foregroundStyle(GT.inkSecondary)
-                .padding(14)
+                .gtInset(GT.Space.card, firstText: .body(16))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
         }
@@ -424,7 +424,7 @@ private struct RestoredDrillContextView: View {
                 focusView(focus)
             }
         }
-        .padding(14)
+        .padding(GT.Space.card)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(GT.onFelt.opacity(0.07), in: RoundedRectangle(cornerRadius: GT.Radius.control))
         .sheet(isPresented: $showingPotHelp) {

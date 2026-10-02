@@ -32,7 +32,7 @@ struct HoldemBasicsView: View {
                     VStack(alignment: .leading, spacing: GT.Space.section) {
                         content
                         VStack(alignment: .leading, spacing: GT.Space.related) { panel }
-                            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
+                            .gtInset(GT.Space.card, firstText: .title(18)).frame(maxWidth: .infinity, alignment: .leading)
                             .background(band?.tint ?? GT.glass,
                                         in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
                             .overlay {
@@ -40,12 +40,12 @@ struct HoldemBasicsView: View {
                                     .strokeBorder(band?.ink ?? GT.border, lineWidth: band == nil ? 1 : 2)
                             }
                     }
-                    .padding(.horizontal, 18).padding(.bottom, 28)
+                    .padding(.horizontal, GT.Space.edge).padding(.bottom, 28)
                 }
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: GT.Space.section) { content }
-                        .padding(.horizontal, 18).padding(.vertical, 12)
+                        .padding(.horizontal, GT.Space.edge).padding(.vertical, 12)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .scrollBounceBehavior(.basedOnSize)
@@ -132,7 +132,7 @@ struct HoldemBasicsView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, GT.Space.card)
             .gtCard(radius: GT.Radius.panel)
             Text(language.text("비율은 7장으로 그 조합이 가장 좋은 패가 되는 확률이에요. 가능한 1억 3,378만 가지를 앱의 엔진으로 모두 세었어요.",
                                "Each share is how often seven cards make that hand as their best. The app's engine counted all 133.8 million sets."))
@@ -208,7 +208,7 @@ struct HoldemBasicsView: View {
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
             }
         }
-        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+        .gtInset(GT.Space.card, firstText: .title(18)).frame(maxWidth: .infinity, alignment: .leading)
         .background(mark?.band.tint ?? GT.glass,
                     in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
         .overlay {
