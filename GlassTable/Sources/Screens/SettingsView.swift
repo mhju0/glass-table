@@ -30,7 +30,7 @@ struct SettingsView: View {
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
     private static let feedbackURL =
-        URL(string: "mailto:michaelju0418@gmail.com?subject=Glass%20Table%20%ED%94%BC%EB%93%9C%EB%B0%B1")!
+        URL(string: "mailto:mj.apps.support@gmail.com?subject=Glass%20Table%20%ED%94%BC%EB%93%9C%EB%B0%B1")!
     private var version: String {
         let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
