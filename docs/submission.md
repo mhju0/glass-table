@@ -26,7 +26,7 @@ description 4000 characters.
 | Price | Free |
 | Availability | US and Korea prioritized; final territories pending regional-rating review |
 | Category | Education (primary), Games – Card (secondary) |
-| Support URL | https://github.com/mhju0/glass-table |
+| Support URL | https://mhju0.github.io/glass-table/support.html |
 | Privacy policy URL | https://mhju0.github.io/glass-table/privacy-policy.html |
 | Copyright | 2026 Michael Ju |
 
