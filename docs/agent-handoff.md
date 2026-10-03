@@ -92,36 +92,16 @@ Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-0
   Math outs level 2 and fast table deferred; 14 retained 베팅 strings listed in the
   step 8 report.
 
-## 2026-10-03 — GRAC video preparation
+## 2026-10-03 — GRAC gameplay video, condensed
 
-- Owner requested actual submission gameplay video and Korean optional descriptions.
-  Added local drafts under docs/grac-submission/2026-10-03; current3.6 is a scene
-  timestamp table, not the upload page. No application mutation/upload/submission.
-- Release1.0(14) at HEADf3bb670 built and installed on a separate owned simulator;
-  recording runner/tooling is isolated under .build/grac-video-2026-10-03. No product
-  edits or user's existing progress changes. Actual video is NOT recorded yet.
-- Device Hub CUA selection repeatedly timed out. User was asked to explicitly
-  authorize XCTest UI interaction as an alternative under computer tool policy;
-  response pending. Do not execute runner until that answer arrives.
-- Resume with real manual/automated Release UI capture, include standard table,
-  payout, normal zero-stack refill and separate graded betting lesson. Verify
-  final video frames and actual timestamps, then supply3.6 rows. Format/size and
-  simulator acceptance remain unconfirmed; no requirement inferred from guide.
-- First statutory compliance radio remains unresolved: repo function evidence
-  does not establish whether offline App Store app is subject to decree Annex2(8).
-
-## 2026-10-03 — GRAC gameplay video recorded
-
-- User explicitly approved XCTest interaction. Real Release1.0(14) at f3bb670 was
-  recorded in isolated simulator, with no debug fixtures/progress injection/product
-  changes. Retained rejected takes; assembled valid real-screen clips only.
-- Final local MP4: docs/grac-submission/2026-10-03/GlassTable_GRAC_1.0_14.mp4;
-  404seconds,1206x2622,H.264,39,200,330bytes,no audio. Root inspected exact final
-  frames covering launch/learning,betting,payout,zero stacks,normal100chip refill,
-  separate graded lesson,responsible guidance and version1.0(14).
-- Korean optional descriptions and scene timeline accompany video. Actual site
-  format/size and simulator acceptance remain unconfirmed. No upload/payment/
-  application submission. Statutory applicability question remains unresolved.
+- Owner approved XCTest interaction; real Release 1.0(14) at f3bb670 recorded in an
+  isolated simulator, no debug fixtures or product changes. Final local MP4:
+  docs/grac-submission/2026-10-03/GlassTable_GRAC_1.0_14.mp4 (404 s, 1206x2622,
+  H.264, no audio) with Korean optional descriptions and a scene timeline. Tooling
+  is under .build/grac-video-2026-10-03.
+- Open: site format/size and simulator acceptance unconfirmed; no upload, payment
+  or submission done; the first statutory compliance radio (whether an offline App
+  Store app falls under decree Annex 2(8)) is unresolved.
 
 ## 2026-10-03 — Friendly/casual redesign: built on feat/friendly-casual (not pushed)
 
