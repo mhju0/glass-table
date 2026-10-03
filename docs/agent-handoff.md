@@ -172,6 +172,11 @@ Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-0
 - Verified: Drills 384 + 49, app units 67, full UI run 131 of 139, then the eight
   failures fixed and rerun green (not one green full run). GT_TEST_PATH_CURRENT_NODE
   now leaves the target track's challenge uncleared so the lesson is still suggested.
+- Screens inspected after the fixes: Korean light and English dark, large and AX5,
+  for Learn, starting check, All lessons, Settings, table setup, summary, milestone,
+  first launch and the nine drill frames (.uisweep/20261003-203051-H0x60G,
+  -203847-LtopIw, -204807-gZSj62). The Position seat strip (group names, "You")
+  stays about 10 pt at AX5; the question sentence carries the seat in words.
 - Open: explanation text from the drills package still uses seat codes, "bb" and
   "3벳" for beginners (reveal sentences, range-read and action-read action lines);
   drill header titles are still the terms; Today is Korean-only as before; lessons

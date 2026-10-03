@@ -507,6 +507,7 @@ private struct RevealSheet: View {
     @Environment(\.drillCommit) private var onCommit
     @Environment(\.revealCollapsed) private var collapsed
     @Environment(ProgressionModel.self) private var model
+    @Environment(\.simpleQuestions) private var simple
     @State private var saved = false
     let band: GradeBand
     let mine: String
@@ -523,7 +524,7 @@ private struct RevealSheet: View {
                                                     evLoss: evLoss, submittedInput: submittedInput))
         return RestoredDrillDescription.make(concept: replayContext.concept,
             seed: replayContext.seed, index: replayContext.index, input: submittedInput,
-            stored: stored, language: language)
+            stored: stored, language: language, namesRange: !simple)
     }
 
     var body: some View {

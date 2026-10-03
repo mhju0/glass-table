@@ -16,6 +16,7 @@ extension SavedDrillReveal {
 /// translated sentence is saved, so switching language regenerates the explanation.
 struct RestoredDrillView: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.simpleQuestions) private var simple
     @State private var calculationExpanded = false
     let concept: Concept
     let seed: UInt64
@@ -29,7 +30,8 @@ struct RestoredDrillView: View {
         let input = try? JSONDecoder().decode(DrillSubmittedInput.self, from: answer.input)
         let detail = input.flatMap { input in
             RestoredDrillDescription.make(concept: concept, seed: seed, index: index,
-                                          input: input, stored: stored, language: language)
+                                          input: input, stored: stored, language: language,
+                                          namesRange: !simple)
         }
         let band = GradeBand(rawValue: answer.band) ?? .off
         let next = {
@@ -199,7 +201,7 @@ struct RestoredDrillDescription {
 
     static func make(concept: Concept, seed: UInt64, index: Int,
                      input: DrillSubmittedInput, stored: DrillStoredReveal?,
-                     language: LearningLanguage) -> Self? {
+                     language: LearningLanguage, namesRange: Bool = true) -> Self? {
         switch (concept, input) {
         case let (.showdown, .integer(value)):
             let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
@@ -307,37 +309,38 @@ struct RestoredDrillDescription {
             let result = gradeEquitySense(estimate: Estimate(point: point, lo: lo, hi: hi),
                 spot: EquitySenseSpotGenerator.spot(baseSeed: seed, index: index),
                 language: language)
-            return interval(result, unit: "%", language: language)
+            return interval(result, unit: "%", language: language, namesRange: namesRange)
         case let (.evCall, .interval(point, lo, hi)):
             let result = gradeEVCall(estimate: Estimate(point: point, lo: lo, hi: hi),
                 spot: EVCallSpotGenerator.spot(baseSeed: seed, index: index),
                 language: language)
-            return interval(result, unit: "bb", language: language)
+            return interval(result, unit: "bb", language: language, namesRange: namesRange)
         case let (.hitFrequency, .interval(point, lo, hi)):
             let result = gradeHitFrequency(estimate: Estimate(point: point, lo: lo, hi: hi),
                 spot: HitFrequencySpotGenerator.spot(baseSeed: seed, index: index),
                 language: language)
-            return interval(result, unit: "%", language: language)
+            return interval(result, unit: "%", language: language, namesRange: namesRange)
         case let (.rangeAdvantage, .interval(point, lo, hi)):
             guard let truth = stored?.interval?.truth else { return nil }
             let result = gradeRangeAdvantage(estimate: Estimate(point: point, lo: lo, hi: hi),
                 spot: RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index),
                 openerEquityPct: truth, language: language)
-            return interval(result, unit: "%", language: language)
+            return interval(result, unit: "%", language: language, namesRange: namesRange)
         case let (.actionRead, .interval(point, lo, hi)):
             let result = gradeActionRead(estimate: Estimate(point: point, lo: lo, hi: hi),
                 spot: ActionReadSpotGenerator.spot(baseSeed: seed, index: index),
                 language: language)
-            return interval(result, unit: "%", language: language)
+            return interval(result, unit: "%", language: language, namesRange: namesRange)
         default: return nil
         }
     }
 
     private static func interval(_ result: EstimateReveal, unit: String,
-                                 language: LearningLanguage) -> Self {
+                                 language: LearningLanguage, namesRange: Bool) -> Self {
         Self(mine: "\(pctText(result.estimate.point))\(unit)",
              correct: "\(pctText(result.correct))\(unit)",
-             why: result.whyText + language.text(
+             // A learner who was never asked for a range is not told how it did.
+             why: !namesRange ? result.whyText : result.whyText + language.text(
                 result.intervalHit ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.",
                 result.intervalHit ? " The answer was inside your 90% range."
                                    : " The answer was outside your 90% range."))
