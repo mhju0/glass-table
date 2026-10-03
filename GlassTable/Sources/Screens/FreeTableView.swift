@@ -143,7 +143,7 @@ struct FreeTableView: View {
         }
         .onChange(of: model.epoch) { _, _ in onClose() }
         .fullScreenCover(isPresented: $showCoach) {
-            if let table = demoTable ?? model.state.tableState {
+            if let table = presentationTable {
                 FreeTableHandCoachView(table: table) { showCoach = false }
             }
         }
