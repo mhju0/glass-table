@@ -6,7 +6,7 @@ import GlassTableEngine
 /// The advice is the app's own beginner chart, a few plain rules a new player can
 /// hold in their head. It is not solver output and never claims to be what an expert
 /// would do. Every verdict uses only what the learner could see when they chose.
-public struct PracticeCoachStep: Equatable, Sendable {
+public struct PracticeCoachStep: Equatable {
     /// What the learner held at the moment of the decision.
     public enum Strength: String, Sendable, CaseIterable {
         /// Before the flop: top 15%, top 45%, and the rest of all starting hands.
@@ -83,13 +83,19 @@ public enum PracticeHandCoach {
             let top = topPercent ?? 100
             return top <= premiumPercent ? .premium : top <= playablePercent ? .playable : .weak
         }
-        switch madeHand(hand: hole, board: board) {
+        switch held(hole: hole, board: board) {
         case .strong: return .strong
         case .topPair: return .topPair
         case .weakPair: return .weakPair
         case .draw: return .draw
         case .air: return .air
         }
+    }
+
+    /// The hand as it stands. With all five cards out a draw has missed and is nothing.
+    private static func held(hole: [Card], board: [Card]) -> MadeHand {
+        let made = madeHand(hand: hole, board: board)
+        return made == .draw && board.count >= 5 ? .air : made
     }
 
     /// What the beginner chart would do here, for a learner who asks before choosing at
@@ -153,7 +159,7 @@ public enum PracticeHandCoach {
                   let board = Card.parse(review.board.prefix(PracticeTableState.boardCount(event.street)).joined()),
                   board.count >= 3 else { return nil }
             return PracticeCoachReveal(seat: event.seat, eventIndex: index, street: event.street,
-                                       held: madeHand(hand: hole, board: board))
+                                       held: held(hole: hole, board: board))
         }
     }
 }

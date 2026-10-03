@@ -189,6 +189,11 @@ Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-0
   terms on, it is still the capped one-row strip.
   Verified on that code: Drills 385 + 49, and one clean full run of 69 app units
   and 139 UI tests (.build/friendly-ui.xcresult).
+- Hand-review fix: a draw that missed by the river now counts as nothing in
+  `PracticeHandCoach` (review, hint and the bluff callout share it); before, the
+  river step still advised "call a draw when cheap" and called a busted-draw bet
+  real. Failing test first; Drills 385 + 50, app units 69 and
+  FreeTableBackFlowTests pass after it. The full UI suite was not rerun for this.
 - Open: Today is Korean-only as before; "Go deeper" lessons keep the old wording;
   table-event text ("opens to 3bb") and the graded table still use codes; real-phone
   check of all of the above.

@@ -71,7 +71,9 @@ import GlassTableEngine
             #expect(review.pots.contains { $0.eligibleSeats.count > 1 && $0.eligibleSeats.contains(reveal.seat) })
             let hole = try #require(Card.parse(review.holeCards[reveal.seat].joined()))
             let board = try #require(Card.parse(review.board.prefix(reveal.street == .flop ? 3 : reveal.street == .turn ? 4 : 5).joined()))
-            #expect(reveal.held == madeHand(hand: hole, board: board))
+            // A draw that missed by the river is nothing, so betting it was a bluff.
+            let made = madeHand(hand: hole, board: board)
+            #expect(reveal.held == (made == .draw && board.count == 5 ? .air : made))
             if reveal.wasBluff { bluffs += 1 } else { honest += 1 }
         }
     }
@@ -112,4 +114,13 @@ import GlassTableEngine
             #expect(Coach.verdict(action: pick, strength: strength, toCall: toCall, needed: needed, boardCount: board) != .risky)
         }
     }
+}
+
+@Test func aDrawThatMissedByTheRiverIsNothing() throws {
+    let hole = try #require(Card.parse("Jh8h"))
+    let turn = try #require(Card.parse("6s7sTh3c"))
+    let river = try #require(Card.parse("6s7sTh3cQd"))
+    // Open-ended on the turn; with the last card out there is nothing left to come.
+    #expect(PracticeHandCoach.strength(hole: hole, board: turn, topPercent: nil) == .draw)
+    #expect(PracticeHandCoach.strength(hole: hole, board: river, topPercent: nil) == .air)
 }
