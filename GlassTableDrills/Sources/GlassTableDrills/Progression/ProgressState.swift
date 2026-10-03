@@ -148,6 +148,9 @@ public struct ProgressState: Codable, Equatable, Sendable {
     public var tableState: PracticeTableState?
     public var recentHands: [PracticeHandObservation]
     public var processedAttemptIDs: Set<String>
+    /// Lessons in a row that went cleanly (positive) or roughly (negative). `nil` in
+    /// every file written before learner levels existed, which reads as none.
+    public var lessonTrend: Int?
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
@@ -186,7 +189,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case revision, detailedTrackingStartedAt, introducedConcepts, placement
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands
-        case processedAttemptIDs, basicsLessonCompleted
+        case processedAttemptIDs, basicsLessonCompleted, lessonTrend
     }
 
     public init(from decoder: Decoder) throws {
@@ -218,6 +221,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         processedAttemptIDs = try c.decodeIfPresent(Set<String>.self,
                                                     forKey: .processedAttemptIDs) ?? []
         basicsLessonCompleted = try c.decodeIfPresent(Bool.self, forKey: .basicsLessonCompleted)
+        lessonTrend = try c.decodeIfPresent(Int.self, forKey: .lessonTrend)
     }
 
     public func record(for concept: Concept) -> ConceptRecord {

@@ -209,6 +209,7 @@ public struct ProgressionStore {
               state.activeNodeSession.map({ validate($0, verifyAnswers: verifyAnswers) }) ?? true,
               state.activeReviewSession.map({ validate($0, verifyAnswers: verifyAnswers) }) ?? true,
               state.placement.map(validate) ?? true,
+              ProgressState.lessonTrendRange.contains(state.lessonTrend ?? 0),
               state.recentHands.count <= 200,
               Set(state.recentHands.map(\.handID)).count == state.recentHands.count,
               state.recentHands.allSatisfy({ DayKey(raw: $0.day) != nil }),

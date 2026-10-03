@@ -46,10 +46,35 @@ public extension Curriculum {
         tracks.first { $0.lessons.contains(node) || $0.challenge == node }
     }
 
-    /// The next lesson to suggest: the first one on the four tracks not yet finished.
-    /// A suggestion only. Every lesson stays open.
+    /// The next lesson to suggest: the first unfinished one from where the learner's
+    /// level starts, then any left before it. A suggestion only. Every lesson stays open.
     static func suggestedLesson(in state: ProgressState) -> CurriculumNode? {
-        trackLessons.first { state.nodes[$0.id]?.cleared != true }
+        let start = startIndex(in: state)
+        return trackLessons[start...].first { isOwed($0, in: state) }
+            ?? trackLessons[..<start].first { isOwed($0, in: state) }
+    }
+
+    /// Where the suggested order begins: the starting check's result, or the level's
+    /// usual first lesson when the check was skipped.
+    private static func startIndex(in state: ProgressState) -> Int {
+        let concept = state.placement?.recommendedConcept.flatMap(Concept.init(rawValue:))
+            ?? state.level.startingConcept
+        return trackLessons.firstIndex { taughtConcept(of: $0) == concept } ?? 0
+    }
+
+    /// Not finished, and not skipped by passing its track's challenge.
+    private static func isOwed(_ lesson: CurriculumNode, in state: ProgressState) -> Bool {
+        state.nodes[lesson.id]?.cleared != true
+            && track(containing: lesson)?.challenge.map { state.nodes[$0.id]?.cleared == true } != true
+    }
+
+    /// The challenge that lets a learner on a clean run skip the rest of this lesson's
+    /// track. Nil once the track is finished or the challenge is passed.
+    static func skipAheadChallenge(after node: CurriculumNode, in state: ProgressState) -> CurriculumNode? {
+        guard let track = track(containing: node), !track.isOptional, track.lessons.contains(node),
+              let challenge = track.challenge,
+              track.lessons.contains(where: { $0 != node && isOwed($0, in: state) }) else { return nil }
+        return challenge
     }
 
     /// Lessons a learner is asked to finish before this one, for a gentle heads-up.
@@ -59,7 +84,7 @@ public extension Curriculum {
             let base = track(containing: node).map { $0.isOptional ? trackLessons : $0.lessons } ?? []
             return base.filter { $0 != node && state.nodes[$0.id]?.cleared != true }
         }
-        return trackLessons[..<index].filter { state.nodes[$0.id]?.cleared != true }
+        return trackLessons[min(startIndex(in: state), index)..<index].filter { isOwed($0, in: state) }
     }
 
     /// Where to send someone who found this lesson too hard: the lesson just before it
