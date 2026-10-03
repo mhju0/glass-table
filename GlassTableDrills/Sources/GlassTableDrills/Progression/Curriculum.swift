@@ -162,13 +162,30 @@ public enum Curriculum {
         }
     }
 
-    /// Five blocked repetitions for a lesson; at least six mixed questions for a
+    /// What a session draws its questions from. From format 2 a track's challenge
+    /// mixes only that track's own skills, so it never asks about a topic the tracks
+    /// no longer teach. A challenge saved in format 1 keeps its original mix.
+    static func sessionPool(of node: CurriculumNode, format: Int) -> [Concept] {
+        if format >= 2, let track = tracks.first(where: { $0.challenge == node }) { return track.concepts }
+        return concepts(of: node)
+    }
+
+    /// Blocked repetitions for a lesson; at least six mixed questions for a
     /// boss, long enough to exercise every concept it certifies.
-    public static func sessionConcepts(for node: CurriculumNode, seed: UInt64 = 0) -> [Concept] {
-        let pool = concepts(of: node)
+    /// The shape new lesson sessions are saved in. Format 1 asked five questions alone.
+    /// Format 2 (decision D46) asks three: on a first visit the lesson is watch one,
+    /// two with help, two alone, and the first saved question is the second helped one.
+    /// A session saved in format 1 keeps its five questions.
+    public static let sessionFormat = 2
+
+    static func lessonQuestionCount(format: Int) -> Int { format == 1 ? 5 : 3 }
+
+    public static func sessionConcepts(for node: CurriculumNode, seed: UInt64 = 0,
+                                       format: Int = sessionFormat) -> [Concept] {
+        let pool = sessionPool(of: node, format: format)
         switch node.kind {
         case .drill:
-            return Array(repeating: pool[0], count: 5)
+            return Array(repeating: pool[0], count: lessonQuestionCount(format: format))
         case .boss:
             let count = max(6, pool.count)
             var rng = SplitMix64(seed: seed)
@@ -183,11 +200,12 @@ public enum Curriculum {
     }
 
     /// Checks the frozen bag's shape without reconstructing its seed or order.
-    public static func isValidSession(_ scheduled: [Concept], for node: CurriculumNode) -> Bool {
-        let pool = concepts(of: node)
+    public static func isValidSession(_ scheduled: [Concept], for node: CurriculumNode,
+                                      format: Int = sessionFormat) -> Bool {
+        let pool = sessionPool(of: node, format: format)
         switch node.kind {
         case .drill:
-            return scheduled == Array(repeating: pool[0], count: 5)
+            return scheduled == Array(repeating: pool[0], count: lessonQuestionCount(format: format))
         case .boss:
             guard scheduled.count == max(6, pool.count), Set(scheduled) == Set(pool) else {
                 return false

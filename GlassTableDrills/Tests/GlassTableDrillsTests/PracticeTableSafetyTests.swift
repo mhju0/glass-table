@@ -151,7 +151,9 @@ import Testing
                                stack: 100, minimumRaiseTo: 4, hasRaisedThisStreet: false)
     let exposedFields = Set(Mirror(reflecting: view).children.compactMap(\.label))
     #expect(exposedFields == ["seat", "style", "hole", "board", "street", "pot",
-                              "toCall", "stack", "minimumRaiseTo", "hasRaisedThisStreet"])
+                              "toCall", "stack", "minimumRaiseTo", "hasRaisedThisStreet",
+                              // Its own chips on this street and a hashed chance roll.
+                              "streetCommitted", "roll"])
     #expect(PracticeBotPolicy.action(for: view) == .raise(to: 4))
     let alreadyRaised = PracticeBotView(seat: 1, style: .tag, hole: ["As", "Ah"],
                                         board: [], street: .preflop, pot: 50, toCall: 2,

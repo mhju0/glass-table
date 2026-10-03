@@ -17,6 +17,22 @@ final class FreeTableBackFlowTests: XCTestCase {
         return app
     }
 
+    func testChartSuggestionStaysHiddenUntilTheLearnerAsks() {
+        let app = launch()
+        app.buttons["free-raise-cancel"].tap()
+        app.buttons["free-table-help"].tap()
+        let show = app.buttons["free-hint-show"]
+        XCTAssertTrue(show.waitForExistence(timeout: 5))
+        let hint = app.descendants(matching: .any)["free-hint"]
+        XCTAssertFalse(hint.exists, "No suggestion before the learner asks for one")
+        let content = app.scrollViews["free-back-content"]
+        for _ in 0..<4 where !show.isHittable { content.swipeUp() }
+        show.tap()
+        XCTAssertTrue(hint.waitForExistence(timeout: 5))
+        XCTAssertTrue(hint.label.contains("The beginner chart suggests"))
+        XCTAssertFalse(show.exists)
+    }
+
     func testMathFlipRulesAndAllFacesKeepHeight() {
         let app = launch()
         app.buttons["free-raise-cancel"].tap()
@@ -51,9 +67,40 @@ final class FreeTableBackFlowTests: XCTestCase {
     func testAXKOMathRulesReachable() { axReach("ko") }
     func testAXENMathRulesReachable() { axReach("en") }
 
-    func testSettledReviewChanceAndResponsiveTabs() {
+    func testReviewThisHandWalksThroughEveryDecisionThenTheShowdown() {
         let app = launch(phase: "result-review")
         app.buttons["free-review"].tap()
+        let progress = app.staticTexts["coach-progress"]
+        XCTAssertTrue(progress.waitForExistence(timeout: 5))
+        XCTAssertTrue(progress.label.hasPrefix("Step 1 of "), progress.label)
+        let pages = Int(progress.label.replacingOccurrences(of: "Step 1 of ", with: "")) ?? 0
+        XCTAssertGreaterThanOrEqual(pages, 2, "At least one decision and the ending")
+        XCTAssertFalse(app.buttons["coach-back"].exists)
+        for page in 1..<pages {
+            XCTAssertEqual(progress.label, "Step \(page) of \(pages)")
+            XCTAssertTrue(app.staticTexts["What you had"].exists)
+            XCTAssertTrue(app.staticTexts["The beginner chart says"].exists)
+            let verdict = app.staticTexts["coach-verdict"]
+            for _ in 0..<6 where !verdict.exists { app.swipeUp() }
+            XCTAssertTrue(verdict.exists)
+            XCTAssertTrue(["Good choice.", "Fine.", "Risky."].contains { verdict.label.hasPrefix($0) }, verdict.label)
+            attach(app, "hand-coach-step-\(page)")
+            app.buttons["coach-next"].tap()
+        }
+        XCTAssertTrue(app.staticTexts["How it ended"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["coach-verdict"].exists)
+        attach(app, "hand-coach-ending")
+        app.buttons["coach-back"].tap()
+        XCTAssertEqual(progress.label, "Step \(pages - 1) of \(pages)")
+        app.buttons["coach-next"].tap()
+        app.buttons["coach-done"].tap()
+        XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 5))
+    }
+
+    func testSettledReviewChanceAndResponsiveTabs() {
+        let app = launch(phase: "result-review")
+        app.buttons["free-table-help"].tap()
+        app.buttons["free-back-hand"].tap()
         let review = app.descendants(matching: .any)["free-decision-review"]
         XCTAssertTrue(review.waitForExistence(timeout: 5))
         let rows = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "free-decision-demo-review-two-"))
@@ -76,7 +123,8 @@ final class FreeTableBackFlowTests: XCTestCase {
 
     func testPreflopEquityWorkKeepsTabsResponsiveOnLeaveAndReopen() {
         let app = launch(phase: "result-all-in", players: 2)
-        app.buttons["free-review"].tap()
+        app.buttons["free-table-help"].tap()
+        app.buttons["free-back-hand"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["free-decision-review"].waitForExistence(timeout: 5))
         for index in 0..<2 {
             let start = Date()
@@ -93,7 +141,8 @@ final class FreeTableBackFlowTests: XCTestCase {
 
     func testManualCardRevealDoesNotAddReviewEquity() {
         let app = launch(phase: "result-fold", players: 2)
-        app.buttons["free-review"].tap()
+        app.buttons["free-table-help"].tap()
+        app.buttons["free-back-hand"].tap()
         let rows = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "free-decision-demo-fold-review-"))
         let row = rows.firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 5))

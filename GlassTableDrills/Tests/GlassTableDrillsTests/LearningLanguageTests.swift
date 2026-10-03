@@ -163,3 +163,27 @@ struct LearningLanguageTests {
         }
     }
 }
+
+@Test func seatsReadInPlainWordsWithThePokerTermBesideThem() {
+    #expect(Position.utg1.plainName(in: .english) == "Early seat (UTG+1)")
+    #expect(Position.lj.plainName(in: .english) == "Middle seat (LJ)")
+    #expect(Position.hj.plainName(in: .korean) == "중간 자리 (HJ)")
+    #expect(Position.btn.plainName(in: .english) == "Last to act (BTN)")
+    for seat in Position.allCases {
+        #expect(seat.plainName(in: .english) != seat.rawValue)
+        #expect(seat.plainName(in: .korean).hasSuffix("(\(seat.rawValue))"))
+    }
+}
+
+@Test func everyLessonCarriesItsPokerTermAndEveryTrackItsName() {
+    for language in [LearningLanguage.korean, .english] {
+        #expect(Set(Concept.allCases.map { $0.term(in: language) }).count == Concept.allCases.count)
+        #expect(Set(LearningTrack.ID.allCases.map { $0.title(in: language) }).count == 5)
+        for concept in Concept.allCases {
+            #expect(concept.term(in: language) != ConceptIntroduction.make(concept, language: language).title,
+                    "The tag adds the term; it must not repeat the everyday title")
+        }
+    }
+    #expect(Concept.potOdds.term(in: .english) == "Pot odds")
+    #expect(Concept.potOdds.term(in: .korean) == "팟 오즈")
+}

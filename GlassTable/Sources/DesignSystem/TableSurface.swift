@@ -25,7 +25,6 @@ struct TableSeat: Identifiable {
     var stack: Int?
     var committed: Int?
     var isHero = false
-    var isEmpty = false
 }
 
 /// The middle of the table: shared cards above one fixed-size chip stack.
@@ -164,7 +163,7 @@ struct TableSurface: View {
 
     @ViewBuilder
     private func seatView(_ seat: TableSeat, place: TableSeat.Place?) -> some View {
-        if seat.stack != nil || seat.isEmpty { practiceSeat(seat, place: place) }
+        if seat.stack != nil { practiceSeat(seat, place: place) }
         else { legacySeat(seat, place: place) }
     }
 
@@ -203,7 +202,7 @@ struct TableSurface: View {
 
     private func practiceSeat(_ seat: TableSeat, place: TableSeat.Place?) -> some View {
         let shape = seatShape(place)
-        let ink = seat.isHero ? Color(hex: 0x1D221F) : seat.isEmpty ? GT.onTableSecondary : GT.onTable
+        let ink = seat.isHero ? Color(hex: 0x1D221F) : GT.onTable
         let secondary = seat.isHero ? Color(hex: 0x5D625B) : GT.tableStatus
         let actionInk = seat.isHero ? Color(hex: 0x88600F) : GT.tableSeatActive
         return VStack(alignment: .leading, spacing: 4) {
@@ -244,11 +243,10 @@ struct TableSurface: View {
         }
         .gtInset(GT.Space.seat, firstText: .semibold(14))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(seat.isEmpty ? Color.clear : seat.isHero ? Color(hex: 0xF3EDE0) : GT.tableSeat, in: shape)
+        .background(seat.isHero ? Color(hex: 0xF3EDE0) : GT.tableSeat, in: shape)
         .overlay {
             shape.strokeBorder(seat.isActive ? GT.tableSeatActive
                 : seat.isHero ? Color(hex: 0xE5DCC8) : GT.tableSeatLine, lineWidth: 2)
-                .opacity(seat.isEmpty ? 0.35 : 1)
         }
         .overlay(alignment: place == .bottomLeading || place == .bottomTrailing ? .top : .bottom) {
             if !typeSize.isAccessibilitySize, let committed = seat.committed, committed > 0 {
@@ -273,8 +271,7 @@ struct TableSurface: View {
 
     @ViewBuilder
     private func practiceCards(_ seat: TableSeat) -> some View {
-        if seat.isEmpty { Color.clear.frame(height: 43).accessibilityHidden(true) }
-        else if let visuals = freeVisuals, let index = Int(seat.id.replacingOccurrences(of: "practice-", with: "")),
+        if let visuals = freeVisuals, let index = Int(seat.id.replacingOccurrences(of: "practice-", with: "")),
                 visuals.arrived.indices.contains(index) {
             HStack(spacing: 3) {
                 ForEach(0..<2) { slot in
@@ -294,7 +291,7 @@ struct TableSurface: View {
                 }
             }
             .opacity(1 - 0.55 * (visuals.foldProgress[index] ?? (seat.isFolded ? 1 : 0)))
-            .offset(y: reduceMotion ? 0 : (seat.place == .bottomLeading || seat.place == .bottomTrailing ? -8 : 8) * (visuals.foldProgress[index] ?? 0))
+            .offset(y: reduceMotion ? 0 : (seat.place == .bottomLeading || seat.place == .bottomTrailing ? -2 : 2) * (visuals.foldProgress[index] ?? 0))
             .opacity(1 - visuals.clearProgress)
         }
         else { cards(seat) }
@@ -318,9 +315,6 @@ struct TableSurface: View {
                     .font(GT.semibold(13)).monospacedDigit().fixedSize()
             }
             .foregroundStyle(stack == 0 ? (seat.isHero ? Color(hex: 0x88600F) : GT.tableSeatActive) : ink)
-        } else if seat.isEmpty, typeSize.isAccessibilitySize {
-            Text(" ").font(GT.semibold(13)).frame(minHeight: statusLineHeight)
-                .accessibilityHidden(true)
         }
     }
 

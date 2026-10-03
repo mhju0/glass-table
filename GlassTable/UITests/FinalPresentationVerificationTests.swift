@@ -79,7 +79,7 @@ final class FinalPresentationVerificationTests: XCTestCase {
         reveal(next, app: app, ax: ax, content: false)
         capture("range-next-\(code)-\(ax)")
         next.tap()
-        XCTAssertTrue(app.staticTexts["2/5"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["2/3"].waitForExistence(timeout: 10))
         app.terminate()
     }
 

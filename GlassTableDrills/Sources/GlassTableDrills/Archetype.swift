@@ -12,12 +12,18 @@ import GlassTableEngine
 /// the resulting grid are both printable in-app.
 public enum Archetype: String, CaseIterable, Sendable {
     case nit, tag, lag, station, maniac
+    /// A friendly free-table player with seeded variety. It publishes no gradable
+    /// strategy, so it is left out of `allCases` and never appears in a graded spot.
+    case casual
+
+    public static let allCases: [Archetype] = [.nit, .tag, .lag, .station, .maniac]
 
     /// Voluntarily put money in pot — everything it plays, raised or called.
     public var vpip: Double {
         switch self {
         case .nit: return 12; case .tag: return 20; case .lag: return 27
         case .station: return 40; case .maniac: return 55
+        case .casual: return 45
         }
     }
 
@@ -26,6 +32,7 @@ public enum Archetype: String, CaseIterable, Sendable {
         switch self {
         case .nit: return 9; case .tag: return 17; case .lag: return 22
         case .station: return 10; case .maniac: return 40
+        case .casual: return 12
         }
     }
 
@@ -35,6 +42,7 @@ public enum Archetype: String, CaseIterable, Sendable {
         switch self {
         case .nit: return "Nit"; case .tag: return "TAG"; case .lag: return "LAG"
         case .station: return "콜링 스테이션"; case .maniac: return "매니악"
+        case .casual: return "캐주얼"
         }
     }
 
@@ -45,6 +53,7 @@ public enum Archetype: String, CaseIterable, Sendable {
         case .lag: return "넓게 들어오고 공격적이에요"
         case .station: return "아주 넓게 들어오지만 거의 레이즈하지 않아요"
         case .maniac: return "넓게 들어오고 대부분 레이즈해요"
+        case .casual: return "재미로 넓게 들어오고 가끔 블러프해요"
         }
     }
 

@@ -41,6 +41,7 @@ struct FreeTableView: View {
     @State private var helpTab = FreeTableHelpTab.hint
     @State private var revealFolded = false
     @State private var confirmNewTable = false
+    @State private var showCoach = false
     @State private var failure = false
     @State private var replaySpeed = 1.0
     @ScaledMetric(relativeTo: .body) private var resultProseHeight = 51
@@ -141,6 +142,11 @@ struct FreeTableView: View {
             startReplay()
         }
         .onChange(of: model.epoch) { _, _ in onClose() }
+        .fullScreenCover(isPresented: $showCoach) {
+            if let table = demoTable ?? model.state.tableState {
+                FreeTableHandCoachView(table: table) { showCoach = false }
+            }
+        }
         .confirmationDialog(language.text("새 테이블을 시작할까요?", "Start a fresh table?"),
                             isPresented: $confirmNewTable, titleVisibility: .visible) {
             Button(language.text("테이블 다시 만들기", "Set up a new table")) {
@@ -150,8 +156,7 @@ struct FreeTableView: View {
             }
             Button(language.text("취소", "Cancel"), role: .cancel) {}
         } message: {
-            Text(language.text("지금까지의 핸드 기록은 남아요. 새 테이블은 각자 100칩으로 시작해요.",
-                               "Your hand history stays saved. The new table starts everyone at 100 chips."))
+            Text(language.text("지금까지의 핸드 기록은 남아요.", "Your hand history stays saved."))
         }
         .alert(language.text("선택을 처리하지 못했어요", "Couldn't apply that choice"), isPresented: $failure) {
             Button(language.text("확인", "OK"), role: .cancel) {}
@@ -195,7 +200,7 @@ struct FreeTableView: View {
         }
         }
         .gtChrome(leading: {
-            HStack(alignment: .top, spacing: 10) {
+            HStack(alignment: typeSize.isAccessibilitySize ? .top : .center, spacing: 10) {
                 ChromeButton.close(onClose)
                 Text(title(table)).font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -208,6 +213,10 @@ struct FreeTableView: View {
         case 2: language.text("두 명", "Two players")
         case 3: language.text("세 명", "Three players")
         default: language.text("네 명", "Four players")
+        }
+        if let limit = table.handLimit {
+            return language.text("\(players) · 핸드 \(table.handNumber + 1)/\(limit)",
+                                 "\(players) · Hand \(table.handNumber + 1) of \(limit)")
         }
         return language.text("\(players) · \(table.handNumber + 1)번째 핸드",
                              "\(players) · Hand \(table.handNumber + 1)")
@@ -227,9 +236,7 @@ struct FreeTableView: View {
             return name + language.text("\n전체 \(pot)칩", "\nTotal \(pot)")
         } ?? language.text("\(pot)칩", "\(pot) chips")
         return TableSurface(
-            seats: (0..<table.seatCount).map { seat($0, table: table, frame: frame) }
-                + (table.seatCount == 3 ? [TableSeat(id: "practice-empty", place: .bottomLeading,
-                    name: language.text("빈 자리", "Empty seat"), isEmpty: true)] : []),
+            seats: (0..<table.seatCount).map { seat($0, table: table, frame: frame) },
             center: TableCenter(board: board.compactMap(Card.init), reservesBoard: true,
                                 potTotal: potText),
             freeVisuals: projection?.visuals,
@@ -350,19 +357,17 @@ struct FreeTableView: View {
         ZStack(alignment: .top) {
             if !showHelp {
                 controls(table, minimumHeight: minimumHeight)
-                    .transition(reduceMotion ? .opacity : .modifier(
-                        active: DockFlipModifier(angle: -90), identity: DockFlipModifier(angle: 0)))
+                    .transition(.opacity)
             }
             if showHelp {
                 FreeTableBackFace(table: table, frame: factsFrame(table),
                                   shownSteps: shownCount(table), heroExposed: visualProjection(table)?.heroExposed ?? true,
                                   shownPot: visualProjection(table)?.pot, tab: $helpTab,
                                   revealFolded: $revealFolded, minimumHeight: minimumHeight) { showHelp = false }
-                    .transition(reduceMotion ? .opacity : .modifier(
-                        active: DockFlipModifier(angle: 90), identity: DockFlipModifier(angle: 0)))
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 16)))
             }
         }
-        .animation(.easeOut(duration: reduceMotion ? 0.15 : 0.45), value: showHelp)
+        .animation(.easeOut(duration: reduceMotion ? 0.15 : 0.22), value: showHelp)
     }
 
     // Reachable structures share the live presentation views; sizing never reads future cards.
@@ -377,7 +382,7 @@ struct FreeTableView: View {
                             reason: "", onFold: {}, onMiddle: {}, onRaise: {})
             }
         }
-        ForEach([language.text("컴퓨터 3 차례", "Computer 3's turn"),
+        ForEach([language.text("\(seatName(3)) 차례", "\(seatName(3))'s turn"),
                  language.text("카드를 나눠요", "Dealing"),
                  language.text("끝까지 펼쳐요", "Running it out")], id: \.self) { title in
             VStack(alignment: .leading, spacing: 12) {
@@ -463,6 +468,7 @@ struct FreeTableView: View {
                 : language.text("카드를 나눠요", "Dealing")
         }
         return table.review == nil ? language.text("내 차례", "Your turn")
+            : table.isGameOver ? language.text("게임이 끝났어요", "Game over")
             : language.text("핸드가 끝났어요", "Hand over")
     }
 
@@ -514,7 +520,7 @@ struct FreeTableView: View {
 
     private func dockHeader(_ title: String, warning: String?, onMath: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: typeSize.isAccessibilitySize ? .top : .center, spacing: 8) {
                 Text(title).font(GT.title(18)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("free-table-status")
@@ -612,7 +618,7 @@ struct FreeTableView: View {
 
     private func mathPill(onMath: @escaping () -> Void) -> some View {
         Button(action: onMath) {
-            Label(language.text("계산", "Math"), systemImage: "function")
+            Label(language.text("힌트", "Hint"), systemImage: "lightbulb")
                 .fixedSize(horizontal: true, vertical: false)
                 .font(GT.semibold(14)).foregroundStyle(GT.ink)
                 .padding(.horizontal, 12).frame(minHeight: 36)
@@ -635,7 +641,7 @@ struct FreeTableView: View {
                 }
                 raiseAmountTitle(sizing, amount: amount)
             } else {
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .center, spacing: 8) {
                     raiseBack(onCancel: onCancel)
                     raiseAmountTitle(sizing, amount: amount)
                     mathPill(onMath: onMath)
@@ -768,7 +774,11 @@ struct FreeTableView: View {
         let text = net > 0 ? language.text("+\(net)칩", "+\(net) chips")
             : net < 0 ? language.text("−\(-net)칩", "−\(-net) chips") : language.text("±0칩", "±0 chips")
         let winners = (0..<table.seatCount).filter { review.payouts[$0] > 0 }
-        return resultBody(netText: text, positive: net > 0, onNext: {
+        return resultBody(netText: text, positive: net > 0, gameOver: table.isGameOver, onNext: {
+            if table.isGameOver {
+                if model.leaveFinishedTable(handID: table.handID, expectedEpoch: epoch) { onNewTable() }
+                return
+            }
             previousHand = table
             #if DEBUG
             if demoTable != nil, ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION"] != nil {
@@ -783,22 +793,37 @@ struct FreeTableView: View {
             if perform({
                 try model.nextTableHand(handID: UUID().uuidString, after: table.handID, expectedEpoch: epoch)
             }) { requestFeedback(.commit(allIn: false)) }
-        }, onReview: { helpTab = .hand; showHelp = true }, onChange: { confirmNewTable = true }) {
+        }, onReview: { showCoach = true }, onChange: { confirmNewTable = true }) {
             ForEach(winners, id: \.self) { seat in
                 Text(winnerLine(seat, review: review, table: table))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if table.seats.contains(where: { $0.stack == 0 }) {
-                Text(language.text("칩이 없는 자리는 다음 핸드 전에 100칩을 새로 받아요.",
-                                   "Seats with no chips get 100 before the next hand."))
+            if table.isGameOver {
+                Text(gameOverLine(table))
+                    .font(GT.semibold(14)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("free-game-over")
+            } else if table.seats.contains(where: { $0.stack == 0 }) {
+                Text(language.text("칩이 없는 자리는 다음 핸드 전에 \(table.startingStack)칩을 새로 받아요.",
+                                   "Seats with no chips get \(table.startingStack) before the next hand."))
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
-    private func resultBody<Prose: View>(netText: String, positive: Bool,
+    /// Chips a seat was topped up with don't count toward its finish.
+    private func gameOverLine(_ table: PracticeTableState) -> String {
+        let earned = (0..<table.seatCount).map { table.seats[$0].stack - table.refills[$0] }
+        let place = 1 + earned.filter { $0 > earned[0] }.count
+        let chips = table.seats[0].stack
+        let ordinal = ["1st", "2nd", "3rd", "4th"][place - 1]
+        return language.text("\(table.seatCount)명 중 \(place)등 · \(chips)칩으로 마쳤어요",
+                             "You finished \(ordinal) of \(table.seatCount) with \(chips) chips")
+    }
+
+    private func resultBody<Prose: View>(netText: String, positive: Bool, gameOver: Bool = false,
                                         onNext: @escaping () -> Void, onReview: @escaping () -> Void,
                                         onChange: @escaping () -> Void, @ViewBuilder prose: () -> Prose) -> some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -816,13 +841,16 @@ struct FreeTableView: View {
             }
             .frame(height: resultProseHeight)
             .accessibilityIdentifier("free-result-prose")
-            PrimaryCTAButton(title: language.text("다음 핸드", "Next hand"), action: onNext)
-                .accessibilityIdentifier("free-next-hand")
+            PrimaryCTAButton(title: gameOver ? language.text("새 게임", "New game")
+                                             : language.text("다음 핸드", "Next hand"), action: onNext)
+                .accessibilityIdentifier(gameOver ? "free-new-game" : "free-next-hand")
             HStack(spacing: 8) {
                 SecondaryCTAButton(title: language.text("핸드 돌아보기", "Review this hand"), action: onReview)
                     .accessibilityIdentifier("free-review")
-                SecondaryCTAButton(title: language.text("테이블 바꾸기", "Change the table"), action: onChange)
-                    .accessibilityIdentifier("free-change-table")
+                if !gameOver {
+                    SecondaryCTAButton(title: language.text("테이블 바꾸기", "Change the table"), action: onChange)
+                        .accessibilityIdentifier("free-change-table")
+                }
             }
         }
     }
@@ -1125,7 +1153,7 @@ struct FreeTableView: View {
     // MARK: Words
 
     private func seatName(_ seat: Int) -> String {
-        seat == 0 ? language.text("나", "You") : language.text("컴퓨터 \(seat)", "Computer \(seat)")
+        FreeTableWords.seatName(seat, language: language)
     }
 
     private func eventDescription(_ event: PracticeEvent) -> String {
@@ -1149,6 +1177,36 @@ struct FreeDockChoices: Equatable {
 }
 
 enum FreeTableWords {
+    /// The computers have names, so a hand reads like a story about people.
+    static func seatName(_ seat: Int, language: LearningLanguage) -> String {
+        switch seat {
+        case 0: language.text("나", "You")
+        case 1: language.text("미나", "Mina")
+        case 2: language.text("준", "Joon")
+        default: language.text("소라", "Sora")
+        }
+    }
+
+    /// The beginner chart's rule for a hand of this strength. The hint and the hand
+    /// review both read it from here.
+    static func chartAdvice(_ strength: PracticeCoachStep.Strength, language: LearningLanguage) -> String {
+        switch strength {
+        case .premium: language.text("가장 좋은 시작 패(상위 \(PracticeHandCoach.premiumPercent)%)는 레이즈해요.",
+                                     "Raise your best starting hands (the top \(PracticeHandCoach.premiumPercent)%).")
+        case .playable: language.text("괜찮은 시작 패는 싸게 들어가요. 콜이나 체크가 기본이에요.",
+                                      "Play decent starting hands cheaply. Calling or checking is the default.")
+        case .weak: language.text("약한 시작 패는 칩이 들면 포기해요. 공짜면 체크해요.",
+                                  "Fold weak starting hands when they cost chips. Check when it's free.")
+        case .strong, .topPair: language.text("탑 페어 이상이면 벳하거나 레이즈해서 팟을 키워요.",
+                                              "With top pair or better, bet or raise to build the pot.")
+        case .weakPair: language.text("약한 페어는 체크하고, 작은 벳만 콜해요.",
+                                      "With a weak pair, check, and call only small bets.")
+        case .draw: language.text("드로우는 가격이 쌀 때만 콜해요. 카드 두 장이 남았으면 세 번에 한 번, 한 장이면 다섯 번에 한 번쯤 완성돼요.",
+                                  "Call with a draw only when it's cheap. It comes in about 1 time in 3 with two cards to come, 1 in 5 with one.")
+        case .air: language.text("아무것도 없으면 체크하거나 포기해요.", "With nothing, check or fold.")
+        }
+    }
+
     static func event(_ event: PracticeEvent, language: LearningLanguage) -> String {
         switch event.label {
         case "small blind": language.text("SB +\(event.chips)", "Small blind +\(event.chips)")
@@ -1174,13 +1232,6 @@ enum FreeTableWords {
 // MARK: - Help panel
 
 enum FreeTableHelpTab: Hashable { case hint, hand, rules }
-
-private struct DockFlipModifier: ViewModifier {
-    let angle: Double
-    func body(content: Content) -> some View {
-        content.rotation3DEffect(.degrees(angle), axis: (x: 1, y: 0, z: 0), anchor: .top)
-    }
-}
 
 @MainActor
 enum FreeTableCloseSymbol {
@@ -1248,7 +1299,7 @@ private struct FreeTableBackHeader: View {
     }
     private var tabs: some View {
         HStack(spacing: 6) {
-            button(.hint, language.text("계산", "Math"))
+            button(.hint, language.text("힌트", "Hint"))
             button(.hand, language.text("이번 핸드", "This hand"))
             button(.rules, language.text("규칙", "Rules"))
         }
@@ -1401,6 +1452,8 @@ private struct FreeTableBackFace: View {
     @Binding var revealFolded: Bool
     let minimumHeight: CGFloat
     let onClose: () -> Void
+    /// The decision the learner asked for a suggestion on. A later decision starts hidden again.
+    @State private var suggestedAt: Int?
 
     var body: some View {
         GTAnchoredDockFaceLayout(minimumHeight: minimumHeight, scrollsBody: true) {
@@ -1441,6 +1494,44 @@ private struct FreeTableBackFace: View {
             FreeTableMathSummary(pot: shownPot ?? facts.pot, call: facts.toCall, need: facts.requiredEquityPercent,
                                  hand: facts.madeHand.map { DrillTerms.hand($0, in: language) },
                                  top: facts.startingHandTopPercent, hole: table.learnerHole)
+            if table.street != .finished, table.currentSeat == 0, shownSteps == table.replaySteps.count,
+               let hole = Card.parse(table.learnerHole.joined()),
+               let board = Card.parse(table.visibleBoard.joined()) {
+                let strength = PracticeHandCoach.strength(hole: hole, board: board,
+                                                          topPercent: facts.startingHandTopPercent)
+                if suggestedAt == table.events.count {
+                    panel(language.text("초보자 차트의 제안", "The beginner chart suggests")) {
+                        if let pick = PracticeHandCoach.suggestion(strength: strength, toCall: facts.toCall,
+                               needed: facts.requiredEquityPercent, boardCount: board.count,
+                               legal: table.legalActions) {
+                            Text(suggestionName(pick, toCall: facts.toCall)).font(GT.semibold(17))
+                        }
+                        Text(FreeTableWords.chartAdvice(strength, language: language))
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(language.text("몇 가지 쉬운 규칙이에요. 따르지 않아도 괜찮아요.",
+                                           "A few simple rules. You don't have to follow them."))
+                            .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("free-hint")
+                } else {
+                    SecondaryCTAButton(title: language.text("초보자 차트는 어떻게 할까요?",
+                                                            "What would the beginner chart do?")) {
+                        suggestedAt = table.events.count
+                    }
+                    .accessibilityIdentifier("free-hint-show")
+                }
+            }
+        }
+    }
+
+    private func suggestionName(_ action: PracticeAction, toCall: Int) -> String {
+        switch action {
+        case .fold: language.text("포기", "Fold")
+        case .check: language.text("체크", "Check")
+        case .call: language.text("콜", "Call")
+        case .raise: toCall == 0 && table.street != .preflop ? language.text("벳", "Bet") : language.text("레이즈", "Raise")
         }
     }
 
@@ -1541,8 +1632,7 @@ private struct FreeTableBackFace: View {
         guard let style = table.computerSeats.first(where: { $0.seat == seat })?.style else {
             return language.text("나", "You")
         }
-        return language.text("컴퓨터 \(seat) · \(style.beginnerTitle(in: language))",
-                             "Computer \(seat) · \(style.beginnerTitle(in: language))")
+        return "\(FreeTableWords.seatName(seat, language: language)) · \(style.beginnerTitle(in: language))"
     }
 
     // MARK: Help
@@ -1572,12 +1662,15 @@ private struct FreeTablePolicyDetails: View {
                                "Rules \(PracticeTableState.rulesVersion) · Bot policy \(PracticeTableState.policyVersion)"))
             ForEach(table.computerSeats, id: \.seat) { entry in
                 let style = entry.style
-                Text(language.text("컴퓨터 \(entry.seat): \(style.beginnerTitle(in: language))",
-                                   "Computer \(entry.seat): \(style.beginnerTitle(in: language))"))
+                Text("\(FreeTableWords.seatName(entry.seat, language: language)): \(style.beginnerTitle(in: language))")
                     .font(GT.semibold(16))
                 Text(language.text("처음 들어오는 핸드: Chen 점수 상위 \(Int(style.vpip))%, 올리는 핸드: 상위 \(Int(style.pfr))%",
                                    "Starting hands: top \(Int(style.vpip))% by Chen score; raising hands: top \(Int(style.pfr))%"))
-                ForEach(MadeHand.allCases, id: \.self) { bucket in
+                if style == .casual {
+                    Text(language.text("공용 카드가 나온 뒤에는 탑 페어 이상이면 팟의 절반을 걸어요. 아무것도 없을 때도 일곱 번에 한 번쯤은 같은 금액을 걸어요(블러프). 페어나 드로우가 있으면 콜하고, 아무것도 없으면 대부분 포기해요. 이 선택은 자기 카드와 공개된 정보, 그리고 테이블마다 정해진 주사위 값으로만 정해져요.",
+                                       "After the shared cards, it bets half the pot with top pair or better. About one time in seven it bets the same amount with nothing (a bluff). It calls with a pair or a draw, and mostly folds with nothing. These choices use only its own cards, public information and a dice roll fixed for each table."))
+                }
+                ForEach(style == .casual ? [] : MadeHand.allCases, id: \.self) { bucket in
                     let policy = style.postflop
                     VStack(alignment: .leading, spacing: 4) {
                         Text(DrillTerms.madeHand(bucket, in: language)).font(GT.semibold(14))
@@ -1588,7 +1681,7 @@ private struct FreeTablePolicyDetails: View {
                 }
                 Divider()
             }
-            Text(language.text("공용 카드 전에는 Chen 점수 순으로 고른 핸드를 사용해요. 이후에는 공개된 족보별 행동 규칙을 따라 최소 금액으로 벳하거나 올려요. 자기 카드와 공개된 정보만 보고 골라요. 최적 전략이라는 뜻은 아니에요.", "Before shared cards, bots select hands ranked by Chen score. Afterward, they follow published hand-category rules and bet or raise the minimum. They see only their own cards and public information. This is not an optimal-strategy claim."))
+            Text(language.text("공용 카드 전에는 Chen 점수 순으로 고른 핸드를 사용해요. 이후에는 공개된 족보별 행동 규칙을 따라, ‘재미로’ 스타일이 아니면 최소 금액으로 벳하거나 올려요. 자기 카드와 공개된 정보만 보고 골라요. 최적 전략이라는 뜻은 아니에요.", "Before shared cards, bots select hands ranked by Chen score. Afterward, they follow published hand-category rules and, unless they play just for fun, bet or raise the minimum. They see only their own cards and public information. This is not an optimal-strategy claim."))
             Text(language.text("D는 딜러 버튼이에요. 버튼 다음 두 사람이 1칩과 2칩을 먼저 내요. 매 핸드 버튼이 이동해요.", "D is the dealer button. The next two players post 1 and 2 chips. The button moves after each hand."))
             Text(language.text("컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요.", "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."))
         }

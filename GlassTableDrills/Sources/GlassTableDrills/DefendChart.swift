@@ -54,6 +54,7 @@ public extension Archetype {
         case .lag: return 0.60
         case .station: return 1.00
         case .maniac: return 0.85
+        case .casual: return 0.70
         }
     }
 

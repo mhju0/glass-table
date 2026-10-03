@@ -11,7 +11,7 @@ public enum PracticeAction: Equatable, Sendable, Codable {
 }
 
 public enum PracticeTableError: Error, Equatable {
-    case handStillRunning, handFinished, wrongSeat, illegalAction, duplicateHandID, invalidState
+    case handStillRunning, handFinished, wrongSeat, illegalAction, duplicateHandID, invalidState, gameOver
 }
 
 public enum PracticeStreet: String, Codable, Sendable { case preflop, flop, turn, river, finished }
@@ -89,6 +89,10 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
     private var fullRaise: Int
     private var startingStacks: [Int]
     private var revealedCount: Int
+    /// Absent on a long table, so tables saved before quick games still load.
+    private let quickStack: Int?
+    /// A quick game ends after this many hands. A long table has no ending.
+    public let handLimit: Int?
 
     public var settlementID: String? { review?.settlementID }
     var currentStreetBet: Int { currentBet }
@@ -101,6 +105,13 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
     public var visibleBoard: [String] { Array(board.prefix(revealedCount)) }
     /// The learner plus one seat per computer style.
     public var seatCount: Int { styles.count + 1 }
+    /// Chips each seat starts with, and the amount a busted seat is topped up to.
+    public var startingStack: Int { quickStack ?? 100 }
+    /// A quick game is over once its last hand settles or the learner has no chips left.
+    public var isGameOver: Bool {
+        guard let handLimit, street == .finished else { return false }
+        return handNumber + 1 >= handLimit || seats[0].stack == 0
+    }
 
     /// Call after decoding an imported snapshot before it replaces live progress.
     public func validate() throws {
@@ -111,6 +122,7 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
               seats.count == seatCount, refills.count == seatCount, needsAction.count == seatCount,
               lastActedFacing.count == seatCount, startingStacks.count == seatCount,
               (0..<seatCount).contains(dealer), (0..<Int.max / 64).contains(handNumber),
+              (2...chipBound).contains(startingStack), handLimit.map({ $0 > handNumber }) ?? true,
               !handID.isEmpty,
               refills.allSatisfy({ (0...chipBound).contains($0) }),
               startingStacks.allSatisfy({ (1...chipBound).contains($0) }),
@@ -144,7 +156,8 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
         }
         // Imported state must be reachable by the versioned rules, not merely add
         // up. Replaying also verifies private deck order and every payout/review row.
-        var replay = Self(seed: seed, styles: styles.compactMap(Archetype.init(rawValue:)), handID: handID)
+        var replay = Self(seed: seed, styles: styles.compactMap(Archetype.init(rawValue:)), handID: handID,
+                          startingStack: quickStack, handLimit: handLimit)
         replay.dealer = dealer
         replay.handNumber = handNumber
         replay.refills = refills
@@ -161,20 +174,25 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
         guard replay == self else { throw PracticeTableError.invalidState }
     }
 
-    public init(seed: UInt64, styles: [Archetype] = [.tag, .station, .lag], handID: String = "hand-0") {
+    /// `startingStack` nil seats a long table: 100 chips each.
+    public init(seed: UInt64, styles: [Archetype] = [.tag, .station, .lag], handID: String = "hand-0",
+                startingStack: Int? = nil, handLimit: Int? = nil) {
         precondition((1...3).contains(styles.count), "Practice seats one to three bots")
+        precondition(startingStack.map { $0 >= 2 } ?? true && handLimit.map { $0 >= 1 } ?? true)
+        quickStack = startingStack
+        self.handLimit = handLimit
         self.seed = seed
         storedRulesVersion = Self.rulesVersion
         storedPolicyVersion = Self.policyVersion
         self.styles = styles.map(\.rawValue)
         let count = styles.count + 1
-        seats = (0..<count).map { _ in PracticeSeat(stack: 100) }
+        seats = (0..<count).map { _ in PracticeSeat(stack: startingStack ?? 100) }
         dealer = 0; handNumber = 0; self.handID = handID
         street = .preflop; board = []; currentSeat = nil; events = []; review = nil
         refills = Array(repeating: 0, count: count); appliedActionIDs = []
         deck = []; needsAction = Array(repeating: false, count: count)
         lastActedFacing = Array(repeating: nil, count: count); currentBet = 0; fullRaise = 2
-        startingStacks = Array(repeating: 100, count: count)
+        startingStacks = Array(repeating: startingStack ?? 100, count: count)
         revealedCount = 0
         deal()
     }
@@ -252,8 +270,9 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
         guard !newID.isEmpty else { throw PracticeTableError.invalidState }
         if newID == handID { return }
         guard street == .finished else { throw PracticeTableError.handStillRunning }
+        guard !isGameOver else { throw PracticeTableError.gameOver }
         for i in 0..<seatCount where seats[i].stack == 0 {
-            seats[i].stack = 100; refills[i] += 100
+            seats[i].stack = startingStack; refills[i] += startingStack
         }
         dealer = (dealer + 1) % seatCount; handNumber += 1; handID = newID
         deal()

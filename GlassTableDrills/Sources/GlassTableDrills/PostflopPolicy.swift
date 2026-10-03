@@ -87,6 +87,12 @@ public extension Archetype {
                                   calls: [.air, .weakPair],
                                   raises: [.draw, .topPair, .strong],
                                   betFraction: 1.5)
+        case .casual:
+            // The usual habit only; `PracticeBotPolicy` adds its seeded bluffs and calls.
+            return PostflopPolicy(bets: [.topPair, .strong],
+                                  calls: [.draw, .weakPair, .topPair, .strong],
+                                  raises: [],
+                                  betFraction: 0.5)
         }
     }
 }

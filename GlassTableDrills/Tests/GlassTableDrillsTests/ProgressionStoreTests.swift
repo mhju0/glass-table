@@ -94,6 +94,22 @@ final class ProgressionStoreTests: XCTestCase {
         }
     }
 
+    func testLessonSavedInTheFiveQuestionFormatStillLoadsAndFormatsCannotBeMixed() throws {
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        func session(format: Int, questions: Int) -> ProgressState {
+            var state = ProgressState()
+            state.activeNodeSession = NodeSessionSnapshot(id: "node", nodeID: node.id, seed: 1,
+                scheduledConcepts: Array(repeating: Concept.showdown.rawValue, count: questions),
+                phase: .question, formatVersion: format)
+            return state
+        }
+        XCTAssertNoThrow(try store().importData(JSONEncoder().encode(session(format: 1, questions: 5))))
+        XCTAssertNoThrow(try store().importData(JSONEncoder().encode(session(format: 2, questions: 3))))
+        XCTAssertThrowsError(try store().importData(JSONEncoder().encode(session(format: 2, questions: 5))))
+        XCTAssertThrowsError(try store().importData(JSONEncoder().encode(session(format: 1, questions: 3))))
+        XCTAssertThrowsError(try store().importData(JSONEncoder().encode(session(format: 3, questions: 3))))
+    }
+
     func testImportRejectsUnknownRoundFormatAndInventedNodeSchedule() throws {
         let s = store()
         var unknownRound = ProgressState()

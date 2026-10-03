@@ -14,6 +14,9 @@ struct RootView: View {
     @State private var showPath = false
     @State private var showPlacement = false
     @State private var showBasics = false
+    /// Saving the check's answer must not pull its closing screen away.
+    @State private var firstPlacementOpen = false
+    @State private var firstPlacementDone = false
     /// Set when the basics lesson ends with "start the next lesson"; the node opens
     /// once the lesson's cover has finished dismissing.
     @State private var nodeAfterBasics: CurriculumNode?
@@ -46,6 +49,10 @@ struct RootView: View {
                 // Spec §8.2: a store that exists but will not parse must never be
                 // silently replaced with empty progress.
                 StoreRecoveryView()
+            } else if model.shouldPresentFirstLesson, !firstPlacementDone,
+                      firstPlacementOpen || model.shouldPresentFirstPlacement {
+                PlacementView(onFinish: { firstPlacementDone = true })
+                    .onAppear { firstPlacementOpen = true }
             } else if model.shouldPresentFirstLesson {
                 FirstLessonView(context: .firstRun,
                                 onFinish: {
@@ -105,7 +112,7 @@ struct RootView: View {
         // each session saves its place, so closing never loses an answer.
         .fullScreenCover(item: $openNode) { node in
             NavigationStack {
-                NodeSessionView(node: node).modifier(ProgressSaveNotice())
+                NodeSessionView(node: node, onOpenLesson: { openNode = $0 }).modifier(ProgressSaveNotice())
             }.environment(model)
         }
         .fullScreenCover(isPresented: $showBasics, onDismiss: {

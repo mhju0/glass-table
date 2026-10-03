@@ -568,7 +568,7 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(ProgressionModel(store: store).state, model.state)
     }
 
-    func testUnitTwoBossPracticesPositionBeforeAwardingMastery() throws {
+    func testStartingHandsChallengePracticesPositionBeforeAwardingMastery() throws {
         let now = Date(timeIntervalSince1970: 1_785_000_000)
         var original = ProgressState()
         original.updateRecord(for: .position) {
@@ -577,10 +577,11 @@ final class ProgressionModelTests: XCTestCase {
         }
         try store.save(original)
         let model = ProgressionModel(store: store)
-        let boss = try XCTUnwrap(Curriculum.node(id: "u2-boss"))
+        // The starting-hands challenge is the one that mixes position in.
+        let boss = try XCTUnwrap(Curriculum.node(id: "u3-boss"))
         let concepts = Curriculum.sessionConcepts(for: boss, seed: 7)
-        XCTAssertEqual(concepts.count, 7)
-        XCTAssertTrue(concepts.contains(.callFold))
+        XCTAssertEqual(concepts.count, 6)
+        XCTAssertEqual(concepts.filter { $0 == .position }.count, 2)
         var evidence: [Concept: SessionEvidence] = [:]
         for concept in concepts {
             model.record(concept: concept, band: .spotOn, now: now)
@@ -588,7 +589,7 @@ final class ProgressionModelTests: XCTestCase {
         }
         model.completeNode(boss, scheduled: concepts, evidence: evidence, now: now)
 
-        XCTAssertEqual(model.record(for: .position).total, 6)
+        XCTAssertEqual(model.record(for: .position).total, 7)
         XCTAssertEqual(model.record(for: .position).tier, .mastered)
     }
 
@@ -689,7 +690,8 @@ final class ProgressionModelTests: XCTestCase {
         let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
         let beforeSeed = NodeSessionSeed.make(nodeID: boss.id,
                                               conceptTotals: [10, 0, 0, 0])
-        let before = Curriculum.sessionConcepts(for: boss, seed: beforeSeed)
+        // The frozen order below is the original four-skill mix.
+        let before = Curriculum.sessionConcepts(for: boss, seed: beforeSeed, format: 1)
         XCTAssertEqual(before, [.potMath, .position, .combos,
                                 .showdown, .position, .combos])
         let answered = try XCTUnwrap(before.first)
@@ -699,7 +701,7 @@ final class ProgressionModelTests: XCTestCase {
                                 : (concept == .showdown ? 10 : 0)
         }
         let afterSeed = NodeSessionSeed.make(nodeID: boss.id, conceptTotals: afterTotals)
-        let after = Curriculum.sessionConcepts(for: boss, seed: afterSeed)
+        let after = Curriculum.sessionConcepts(for: boss, seed: afterSeed, format: 1)
 
         XCTAssertNotEqual(beforeSeed, afterSeed)
         XCTAssertNotEqual(Array(before.prefix(3)), Array(after.prefix(3)),
@@ -833,6 +835,45 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.status(of: node), .cleared)
         XCTAssertEqual(model.record(for: .showdown).total, 10 + session.scheduledConcepts.count - 1)
         XCTAssertEqual(model.record(for: .showdown).tier, .familiar)
+    }
+
+    func testFirstVisitLessonIsThreeQuestionsAndTheFirstIsSavedAsHelped() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: epoch))
+        let session = try XCTUnwrap(model.state.activeNodeSession)
+        XCTAssertEqual(session.phase, .show)
+        XCTAssertEqual(session.formatVersion, 2)
+        XCTAssertEqual(session.scheduledConcepts.count, 3)
+        XCTAssertTrue(model.advanceNodeTeaching(sessionID: session.id, skip: false, expectedEpoch: epoch))
+        XCTAssertEqual(model.state.activeNodeSession?.phase, .together)
+        XCTAssertNil(model.state.activeNodeSession?.helpOrdinal)
+        XCTAssertTrue(model.advanceNodeTeaching(sessionID: session.id, skip: false, expectedEpoch: epoch))
+        XCTAssertEqual(model.state.activeNodeSession?.phase, .question)
+        XCTAssertEqual(model.state.activeNodeSession?.helpOrdinal, 0)
+        for ordinal in 0..<3 {
+            let (input, reveal, band) = try showdownAnswer(seed: 5, index: ordinal + 2)
+            XCTAssertTrue(model.commitNodeAnswer(sessionID: session.id, attemptID: "g\(ordinal)",
+                ordinal: ordinal, band: band, input: input, reveal: reveal,
+                language: .korean, expectedEpoch: epoch))
+            XCTAssertTrue(model.nextNodeQuestion(sessionID: session.id, afterOrdinal: ordinal,
+                                                 expectedEpoch: epoch))
+        }
+        XCTAssertEqual(model.state.activeNodeSession?.answers.map(\.answer.isAssisted), [true, false, false])
+        XCTAssertEqual(model.status(of: node), .cleared)
+        XCTAssertEqual(model.record(for: .showdown).total, 2, "Only the two answered alone are graded")
+    }
+
+    func testSkippingTheWalkthroughLeavesEveryQuestionUnaided() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: epoch))
+        let id = try XCTUnwrap(model.state.activeNodeSession?.id)
+        XCTAssertTrue(model.advanceNodeTeaching(sessionID: id, skip: true, expectedEpoch: epoch))
+        XCTAssertEqual(model.state.activeNodeSession?.phase, .question)
+        XCTAssertNil(model.state.activeNodeSession?.helpOrdinal)
     }
 
     func testLessonAnsweredOnlyWithHelpClearsWithoutWritingARecord() throws {

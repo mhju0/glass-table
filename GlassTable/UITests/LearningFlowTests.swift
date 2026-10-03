@@ -185,13 +185,13 @@ final class LearningFlowTests: XCTestCase {
         }
     }
 
-    func testIndependentLessonReachesSummaryAfterFiveAnswers() {
+    func testIndependentLessonReachesSummaryAfterThreeAnswers() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_DEMO_SEED": "1", "GT_DEMO_NODE": "u2-potOdds"]
         app.launch()
-        for number in 1...5 {
-            XCTAssertTrue(app.staticTexts["\(number)/5"].waitForExistence(timeout: 10))
+        for number in 1...3 {
+            XCTAssertTrue(app.staticTexts["\(number)/3"].waitForExistence(timeout: 10))
             let submit = app.buttons["확인"]
             XCTAssertTrue(submit.waitForExistence(timeout: 5))
             submit.tap()
@@ -709,18 +709,18 @@ final class LearningFlowTests: XCTestCase {
                                  "GT_TEST_PATH_CURRENT_NODE": "u8-defend"]
         app.launch()
 
-        let path = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "전체 학습 경로")).firstMatch
+        let path = app.buttons["learn-path"]
         XCTAssertTrue(path.waitForExistence(timeout: 15))
         path.tap()
         let node = app.buttons["lesson-u8-defend"]
         XCTAssertTrue(node.waitForExistence(timeout: 15))
         XCTAssertTrue(node.isHittable,
-                      "Opening the path should expand and scroll to a late current lesson once.")
+                      "Opening the list should scroll to a late suggested lesson once.")
         for _ in 0..<10 { app.swipeDown() }
-        XCTAssertTrue(app.staticTexts["배움의 길"].isHittable)
+        XCTAssertTrue(app.staticTexts["전체 레슨"].isHittable)
         app.tabBars.buttons["플레이"].tap()
         app.tabBars.buttons["배우기"].tap()
-        XCTAssertTrue(app.staticTexts["배움의 길"].isHittable,
+        XCTAssertTrue(app.staticTexts["전체 레슨"].isHittable,
                       "Returning to the path must preserve the learner's scroll position instead of jumping again.")
     }
 
@@ -763,7 +763,7 @@ final class LearningFlowTests: XCTestCase {
         app.buttons["확인"].tap()
         XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 5))
         app.buttons["다음 문제"].tap()
-        XCTAssertTrue(app.staticTexts["2/5"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["2/3"].waitForExistence(timeout: 5))
         app.buttons["확인"].tap()
         XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 5))
         app.terminate()

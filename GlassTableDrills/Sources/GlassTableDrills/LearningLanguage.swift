@@ -18,6 +18,71 @@ public enum LearningLanguage: String, Codable, CaseIterable, Sendable {
     }
 }
 
+public extension Concept {
+    /// The real poker term for a lesson, shown as a small tag under its everyday title
+    /// so the learner picks up the word players actually use.
+    func term(in language: LearningLanguage) -> String {
+        switch self {
+        case .showdown: language.text("쇼다운", "Showdown")
+        case .potMath: language.text("팟 계산", "Pot size")
+        case .position: language.text("포지션", "Position")
+        case .combos: language.text("콤보", "Combos")
+        case .potOdds: language.text("팟 오즈", "Pot odds")
+        case .outs: language.text("아웃", "Outs")
+        case .equitySense: language.text("에퀴티", "Equity")
+        case .evCall: language.text("EV 계산", "Expected value")
+        case .callFold: language.text("콜/폴드", "Call or fold")
+        case .rangeNotation: language.text("레인지 표기법", "Range notation")
+        case .rfi: language.text("오픈 차트 (RFI)", "Opening ranges (RFI)")
+        case .rangeRead: language.text("레인지 리드", "Range reading")
+        case .hitFrequency: language.text("히트 프리퀀시", "Hit frequency")
+        case .rangeAdvantage: language.text("레인지 어드밴티지", "Range advantage")
+        case .evLoss: language.text("EV 손실", "EV loss")
+        case .actionRead: language.text("액션 리드", "Action reading")
+        case .defend: language.text("디펜드 차트", "Defending against a raise")
+        case .mdf: language.text("최소 방어 빈도", "Minimum defense frequency")
+        }
+    }
+}
+
+public extension LearningTrack.ID {
+    func title(in language: LearningLanguage) -> String {
+        switch self {
+        case .basics: language.text("기본기", "The basics")
+        case .startingHands: language.text("시작 패", "Starting hands")
+        case .priceAndChance: language.text("가격과 확률", "Price and chance")
+        case .readingOpponents: language.text("상대 읽기", "Reading opponents")
+        case .deeper: language.text("더 깊이 (선택)", "Go deeper (optional)")
+        }
+    }
+
+    func blurb(in language: LearningLanguage) -> String {
+        switch self {
+        case .basics: language.text("누가 이기는지, 팟이 어떻게 커지는지.", "Who wins, and how the pot grows.")
+        case .startingHands: language.text("어떤 패로 들어갈지, 자리가 왜 중요한지.", "Which hands to play, and why your seat matters.")
+        case .priceAndChance: language.text("콜 가격과 이길 확률을 비교해요.", "Compare the price of a call with your chance to win.")
+        case .readingOpponents: language.text("상대 행동이 무엇을 말해 주는지.", "What an opponent's actions tell you.")
+        case .deeper: language.text("네 트랙이 편해진 뒤에 봐도 충분해요.", "Worth a look once the four tracks feel easy.")
+        }
+    }
+}
+
+public extension Position {
+    /// Where the seat sits in the betting order, in everyday words, with the poker
+    /// term kept beside it so the learner meets the term already knowing what it means.
+    func plainName(in language: LearningLanguage) -> String {
+        let words = switch self {
+        case .utg, .utg1: language.text("앞자리", "Early seat")
+        case .lj, .hj: language.text("중간 자리", "Middle seat")
+        case .co: language.text("뒷자리", "Late seat")
+        case .btn: language.text("마지막 차례", "Last to act")
+        case .sb: language.text("스몰 블라인드", "Small blind")
+        case .bb: language.text("빅 블라인드", "Big blind")
+        }
+        return "\(words) (\(rawValue))"
+    }
+}
+
 public extension Archetype {
     func beginnerTitle(in language: LearningLanguage) -> String {
         switch self {
@@ -26,6 +91,7 @@ public extension Archetype {
         case .lag: language.text("공격형", "Aggressive")
         case .station: language.text("콜 위주형", "Caller")
         case .maniac: language.text("매우 공격형", "Very aggressive")
+        case .casual: language.text("재미로", "Just for fun")
         }
     }
 
@@ -36,6 +102,7 @@ public extension Archetype {
         case .lag: language.text("여러 카드로 들어오고 자주 올려요", "Plays many hands and raises")
         case .station: language.text("자주 들어오지만 잘 안 올려요", "Joins often but rarely raises")
         case .maniac: language.text("아주 자주 들어오고 금액도 자주 올려요", "Joins very often and frequently raises")
+        case .casual: language.text("편하게 자주 들어오고, 가끔 블러프해요", "Plays for fun, joins often and sometimes bluffs")
         }
     }
 }

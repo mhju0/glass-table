@@ -83,8 +83,8 @@ struct TableView: View {
             if let hand {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(language.text("디펜드 차트 · \(hand.villainSeat.rawValue) 오픈에 맞서",
-                                           "Defend chart · facing a \(hand.villainSeat.rawValue) open"))
+                        Text(language.text("상대가 먼저 올렸을 때 · \(hand.villainSeat.plainName(in: language))",
+                                           "When they raise first · \(hand.villainSeat.plainName(in: language))"))
                             .font(GT.title(22)).foregroundStyle(GT.onFelt)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(language.text("오픈 레인지 폭에서 유도한 기준선이에요. 자세한 방법은 앱이 다 보여드려요.",
@@ -357,8 +357,8 @@ struct TableView: View {
 
     private func heroBlock(_ hand: TableHand) -> some View {
         VStack(spacing: 7) {
-            SectionLabel(text: language.text("내 카드 · \(hand.heroSeat.rawValue)",
-                                             "Your cards · \(hand.heroSeat.rawValue)"))
+            SectionLabel(text: language.text("내 카드 · \(hand.heroSeat.plainName(in: language))",
+                                             "Your cards · \(hand.heroSeat.plainName(in: language))"))
             CardRow(cards: hand.hero)
         }
         .frame(maxWidth: .infinity)
@@ -376,8 +376,8 @@ struct TableView: View {
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
                 : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
             header {
-                Text(language.text("상대 카드 · \(hand.villainSeat.rawValue) · \(hand.villain.beginnerTitle(in: language))",
-                                   "Opponent cards · \(hand.villainSeat.rawValue) · \(hand.villain.beginnerTitle(in: language))"))
+                Text(language.text("상대 카드 · \(hand.villainSeat.plainName(in: language)) · \(hand.villain.beginnerTitle(in: language))",
+                                   "Opponent cards · \(hand.villainSeat.plainName(in: language)) · \(hand.villain.beginnerTitle(in: language))"))
                     .font(GT.title(16)).foregroundStyle(GT.onFelt)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
                 // The bot's live range, always countable — the printable claim at

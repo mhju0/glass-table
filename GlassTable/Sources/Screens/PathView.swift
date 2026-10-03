@@ -5,12 +5,12 @@ import GlassTableDrills
 struct PathView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenFreePlay: () -> Void
     let onOpenBasics: () -> Void
-    @State private var expandedUnitIDs: Set<String> = []
     @State private var didScrollToCurrentNode = false
+    /// A lesson opened ahead of the suggested order, awaiting the learner's choice.
+    @State private var early: CurriculumNode?
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -19,29 +19,34 @@ struct PathView: View {
                     header
                     freePlay
                     basics
-                    ForEach(Array(Curriculum.units.enumerated()), id: \.element.id) { index, unit in
-                        if let stage = stageTitle(index) {
-                            Text(stage).font(GT.title(24)).foregroundStyle(GT.ink)
-                                .padding(.top, 12)
-                        }
-                        unitSection(unit, index: index)
-                    }
+                    ForEach(Curriculum.tracks) { track in trackSection(track) }
                 }
                 .padding(.horizontal, GT.Space.edge)
             }
             .gtTabBarClearance()
             .background(FeltBackground())
-            .onAppear {
-                expandCurrentUnit()
-                scrollToCurrentNodeOnce(using: proxy)
+            .onAppear { scrollToCurrentNodeOnce(using: proxy) }
+            .confirmationDialog(language.text("앞 레슨부터 해 볼까요?", "Start with an earlier lesson?"),
+                                isPresented: Binding(get: { early != nil }, set: { if !$0 { early = nil } }),
+                                titleVisibility: .visible, presenting: early) { node in
+                if let first = Curriculum.unfinishedGroundwork(for: node, in: model.state).first {
+                    Button(language.text("‘\(learningNodeTitle(first, language: language))’부터",
+                                         "Start with “\(learningNodeTitle(first, language: language))”")) { onOpenNode(first) }
+                }
+                Button(language.text("그래도 이 레슨 시작", "Open this lesson anyway")) { onOpenNode(node) }
+                Button(language.text("취소", "Cancel"), role: .cancel) {}
+            } message: { node in
+                let count = Curriculum.unfinishedGroundwork(for: node, in: model.state).count
+                Text(language.text("이 레슨은 앞의 레슨 \(count)개에서 배운 내용을 써요. 어느 쪽이든 고를 수 있어요.",
+                                   "This lesson uses ideas from \(count) earlier lessons. You can pick either way."))
             }
         }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(language.text("배움의 길", "Learning path")).font(GT.title(30)).foregroundStyle(GT.onFelt)
-            Text(language.text("추천 순서대로 배우거나 어떤 레슨이든 골라요. 앞 단계를 건너뛰어도 완료 기록은 그대로예요.", "Follow the suggested order or pick any lesson. Skipping ahead doesn't mark earlier lessons complete."))
+            Text(language.text("전체 레슨", "All lessons")).font(GT.title(30)).foregroundStyle(GT.onFelt)
+            Text(language.text("짧은 트랙 네 개예요. 추천 순서대로 가도 되고, 어떤 레슨이든 바로 열 수 있어요.", "Four short tracks. Follow the suggested order, or open any lesson you like."))
                 .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                 .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
@@ -97,90 +102,66 @@ struct PathView: View {
         .accessibilityIdentifier("path-basics")
     }
 
-    private func unitSection(_ unit: CurriculumUnit, index: Int) -> some View {
-        let cleared = unit.nodes.filter { model.status(of: $0) == .cleared }.count
-        let expanded = expandedUnitIDs.contains(unit.id)
-        let current = unit.nodes.contains { model.status(of: $0) == .available }
-        return VStack(spacing: 0) {
-            Button { toggle(unit.id) } label: {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(language.text("\(index + 1)단원", "Unit \(index + 1)")).font(GT.semibold(13))
-                            .foregroundStyle(current ? GT.mint : GT.onFeltSecondary)
-                        Spacer(minLength: 8)
-                        Text("\(cleared)/\(unit.nodes.count)")
-                            .font(GT.semibold(13).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12, weight: .semibold)).foregroundStyle(GT.onFeltSecondary)
-                            .rotationEffect(.degrees(expanded ? 180 : 0))
-                    }
-                    Text(unitTitle(unit, index: index)).font(GT.title(21)).foregroundStyle(GT.onFelt)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    GeometryReader { proxy in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(GT.hairlineFelt)
-                            Capsule().fill(GT.mint)
-                                .frame(width: proxy.size.width * Double(cleared)
-                                       / Double(max(unit.nodes.count, 1)))
-                        }
-                    }.frame(height: 4)
-                }
-                .padding(.vertical, 14).contentShape(Rectangle())
+    private func trackSection(_ track: LearningTrack) -> some View {
+        let cleared = track.lessons.filter { model.state.nodes[$0.id]?.cleared == true }.count
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(track.id.title(in: language)).font(GT.title(21)).foregroundStyle(GT.onFelt)
+                Spacer(minLength: 8)
+                Text("\(cleared)/\(track.lessons.count)")
+                    .font(GT.semibold(13).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
+                    .accessibilityLabel(language.text("\(track.lessons.count)개 중 \(cleared)개 완료",
+                                                      "\(cleared) of \(track.lessons.count) completed"))
             }
-            .buttonStyle(GTPress())
-            .accessibilityLabel(language.text("\(index + 1)단원, \(unit.title), \(unit.nodes.count)개 중 \(cleared)개 완료", "Unit \(index + 1), \(unitTitle(unit, index: index)), \(cleared) of \(unit.nodes.count) completed"))
-            .accessibilityHint(expanded ? language.text("단원 접기", "Collapse unit") : language.text("단원 펼치기", "Expand unit"))
-
-            if expanded {
-                VStack(spacing: 0) {
-                    ForEach(unit.nodes, id: \.id) { node in nodeRow(node) }
-                }
-                .padding(.bottom, 8).transition(.opacity)
-            }
+            Text(track.id.blurb(in: language)).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 4).padding(.bottom, 6)
+            ForEach(track.lessons, id: \.id) { nodeRow($0) }
+            if let challenge = track.challenge { nodeRow(challenge, challenge: true) }
         }
-    }
-
-    private func toggle(_ id: String) {
-        withAnimation(reduceMotion ? nil : GT.Motion.change) {
-            if expandedUnitIDs.contains(id) { expandedUnitIDs.remove(id) }
-            else { expandedUnitIDs.insert(id) }
-        }
-    }
-
-    private func expandCurrentUnit() {
-        guard expandedUnitIDs.isEmpty,
-              let node = currentNode,
-              let unit = Curriculum.units.first(where: {
-                  $0.nodes.contains(where: { $0.id == node.id })
-              }) else { return }
-        expandedUnitIDs.insert(unit.id)
+        .padding(.top, 12)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("track-\(track.id.rawValue)")
     }
 
     private func scrollToCurrentNodeOnce(using proxy: ScrollViewProxy) {
         guard !didScrollToCurrentNode, let node = currentNode
         else { return }
         didScrollToCurrentNode = true
-        // The row enters the hierarchy only after expanding its unit. Defer the one
-        // initial scroll until that state has produced the row; subsequent renders do
-        // not move the learner away from where they scrolled.
+        // Defer the one initial scroll until layout has produced the row; subsequent
+        // renders do not move the learner away from where they scrolled.
         DispatchQueue.main.async {
             proxy.scrollTo(node.id, anchor: .center)
         }
     }
 
-    private var currentNode: CurriculumNode? {
-        return Curriculum.allNodes.first(where: { model.status(of: $0) == .available })
+    private var currentNode: CurriculumNode? { model.nextNode }
+
+    /// Finished, suggested next, or simply open. Nothing on the tracks is ever locked.
+    private func status(of node: CurriculumNode) -> NodeStatus {
+        if model.state.nodes[node.id]?.cleared == true { return .cleared }
+        return node == currentNode ? .available : .locked
     }
 
-    private func nodeRow(_ node: CurriculumNode) -> some View {
-        let status = model.status(of: node)
-        let boss = if case .boss = node.kind { true } else { false }
-        return Button { onOpenNode(node) } label: {
+    private func nodeRow(_ node: CurriculumNode, challenge: Bool = false) -> some View {
+        let status = status(of: node)
+        let tag = challenge ? language.text("선택 도전 · 섞어 풀기", "Optional challenge · mixed")
+            : Curriculum.taughtConcept(of: node)?.term(in: language)
+        return Button {
+            if status != .cleared, !Curriculum.unfinishedGroundwork(for: node, in: model.state).isEmpty {
+                early = node
+            } else {
+                onOpenNode(node)
+            }
+        } label: {
             HStack(spacing: 13) {
-                badge(status: status, boss: boss)
+                badge(status: status, boss: challenge)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(learningNodeTitle(node, language: language)).font(GT.title(status == .available ? 17 : 15))
                         .foregroundStyle(GT.onFelt)
+                    if let tag {
+                        Text(tag).font(GT.semibold(12)).foregroundStyle(GT.mint)
+                    }
                     Text(learningNodeDescription(node, language: language))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
@@ -200,7 +181,7 @@ struct PathView: View {
         }
         .buttonStyle(GTPress())
         .id(node.id)
-        .accessibilityLabel("\(learningNodeTitle(node, language: language)), \(statusLabel(status))"
+        .accessibilityLabel("\(learningNodeTitle(node, language: language)), \(tag.map { $0 + ", " } ?? "")\(statusLabel(status))"
                             + (practiceLabel(node).map { ", \($0)" } ?? ""))
         .accessibilityIdentifier("lesson-\(node.id)")
     }
@@ -242,20 +223,6 @@ struct PathView: View {
         case .familiar: return language.text("반복 중", "Building familiarity")
         case .proficient: return language.text("능숙 단계", "Practiced")
         case .mastered: return language.text("숙달 단계", "Mixed checks passed")
-        }
-    }
-
-    private func unitTitle(_ unit: CurriculumUnit, index: Int) -> String {
-        language.text(unit.title, LearningMilestone.unitTitlesEnglish[index])
-    }
-
-    private func stageTitle(_ index: Int) -> String? {
-        switch index {
-        case 0: language.text("카드와 칩부터", "Start with cards and chips")
-        case 1: language.text("가격과 가능성 비교", "Weigh the price and chances")
-        case 2: language.text("상대의 가능한 패 읽기", "Read possible hands")
-        case 5: language.text("더 깊이 있는 판단", "Go deeper with decisions")
-        default: nil
         }
     }
 }

@@ -64,6 +64,8 @@ struct NodeSessionView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.requestReview) private var requestReview
     let node: CurriculumNode
+    /// Leaves this lesson for another one, for the easier-lesson suggestion.
+    var onOpenLesson: ((CurriculumNode) -> Void)? = nil
 
     @State private var index = 0
     @State private var missed = 0
@@ -128,7 +130,7 @@ struct NodeSessionView: View {
                 ChromeTextButton(title: WalkthroughView.skipTitle(language)) {
                     advanceTeaching(skip: true)
                 }
-            } else if stage == .together { hintButton }
+            } else if stage == .together || isHelpedQuestion { hintButton }
         })
         .onAppear {
             if sessionEpoch == nil { sessionEpoch = model.epoch }
@@ -263,6 +265,15 @@ struct NodeSessionView: View {
         questionReadyAt = nil
     }
 
+    /// The second question with help on a first visit: the hint stays one tap away,
+    /// and the answer is saved as practice with help rather than graded.
+    private var isHelpedQuestion: Bool {
+        guard stage == .solo, !finished, index == 0, let savedSession,
+              savedSession.formatVersion >= 2, savedSession.phase == .question,
+              Curriculum.taughtConcept(of: node) != nil else { return false }
+        return model.helpUsed(.lesson, sessionID: savedSession.id, ordinal: 0)
+    }
+
     /// The concept this node introduces — what the teaching stages are about.
     private var taughtConcept: Concept {
         Curriculum.taughtConcept(of: node) ?? Curriculum.concepts(of: node)[0]
@@ -371,7 +382,9 @@ struct NodeSessionView: View {
                                                  expectedEpoch: sessionEpoch ?? model.epoch) })
         }
         return ConceptDrillView(concept: concept, seed: baseSeed, index: spotIndex,
-                         progressText: "\(index + 1)/\(itemCount)",
+                         progressText: isHelpedQuestion
+                             ? language.text("힌트와 함께 한 번 더", "Once more, with the hint")
+                             : "\(index + 1)/\(itemCount)",
                          restoredAnswer: restoredAnswer,
                          initialDraft: savedSession?.draft?.input,
                          help: help,
@@ -455,6 +468,24 @@ struct NodeSessionView: View {
                 if let first = milestones.first {
                     MilestoneShareSection(milestone: first, date: milestoneDate)
                         .padding(.vertical, 4)
+                }
+                if missed * 2 > itemCount - helped, let onOpenLesson,
+                   let easier = Curriculum.easierLesson(than: node) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(language.text("이번 레슨이 어려웠다면 앞 레슨을 먼저 해 봐도 좋아요. 이 레슨은 언제든 다시 열 수 있어요.",
+                                           "If this one felt hard, the lesson before it may help. You can come back to this one anytime."))
+                            .font(GT.body(15)).foregroundStyle(GT.onFelt)
+                            .fixedSize(horizontal: false, vertical: true)
+                        SecondaryCTAButton(title: language.text("‘\(learningNodeTitle(easier, language: language))’ 해 보기",
+                                                                "Try “\(learningNodeTitle(easier, language: language))”")) {
+                            if let savedSession {
+                                _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
+                                    expectedEpoch: sessionEpoch ?? model.epoch)
+                            }
+                            onOpenLesson(easier)
+                        }
+                        .accessibilityIdentifier("summary-easier")
+                    }
                 }
                 FeltCTAButton(title: language.text("길로 돌아가기", "Back to path")) {
                     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
@@ -655,7 +686,7 @@ struct FreePlayView: View {
         language.text("횟수 제한은 없어요. 아무거나 골라서 원하는 만큼 푸세요.",
                       "No limits. Pick any skill and practice as much as you like.")
     }
-    var concepts = Concept.allCases
+    var concepts = Curriculum.tracks.flatMap(\.concepts)
     /// Shown in place of the roster when `concepts` runs dry — the 복습 flow ends by
     /// emptying its own list, which must read as finishing, not as a broken screen.
     var emptyText: String?
@@ -989,7 +1020,21 @@ struct FreePlayView: View {
                     .buttonStyle(GTPress())
                     .gtCard(radius: 14)
                 }
-                ForEach(concepts, id: \.self) { c in
+                ForEach(Curriculum.tracks) { track in
+                    let skills = track.concepts.filter(concepts.contains)
+                    if !skills.isEmpty {
+                        Text(track.id.title(in: language)).font(GT.title(17)).foregroundStyle(GT.onFelt)
+                            .padding(.top, 10)
+                            .accessibilityAddTraits(.isHeader)
+                    }
+                    ForEach(skills, id: \.self) { c in skillCard(c) }
+                }
+            }
+            .gtContentEdge()
+        }
+    }
+
+    private func skillCard(_ c: Concept) -> some View {
                     Button {
                         if let activeRound, activeRound.concept != c.rawValue {
                             guard model.abandonRound(roundID: activeRound.id,
@@ -1011,12 +1056,14 @@ struct FreePlayView: View {
                         prepareIntro(for: c)
                         questionReadyAt = nil
                     } label: {
-                        HStack {
+                        HStack(spacing: 12) {
+                            SkillGlyph(concept: c)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(language.text(conceptTitle(c),
-                                    ConceptIntroduction.make(c, language: language).title))
-                                    .font(GT.title(13.5)).foregroundStyle(GT.ink)
-                                Text(conceptBlurb(c, language: language)).font(GT.body(11))
+                                Text(ConceptIntroduction.make(c, language: language).title)
+                                    .font(GT.title(15)).foregroundStyle(GT.ink)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Text(c.term(in: language)).font(GT.semibold(12)).foregroundStyle(GT.mint)
+                                Text(conceptBlurb(c, language: language)).font(GT.body(13))
                                     .foregroundStyle(GT.inkMuted)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -1030,10 +1077,7 @@ struct FreePlayView: View {
                         .gtCard(radius: 14)
                     }
                     .buttonStyle(GTPress())
-                }
-            }
-            .gtContentEdge()
-        }
+                    .accessibilityIdentifier("skill-\(c.rawValue)")
     }
 }
 

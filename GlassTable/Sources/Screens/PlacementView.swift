@@ -5,6 +5,8 @@ struct PlacementView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
+    /// Set at first launch, where the check is a root screen rather than a sheet.
+    var onFinish: (() -> Void)?
     @State private var report: PlacementSelfReport?
     @State private var answers: [String: String] = [:]
     @State private var question = -1
@@ -29,7 +31,8 @@ struct PlacementView: View {
                         Text(language.text("시작점 제안일 뿐이에요. 어떤 레슨이든 고를 수 있고, 이전 레슨은 완료로 바뀌지 않아요.", "This is only a starting suggestion. Every lesson stays open, and earlier lessons aren't marked complete."))
                             .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                         Spacer(minLength: 12)
-                        FeltCTAButton(title: language.text("배우기로 돌아가기", "Return to Learn")) { dismiss() }
+                        FeltCTAButton(title: onFinish == nil ? language.text("배우기로 돌아가기", "Return to Learn")
+                                      : language.text("계속", "Continue")) { finish() }
                     } else if question < 0 {
                         Text(language.text("포커가 얼마나 익숙한가요?", "How familiar is poker?"))
                             .font(GT.title(22))
@@ -40,7 +43,8 @@ struct PlacementView: View {
                             ForEach(PlacementSelfReport.allCases, id: \.self) { option in
                                 choice(reportTitle(option)) {
                                     report = option
-                                    question = 0
+                                    // A new player has nothing to check; they start from the basics.
+                                    if option == .newToPoker { skip() } else { question = 0 }
                                 }
                             }
                         }
@@ -58,8 +62,7 @@ struct PlacementView: View {
                     }
                     if !completed {
                         SecondaryCTAButton(title: language.text("확인 없이 시작하기", "Start without the check")) {
-                            if model.setPlacement(report: report, answers: [:], skipped: true,
-                                                  expectedEpoch: epoch ?? model.epoch) { dismiss() }
+                            skip()
                         }
                     }
                 }
@@ -69,10 +72,19 @@ struct PlacementView: View {
         }
         .background(FeltBackground())
         .modifier(ProgressSaveNotice())
-        .gtChrome(leading: { ChromeButton.close { dismiss() } })
+        .gtChrome(leading: { ChromeButton.close { if onFinish == nil { dismiss() } else { skip() } } })
         .gtSheetSurface()
         .onAppear { if epoch == nil { epoch = model.epoch } }
-        .onChange(of: model.epoch) { _, _ in dismiss() }
+        .onChange(of: model.epoch) { _, _ in finish() }
+    }
+
+    private func finish() {
+        if let onFinish { onFinish() } else { dismiss() }
+    }
+
+    private func skip() {
+        if model.setPlacement(report: report, answers: [:], skipped: true,
+                              expectedEpoch: epoch ?? model.epoch) { finish() }
     }
 
     /// An answer is a bordered card: it commits on tap, so it must look tappable.

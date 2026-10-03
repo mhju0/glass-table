@@ -5,10 +5,13 @@ final class CurriculumTests: XCTestCase {
     func testCompletedSessionsPracticeEveryConceptTheyCanPromote() {
         for node in Curriculum.allNodes {
             let session = Curriculum.sessionConcepts(for: node)
-            XCTAssertEqual(Set(session), Set(Curriculum.concepts(of: node)), node.id)
+            XCTAssertEqual(Set(session), Set(Curriculum.sessionPool(of: node, format: Curriculum.sessionFormat)), node.id)
             switch node.kind {
             case .drill:
-                XCTAssertEqual(session.count, 5, node.id)
+                XCTAssertEqual(session.count, 3, node.id)
+                XCTAssertEqual(Curriculum.sessionConcepts(for: node, format: 1).count, 5, node.id)
+                XCTAssertTrue(Curriculum.isValidSession(session, for: node))
+                XCTAssertFalse(Curriculum.isValidSession(session, for: node, format: 1))
                 XCTAssertEqual(Set(session).count, 1, "first exposure stays blocked")
             case .boss:
                 XCTAssertGreaterThanOrEqual(session.count, 6, node.id)
@@ -25,7 +28,7 @@ final class CurriculumTests: XCTestCase {
         XCTAssertEqual(first, again)
         XCTAssertNotEqual(first, other)
         XCTAssertEqual(first.count, 6)
-        XCTAssertEqual(Set(first), Set(Curriculum.concepts(of: boss)))
+        XCTAssertEqual(Set(first), Set(Curriculum.sessionPool(of: boss, format: Curriculum.sessionFormat)))
         let counts = Dictionary(grouping: first, by: { $0 }).values.map(\.count)
         XCTAssertLessThanOrEqual((counts.max() ?? 0) - (counts.min() ?? 0), 1)
         XCTAssertTrue(Curriculum.isValidSession(first, for: boss))
@@ -170,5 +173,83 @@ final class NodeUnlockTests: XCTestCase {
 
     func testUnknownNodeIsLocked() {
         XCTAssertEqual(Curriculum.status(of: "nope", in: ProgressState()), .locked)
+    }
+}
+
+// MARK: - tracks (D46)
+
+final class LearningTrackTests: XCTestCase {
+    func testTrackChallengesMixOnlyTheirOwnTrackAndOldSavedOnesKeepTheirMix() throws {
+        for track in Curriculum.tracks {
+            guard let challenge = track.challenge else { continue }
+            let mixed = Curriculum.sessionConcepts(for: challenge, seed: 9)
+            XCTAssertEqual(Set(mixed), Set(track.concepts), challenge.id)
+            XCTAssertTrue(Curriculum.isValidSession(mixed, for: challenge))
+            let old = Curriculum.sessionConcepts(for: challenge, seed: 9, format: 1)
+            XCTAssertEqual(Set(old), Set(Curriculum.concepts(of: challenge)), challenge.id)
+            XCTAssertTrue(Curriculum.isValidSession(old, for: challenge, format: 1))
+        }
+        let basics = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        XCTAssertFalse(Curriculum.sessionConcepts(for: basics, seed: 9).contains(.combos))
+    }
+
+    func testSkillsToPractiseFollowTheTracksAndLeaveOutHiddenTopics() {
+        let skills = Curriculum.tracks.flatMap(\.concepts)
+        XCTAssertEqual(Set(skills).count, skills.count)
+        XCTAssertEqual(Curriculum.tracks.first { $0.id == .priceAndChance }?.concepts,
+                       [.outs, .equitySense, .potOdds, .callFold])
+        for hidden in [Concept.hitFrequency, .rangeAdvantage, .evLoss, .mdf] { XCTAssertFalse(skills.contains(hidden)) }
+    }
+
+    func testTracksRegroupExistingLessonsAndLeaveTheNineUnitsAlone() {
+        XCTAssertEqual(Curriculum.units.count, 9)
+        XCTAssertEqual(Curriculum.allNodes.count, 26)
+        XCTAssertEqual(Curriculum.tracks.map(\.id), LearningTrack.ID.allCases)
+        XCTAssertEqual(Curriculum.trackLessons.map(\.id),
+                       ["u1-showdown", "u1-potMath", "u1-position", "u3-rfi", "u8-defend",
+                        "u2-outs", "u2-equitySense", "u2-potOdds", "u4-rangeRead", "u7-actionRead"])
+        let offered = Curriculum.tracks.flatMap { $0.lessons + [$0.challenge].compactMap { $0 } }
+        XCTAssertEqual(Set(offered.map(\.id)).count, offered.count, "No lesson sits on two tracks")
+        let taught = Set(offered.compactMap(Curriculum.taughtConcept))
+        for hidden in [Concept.hitFrequency, .rangeAdvantage, .evLoss, .mdf] {
+            XCTAssertFalse(taught.contains(hidden), "\(hidden) is no longer offered")
+        }
+        XCTAssertTrue(taught.contains(.callFold), "Call or fold is the price track's challenge")
+        XCTAssertEqual(Curriculum.tracks.last?.lessons.compactMap(Curriculum.taughtConcept),
+                       [.combos, .rangeNotation, .evCall])
+    }
+
+    func testSuggestionFollowsTheTracksButNeverLocksAndIgnoresHiddenProgress() {
+        var state = ProgressState()
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u1-showdown")
+        state.nodes["u1-showdown"] = NodeRecord(cleared: true)
+        // Old progress on a lesson that is now hidden neither helps nor blocks.
+        state.nodes["u5-hitFrequency"] = NodeRecord(cleared: true)
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u1-potMath")
+        // Jumping ahead is allowed; the suggestion stays on the earliest gap.
+        state.nodes["u2-potOdds"] = NodeRecord(cleared: true)
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u1-potMath")
+        for node in Curriculum.trackLessons { state.nodes[node.id] = NodeRecord(cleared: true) }
+        XCTAssertNil(Curriculum.suggestedLesson(in: state), "Go deeper and challenges are never suggested")
+    }
+
+    func testGroundworkAndEasierLessonPointBackAlongTheTracks() throws {
+        var state = ProgressState()
+        let rfi = try XCTUnwrap(Curriculum.node(id: "u3-rfi"))
+        XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state).map(\.id),
+                       ["u1-showdown", "u1-potMath", "u1-position"])
+        state.nodes["u1-showdown"] = NodeRecord(cleared: true)
+        state.nodes["u1-potMath"] = NodeRecord(cleared: true)
+        XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state).map(\.id), ["u1-position"])
+        XCTAssertEqual(Curriculum.easierLesson(than: rfi)?.id, "u1-position")
+        XCTAssertNil(Curriculum.easierLesson(than: try XCTUnwrap(Curriculum.node(id: "u1-showdown"))))
+        // A challenge leans on its own track; a deeper topic leans on all four.
+        let challenge = try XCTUnwrap(Curriculum.node(id: "u2-boss"))
+        XCTAssertEqual(Curriculum.unfinishedGroundwork(for: challenge, in: state).map(\.id),
+                       ["u2-outs", "u2-equitySense", "u2-potOdds"])
+        XCTAssertEqual(Curriculum.easierLesson(than: challenge)?.id, "u2-potOdds")
+        let combos = try XCTUnwrap(Curriculum.node(id: "u1-combos"))
+        XCTAssertEqual(Curriculum.unfinishedGroundwork(for: combos, in: state).count, 8)
+        XCTAssertEqual(Curriculum.easierLesson(than: combos)?.id, "u7-actionRead")
     }
 }

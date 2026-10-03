@@ -8,7 +8,6 @@ struct LearnView: View {
     let onOpenReview: () -> Void
     let onOpenPractice: () -> Void
     let onOpenBasics: () -> Void
-    @State private var showPlacement = false
 
     private var due: [Concept] { model.dueConcepts() }
 
@@ -21,15 +20,14 @@ struct LearnView: View {
                         .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
                 }
                 recommendation
-                if !hasFinishedALesson { startingPointCard }
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("내 방식으로 연습", "Practice your way")).font(GT.title(20))
                     NavigationLink {
                         PathView(onOpenNode: onOpenNode, onOpenFreePlay: onOpenPractice,
                                  onOpenBasics: onOpenBasics)
                     } label: {
-                        learningRow(language.text("전체 학습 경로", "Full learning path"),
-                                    language.text("기초부터 깊이 있는 판단까지. 모든 레슨이 처음부터 열려 있어요.", "From basics to deeper decisions. Every lesson is open."), icon: "point.topleft.down.to.point.bottomright.curvepath")
+                        learningRow(language.text("전체 레슨", "All lessons"),
+                                    language.text("짧은 트랙 네 개. 모든 레슨이 처음부터 열려 있어요.", "Four short tracks. Every lesson is open."), icon: "point.topleft.down.to.point.bottomright.curvepath")
                     }
                     .buttonStyle(GTPress())
                     .accessibilityIdentifier("learn-path")
@@ -43,23 +41,11 @@ struct LearnView: View {
                                         language.text("복습할 주제 \(due.count)개", "\(due.count) topics ready for review"), icon: "arrow.clockwise")
                         }.buttonStyle(GTPress())
                     }
-                    if hasFinishedALesson {
-                        Button { showPlacement = true } label: {
-                            learningRow(language.text("시작점 찾아보기", "Find a starting point"),
-                                        language.text("짧은 확인으로 시작할 주제를 추천받아요.", "A short check suggests a topic to start from."),
-                                        icon: "scope")
-                        }
-                        .buttonStyle(GTPress())
-                        .accessibilityIdentifier("placement-row")
-                    }
                 }
             }.padding(18)
         }
         .gtTabBarClearance()
         .background(FeltBackground())
-        .sheet(isPresented: $showPlacement) {
-            NavigationStack { PlacementView() }
-        }
     }
 
     private var recommendation: some View {
@@ -110,32 +96,6 @@ struct LearnView: View {
         }
         .gtInset(GT.Space.card, firstText: .semibold(13)).frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: GT.Radius.panel)
-    }
-
-    /// The starting-point check leads until the learner finishes a lesson; after that
-    /// they have a place to begin, so it steps down to an ordinary row.
-    private var hasFinishedALesson: Bool {
-        Curriculum.allNodes.contains { model.status(of: $0) == .cleared }
-    }
-
-    private var startingPointCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(language.text("어디서 시작할지 고민되나요?", "Not sure where to start?"))
-                .font(GT.title(19))
-            Text(language.text("짧은 확인으로 시작할 주제를 추천해 드려요. 점수나 자격시험이 아니라 출발점을 찾는 과정이에요.", "A short check suggests a starting topic. It isn't a score or a qualification, just a place to begin."))
-                .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-                .lineSpacing(GT.Typography.bodyLineSpacing)
-                .fixedSize(horizontal: false, vertical: true)
-            SecondaryCTAButton(title: language.text("시작점 찾아보기", "Find a starting point")) {
-                showPlacement = true
-            }
-            .accessibilityIdentifier("placement-start")
-            .padding(.top, 4)
-        }
-        .gtInset(GT.Space.card, firstText: .title(19)).frame(maxWidth: .infinity, alignment: .leading)
-        .gtPanel()
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("learn-starting-point-card")
     }
 
     private var recommendedNode: CurriculumNode? {

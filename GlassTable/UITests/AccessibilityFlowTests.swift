@@ -45,8 +45,8 @@ final class AccessibilityFlowTests: XCTestCase {
         let title = code == "ko" ? "\(names[players - 2]) · 1번째 핸드" : "\(names[players - 2]) · Hand 1"
         let header = app.staticTexts[title]
         XCTAssertTrue(header.exists)
-        var ids = (0..<players).map { "practice-\($0)" }
-        if players == 3 { ids.append("practice-empty") }
+        let ids = (0..<players).map { "practice-\($0)" }
+        XCTAssertFalse(app.otherElements["practice-empty"].exists, "No placeholder for a seat nobody sits in")
         for id in ids {
             let seat = app.otherElements[id]
             var fullyVisible = false
@@ -69,7 +69,7 @@ final class AccessibilityFlowTests: XCTestCase {
             print("Free table AX5 \(code) \(players) \(id): seat=\(seat.frame), viewport=\(scroll.frame), chromeBottom=\(header.frame.maxY)")
             if id == "practice-0" {
                 XCTAssertTrue(seat.label.contains(code == "ko" ? "남은 칩" : "chips left"), seat.label)
-            } else if id != "practice-empty" {
+            } else {
                 XCTAssertTrue(seat.label.contains(code == "ko" ? "뒷면 카드 2장" : "2 face-down cards"), seat.label)
             }
             let capture = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
@@ -109,26 +109,27 @@ final class AccessibilityFlowTests: XCTestCase {
         }
     }
 
-    func testLearnStartingPointCardIsReachableInBothLanguagesAtAccessibilityXXXL() {
-        for (code, setting, heading, title) in [("ko", "korean", "어디서 시작할지 고민되나요?", "확인 없이 시작하기"),
-                                                 ("en", "english", "Not sure where to start?", "Start without the check")] {
+    func testFirstLaunchStartingPointCheckIsReachableInBothLanguagesAtAccessibilityXXXL() {
+        for (code, setting, newPlayer, skip) in [("ko", "korean", "처음 배워요", "확인 없이 시작하기"),
+                                                  ("en", "english", "I'm new to poker", "Start without the check")] {
             let app = XCUIApplication()
             app.launchArguments = ["-AppleLanguages", "(\(code))", "-glassTable.language", setting]
                 + accessibilityXXXL
-            app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_TAB": "learn"]
+            app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "1",
+                                     "GT_TEST_FIRST_PLACEMENT": "1"]
             app.launch()
-            let card = app.otherElements["learn-starting-point-card"]
-            XCTAssertTrue(card.waitForExistence(timeout: 15))
-            print("AX5 Learn \(code): card=\(card.frame), viewport=\(app.frame), tabBar=\(app.tabBars.firstMatch.frame)")
-            let headingElement = app.staticTexts[heading]
-            XCTAssertTrue(scrollUntilFullyVisible(headingElement, above: app.tabBars.firstMatch, in: app))
-            attachLearnCapture(app, name: "learn-starting-point-top-AX5-\(code)")
-            let start = app.buttons["placement-start"]
-            XCTAssertTrue(scrollUntilFullyVisible(start, above: app.tabBars.firstMatch, in: app))
-            XCTAssertTrue(start.isHittable)
-            attachLearnCapture(app, name: "learn-starting-point-bottom-AX5-\(code)")
-            start.tap()
-            XCTAssertTrue(app.buttons[title].waitForExistence(timeout: 5))
+            let first = app.buttons[newPlayer]
+            XCTAssertTrue(first.waitForExistence(timeout: 15))
+            XCTAssertFalse(app.tabBars.firstMatch.exists)
+            attachLearnCapture(app, name: "first-launch-starting-point-top-AX5-\(code)")
+            XCTAssertTrue(scrollUntilFullyVisible(first, above: app, in: app))
+            XCTAssertTrue(first.isHittable)
+            let skipButton = app.buttons[skip]
+            XCTAssertTrue(scrollUntilFullyVisible(skipButton, above: app, in: app))
+            XCTAssertTrue(skipButton.isHittable)
+            attachLearnCapture(app, name: "first-launch-starting-point-bottom-AX5-\(code)")
+            skipButton.tap()
+            XCTAssertTrue(app.buttons["firstLesson.skip"].waitForExistence(timeout: 5))
             app.terminate()
         }
     }

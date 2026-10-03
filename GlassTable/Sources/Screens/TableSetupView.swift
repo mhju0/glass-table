@@ -2,8 +2,8 @@ import SwiftUI
 import GlassTableDrills
 
 /// Seats a free table: two to four players, one style per computer chosen in place,
-/// then one start button at the bottom. The default seats three different styles so the first table already
-/// shows how differently people play.
+/// then one start button at the bottom. The default seats three easygoing players, so the first table is
+/// a friendly one; the published styles are a tap away.
 struct TableSetupView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
@@ -12,8 +12,10 @@ struct TableSetupView: View {
     let epoch: UUID
     /// Presents the new table. Without it, setup just closes.
     var onStarted: (() -> Void)? = nil
-    @State private var styles: [Archetype] = [.nit, .station, .lag]
+    @State private var styles: [Archetype] = [.casual, .casual, .casual]
     @State private var players = 4
+    /// A quick game is short-stacked and ends; a long table plays on.
+    @State private var quick = true
     @State private var showGuide = false
     @State private var failure = false
 
@@ -47,6 +49,29 @@ struct TableSetupView: View {
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("player-count")
                     }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(language.text("게임 길이", "Game length")).font(GT.semibold(15))
+                        let lengthLayout = typeSize.isAccessibilitySize
+                            ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+                        lengthLayout {
+                            GTChoiceButton(title: language.text("빠른 게임", "Quick game"),
+                                           selected: quick, minHeight: 44) { quick = true }
+                                .accessibilityAddTraits(quick ? .isSelected : [])
+                                .accessibilityIdentifier("game-length-quick")
+                            GTChoiceButton(title: language.text("긴 테이블", "Long table"),
+                                           selected: !quick, minHeight: 44) { quick = false }
+                                .accessibilityAddTraits(!quick ? .isSelected : [])
+                                .accessibilityIdentifier("game-length-long")
+                        }
+                        Text(quick
+                             ? language.text("각자 \(Self.quickStack)칩 · \(Self.quickHands)핸드 뒤에 끝나요 · 블라인드 1·2칩",
+                                             "\(Self.quickStack) chips each · ends after \(Self.quickHands) hands · blinds 1 and 2")
+                             : language.text("각자 100칩 · 끝이 없어요 · 블라인드 1·2칩",
+                                             "100 chips each · no ending · blinds 1 and 2"))
+                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("game-length-detail")
+                    }
                     VStack(spacing: 10) {
                         ForEach(0..<(players - 1), id: \.self) { seat in seatRow(seat) }
                     }
@@ -57,9 +82,6 @@ struct TableSetupView: View {
                     }
                     .buttonStyle(GTPress())
                     .accessibilityIdentifier("style-guide")
-                    Text(language.text("각자 100칩 · 블라인드 1·2칩",
-                                       "100 chips each · blinds 1 and 2"))
-                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                 }
                 .padding(18)
             }
@@ -81,22 +103,27 @@ struct TableSetupView: View {
         }
     }
 
+    /// Twenty big blinds and ten hands: about five minutes at the table.
+    static let quickStack = 40
+    static let quickHands = 10
+
     private func seatRow(_ seat: Int) -> some View {
         let layout = typeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
             : AnyLayout(HStackLayout(spacing: 12))
         return layout {
             VStack(alignment: .leading, spacing: 4) {
-                Text(language.text("컴퓨터 \(seat + 1)", "Computer \(seat + 1)")).font(GT.semibold(16))
+                Text(FreeTableWords.seatName(seat + 1, language: language)).font(GT.semibold(16))
                 Text(styles[seat].beginnerDescription(in: language))
                     .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Menu {
-                Picker(language.text("컴퓨터 \(seat + 1) 스타일", "Computer \(seat + 1) style"),
+                Picker(language.text("\(FreeTableWords.seatName(seat + 1, language: language)) 스타일",
+                                     "\(FreeTableWords.seatName(seat + 1, language: language))'s style"),
                        selection: $styles[seat]) {
-                    ForEach(Archetype.allCases, id: \.self) { style in
+                    ForEach([.casual] + Archetype.allCases, id: \.self) { style in
                         Text(style.beginnerTitle(in: language)).tag(style)
                     }
                 }
@@ -111,8 +138,8 @@ struct TableSetupView: View {
                 .background(GT.surface, in: Capsule())
                 .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
             }
-            .accessibilityLabel(language.text("컴퓨터 \(seat + 1) 스타일, \(styles[seat].beginnerTitle(in: language))",
-                                              "Computer \(seat + 1) style, \(styles[seat].beginnerTitle(in: language))"))
+            .accessibilityLabel(language.text("\(FreeTableWords.seatName(seat + 1, language: language)) 스타일, \(styles[seat].beginnerTitle(in: language))",
+                                              "\(FreeTableWords.seatName(seat + 1, language: language))'s style, \(styles[seat].beginnerTitle(in: language))"))
             .accessibilityIdentifier("seat-style-\(seat + 1)")
         }
         .gtInset(GT.Space.card, firstText: .semibold(16))
@@ -123,6 +150,8 @@ struct TableSetupView: View {
         do {
             if try model.startTable(seed: UInt64.random(in: 0..<UInt64.max),
                                     styles: Array(styles.prefix(players - 1)),
+                                    startingStack: quick ? Self.quickStack : nil,
+                                    handLimit: quick ? Self.quickHands : nil,
                                     expectedEpoch: epoch) {
                 if let onStarted { onStarted() } else { dismiss() }
             } else if model.saveError == nil {

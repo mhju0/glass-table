@@ -31,38 +31,53 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertEqual(app.buttons.matching(identifier: "Settings").count, 1,
                        "Settings should only be a tab, not a top button")
         app.swipeUp()
-        app.buttons["Find a starting point"].tap()
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Find a starting point")).firstMatch.exists,
+                       "The starting-point check no longer lives on Learn")
+        settings.tap()
+        let recheck = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Recheck your starting point")).firstMatch
+        scrollTo(recheck, in: app)
+        recheck.tap()
         XCTAssertTrue(app.buttons["Start without the check"].waitForExistence(timeout: 5))
         app.buttons["Start without the check"].tap()
         app.tabBars.buttons["Progress"].tap()
         XCTAssertFalse(app.staticTexts["100%"].exists)
         app.tabBars.buttons["Learn"].tap()
-        XCTAssertTrue(app.buttons["Full learning path"].exists
-                      || app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Full learning path")).firstMatch.exists)
+        XCTAssertTrue(app.buttons["learn-path"].exists)
     }
 
-    func testStartingPointLeadsUntilTheFirstLessonThenMovesBelowPractice() {
+    func testStartingPointCheckOpensTheFirstLaunchOnceAndStaysOffLearn() {
         let app = app()
+        app.launchEnvironment["GT_TEST_FIRST_LESSON"] = "1"
+        app.launchEnvironment["GT_TEST_FIRST_PLACEMENT"] = "1"
         app.launch()
+        let newPlayer = app.buttons["I'm new to poker"]
+        XCTAssertTrue(newPlayer.waitForExistence(timeout: 15), "The check opens the first launch")
+        XCTAssertTrue(app.buttons["Start without the check"].exists)
+        newPlayer.tap()
+        let skipLesson = app.buttons["firstLesson.skip"]
+        XCTAssertTrue(skipLesson.waitForExistence(timeout: 5), "A new player goes straight to the first lesson")
+        XCTAssertFalse(app.staticTexts["1 of 3 · Take your time"].exists)
+        app.terminate()
+
+        app.launch()
+        XCTAssertTrue(skipLesson.waitForExistence(timeout: 15), "The check is asked once")
+        XCTAssertFalse(newPlayer.exists)
+        skipLesson.tap()
         let path = app.buttons["learn-path"]
-        XCTAssertTrue(path.waitForExistence(timeout: 15))
-        let card = app.buttons["placement-start"]
-        XCTAssertTrue(card.exists, "Before any lesson, the starting-point check is a real button")
-        XCTAssertLessThan(card.frame.minY, path.frame.minY)
+        XCTAssertTrue(path.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["learn-basics-start"].exists, "A new player is pointed at the basics")
+        app.swipeUp()
+        XCTAssertFalse(app.buttons["placement-start"].exists)
         XCTAssertFalse(app.buttons["placement-row"].exists)
         app.terminate()
 
-        app.launchEnvironment["GT_TEST_STORE_ID"] = UUID().uuidString
-        app.launchEnvironment["GT_TEST_PATH_CURRENT_NODE"] = "u1-potMath"
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
+                                 "GT_TEST_PATH_CURRENT_NODE": "u1-potMath"]
         app.launch()
         XCTAssertTrue(path.waitForExistence(timeout: 15))
-        let row = app.buttons["placement-row"]
-        scrollTo(row, in: app)
-        XCTAssertTrue(row.exists)
+        app.swipeUp()
+        XCTAssertFalse(app.buttons["placement-row"].exists)
         XCTAssertFalse(app.buttons["placement-start"].exists)
-        XCTAssertGreaterThan(row.frame.minY, path.frame.minY)
-        row.tap()
-        XCTAssertTrue(app.buttons["Start without the check"].waitForExistence(timeout: 5))
     }
 
     func testPlayHomeOffersTwoModesAboveTheTabBar() {
@@ -107,7 +122,8 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Set up the table"].waitForExistence(timeout: 5))
         let seats = (1...3).map { app.buttons["seat-style-\($0)"] }
         XCTAssertTrue(seats.allSatisfy(\.exists))
-        XCTAssertEqual(Set(seats.map(\.label)).count, 3, "Default computers should play three different styles")
+        XCTAssertEqual(seats.map(\.label), ["Mina's style, Just for fun", "Joon's style, Just for fun",
+                                            "Sora's style, Just for fun"], "A first table is a friendly one")
 
         seats[1].tap()
         app.buttons["Very aggressive"].firstMatch.tap()
@@ -126,7 +142,7 @@ final class BeginnerReleaseTests: XCTestCase {
         waitForYourTurnOrResult(in: app)
         let table = app.descendants(matching: .any)["practice-table"]
         let second = table.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer 2,")).firstMatch
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Joon,")).firstMatch
         XCTAssertTrue(second.exists)
         XCTAssertTrue(second.label.contains("2 face-down cards"), second.label)
     }
@@ -162,10 +178,10 @@ final class BeginnerReleaseTests: XCTestCase {
         closeTableGuide(in: app)
         let table = app.descendants(matching: .any)["practice-table"]
         XCTAssertTrue(table.waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Two players · Hand 1"].exists)
+        XCTAssertTrue(app.staticTexts["Two players · Hand 1 of 10"].exists)
         func seat(_ n: Int) -> XCUIElement {
             table.descendants(matching: .any)
-                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(n),")).firstMatch
+                .matching(NSPredicate(format: "label BEGINSWITH %@", ["Mina", "Joon", "Sora"][n - 1] + ",")).firstMatch
         }
         XCTAssertTrue(seat(1).exists)
         XCTAssertFalse(seat(2).exists)
@@ -187,7 +203,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.tabBars.buttons["배우기"].tap()
         app.buttons["레슨 이어서 하기"].tap()
         XCTAssertTrue(app.buttons["확인"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["1/5"].exists)
+        XCTAssertTrue(app.staticTexts["1/3"].exists)
         app.buttons["닫기"].firstMatch.tap()
         app.tabBars.buttons["설정"].tap()
         app.buttons["language-english"].tap()
@@ -199,18 +215,16 @@ final class BeginnerReleaseTests: XCTestCase {
         app.tabBars.buttons["Learn"].tap()
         app.buttons["Resume lesson"].tap()
         XCTAssertTrue(app.buttons["Check answer"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["1/5"].exists)
+        XCTAssertTrue(app.staticTexts["1/3"].exists)
     }
 
     func testLearningPathAndHeadsUpExerciseKeepBackNavigation() {
         let app = app()
         app.launch()
-        let path = app.buttons.matching(NSPredicate(
-            format: "label CONTAINS %@", "Full learning path"
-        )).firstMatch
+        let path = app.buttons["learn-path"]
         XCTAssertTrue(path.waitForExistence(timeout: 15))
         path.tap()
-        XCTAssertTrue(app.staticTexts["Learning path"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["All lessons"].waitForExistence(timeout: 5))
         let pathBack = app.navigationBars.buttons.firstMatch
         XCTAssertTrue(pathBack.isHittable)
         pathBack.tap()
@@ -288,7 +302,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let next = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "drill-completion-")).firstMatch
         scrollTo(next, in: app)
         next.tap()
-        XCTAssertTrue(app.staticTexts["2/5"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["2/3"].waitForExistence(timeout: 5))
     }
 
     func testGradedRevealSheetIsTintedByItsVerdict() {
@@ -388,6 +402,62 @@ final class BeginnerReleaseTests: XCTestCase {
         app.buttons["Resume lesson"].tap()
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "43")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "saved-answer-")).firstMatch.exists)
+    }
+
+    func testQuickGameIsTheDefaultAndEndsAfterTenHands() {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Play"].tap()
+        app.buttons["play-free"].tap()
+        XCTAssertTrue(app.buttons["game-length-quick"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["game-length-quick"].isSelected)
+        XCTAssertEqual(app.staticTexts["game-length-detail"].label,
+                       "40 chips each · ends after 10 hands · blinds 1 and 2")
+        app.buttons["game-length-long"].tap()
+        XCTAssertEqual(app.staticTexts["game-length-detail"].label,
+                       "100 chips each · no ending · blinds 1 and 2")
+        app.buttons["game-length-quick"].tap()
+        app.buttons["2 players"].tap()
+        app.buttons["table-start"].tap()
+        closeTableGuide(in: app)
+        XCTAssertTrue(app.staticTexts["Two players · Hand 1 of 10"].waitForExistence(timeout: 10))
+
+        let next = app.buttons["free-next-hand"]
+        let done = app.buttons["free-new-game"]
+        let deadline = Date().addingTimeInterval(240)
+        while !done.exists, Date() < deadline {
+            if !tapFirstReady(["free-next-hand", "free-fold", "free-check"], in: app) {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+            }
+        }
+        XCTAssertTrue(done.exists, "The quick game ends by itself")
+        XCTAssertFalse(next.exists)
+        XCTAssertFalse(app.buttons["free-change-table"].exists)
+        let line = app.staticTexts["free-game-over"]
+        XCTAssertTrue(line.exists)
+        XCTAssertTrue(line.label.hasPrefix("You finished "), line.label)
+        XCTAssertTrue(line.label.contains(" of 2 with "), line.label)
+        done.tap()
+        XCTAssertTrue(app.buttons["table-start"].waitForExistence(timeout: 5), "A new game returns to setup")
+    }
+
+    /// Reads the screen once and taps by position, so a control that leaves while
+    /// the computers act cannot fail the query between two looks.
+    private func tapFirstReady(_ ids: [String], in app: XCUIApplication) -> Bool {
+        guard let root = try? app.snapshot() else { return false }
+        var ready: [String: CGRect] = [:]
+        var pending: [XCUIElementSnapshot] = [root]
+        while let node = pending.popLast() {
+            if node.elementType == .button, node.isEnabled, !node.frame.isEmpty, ids.contains(node.identifier) {
+                ready[node.identifier] = node.frame
+            }
+            pending.append(contentsOf: node.children)
+        }
+        guard let frame = ids.compactMap({ ready[$0] }).first else { return false }
+        app.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: frame.midX, dy: frame.midY)).tap()
+        return true
     }
 
     /// First-use Rules explain the table once and can be reopened manually.
@@ -500,8 +570,8 @@ final class BeginnerReleaseTests: XCTestCase {
         let table = app.descendants(matching: .any)["practice-table"]
         for seat in 1...3 {
             let label = table.descendants(matching: .any)
-                .matching(NSPredicate(format: "label BEGINSWITH %@", "Computer \(seat),")).firstMatch
-            XCTAssertTrue(label.exists, "Computer \(seat) seat")
+                .matching(NSPredicate(format: "label BEGINSWITH %@", ["Mina", "Joon", "Sora"][seat - 1] + ",")).firstMatch
+            XCTAssertTrue(label.exists, "Seat \(seat) is named")
             XCTAssertTrue(label.label.contains("2 face-down cards"), label.label)
         }
         let you = table.descendants(matching: .any)

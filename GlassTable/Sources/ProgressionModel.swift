@@ -89,7 +89,7 @@ final class ProgressionModel {
 
     // MARK: - reads
 
-    var nextNode: CurriculumNode? { Curriculum.nextNode(in: state) }
+    var nextNode: CurriculumNode? { Curriculum.suggestedLesson(in: state) }
 
     func status(of node: CurriculumNode) -> NodeStatus {
         Curriculum.status(of: node.id, in: state)
@@ -133,6 +133,18 @@ final class ProgressionModel {
         }
         #endif
         return !hasHistoricalActivity
+    }
+
+    /// The starting-point check opens the first launch, before the first lesson.
+    var shouldPresentFirstPlacement: Bool {
+        guard shouldPresentFirstLesson, state.placement == nil else { return false }
+        #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        if environment["GT_TEST_FIRST_PLACEMENT"] == "1" { return true }
+        if environment["GT_TEST_FIRST_LESSON"] != nil
+            || environment["GT_DEMO_FIRST_LESSON"] != nil { return false }
+        #endif
+        return true
     }
 
     private var hasHistoricalActivity: Bool {
@@ -554,7 +566,8 @@ final class ProgressionModel {
             candidate.activeNodeSession = NodeSessionSnapshot(
                 id: UUID().uuidString, nodeID: node.id, seed: seed,
                 scheduledConcepts: scheduled.map(\.rawValue),
-                phase: hasSeen ? .question : .show)
+                phase: hasSeen ? .question : .show,
+                formatVersion: Curriculum.sessionFormat)
         }
     }
 
@@ -583,6 +596,11 @@ final class ProgressionModel {
             if candidate.activeNodeSession?.phase == .question {
                 candidate.activeNodeSession?.guidedDraft = nil
                 candidate.activeNodeSession?.guidedAnswer = nil
+                // A learner who stayed for the guided question gets one more with help
+                // before answering alone. It is saved as practice with help.
+                if session.phase == .together, session.formatVersion >= 2 {
+                    candidate.activeNodeSession?.helpOrdinal = 0
+                }
             }
             if candidate.activeNodeSession?.phase == .question,
                let node = Curriculum.node(id: session.nodeID),
@@ -680,7 +698,7 @@ final class ProgressionModel {
                         spotOn: graded.answer.band == GradeBand.spotOn.rawValue,
                         assisted: graded.answer.isAssisted)
                 }
-                if Curriculum.isValidSession(scheduled, for: node),
+                if Curriculum.isValidSession(scheduled, for: node, format: session.formatVersion),
                    SessionEvidence.validates(evidence, scheduled: scheduled) {
                     var nodeRecord = candidate.nodes[node.id] ?? NodeRecord()
                     nodeRecord.attempts += 1
@@ -758,13 +776,13 @@ final class ProgressionModel {
     // MARK: - four-seat practice
 
     @discardableResult
-    func startTable(seed: UInt64, styles: [Archetype],
+    func startTable(seed: UInt64, styles: [Archetype], startingStack: Int? = nil, handLimit: Int? = nil,
                     expectedEpoch: UUID, now: Date = Date()) throws -> Bool {
         guard expectedEpoch == epoch, state.tableState == nil, (1...3).contains(styles.count) else {
             return false
         }
-        var table = PracticeTableState(seed: seed, styles: styles,
-                                       handID: UUID().uuidString)
+        var table = PracticeTableState(seed: seed, styles: styles, handID: UUID().uuidString,
+                                       startingStack: startingStack, handLimit: handLimit)
         try table.advanceBots()
         let observation = observationIfSettled(table, now: now)
         return commit { candidate in
