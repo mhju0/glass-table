@@ -487,7 +487,25 @@ struct NodeSessionView: View {
                         .accessibilityIdentifier("summary-easier")
                     }
                 }
-                FeltCTAButton(title: language.text("길로 돌아가기", "Back to path")) {
+                if model.state.offersSkipAhead, let onOpenLesson,
+                   let challenge = Curriculum.skipAheadChallenge(after: node, in: model.state) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(language.text("세 레슨을 연달아 깔끔하게 풀었어요. 이 트랙이 쉽다면 섞어 풀기 한 번으로 건너뛸 수 있어요.",
+                                           "Three clean lessons in a row. If this track feels easy, one mixed round lets you skip the rest of it."))
+                            .font(GT.body(15)).foregroundStyle(GT.onFelt)
+                            .fixedSize(horizontal: false, vertical: true)
+                        SecondaryCTAButton(title: language.text("짧은 도전으로 건너뛰기",
+                                                                "Skip ahead with a quick challenge")) {
+                            if let savedSession {
+                                _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
+                                    expectedEpoch: sessionEpoch ?? model.epoch)
+                            }
+                            onOpenLesson(challenge)
+                        }
+                        .accessibilityIdentifier("summary-skip-ahead")
+                    }
+                }
+                FeltCTAButton(title: language.text("완료", "Done")) {
                     let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
                     if RatingPrompt.shouldRequest(milestones: milestones, version: version) {
                         RatingPrompt.markRequested(version: version)
@@ -679,6 +697,7 @@ private struct GuidedHintView: View {
 struct FreePlayView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
+    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     private var title: String { language.text("자유 연습", "Practice one skill") }
@@ -1059,10 +1078,11 @@ struct FreePlayView: View {
                         HStack(spacing: 12) {
                             SkillGlyph(concept: c)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(ConceptIntroduction.make(c, language: language).title)
+                                let names = skillNames(c, language: language, termsLead: termsLead)
+                                Text(names.lead)
                                     .font(GT.title(15)).foregroundStyle(GT.ink)
                                     .fixedSize(horizontal: false, vertical: true)
-                                Text(c.term(in: language)).font(GT.semibold(12)).foregroundStyle(GT.mint)
+                                Text(names.tag).font(GT.semibold(12)).foregroundStyle(GT.mint)
                                 Text(conceptBlurb(c, language: language)).font(GT.body(13))
                                     .foregroundStyle(GT.inkMuted)
                                     .fixedSize(horizontal: false, vertical: true)

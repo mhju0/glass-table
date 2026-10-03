@@ -285,6 +285,7 @@ final class ProgressionModel {
     /// course: nothing cleared, no starting-point recommendation, lesson unfinished.
     var shouldSuggestBasicsLesson: Bool {
         state.basicsLessonCompleted != true
+            && state.level == .newToPoker
             && state.placement?.recommendedConcept == nil
             && !Curriculum.allNodes.contains { status(of: $0) == .cleared }
     }
@@ -568,6 +569,11 @@ final class ProgressionModel {
                 scheduledConcepts: scheduled.map(\.rawValue),
                 phase: hasSeen ? .question : .show,
                 formatVersion: Curriculum.sessionFormat)
+            // After two rough lessons the hint is back on the first question, even
+            // for a lesson the learner has seen before.
+            if hasSeen, taught != nil, state.guidanceIsUp {
+                candidate.activeNodeSession?.helpOrdinal = 0
+            }
         }
     }
 
@@ -597,8 +603,10 @@ final class ProgressionModel {
                 candidate.activeNodeSession?.guidedDraft = nil
                 candidate.activeNodeSession?.guidedAnswer = nil
                 // A learner who stayed for the guided question gets one more with help
-                // before answering alone. It is saved as practice with help.
-                if session.phase == .together, session.formatVersion >= 2 {
+                // before answering alone. It is saved as practice with help. Someone
+                // who plays sometimes answers alone unless recent lessons went badly.
+                if session.formatVersion >= 2, state.guidanceIsUp
+                    || (session.phase == .together && state.helpsFirstQuestion) {
                     candidate.activeNodeSession?.helpOrdinal = 0
                 }
             }
@@ -690,6 +698,11 @@ final class ProgressionModel {
             candidate.activeNodeSession?.phase = .reveal
             candidate.activeNodeSession?.draft = nil
             if ordinal + 1 == session.scheduledConcepts.count {
+                let answers = candidate.activeNodeSession?.answers.map(\.answer) ?? []
+                candidate.recordLessonResult(
+                    questions: answers.count,
+                    missed: answers.filter { !$0.isAssisted && $0.band != GradeBand.spotOn.rawValue }.count,
+                    helped: answers.filter(\.isAssisted).count)
                 let scheduled = session.scheduledConcepts.compactMap(Concept.init(rawValue:))
                 var evidence: [Concept: SessionEvidence] = [:]
                 for graded in candidate.activeNodeSession?.answers ?? [] {

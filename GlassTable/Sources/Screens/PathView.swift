@@ -4,6 +4,7 @@ import GlassTableDrills
 
 struct PathView: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(ProgressionModel.self) private var model
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenFreePlay: () -> Void
@@ -145,8 +146,13 @@ struct PathView: View {
 
     private func nodeRow(_ node: CurriculumNode, challenge: Bool = false) -> some View {
         let status = status(of: node)
+        let names = Curriculum.taughtConcept(of: node).map { skillNames($0, language: language, termsLead: termsLead) }
+        let title = names?.lead ?? learningNodeTitle(node, language: language)
+        // Each track can be started on its own, so its first lesson says so until done.
+        let startsTrack = status != .cleared
+            && Curriculum.tracks.contains { !$0.isOptional && $0.lessons.first == node }
         let tag = challenge ? language.text("선택 도전 · 섞어 풀기", "Optional challenge · mixed")
-            : Curriculum.taughtConcept(of: node)?.term(in: language)
+            : names.map { startsTrack ? language.text("여기서 시작 · \($0.tag)", "Start here · \($0.tag)") : $0.tag }
         return Button {
             if status != .cleared, !Curriculum.unfinishedGroundwork(for: node, in: model.state).isEmpty {
                 early = node
@@ -157,7 +163,7 @@ struct PathView: View {
             HStack(spacing: 13) {
                 badge(status: status, boss: challenge)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(learningNodeTitle(node, language: language)).font(GT.title(status == .available ? 17 : 15))
+                    Text(title).font(GT.title(status == .available ? 17 : 15))
                         .foregroundStyle(GT.onFelt)
                     if let tag {
                         Text(tag).font(GT.semibold(12)).foregroundStyle(GT.mint)
@@ -181,7 +187,7 @@ struct PathView: View {
         }
         .buttonStyle(GTPress())
         .id(node.id)
-        .accessibilityLabel("\(learningNodeTitle(node, language: language)), \(tag.map { $0 + ", " } ?? "")\(statusLabel(status))"
+        .accessibilityLabel("\(title), \(tag.map { $0 + ", " } ?? "")\(statusLabel(status))"
                             + (practiceLabel(node).map { ", \($0)" } ?? ""))
         .accessibilityIdentifier("lesson-\(node.id)")
     }

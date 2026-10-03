@@ -199,7 +199,7 @@ final class LearningFlowTests: XCTestCase {
             XCTAssertTrue(next.waitForExistence(timeout: 5))
             next.tap()
         }
-        XCTAssertTrue(app.buttons["길로 돌아가기"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["완료"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["다음 문제"].exists)
     }
 

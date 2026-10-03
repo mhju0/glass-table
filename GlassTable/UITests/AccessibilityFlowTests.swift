@@ -513,7 +513,7 @@ final class AccessibilityFlowTests: XCTestCase {
         ])
         XCTAssertTrue(scrollUntilHittable(summary.buttons["milestone-share"], in: summary),
                       "The share button must be reachable at AX XXXL.")
-        XCTAssertTrue(scrollUntilHittable(summary.buttons["길로 돌아가기"], in: summary))
+        XCTAssertTrue(scrollUntilHittable(summary.buttons["완료"], in: summary))
     }
 
     private func launch(environment: [String: String]) -> XCUIApplication {

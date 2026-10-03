@@ -876,6 +876,82 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertNil(model.state.activeNodeSession?.helpOrdinal)
     }
 
+    /// Plays one whole lesson with the walkthrough skipped. `miss` answers every
+    /// question off target; otherwise each answer is the correct one.
+    private func playLesson(_ model: ProgressionModel, _ nodeID: String, miss: Bool,
+                            tag: String) throws {
+        let epoch = model.epoch
+        let node = try XCTUnwrap(Curriculum.node(id: nodeID))
+        XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: epoch))
+        var session = try XCTUnwrap(model.state.activeNodeSession)
+        if session.phase == .show {
+            XCTAssertTrue(model.advanceNodeTeaching(sessionID: session.id, skip: true, expectedEpoch: epoch))
+            session = try XCTUnwrap(model.state.activeNodeSession)
+        }
+        for ordinal in 0..<session.scheduledConcepts.count {
+            var (input, reveal, band) = try showdownAnswer(seed: 5, index: ordinal + 2)
+            if miss {
+                let spot = ShowdownSpotGenerator.spot(baseSeed: 5, index: ordinal + 2)
+                let wrong = try XCTUnwrap((0...2).first { gradeShowdown(answer: $0, spot: spot).band != .spotOn })
+                band = gradeShowdown(answer: wrong, spot: spot).band
+                input = try JSONEncoder().encode(SavedDrillInput.integer(wrong))
+                reveal = try JSONEncoder().encode(SavedDrillReveal(band: band.rawValue))
+            }
+            XCTAssertTrue(model.commitNodeAnswer(sessionID: session.id, attemptID: "\(tag)\(ordinal)",
+                ordinal: ordinal, band: band, input: input, reveal: reveal,
+                language: .korean, expectedEpoch: epoch))
+            XCTAssertTrue(model.nextNodeQuestion(sessionID: session.id, afterOrdinal: ordinal,
+                                                 expectedEpoch: epoch))
+        }
+        XCTAssertTrue(model.dismissFinishedNodeSession(sessionID: session.id, expectedEpoch: epoch))
+    }
+
+    func testALearnerWhoPlaysSometimesAnswersTheFirstQuestionAlone() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        XCTAssertTrue(model.setPlacement(report: .playRegularly, answers: [:], skipped: true,
+                                         expectedEpoch: epoch))
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: epoch))
+        let id = try XCTUnwrap(model.state.activeNodeSession?.id)
+        XCTAssertTrue(model.advanceNodeTeaching(sessionID: id, skip: false, expectedEpoch: epoch))
+        XCTAssertTrue(model.advanceNodeTeaching(sessionID: id, skip: false, expectedEpoch: epoch))
+        XCTAssertEqual(model.state.activeNodeSession?.phase, .question)
+        XCTAssertNil(model.state.activeNodeSession?.helpOrdinal)
+    }
+
+    func testTwoRoughLessonsBringTheHintBackUntilALessonGoesBetter() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.setPlacement(report: .playRegularly, answers: [:], skipped: true,
+                                         expectedEpoch: model.epoch))
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        try playLesson(model, "u1-showdown", miss: true, tag: "a")
+        XCTAssertEqual(model.state.lessonTrend, -1)
+        XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: model.epoch))
+        XCTAssertNil(model.state.activeNodeSession?.helpOrdinal, "One rough lesson changes nothing")
+        XCTAssertTrue(model.abandonNodeSession(expectedEpoch: model.epoch))
+        try playLesson(model, "u1-showdown", miss: true, tag: "b")
+        XCTAssertEqual(model.state.lessonTrend, -2)
+        XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.activeNodeSession?.phase, .question)
+        XCTAssertEqual(model.state.activeNodeSession?.helpOrdinal, 0)
+        XCTAssertTrue(model.abandonNodeSession(expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.lessonTrend, -2, "Leaving a lesson is not a result")
+        try playLesson(model, "u1-showdown", miss: false, tag: "c")
+        XCTAssertEqual(model.state.lessonTrend, 1)
+        XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: model.epoch))
+        XCTAssertNil(model.state.activeNodeSession?.helpOrdinal)
+    }
+
+    func testBasicsLessonLeadsOnlyForANewPlayer() {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.shouldSuggestBasicsLesson)
+        XCTAssertTrue(model.setPlacement(report: .knowRules, answers: [:], skipped: true,
+                                         expectedEpoch: model.epoch))
+        XCTAssertFalse(model.shouldSuggestBasicsLesson)
+        XCTAssertEqual(model.nextNode?.id, "u1-position")
+    }
+
     func testLessonAnsweredOnlyWithHelpClearsWithoutWritingARecord() throws {
         let model = ProgressionModel(store: store)
         let epoch = model.epoch

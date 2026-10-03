@@ -11,6 +11,54 @@ final class BeginnerReleaseTests: XCTestCase {
         return app
     }
 
+    func testLevelChipMovesTheSuggestionWithoutLockingAnything() {
+        let app = app()
+        app.launch()
+        let chip = app.buttons["learn-level"]
+        XCTAssertTrue(chip.waitForExistence(timeout: 15))
+        XCTAssertEqual(chip.label, "My level: New player")
+        XCTAssertTrue(app.buttons["learn-basics-start"].exists, "A new player is led to the basics")
+        chip.tap()
+        let knows = app.buttons["Knows the rules"]
+        XCTAssertTrue(knows.waitForExistence(timeout: 5))
+        knows.tap()
+        XCTAssertTrue(app.staticTexts["Who acts first?"].waitForExistence(timeout: 5),
+                      "Someone who knows the rules starts at starting hands")
+        XCTAssertEqual(chip.label, "My level: Knows the rules")
+        app.buttons["learn-path"].tap()
+        let first = app.buttons["lesson-u1-showdown"]
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+        XCTAssertTrue(first.label.contains("Start here"), "Each track's first lesson says where to start")
+        XCTAssertTrue(first.isEnabled, "Earlier lessons stay open")
+    }
+
+    func testPokerTermsSwitchPutsTheTermFirst() {
+        let plain = app()
+        plain.launchEnvironment["GT_DEMO_TAB"] = "path"
+        plain.launch()
+        let row = plain.buttons["lesson-u1-showdown"]
+        XCTAssertTrue(row.waitForExistence(timeout: 15))
+        XCTAssertTrue(row.label.hasPrefix("Who wins?"), row.label)
+        plain.terminate()
+
+        let terms = app()
+        terms.launchArguments += ["-glassTable.pokerTerms", "YES"]
+        terms.launchEnvironment["GT_DEMO_TAB"] = "path"
+        terms.launch()
+        let termRow = terms.buttons["lesson-u1-showdown"]
+        XCTAssertTrue(termRow.waitForExistence(timeout: 15))
+        XCTAssertTrue(termRow.label.hasPrefix("Showdown"), termRow.label)
+        terms.terminate()
+
+        let settings = app()
+        settings.launchArguments += ["-glassTable.pokerTerms", "YES"]
+        settings.launchEnvironment["GT_DEMO_TAB"] = "settings"
+        settings.launch()
+        let toggle = settings.switches["settings-poker-terms"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 15))
+        XCTAssertEqual(toggle.value as? String, "1")
+    }
+
     func testFourTabsAndPlacementRemainOptional() {
         let app = app()
         app.launch()
