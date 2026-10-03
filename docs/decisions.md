@@ -839,3 +839,35 @@ bet-sizing non-goal to the graded model, and its open path replaces the old lock
   Release 1.0 (4) was installed in place on iPhone 12 mini; existing nine answers,
   two concepts, one node and streak survived migration and relaunch. Physical
   VoiceOver, iOS 17, novice comprehension and distribution remain open.
+
+### D46 · Casual, hand-held learning replaces "become a pro"
+**Status: ACTIVE — approved by the owner 2026-10-03; delivery in progress on `feat/friendly-casual`.**
+
+The owner found the lessons too hard, the guidance thin, the charts hard to read and
+the terms unexplained. The goal is now a friendly, mainstream app that holds a new
+player's hand. Research and before/after for every change:
+[Glass Table Friendly Redesign](https://claude.ai/artifact/QnD5ia4AoS8wj44R2eznkA).
+The owner approved all recommendations and delegated the seven open decisions:
+
+1. **Topics.** Four tracks: The basics (basics, showdown, potMath) · Starting hands
+   (position, rfi, defend) · Price & chance (outs, equitySense, potOdds, callFold) ·
+   Reading opponents (rangeRead, actionRead). Hide hitFrequency, rangeAdvantage,
+   evLoss and mdf from the path. Move combos, rangeNotation and evCall to an optional
+   "Go deeper" group. Simplify position, rfi, defend, equitySense, rangeRead and
+   actionRead. The `Concept` enum and saved progress for hidden topics stay intact.
+2. **Coaching.** The free-table hand review may give a verdict per decision, and
+   free play may offer an optional hint. Verdicts cite "the beginner chart", never
+   "a pro". This amends D45's "factual review, no action grade"; free play still
+   earns no FSRS credit. Graded lessons still never reveal the answer before commit.
+3. **Starting check.** Shown once at first launch with a skip; "I'm new" skips the
+   questions. Removed from Learn; kept in Settings. This amends D45's Learn placement.
+4. **Chips.** Quick game (40 chips, with an ending) becomes the default; Long table
+   (100 chips) stays as an option. Simulate 30/40/50 before fixing the number.
+5. **Opponents.** A casual "Just for fun" opponent is the default for new players;
+   opponents get names instead of "Computer N". Seeded randomness, free table only.
+6. **Checkpoints.** One optional mixed challenge per track.
+7. **Order.** (a) small fixes · (b) free play · (c) learning structure and terms ·
+   (d) lessons rewritten as "watch one, two with help, two alone", a track at a time.
+
+Layout rule adopted with (a): items sharing a row align on centre when one is a
+control and on first baseline when both are text.

@@ -9,6 +9,8 @@
 > The app remains an adult learning tool, now with everyday language, Korean and
 > English, an open nine-unit/eighteen-concept path, and a separate four-seat
 > factual practice table. The historical thesis and proposed modes stay below.
+> On 2026-10-03 the owner replaced the "serious-minded amateur" goal with a casual,
+> hand-held app for new players; see [D46](decisions.md).
 
 > An iOS app that teaches serious-minded amateurs to think about No-Limit Texas Hold'em in **ranges and EV**, not in hands and hunches.
 

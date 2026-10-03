@@ -1,5 +1,13 @@
 # Glass Table — Domain Context
 
+## Direction change (2026-10-03)
+
+The product goal is now casual and hand-held, not "become a pro". Read
+[D46](docs/decisions.md) before changing lessons, the free table or Learn: it lists
+the four tracks, the hidden and optional topics, coaching in free play, the
+first-launch starting check and the delivery order. Where D46 and the baseline
+below disagree, D46 wins.
+
 ## Current native baseline (2026-09-23)
 
 The combined beginner release and navigation follow-up are installed for dogfood as
