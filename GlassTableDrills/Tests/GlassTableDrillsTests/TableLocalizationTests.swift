@@ -4,12 +4,17 @@ import GlassTableEngine
 @testable import GlassTableDrills
 
 final class TableLocalizationTests: XCTestCase {
-    func testHistoryFactsRenderInEitherLanguageWithoutChangingHand() {
+    func testHistoryFactsRenderInEitherLanguageWithoutChangingHand() throws {
         var hand = TableDealer.deal(baseSeed: 0x5EED, index: 0, villain: .tag)
         let original = hand
         XCTAssertEqual(hand.history, hand.events.map { $0.text(in: .korean) })
         XCTAssertTrue(hand.events[0].text(in: .english).contains("opens to 3bb"))
         XCTAssertEqual(hand, original)
+        let seat = try XCTUnwrap(hand.events[0].position)
+        let plain = hand.events[0].text(in: .english, plain: true)
+        XCTAssertTrue(plain.contains("\(seat.plainName(in: .english)) "), plain)
+        XCTAssertTrue(plain.contains("raises first to 3bb"), plain)
+        XCTAssertTrue(hand.events[0].text(in: .korean, plain: true).contains("3bb로 먼저 올림"))
 
         hand.play(.call)
         XCTAssertTrue(hand.events.contains { $0.actor == .hero && $0.action == .call })

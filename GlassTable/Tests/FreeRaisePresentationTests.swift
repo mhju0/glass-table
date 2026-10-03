@@ -7,7 +7,7 @@ struct FreeRaisePresentationTests {
         let sizing = FreeRaisePresentation(street: .preflop, minimum: 4, maximum: 100,
                                            committed: 0, currentBet: 2, pot: 3, toCall: 2)
         #expect(sizing.presets.map(\.amount) == [4, 5, 6, 8, 100])
-        #expect(sizing.context(amount: 7, language: .english) == "7 from your stack · 3.5 BB")
+        #expect(sizing.context(amount: 7, language: .english) == "7 from your stack · 3.5 big blinds")
     }
 
     @Test func facingRaiseRetainsDuplicateTargetsAndOddAmounts() throws {
@@ -16,7 +16,7 @@ struct FreeRaisePresentationTests {
         #expect(sizing.presets.map(\.amount) == [10, 12, 16, 12, 100])
         #expect(sizing.presets[1].english == "3×")
         #expect(sizing.presets[3].english == "Pot")
-        #expect(sizing.context(amount: 7, language: .english) == "5 from your stack · 3.5 BB")
+        #expect(sizing.context(amount: 7, language: .english) == "5 from your stack · 3.5 big blinds")
         var table = PracticeTableState(seed: 31, styles: [.station])
         try table.apply(.call, actionID: "hero-call")
         try table.apply(.raise(to: 4), actionID: "computer-raise")

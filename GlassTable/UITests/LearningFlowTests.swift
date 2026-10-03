@@ -527,6 +527,30 @@ final class LearningFlowTests: XCTestCase {
             .waitForExistence(timeout: 5))
     }
 
+    /// At the largest text the one-row seat strip cannot grow, so the action order shown
+    /// with the answer is written out as a sentence too.
+    func testPositionAnswerSpellsOutTheActionOrderAtTheLargestText() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean",
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1",
+                                 "GT_DEMO_NODE": "u1-position"]
+        app.launch()
+        let order = app.staticTexts["position-seat-sentence"]
+        XCTAssertTrue(order.waitForExistence(timeout: 15))
+        let choice = app.buttons.matching(NSPredicate(format: "label IN %@", ["0", "A"])).firstMatch
+        for _ in 0..<6 where !choice.isHittable { app.swipeUp() }
+        choice.tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "identifier == %@ AND label CONTAINS %@ AND label CONTAINS %@",
+            "position-seat-sentence", "UTG", "→"
+        )).firstMatch.waitForExistence(timeout: 5))
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     /// Changing the language mid-example returns to the same step, not the start.
     /// The saved preference can be either language from an earlier run, so the test
     /// switches to whichever one is not current.

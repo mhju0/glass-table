@@ -484,6 +484,9 @@ struct DrillShell<Content: View, Sheet: View>: View {
             case "레인지 리드": return language.text("상대 패 읽기", "Read a range")
             case "액션 리드": return language.text("행동 읽기", "Read an action")
             case "디펜드 차트": return language.text("올린 상대에 맞서기", "Facing a raise")
+            case "콤보": return language.text("가능한 두 장 조합", "Possible two-card hands")
+            case "레인지 표기법": return language.text("핸드 줄임 표기", "Hand shorthand")
+            case "EV 계산": return language.text("콜의 평균 손익", "What a call is worth")
             default: break
             }
         }
@@ -1087,14 +1090,17 @@ private struct PositionDrill: View {
         return false
     }
 
+    private var seatOrder: [Position] {
+        reveal == nil ? [.btn, .sb, .bb, .utg, .utg1, .lj, .hj, .co]
+            : (isPreflop ? Position.preflopOrder : Position.postflopOrder)
+    }
+
     /// Before the answer the seats are drawn as they sit, from the dealer button; the
     /// action order is the answer, so it appears only in the reveal. Until the learner
     /// asks for poker terms, seats are grouped as early, middle, late and blinds and the
     /// eight codes wait for the reveal.
     private var seatStrip: some View {
-        let seated: [Position] = [.btn, .sb, .bb, .utg, .utg1, .lj, .hj, .co]
-        let order = reveal == nil ? seated
-            : (isPreflop ? Position.preflopOrder : Position.postflopOrder)
+        let order = seatOrder
         return Grid(horizontalSpacing: 5, verticalSpacing: 4) {
             if !termsLead {
                 GridRow {
@@ -1132,7 +1138,7 @@ private struct PositionDrill: View {
     /// At the accessibility sizes the one-row strip cannot grow, so the same seating is
     /// said in a sentence that does.
     @ViewBuilder private var seatDiagram: some View {
-        if dynamicTypeSize.isAccessibilitySize, !termsLead, reveal == nil {
+        if dynamicTypeSize.isAccessibilitySize {
             Text(seatSentence)
                 .font(GT.semibold(13)).foregroundStyle(GT.onFelt)
                 .fixedSize(horizontal: false, vertical: true)
@@ -1143,6 +1149,10 @@ private struct PositionDrill: View {
     }
 
     private var seatSentence: String {
+        guard !termsLead, reveal == nil else {
+            return seatOrder.map { p in marker(p).map { "\(p.rawValue) (\($0))" } ?? p.rawValue }
+                .joined(separator: " → ")
+        }
         var runs: [(name: String, count: Int, marks: [String])] = []
         for p in [Position.btn, .sb, .bb, .utg, .utg1, .lj, .hj, .co] {
             let name = groupName(p)
@@ -1332,9 +1342,13 @@ private struct EVCallDrill: View {
                     Text(language.text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb",
                                        "Pot \(spot.pot)bb · Opponent bets \(spot.bet)bb"))
                         .font(GT.title(16)).foregroundStyle(GT.onFelt)
-                    Text(language.text("내 에퀴티 \(pctText(spot.equityPct))%",
+                    Text(language.text(simple ? "내가 이길 확률 \(pctText(spot.equityPct))%" : "내 에퀴티 \(pctText(spot.equityPct))%",
                                        "Your chance to win \(pctText(spot.equityPct))%"))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                    if simple {
+                        Text(language.text("1bb는 빅 블라인드 한 개예요.", "1bb is one big blind."))
+                            .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+                    }
                 }
                 Text(language.text("콜하면 \(spot.pot + spot.bet)bb를 걸고 \(spot.bet)bb를 잃을 수 있어요.",
                                    "Calling can win \(spot.pot + spot.bet)bb or cost \(spot.bet)bb."))
@@ -1357,9 +1371,13 @@ private struct EVCallDrill: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(language.text("이 콜의 EV는 몇 bb인가요?",
-                                       "What is this call's EV in bb?"))
+                    Text(simple
+                        ? language.text("이 콜을 여러 번 하면 평균 몇 bb를 얻거나 잃을까요? (EV)",
+                                        "Over many tries, how many bb does this call win or lose on average? (its EV)")
+                        : language.text("이 콜의 EV는 몇 bb인가요?",
+                                        "What is this call's EV in bb?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: -20...20, step: 0.5, unit: "bb")
                     PrimaryCTAButton(title: language.text("확인", "Check answer")) {
@@ -1381,6 +1399,7 @@ private struct EVCallDrill: View {
 /// differ only in what is shown above it and which grader runs.
 private struct CountDrill: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.simpleQuestions) private var simple
     @Environment(\.drillInitialDraft) private var initialDraft
     @Environment(\.drillSaveDraft) private var saveDraft
     enum Kind { case outs, combos }
@@ -1425,6 +1444,9 @@ private struct CountDrill: View {
                     Text(kind == .outs
                         ? language.text("리버에 나를 이기게 해주는 카드는 몇 장인가요?",
                                         "How many river cards make you win?")
+                        : simple
+                        ? language.text("상대가 이 패를 들 수 있는 두 장 조합(콤보)은 몇 가지인가요?",
+                                        "How many exact two-card hands (combos) can they hold?")
                         : language.text("상대가 들 수 있는 이 핸드 콤보는 몇 개인가요?",
                                         "How many combos can they hold?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
@@ -1668,6 +1690,7 @@ private struct CallFoldDrill: View {
 
 private struct RangeNotationDrill: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.simpleQuestions) private var simple
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.drillInitialDraft) private var initialDraft
     @Environment(\.drillSaveDraft) private var saveDraft
@@ -1683,7 +1706,7 @@ private struct RangeNotationDrill: View {
     var body: some View {
         DrillShell(title: "레인지 표기법", progressText: progressText) {
             VStack(alignment: .leading, spacing: 14) {
-                SectionLabel(text: language.text("레인지", "Possible hands"))
+                SectionLabel(text: language.text(simple ? "가능한 패(레인지)" : "레인지", "Possible hands"))
                 // One layout before and after the answer; the reveal only adds the grid.
                 // The grid stays post-reveal on purpose: shown earlier it turns combo
                 // arithmetic into cell counting.
@@ -1715,9 +1738,13 @@ private struct RangeNotationDrill: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(language.text("이 레인지는 몇 콤보인가요?",
-                                       "How many combos is this range?"))
+                    Text(simple
+                        ? language.text("이 표기에 들어가는 두 장 조합(콤보)은 모두 몇 가지인가요?",
+                                        "How many exact two-card hands (combos) does this shorthand cover?")
+                        : language.text("이 레인지는 몇 콤보인가요?",
+                                        "How many combos is this range?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
                     CountEntryView(entry: $countEntry, suffix: language.text("개", " combinations"),
                                    onSubmit: {
                         guard let value = Int(countEntry) else { return }

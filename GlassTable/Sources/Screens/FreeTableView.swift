@@ -1209,8 +1209,8 @@ enum FreeTableWords {
 
     static func event(_ event: PracticeEvent, language: LearningLanguage) -> String {
         switch event.label {
-        case "small blind": language.text("SB +\(event.chips)", "Small blind +\(event.chips)")
-        case "big blind": language.text("BB +\(event.chips)", "Big blind +\(event.chips)")
+        case "small blind": language.text("스몰 블라인드 +\(event.chips)", "Small blind +\(event.chips)")
+        case "big blind": language.text("빅 블라인드 +\(event.chips)", "Big blind +\(event.chips)")
         case "fold": language.text("포기", "Folded")
         case "check": language.text("체크", "Checked")
         case "call": language.text("콜 +\(event.chips)", "Called +\(event.chips)")
@@ -1758,7 +1758,7 @@ struct FreeRaisePresentation {
         if street == .preflop {
             let bb = Double(amount) / 2
             let value = bb == bb.rounded() ? "\(amount / 2)" : String(format: "%.1f", bb)
-            return language.text("스택에서 \(cost) · \(value)BB", "\(cost) from your stack · \(value) BB")
+            return language.text("스택에서 \(cost) · 빅 블라인드 \(value)개", "\(cost) from your stack · \(value) big blinds")
         }
         let denominator = isBet ? pot : pot + toCall
         let percent = denominator > 0 ? rounded(Double(amount - currentBet) * 100 / Double(denominator)) : 0

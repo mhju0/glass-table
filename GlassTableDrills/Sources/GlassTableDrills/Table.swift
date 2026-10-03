@@ -22,7 +22,8 @@ public struct TableEvent: Equatable {
         self.position = position; self.opponent = opponent
     }
 
-    public func text(in language: LearningLanguage) -> String {
+    /// `plain` names the seat in words and says "raises first" instead of the table shorthand.
+    public func text(in language: LearningLanguage, plain: Bool = false) -> String {
         if action == .runout {
             return language.text("올인 · 남은 보드 공개", "All-in · reveal the rest of the board")
         }
@@ -37,7 +38,8 @@ public struct TableEvent: Equatable {
         let verb: String
         switch action {
         case .open:
-            verb = language.text("\(chips) 오픈", "opens to \(chips)")
+            verb = plain ? language.text("\(chips)로 먼저 올림", "raises first to \(chips)")
+                : language.text("\(chips) 오픈", "opens to \(chips)")
         case .fold: verb = language.text("폴드", "folds")
         case .call:
             verb = amount == nil ? language.text("콜", "calls")
@@ -51,10 +53,12 @@ public struct TableEvent: Equatable {
                 verb = language.text("\(chips) 벳", "bets \(chips)")
             }
         case .raise: verb = language.text("\(chips) 레이즈", "raises to \(chips)")
-        case .threeBet: verb = language.text("\(chips) 3벳", "3-bets to \(chips)")
+        case .threeBet:
+            verb = plain ? language.text("\(chips)로 다시 올림(3벳)", "raises again to \(chips)")
+                : language.text("\(chips) 3벳", "3-bets to \(chips)")
         case .runout: verb = ""
         }
-        let seat = position.map { "\($0.rawValue) " } ?? ""
+        let seat = position.map { "\(plain ? $0.plainName(in: language) : $0.rawValue) " } ?? ""
         if actor == .hero && language == .english {
             let heroVerb: String
             switch action {
@@ -63,7 +67,7 @@ public struct TableEvent: Equatable {
             case .check: heroVerb = "check"
             case .bet: heroVerb = "bet \(chips)"
             case .raise: heroVerb = "raise to \(chips)"
-            case .threeBet: heroVerb = "3-bet to \(chips)"
+            case .threeBet: heroVerb = plain ? "raise again to \(chips)" : "3-bet to \(chips)"
             case .open, .runout: heroVerb = verb
             }
             return "\(stage) · You \(heroVerb)"

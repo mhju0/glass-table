@@ -13,6 +13,7 @@ import GlassTableDrills
 struct TableView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
+    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.dismiss) private var dismiss
     @State private var hand: TableHand?
     @State private var options: [GradedOption]?
@@ -412,9 +413,9 @@ struct TableView: View {
             .frame(maxWidth: .infinity)
             VStack(alignment: .leading, spacing: 3) {
                 ForEach(Array(hand.events.suffix(3).enumerated()), id: \.offset) { _, event in
-                    Text(event.text(in: language)).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                        .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize)
+                    Text(event.text(in: language, plain: !termsLead)).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : termsLead ? 1 : 2)
+                        .fixedSize(horizontal: false, vertical: dynamicTypeSize.isAccessibilitySize || !termsLead)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
