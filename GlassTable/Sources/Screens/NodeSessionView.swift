@@ -510,7 +510,7 @@ struct NodeSessionView: View {
     private var milestones: [LearningMilestone] {
         #if DEBUG
         switch ProcessInfo.processInfo.environment["GT_DEMO_MILESTONE"] {
-        case "unit": return [.unitFinished(unitIndex: 0)]
+        case "unit": return [.trackFinished(.basics)]
         case "mastered": return [.skillMastered(.potOdds)]
         default: break
         }

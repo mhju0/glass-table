@@ -2,23 +2,23 @@
 import Foundation
 import GlassTableDrills
 
-/// Something the learner did in one lesson, read from saved progress: a unit finished
-/// for the first time, or a skill mastered. It never describes chips or accuracy.
+/// Something the learner did in one lesson, read from saved progress: a track's
+/// challenge passed for the first time, or a skill mastered. It never describes chips or accuracy.
 enum LearningMilestone: Equatable, Hashable {
-    case unitFinished(unitIndex: Int)
+    case trackFinished(LearningTrack.ID)
     case skillMastered(Concept)
 
     /// Milestones reached inside a finished lesson. The session's first answer marks its
-    /// start, so a rerun of a cleared unit, or mastery from an earlier day, is not one.
+    /// start, so a rerun of a passed challenge, or mastery from an earlier day, is not one.
     static func reached(in session: NodeSessionSnapshot,
                         state: ProgressState) -> [LearningMilestone] {
         guard session.phase == .finished,
               let start = session.answers.map(\.answer.submittedAt).min()
         else { return [] }
         var result: [LearningMilestone] = []
-        if let unitIndex = Curriculum.units.firstIndex(where: { $0.nodes.last?.id == session.nodeID }),
+        if let track = Curriculum.tracks.first(where: { $0.challenge?.id == session.nodeID }),
            let clearedAt = state.nodes[session.nodeID]?.clearedAt, clearedAt >= start {
-            result.append(.unitFinished(unitIndex: unitIndex))
+            result.append(.trackFinished(track.id))
         }
         var seen = Set<Concept>()
         for raw in session.scheduledConcepts {
@@ -30,34 +30,24 @@ enum LearningMilestone: Equatable, Hashable {
         return result
     }
 
-    static let unitTitlesEnglish = [
-        "Read the table", "Price and probability", "Read hand charts",
-        "Possible opponent hands", "Read the shared cards", "Compare decision value",
-        "Read actions", "Respond to a raise", "Check defending frequency",
-    ]
-
-    static func unitTitle(_ index: Int, language: LearningLanguage) -> String {
-        language.text(Curriculum.units[index].title, unitTitlesEnglish[index])
-    }
-
     func kind(in language: LearningLanguage) -> String {
         switch self {
-        case .unitFinished: language.text("단원 완료", "Unit finished")
+        case .trackFinished: language.text("트랙 완료", "Track finished")
         case .skillMastered: language.text("숙달 단계", "Mastered in app")
         }
     }
 
     func title(in language: LearningLanguage) -> String {
         switch self {
-        case let .unitFinished(index): Self.unitTitle(index, language: language)
+        case let .trackFinished(id): id.title(in: language)
         case let .skillMastered(concept): ConceptIntroduction.make(concept, language: language).title
         }
     }
 
     func detail(in language: LearningLanguage) -> String {
         switch self {
-        case let .unitFinished(index):
-            let count = Curriculum.units[index].nodes.count - 1
+        case let .trackFinished(id):
+            let count = Curriculum.tracks.first { $0.id == id }?.concepts.count ?? 0
             return language.text("개념 \(count)개를 섞어 풀었어요.",
                                  "Passed a mixed check of \(count) skills.")
         case .skillMastered:

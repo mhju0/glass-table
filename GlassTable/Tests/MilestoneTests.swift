@@ -20,15 +20,15 @@ final class MilestoneTests: XCTestCase {
         return session
     }
 
-    func testFirstClearOfAUnitsLastNodeIsAMilestoneButARerunIsNot() {
-        let boss = Curriculum.units[0].nodes.last!
-        let session = finishedSession(boss.id, concepts: [.showdown, .potMath],
+    func testFirstPassOfATrackChallengeIsAMilestoneButARerunIsNot() {
+        let boss = Curriculum.tracks[1].challenge!
+        let session = finishedSession(boss.id, concepts: [.position, .rfi, .defend],
                                       answeredFrom: start)
         var state = ProgressState()
         state.nodes[boss.id] = NodeRecord(cleared: true, clearedAt: start.addingTimeInterval(10),
                                           attempts: 1)
         XCTAssertEqual(LearningMilestone.reached(in: session, state: state),
-                       [.unitFinished(unitIndex: 0)])
+                       [.trackFinished(.startingHands)])
 
         state.nodes[boss.id]?.clearedAt = start.addingTimeInterval(-86_400)
         XCTAssertEqual(LearningMilestone.reached(in: session, state: state), [])
@@ -65,13 +65,24 @@ final class MilestoneTests: XCTestCase {
         XCTAssertEqual(LearningMilestone.reached(in: session, state: state), [])
     }
 
-    func testEveryUnitHasAnEnglishTitle() {
-        XCTAssertEqual(LearningMilestone.unitTitlesEnglish.count, Curriculum.units.count)
+    func testAUnitBossThatIsNotATrackChallengeIsNotAMilestone() {
+        let boss = Curriculum.units[4].nodes.last!
+        XCTAssertNil(Curriculum.track(containing: boss))
+        let session = finishedSession(boss.id, concepts: [.hitFrequency], answeredFrom: start)
+        var state = ProgressState()
+        state.nodes[boss.id] = NodeRecord(cleared: true, clearedAt: start, attempts: 1)
+        XCTAssertEqual(LearningMilestone.reached(in: session, state: state), [])
+    }
+
+    func testTrackMilestoneNamesTheTrackAndItsSkills() {
+        let milestone = LearningMilestone.trackFinished(.startingHands)
+        XCTAssertEqual(milestone.title(in: .english), LearningTrack.ID.startingHands.title(in: .english))
+        XCTAssertEqual(milestone.detail(in: .english), "Passed a mixed check of 3 skills.")
     }
 
     func testRatingAsksOncePerVersionOnlyAfterAMilestoneAndNeverInUITests() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "MilestoneTests-\(UUID())"))
-        let milestone: [LearningMilestone] = [.unitFinished(unitIndex: 0)]
+        let milestone: [LearningMilestone] = [.trackFinished(.basics)]
         XCTAssertFalse(RatingPrompt.shouldRequest(milestones: [], version: "1.0",
                                                   defaults: defaults, environment: [:]))
         XCTAssertFalse(RatingPrompt.shouldRequest(milestones: milestone, version: "1.0",
