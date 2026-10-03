@@ -29,45 +29,20 @@ Full detail: [the 10-01 archive](handoff-archive/2026-10-01-before-direction-a.m
   before removing worktrees; proposal evidence is .build/archive/glass-table-proposal-uisweep.
   .scratch/pot-calculation-redesign/ remains intentionally untracked and unrelated.
 
-## 2026-10-01 — Direction A early checkpoints, condensed
+## 2026-10-01 — Direction A steps 0–4, condensed 2026-10-04
 
-Full exploration, step1 candidate/approval and step2 pause details remain in
-[the early-checkpoint archive](handoff-archive/2026-10-01-direction-a-early-checkpoints.md).
+Full entries: [early checkpoints](handoff-archive/2026-10-01-direction-a-early-checkpoints.md)
+and [steps 2–4](handoff-archive/2026-10-02-direction-a-steps-2-to-4.md).
 
-- Created feat/free-table-direction-a from 33e5384; step 0 is 6dc95b6 and step 1
-  spacing is 22bb963. No push. The delivery spec supersedes all exploration pages.
-- Step 1 passed 61 app units, 19 UI checks and 394 Drills tests. Dock visible normal
-  top/left/right/bottom: 25.67/21.67/20.33/20.33 → 20.33/21.67/20/20 pt;
-  AX5 bottom 64 → 20 pt. Title ink retains normal 1.67/AX 3.33 pt glyph bearings.
-- Owner approved wrapping exact AX titles and native corners with 0.765 pt minimum
-  clearance exception. Recorded in spec §13; no custom corner curve.
-- Owner paused during step 2, then resumed; source/evidence survived. The old
-  50-minute target expired with that pause. Current verified step 2 entry follows.
-- Outs/Math level 2 and fast-table remain deferred. Support work stays strictly
-  after Direction A. Engine, progression, settings and excluded audit paths remain
-  outside scope. Physical haptics, VoiceOver and older-runtime checks remain open.
-
-## 2026-10-01 — Direction A steps 2–4, condensed 2026-10-02
-
-Full entries: [steps 2–4 archive](handoff-archive/2026-10-02-direction-a-steps-2-to-4.md).
-
-- Step2 a52b094: paper hero, clockwise seats,8pt felt edges, fixed36/43pt cards.
-  Revised AX scroll proof excludes chrome-covered names; six KO/EN2/3/4 seat
-  checks pass. Seat heights differ by at most0.667pt; physical readability remains
-  a tradeoff. Step3 dd348cb: three fixed slots, public replay prices, warnings,
-  Skip×3 and stable tallest-face dock. Full all-face sizing later passesStep5.
-- Step4 3f6b61b: gold commit, presets, one-chip native press/hold, limit dimming
-  without haptic, AX amount/preset scrolling. Real pan-from-key bug fixed;8 unique
-  UI methods passed. Normal dock315pt; amount top20.333/control left20.667/right20/
-  bottom20.333pt; native corner exception stays within approved tolerance.
-- Builds/units/Drills and inspected KO/ENlarge/AX gates passed for each step.
-  Commands, every failed attempt, measurements and captures: .build/direction-a/
-  step2/report.md, step3/report.md, step4/report.md. Rejected cold EN landing
-  captures were replaced with identified warm/native evidence; no product cold
-  launch fix claimed. Step5 restores Rules reopening and verifies all dock faces.
-- Physical haptics/VoiceOver/older runtimes remain unverified. No Engine/
-  progression/new saved setting/excluded audit-path edits or push. Outs and fast
-  table remain deferred; support/privacy/Pages work follows Direction A.
+- feat/free-table-direction-a from 33e5384: step 0 6dc95b6, step 1 spacing 22bb963,
+  step 2 a52b094 (paper hero, clockwise seats, fixed cards), step 3 dd348cb (three
+  fixed slots, replay prices, stable dock), step 4 3f6b61b (gold commit, presets,
+  press/hold, AX amount scrolling). The delivery spec supersedes exploration pages.
+  Owner approved wrapping AX titles and native corners with a 0.765 pt exception
+  (spec §13). Measurements and failed attempts: .build/direction-a/step2…step4/report.md.
+- Still open: physical haptics, VoiceOver and older runtimes unverified; seat heights
+  and physical readability remain a tradeoff; no product cold-launch fix claimed;
+  Outs/Math level 2 and fast table deferred.
 
 ## 2026-10-02 — Direction A steps 5–8, support pages, phone install, condensed 2026-10-03
 
@@ -174,9 +149,42 @@ Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-0
   river step still advised "call a draw when cheap" and called a busted-draw bet
   real. Failing test first; Drills 385 + 50, app units 69 and
   FreeTableBackFlowTests pass after it. The full UI suite was not rerun for this.
-- Open: Today is Korean-only as before; "Go deeper" lessons keep the old wording;
-  table-event text ("opens to 3bb") and the graded table still use codes; real-phone
-  check of all of the above.
-- Not mine, left untracked and untouched: GlassTable/UITests/UXAuditCrawl.swift
-  (looks for `placement-row`, "Computer" names and "길로 돌아가기", so it fails until
-  its owner updates it), tools/uxaudit/, .scratch/uxaudit-codex/, docs/grac-submission/.
+- Open: real-phone check of all of the above (see the 10-04 entry for what closed).
+
+## 2026-10-04 — Friendly/casual leftovers, build 15 on the phone (not pushed)
+
+- Today: nothing to translate. `TodayView` is never created and the "today" demo
+  tab opens Learn (RootView.swift). The file is unused old code, left in place.
+- "Go deeper" lessons below "Plays sometimes": plain headers (가능한 두 장 조합 /
+  핸드 줄임 표기 / 콜의 평균 손익), questions say "두 장 조합(콤보)" and "평균 몇 bb…
+  (EV)", the EV drill says "내가 이길 확률" and explains 1bb. Graders untouched.
+- Table text: `TableEvent.text(in:plain:)` (default unchanged, so saved history is the
+  same) names the seat in words and says "3bb로 먼저 올림" / "다시 올림(3벳)"; the graded
+  table uses it until poker terms are on. Free table says 스몰/빅 블라인드 +N and
+  "빅 블라인드 N개". Still codes: the free-table raise presets ("2BB"), and the graded
+  table's "레인지 160콤보" and "필요 에퀴티" lines.
+- Position at accessibility sizes: the seat sentence now also shows the action
+  order after the answer and with poker terms on (UI test added; it was written
+  after the change, so it was not seen failing first).
+- Release build was broken on this branch: FreeTableView used the DEBUG-only
+  `demoTable` outside its guard. Now `presentationTable`. Debug behaviour is the same.
+- Verified: Drills 385 + 50; one clean full run of 69 + 38 app units and 140 UI tests
+  (.build/friendly-ui2.xcresult), taken before the one-line Release fix and the
+  build bump. Signed Release 1.0 (15) installed in place on the iPhone 12 mini;
+  progression.json byte-identical before and after (.build/friendly-casual/iphone-install).
+  The phone was locked, so the app was not launched or looked at on it.
+- UXAuditCrawl.swift and tools/uxaudit/report.py (still untracked, the owner has not
+  said to commit them) now follow the new app: level question at first launch, the
+  starting check from Settings, the full-screen free table by identifier, five
+  tracks instead of nine units, "완료" on the summary. A saved English setting on a
+  simulator makes the whole crawl miss; tools/uxaudit/run.sh clears it, a bare
+  xcodebuild does not. `-only-testing:…/UXAuditCrawl` alone ran zero tests here;
+  name the methods.
+- Crawler result (sim, Korean, normal text): every flow now runs to the end —
+  test01, 03, 04, 05, 06 and test10–14 pass on the final code or on a run after
+  which only other flows' code changed; test02Learn passed once, before the later
+  recorder edits, and was not rerun. No full single-pass run of all flows on the
+  final file. Only remaining notes: range-read questions (u4-rangeRead-b,
+  u4-boss-b) where the second attempt cannot produce the opposite grade — a
+  crawler limit, not an app fault. Settings share sheet is still closed by swipe.
+- Next: owner looks at build 15 on the phone; decide whether to commit the crawler.
