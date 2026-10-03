@@ -1,4 +1,5 @@
 import XCTest
+import GlassTableEngine
 @testable import GlassTableDrills
 
 final class LearnerLevelTests: XCTestCase {
@@ -106,5 +107,43 @@ final class LearnerLevelTests: XCTestCase {
         XCTAssertFalse(PlacementSelfReport.newToPoker.leadsWithTerms)
         XCTAssertFalse(PlacementSelfReport.knowRules.leadsWithTerms)
         XCTAssertTrue(PlacementSelfReport.playRegularly.leadsWithTerms)
+    }
+}
+
+final class PlainQuestionWordsTests: XCTestCase {
+    func testOddsWordsReduceAWholePercentExactly() {
+        XCTAssertEqual(oddsWords(25, language: .english), "1 in 4")
+        XCTAssertEqual(oddsWords(30, language: .english), "3 in 10")
+        XCTAssertEqual(oddsWords(15, language: .english), "3 in 20")
+        XCTAssertEqual(oddsWords(100, language: .english), "every time")
+        XCTAssertEqual(oddsWords(0, language: .english), "never")
+        XCTAssertEqual(oddsWords(25, language: .korean), "4번 중 1번")
+    }
+
+    func testFrequencyWordsCoverTheWholeScaleInOrder() {
+        let words = stride(from: 0.0, through: 100, by: 10).map { frequencyWord($0, language: .english) }
+        XCTAssertEqual(words.first, "Rarely")
+        XCTAssertEqual(frequencyWord(50, language: .english), "About half the time")
+        XCTAssertEqual(words.last, "Almost always")
+        XCTAssertEqual(NSOrderedSet(array: words).count, 5)
+    }
+
+    func testOpeningGroupsComeFromThePublishedChart() throws {
+        let aces = try XCTUnwrap(Card.parse("AsAh"))
+        let trash = try XCTUnwrap(Card.parse("7s2h"))
+        XCTAssertEqual(RFIChart.group(of: aces), .always)
+        XCTAssertEqual(RFIChart.group(of: trash), .fold)
+        var seen = Set<OpeningGroup>()
+        for spot in (0..<200).map({ RFISpotGenerator.spot(baseSeed: 9, index: $0) }) {
+            let group = RFIChart.group(of: spot.hand)
+            seen.insert(group)
+            let opens = RFIChart.opens(spot.hand, from: spot.seat)
+            switch group {
+            case .always: XCTAssertTrue(opens, "An always-play hand opens from every seat")
+            case .fold: XCTAssertFalse(opens, "A fold-group hand opens from no seat")
+            case .late: XCTAssertFalse(RFIChart.opens(spot.hand, from: .utg))
+            }
+        }
+        XCTAssertEqual(seen, [.always, .late, .fold])
     }
 }

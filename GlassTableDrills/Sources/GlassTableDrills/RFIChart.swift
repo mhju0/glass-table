@@ -43,4 +43,13 @@ public enum RFIChart {
     public static func earliestSeatOpening(_ hand: [Card]) -> Position? {
         seats.first { opens(hand, from: $0) }
     }
+
+    /// The chart in three groups for a new player: opened from every seat, opened
+    /// from some seats only, or opened from none.
+    public static func group(of hand: [Card]) -> OpeningGroup {
+        if seats.allSatisfy({ opens(hand, from: $0) }) { return .always }
+        return earliestSeatOpening(hand) == nil ? .fold : .late
+    }
 }
+
+public enum OpeningGroup: Sendable { case always, late, fold }

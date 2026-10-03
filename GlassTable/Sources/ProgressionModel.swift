@@ -47,7 +47,9 @@ final class ProgressionModel {
            let index = Curriculum.allNodes.firstIndex(where: { $0.id == nodeID }) {
             var fixture = ProgressState()
             fixture.firstLessonCompleted = true
-            for node in Curriculum.allNodes[..<index] {
+            // A passed track challenge would take the requested lesson off the suggestions.
+            let challenge = Curriculum.track(containing: Curriculum.allNodes[index])?.challenge
+            for node in Curriculum.allNodes[..<index] where node != challenge {
                 fixture.nodes[node.id] = NodeRecord(cleared: true, clearedAt: Date(), attempts: 1)
             }
             state = fixture

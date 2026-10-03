@@ -44,3 +44,23 @@ public extension ProgressState {
         }
     }
 }
+
+/// A whole percentage as "1 in 4", reduced exactly, for learners who think in counts.
+public func oddsWords(_ percent: Int, language: LearningLanguage) -> String {
+    if percent <= 0 { return language.text("한 번도 아님", "never") }
+    if percent >= 100 { return language.text("매번", "every time") }
+    var (a, b) = (percent, 100)
+    while b != 0 { (a, b) = (b, a % b) }
+    return language.text("\(100 / a)번 중 \(percent / a)번", "\(percent / a) in \(100 / a)")
+}
+
+/// How often something happens, as a word to sit beside the number.
+public func frequencyWord(_ percent: Double, language: LearningLanguage) -> String {
+    switch percent {
+    case ...20: language.text("드물게", "Rarely")
+    case ...40: language.text("가끔", "Sometimes")
+    case ...60: language.text("절반쯤", "About half the time")
+    case ...80: language.text("자주", "Often")
+    default: language.text("거의 항상", "Almost always")
+    }
+}

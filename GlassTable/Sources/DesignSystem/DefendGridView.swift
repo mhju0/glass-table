@@ -13,6 +13,8 @@ struct DefendGridView: View {
     let opener: Position
     var highlight: HandClass?
     var cards: [Card] = []
+    /// Keeps the hand's own verdict in view and puts the 169-cell chart one tap away.
+    var folded = false
 
     private func action(_ h: HandClass) -> DefendAction {
         if DefendChart.threeBetRange(vsOpenFrom: opener).weight(h) > 0 { return .threeBet }
@@ -33,6 +35,28 @@ struct DefendGridView: View {
             if let highlight {
                 selectedHandSummary(highlight)
             }
+            if folded {
+                DisclosureGroup(language.text("전체 차트 보기", "See the full chart")) {
+                    VStack(alignment: .leading, spacing: 8) { chart }.padding(.top, 8)
+                }
+                .foregroundStyle(GT.onFelt)
+                .accessibilityIdentifier("defend-chart-detail")
+            } else {
+                chart
+            }
+        }
+        .sheet(isPresented: $showExplorer) {
+            DefendChartExplorer(opener: opener, ownHand: highlight)
+        }
+        .accessibilityElement(children: .contain)
+        .overlay(alignment: .topLeading) {
+            Color.clear.frame(width: 1, height: 1)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(chartAccessibilitySummary)
+        }
+    }
+
+    @ViewBuilder private var chart: some View {
             // Colour never alone: the legend names each band next to its swatch.
             HStack(spacing: 12) {
                 ForEach(DefendAction.allCases, id: \.self) { a in
@@ -63,16 +87,6 @@ struct DefendGridView: View {
                     .font(GT.semibold(14)).frame(maxWidth: .infinity, minHeight: 48)
             }
             .buttonStyle(GTPress())
-        }
-        .sheet(isPresented: $showExplorer) {
-            DefendChartExplorer(opener: opener, ownHand: highlight)
-        }
-        .accessibilityElement(children: .contain)
-        .overlay(alignment: .topLeading) {
-            Color.clear.frame(width: 1, height: 1)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(chartAccessibilitySummary)
-        }
     }
 
     private func selectedHandSummary(_ hand: HandClass) -> some View {

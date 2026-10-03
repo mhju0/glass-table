@@ -36,12 +36,23 @@ struct RootView: View {
             #endif
         }
         .environment(model)
-        .environment(\.leadsWithTerms, PokerTerms.lead(choice: termsChoice, level: model.state.level))
+        .environment(\.leadsWithTerms, PokerTerms.lead(choice: termsChoice, level: level))
+        .environment(\.simpleQuestions, level != .playRegularly)
         .environment(\.homeIndicatorInset, homeIndicatorInset)
         .tint(GT.onFelt)
         .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.bottom.rounded() } action: {
             homeIndicatorInset = $0
         }
+    }
+
+    private var level: PlacementSelfReport {
+        #if DEBUG
+        // GT_DEMO_LEVEL=newToPoker|knowRules|playRegularly shows a level's screens
+        // without writing a starting check into the test store.
+        if let raw = ProcessInfo.processInfo.environment["GT_DEMO_LEVEL"],
+           let level = PlacementSelfReport(rawValue: raw) { return level }
+        #endif
+        return model.state.level
     }
 
     @ViewBuilder

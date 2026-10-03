@@ -123,61 +123,59 @@ Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-0
   format/size and simulator acceptance remain unconfirmed. No upload/payment/
   application submission. Statutory applicability question remains unresolved.
 
-## 2026-10-03 — Friendly/casual redesign proposal (awaiting owner approval)
+## 2026-10-03 — Friendly/casual redesign: built on feat/friendly-casual (not pushed)
 
-- Owner redirected the product goal from "become a pro" to casual, mainstream,
-  heavily guided. Read-only review plus learning-app research; no source changes.
-- Proposal with before/after mockups: https://claude.ai/artifact/QnD5ia4AoS8wj44R2eznkA
-  Covers Learn tab/placement at first launch, four tracks with soft unlock, cut list
-  (hitFrequency, rangeAdvantage, evLoss, mdf hidden; combos/notation/evCall optional),
-  guided lessons, skill cards, plain-word terms, dock sheet instead of flip,
-  step-by-step hand review, casual bot, 40-chip quick game, alignment rules.
-- Open: owner must answer the seven decisions at the end of the report, notably
-  allowing coaching verdicts/hints at the previously ungraded free table. The
-  5-minute/40-chip figure is an estimate; simulate before committing.
-- Next: on approval, update product brief/CONTEXT for the new goal, then build in
-  the report's order (small fixes → free play → learning structure → lessons).
-  This file is over 200 lines and still needs its oldest entries condensed.
-
-## 2026-10-03 — Friendly/casual redesign: build in progress (feat/friendly-casual)
-
-- Owner approved every recommendation and delegated all seven decisions (D46 in
-  docs/decisions.md; CONTEXT.md and product brief carry the new goal). Build order:
-  small fixes → free play → learning structure → lessons.
-- Done: no empty seat at 2–3 players, folded cards drift 2pt, dock fade instead of
-  flip, header alignment rule (center, top at accessibility sizes); starting check
-  once at first launch with skip, gone from Learn, kept in Settings; quick game
-  default; casual "Just for fun" opponents named Mina/Joon/Sora; full-screen
-  step-by-step hand review with beginner-chart verdicts and bluff callouts; lessons
-  regrouped into four tracks plus "Go deeper" (LearningTrack.swift) with poker-term
-  tags and a heads-up, never a lock, when skipping ahead; "try the lesson before"
-  after missing more than half of the unaided questions; illustrated, track-grouped
-  skill cards; free-table "Hint" tab with an opt-in "What would the beginner chart
-  do?" (same rules as the hand review, so the two cannot disagree; no FSRS credit).
-- Lesson shape, session format 2: a first visit is watch one, two with help, two
-  alone. Three questions are saved; after the guided question the first saved one is
-  marked helped (`helpOrdinal = 0`), so it is practice, not a grade. A learner who
-  skips the walkthrough or returns answers three alone. Consequence, on purpose:
-  "proficient" still needs a perfect unaided run, so it comes on a second visit.
-  Format-1 sessions (five questions, old challenge mixes) still load and finish;
-  the validator accepts formats 1...2 and rejects mixed shapes.
-- Track challenges now mix only their own track's skills (format 2). Position
-  reaches mastery through the starting-hands challenge, no longer the unit-2 one.
-- Decision: a quick game is 40 chips AND 10 hands. Simulation showed stack size
-  alone cannot give five minutes (40 chips: median 42–53 hands to a first bust with
-  a passive learner, 14–22 aggressive), so the hand limit is what ends the game.
-- Decision: `.casual` is left out of `Archetype.allCases` so seeded drills and
-  published style lists do not change; saved tables decode because the new table
-  fields are optional; policy version not bumped. `Concept` cases and saved
-  progress are untouched; hidden lessons keep their records but are not offered.
-- Kept the dock back (Math became Hint, This hand, Rules) rather than building a
-  separate "Help me think" sheet: the pill must stay one word at accessibility
-  sizes and the dock's fixed-height proof from Direction A stays valid.
-- Open: "Use poker terms" setting; three levels/adaptation beyond the suggested
-  lesson and the easier-lesson prompt; rewriting the question content of position,
-  rfi, defend, equitySense, rangeRead and actionRead in simpler form (only the
-  lesson shape changed, the generators did not); Today/Progress still describe
-  units in places; real-phone check of all of the above.
+- Goal changed from "become a pro" to casual, mainstream, heavily guided (D46 in
+  docs/decisions.md; CONTEXT.md and the product brief carry it). Proposal with
+  before/after mockups: https://claude.ai/artifact/QnD5ia4AoS8wj44R2eznkA. Owner
+  approved every recommendation and delegated all seven decisions.
+- Free table: no empty seat at 2–3 players, quick game default (40 chips AND 10
+  hands; simulation showed stack size alone cannot give five minutes), casual
+  "Just for fun" opponents (Mina/Joon/Sora; `.casual` is left out of
+  `Archetype.allCases` so seeded drills do not change), full-screen step-by-step
+  hand review with beginner-chart verdicts and bluff callouts, "Hint" tab with an
+  opt-in "What would the beginner chart do?" (same rules as the review; no FSRS
+  credit). The dock back was kept rather than a new sheet so the pill stays one word.
+- Learning structure: four tracks plus "Go deeper" (LearningTrack.swift), poker-term
+  tags, a heads-up and never a lock when skipping ahead, "try the lesson before"
+  after missing more than half, illustrated skill cards, milestone card names the
+  track. Hidden lessons keep their records but are not offered.
+- Lesson shape, session format 2: three saved questions; after the guided question
+  the first is marked helped (`helpOrdinal = 0`), so it is practice, not a grade.
+  "Proficient" still needs a perfect unaided run, so it comes on a second visit.
+  Format-1 sessions still load; the validator accepts formats 1...2. Track
+  challenges mix only their own track's skills.
+- Levels: the level IS `placement.selfReport` (no new type). Set by the first-launch
+  check or by the "My level" chip on Learn, which writes a skipped placement. It
+  moves only the suggestion (`Curriculum.suggestedLesson` starts at the check result
+  or the level's first lesson, then returns to earlier ones), the default help, and
+  which words lead. New optional `lessonTrend` in progression.json (no schema bump,
+  old files read nil, range-checked ±9): two rough lessons in a row put the hint
+  back on question one even on a revisit; three clean ones offer "Skip ahead with a
+  quick challenge", and a passed track challenge drops that track from suggestions
+  without marking its lessons done. "Plays sometimes" answers question one alone.
+- "Use poker terms" (Settings, `glassTable.pokerTerms` in UserDefaults, unset means
+  the level decides): swaps which of plain title / term leads in lesson rows and
+  skill cards, and shows seat codes instead of early/middle/late/blinds.
+- Simpler questions below "Plays sometimes" (`\.simpleQuestions`). Decision: graders,
+  generators and saved input types are untouched, because the store re-grades saved
+  answers on load; only the asking changed. Position groups seats and marks "You" /
+  A / B (codes appear in the reveal); opening hands show always / play late / fold
+  from `RFIChart.group` with the chart behind "See the full chart", same for
+  defend (the hand's own verdict card stays visible); estimates hide the 90% range
+  but still save the default-width one, because the store rejects an estimate
+  without it, so those answers count in the Records calibration figure; range read asks
+  strong / decent / anything first, then the existing fine controls; action read
+  asks in words in steps of ten ("Often · 7 in 10"), which keeps every truth within
+  the on-target band of some choice; pot odds leads with "1 in 4" and says chips.
+  `GT_DEMO_LEVEL` shows a level's screens without writing a placement.
+- Verified: Drills 384 + 49, app units 67, full UI run 131 of 139, then the eight
+  failures fixed and rerun green (not one green full run). GT_TEST_PATH_CURRENT_NODE
+  now leaves the target track's challenge uncleared so the lesson is still suggested.
+- Open: explanation text from the drills package still uses seat codes, "bb" and
+  "3벳" for beginners (reveal sentences, range-read and action-read action lines);
+  drill header titles are still the terms; Today is Korean-only as before; lessons
+  on "Go deeper" keep the old wording. Real-phone check of all of the above.
 - Not mine, left untracked and untouched: GlassTable/UITests/UXAuditCrawl.swift
-  (still looks for `placement-row` and "Computer" names, so it will fail until its
-  owner updates it), tools/uxaudit/, .scratch/uxaudit-codex/, docs/grac-submission/.
+  (looks for `placement-row`, "Computer" names and "길로 돌아가기", so it fails until
+  its owner updates it), tools/uxaudit/, .scratch/uxaudit-codex/, docs/grac-submission/.

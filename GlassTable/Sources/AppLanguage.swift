@@ -36,9 +36,20 @@ extension EnvironmentValues {
         get { self[LeadsWithTermsKey.self] }
         set { self[LeadsWithTermsKey.self] = newValue }
     }
+
+    /// Questions are asked the simpler way: counts before percentages, chips rather
+    /// than big blinds, and the full chart one tap away. On below "Plays sometimes".
+    var simpleQuestions: Bool {
+        get { self[SimpleQuestionsKey.self] }
+        set { self[SimpleQuestionsKey.self] = newValue }
+    }
 }
 
 private struct LeadsWithTermsKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+private struct SimpleQuestionsKey: EnvironmentKey {
     static let defaultValue = false
 }
 

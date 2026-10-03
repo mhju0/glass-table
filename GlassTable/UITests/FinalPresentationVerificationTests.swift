@@ -43,6 +43,12 @@ final class FinalPresentationVerificationTests: XCTestCase {
         app.launchEnvironment["GT_DEMO_SEED"] = "1"
         app.launchEnvironment["GT_DEMO_NODE"] = "u4-rangeRead"
         app.launch()
+        // Below "Plays sometimes" the chart follows a first answer in words.
+        let start = app.buttons["range-start-medium"]
+        XCTAssertTrue(start.waitForExistence(timeout: 15))
+        XCTAssertFalse(app.otherElements.matching(NSPredicate(
+            format: "label BEGINSWITH %@", code == "ko" ? "2 행." : "Row 2.")).firstMatch.exists)
+        start.tap()
         let prefix = code == "ko" ? "2 행." : "Row 2."
         let rows = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", prefix))
         XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 15))

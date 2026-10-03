@@ -300,6 +300,10 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertTrue(evidence.waitForExistence(timeout: 15))
         XCTAssertTrue(scrollUntilHittable(evidence, in: app),
                       "The hand and its chart action must be reachable before the full grid at AX XXXL.")
+        // Below "Plays sometimes" the full chart waits behind one tap.
+        let more = app.buttons["전체 차트 보기"]
+        XCTAssertTrue(scrollUntilHittable(more, in: app))
+        more.tap()
         let chartRow = app.descendants(matching: .any).matching(NSPredicate(
             format: "label BEGINSWITH %@ AND label CONTAINS %@", "A 행.", "AKs"
         )).firstMatch
