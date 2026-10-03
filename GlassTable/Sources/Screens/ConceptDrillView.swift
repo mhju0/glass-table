@@ -345,6 +345,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
+    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.drillExplain) private var explainConcept
     @State private var gradedBand: GradeBand?
@@ -473,6 +474,19 @@ struct DrillShell<Content: View, Sheet: View>: View {
     }
 
     private var localizedTitle: String {
+        // The terms stay one tap away under the info button and lead again once the
+        // learner asks for poker terms.
+        if !termsLead {
+            switch title {
+            case "포지션": return language.text("자리와 순서", "Position")
+            case "에퀴티 감각": return language.text("이길 확률", "Chance to win")
+            case "RFI 차트": return language.text("먼저 올리기", "First raise")
+            case "레인지 리드": return language.text("상대 패 읽기", "Read a range")
+            case "액션 리드": return language.text("행동 읽기", "Read an action")
+            case "디펜드 차트": return language.text("올린 상대에 맞서기", "Facing a raise")
+            default: break
+            }
+        }
         guard language == .english else { return title }
         switch title {
         case "쇼다운": return "Showdown"
@@ -1034,6 +1048,7 @@ private struct PotMathRevealSheet: View {
 private struct PositionDrill: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.leadsWithTerms) private var termsLead
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: PositionReveal?
@@ -1044,9 +1059,9 @@ private struct PositionDrill: View {
         DrillShell(title: "포지션", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: reveal == nil
-                    ? language.text("8맥스 테이블 · 버튼부터 시계 방향", "8-player table · clockwise from the button")
-                    : language.text("8맥스 테이블 · 행동 순서", "8-player table · action order"))
-                seatStrip
+                    ? language.text(termsLead ? "8맥스 테이블 · 버튼부터 시계 방향" : "8명 테이블 · 딜러 버튼부터 시계 방향", "8-player table · clockwise from the button")
+                    : language.text(termsLead ? "8맥스 테이블 · 행동 순서" : "8명 테이블 · 행동 순서", "8-player table · action order"))
+                seatDiagram
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
@@ -1112,6 +1127,33 @@ private struct PositionDrill: View {
         // but stop short of the accessibility sizes, where "UTG+1" was breaking into
         // three stacked lines. VoiceOver reads the seat regardless.
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+    }
+
+    /// At the accessibility sizes the one-row strip cannot grow, so the same seating is
+    /// said in a sentence that does.
+    @ViewBuilder private var seatDiagram: some View {
+        if dynamicTypeSize.isAccessibilitySize, !termsLead, reveal == nil {
+            Text(seatSentence)
+                .font(GT.semibold(13)).foregroundStyle(GT.onFelt)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("position-seat-sentence")
+        } else {
+            seatStrip
+        }
+    }
+
+    private var seatSentence: String {
+        var runs: [(name: String, count: Int, marks: [String])] = []
+        for p in [Position.btn, .sb, .bb, .utg, .utg1, .lj, .hj, .co] {
+            let name = groupName(p)
+            if runs.last?.name != name { runs.append((name, 0, [])) }
+            runs[runs.count - 1].count += 1
+            if let mark = marker(p) { runs[runs.count - 1].marks.append(mark) }
+        }
+        return runs.map { run in
+            let marks = run.marks.isEmpty ? "" : " (\(run.marks.joined(separator: ", ")))"
+            return language.text("\(run.name) \(run.count)명\(marks)", "\(run.name) \(run.count)\(marks)")
+        }.joined(separator: " → ")
     }
 
     /// The seat the question is about. With codes showing, a two-seat question names
@@ -1948,7 +1990,7 @@ private struct RangeReadDrill: View {
 
     private var wordsFirst: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(language.text("상대는 어떤 패로 \(actionVerb)했을까요?",
+            Text(language.text("상대는 어떤 패로 \(actionVerb == "오픈" ? "먼저 올렸을까요" : "콜했을까요")?",
                                "What kind of hands would they \(actionVerb) with?"))
                 .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                 .fixedSize(horizontal: false, vertical: true)
@@ -2646,8 +2688,8 @@ private struct ActionReadDrill: View {
                 Text(DrillTerms.board(spot.texture, in: language))
                     .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                 SectionLabel(text: language.text("행동", "Action")).padding(.top, 8)
-                Text(language.text("\(spot.villainSeat.rawValue) 오픈 → \(spot.actionLine)",
-                                   "\(spot.villainSeat.rawValue) raises first → \(spot.actionLine(in: language))"))
+                Text(language.text("\(spot.villainSeat.plainName(in: language)) 먼저 올림 → \(spot.actionLine)",
+                                   "\(spot.villainSeat.plainName(in: language)) raises first → \(spot.actionLine(in: language))"))
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                 Text("\(spot.villain.beginnerTitle(in: language)) · \(spot.villain.beginnerDescription(in: language))")
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)

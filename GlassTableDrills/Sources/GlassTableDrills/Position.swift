@@ -97,17 +97,17 @@ public func gradePosition(answer: Int, spot: PositionSpot,
         let after = order.drop(while: { $0 != p }).dropFirst()
         if language == .english {
             why = after.isEmpty
-                ? "\(p.rawValue) acts last \(preflop ? "before" : "after") the flop. Nobody acts after you."
-                : "After \(p.rawValue): \(after.map(\.rawValue).joined(separator: " · ")). \(correct) players still act."
+                ? "\(p.plainName(in: language)) acts last \(preflop ? "before" : "after") the flop. Nobody acts after you."
+                : "After \(p.plainName(in: language)): \(after.map(\.rawValue).joined(separator: " · ")). \(correct) players still act."
             break
         }
         why = after.isEmpty
-            ? "\(KO.topic(p.rawValue)) \(preflop ? "프리플랍" : "플랍 이후") 마지막이에요. 뒤에 아무도 없어요."
-            : "\(p.rawValue) 뒤에는 \(after.map(\.rawValue).joined(separator: " · ")), 모두 \(correct)명이에요."
+            ? "\(p.plainName(in: language)) 자리는 \(preflop ? "프리플랍" : "플랍 이후") 마지막이에요. 뒤에 아무도 없어요."
+            : "\(p.plainName(in: language)) 뒤에는 \(after.map(\.rawValue).joined(separator: " · ")), 모두 \(correct)명이에요."
     case let .whichIsLater(a, b):
         let later = correct == 1 ? b : a
-        why = language.text("\(KO.subject(later.rawValue)) 더 늦게 행동해요. 앞선 행동을 더 보고 결정할 수 있어요.",
-                            "\(later.rawValue) acts later, so you can see more decisions first.")
+        why = language.text("\(later.plainName(in: language)) 자리가 더 늦게 행동해요. 앞선 행동을 더 보고 결정할 수 있어요.",
+                            "\(later.plainName(in: language)) acts later, so you can see more decisions first.")
     }
     return PositionReveal(band: answer == correct ? .spotOn : .off,
                           answer: answer, correct: correct, whyText: why)

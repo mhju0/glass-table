@@ -906,6 +906,35 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertTrue(model.dismissFinishedNodeSession(sessionID: session.id, expectedEpoch: epoch))
     }
 
+    /// The 90% range is hidden below "Plays sometimes", so the app saves the estimate
+    /// without a calibration record. The reveal bytes still carry the range.
+    func testAnEstimateSavedWithoutACalibrationRecordSurvivesAReload() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        XCTAssertTrue(model.setPlacement(report: .playRegularly, answers: [:], skipped: true,
+                                         expectedEpoch: epoch))
+        let node = try XCTUnwrap(Curriculum.node(id: "u2-equitySense"))
+        XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: epoch))
+        var session = try XCTUnwrap(model.state.activeNodeSession)
+        if session.phase == .show {
+            XCTAssertTrue(model.advanceNodeTeaching(sessionID: session.id, skip: true, expectedEpoch: epoch))
+            session = try XCTUnwrap(model.state.activeNodeSession)
+        }
+        let result = gradeEquitySense(estimate: Estimate(point: 50, lo: 40, hi: 60),
+            spot: EquitySenseSpotGenerator.spot(baseSeed: 5, index: 2))
+        let input = try JSONEncoder().encode(SavedDrillInput.interval(point: 50, lo: 40, hi: 60))
+        let reveal = try JSONEncoder().encode(SavedDrillReveal(
+            band: result.band.rawValue, interval: result.intervalAnswer))
+        XCTAssertTrue(model.commitNodeAnswer(sessionID: session.id, attemptID: "estimate",
+            ordinal: 0, band: result.band, input: input, reveal: reveal,
+            language: .korean, interval: nil, expectedEpoch: epoch))
+        XCTAssertNil(model.calibrationHitRate)
+
+        let reloaded = ProgressionModel(store: store)
+        XCTAssertEqual(reloaded.state.activeNodeSession?.answers.count, 1)
+        XCTAssertNil(reloaded.calibrationHitRate)
+    }
+
     func testALearnerWhoPlaysSometimesAnswersTheFirstQuestionAlone() throws {
         let model = ProgressionModel(store: store)
         let epoch = model.epoch

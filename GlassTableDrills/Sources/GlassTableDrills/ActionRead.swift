@@ -107,9 +107,9 @@ public func gradeActionRead(estimate: Estimate, spot: ActionReadSpot,
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
         whyText: language.text(
-            "\(spot.villain.name)의 \(spot.action.rawValue) 레인지는 \(spot.actedBucketList). "
-            + "\(a.combos)콤보 중 \(pctText(correct))%가 페어 이상이에요. "
-            + "전체 레인지는 \(pctText(fullPct))%예요. \(KO.subject(spot.action.rawValue)) 레인지를 \(direction).",
+            "\(spot.action.rawValue)한 뒤 \(spot.villain.beginnerTitle(in: language)) 상대에게 남는 패: \(spot.actedBucketList). "
+            + "\(a.combos)가지 조합(콤보) 중 \(pctText(correct))%가 페어 이상이에요. "
+            + "행동 전에는 \(pctText(fullPct))%였어요. \(KO.subject(spot.action.rawValue)) 가능한 패(레인지)를 \(direction).",
             "After \(spot.action == .bet ? "betting" : "checking"), the \(spot.villain.beginnerTitle(in: language)) opponent can hold: \(spot.actedBucketList(in: language)). "
             + "Of \(a.combos) combinations, \(pctText(correct))% have at least a pair. Before the action it was \(pctText(fullPct))%."))
 }

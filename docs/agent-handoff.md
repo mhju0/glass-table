@@ -169,7 +169,7 @@ Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-0
   asks in words in steps of ten ("Often · 7 in 10"), which keeps every truth within
   the on-target band of some choice; pot odds leads with "1 in 4" and says chips.
   `GT_DEMO_LEVEL` shows a level's screens without writing a placement.
-- Verified: Drills 384 + 49, app units 67, full UI run 131 of 139, then the eight
+- Verified first pass: Drills 384 + 49, app units 67, full UI run 131 of 139, then the eight
   failures fixed and rerun green (not one green full run). GT_TEST_PATH_CURRENT_NODE
   now leaves the target track's challenge uncleared so the lesson is still suggested.
 - Screens inspected after the fixes: Korean light and English dark, large and AX5,
@@ -177,10 +177,21 @@ Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-0
   first launch and the nine drill frames (.uisweep/20261003-203051-H0x60G,
   -203847-LtopIw, -204807-gZSj62). The Position seat strip (group names, "You")
   stays about 10 pt at AX5; the question sentence carries the seat in words.
-- Open: explanation text from the drills package still uses seat codes, "bb" and
-  "3벳" for beginners (reveal sentences, range-read and action-read action lines);
-  drill header titles are still the terms; Today is Korean-only as before; lessons
-  on "Go deeper" keep the old wording. Real-phone check of all of the above.
+- Second pass, same day: drill headers use plain names until poker terms are on
+  (자리와 순서 / 이길 확률 / 먼저 올리기 / 상대 패 읽기 / 행동 읽기 / 올린 상대에 맞서기;
+  English "Facing a raise"). Drills-package explanations and range-read / action-read
+  lines now lead with `Position.plainName` and keep the term beside it ("빅 블라인드
+  3개(3bb)", "다시 올리고(3벳)") for every level, per the glossary's bilingual-first
+  rule. Hidden-range estimates no longer write a calibration record: the reveal
+  bytes keep the range (the store needs it), the `interval:` argument is nil.
+  At accessibility sizes the Position strip becomes a sentence
+  (`position-seat-sentence`) before the answer; after the answer, and with poker
+  terms on, it is still the capped one-row strip.
+  Verified on that code: Drills 385 + 49, and one clean full run of 69 app units
+  and 139 UI tests (.build/friendly-ui.xcresult).
+- Open: Today is Korean-only as before; "Go deeper" lessons keep the old wording;
+  table-event text ("opens to 3bb") and the graded table still use codes; real-phone
+  check of all of the above.
 - Not mine, left untracked and untouched: GlassTable/UITests/UXAuditCrawl.swift
   (looks for `placement-row`, "Computer" names and "길로 돌아가기", so it fails until
   its owner updates it), tools/uxaudit/, .scratch/uxaudit-codex/, docs/grac-submission/.

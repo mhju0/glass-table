@@ -146,4 +146,23 @@ final class PlainQuestionWordsTests: XCTestCase {
         }
         XCTAssertEqual(seen, [.always, .late, .fold])
     }
+
+    /// Explanations name a seat in everyday words first and keep its code beside them.
+    func testExplanationsLeadWithThePlainSeatName() {
+        for language in [LearningLanguage.korean, .english] {
+            for index in 0..<12 {
+                let range = RangeReadSpotGenerator.spot(baseSeed: 3, index: index)
+                let first = range.actionLines(in: language)[0]
+                XCTAssertTrue(Position.allCases.contains { first.hasPrefix($0.plainName(in: language)) }, first)
+
+                let defend = DefendSpotGenerator.spot(baseSeed: 3, index: index)
+                let why = gradeDefend(chosen: .fold, spot: defend, language: language).whyText
+                XCTAssertTrue(why.hasPrefix(defend.opener.plainName(in: language)), why)
+
+                let position = PositionSpotGenerator.spot(baseSeed: 3, index: index)
+                let told = gradePosition(answer: 0, spot: position, language: language).whyText
+                XCTAssertTrue(Position.allCases.contains { told.contains($0.plainName(in: language)) }, told)
+            }
+        }
+    }
 }

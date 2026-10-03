@@ -47,12 +47,14 @@ public struct RangeReadSpot: Equatable {
         switch action {
         case let .opened(seat):
             return language == .korean
-                ? ["\(seat.rawValue) 오픈 3bb", "이후 전원 폴드"]
-                : ["\(seat.rawValue) opens to 3bb", "Everyone else folds"]
+                ? ["\(seat.plainName(in: language)): 빅 블라인드 3개(3bb)로 먼저 올림", "이후 전원 폴드"]
+                : ["\(seat.plainName(in: language)) raises first to 3 big blinds (3bb)", "Everyone else folds"]
         case let .called(seat, opener):
             return language == .korean
-                ? ["\(opener.rawValue) 오픈 3bb", "\(seat.rawValue) 콜", "이후 전원 폴드"]
-                : ["\(opener.rawValue) opens to 3bb", "\(seat.rawValue) calls", "Everyone else folds"]
+                ? ["\(opener.plainName(in: language)): 빅 블라인드 3개(3bb)로 먼저 올림",
+                   "\(seat.plainName(in: language)): 콜", "이후 전원 폴드"]
+                : ["\(opener.plainName(in: language)) raises first to 3 big blinds (3bb)",
+                   "\(seat.plainName(in: language)) calls", "Everyone else folds"]
         }
     }
 }

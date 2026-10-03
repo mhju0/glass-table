@@ -58,6 +58,8 @@ private struct PendingDraftWrite: Equatable {
 /// which acquires faster. A boss interleaves its whole mix instead, which is what
 /// makes it evidence of transfer rather than fluency.
 struct NodeSessionView: View {
+    /// A learner who is not shown the 90% range leaves no calibration record.
+    @Environment(\.simpleQuestions) private var simple
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.scenePhase) private var scenePhase
@@ -419,7 +421,7 @@ struct NodeSessionView: View {
                 language: language,
                 eligibleSeconds: timing.elapsed(for: "\(savedSession.id):\(index)",
                     at: ProcessInfo.processInfo.systemUptime),
-                interval: outcome.interval, evLoss: outcome.evLoss,
+                interval: simple ? nil : outcome.interval, evLoss: outcome.evLoss,
                 expectedEpoch: sessionEpoch ?? model.epoch)
             if committed {
                 pendingDraftTask?.cancel()
@@ -695,6 +697,8 @@ private struct GuidedHintView: View {
 /// concepts. Answers record through the same path either way, which is what clears
 /// an item off the review queue.
 struct FreePlayView: View {
+    /// A learner who is not shown the 90% range leaves no calibration record.
+    @Environment(\.simpleQuestions) private var simple
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.leadsWithTerms) private var termsLead
@@ -797,7 +801,7 @@ struct FreePlayView: View {
                             eligibleSeconds: timing.elapsed(
                                 for: "\(round.id):\(round.ordinal)",
                                 at: ProcessInfo.processInfo.systemUptime),
-                            interval: result.interval, evLoss: result.evLoss,
+                            interval: simple ? nil : result.interval, evLoss: result.evLoss,
                             expectedEpoch: sessionEpoch ?? model.epoch)
                         if committed {
                             pendingDraftTask?.cancel()
@@ -1104,6 +1108,8 @@ struct FreePlayView: View {
 /// A fixed due-review snapshot. Each concept appears once, every committed answer is
 /// persisted immediately, and the session ends after at most five questions.
 struct ReviewSessionView: View {
+    /// A learner who is not shown the 90% range leaves no calibration record.
+    @Environment(\.simpleQuestions) private var simple
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.scenePhase) private var scenePhase
@@ -1190,7 +1196,7 @@ struct ReviewSessionView: View {
                     let committed = model.commitReviewAnswer(sessionID: session.id,
                         attemptID: "review:\(session.id):\(index)", ordinal: index,
                         band: outcome.band, input: inputData, reveal: revealData,
-                        language: language, interval: outcome.interval, evLoss: outcome.evLoss,
+                        language: language, interval: simple ? nil : outcome.interval, evLoss: outcome.evLoss,
                         eligibleSeconds: timing.elapsed(
                             for: "\(session.id):\(session.ordinal)",
                             at: ProcessInfo.processInfo.systemUptime),
