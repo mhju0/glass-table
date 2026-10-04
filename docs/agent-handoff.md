@@ -188,3 +188,18 @@ Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-0
   u4-boss-b) where the second attempt cannot produce the opposite grade — a
   crawler limit, not an app fault. Settings share sheet is still closed by swipe.
 - Next: owner looks at build 15 on the phone; decide whether to commit the crawler.
+
+## 2026-10-05 — Clean phone install, full crawl report for build 15
+
+- Owner asked for a clean start: app removed and build 15 reinstalled on the
+  iPhone 12 mini, progress gone on purpose. All Mac-side progress copies deleted
+  at the owner's request; do not pull progress off the phone unless asked.
+- Full crawler pass on three iPhone 12 mini simulators (two created for this:
+  "GT audit mini B/C"), one run, 11 tests, 0 failures, 51 flows / 931 screenshots.
+  Report: `.build/uxaudit-report-b15/index.html` (built without the stale
+  `tools/uxaudit/notes.json`). Korean, light, default text only.
+- Unverified candidates from the report's automatic flags: short tap heights on
+  ‘설명 접기’ (24pt), ‘안내 건너뛰기’ (17pt), ‘계산 보기’ (26pt), ‘전체 차트 보기’
+  (28pt), ‘크게 보고 핸드 찾기’ (17pt); unlabelled buttons on free-table setup.
+  These are accessibility frames, not proven hit areas.
+- Next: owner scrolls the report and marks what to fix; crawler still uncommitted.
