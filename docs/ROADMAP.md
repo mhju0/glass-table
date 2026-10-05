@@ -112,6 +112,14 @@ Each item gets a short spec or issue under `.scratch/` before it is built.
 - **1.1:** one-time unlock (after registration), milestones (a small set tied to
   mastery, no XP), a What's New sheet, MDF as a full slice, pot-relative EV-loss
   bands, pinning Actions by SHA, pruning recovery copies.
+- **First month after 1.0:** read App Store Connect Analytics and Xcode Organizer
+  weekly (free, no code) and write down the questions they cannot answer.
+- **1.1 or later, optional — in-app analytics (owner, 2026-10-05):** 1.0 ships with
+  none. Add one privacy-first tool (TelemetryDeck's free plan is the candidate) only
+  for a specific unanswered question, such as which lesson people quit on. It must
+  land together with its privacy work: the "offline, no analytics" rule in
+  `AGENTS.md`, the privacy policy, the App Privacy answers and anything told to GRAC.
+  Research and options: [`research/2026-10-05-analytics-and-launch-services.md`](research/2026-10-05-analytics-and-launch-services.md).
 - **Later:** home-screen widget (needs an App Group, i.e. a `progression.json`
   location migration), optional sounds, `KO.wordJoined` coverage for `Text`
   literals and button titles.
