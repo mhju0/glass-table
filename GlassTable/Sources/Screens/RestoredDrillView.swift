@@ -48,7 +48,6 @@ struct RestoredDrillView: View {
                 .padding(.bottom, 12)
         } sheet: {
             VStack(alignment: .leading, spacing: GT.Space.related) {
-                if answer.isAssisted { SolvedWithHelpLabel() }
                 verdict(band: band, detail: detail, input: input)
                 RevealDetail { explanation(detail: detail, input: input) }
                 nextButton(next)
@@ -102,6 +101,9 @@ struct RestoredDrillView: View {
                                               : language.text("차트와 달라요", "Different from the chart"),
                        mineTitle: language.text("내 선택", "You chose"),
                        correctTitle: language.text("차트", "Chart"))
+        case .rangeRead:
+            VerdictRow(band: band, mine: mine, correct: correct,
+                       title: rangeMatchTitle(band, language: language))
         case .evLoss:
             if case let .boolean(calls)? = input {
                 RestoredEVLossVerdict(seed: seed, index: index, calls: calls)
@@ -109,7 +111,8 @@ struct RestoredDrillView: View {
                 VerdictRow(band: band, mine: mine, correct: correct)
             }
         default:
-            VerdictRow(band: band, mine: mine, correct: correct)
+            VerdictRow(band: band, mine: mine, correct: correct,
+                       title: practiceFeedbackTitle(concept, band: band, language: language))
         }
     }
 

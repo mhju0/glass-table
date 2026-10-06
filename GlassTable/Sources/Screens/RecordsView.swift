@@ -1,16 +1,16 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import UIKit
 import GlassTableDrills
 
-/// 기록 — mastery per concept plus calibration.
-///
-/// The hero number is **concepts at 능숙/숙달**, not XP and not streak (spec §4.3).
-/// Streak is present but subordinate: it measures showing up, which is a precondition
-/// for learning rather than evidence of it.
+/// Completion and recorded practice dates lead; detailed learning metrics stay available.
 struct RecordsView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var textSize
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var clockRefresh = 0
+    var onContinue: () -> Void = {}
     @State private var replay: Concept?
     @State private var selectedPracticeConcept: Concept?
 
@@ -27,31 +27,47 @@ struct RecordsView: View {
                     .font(GT.title(textSize.isAccessibilitySize ? 22 : 30))
                     .foregroundStyle(GT.onFelt)
                     .padding(.top, 14)
-                headline
-                if model.state.streak.current > 0 {
-                    Text(language.text(
-                        "하루 쉬어도 연속 기록을 지켜주는 보호: \(model.state.streak.freezesRemaining)개",
-                        "Streak protection: \(model.state.streak.freezesRemaining) left. Each covers one missed day."
-                    ))
-                    .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                TimelineView(.everyMinute) { _ in
+                    let _ = clockRefresh
+                    let activity = PracticeActivityOverview(state: model.state, now: Date(), calendar: .current)
+                    PracticeActivityView(overview: activity, onContinue: onContinue)
+                    if !activity.recentTopics.isEmpty {
+                        recentTopics(activity)
+                    }
                 }
-                Text(language.text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실력 인증은 아니에요.",
-                                   "Stages describe practice in this app, not proven skill."))
-                    .font(GT.body(12.5)).foregroundStyle(GT.onFeltSecondary)
-                    .lineSpacing(GT.Typography.bodyLineSpacing)
-                    .fixedSize(horizontal: false, vertical: true)
-                practiceCard
-                styleCard
-                calibrationCard
-                evLossCard
-                if studied.isEmpty { emptyState } else { conceptList }
+                DisclosureGroup(language.text("자세한 학습 기록", "Detailed learning records")) {
+                    VStack(alignment: .leading, spacing: GT.Space.section) {
+                        headline
+                        Text(language.text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실력 인증은 아니에요.",
+                                           "Stages describe practice in this app, not proven skill."))
+                            .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        practiceCard
+                        styleCard
+                        calibrationCard
+                        evLossCard
+                        if studied.isEmpty { emptyState } else { conceptList }
+                    }.padding(.top, 12)
+                }
+                .font(GT.semibold(16)).tint(GT.onFelt)
+                .accessibilityIdentifier("records-details")
+
             }
             .padding(.horizontal, GT.Space.edge)
         }
         .gtTabBarClearance()
         .background(FeltBackground())
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { clockRefresh += 1 }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            clockRefresh += 1
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name.NSSystemTimeZoneDidChange)) { _ in
+            clockRefresh += 1
+        }
         .onAppear {
+            clockRefresh += 1
             #if DEBUG
             if let raw = ProcessInfo.processInfo.environment["GT_DEMO_REPLAY"] {
                 replay = Concept(rawValue: raw)
@@ -81,6 +97,38 @@ struct RecordsView: View {
         }
     }
 
+    private func recentTopics(_ activity: PracticeActivityOverview) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(language.text("최근 연습한 주제", "Recent topics"))
+                .font(GT.title(20)).foregroundStyle(GT.onFelt)
+                .padding(.bottom, 10)
+            ForEach(Array(activity.recentTopics.prefix(3).enumerated()), id: \.element.concept) { index, topic in
+                NavigationLink {
+                    FreePlayView(concepts: [topic.concept])
+                } label: {
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(skillNames(topic.concept, language: language, termsLead: false).lead)
+                                .font(GT.semibold(16)).foregroundStyle(GT.onFelt)
+                            Text(topic.lastPracticedDay.raw).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                        }
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(GT.onFeltSecondary)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .padding(.vertical, 10)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(GTPress())
+                .accessibilityIdentifier("records-topic-\(topic.concept.rawValue)")
+                if index < min(3, activity.recentTopics.count) - 1 {
+                    Rectangle().fill(GT.border).frame(height: 1)
+                }
+            }
+        }
+    }
+
     private var headline: some View {
         Group {
             if textSize.isAccessibilitySize {
@@ -100,7 +148,7 @@ struct RecordsView: View {
     }
 
     private func conceptName(_ concept: Concept) -> String {
-        ConceptIntroduction.make(concept, language: language).title
+        skillNames(concept, language: language, termsLead: false).lead
     }
 
     private var practiceConcepts: [Concept] {
@@ -136,8 +184,7 @@ struct RecordsView: View {
                     $0.key.concept == latest.key.concept &&
                     $0.key.mode == latest.key.mode &&
                     $0.key.formatVersion == latest.key.formatVersion &&
-                    $0.key.language == latest.key.language &&
-                    $0.key.assisted == latest.key.assisted
+                    $0.key.language == latest.key.language
                 }
                 let today = DayKey(Date())
                 let todayTotals = totals(comparable, from: 0, through: 0, today: today)
@@ -207,11 +254,9 @@ struct RecordsView: View {
         case "review": mode = language.text("복습", "Review")
         default: mode = language.text("연습", "Practice")
         }
-        let help = key.assisted ? language.text("도움 받음", "With help")
-                                : language.text("혼자 답함", "Independent")
         let lang = key.language == "ko" ? language.text("한국어", "Korean")
                     : language.text("영어", "English")
-        return "\(mode) · \(lang) · \(help) · \(language.text("문제 유형", "format")) \(key.formatVersion)"
+        return "\(mode) · \(lang) · \(language.text("같은 문제 유형", "Same question format"))"
     }
 
     private func totals(_ summaries: [DailyPracticeSummary], from firstAge: Int,

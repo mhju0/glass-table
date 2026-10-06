@@ -121,28 +121,52 @@ struct HoldemBasicsView: View {
 
     private var ladderPage: some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
-            intro(language.text("족보: 위로 갈수록 강해요", "Hand ranks, top down"),
-                  language.text("대체로 드문 조합일수록 강해요. 하이 카드만 예외예요. 7장으로 아무 조합도 못 만드는 경우가 오히려 드물거든요. 무늬에는 우열이 없어요.",
-                                "Rarer hands usually rank higher. High card is the exception: with seven cards, making nothing is uncommon. Suits never rank."))
+            intro(language.text("한 쌍은 높은 카드보다 강해요", "A pair beats a high card"),
+                  language.text("먼저 두 예를 비교해 봐요. 족보는 패의 순서예요. 무늬에는 우열이 없어요.",
+                                "Compare these two examples first. Hand ranks set the order; suits never rank."))
             VStack(spacing: 0) {
-                ForEach(Array(HoldemBasics.ladder.enumerated()), id: \.element.id) { index, rank in
-                    ladderRow(rank, position: index + 1)
-                    if index < HoldemBasics.ladder.count - 1 {
-                        Rectangle().fill(GT.border).frame(height: 1)
-                    }
+                if let pair = HoldemBasics.ladder.first(where: { $0.id == "pair" }) {
+                    ladderRow(pair, position: 1)
+                }
+                if let high = HoldemBasics.ladder.first(where: { $0.id == "highCard" }) {
+                    Rectangle().fill(GT.border).frame(height: 1)
+                    ladderRow(high, position: 2)
                 }
             }
-            .padding(.horizontal, GT.Space.card)
-            .gtCard(radius: GT.Radius.panel)
-            Text(language.text("비율은 7장으로 그 조합이 가장 좋은 패가 되는 확률이에요. 가능한 1억 3,378만 가지를 앱의 엔진으로 모두 세었어요.",
-                               "Each share is how often seven cards make that hand as their best. The app's engine counted all 133.8 million sets."))
-                .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
-                .lineSpacing(GT.Typography.bodyLineSpacing)
-                .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, GT.Space.card).gtCard(radius: GT.Radius.panel)
+            DisclosureGroup(language.text("족보 순서 보기", "See the rank order")) {
+                VStack(spacing: 0) {
+                    ForEach(Array(HoldemBasics.ladder.enumerated()), id: \.element.id) { index, rank in
+                        ladderRow(rank, position: index + 1, reference: true)
+                        if index < HoldemBasics.ladder.count - 1 {
+                            Rectangle().fill(GT.border).frame(height: 1)
+                        }
+                    }
+                }.padding(.top, 8)
+            }
+            .font(GT.semibold(16)).tint(GT.ink)
+            .gtInset(GT.Space.card, firstText: .semibold(16)).gtCard(radius: GT.Radius.panel)
+            .accessibilityIdentifier("basics.rank-order")
+            DisclosureGroup(language.text("얼마나 자주 나올까요?", "How often do these hands occur?")) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(language.text("7장으로 각 족보가 가장 좋은 패가 되는 비율이에요. 이길 확률은 아니에요. 앱 엔진으로 가능한 1억 3,378만 가지를 모두 세었어요.",
+                                       "These shares count each best hand among all seven-card sets, not your chance to win. The engine counted all 133.8 million sets."))
+                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    ForEach(HoldemBasics.ladder) { rank in
+                        Text("\(rank.name(in: language)) · \(HoldemBasics.percentText(rank.share))")
+                            .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }.padding(.top, 8)
+            }
+            .font(GT.semibold(16)).tint(GT.ink)
+            .gtInset(GT.Space.card, firstText: .semibold(16)).gtCard(radius: GT.Radius.panel)
+            .accessibilityIdentifier("basics.occurrence")
         }
     }
 
-    private func ladderRow(_ rank: HoldemBasics.Rank, position: Int) -> some View {
+    private func ladderRow(_ rank: HoldemBasics.Rank, position: Int, reference: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("\(position)").font(GT.semibold(13).monospacedDigit())
@@ -150,8 +174,7 @@ struct HoldemBasicsView: View {
                 Text(rank.name(in: language)).font(GT.title(17)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 8)
-                Text(HoldemBasics.percentText(rank.share))
-                    .font(GT.semibold(15).monospacedDigit()).foregroundStyle(GT.ink)
+
             }
             Text(rank.detail(in: language)).font(GT.body(13.5)).foregroundStyle(GT.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -164,7 +187,7 @@ struct HoldemBasicsView: View {
         }
         .padding(.vertical, 12)
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("basics.rank.\(rank.id)")
+        .accessibilityIdentifier("basics.\(reference ? "reference" : "rank").\(rank.id)")
     }
 
     private var checkPage: some View {
@@ -202,11 +225,7 @@ struct HoldemBasicsView: View {
                     PlayingCardView(card: card, size: 50)
                 }
             }
-            if answer != nil {
-                Text(language.text("7장 중 \(HoldemBasics.percentText(rank.share))",
-                                   "\(HoldemBasics.percentText(rank.share)) of seven-card hands"))
-                    .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-            }
+
         }
         .gtInset(GT.Space.card, firstText: .title(18)).frame(maxWidth: .infinity, alignment: .leading)
         .background(mark?.band.tint ?? GT.glass,
@@ -259,8 +278,6 @@ struct HoldemBasicsView: View {
 
     private func verdict(correct: Bool) -> some View {
         let band: GradeBand = correct ? .spotOn : .off
-        let flush = HoldemBasics.percentText(HoldemBasics.checkFlush.share)
-        let straight = HoldemBasics.percentText(HoldemBasics.checkStraight.share)
         return VStack(alignment: .leading, spacing: GT.Space.related) {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: band.glyph)
@@ -275,8 +292,8 @@ struct HoldemBasicsView: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("basics.verdict")
             RevealDetail {
-                Text(language.text("플러시(\(flush))가 스트레이트(\(straight))보다 드물어서 족보에서도 한 단계 더 위에 있어요.",
-                                   "A flush (\(flush)) is rarer than a straight (\(straight)), so it sits one step higher on the ladder."))
+                Text(language.text("같은 무늬 다섯 장인 플러시는 이어진 숫자 다섯 장인 스트레이트보다 족보가 높아요. 얼마나 자주 나오는지는 별도로 볼 수 있어요.",
+                                   "A flush has five cards of one suit and ranks above a straight's five consecutive ranks. Occurrence rates are a separate reference."))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)

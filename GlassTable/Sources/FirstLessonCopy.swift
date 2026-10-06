@@ -25,7 +25,7 @@ enum FirstLessonCopy {
         case .exampleProgress: language.text(exampleProgress, "Warm-up 1/2")
         case .transferProgress: language.text(transferProgress, "Warm-up 2/2")
         case .welcomeTitle: language.text(welcomeTitle, "Welcome to Glass Table")
-        case .welcomeBody: language.text(welcomeBody, "Learn Hold'em decisions one at a time, with cards and numbers.")
+        case .welcomeBody: language.text(welcomeBody, "Start by comparing two hands. Then try the rule with new cards.")
         case .noMoney: language.text(noMoney, "No real money")
         case .noAccount: language.text(noAccount, "No account")
         case .offline: language.text(offline, "Works offline")
@@ -34,7 +34,7 @@ enum FirstLessonCopy {
         case .transferQuestion: language.text(transferQuestion, "Use the same rule with new cards")
         case .examplePrompt: language.text(examplePrompt, "Each side compares its best five of seven.")
         case .transferPrompt: language.text(transferPrompt, "Only the cards changed. Find the higher pair.")
-        case .pairRule: language.text(pairRule, "Two cards of the same rank make one pair.\nAn ace is higher than a king.")
+        case .pairRule: language.text(pairRule, "Two cards of the same rank make one pair. An ace is higher than a king.")
         case .sharedCards: language.text(sharedCards, "Shared cards")
         case .heroCards: language.text(heroCards, "My cards")
         case .villainCards: language.text(villainCards, "Opponent's cards")
@@ -72,7 +72,7 @@ enum FirstLessonCopy {
     static let welcomeTitle = String(localized: "firstLesson.welcome.title",
                                      defaultValue: "Glass Table에 오신 걸 환영해요")
     static let welcomeBody = String(localized: "firstLesson.welcome.body",
-                                    defaultValue: "홀덤의 결정을 한 번에 하나씩, 카드와 숫자로 배워요.")
+                                    defaultValue: "두 패를 비교해 보고, 다른 카드로 다시 골라봐요.")
     static let noMoney = String(localized: "firstLesson.welcome.noMoney",
                                 defaultValue: "실제 돈 없음")
     static let noAccount = String(localized: "firstLesson.welcome.noAccount",
@@ -90,7 +90,7 @@ enum FirstLessonCopy {
     static let transferPrompt = String(localized: "firstLesson.transfer.prompt",
                                        defaultValue: "카드만 바뀌었어요. 더 높은 원 페어를 찾아보세요.")
     static let pairRule = String(localized: "firstLesson.example.rule",
-                                 defaultValue: "같은 숫자 두 장은 원 페어예요.\nA는 K보다 높아요.")
+                                 defaultValue: "같은 숫자 두 장은 원 페어예요. A는 K보다 높아요.")
     static let sharedCards = String(localized: "firstLesson.label.sharedCards",
                                     defaultValue: "공용 카드")
     static let heroCards = String(localized: "firstLesson.label.heroCards",

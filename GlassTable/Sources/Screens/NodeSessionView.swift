@@ -289,7 +289,7 @@ struct NodeSessionView: View {
             let w = Walkthrough.make(concept: taughtConcept, seed: baseSeed, index: 0,
                                      language: language)
             let introduction = ConceptIntroduction.make(taughtConcept, language: language)
-            WalkthroughView(title: introduction.title, purpose: introduction.why,
+            WalkthroughView(title: introduction.title, concept: taughtConcept, purpose: introduction.why,
                             beats: w.beats, rows: w.rows,
                             initialIndex: savedSession?.showBeatIndex ?? 0,
                             onStep: { next in
@@ -306,6 +306,7 @@ struct NodeSessionView: View {
                              progressText: language.text("함께 풀기", "Try together"),
                              restoredAnswer: savedSession?.guidedAnswer,
                              initialDraft: savedSession?.guidedDraft?.input,
+                             showsContextualHint: true,
                              onDraft: { input in
                 guard let savedSession else { return }
                 pendingDraftTask?.cancel()
@@ -365,9 +366,9 @@ struct NodeSessionView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
-        .popover(isPresented: $showHint, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+        .sheet(isPresented: $showHint) {
             GuidedHintView(concept: taughtConcept) { showHint = false }
-                .presentationCompactAdaptation(.popover)
+                .gtSheetSurface()
         }
     }
 
@@ -452,19 +453,12 @@ struct NodeSessionView: View {
     private var summary: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                let onTarget = itemCount - missed - helped
-                Text(missed == 0 && helped == 0
-                     ? language.text("모두 목표 안에 들었어요", "All answers were on target")
-                     : language.text("\(onTarget)/\(itemCount) 목표 안에 들었어요",
-                                     "\(onTarget)/\(itemCount) on target"))
+                Text(language.text("연습을 마쳤어요", "Practice complete"))
                     .font(GT.title(24)).foregroundStyle(GT.onFelt)
-                if helped > 0 {
-                    Text(language.text("도움 받은 연습 \(helped)문제", "\(helped) solved with help"))
-                        .font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
-                        .accessibilityIdentifier("summary-helped")
-                }
+                Text(learningNodeTitle(node, language: language))
+                    .font(GT.title(20)).foregroundStyle(GT.onFelt)
                 Text(summaryDetail)
-                    .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                    .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 let milestones = self.milestones
                 if let first = milestones.first {
@@ -544,32 +538,10 @@ struct NodeSessionView: View {
     }
 
     private var summaryDetail: String {
-        func titles(_ include: (SessionEvidence) -> Bool) -> [String] {
-            evidence.compactMap { concept, result in
-                include(result) ? ConceptIntroduction.make(concept, language: language).title : nil
-            }.sorted()
-        }
-        let missedConcepts = titles { $0.spotOn < $0.attempted }
-        let helpedConcepts = titles { $0.assisted > 0 }
-        if missedConcepts.isEmpty && helpedConcepts.isEmpty {
-            return language.text(
-                "모든 답이 목표 안에 들었어요. 개념별 단계와 다음 복습 시점은 기록 화면에서 확인할 수 있어요.",
-                "Every answer was on target. Your skill levels and next review dates are in Progress.")
-        }
-        var lines: [String] = []
-        if !missedConcepts.isEmpty {
-            lines.append(language.text(
-                "다시 볼 개념: \(missedConcepts.joined(separator: " · ")). 복습에서 한 문제씩 다시 만나요.",
-                "Review these skills: \(missedConcepts.joined(separator: " · ")). You will see them again in review."))
-        }
-        if !helpedConcepts.isEmpty {
-            // Help leaves accuracy and the review schedule alone, so no review is promised.
-            lines.append(language.text(
-                "도움 받은 개념: \(helpedConcepts.joined(separator: " · ")). 혼자 푼 답만 정확도와 복습 일정에 들어가요.",
-                "Solved with help: \(helpedConcepts.joined(separator: " · ")). Only answers without help count toward accuracy and reviews."))
-        }
-        return lines.joined(separator: "\n")
+        language.text("\(itemCount)문제를 풀었어요. 다른 카드로 다시 해봐도 좋아요.",
+                      "You finished \(itemCount) questions. Try the same idea with different cards.")
     }
+
 }
 
 private struct GuidedHintView: View {
@@ -577,21 +549,9 @@ private struct GuidedHintView: View {
     @Environment(\.learningLanguage) private var language
     let concept: Concept
     let onClose: () -> Void
-    @State private var contentHeight: CGFloat?
-
     var body: some View {
-        // Sized to its text: a fixed ideal height left a blank band under short cues, and
-        // a ScrollView alone asks for more than its content. The measured height becomes
-        // the ideal; at large text the popover caps it and the text scrolls.
-        // The X is the one way out besides tapping outside, which every popover allows.
-        ScrollView {
-            content
-                .onGeometryChange(for: CGFloat.self) { $0.size.height.rounded(.up) } action: {
-                    contentHeight = $0
-                }
-        }
+        ScrollView { content }
         .scrollBounceBehavior(.basedOnSize)
-        .frame(idealWidth: 330, idealHeight: contentHeight)
         .background(FeltBackground())
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("guided-hint")
@@ -615,9 +575,6 @@ private struct GuidedHintView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(GTPress())
-                // The glyph sits on the same 20 pt inset as the title; its target
-                // spreads down and in, where there is room for it.
-                .frame(width: 20, height: 20, alignment: .topTrailing)
                 .accessibilityLabel(language.text("힌트 닫기", "Close hint"))
             }
             Text(cue)
@@ -627,7 +584,7 @@ private struct GuidedHintView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("guided-hint-cue")
         }
-        .gtInset(GT.Space.sheet)
+        .gtInset(GT.Space.sheet, firstText: .title(GT.Typography.resultSize))
     }
 
     private var cue: String {
@@ -907,7 +864,7 @@ struct FreePlayView: View {
         case .show:
             let worked = Walkthrough.make(concept: concept, seed: seed, index: 0,
                                           language: language)
-            WalkthroughView(title: introduction.title, purpose: introduction.why,
+            WalkthroughView(title: introduction.title, concept: concept, purpose: introduction.why,
                             beats: worked.beats,
                             rows: worked.rows,
                             initialIndex: activeRound?.showBeatIndex ?? 0,
@@ -929,6 +886,7 @@ struct FreePlayView: View {
                 progressText: language.text("함께 연습", "Try together"),
                 restoredAnswer: activeRound?.guidedAnswer,
                 initialDraft: activeRound?.guidedDraft?.input,
+                showsContextualHint: true,
                 onDraft: { input in
                     guard let round = activeRound else { return }
                     pendingDraftTask?.cancel()
@@ -981,21 +939,18 @@ struct FreePlayView: View {
     }
 
     private func roundSummary(_ round: PracticeRound) -> some View {
-        let independent = round.answers.filter { !$0.isAssisted }
-        let helped = round.answers.count - independent.count
-        let exact = independent.filter { $0.band == GradeBand.spotOn.rawValue }.count
-        let near = independent.filter { $0.band == GradeBand.close.rawValue }.count
-        let revisit = independent.count - exact - near
+        let topic = Concept(rawValue: round.concept).map {
+            skillNames($0, language: language, termsLead: false).lead
+        } ?? language.text("연습", "Practice")
         return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                Text(language.text("5문제를 마쳤어요", "Five questions complete"))
+                Text(language.text("연습을 마쳤어요", "Practice complete"))
                     .font(GT.title(24)).foregroundStyle(GT.onFelt)
-                Text(helped == 0
-                     ? language.text("목표 안 \(exact) · 근접 \(near) · 다시 보기 \(revisit)",
-                                     "On target \(exact) · Close \(near) · Revisit \(revisit)")
-                     : language.text("목표 안 \(exact) · 근접 \(near) · 다시 보기 \(revisit) · 도움 \(helped)",
-                                     "On target \(exact) · Close \(near) · Revisit \(revisit) · With help \(helped)"))
-                    .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                Text(topic).font(GT.title(20)).foregroundStyle(GT.onFelt)
+                Text(language.text("\(round.answers.count)문제를 풀었어요. 다른 카드로 한 번 더 해봐도 좋아요.",
+                                   "You finished \(round.answers.count) questions. Try the same idea with different cards."))
+                    .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 FeltCTAButton(title: language.text("다섯 문제 더", "Another five")) {
                     guard model.dismissFinishedRound(roundID: round.id,
                           expectedEpoch: sessionEpoch ?? model.epoch),
@@ -1096,7 +1051,7 @@ struct FreePlayView: View {
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundStyle(GT.inkMuted)
                         }
-                        .gtInset(GT.Space.card)
+                        .gtInset(GT.Space.card, firstText: .title(15))
                         .frame(maxWidth: .infinity)
                         .gtCard(radius: 14)
                     }
@@ -1301,43 +1256,18 @@ struct ReviewSessionView: View {
         questionReadyAt = nil
     }
 
-    private func reviewDetail(missed: [String], helped: [String]) -> String {
-        var lines: [String] = []
-        if missed.isEmpty && helped.isEmpty {
-            lines.append(language.text(
-                "각 개념을 목표 안에 답했어요. 다음 복습은 기록에서 볼 수 있어요.",
-                "Each skill was on target. Progress shows the next review."))
-        }
-        if !missed.isEmpty {
-            lines.append(language.text(
-                "다시 볼 개념: \(missed.joined(separator: " · ")). 오늘 답은 저장됐어요.",
-                "Review these skills: \(missed.joined(separator: " · ")). Today's answers are saved."))
-        }
-        if !helped.isEmpty {
-            // Help leaves the schedule alone: these skills stay due.
-            lines.append(language.text(
-                "도움 받은 개념: \(helped.joined(separator: " · ")). 혼자 풀 때까지 복습에 남아 있어요.",
-                "Solved with help: \(helped.joined(separator: " · ")). They stay in review until you answer on your own."))
-        }
-        return lines.joined(separator: "\n")
-    }
-
     private var summary: some View {
-        let exact = outcomes.filter { $0.value == .spotOn && !helpedConcepts.contains($0.key) }.count
-        let missed = queue.filter { outcomes[$0] != .spotOn && !helpedConcepts.contains($0) }
-            .map { ConceptIntroduction.make($0, language: language).title }
-        let helped = queue.filter { helpedConcepts.contains($0) }
-            .map { ConceptIntroduction.make($0, language: language).title }
+        let topics = queue.map { skillNames($0, language: language, termsLead: false).lead }
         return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text(queue.isEmpty
                      ? language.text("지금 복습할 문제가 없어요", "No reviews due now")
-                     : language.text("\(exact)/\(queue.count) 목표 안에 들었어요",
-                                     "\(exact)/\(queue.count) on target"))
+                     : language.text("복습을 마쳤어요", "Review complete"))
                     .font(GT.title(24)).foregroundStyle(GT.onFelt)
                 Text(queue.isEmpty
                      ? language.text("지금 복습할 개념이 없어요.", "No skills are due right now.")
-                     : reviewDetail(missed: missed, helped: helped))
+                     : language.text("\(topics.joined(separator: " · ")) 복습을 했어요. 다른 상황에서도 다시 만나봐요.",
+                                     "You revisited \(topics.joined(separator: " · ").lowercased()). Try these topics in another spot anytime."))
                     .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 FeltCTAButton(title: language.text("학습으로 돌아가기", "Back to Learn")) {

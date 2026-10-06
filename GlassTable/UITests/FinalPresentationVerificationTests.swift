@@ -24,8 +24,27 @@ final class FinalPresentationVerificationTests: XCTestCase {
             reveal(start, app: app, ax: true, tabs: true)
             capture("basics-start-AX5-\(code)")
             start.tap()
-            XCTAssertTrue(app.descendants(matching: .any)["basics.rank.royal"].waitForExistence(timeout: 10))
-            capture("basics-course-opened-AX5-\(code)")
+            XCTAssertTrue(app.descendants(matching: .any)["basics.rank.pair"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.descendants(matching: .any)["basics.rank.highCard"].exists)
+            // SwiftUI exposes the expanded rows with the DisclosureGroup identifier.
+            let royal = app.staticTexts.matching(NSPredicate(
+                format: "label BEGINSWITH %@", code == "ko" ? "1, 로열 플러시," : "1, Royal flush,"
+            )).firstMatch
+            let highCard = app.staticTexts.matching(NSPredicate(
+                format: "label BEGINSWITH %@", code == "ko" ? "10, 하이 카드," : "10, High card,"
+            )).firstMatch
+            XCTAssertFalse(royal.exists)
+            let ranks = app.buttons["basics.rank-order"]
+            reveal(ranks, app: app, ax: true)
+            ranks.tap()
+            XCTAssertTrue(royal.waitForExistence(timeout: 10))
+            reveal(royal, app: app, ax: true)
+            XCTAssertTrue(royal.label.contains(code == "ko" ? "같은 무늬" : "one suit"))
+            capture("rank-reference-first-AX5-\(code)")
+            XCTAssertTrue(highCard.exists)
+            reveal(highCard, app: app, ax: true)
+            XCTAssertTrue(highCard.label.contains(code == "ko" ? "위 조합이 하나도 없음" : "None of the above"))
+            capture("rank-reference-last-AX5-\(code)")
             app.terminate()
         }
     }

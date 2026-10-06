@@ -80,6 +80,7 @@ SCREENS=(
   "play-math-flop:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1 GT_DEMO_FREE_PHASE=raise-postflop GT_DEMO_FREE_BACK=math"
   "play-history:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1 GT_DEMO_FREE_PHASE=raise-open GT_DEMO_FREE_BACK=hand"
   "play-rules:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1 GT_DEMO_FREE_PHASE=raise-open GT_DEMO_FREE_BACK=rules"
+  "play-finished-hint:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1 GT_DEMO_FREE_PHASE=result-review GT_DEMO_FREE_BACK=hint"
   "play-review-river:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1 GT_DEMO_FREE_PHASE=result-review GT_DEMO_FREE_BACK=hand"
   "play-review:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1 GT_DEMO_FREE_PHASE=result-all-in GT_DEMO_FREE_BACK=hand"
   "play-guide:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1 GT_DEMO_PLAY_GUIDE=1"
@@ -101,6 +102,15 @@ SCREENS=(
   "today-empty:GT_DEMO_TAB=today"
   "path-empty:GT_DEMO_TAB=path"
   "records-empty:GT_DEMO_TAB=records"
+  "records-help-only:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=help-only"
+  "records-helped:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=helped"
+  "records-wrong:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=wrong"
+  "records-four-days:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=four-days"
+  "records-before-fourth:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=before-fourth"
+  "records-sparse-future:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=sparse-future"
+  "records-returning:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=returning"
+  "records-mixed:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=mixed"
+  "records-completed:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=completed"
   "today:GT_DEMO_SEED=1 GT_DEMO_TAB=today"
   "path:GT_DEMO_SEED=1 GT_DEMO_TAB=path"
   "records:GT_DEMO_SEED=1 GT_DEMO_TAB=records"
@@ -117,6 +127,7 @@ SCREENS=(
   "lesson-complete:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds GT_DEMO_SESSION_COMPLETE=1"
   "lesson-milestone:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds GT_DEMO_SESSION_COMPLETE=1 GT_DEMO_MILESTONE=unit"
   "lesson-mastered:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds GT_DEMO_SESSION_COMPLETE=1 GT_DEMO_MILESTONE=mastered"
+  "guided-showdown:GT_DEMO_NODE=u1-showdown GT_DEMO_STAGE=together"
   "guided-potodds:GT_DEMO_NODE=u2-potOdds GT_DEMO_STAGE=together"
   "replay:GT_DEMO_SEED=1 GT_DEMO_REPLAY=potOdds"
   "drill-showdown:GT_DEMO_SEED=1 GT_DEMO_NODE=u1-showdown"
@@ -326,7 +337,7 @@ for content_size in "${CONTENT_SIZES[@]}"; do
     rest="${entry#*:}"
     slp="${rest##*:}"
     if [[ "$slp" =~ ^[0-9.]+$ ]]; then envs="${rest%:*}"; else envs="$rest"; slp=${GT_CAPTURE_DELAY:-8}; fi
-    args=("SIMCTL_CHILD_GT_DEMO_LANGUAGE=$LANGUAGE")
+    args=("SIMCTL_CHILD_GT_DEMO_LANGUAGE=$LANGUAGE" "SIMCTL_CHILD_GT_TEST_STORE_ID=$(uuidgen)")
     for kv in $envs; do args+=("SIMCTL_CHILD_$kv"); done
     # Uninstall clears progress written by the preceding demo. Empty-state captures
     # remain empty regardless of the requested order.

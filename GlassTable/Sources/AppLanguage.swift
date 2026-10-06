@@ -1,5 +1,6 @@
 import SwiftUI
 import GlassTableDrills
+import GlassTableEngine
 
 enum AppLanguage: String, CaseIterable, Identifiable {
     case system, korean, english
@@ -38,7 +39,7 @@ extension EnvironmentValues {
     }
 
     /// Questions are asked the simpler way: counts before percentages, chips rather
-    /// than big blinds, and the full chart one tap away. On below "Plays sometimes".
+    /// than big blinds, and the full chart one tap away. On below "Plays regularly".
     var simpleQuestions: Bool {
         get { self[SimpleQuestionsKey.self] }
         set { self[SimpleQuestionsKey.self] = newValue }
@@ -67,7 +68,7 @@ extension PlacementSelfReport {
         switch self {
         case .newToPoker: language.text("처음 배워요", "New player")
         case .knowRules: language.text("규칙은 알아요", "Knows the rules")
-        case .playRegularly: language.text("가끔 쳐요", "Plays sometimes")
+        case .playRegularly: language.text("자주 쳐요", "Plays regularly")
         }
     }
 }
@@ -78,4 +79,22 @@ func skillNames(_ concept: Concept, language: LearningLanguage,
     let plain = ConceptIntroduction.make(concept, language: language).title
     let term = concept.term(in: language)
     return termsLead ? (term, plain) : (plain, term)
+}
+
+func rangeMatchTitle(_ band: GradeBand, language: LearningLanguage) -> String {
+    switch band {
+    case .spotOn: language.text("많은 패가 맞아요", "Many hands match")
+    case .close: language.text("맞은 패와 빠진 패를 봐요", "Some hands match")
+    case .off: language.text("빠진 패와 더 고른 패를 비교해요", "Compare missing and extra hands")
+    }
+}
+
+func practiceFeedbackTitle(_ concept: Concept, band: GradeBand, language: LearningLanguage) -> String? {
+    if concept == .rangeRead { return rangeMatchTitle(band, language: language) }
+    guard [.showdown, .potMath, .position, .outs, .combos, .rangeNotation].contains(concept) else { return nil }
+    switch band {
+    case .spotOn: return language.text("맞아요", "That's right")
+    case .close: return language.text("근접했어요", "Close")
+    case .off: return nil
+    }
 }

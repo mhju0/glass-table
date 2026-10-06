@@ -107,8 +107,8 @@ struct PlayView: View {
                              emphasized: true)
             } else {
                 TapCardLabel(title: language.text("자유 대전", "Free table"),
-                             detail: language.text("컴퓨터 한 명에서 세 명과 한 판을 끝까지 쳐요. 여기서는 채점하지 않아요.",
-                                                   "Play whole hands against one to three computers. No grading here."),
+                             detail: language.text("컴퓨터와 한 판을 치고 내 선택을 돌아봐요. EV 채점은 없어요.",
+                                                   "Play a hand, then review your choices. No EV grade."),
                              emphasized: true)
             }
         }
@@ -125,8 +125,8 @@ struct PlayView: View {
     private var gradedCard: some View {
         Button { showGraded = true } label: {
             TapCardLabel(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
-                         detail: language.text("상대 한 명과 쳐요. 판단마다 공개된 차트와 평균값으로 채점해요.",
-                                               "One opponent. Each decision is graded by a published chart and EV."))
+                         detail: language.text("행동을 고른 뒤 공개 차트나 평균 손익 기준을 확인해요.",
+                                               "Choose an action, then inspect its chart or EV grade."))
         }
         .buttonStyle(GTPress())
         .accessibilityIdentifier("play-graded")

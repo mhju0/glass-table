@@ -4,11 +4,8 @@ import UIKit
 import GlassTableEngine
 import GlassTableDrills
 
-/// The first-run guide follows one hand in the order it is played: the pot and two ways
-/// to win, blinds and the deal, the four actions, a betting round on each street, and
-/// best five of seven at the showdown. Two warm-up hands then test that last rule, and a
-/// wrap-up says how lessons work before the hand-ranks lesson.
-/// Content sits above; everything the learner taps sits in the bottom panel.
+/// Compare two hands, try new cards, then learn the actions on a turn.
+/// The broader pot, blinds and street sequence stays available as optional depth.
 struct FirstLessonView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -143,15 +140,13 @@ struct FirstLessonView: View {
                                      ? "firstLesson.skip" : "firstLesson.close")
     }
 
-    /// The six rule screens are numbered; the warm-ups keep their own count.
+    /// Optional table rules have their own count, separate from the warm-up.
     private var rulePage: Int? {
         switch step {
         case .pot: 1
         case .blinds: 2
-        case .actions: 3
-        case .flow: 4
-        case .bestFive: 5
-        case .wrapUp: 6
+        case .flow: 3
+        case .bestFive: 4
         default: nil
         }
     }
@@ -161,12 +156,14 @@ struct FirstLessonView: View {
         case .welcome: return nil
         case .example, .exampleAnswer: return copy(.exampleProgress)
         case .transfer, .transferAnswer: return copy(.transferProgress)
-        default: return rulePage.map { "\($0)/6" }
+        case .actions: return language.text("내 차례의 행동", "Actions on your turn")
+        case .wrapUp: return language.text("안내 마치기", "Finish the guide")
+        default: return rulePage.map { "\($0)/4" }
         }
     }
 
     private var progressSpoken: String? {
-        rulePage.map { language.text("6단계 중 \($0)단계", "Step \($0) of 6") }
+        rulePage.map { language.text("추가 안내 4단계 중 \($0)단계", "Optional step \($0) of 4") }
     }
 
     // MARK: Steps
@@ -192,18 +189,12 @@ struct FirstLessonView: View {
     private var panel: some View {
         switch step {
         case .welcome:
-            PrimaryCTAButton(title: copy(.startWelcome)) { step = .pot }
+            PrimaryCTAButton(title: copy(.startWelcome)) { step = .example }
         case .pot: nextButton { step = .blinds }
-        case .blinds: nextButton { step = .actions }
-        case .actions: nextButton { step = .flow }
+        case .blinds: nextButton { step = .flow }
+        case .actions: nextButton { step = .wrapUp }
         case .flow: nextButton { step = .bestFive }
-        case .bestFive:
-            Text(copy(.warmUpNote))
-                .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
-                .frame(maxWidth: .infinity)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-            PrimaryCTAButton(title: copy(.startWarmUp)) { step = .example }
+        case .bestFive: nextButton { step = .wrapUp }
         case .wrapUp:
             PrimaryCTAButton(title: finishTitle, action: onFinish)
                 .accessibilityIdentifier("firstLesson.finish")
@@ -513,13 +504,14 @@ struct FirstLessonView: View {
 
     private var wrapUpPage: some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
-            intro(language.text("이제 한 판의 흐름을 알아요", "Now you know how a hand runs"),
-                  language.text("레슨에서는 풀이를 보고, 도움을 받으며 풀고, 다른 상황을 혼자 해결해요. 잊을 만할 때 다시 풀어요.",
-                                "In each lesson you watch the reasoning, try with help, then solve a new hand alone. Later, you come back to review it."))
+            intro(language.text("두 패를 비교해 봤어요", "You compared two hands"),
+                  language.text("레슨에서는 풀이를 보고 다른 상황을 내 속도로 풀어요. 도움은 언제든 볼 수 있어요. 나중에 다시 복습해요.",
+                                "Watch the reasoning, then try a new situation at your own pace. Help stays available, and you can return to review."))
             VStack(alignment: .leading, spacing: 14) {
-                checkRow(language.text("팟 · 블라인드 · 네 가지 행동", "The pot, blinds and four actions"))
-                checkRow(language.text("프리플랍 · 플랍 · 턴 · 리버마다 베팅", "A betting round on every street"))
-                checkRow(language.text("7장 중 가장 좋은 5장", "Best five of seven"))
+                checkRow(language.text("같은 족보라면 높은 숫자부터 비교", "Compare ranks when hand types match"))
+                checkRow(language.text("내 차례에 할 수 있는 행동", "The actions on your turn"))
+                SecondaryCTAButton(title: language.text("한 판의 흐름 더 보기", "Explore how a hand runs")) { step = .pot }
+                    .accessibilityIdentifier("firstLesson.moreRules")
             }
             .gtInset(GT.Space.card, firstText: .semibold(15)).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
@@ -739,7 +731,7 @@ struct FirstLessonView: View {
             if isTransfer {
                 PrimaryCTAButton(title: language.text("다음", "Next")) {
                     answer = nil
-                    step = .wrapUp
+                    step = .actions
                 }
                 .accessibilityIdentifier("firstLesson.next")
             } else {

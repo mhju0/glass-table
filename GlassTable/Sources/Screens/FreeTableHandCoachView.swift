@@ -66,6 +66,10 @@ struct FreeTableHandCoachView: View {
                     .accessibilityLabel(language.text("공용 카드 \(board.count)장", "\(board.count) shared cards"))
             }
             Text(strengthLine(step)).font(GT.body(15))
+            if step.facts.startingHandTopPercent != nil {
+                Text(language.text("시작 패 순위는 이길 확률이 아니에요.", "Starting-hand rank is separate from winning probability."))
+                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+            }
         }
         if !step.pressure.isEmpty {
             section(language.text("내 차례 전에", "Before your turn")) {
@@ -135,8 +139,9 @@ struct FreeTableHandCoachView: View {
             return language.text("팟 \(step.facts.pot)칩 · 콜 \(step.facts.toCall)칩",
                                  "Pot \(step.facts.pot) · \(step.facts.toCall) to call")
         }
-        return language.text("팟 \(step.facts.pot)칩 · 콜 \(step.facts.toCall)칩. 열 번 중 \(max(1, Int((Double(need) / 10).rounded(.up))))번쯤 이기면 본전이에요(\(need)%).",
-                             "Pot \(step.facts.pot) · \(step.facts.toCall) to call. You break even if you win about \(max(1, Int((Double(need) / 10).rounded(.up)))) times in 10 (\(need)%).")
+        return language.text("팟 \(step.facts.pot)칩 · 콜 \(step.facts.toCall)칩. ",
+                             "Pot \(step.facts.pot) · \(step.facts.toCall) to call. ")
+            + PracticePriceCopy.threshold(need, language: language)
     }
 
     private func actionLine(_ step: PracticeCoachStep) -> String {

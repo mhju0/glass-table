@@ -101,8 +101,8 @@ private struct StudyNote {
 
     static let lessons: [StudyNote] = [
         StudyNote(title: "한 번에 한 가지씩 배워요",
-                  body: "홀덤이 처음이어도 괜찮아요. 먼저 풀이를 보고, 도움을 받으며 풀고, 다른 문제를 혼자 풀어요. 익숙해지면 여러 개념을 섞어서 연습해요.",
-                  example: "풀이 보기 → 함께 풀기 → 혼자 풀기\n\n나중에 다시 떠올리는 복습까지 해야 제대로 배운 거예요."),
+                  body: "홀덤이 처음이어도 괜찮아요. 먼저 풀이를 보고, 다른 문제를 내 속도로 풀어요. 도움은 언제든 볼 수 있어요. 익숙해지면 여러 개념을 섞어서 연습해요.",
+                  example: "풀이 보기 → 다른 카드로 연습 → 다시 떠올리기\n\n나중에 다시 떠올려 보는 복습도 있어요."),
         StudyNote(title: "가장 좋은 다섯 장을 찾아요",
                   body: "홀덤은 내 카드 2장과 모두가 함께 쓰는 보드 5장 중 가장 좋은 5장으로 승부해요. 내 카드를 반드시 두 장 다 쓸 필요는 없어요. 끝까지 남은 사람들이 패를 비교하는 순간이 쇼다운이에요.",
                   example: "블라인드 → 프리플랍 베팅 → 플랍 3장 → 턴 1장 → 리버 1장\n\n폴드는 포기, 체크는 칩을 더 내지 않고 넘기기, 콜은 상대 금액에 맞추기, 레이즈는 금액을 더 올리기예요.",
@@ -140,8 +140,8 @@ private struct StudyNote {
 
     static let englishLessons: [StudyNote] = [
         StudyNote(title: "One decision at a time",
-                  body: "New to Hold'em? Watch a worked example, try one with help, then solve a new one alone. Later, mix the ideas.",
-                  example: "Watch → try with help → go solo\n\nComing back to a skill later is part of learning it."),
+                  body: "New to Hold'em? Watch a worked example, then try new cards at your own pace. Help stays available. Later, mix the ideas.",
+                  example: "Watch → try new cards → recall later\n\nComing back to a skill later is part of learning it."),
         StudyNote(title: "Find the best five cards",
                   body: "Make the best five-card hand from your two cards and the five shared cards. You need not use both of yours. Comparing hands at the end is the showdown.",
                   example: "Blinds → first bets → 3 shared cards → 1 more → last card\n\nFold: leave the hand. Check: pass without adding chips. Call: match a bet. Raise: bet more.",

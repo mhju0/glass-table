@@ -200,8 +200,11 @@ final class AccessibilityFlowTests: XCTestCase {
             "GT_DEMO_STAGE": "together",
         ])
 
-        let title = app.staticTexts["쇼다운"].firstMatch
+        let title = app.staticTexts["누가 이길까요?"].firstMatch
         XCTAssertTrue(title.waitForExistence(timeout: 15))
+        let cue = app.descendants(matching: .any)["contextual-hint-cue"].firstMatch
+        XCTAssertTrue(cue.exists, "The method cue is already in the task, above its cards")
+        XCTAssertFalse(app.otherElements["guided-hint"].exists)
         let frameBeforeHint = title.frame
 
         let hint = app.buttons["힌트"]
@@ -218,7 +221,7 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertTrue(title.waitForExistence(timeout: 5))
         XCTAssertEqual(title.frame.origin.x, frameBeforeHint.origin.x, accuracy: 1)
         XCTAssertEqual(title.frame.origin.y, frameBeforeHint.origin.y, accuracy: 1,
-                       "Opening and closing a hint must not push the drill header")
+                       "Opening and closing the full help sheet must not move the reserved cue or header")
 
         let answer = app.buttons["내가 이김"]
         XCTAssertTrue(scrollUntilHittable(answer, in: app),
@@ -434,18 +437,6 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The welcome action must remain reachable at AX XXXL.")
         start.tap()
         let next = app.buttons["firstLesson.next"]
-        for _ in 0..<4 {
-            XCTAssertTrue(next.waitForExistence(timeout: 10))
-            XCTAssertTrue(scrollUntilHittable(next, in: app),
-                          "Every rule screen's action must remain reachable at AX XXXL.")
-            next.tap()
-        }
-        let warmUp = app.buttons["워밍업 시작"]
-        XCTAssertTrue(warmUp.waitForExistence(timeout: 10))
-        XCTAssertTrue(scrollUntilHittable(warmUp, in: app),
-                      "The best-five screen's action must remain reachable at AX XXXL.")
-        warmUp.tap()
-
         XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 15))
         let exampleAnswer = firstButton(prefix: "내 카드", in: app)
         XCTAssertTrue(scrollUntilHittable(exampleAnswer, in: app),
@@ -465,6 +456,8 @@ final class AccessibilityFlowTests: XCTestCase {
 
         XCTAssertTrue(scrollUntilHittable(next, in: app),
                       "The transfer explanation and its next action must remain reachable at AX XXXL.")
+        next.tap()
+        XCTAssertTrue(scrollUntilHittable(next, in: app))
         next.tap()
         let finishGuide = app.buttons["firstLesson.finish"]
         XCTAssertTrue(finishGuide.waitForExistence(timeout: 10))

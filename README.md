@@ -11,35 +11,42 @@ probability, and the cost of a decision.
 [![Engine gate](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml)
 ![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
 
-> Status: active user testing. The app has not been released on the App Store.
+> Status: local native build under review. The app has not been released on the App Store.
 
 | Follow a recommendation—or choose | Understand your opponent |
 |---|---|
 | ![Learn tab with a recommended next activity](docs/readme-assets/readme-01-learn.png) | ![Opponent details with separate entry and raise habits](docs/readme-assets/readme-02-opponent.png) |
-| Nine units and 18 concepts stay open; an optional starting-point check suggests where to begin. | Everyday names lead; numbers and technical terms are optional detail. |
+| Four main learning tracks and an optional deeper track stay open; a starting-point check can suggest where to begin. | Everyday names lead; numbers and technical terms are optional detail. |
 
 | Practice a complete hand | Explore the chart |
 |---|---|
 | ![Four-player practice table with public actions and chip counts](docs/readme-assets/readme-03-play.png) | ![Defend chart highlighting the learner's hand](docs/readme-assets/readme-04-chart.png) |
 | Four seats, local computer opponents, and a factual review of the chips and cards. | A compact hand summary leaves room for the chart and its enlarged explorer. |
 
+The images use simulator demo fixtures; a fresh install begins without progress.
+
 ## Product
 
-Learn combines brief introductions, worked examples, five-question practice,
-delayed review, and mixed checkpoints. It recommends a next activity without
+Learn begins with a simple hand comparison and a new hand to try. Short lessons
+use three questions; one-skill practice uses five, and review uses up to five.
+Worked examples, delayed review, and mixed checkpoints support the learning path. It recommends a next activity without
 locking advanced lessons. The optional, untimed starting-point check changes
 the recommendation—not completed lessons or earned mastery.
 
-Play offers four-player hands with 100 starting chips, carried stacks, and
-explicit refills when a player runs out. Its review reports what happened; it
-does not pretend to calculate a strategy grade. A separate heads-up exercise
+Play defaults to a quick four-player table with 40 starting chips and 10 hands.
+A longer 100-chip table, carried stacks, and explicit refills are also available.
+Its review reports what happened. Optional beginner-chart coaching is separate
+from a calculated strategy grade. A separate heads-up exercise
 grades preflop choices against a published chart and postflop choices under a
 disclosed checkdown approximation—not universal poker advice.
 
-Progress separates exact answers, near answers, and mistakes. Comparable
-practice history and optional response times show change without rewarding
-speed over accuracy. Recent table habits appear only after enough evidence;
-they describe these practice hands, not personality or professional ability.
+Progress leads with completed lessons, seven recent practice dates, and topics
+to revisit. Submitted lesson, practice, and review answers count regardless of
+help use or result. The fourth consecutive recorded practice date adds a small
+flame in today’s date cell; missed dates carry no penalty. Free-table play does
+not count toward these dates. Detailed answer history, learning stages, and
+optional response times remain available below. These records describe activity
+in the app, not proven poker proficiency or measured learning effectiveness.
 
 Glass Table is fully offline. It has no accounts, analytics, ads, purchases, or
 real-money wagering. Progress stays on device and can be exported or imported
@@ -62,15 +69,28 @@ SwiftUI. Seeded generators keep a question, its grade, and its explanation on
 the same deterministic spot. The archetype policy and surviving range are data
 the learner can inspect inside the app instead of an undisclosed bot decision.
 
+Equity exercises enumerate the remaining boards exactly. The graded table uses
+exact heads-up enumeration on the turn and river, and fixed-seed Monte Carlo
+on the flop against each surviving range combination. That distinction and the
+checkdown assumption are part of the explanation, not a claim of optimal play.
+Frozen evaluator fixtures and deterministic tests guard the underlying math.
+
+A concrete invariant is that a failed answer save must not publish completion
+or advance the question. The app-level ProgressionModel tests exercise failed
+writes, retries, duplicate commits, and reopening the saved answer. The UI
+refinement changes the presentation without changing those write paths.
+
 Verification is split by boundary: package tests cover poker math and drill
 logic, XCTest exercises real navigation and input, and `tools/uisweep.sh`
 captures normal and Accessibility XXXL layouts on a disposable simulator. A
 screenshot is visual evidence only; interaction tests separately cover scrolling
 and reachable controls.
 
-The combined release is installed for testing on an iPhone 12 mini. Automated
-checks and migration readback are recorded in the [delivery report](docs/specs/2026-09-23-beginner-native-release.md);
-physical VoiceOver, novice comprehension, minimum-OS and distribution checks
+Native refinement scope and acceptance checks are recorded in the
+[build 16 delivery specification](docs/specs/2026-10-06-approved-native-ux-delivery.md).
+Earlier migration readback is documented in the
+[combined delivery report](docs/specs/2026-09-23-beginner-native-release.md).
+Physical VoiceOver, novice comprehension, minimum-OS, and distribution checks
 remain separate release gates.
 
 ## Build and test

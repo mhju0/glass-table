@@ -19,6 +19,7 @@ struct ConceptExplainView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text(intro.title).font(GT.title(26)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if concept == .combos { CombinationExampleView() }
                     section(language.text("왜 중요할까요", "Why it matters"), intro.why)
                     section(language.text("이렇게 풀어요", "How to work it out"), intro.how)
                     if let example = Self.ruleExample(concept, language: language) {

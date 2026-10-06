@@ -142,10 +142,11 @@ struct RangeDifferenceList: View {
     var limit = 12
 
     var body: some View {
+        let shared = hands(truth.intersection(guess))
         let missed = hands(truth.subtracting(guess))
         let extra = hands(guess.subtracting(truth))
-        if !missed.isEmpty || !extra.isEmpty {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 6) {
+                row(language.text("일치한 핸드", "Matched hands"), shared)
                 if !missed.isEmpty {
                     row(language.text("놓친 핸드", "Missed"), missed)
                 }
@@ -155,7 +156,6 @@ struct RangeDifferenceList: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityIdentifier("range-difference-list")
-        }
     }
 
     /// Strongest first, so the most costly differences are the ones that get named.
@@ -170,7 +170,7 @@ struct RangeDifferenceList: View {
         return VStack(alignment: .leading, spacing: 2) {
             Text("\(title) · \(language.text("\(hands.count)종류", "\(hands.count) kinds"))")
                 .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
-            Text(names + more)
+            Text(hands.isEmpty ? language.text("없어요", "None") : names + more)
                 .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.onFelt)
                 .fixedSize(horizontal: false, vertical: true)
         }

@@ -36,6 +36,7 @@ struct ConceptDrillView: View {
     let onCommit: (DrillOutcome) -> Bool
     let onAnswer: (DrillOutcome) -> Void
     let help: DrillHelp?
+    let showsContextualHint: Bool
 
     private var questionID: String { "\(concept.rawValue)/\(seed)/\(index)" }
 
@@ -43,6 +44,7 @@ struct ConceptDrillView: View {
          restoredAnswer: RoundAnswer? = nil,
          initialDraft: SavedDrillDraftInput? = nil,
          help: DrillHelp? = nil,
+         showsContextualHint: Bool = false,
          onDraft: @escaping (SavedDrillDraftInput) -> Void = { _ in },
          onQuestionReady: @escaping () -> Void = {},
          onCommit: @escaping (DrillOutcome) -> Bool = { _ in true },
@@ -58,6 +60,7 @@ struct ConceptDrillView: View {
         self.onCommit = onCommit
         self.onAnswer = onAnswer
         self.help = help
+        self.showsContextualHint = showsContextualHint
     }
 
     var body: some View {
@@ -88,6 +91,7 @@ struct ConceptDrillView: View {
                                   DrillReplayContext(concept: concept, seed: seed, index: index))
             }
         }
+        .environment(\.drillHintConcept, showsContextualHint || help != nil ? concept : nil)
         .onChange(of: questionID) { _, _ in
             answerCommitted = false
         }
@@ -223,6 +227,17 @@ private struct DrillReplayContextKey: EnvironmentKey {
     static let defaultValue: DrillReplayContext? = nil
 }
 
+private struct DrillHintConceptKey: EnvironmentKey {
+    static let defaultValue: Concept? = nil
+}
+
+private extension EnvironmentValues {
+    var drillHintConcept: Concept? {
+        get { self[DrillHintConceptKey.self] }
+        set { self[DrillHintConceptKey.self] = newValue }
+    }
+}
+
 private struct DrillInitialDraftKey: EnvironmentKey {
     static let defaultValue: SavedDrillDraftInput? = nil
 }
@@ -348,6 +363,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
     @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.drillExplain) private var explainConcept
+    @Environment(\.drillHintConcept) private var hintConcept
     @State private var gradedBand: GradeBand?
     @State private var hasEvidenceStart = false
     @State private var explaining = false
@@ -362,6 +378,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: GT.Space.section) {
                         header
+                        if let hintConcept { ContextualHintCue(concept: hintConcept) }
                         content().frame(maxWidth: .infinity, alignment: .leading)
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
                             .padding(GT.Space.sheet).frame(maxWidth: .infinity, alignment: .leading)
@@ -381,7 +398,8 @@ struct DrillShell<Content: View, Sheet: View>: View {
                         // question and is scrolled into view.
                         ScrollViewReader { proxy in
                             ScrollView {
-                                VStack(spacing: 0) {
+                                VStack(spacing: GT.Space.related) {
+                                    if let hintConcept { ContextualHintCue(concept: hintConcept) }
                                     content()
                                     Color.clear.frame(height: 1).id(Self.contentEnd)
                                 }
@@ -474,45 +492,12 @@ struct DrillShell<Content: View, Sheet: View>: View {
     }
 
     private var localizedTitle: String {
-        // The terms stay one tap away under the info button and lead again once the
-        // learner asks for poker terms.
-        if !termsLead {
-            switch title {
-            case "포지션": return language.text("자리와 순서", "Position")
-            case "에퀴티 감각": return language.text("이길 확률", "Chance to win")
-            case "RFI 차트": return language.text("먼저 올리기", "First raise")
-            case "레인지 리드": return language.text("상대 패 읽기", "Read a range")
-            case "액션 리드": return language.text("행동 읽기", "Read an action")
-            case "디펜드 차트": return language.text("올린 상대에 맞서기", "Facing a raise")
-            case "콤보": return language.text("가능한 두 장 조합", "Possible two-card hands")
-            case "레인지 표기법": return language.text("핸드 줄임 표기", "Hand shorthand")
-            case "EV 계산": return language.text("콜의 평균 손익", "What a call is worth")
-            default: break
-            }
-        }
-        guard language == .english else { return title }
-        switch title {
-        case "쇼다운": return "Showdown"
-        case "팟 계산": return "Count the pot"
-        case "포지션": return "Position"
-        case "에퀴티 감각": return "Chance to win"
-        case "EV 계산": return "Value of a call"
-        case "콜/폴드": return "Call or fold"
-        case "레인지 표기법": return "Hand ranges"
-        case "RFI 차트": return "First raise"
-        case "레인지 리드": return "Read a range"
-        case "히트 프리퀀시": return "Made hands"
-        case "레인지 어드밴티지": return "Range advantage"
-        case "EV 손실": return "Value lost"
-        case "액션 리드": return "Read an action"
-        case "디펜드 차트": return "Defend chart"
-        case "아웃": return "Outs"
-        case "콤보": return "Combos"
-        case "팟 오즈": return "Pot odds"
-        case "MDF": return "Minimum defense"
-        default: return title
-        }
+        guard let concept = Concept.allCases.first(where: {
+            ConceptDrillView.drillTitle(for: $0) == title
+        }) else { return title }
+        return skillNames(concept, language: language, termsLead: termsLead).lead
     }
+
 }
 
 /// Reveal panel shared by every drill: verdict, the "why", then advance.
@@ -526,6 +511,7 @@ private struct RevealSheet: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.simpleQuestions) private var simple
     @State private var saved = false
+    @State private var showingWorkedExample = false
     let band: GradeBand
     let mine: String
     let correct: String
@@ -547,7 +533,10 @@ private struct RevealSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VerdictRow(band: band, mine: localized?.mine ?? mine,
-                       correct: localized?.correct ?? correct)
+                       correct: localized?.correct ?? correct,
+                       title: replayContext.flatMap {
+                            practiceFeedbackTitle($0.concept, band: band, language: language)
+                       })
             if !collapsed {
                 Text(localized?.why ?? why)
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
@@ -558,6 +547,13 @@ private struct RevealSheet: View {
                                                                  style: .continuous))
                     .fixedSize(horizontal: false, vertical: true)
                 if let term { GlossaryChip(term: term) }
+            }
+            if saved, band == .off, let replayContext,
+               model.record(for: replayContext.concept).consecutiveMisses >= 2 {
+                SecondaryCTAButton(title: language.text("예제를 함께 보고 다른 패로 다시 해봐요", "Try a worked example, then another hand")) {
+                    showingWorkedExample = true
+                }
+                .accessibilityIdentifier("drill-worked-example")
             }
             PrimaryCTAButton(title: language.text("다음 문제", "Next question"), action: onNext)
                 .disabled(!saved)
@@ -573,6 +569,19 @@ private struct RevealSheet: View {
                 }
                 .frame(minHeight: 44)
                 .accessibilityIdentifier("retry-answer-save")
+            }
+        }
+        .sheet(isPresented: $showingWorkedExample) {
+            if let replayContext {
+                let concept = replayContext.concept
+                let worked = Walkthrough.make(concept: concept,
+                    seed: 0xE9A1 &+ UInt64(model.seedCount(for: concept)), index: 0, language: language)
+                NavigationStack {
+                    WalkthroughView(title: skillNames(concept, language: language, termsLead: false).lead,
+                                    concept: concept, beats: worked.beats, rows: worked.rows,
+                                    onFinish: { showingWorkedExample = false })
+                        .gtChrome(leading: { ChromeButton.close { showingWorkedExample = false } })
+                }.gtSheetSurface()
             }
         }
         .preference(key: GradedBandKey.self, value: band)
@@ -715,6 +724,7 @@ private struct ShowdownDrill: View {
 
     var body: some View {
         DrillShell(title: "쇼다운", progressText: progressText) {
+            VStack(alignment: .leading, spacing: GT.Space.related) {
             ThreeRegionCardTable(
                 opponent: spot.villain, board: spot.board, hero: spot.hero,
                 opponentTitle: reveal?.winner == 1 ? language.text("상대 카드 · 승", "Opponent · won")
@@ -722,6 +732,20 @@ private struct ShowdownDrill: View {
                 heroTitle: reveal?.winner == 0 ? language.text("내 카드 · 승", "Your cards · won")
                                             : language.text("내 카드", "Your cards"),
                 highlight: winningFive)
+                if reveal != nil {
+                    Text(language.text("각자 7장 중 가장 좋은 다섯 장으로 비교해요. 내 카드는 0장, 1장, 2장 모두 가능해요.",
+                                       "Compare each player's best five of seven. Your hand can use neither, one or both of your cards."))
+                        .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("showdown-best-five-rule")
+                    Text(language.text("내 가장 좋은 다섯 장", "My best five"))
+                        .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
+                    CardRow(cards: bestFiveCards(spot.hero + spot.board))
+                    Text(language.text("상대의 가장 좋은 다섯 장", "Opponent's best five"))
+                        .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
+                    CardRow(cards: bestFiveCards(spot.villain + spot.board))
+                }
+            }
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
@@ -868,8 +892,8 @@ private struct PotMathDrill: View {
             Button(language.text("합계 보기", "Show totals")) { _ = help?.mark() }
             Button(language.text("직접 세기", "Keep counting"), role: .cancel) {}
         } message: {
-            Text(language.text("이 문제는 도움 받은 연습으로 기록돼요.",
-                               "This counts as practice with help."))
+            Text(language.text("각 사람이 지금까지 낸 칩을 보여줘요. 현재 팟을 함께 확인할 수 있어요.",
+                               "Show each player's contributions so you can check the current pot."))
         }
         .sheet(isPresented: $showingHelp) {
             NavigationStack {
@@ -995,7 +1019,6 @@ private struct PotMathRevealSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if help?.isUsed == true { SolvedWithHelpLabel() }
             VerdictRow(band: reveal.band,
                        mine: language.text("\(reveal.answer)칩", "\(reveal.answer) chips"),
                        correct: language.text("\(reveal.correct)칩", "\(reveal.correct) chips"))

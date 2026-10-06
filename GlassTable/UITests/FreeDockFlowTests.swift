@@ -23,9 +23,9 @@ final class FreeDockFlowTests: XCTestCase {
         let fold = app.buttons["free-fold"]
         let call = app.buttons["free-call"]
         let raise = app.buttons["free-raise"]
-        XCTAssertEqual(fold.label, "Fold")
-        XCTAssertEqual(call.label, "Call, 2")
-        XCTAssertEqual(raise.label, "Raise")
+        XCTAssertEqual(fold.label, "Give up, Fold")
+        XCTAssertEqual(call.label, "Add 2, Call")
+        XCTAssertEqual(raise.label, "Increase, Raise")
         XCTAssertEqual(fold.frame.height, 87, accuracy: 0.5)
         XCTAssertEqual(call.frame.height, 87, accuracy: 0.5)
         XCTAssertEqual(raise.frame.height, 87, accuracy: 0.5)
@@ -69,7 +69,7 @@ final class FreeDockFlowTests: XCTestCase {
         }
         let check = app.buttons["free-check"]
         XCTAssertTrue(check.exists && check.isEnabled)
-        XCTAssertEqual(check.label, "Check")
+        XCTAssertEqual(check.label, "Pass, Check")
         XCTAssertTrue(app.buttons["free-fold"].exists)
         XCTAssertFalse(app.buttons["free-fold"].isEnabled)
         XCTAssertTrue(app.buttons["free-raise"].exists)
@@ -144,9 +144,19 @@ final class FreeDockFlowTests: XCTestCase {
             nextCapture.name = "result-next-control-\(category)"
             nextCapture.lifetime = .keepAlways
             add(nextCapture)
+            XCTAssertTrue(next.isHittable)
             let lastAction = app.buttons["free-change-table"]
-            for _ in 0..<5 where lastAction.frame.maxY > body.frame.maxY { body.swipeUp() }
-            XCTAssertTrue(next.isHittable && lastAction.isHittable)
+            for _ in 0..<20 where lastAction.frame.maxY > body.frame.maxY || lastAction.frame.minY < body.frame.minY {
+                let delta = lastAction.frame.maxY > body.frame.maxY
+                    ? min(100, max(24, lastAction.frame.maxY - body.frame.maxY + 8))
+                    : -min(100, max(24, body.frame.minY - lastAction.frame.minY + 8))
+                let startY = min(body.frame.maxY - 5, max(body.frame.minY + 5, lastAction.frame.minY - 5))
+                let start = body.coordinate(withNormalizedOffset: .zero)
+                    .withOffset(CGVector(dx: body.frame.width * 0.97, dy: startY - body.frame.minY))
+                start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -delta)),
+                            withVelocity: .slow, thenHoldForDuration: 0.5)
+            }
+            XCTAssertTrue(lastAction.isHittable)
             XCTAssertGreaterThanOrEqual(lastAction.frame.minY, body.frame.minY - 0.5)
             XCTAssertLessThanOrEqual(lastAction.frame.maxY, body.frame.maxY + 0.5,
                                      "The full last result action remains reachable")

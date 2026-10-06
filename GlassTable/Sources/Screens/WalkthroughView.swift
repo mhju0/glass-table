@@ -16,6 +16,7 @@ struct WalkthroughView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     let title: String
+    let concept: Concept?
     /// One sentence on why the concept matters, shown on the first step.
     let purpose: String?
     let beats: [Beat]
@@ -30,10 +31,10 @@ struct WalkthroughView: View {
     /// until they tap it, and Next waits for that tap.
     @State private var practiceRevealed = false
 
-    init(title: String, purpose: String? = nil, beats: [Beat], rows: [(String, [Card])],
+    init(title: String, concept: Concept? = nil, purpose: String? = nil, beats: [Beat], rows: [(String, [Card])],
          initialIndex: Int = 0, onStep: @escaping (Int) -> Bool = { _ in true },
          onFinish: @escaping () -> Void) {
-        self.title = title; self.purpose = purpose; self.beats = beats; self.rows = rows
+        self.title = title; self.concept = concept; self.purpose = purpose; self.beats = beats; self.rows = rows
         self.initialIndex = initialIndex; self.onStep = onStep
         self.onFinish = onFinish
     }
@@ -139,8 +140,15 @@ struct WalkthroughView: View {
         .accessibilityIdentifier("walkthrough-step-\(index)")
     }
 
-    @ViewBuilder
     private var content: some View {
+        VStack(alignment: .leading, spacing: GT.Space.related) {
+            if concept == .combos, index == 0 { CombinationExampleView() }
+            beatContent
+        }
+    }
+
+    @ViewBuilder
+    private var beatContent: some View {
         switch beat.focus {
         case .none:
             // A concept with no cards — EV, pot odds, position — otherwise left the

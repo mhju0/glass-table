@@ -55,6 +55,12 @@ final class ProgressionModel {
             state = fixture
             return
         }
+        if !hasInjectedStore,
+           environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+           let name = environment["GT_DEMO_ACTIVITY"] {
+            state = NativeActivityFixture.make(name)
+            return
+        }
         // GT_DEMO_SEED=1 — a representative mid-path state for screenshot runs.
         // Built through the real types rather than a hand-written JSON fixture, so it
         // can never encode a shape the store would reject.

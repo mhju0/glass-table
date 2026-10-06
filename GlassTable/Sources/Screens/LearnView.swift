@@ -137,7 +137,22 @@ struct LearnView: View {
     }
 
     private func learningRow(_ title: String, _ detail: String, icon: String) -> some View {
-        TapCardLabel(title: title, detail: detail, icon: icon)
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon).font(.system(size: 18)).foregroundStyle(GT.inkSecondary)
+                .frame(width: 24).padding(.top, 2).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title).font(GT.semibold(17)).foregroundStyle(GT.onFelt)
+                Text(detail).font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(GT.onFeltSecondary).accessibilityHidden(true)
+        }
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) { Rectangle().fill(GT.border).frame(height: 1) }
+        .contentShape(Rectangle())
     }
 }
 

@@ -106,7 +106,7 @@ struct RootView: View {
             .tag(Tab.play)
 
             NavigationStack {
-                RecordsView()
+                RecordsView(onContinue: { tab = .learn })
                     .modifier(ProgressSaveNotice())
                     .toolbar(.hidden, for: .navigationBar)
             }

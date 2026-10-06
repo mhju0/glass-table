@@ -1002,6 +1002,7 @@ struct GTActionButton: View {
     let price: String
     let role: GTActionRole
     var freeTablePresentation = false
+    var secondaryTitle: String? = nil
     var minHeight: CGFloat = 56
     var cornerSide: GTCornerSide = .none
     let action: () -> Void
@@ -1012,14 +1013,36 @@ struct GTActionButton: View {
             // sizing, so at the accessibility text sizes it painted straight over the
             // price line while the button kept its compact height.
             Group {
-                if freeTablePresentation {
+                if freeTablePresentation && typeSize.isAccessibilitySize {
+                    VStack(spacing: 8) {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Text(title).font(secondaryTitle == nil ? GT.semibold(12) : GT.title(15))
+                                .foregroundStyle(GT.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 0)
+                            if !price.isEmpty {
+                                Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            if let secondaryTitle {
+                                Text(secondaryTitle).font(GT.body(12)).foregroundStyle(GT.inkSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        Capsule().fill(role.accent).frame(height: 3)
+                    }
+                } else if freeTablePresentation {
                     ZStack {
                         VStack(spacing: 3) {
-                            Text(title).font(GT.semibold(12))
+                            Text(title).font(secondaryTitle == nil ? GT.semibold(12) : GT.title(15))
                                 .foregroundStyle(price.isEmpty ? GT.ink : GT.inkSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                             if !price.isEmpty {
                                 Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            if let secondaryTitle {
+                                Text(secondaryTitle).font(GT.body(12)).foregroundStyle(GT.inkSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
@@ -1042,12 +1065,12 @@ struct GTActionButton: View {
             }
             .padding(.horizontal, 6).padding(.vertical, 10)
             .frame(maxWidth: .infinity, minHeight: minHeight,
-                   maxHeight: freeTablePresentation ? .infinity : nil)
+                   maxHeight: freeTablePresentation && !typeSize.isAccessibilitySize ? .infinity : nil)
             .frame(height: freeTablePresentation && !typeSize.isAccessibilitySize ? 87 : nil)
             .background { GTDockControlBackground(side: cornerSide) }
         }
         .buttonStyle(GTPress(pressedScale: freeTablePresentation ? 0.97 : 0.98))
-        .accessibilityLabel(price.isEmpty ? title : "\(title), \(price)")
+        .accessibilityLabel([title, secondaryTitle, price.isEmpty ? nil : price].compactMap { $0 }.joined(separator: ", "))
     }
 }
 

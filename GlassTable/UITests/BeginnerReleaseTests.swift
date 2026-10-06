@@ -151,13 +151,16 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Progress"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Progress"].tap()
+        app.buttons["records-details"].tap()
         let headline = app.staticTexts["Not enough hands yet"]
         for _ in 0..<4 where !headline.exists { app.swipeUp() }
         XCTAssertTrue(headline.exists)
         XCTAssertTrue(app.staticTexts["0 of 100 hands · 0 of 5 days"].exists)
         let fine = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Describes preflop play"))
         XCTAssertFalse(fine.firstMatch.exists, "Thresholds stay out of the way until asked for")
-        app.buttons["records-style-details"].tap()
+        let styleDetails = app.buttons.matching(NSPredicate(format: "label == %@", "How this works")).firstMatch
+        scrollTo(styleDetails, in: app)
+        styleDetails.tap()
         XCTAssertTrue(fine.firstMatch.waitForExistence(timeout: 5))
     }
 
@@ -635,7 +638,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let app = app()
         app.launchEnvironment["GT_DEMO_CONCEPT"] = "callFold"
         app.launch()
-        XCTAssertTrue(app.staticTexts["Call or fold"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "Call or fold?")).firstMatch.waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", "drill-question-callFold/"
         )).firstMatch.exists)

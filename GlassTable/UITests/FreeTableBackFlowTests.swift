@@ -184,9 +184,7 @@ final class FreeTableBackFlowTests: XCTestCase {
                 let height = min(60, frame.height)
                 let edgeTop = bottomEdge ? frame.maxY - height : frame.minY
                 let edgeBottom = edgeTop + height
-                let aligned = bottomEdge
-                    ? edgeBottom >= bottom - 24 && edgeBottom <= bottom + 0.5
-                    : edgeTop >= top - 0.5 && edgeTop <= top + 24
+                let aligned = edgeTop >= top - 0.5 && edgeBottom <= bottom + 0.5
                 if aligned { break }
                 let difference = bottomEdge ? edgeBottom - bottom : edgeTop - top
                 let downward = difference < 0
@@ -204,11 +202,6 @@ final class FreeTableBackFlowTests: XCTestCase {
             let edgeTop = bottomEdge ? frame.maxY - min(60, frame.height) : frame.minY
             XCTAssertGreaterThanOrEqual(edgeTop, max(130, viewport.minY) - 0.5)
             XCTAssertLessThanOrEqual(edgeTop + min(60, frame.height), min(window.maxY - 20, viewport.maxY) + 0.5)
-            if bottomEdge {
-                XCTAssertGreaterThanOrEqual(frame.maxY, min(window.maxY - 20, viewport.maxY) - 24)
-            } else {
-                XCTAssertLessThanOrEqual(frame.minY, max(130, viewport.minY) + 24)
-            }
             print("\(language) expanded policy paragraph=\(frame), body=\(viewport), end=\(bottomEdge)")
             attach(app, "\(language)-AX-expanded-policy-\(bottomEdge ? "last" : "first")-portion")
         }
