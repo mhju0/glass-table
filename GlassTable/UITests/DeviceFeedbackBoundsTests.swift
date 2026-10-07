@@ -14,7 +14,7 @@ final class DeviceFeedbackBoundsTests: XCTestCase {
                                "-appAppearance", appearance,
                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
-        let title = app.staticTexts[code == "ko" ? "상대가 먼저 올렸어요" : "An opponent raised"]
+        let title = app.staticTexts[code == "ko" ? "상대가 먼저 올렸어요" : "An opponent raised"].firstMatch
         XCTAssertTrue(title.waitForExistence(timeout: 10))
         assertWithinScreen(title, app)
         let call = app.buttons[code == "ko" ? "콜" : "Call"].firstMatch
@@ -36,7 +36,7 @@ final class DeviceFeedbackBoundsTests: XCTestCase {
 
     private func assertWithinScreen(_ element: XCUIElement, _ app: XCUIApplication,
                                     file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX, file: file, line: line)
-        XCTAssertLessThanOrEqual(element.frame.maxX, app.frame.maxX, file: file, line: line)
+        XCTAssertGreaterThanOrEqual(element.frame.minX, app.windows.firstMatch.frame.minX, file: file, line: line)
+        XCTAssertLessThanOrEqual(element.frame.maxX, app.windows.firstMatch.frame.maxX, file: file, line: line)
     }
 }
