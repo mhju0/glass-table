@@ -1850,9 +1850,14 @@ private struct RFIDrill: View {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: language.text("내 핸드", "Your hand"))
                 CardRow(cards: spot.hand)
+                if simple { LessonHandNotation(cards: spot.hand) }
                 SectionLabel(text: language.text("내 자리", "Your seat"))
                     .padding(.top, 8)
-                seatStrip
+                if simple {
+                    LessonSeatLoop(active: spot.seat, showsOrder: false)
+                } else {
+                    seatStrip
+                }
                 if let reveal {
                     if simple {
                         groupLine(opens: reveal.correctOpens)
