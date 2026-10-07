@@ -80,8 +80,10 @@ final class GradedDockFlowTests: XCTestCase {
         for _ in 0..<12 where !bet.isHittable { app.swipeUp() }
         XCTAssertTrue(bet.isHittable)
         bet.tap()
-        let row = app.scrollViews["table-bet-sizes"]
+        let row = app.scrollViews["table-accessibility-scroll"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
+        let choices = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "table-bet-size-"))
+        XCTAssertEqual(choices.count, 5)
         let last = app.buttons["table-bet-size-150%"]
         for _ in 0..<16 {
             let viewport = row.frame.intersection(app.windows.firstMatch.frame.insetBy(dx: 0, dy: 60))

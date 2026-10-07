@@ -84,6 +84,21 @@ struct TableView: View {
                         Text(language.text("상대가 \(hand.villainSeat.plainName(in: language))에서 먼저 올렸을 때의 기준이에요. 공용 카드가 나온 뒤의 행동을 알려주는 차트는 아니에요.",
                                            "A baseline against a raise from \(hand.villainSeat.plainName(in: language)). It does not advise decisions after the shared cards."))
                             .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                        DisclosureGroup(language.text("차트 읽는 법", "How to read the chart")) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(language.text("A는 에이스, K는 킹, Q는 퀸, J는 잭이에요. 숫자는 카드 숫자 그대로예요.",
+                                                   "A is ace, K is king, Q is queen and J is jack. Numbers are the card ranks."))
+                                Text(language.text("AA부터 22까지 대각선은 같은 숫자 두 장인 페어예요. 대각선 위의 s는 같은 무늬, 아래의 o는 다른 무늬예요.",
+                                                   "The diagonal from AA to 22 holds pairs. Above it, s means the same suit; below it, o means different suits."))
+                                Text(language.text("빨강은 다시 올리기, 주황은 콜, 회색은 폴드예요. 색 옆의 글자도 함께 보세요.",
+                                                   "Red means raise again, amber means call and gray means fold. The legend names each color too."))
+                            }
+                            .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 8)
+                        }
+                        .font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
+                        .accessibilityIdentifier("table-chart-reading-guide")
                         DefendGridView(opener: hand.villainSeat,
                                        highlight: decisions.contains { $0.street == 0 } ? HandClass(hand.hero) : nil,
                                        cards: decisions.contains { $0.street == 0 } ? hand.hero : [])
@@ -217,6 +232,7 @@ struct TableView: View {
                     }
                     .padding(.horizontal, 18).padding(.bottom, 28)
                 }
+                .accessibilityIdentifier("table-accessibility-scroll")
             } else {
                 GeometryReader { viewport in
                 VStack(spacing: 0) {
@@ -384,20 +400,16 @@ struct TableView: View {
                     Spacer(minLength: 0)
                     Text(language.text("벳 크기", "Bet size")).font(GT.title(18)).foregroundStyle(GT.ink)
                 }
-                ScrollView {
-                    VStack(spacing: GT.Space.related) {
-                        ForEach(bets, id: \.choice) { option in
-                            PrimaryCTAButton(title: "\(option.headline(in: language)) · \(option.subline(in: language))") {
-                                choosingBetSize = false
-                                act(option.choice)
-                            }
-                            .accessibilityIdentifier("table-bet-size-\(option.headline(in: .english))")
-                        }
-                    }
+                if dynamicTypeSize.isAccessibilitySize {
+                    betSizeButtons(bets)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("table-bet-sizes")
+                } else {
+                    ScrollView { betSizeButtons(bets) }
+                        .frame(height: sizeChooserHeight)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("table-bet-sizes")
                 }
-                .frame(height: sizeChooserHeight)
-                .accessibilityElement(children: .contain)
-                .accessibilityIdentifier("table-bet-sizes")
             } else {
                 Text(language.text("내 차례", "Your turn")).font(GT.title(18)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
@@ -422,6 +434,18 @@ struct TableView: View {
             Text(language.text("이후 베팅이 없다는 가정으로 비교해요", "Compared assuming no later bets"))
                 .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func betSizeButtons(_ bets: [GradedOption]) -> some View {
+        VStack(spacing: GT.Space.related) {
+            ForEach(bets, id: \.choice) { option in
+                PrimaryCTAButton(title: "\(option.headline(in: language)) · \(option.subline(in: language))") {
+                    choosingBetSize = false
+                    act(option.choice)
+                }
+                .accessibilityIdentifier("table-bet-size-\(option.headline(in: .english))")
+            }
         }
     }
 
