@@ -99,5 +99,15 @@ final class GradedDockFlowTests: XCTestCase {
         print("\(language) graded size last=\(last.frame), viewport=\(viewport)")
         last.tap()
         XCTAssertTrue(app.buttons[language == "ko" ? "계속" : "Continue"].waitForExistence(timeout: 10))
+        if language == "ko" {
+            let verdict = app.descendants(matching: .any)["table-verdict"]
+            XCTAssertTrue(verdict.label.contains("선택한 행동:"))
+            for _ in 0..<16 where !verdict.isHittable { row.swipeUp() }
+            XCTAssertTrue(verdict.isHittable)
+            XCTAssertGreaterThanOrEqual(verdict.frame.minX, row.frame.minX - 1)
+            XCTAssertLessThanOrEqual(verdict.frame.maxX, row.frame.maxX + 1)
+            let feedback = XCTAttachment(screenshot: app.screenshot())
+            feedback.name = "ko-AX-graded-feedback-copy"; feedback.lifetime = .keepAlways; add(feedback)
+        }
     }
 }
