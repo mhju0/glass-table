@@ -14,9 +14,9 @@ struct RootView: View {
     @State private var showPath = false
     @State private var showPlacement = false
     @State private var showBasics = false
-    /// Saving the check's answer must not pull its closing screen away.
-    @State private var firstPlacementOpen = false
-    @State private var firstPlacementDone = false
+    private enum FirstRunStage { case welcome, placement, lesson }
+    // View-local routing keeps a saved check on its closing screen until Continue.
+    @State private var firstRunStage: FirstRunStage = .welcome
     /// Set when the basics lesson ends with "start the next lesson"; the node opens
     /// once the lesson's cover has finished dismissing.
     @State private var nodeAfterBasics: CurriculumNode?
@@ -62,12 +62,14 @@ struct RootView: View {
                 // Spec §8.2: a store that exists but will not parse must never be
                 // silently replaced with empty progress.
                 StoreRecoveryView()
-            } else if model.shouldPresentFirstLesson, !firstPlacementDone,
-                      firstPlacementOpen || model.shouldPresentFirstPlacement {
-                PlacementView(onFinish: { firstPlacementDone = true })
-                    .onAppear { firstPlacementOpen = true }
+            } else if model.shouldPresentFirstLesson, firstRunStage == .placement {
+                PlacementView(onFinish: { firstRunStage = .lesson })
             } else if model.shouldPresentFirstLesson {
                 FirstLessonView(context: .firstRun,
+                                startsAtExample: firstRunStage == .lesson,
+                                onStart: {
+                                    firstRunStage = model.shouldPresentFirstPlacement ? .placement : .lesson
+                                },
                                 onFinish: {
                                     model.completeFirstLesson()
                                     if model.state.basicsLessonCompleted == true {
@@ -77,6 +79,7 @@ struct RootView: View {
                                     }
                                 },
                                 onSkip: { model.completeFirstLesson() })
+                    .id(firstRunStage)
             } else {
                 tabs
             }

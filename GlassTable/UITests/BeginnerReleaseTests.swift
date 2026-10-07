@@ -99,7 +99,9 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launchEnvironment["GT_TEST_FIRST_PLACEMENT"] = "1"
         app.launch()
         let newPlayer = app.buttons["I'm new to poker"]
-        XCTAssertTrue(newPlayer.waitForExistence(timeout: 15), "The check opens the first launch")
+        XCTAssertTrue(app.buttons["firstLesson.start"].waitForExistence(timeout: 15))
+        app.buttons["firstLesson.start"].tap()
+        XCTAssertTrue(newPlayer.waitForExistence(timeout: 5), "The check follows the welcome")
         XCTAssertTrue(app.buttons["Start without the check"].exists)
         newPlayer.tap()
         let skipLesson = app.buttons["firstLesson.skip"]

@@ -143,7 +143,7 @@ final class ProgressionModel {
         return !hasHistoricalActivity
     }
 
-    /// The starting-point check opens the first launch, before the first lesson.
+    /// The optional starting-point check follows the first-launch welcome.
     var shouldPresentFirstPlacement: Bool {
         guard shouldPresentFirstLesson, state.placement == nil else { return false }
         #if DEBUG

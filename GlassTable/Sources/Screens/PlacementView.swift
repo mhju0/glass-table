@@ -33,6 +33,7 @@ struct PlacementView: View {
                         Spacer(minLength: 12)
                         FeltCTAButton(title: onFinish == nil ? language.text("배우기로 돌아가기", "Return to Learn")
                                       : language.text("계속", "Continue")) { finish() }
+                            .accessibilityIdentifier("placement.continue")
                     } else if question < 0 {
                         Text(language.text("포커가 얼마나 익숙한가요?", "How familiar is poker?"))
                             .font(GT.title(22))
@@ -46,6 +47,7 @@ struct PlacementView: View {
                                     // A new player has nothing to check; they start from the basics.
                                     if option == .newToPoker { skip() } else { question = 0 }
                                 }
+                                .accessibilityIdentifier("placement.level.\(option.rawValue)")
                             }
                         }
                     } else {
@@ -64,6 +66,7 @@ struct PlacementView: View {
                         SecondaryCTAButton(title: language.text("확인 없이 시작하기", "Start without the check")) {
                             skip()
                         }
+                        .accessibilityIdentifier("placement.skip")
                     }
                 }
                 .gtContentEdge()
@@ -72,7 +75,7 @@ struct PlacementView: View {
         }
         .background(FeltBackground())
         .modifier(ProgressSaveNotice())
-        .gtChrome(leading: { ChromeButton.close { if onFinish == nil { dismiss() } else { skip() } } })
+        .gtChrome(leading: { ChromeButton.close { if onFinish == nil { dismiss() } else { skip() } }.accessibilityIdentifier("placement.close") })
         .gtSheetSurface()
         .onAppear { if epoch == nil { epoch = model.epoch } }
         .onChange(of: model.epoch) { _, _ in finish() }

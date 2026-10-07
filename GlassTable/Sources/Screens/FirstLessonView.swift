@@ -18,12 +18,22 @@ struct FirstLessonView: View {
     }
 
     let context: Context
+    let onStart: (() -> Void)?
     let onFinish: () -> Void
     let onSkip: () -> Void
 
     @State private var step: Step = .welcome
     @State private var answer: Int?
     @State private var pulse = false
+
+    init(context: Context, startsAtExample: Bool = false, onStart: (() -> Void)? = nil,
+         onFinish: @escaping () -> Void, onSkip: @escaping () -> Void) {
+        self.context = context
+        self.onStart = onStart
+        self.onFinish = onFinish
+        self.onSkip = onSkip
+        _step = State(initialValue: startsAtExample ? .example : .welcome)
+    }
 
     private func copy(_ key: FirstLessonCopy.Key) -> String {
         FirstLessonCopy.text(key, in: language)
@@ -189,7 +199,10 @@ struct FirstLessonView: View {
     private var panel: some View {
         switch step {
         case .welcome:
-            PrimaryCTAButton(title: copy(.startWelcome)) { step = .example }
+            PrimaryCTAButton(title: copy(.startWelcome)) {
+                if let onStart { onStart() } else { step = .example }
+            }
+            .accessibilityIdentifier("firstLesson.start")
         case .pot: nextButton { step = .blinds }
         case .blinds: nextButton { step = .flow }
         case .actions: nextButton { step = .wrapUp }
@@ -223,6 +236,7 @@ struct FirstLessonView: View {
                 .font(.system(size: 44, weight: .semibold)).foregroundStyle(GT.green)
                 .accessibilityHidden(true)
             Text(copy(.welcomeTitle))
+                .accessibilityIdentifier("firstLesson.welcome")
                 .font(GT.title(30)).foregroundStyle(GT.onFelt)
                 .fixedSize(horizontal: false, vertical: true)
             Text(copy(.welcomeBody))
