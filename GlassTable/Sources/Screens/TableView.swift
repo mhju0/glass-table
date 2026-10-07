@@ -256,6 +256,7 @@ struct TableView: View {
                         heroBlock(hand, compact: compactHeight)
                     }
                     .padding(.horizontal, 18)
+                    .padding(.top, compactHeight ? 8 : 0)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height)
                 }
                 .scrollBounceBehavior(.basedOnSize)
