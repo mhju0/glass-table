@@ -89,6 +89,8 @@ struct TableView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(language.text("A는 에이스, K는 킹, Q는 퀸, J는 잭이에요. 숫자는 카드 숫자 그대로예요.",
                                                    "A is ace, K is king, Q is queen and J is jack. Numbers are the card ranks."))
+                                LessonPairedText(korean: ["가로·세로는 각각 카드 숫자예요.", "두 숫자가 만나는 칸이 시작 패예요."],
+                                                 english: ["Rows and columns show ranks.", "Their crossing shows two cards."])
                                 Text(language.text("AA부터 22까지 대각선은 같은 숫자 두 장인 페어예요. 대각선 위의 s는 같은 무늬, 아래의 o는 다른 무늬예요.",
                                                    "The diagonal from AA to 22 holds pairs. Above it, s means the same suit; below it, o means different suits."))
                                 Text(language.text("빨강은 다시 올리기, 주황은 콜, 회색은 폴드예요. 색 옆의 글자도 함께 보세요.",
@@ -272,7 +274,9 @@ struct TableView: View {
                         .scrollBounceBehavior(.basedOnSize)
                         .frame(height: min(footerContentHeight ?? viewport.size.height * 0.56,
                                            viewport.size.height * 0.56))
-                        .onPreferenceChange(GradedFooterHeight.self) { footerContentHeight = $0 }
+                        .onPreferenceChange(GradedFooterHeight.self) { height in
+                            if height.isFinite, height > 0 { footerContentHeight = height }
+                        }
                         .accessibilityIdentifier("table-footer-scroll")
                     }.layoutPriority(1)
                 }
@@ -700,7 +704,7 @@ struct TableView: View {
 
 private struct GradedFooterHeight: PreferenceKey {
     static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
 private extension GradedOption {
