@@ -2940,6 +2940,7 @@ private struct DefendDrill: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.simpleQuestions) private var simple
+    @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.lessonGuidedChart) private var guidedChart
     @Environment(\.drillHelp) private var help
     @State private var chartVisible = true
@@ -3008,7 +3009,9 @@ private struct DefendDrill: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("이 핸드로 어떻게 맞서나요?", "What would you do with this hand?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
-                    HStack(spacing: 10) {
+                    let choices = textSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(spacing: 10))
+                    choices {
                         ForEach(DefendAction.allCases.reversed(), id: \.self) { a in
                             GTChoiceButton(title: defendAction(a), minHeight: 56) {
                                 reveal = gradeDefend(chosen: a, spot: spot, language: language)
