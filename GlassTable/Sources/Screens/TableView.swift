@@ -246,14 +246,14 @@ struct TableView: View {
                 let compactHeight = geo.size.height < 430
                 ScrollView {
                     VStack(spacing: 0) {
-                        seatRow(hand)
-                        // Spent once the hand is over: the summary beneath names every
-                        // street already, so the strip is repeating the answer.
-                        if case .hero = hand.phase { streetStrip(hand) }
+                        seatRow(hand, compact: compactHeight)
+                        if case .hero = hand.phase, lastTurn != nil || hand.events.last == nil {
+                            streetStrip(hand)
+                        }
                         Spacer(minLength: compactHeight ? 6 : 14)
-                        boardBlock(hand)
+                        boardBlock(hand, compact: compactHeight)
                         Spacer(minLength: compactHeight ? 6 : 14)
-                        heroBlock(hand)
+                        heroBlock(hand, compact: compactHeight)
                     }
                     .padding(.horizontal, 18)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height)
@@ -315,11 +315,11 @@ struct TableView: View {
                                 + TableEvent.streetName(hand.street, in: language))
     }
 
-    private func boardBlock(_ hand: TableHand) -> some View {
-        VStack(spacing: 10) {
+    private func boardBlock(_ hand: TableHand, compact: Bool = false) -> some View {
+        VStack(spacing: compact ? 5 : 10) {
             if !hand.board.isEmpty {
-                SectionLabel(text: language.text("공용 카드", "Shared cards"))
-                boardRow(hand)
+                if !compact { SectionLabel(text: language.text("공용 카드", "Shared cards")) }
+                boardRow(hand, compact: compact)
             }
             Text(language.text("팟 \(bbText(hand.pot))bb", "Pot \(bbText(hand.pot))bb"))
                 .font(GT.title(22).monospacedDigit()).foregroundStyle(GT.onFelt)
@@ -329,28 +329,34 @@ struct TableView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
+        .padding(.vertical, compact ? 4 : 10)
     }
 
-    private func heroBlock(_ hand: TableHand) -> some View {
-        VStack(spacing: 7) {
+    private func heroBlock(_ hand: TableHand, compact: Bool = false) -> some View {
+        let layout = compact ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(spacing: 7))
+        return layout {
             SectionLabel(text: language.text("내 카드 · \(hand.heroSeat.plainName(in: language))",
                                              "Your cards · \(hand.heroSeat.plainName(in: language))"))
-            CardRow(cards: hand.hero)
+            if compact { Spacer(minLength: 0) }
+            tableCards(hand.hero, compact: compact)
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, 16)
+        .padding(.bottom, compact ? 6 : 16)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("table-hero-cards")
     }
 
-    private func seatRow(_ hand: TableHand) -> some View {
-        VStack(spacing: 8) {
+    private func seatRow(_ hand: TableHand, compact: Bool = false) -> some View {
+        let layout = compact ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(spacing: 8))
+        return VStack(spacing: compact ? 4 : 8) {
+            layout {
             Text(hand.villain.beginnerTitle(in: language))
                 .font(GT.title(18)).foregroundStyle(GT.onFelt)
                 .fixedSize(horizontal: false, vertical: true)
+            if compact { Spacer(minLength: 0) }
             if case let .over(outcome) = hand.phase {
-                CardRow(cards: outcome.villainHand)
+                tableCards(outcome.villainHand, compact: compact)
+                    .accessibilityElement(children: .contain)
                     .accessibilityIdentifier("table-opponent-cards")
             } else {
                 HStack(spacing: 8) {
@@ -360,14 +366,15 @@ struct TableView: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("table-opponent-cards")
             }
-            if let event = hand.events.last, lastTurn == nil {
+            }
+            if case .hero = hand.phase, let event = hand.events.last, lastTurn == nil {
                 Text(event.text(in: language, plain: !termsLead))
                     .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 6)
+        .padding(.vertical, compact ? 2 : 6)
     }
 
     private var references: some View {
@@ -390,16 +397,29 @@ struct TableView: View {
         .buttonStyle(GTPress())
     }
 
-    private func boardRow(_ hand: TableHand) -> some View {
+    @ViewBuilder
+    private func tableCards(_ cards: [Card], compact: Bool) -> some View {
+        if compact {
+            HStack(spacing: 8) {
+                ForEach(cards, id: \.self) { card in PlayingCardView(card: card, size: 46) }
+            }
+        } else {
+            CardRow(cards: cards)
+        }
+    }
+
+    private func boardRow(_ hand: TableHand, compact: Bool = false) -> some View {
         HStack(spacing: 8) {
             ForEach(0..<5, id: \.self) { i in
                 if i < hand.board.count {
-                    PlayingCardView(card: hand.board[i])
+                    PlayingCardView(card: hand.board[i], size: compact ? 46 : PlayingCardView.canonicalSize)
                 } else {
-                    PlayingCardView(card: Card(rank: 2, suit: 0), faceDown: true)
+                    PlayingCardView(card: Card(rank: 2, suit: 0), size: compact ? 46 : PlayingCardView.canonicalSize, faceDown: true)
                 }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(language.text("공용 카드", "Shared cards"))
     }
 
     // MARK: the sheet
@@ -634,7 +654,7 @@ struct TableView: View {
             Text("\(resultLine(outcome)) · \(outcome.heroNet >= 0 ? "+" : "")\(bbText(outcome.heroNet))bb")
                 .font(GT.body(16).monospacedDigit()).foregroundStyle(GT.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Text(language.text("이긴 결과와 좋은 선택은 따로 봐요", "A winning result and a good decision are different"))
+            Text(language.text("승패와 선택의 질은 따로 봐요", "Hand outcome and decision quality are separate"))
                 .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             DisclosureGroup(language.text("선택 돌아보기", "Review decisions")) {

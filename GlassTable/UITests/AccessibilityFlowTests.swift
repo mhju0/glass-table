@@ -245,7 +245,7 @@ final class AccessibilityFlowTests: XCTestCase {
         let next = app.buttons["table-continue"]
         XCTAssertTrue(scrollUntilHittable(next, in: app))
         next.tap()
-        XCTAssertTrue(app.staticTexts["이긴 결과와 좋은 선택은 따로 봐요"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["승패와 선택의 질은 따로 봐요"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(
             format: "label CONTAINS %@", "EV 손실은 0bb예요"
         )).firstMatch.exists)

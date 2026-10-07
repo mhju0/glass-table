@@ -3,7 +3,7 @@ import XCTest
 final class GradedLearningFlowTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
 
-    private func launch(ax: Bool = false, postflop: Bool = false) -> XCUIApplication {
+    private func launch(ax: Bool = false, postflop: Bool = false, steps: Int? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-glassTable.language", "english", "-appAppearance", "dark"]
         if ax { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
@@ -12,9 +12,34 @@ final class GradedLearningFlowTests: XCTestCase {
             app.launchEnvironment["GT_DEMO_TABLE_STEP"] = "1"
             app.launchEnvironment["GT_DEMO_TABLE_CONTINUE"] = "1"
         }
+        if let steps { app.launchEnvironment["GT_DEMO_TABLE_STEP"] = String(steps) }
         app.launch()
         XCTAssertTrue(app.buttons["table-chart"].waitForExistence(timeout: 15))
         return app
+    }
+
+    func testNormalFeedbackAndSummaryKeepBothHandsFullyVisible() {
+        for (steps, action) in [(2, "table-continue"), (10, "table-next-hand")] {
+            let app = launch(steps: steps)
+            let footer = app.scrollViews["table-footer-scroll"]
+            let next = app.buttons[action]
+            XCTAssertTrue(next.waitForExistence(timeout: 10))
+            XCTAssertTrue(next.isHittable)
+            for identifier in ["table-hero-cards", "table-opponent-cards"] {
+                let cards = app.descendants(matching: .any)[identifier]
+                XCTAssertTrue(cards.exists)
+                XCTAssertGreaterThanOrEqual(cards.frame.minY, app.buttons["Back to Play"].frame.maxY - 1,
+                                            "Both hands must clear the navigation bar, fixture step \(steps)")
+                XCTAssertLessThanOrEqual(cards.frame.maxY, footer.frame.minY + 1,
+                                         "Both hands must fit above the decision footer, fixture step \(steps)")
+            }
+            let capture = XCTAttachment(screenshot: app.screenshot())
+            capture.name = "graded-normal-visible-cards-step-\(steps)"
+            capture.lifetime = .keepAlways
+            add(capture)
+            next.tap()
+            app.terminate()
+        }
     }
 
     private func reach(_ element: XCUIElement, app: XCUIApplication) {
