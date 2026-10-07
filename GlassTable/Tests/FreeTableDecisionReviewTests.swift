@@ -121,4 +121,44 @@ struct FreeTableDecisionReviewTests {
         #expect(FreeMathDots.count(neededPercent: 50) == 2)
     }
 
+    @Test func gameRecapUsesSavedActionCountsAndExactDenominator() {
+        let english = QuickPlayRecapWords.headline(folds: 1, checks: 2, calls: 5, bets: 1, raises: 1,
+                                                   language: .english)
+        #expect(english.contains("You chose to call most often in this game's saved hands"))
+        #expect(english.contains("5 of 10 decisions"))
+        let korean = QuickPlayRecapWords.headline(folds: 1, checks: 2, calls: 5, bets: 1, raises: 1,
+                                                  language: .korean)
+        #expect(korean.contains("콜을 가장 많이"))
+        #expect(korean.contains("전체 선택 10번 중 5번"))
+    }
+
+    @Test func gameRecapHandlesTiedActionsAndNoDecisions() {
+        let tied = QuickPlayRecapWords.headline(folds: 0, checks: 3, calls: 3, bets: 0, raises: 1,
+                                                language: .english)
+        #expect(tied.contains("were tied: check, call"))
+        #expect(tied.contains("3 of 7 decisions each"))
+        let zero = QuickPlayRecapWords.headline(folds: 0, checks: 0, calls: 0, bets: 0, raises: 0,
+                                                language: .english)
+        #expect(zero == "No player decisions in this game's saved hands · 0 decisions")
+        #expect(!zero.contains("most frequent"))
+    }
+
+    @Test func opponentWagerCopyStatesStreetAndHeldCategoryWithoutIntentLabels() {
+        let air = FreeTableCoachWords.revealLine(street: .flop, held: .air, raised: false,
+                                                language: .english)
+        #expect(air == "Flop bet: no pair and no draw")
+        let pair = FreeTableCoachWords.revealLine(street: .turn, held: .weakPair, raised: true,
+                                                 language: .english)
+        #expect(pair == "Turn raise: weak pair")
+        let korean = FreeTableCoachWords.revealLine(street: .flop, held: .air, raised: false,
+                                                   language: .korean)
+        #expect(korean == "플랍 벳 당시 패: 페어·드로우 없음")
+        for text in [air, pair, korean] {
+            #expect(!text.contains("bluff"))
+            #expect(!text.contains("real"))
+            #expect(!text.contains("블러프"))
+            #expect(!text.contains("진짜"))
+        }
+    }
+
 }

@@ -23,6 +23,10 @@ final class QuickPlayArchiveFlowTests: XCTestCase {
         let coverage = app.staticTexts["quick-game-coverage"]
         XCTAssertTrue(coverage.waitForExistence(timeout: 5))
         XCTAssertTrue(coverage.label.contains("1–10"), coverage.label)
+        XCTAssertTrue(app.staticTexts["quick-game-retention"].exists)
+        let headline = app.staticTexts["quick-game-headline"]
+        XCTAssertTrue(headline.exists)
+        XCTAssertTrue(headline.label.contains(language == "ko" ? "전체 선택" : "decisions"))
         capture(app, "\(language)-\(ax ? "ax5" : "large")-game-metrics")
         let scroll = app.scrollViews["quick-game-scroll"]
         for hand in [1, 10] {

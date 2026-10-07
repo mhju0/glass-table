@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
 import GlassTableDrills
+import GlassTableEngine
 
 struct QuickPlayArchiveView: View {
     @Environment(\.learningLanguage) private var language
@@ -16,6 +17,10 @@ struct QuickPlayArchiveView: View {
                     Text(language.text("한 핸드씩 선택을 돌아보며 감을 익혀요.",
                                        "Build a feel for the game by reviewing one hand at a time."))
                         .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
+                    Text(language.text("최근에 마친 20게임과 현재 게임의 기록을 보관해요. 새 기록이 쌓이면 가장 오래된 완료 게임부터 삭제돼요.",
+                                       "History keeps the latest 20 ended games plus the current game. Older ended games are removed as new games are saved."))
+                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                        .accessibilityIdentifier("quick-game-retention")
                     ForEach(sessions.reversed()) { session in
                         sessionCard(session)
                     }
@@ -36,6 +41,10 @@ struct QuickPlayArchiveView: View {
         let metrics = session.metrics
         return VStack(alignment: .leading, spacing: 14) {
             Text(status(session)).font(GT.title(22))
+            Text(QuickPlayRecapWords.headline(folds: metrics.folds, checks: metrics.checks,
+                calls: metrics.calls, bets: metrics.bets, raises: metrics.raises, language: language))
+                .font(GT.semibold(17)).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("quick-game-headline")
             Text(language.text("저장된 핸드 \(session.coverageStartHandNumber + 1)–\(session.coverageStartHandNumber + metrics.hands) · \(metrics.hands)핸드",
                                "Saved hands \(session.coverageStartHandNumber + 1)–\(session.coverageStartHandNumber + metrics.hands) · \(metrics.hands) hands"))
                 .font(GT.semibold(15)).accessibilityIdentifier("quick-game-coverage")
@@ -93,4 +102,27 @@ struct QuickPlayArchiveView: View {
 private struct ArchivedHandSelection: Identifiable {
     let table: PracticeTableState
     var id: String { table.handID }
+}
+
+/// Describes this game's saved actions only; tied actions share the same denominator.
+enum QuickPlayRecapWords {
+    static func headline(folds: Int, checks: Int, calls: Int, bets: Int, raises: Int,
+                         language: LearningLanguage) -> String {
+        let actions = [("폴드", "fold", folds), ("체크", "check", checks),
+                       ("콜", "call", calls), ("벳", "bet", bets), ("레이즈", "raise", raises)]
+        let total = actions.reduce(0) { $0 + $1.2 }
+        guard let most = actions.map(\.2).max(), most > 0 else {
+            return language.text("이 게임의 저장된 핸드에서는 직접 고른 행동이 없어요 · 0회",
+                                 "No player decisions in this game's saved hands · 0 decisions")
+        }
+        let leaders = actions.filter { $0.2 == most }
+        let names = leaders.map { language.text($0.0, $0.1) }
+            .joined(separator: language == .korean ? "·" : ", ")
+        if leaders.count == 1 {
+            return language.text("이 게임의 저장된 핸드에서는 \(KO.object(names)) 가장 많이 골랐어요 · 전체 선택 \(total)번 중 \(most)번",
+                                 "You chose to \(names) most often in this game's saved hands · \(most) of \(total) decisions")
+        }
+        return language.text("이 게임의 저장된 핸드에서는 \(KO.subject(names)) 가장 많았어요 · 각각 전체 선택 \(total)번 중 \(most)번",
+                             "The most frequent choices in this game's saved hands were tied: \(names) · \(most) of \(total) decisions each")
+    }
 }

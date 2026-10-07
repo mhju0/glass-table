@@ -5,7 +5,7 @@ import GlassTableEngine
 
 /// A finished hand retold one decision at a time: what you held, what the others had
 /// done, what it cost, what the beginner chart suggests, and how your choice compares.
-/// The last page shows the cards that reached the showdown and names any bluff.
+/// The last page shows showdown cards and the hand category at each wager.
 struct FreeTableHandCoachView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -201,7 +201,7 @@ struct FreeTableHandCoachView: View {
                     }
                     ForEach(reveals.filter { $0.seat == seat }, id: \.eventIndex) { reveal in
                         Text(revealLine(reveal)).font(GT.body(15))
-                            .foregroundStyle(reveal.wasBluff ? GT.cta : GT.ink)
+                            .foregroundStyle(GT.ink)
                             .accessibilityIdentifier(reveal.wasBluff ? "coach-bluff" : "coach-honest-bet")
                     }
                 }
@@ -210,13 +210,8 @@ struct FreeTableHandCoachView: View {
     }
 
     private func revealLine(_ reveal: PracticeCoachReveal) -> String {
-        let street = FreeTableWords.street(reveal.street, language: language)
-        if reveal.wasBluff {
-            return language.text("\(street) 벳은 블러프였어요. 페어도 드로우도 없었어요.",
-                                 "Their \(street.lowercased()) bet was a bluff: no pair and no draw.")
-        }
-        let held = DrillTerms.madeHand(reveal.held, in: language)
-        return language.text("\(street) 벳은 진짜였어요: \(held).", "Their \(street.lowercased()) bet was real: \(held.lowercased()).")
+        FreeTableCoachWords.revealLine(street: reveal.street, held: reveal.held,
+            raised: table.events[reveal.eventIndex].label == "raise", language: language)
     }
 
     // MARK: Pieces
@@ -239,5 +234,18 @@ struct FreeTableHandCoachView: View {
                 if let card = Card(text) { PlayingCardView(card: card, size: size) }
             }
         }
+    }
+}
+
+enum FreeTableCoachWords {
+    static func revealLine(street: PracticeStreet, held: MadeHand, raised: Bool,
+                           language: LearningLanguage) -> String {
+        let streetName = FreeTableWords.street(street, language: language)
+        let action = raised ? language.text("레이즈", "raise") : language.text("벳", "bet")
+        let category = held == .air
+            ? language.text("페어·드로우 없음", "no pair and no draw")
+            : DrillTerms.madeHand(held, in: language).lowercased()
+        return language.text("\(streetName) \(action) 당시 패: \(category)",
+                             "\(streetName) \(action): \(category)")
     }
 }
