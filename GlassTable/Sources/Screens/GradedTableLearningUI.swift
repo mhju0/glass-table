@@ -6,8 +6,8 @@ enum GradedTableLearning {
         case let .chart(verdict):
             switch verdict.chart {
             case .fold:
-                return language.text("이 시작 패는 차트에서 내려놓는 쪽에 속해요. 상대가 먼저 올린 자리도 기준에 들어가요.",
-                                     "The chart puts this starting hand in the fold group. The raiser's seat matters too.")
+                return language.text("이 시작 패는 차트에서 내려놓는 쪽에 속해요.",
+                                     "The chart puts this starting hand in the fold group.")
             case .call:
                 return language.text("이 시작 패는 차트에서 따라가는 쪽에 속해요. 다시 올리는 패와는 구분해요.",
                                      "The chart puts this starting hand in the call group, separate from hands that raise again.")
@@ -24,8 +24,8 @@ enum GradedTableLearning {
     static func basis(_ turn: TableView.TurnRecord, language: LearningLanguage) -> String {
         switch turn.verdict {
         case .chart:
-            return language.text("상대 자리의 오픈 레인지에서 만든 앱 디펜드 차트와 비교했어요. 칩 손실을 계산한 점수는 아니에요. bb는 빅블라인드 1개를 기준으로 한 단위예요.",
-                                 "Compared with the app's defend chart for the opener's seat, not an estimate of chips lost. One bb is one big blind.")
+            return language.text("앱의 공개된 디펜드 차트와 비교했어요. 칩 손실을 계산한 점수는 아니에요. bb는 빅블라인드 1개를 기준으로 한 단위예요.",
+                                 "Compared with the app's published defend chart, not an estimate of chips lost. One bb is one big blind.")
         case .ev:
             return language.text("현재 상대 레인지와 공개된 규칙으로 계산해요. 이후 베팅과 레이크는 제외하며, 플랍은 표본 추정이에요. bb는 빅블라인드 1개를 기준으로 한 단위예요.",
                                  "Uses the current possible opponent hands and published rules. Later bets and fees are excluded; the flop uses a sampled estimate. One bb is one big blind.")
