@@ -29,21 +29,25 @@ final class GradedLearningFlowTests: XCTestCase {
         let footer = app.scrollViews["table-footer-scroll"]
         let measurement = app.descendants(matching: .any)["table-footer-measured-height"]
         XCTAssertTrue(measurement.waitForExistence(timeout: 5))
-        let contentHeight = Double(measurement.value as? String ?? "") ?? 0
-        let bounds = app.descendants(matching: .any)["table-footer-viewport-bounds"]
-        XCTAssertTrue(bounds.waitForExistence(timeout: 5))
-        let viewportValues = (bounds.value as? String ?? "").split(separator: ",").compactMap { Double($0) }
-        XCTAssertEqual(viewportValues.count, 2)
-        guard viewportValues.count == 2 else { return }
+        let ready = expectation(for: NSPredicate { object, _ in
+            guard let element = object as? XCUIElement else { return false }
+            let values = (element.value as? String ?? "").split(separator: ",").compactMap { Double($0) }
+            return values.count == 3 && values[0] > 0 && values[1] > 0
+        }, evaluatedWith: measurement)
+        wait(for: [ready], timeout: 5)
+        let viewportValues = (measurement.value as? String ?? "").split(separator: ",").compactMap { Double($0) }
+        XCTAssertEqual(viewportValues.count, 3)
+        guard viewportValues.count == 3 else { return }
+        let contentHeight = viewportValues[0]
         XCTAssertGreaterThan(contentHeight, 0)
-        XCTAssertEqual(viewportValues[0], contentHeight, accuracy: 1,
+        XCTAssertEqual(viewportValues[1], contentHeight, accuracy: 1,
                        "The native footer viewport must hug its preflop controls")
-        print("graded footer: content=\(contentHeight), nativeViewport=\(viewportValues[0]), bottomSafeArea=\(viewportValues[1]), scrollAXFrame=\(footer.frame)")
+        print("graded footer: content=\(contentHeight), nativeViewport=\(viewportValues[1]), bottomSafeArea=\(viewportValues[2]), scrollAXFrame=\(footer.frame)")
         for identifier in ["table-hero-cards", "table-opponent-cards"] {
             let cards = app.descendants(matching: .any)[identifier]
             XCTAssertTrue(cards.exists)
             XCTAssertGreaterThanOrEqual(cards.frame.minY, app.buttons["Back to Play"].frame.maxY - 1)
-            XCTAssertLessThanOrEqual(cards.frame.maxY, bounds.frame.minY + 1)
+            XCTAssertLessThanOrEqual(cards.frame.maxY, footer.frame.minY + 1)
         }
         for identifier in ["table-fold", "table-passive", "table-aggressive"] {
             let button = app.buttons[identifier]

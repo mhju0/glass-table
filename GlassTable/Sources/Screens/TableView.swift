@@ -19,6 +19,9 @@ struct TableView: View {
     @State private var options: [GradedOption]?
     @State private var choosingBetSize = false
     @State private var footerContentHeight: CGFloat?
+    #if DEBUG
+    @State private var footerViewport = GradedFooterViewport(height: 0, bottomInset: 0)
+    #endif
     @ScaledMetric(relativeTo: .body) private var sizeChooserHeight: CGFloat = 186
     @State private var lastTurn: TurnRecord?
     @State private var decisions: [TurnRecord] = []
@@ -271,7 +274,7 @@ struct TableView: View {
                                             Color.clear
                                                 .accessibilityElement(children: .ignore)
                                                 .accessibilityLabel("Measured footer content height")
-                                                .accessibilityValue(String(Double(content.size.height)))
+                                                .accessibilityValue("\(Double(content.size.height)),\(Double(footerViewport.height)),\(Double(footerViewport.bottomInset))")
                                                 .accessibilityIdentifier("table-footer-measured-height")
                                                 .allowsHitTesting(false)
                                         }
@@ -284,20 +287,14 @@ struct TableView: View {
                         .scrollBounceBehavior(.basedOnSize)
                         .frame(height: min(footerContentHeight ?? viewport.size.height * 0.56,
                                            viewport.size.height * 0.56))
-                        .background {
-                            #if DEBUG
-                            if ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"] != nil {
-                                GeometryReader { scrollViewport in
-                                    Color.clear
-                                        .accessibilityElement(children: .ignore)
-                                        .accessibilityLabel("Footer viewport bounds")
-                                        .accessibilityValue("\(Double(scrollViewport.size.height)),\(Double(scrollViewport.safeAreaInsets.bottom))")
-                                        .accessibilityIdentifier("table-footer-viewport-bounds")
-                                        .allowsHitTesting(false)
-                                }
-                            }
-                            #endif
+                        #if DEBUG
+                        .onGeometryChange(for: GradedFooterViewport.self) { scrollViewport in
+                            GradedFooterViewport(height: scrollViewport.size.height,
+                                                 bottomInset: scrollViewport.safeAreaInsets.bottom)
+                        } action: {
+                            footerViewport = $0
                         }
+                        #endif
                         .onPreferenceChange(GradedFooterHeight.self) { height in
                             if height.isFinite, height > 0 { footerContentHeight = height }
                         }
@@ -730,6 +727,13 @@ private struct GradedFooterHeight: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
+
+#if DEBUG
+private struct GradedFooterViewport: Equatable {
+    let height: CGFloat
+    let bottomInset: CGFloat
+}
+#endif
 
 private extension GradedOption {
     /// Fold/check/call/raise sit on one compact row; bets get the two-line §A button.
