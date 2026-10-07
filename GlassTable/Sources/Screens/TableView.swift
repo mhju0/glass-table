@@ -284,6 +284,20 @@ struct TableView: View {
                         .scrollBounceBehavior(.basedOnSize)
                         .frame(height: min(footerContentHeight ?? viewport.size.height * 0.56,
                                            viewport.size.height * 0.56))
+                        .background {
+                            #if DEBUG
+                            if ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"] != nil {
+                                GeometryReader { scrollViewport in
+                                    Color.clear
+                                        .accessibilityElement(children: .ignore)
+                                        .accessibilityLabel("Footer viewport bounds")
+                                        .accessibilityValue("\(Double(scrollViewport.size.height)),\(Double(scrollViewport.safeAreaInsets.bottom))")
+                                        .accessibilityIdentifier("table-footer-viewport-bounds")
+                                        .allowsHitTesting(false)
+                                }
+                            }
+                            #endif
+                        }
                         .onPreferenceChange(GradedFooterHeight.self) { height in
                             if height.isFinite, height > 0 { footerContentHeight = height }
                         }

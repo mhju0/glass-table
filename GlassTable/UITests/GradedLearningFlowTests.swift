@@ -29,17 +29,21 @@ final class GradedLearningFlowTests: XCTestCase {
         let footer = app.scrollViews["table-footer-scroll"]
         let measurement = app.descendants(matching: .any)["table-footer-measured-height"]
         XCTAssertTrue(measurement.waitForExistence(timeout: 5))
-        // Accessibility groups report a union of descendants, excluding some text
-        // leading and stack spacing. Read the actual SwiftUI layout measurement.
         let contentHeight = Double(measurement.value as? String ?? "") ?? 0
+        let bounds = app.descendants(matching: .any)["table-footer-viewport-bounds"]
+        XCTAssertTrue(bounds.waitForExistence(timeout: 5))
+        let viewportValues = (bounds.value as? String ?? "").split(separator: ",").compactMap { Double($0) }
+        XCTAssertEqual(viewportValues.count, 2)
+        guard viewportValues.count == 2 else { return }
         XCTAssertGreaterThan(contentHeight, 0)
-        XCTAssertLessThanOrEqual(Double(footer.frame.height), contentHeight + 1,
-                                 "The footer viewport must not add blank height beyond its controls")
+        XCTAssertEqual(viewportValues[0], contentHeight, accuracy: 1,
+                       "The native footer viewport must hug its preflop controls")
+        print("graded footer: content=\(contentHeight), nativeViewport=\(viewportValues[0]), bottomSafeArea=\(viewportValues[1]), scrollAXFrame=\(footer.frame)")
         for identifier in ["table-hero-cards", "table-opponent-cards"] {
             let cards = app.descendants(matching: .any)[identifier]
             XCTAssertTrue(cards.exists)
             XCTAssertGreaterThanOrEqual(cards.frame.minY, app.buttons["Back to Play"].frame.maxY - 1)
-            XCTAssertLessThanOrEqual(cards.frame.maxY, footer.frame.minY + 1)
+            XCTAssertLessThanOrEqual(cards.frame.maxY, bounds.frame.minY + 1)
         }
         for identifier in ["table-fold", "table-passive", "table-aggressive"] {
             let button = app.buttons[identifier]
