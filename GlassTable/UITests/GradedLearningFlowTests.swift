@@ -24,6 +24,31 @@ final class GradedLearningFlowTests: XCTestCase {
         XCTAssertLessThanOrEqual(element.frame.maxX, app.windows.firstMatch.frame.maxX)
     }
 
+    func testNormalPreflopFooterHugsControlsAndBothHandsFit() {
+        let app = launch()
+        let footer = app.scrollViews["table-footer-scroll"]
+        let content = app.descendants(matching: .any)["table-footer-content"]
+        XCTAssertTrue(content.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(content.frame.height, 0)
+        XCTAssertLessThanOrEqual(footer.frame.height, content.frame.height + 1,
+                                 "The footer viewport must not add blank height beyond its controls")
+        for identifier in ["table-hero-cards", "table-opponent-cards"] {
+            let cards = app.descendants(matching: .any)[identifier]
+            XCTAssertTrue(cards.exists)
+            XCTAssertGreaterThanOrEqual(cards.frame.minY, app.buttons["Back to Play"].frame.maxY - 1)
+            XCTAssertLessThanOrEqual(cards.frame.maxY, footer.frame.minY + 1)
+        }
+        for identifier in ["table-fold", "table-passive", "table-aggressive"] {
+            let button = app.buttons[identifier]
+            XCTAssertTrue(button.isHittable)
+            XCTAssertEqual(button.frame.height, 87, accuracy: 1)
+        }
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = "graded-normal-preflop-footer-and-cards"
+        capture.lifetime = .keepAlways
+        add(capture)
+    }
+
     func testChartBeforeCommitDoesNotRevealOwnHandRecommendation() {
         let app = launch()
         app.buttons["table-chart"].tap()

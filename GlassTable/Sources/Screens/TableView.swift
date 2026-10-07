@@ -18,6 +18,7 @@ struct TableView: View {
     @State private var hand: TableHand?
     @State private var options: [GradedOption]?
     @State private var choosingBetSize = false
+    @State private var footerContentHeight: CGFloat?
     @ScaledMetric(relativeTo: .body) private var sizeChooserHeight: CGFloat = 186
     @State private var lastTurn: TurnRecord?
     @State private var decisions: [TurnRecord] = []
@@ -258,13 +259,21 @@ struct TableView: View {
                 .defaultScrollAnchor(.bottom)
                     }
                     ActionSheet {
-                        ViewThatFits(in: .vertical) {
+                        ScrollView {
                             VStack(alignment: .leading, spacing: GT.Space.related) { sheet(hand) }
-                            ScrollView {
-                                VStack(alignment: .leading, spacing: GT.Space.related) { sheet(hand) }
-                            }
+                                .background {
+                                    GeometryReader { content in
+                                        Color.clear.preference(key: GradedFooterHeight.self, value: content.size.height)
+                                    }
+                                }
+                                .accessibilityElement(children: .contain)
+                                .accessibilityIdentifier("table-footer-content")
                         }
-                        .frame(maxHeight: viewport.size.height * 0.56)
+                        .scrollBounceBehavior(.basedOnSize)
+                        .frame(height: min(footerContentHeight ?? viewport.size.height * 0.56,
+                                           viewport.size.height * 0.56))
+                        .onPreferenceChange(GradedFooterHeight.self) { footerContentHeight = $0 }
+                        .accessibilityIdentifier("table-footer-scroll")
                     }.layoutPriority(1)
                 }
                 }
@@ -317,11 +326,14 @@ struct TableView: View {
                 .fixedSize(horizontal: false, vertical: true)
             if case let .over(outcome) = hand.phase {
                 CardRow(cards: outcome.villainHand)
+                    .accessibilityIdentifier("table-opponent-cards")
             } else {
                 HStack(spacing: 8) {
                     PlayingCardView(card: Card(rank: 2, suit: 0), size: 46, faceDown: true)
                     PlayingCardView(card: Card(rank: 2, suit: 0), size: 46, faceDown: true)
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("table-opponent-cards")
             }
             if let event = hand.events.last, lastTurn == nil {
                 Text(event.text(in: language, plain: !termsLead))
@@ -684,6 +696,11 @@ struct TableView: View {
             }
         }
     }
+}
+
+private struct GradedFooterHeight: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 private extension GradedOption {
