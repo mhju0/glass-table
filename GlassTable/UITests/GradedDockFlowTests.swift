@@ -7,7 +7,8 @@ final class GradedDockFlowTests: XCTestCase {
     private func launch(_ language: String = "en", postflop: Bool = false, ax: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(\(language))", "-AppleLocale", language == "ko" ? "ko_KR" : "en_US"]
-        if ax { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName",
+                                ax ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_LANGUAGE": language,
                                  "GT_DEMO_TABLE": postflop ? "station" : "tag"]
         if postflop {

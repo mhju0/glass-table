@@ -6,7 +6,8 @@ final class GradedLearningFlowTests: XCTestCase {
     private func launch(ax: Bool = false, postflop: Bool = false, steps: Int? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-glassTable.language", "english", "-appAppearance", "dark"]
-        if ax { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName",
+                                ax ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_TABLE": "tag"]
         if postflop {
             app.launchEnvironment["GT_DEMO_TABLE_STEP"] = "1"
