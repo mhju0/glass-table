@@ -372,18 +372,40 @@ struct DrillShell<Content: View, Sheet: View>: View {
     var body: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: GT.Space.section) {
-                        header
-                        if let hintConcept { CompactLessonCue(concept: hintConcept) }
-                        content().frame(maxWidth: .infinity, alignment: .leading)
-                        VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
-                            .padding(GT.Space.sheet).frame(maxWidth: .infinity, alignment: .leading)
-                            .gtCard(radius: GT.Radius.panel, band: gradedBand)
-                            .accessibilityElement(children: .contain)
-                            .accessibilityIdentifier(sheetIdentifier)
+                GeometryReader { geometry in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: GT.Space.section) {
+                            VStack(alignment: .leading, spacing: 10) {
+                                titleText.fixedSize(horizontal: false, vertical: true)
+                                HStack(alignment: .top, spacing: 16) {
+                                    if explainConcept != nil {
+                                        Button { explaining = true } label: {
+                                            Image(systemName: "info.circle")
+                                                .font(GT.title(18)).foregroundStyle(GT.onFeltSecondary)
+                                                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                                        }
+                                        .buttonStyle(GTPress())
+                                        .accessibilityLabel(language.text("개념 설명", "Explain this skill"))
+                                        .accessibilityIdentifier("drill-explain")
+                                    }
+                                    Text(progressText).font(GT.semibold(14).monospacedDigit())
+                                        .foregroundStyle(GT.onFeltSecondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .accessibilityIdentifier("drill-question-\(questionID)")
+                                }
+                            }.padding(.bottom, 12)
+                            if let hintConcept { CompactLessonCue(concept: hintConcept) }
+                            content().frame(maxWidth: .infinity, alignment: .leading)
+                            VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
+                                .padding(GT.Space.sheet).frame(maxWidth: .infinity, alignment: .leading)
+                                .gtCard(radius: GT.Radius.panel, band: gradedBand)
+                                .accessibilityElement(children: .contain)
+                                .accessibilityIdentifier(sheetIdentifier)
+                        }
+                        .frame(width: max(0, geometry.size.width - 36), alignment: .leading)
+                        .padding(.horizontal, 18).padding(.bottom, 28)
                     }
-                    .padding(.horizontal, 18).padding(.bottom, 28)
                 }
             } else {
                 ScrollViewReader { proxy in

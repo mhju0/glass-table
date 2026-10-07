@@ -136,7 +136,10 @@ struct WalkthroughView: View {
                                             : language.text("기여액을 다시 더해 봐요.", "Add the contributions again."))
                     .font(GT.body(14)).foregroundStyle(GT.ink)
             }
-            HStack(spacing: 12) {
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: 12))
+                : AnyLayout(HStackLayout(spacing: 12))
+            layout {
                 SecondaryCTAButton(title: language.text("이전", "Previous"), action: previousStep)
                     .disabled(positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)).accessibilityIdentifier("walkthrough-previous")
                 PrimaryCTAButton(title: isCovered && concept != .potMath

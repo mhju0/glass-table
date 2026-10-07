@@ -112,12 +112,9 @@ struct FirstLessonView: View {
     private var header: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 10) {
                     headerTitle
-                    HStack {
-                        Spacer(minLength: 0)
-                        headerAction
-                    }
+                    headerAction.frame(maxWidth: .infinity, alignment: .leading)
                 }
             } else {
                 HStack(alignment: .center) {
@@ -153,18 +150,24 @@ struct FirstLessonView: View {
     }
 
     private var headerAction: some View {
-        HStack(spacing: 8) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(spacing: 8))
+        return layout {
             if !history.isEmpty {
                 Button(action: previous) {
                     Label(language.text("이전", "Previous"), systemImage: "chevron.left")
                         .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
+                        .fixedSize(horizontal: false, vertical: true)
                         .frame(minHeight: 44)
                 }.accessibilityIdentifier("firstLesson.previous")
             }
-            Button(context == .firstRun ? copy(.skip) : copy(.close),
-                   action: onSkip)
-                .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-                .frame(minWidth: 44, minHeight: 44)
+            Button(action: onSkip) {
+                Text(context == .firstRun ? copy(.skip) : copy(.close))
+                    .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(minWidth: 44, minHeight: 44)
+            }
                 .accessibilityIdentifier(context == .firstRun
                                          ? "firstLesson.skip" : "firstLesson.close")
         }
