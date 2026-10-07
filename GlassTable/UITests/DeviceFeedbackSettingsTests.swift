@@ -7,7 +7,7 @@ final class DeviceFeedbackSettingsTests: XCTestCase {
     private func exercise(_ code: String, _ appearance: String, _ ax: Bool) {
         let app = XCUIApplication()
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_SETTINGS": "1"]
-        app.launchArguments = ["-glassTable.language", code == "ko" ? "korean" : "english",
+        app.launchArguments = ["-AppleLanguages", code == "ko" ? "(ko)" : "(en)",
                                "-appAppearance", appearance]
         if ax { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         app.launch()
