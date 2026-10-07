@@ -141,7 +141,7 @@ struct WalkthroughView: View {
                     .disabled(positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)).accessibilityIdentifier("walkthrough-previous")
                 PrimaryCTAButton(title: isCovered && concept != .potMath
                                  ? language.text("예시 확인", "Check example")
-                                 : isLast ? language.text("설명으로 돌아가기", "Finish example")
+                                 : isLast ? language.text("예시 마치기", "Finish example")
                                           : language.text("다음", "Next")) {
                     if isCovered, concept != .potMath {
                         withAnimation(reduceMotion ? nil : GT.Motion.change) { practiceRevealed = true }

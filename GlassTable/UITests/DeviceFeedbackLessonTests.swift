@@ -18,7 +18,7 @@ final class DeviceFeedbackLessonTests: XCTestCase {
         tap(app.buttons["walkthrough-previous"], app)
         for _ in 0..<40 {
             let next = app.buttons["walkthrough-next"]
-            if next.label == (code == "ko" ? "설명으로 돌아가기" : "Finish example") {
+            if next.label == (code == "ko" ? "예시 마치기" : "Finish example") {
                 snapshot(app, "position-last-\(code)-\(appearance)")
                 tap(next, app)
                 XCTAssertTrue(app.buttons["explain-example"].waitForExistence(timeout: 5))
