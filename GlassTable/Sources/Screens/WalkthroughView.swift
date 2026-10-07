@@ -139,15 +139,19 @@ struct WalkthroughView: View {
             HStack(spacing: 12) {
                 SecondaryCTAButton(title: language.text("이전", "Previous"), action: previousStep)
                     .disabled(positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)).accessibilityIdentifier("walkthrough-previous")
-                PrimaryCTAButton(title: isLast ? language.text("설명으로 돌아가기", "Finish example")
-                                               : language.text("다음", "Next")) {
-                    if let step = positionTeachingStep {
+                PrimaryCTAButton(title: isCovered && concept != .potMath
+                                 ? language.text("예시 확인", "Check example")
+                                 : isLast ? language.text("설명으로 돌아가기", "Finish example")
+                                          : language.text("다음", "Next")) {
+                    if isCovered, concept != .potMath {
+                        withAnimation(reduceMotion ? nil : GT.Motion.change) { practiceRevealed = true }
+                    } else if let step = positionTeachingStep {
                         positionTeachingStep = step + 1 < orientation.count ? step + 1 : nil
                     } else if isLast { onFinish() }
                     else if onStep(index + 1) {
                         withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 }
                     }
-                }.disabled(isCovered).accessibilityIdentifier("walkthrough-next")
+                }.disabled(isCovered && concept == .potMath).accessibilityIdentifier("walkthrough-next")
             }
         }
     }
