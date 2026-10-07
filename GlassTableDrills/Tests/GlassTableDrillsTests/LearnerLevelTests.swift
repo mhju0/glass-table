@@ -39,13 +39,13 @@ final class LearnerLevelTests: XCTestCase {
 
     func testAPassedTrackChallengeSkipsThatTracksLessons() {
         let passed = state(.knowRules, cleared: ["u1-position", "u3-boss"])
-        XCTAssertEqual(Curriculum.suggestedLesson(in: passed)?.id, "u2-outs")
+        XCTAssertEqual(Curriculum.suggestedLesson(in: passed)?.id, "u2-equitySense")
     }
 
     func testLessonsBeforeTheLevelStartAreNotAskedForFirst() {
         let position = Curriculum.node(id: "u1-position")!
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: position, in: state(.newToPoker)).map(\.id),
-                       ["u1-showdown", "u1-potMath"])
+                       ["u1-showdown", "u2-outs", "u1-potMath"])
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: position, in: state(.knowRules)), [])
         let rfi = Curriculum.node(id: "u3-rfi")!
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state(.knowRules)).map(\.id),

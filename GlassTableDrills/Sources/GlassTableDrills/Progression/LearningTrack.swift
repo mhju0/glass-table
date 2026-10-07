@@ -40,7 +40,13 @@ public extension Curriculum {
     }
 
     /// The four tracks' lessons in suggested order, without challenges or "Go deeper".
-    static let trackLessons: [CurriculumNode] = tracks.filter { !$0.isOptional }.flatMap(\.lessons)
+    static let trackLessons: [CurriculumNode] = {
+        let lessons = tracks.filter { !$0.isOptional }.flatMap(\.lessons)
+        let outs = lessons.first { $0.id == "u2-outs" }!
+        var ordered = lessons.filter { $0 != outs }
+        ordered.insert(outs, at: 1)
+        return ordered
+    }()
 
     static func track(containing node: CurriculumNode) -> LearningTrack? {
         tracks.first { $0.lessons.contains(node) || $0.challenge == node }

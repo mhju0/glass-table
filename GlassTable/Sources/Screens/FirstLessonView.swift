@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
-import UIKit
 import GlassTableEngine
 import GlassTableDrills
 
@@ -12,9 +11,10 @@ struct FirstLessonView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
     enum Context { case firstRun, replay }
-    private enum Step {
+    private enum Step: Hashable {
         case welcome, pot, blinds, actions, flow, bestFive
         case example, exampleAnswer, transfer, transferAnswer, wrapUp
+        case comparison(Int), comparisonAnswer(Int)
     }
 
     let context: Context
@@ -25,6 +25,15 @@ struct FirstLessonView: View {
     @State private var step: Step = .welcome
     @State private var answer: Int?
     @State private var pulse = false
+    @State private var history: [Step] = []
+    @State private var returning = false
+    @State private var submitted: [Step: Int] = [:]
+    @State private var variationSeed: UInt64 = 0
+    @State private var rotationLoaded = false
+
+    private var exampleSpot: ShowdownSpot { FirstLesson.pairExample(seed: variationSeed, transfer: false) }
+    private var transferSpot: ShowdownSpot { FirstLesson.pairExample(seed: variationSeed, transfer: true) }
+    private var comparisons: [ShowdownSpot] { FirstLesson.comparisonOrder(seed: variationSeed) }
 
     init(context: Context, startsAtExample: Bool = false, onStart: (() -> Void)? = nil,
          onFinish: @escaping () -> Void, onSkip: @escaping () -> Void) {
@@ -42,48 +51,43 @@ struct FirstLessonView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            if dynamicTypeSize.isAccessibilitySize {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: GT.Space.section) {
-                        content
-                        VStack(alignment: .leading, spacing: GT.Space.related) { panel }
-                            .padding(GT.Space.sheet).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(panelBand?.tint ?? GT.glass,
-                                        in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
-                            .overlay {
-                                RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
-                                    .strokeBorder(panelBand?.ink ?? GT.border, lineWidth: panelBand == nil ? 1 : 2)
-                            }
+            GeometryReader { geo in
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: GT.Space.section) { content }
+                            .padding(.horizontal, 18).padding(.vertical, 12)
+                            .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
                     }
-                    .padding(.horizontal, 18).padding(.bottom, 28)
-                }
-            } else {
-                GeometryReader { geo in
-                    ScrollViewReader { proxy in
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: GT.Space.section) { content }
-                                .padding(.horizontal, 18).padding(.vertical, 12)
-                                .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
-                        }
-                        .scrollBounceBehavior(.basedOnSize)
-                        // The result hands are added below the question; bring them into view.
-                        .onChange(of: panelBand) { _, band in
-                            guard band != nil else { return }
-                            withAnimation(reduceMotion ? nil : GT.Motion.change) {
-                                proxy.scrollTo(Self.resultEnd, anchor: .bottom)
-                            }
+                    .scrollBounceBehavior(.basedOnSize)
+                    // The result hands are added below the question; bring them into view.
+                    .onChange(of: panelBand) { _, band in
+                        guard band != nil else { return }
+                        withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                            proxy.scrollTo(Self.resultEnd, anchor: .bottom)
                         }
                     }
                 }
-                ActionSheet(band: panelBand) {
-                    VStack(alignment: .leading, spacing: GT.Space.related) { panel }
-                }
-                .layoutPriority(1)
             }
+            ActionSheet(band: panelBand) {
+                VStack(alignment: .leading, spacing: GT.Space.related) { panel }
+            }
+            .layoutPriority(1)
         }
         .background(FeltBackground())
         .modifier(ProgressSaveNotice())
+        .onChange(of: step) { old, _ in
+            if returning { returning = false }
+            else { history.append(old) }
+        }
+        .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
+            if gesture.startLocation.x < 28, gesture.translation.width > 80,
+               abs(gesture.translation.height) < 70 { previous() }
+        })
         .onAppear {
+            if !rotationLoaded {
+                variationSeed = GuideExampleRotation.next("firstLesson")
+                rotationLoaded = true
+            }
             #if DEBUG
             switch ProcessInfo.processInfo.environment["GT_DEMO_FIRST_LESSON"] {
             case "pot": step = .pot
@@ -126,6 +130,13 @@ struct FirstLessonView: View {
         .padding(.horizontal, 18).padding(.vertical, 10)
     }
 
+    private func previous() {
+        guard let prior = history.popLast() else { return }
+        returning = true
+        step = prior
+        answer = submitted[prior]
+    }
+
     private var headerTitle: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(copy(.title))
@@ -142,12 +153,21 @@ struct FirstLessonView: View {
     }
 
     private var headerAction: some View {
-        Button(context == .firstRun ? copy(.skip) : copy(.close),
-               action: onSkip)
-            .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-            .frame(minWidth: 44, minHeight: 44)
-            .accessibilityIdentifier(context == .firstRun
-                                     ? "firstLesson.skip" : "firstLesson.close")
+        HStack(spacing: 8) {
+            if !history.isEmpty {
+                Button(action: previous) {
+                    Label(language.text("이전", "Previous"), systemImage: "chevron.left")
+                        .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
+                        .frame(minHeight: 44)
+                }.accessibilityIdentifier("firstLesson.previous")
+            }
+            Button(context == .firstRun ? copy(.skip) : copy(.close),
+                   action: onSkip)
+                .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+                .frame(minWidth: 44, minHeight: 44)
+                .accessibilityIdentifier(context == .firstRun
+                                         ? "firstLesson.skip" : "firstLesson.close")
+        }
     }
 
     /// Optional table rules have their own count, separate from the warm-up.
@@ -166,6 +186,7 @@ struct FirstLessonView: View {
         case .welcome: return nil
         case .example, .exampleAnswer: return copy(.exampleProgress)
         case .transfer, .transferAnswer: return copy(.transferProgress)
+        case .comparison(let i), .comparisonAnswer(let i): return language.text("추가 연습 \(i + 1)/3", "More practice \(i + 1)/3")
         case .actions: return language.text("내 차례의 행동", "Actions on your turn")
         case .wrapUp: return language.text("안내 마치기", "Finish the guide")
         default: return rulePage.map { "\($0)/4" }
@@ -188,10 +209,12 @@ struct FirstLessonView: View {
         case .flow: flowPage
         case .bestFive: bestFivePage
         case .wrapUp: wrapUpPage
-        case .example: question(spot: FirstLesson.example, guided: true)
-        case .exampleAnswer: answerContent(spot: FirstLesson.example, guided: true)
-        case .transfer: question(spot: FirstLesson.transfer, guided: false)
-        case .transferAnswer: answerContent(spot: FirstLesson.transfer, guided: false)
+        case .example: question(spot: exampleSpot, guided: true)
+        case .exampleAnswer: answerContent(spot: exampleSpot, guided: true)
+        case .transfer: question(spot: transferSpot, guided: false)
+        case .transferAnswer: answerContent(spot: transferSpot, guided: false)
+        case .comparison(let i): question(spot: comparisons[i], guided: false)
+        case .comparisonAnswer(let i): answerContent(spot: comparisons[i], guided: false)
         }
     }
 
@@ -211,18 +234,21 @@ struct FirstLessonView: View {
         case .wrapUp:
             PrimaryCTAButton(title: finishTitle, action: onFinish)
                 .accessibilityIdentifier("firstLesson.finish")
-        case .example: handChoices(FirstLesson.example)
-        case .transfer: handChoices(FirstLesson.transfer)
-        case .exampleAnswer: verdict(spot: FirstLesson.example, isTransfer: false)
-        case .transferAnswer: verdict(spot: FirstLesson.transfer, isTransfer: true)
+        case .example: handChoices(exampleSpot)
+        case .transfer: handChoices(transferSpot)
+        case .exampleAnswer: nextComparisonButton(isTransfer: false)
+        case .transferAnswer: nextComparisonButton(isTransfer: true)
+        case .comparison(let i): handChoices(comparisons[i])
+        case .comparisonAnswer: nextComparisonButton(isTransfer: true)
         }
     }
 
     /// Green after a right answer, red after a wrong one; the neutral glass otherwise.
     private var panelBand: GradeBand? {
         switch step {
-        case .exampleAnswer: isCorrect(FirstLesson.example) ? .spotOn : .off
-        case .transferAnswer: isCorrect(FirstLesson.transfer) ? .spotOn : .off
+        case .exampleAnswer: isCorrect(exampleSpot) ? .spotOn : .off
+        case .transferAnswer: isCorrect(transferSpot) ? .spotOn : .off
+        case .comparisonAnswer(let i): isCorrect(comparisons[i]) ? .spotOn : .off
         default: nil
         }
     }
@@ -524,6 +550,10 @@ struct FirstLessonView: View {
             VStack(alignment: .leading, spacing: 14) {
                 checkRow(language.text("같은 족보라면 높은 숫자부터 비교", "Compare ranks when hand types match"))
                 checkRow(language.text("내 차례에 할 수 있는 행동", "The actions on your turn"))
+                SecondaryCTAButton(title: language.text("트리플·스트레이트·플러시 비교", "Compare trips, straights and flushes")) {
+                    answer = nil
+                    step = .comparison(0)
+                }.accessibilityIdentifier("firstLesson.moreComparisons")
                 SecondaryCTAButton(title: language.text("한 판의 흐름 더 보기", "Explore how a hand runs")) { step = .pot }
                     .accessibilityIdentifier("firstLesson.moreRules")
             }
@@ -574,7 +604,7 @@ struct FirstLessonView: View {
                 Text(guided ? copy(.exampleQuestion) : copy(.transferQuestion))
                     .font(GT.title(28)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(guided ? copy(.examplePrompt) : copy(.transferPrompt))
+                Text(copy(.examplePrompt))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
@@ -612,8 +642,15 @@ struct FirstLessonView: View {
         Button {
             answer = value
             let correct = value == spot.winner
-            UINotificationFeedbackGenerator().notificationOccurred(correct ? .success : .error)
-            step = step == .example ? .exampleAnswer : .transferAnswer
+            AppFeedback.answer(correct: correct)
+            let result: Step
+            switch step {
+            case .example: result = .exampleAnswer
+            case .comparison(let i): result = .comparisonAnswer(i)
+            default: result = .transferAnswer
+            }
+            submitted[result] = value
+            step = result
             pulse = !reduceMotion
         } label: {
             handLayout(label: handChoiceLabel(title), cards: cards)
@@ -646,10 +683,13 @@ struct FirstLessonView: View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
             question(spot: spot, guided: guided)
             VStack(spacing: 12) {
-                resultHand(title: copy(.heroCards), cards: spot.hero, value: 0, spot: spot)
+                resultHand(title: language.text("내 카드", "Your cards"), cards: spot.hero, value: 0, spot: spot)
                 resultHand(title: copy(.villainCards), cards: spot.villain, value: 1, spot: spot)
             }
-            .id(Self.resultEnd)
+            verdict(spot: spot, isTransfer: !guided)
+                .gtInset(GT.Space.card, firstText: .title(GT.Typography.resultSize))
+                .gtCard(radius: GT.Radius.panel)
+                .id(Self.resultEnd)
         }
     }
 
@@ -667,7 +707,7 @@ struct FirstLessonView: View {
         let inline = dynamicTypeSize.isAccessibilitySize
         return VStack(alignment: .leading, spacing: 10) {
             if inline, let mark { markBadge(mark.text, band: mark.band) }
-            resultLabel(title: title, wins: wins)
+            resultLabel(title: title, hand: value == 0 ? spot.heroBest : spot.villainBest)
             sevenCards(hole: cards, board: spot.board, size: 44)
                 .frame(maxWidth: .infinity)
         }
@@ -685,7 +725,7 @@ struct FirstLessonView: View {
             }
             .padding(.top, mark == nil || inline ? 0 : 6)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel([title, spoken(cards), wins ? copy(.higherPair) : copy(.lowerPair), mark?.spoken]
+            .accessibilityLabel([title, spoken(cards), DrillTerms.hand(value == 0 ? spot.heroBest : spot.villainBest, in: language), mark?.spoken]
                 .compactMap { $0 }.joined(separator: ", "))
             .onAppear {
                 guard picked, pulse else { return }
@@ -701,10 +741,10 @@ struct FirstLessonView: View {
             .overlay(Capsule().strokeBorder(band.ink, lineWidth: 1.5))
     }
 
-    private func resultLabel(title: String, wins: Bool) -> some View {
+    private func resultLabel(title: String, hand: HandBrief) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(GT.title(16)).foregroundStyle(GT.ink)
-            Text(wins ? copy(.higherPair) : copy(.lowerPair))
+            Text(DrillTerms.hand(hand, in: language))
                 .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
         }
     }
@@ -712,12 +752,22 @@ struct FirstLessonView: View {
     private func verdict(spot: ShowdownSpot, isTransfer: Bool) -> some View {
         let correct = isCorrect(spot)
         let band: GradeBand = correct ? .spotOn : .off
-        let headline = correct ? copy(.correctTitle) : copy(.retryTitle)
-        let detail = correct
-            ? (isTransfer
-               ? language.text("방금 배운 규칙을 다른 카드에도 적용했어요.", "You used the same rule with a new hand.")
-               : language.text("핵심은 같은 족보끼리 숫자를 비교하는 거예요.", "Same hand type? Compare the ranks."))
-            : language.text("처음에는 어느 쪽 숫자가 더 높은지만 알아봐도 충분해요.", "To begin, it's enough to spot which pair has the higher rank of the two.")
+        let outcome = { (value: Int) in
+            switch value {
+            case 0: return language.text("내 카드 쪽이 이겨요", "Your hand wins")
+            case 1: return language.text("상대 패가 이겨요", "Opponent wins")
+            default: return language.text("무승부", "Tie")
+            }
+        }
+        let headline = correct ? copy(.correctTitle) + " · " + outcome(spot.winner) : copy(.retryTitle)
+        let detail: String
+        switch step {
+        case .comparisonAnswer:
+            detail = language.text("7장 중 가장 좋은 5장의 족보와 숫자를 비교해요.",
+                                   "Compare the hand types and ranks of each best five.")
+        default:
+            detail = language.text("같은 족보라면 높은 숫자부터 비교해요.", "Same hand type? Compare the ranks.")
+        }
         return VStack(alignment: .leading, spacing: GT.Space.related) {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: band.glyph)
@@ -736,23 +786,32 @@ struct FirstLessonView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("firstLesson.verdict")
+            if !correct {
+                VerdictRow(band: band, mine: outcome(answer ?? -1), correct: outcome(spot.winner))
+            }
             RevealDetail {
                 Text(gradeShowdown(answer: answer ?? -1, spot: spot, language: language).whyText)
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if isTransfer {
-                PrimaryCTAButton(title: language.text("다음", "Next")) {
-                    answer = nil
-                    step = .actions
-                }
-                .accessibilityIdentifier("firstLesson.next")
-            } else {
-                PrimaryCTAButton(title: copy(.tryTransfer)) {
-                    answer = nil
-                    step = .transfer
-                }
+        }
+    }
+
+    @ViewBuilder
+    private func nextComparisonButton(isTransfer: Bool) -> some View {
+        if isTransfer {
+            PrimaryCTAButton(title: language.text("다음", "Next")) {
+                answer = nil
+                if case .comparisonAnswer(let i) = step {
+                    step = i < comparisons.count - 1 ? .comparison(i + 1) : .wrapUp
+                } else { step = .actions }
+            }
+            .accessibilityIdentifier("firstLesson.next")
+        } else {
+            PrimaryCTAButton(title: copy(.tryTransfer)) {
+                answer = nil
+                step = .transfer
             }
         }
     }

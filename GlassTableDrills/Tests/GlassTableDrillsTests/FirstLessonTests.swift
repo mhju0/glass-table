@@ -1,4 +1,5 @@
 import XCTest
+import GlassTableEngine
 @testable import GlassTableDrills
 
 final class FirstLessonTests: XCTestCase {
@@ -23,5 +24,29 @@ final class FirstLessonTests: XCTestCase {
         XCTAssertEqual(incorrect.band, .off)
         XCTAssertTrue(correct.whyText.contains("A 원 페어"))
         XCTAssertTrue(incorrect.whyText.contains("10 원 페어"))
+    }
+    func testOptionalComparisonsAreLegalAndTeachIncreasingCategories() {
+        for (spot, categories) in zip(FirstLesson.comparisons, [(3, 1), (4, 3), (5, 4)]) {
+            XCTAssertEqual(Set(spot.hero + spot.villain + spot.board).count, 9)
+            XCTAssertEqual(spot.heroBest.category, categories.0)
+            XCTAssertEqual(spot.villainBest.category, categories.1)
+            XCTAssertEqual(spot.winner, 0)
+            XCTAssertEqual(bestFiveCards(spot.hero + spot.board).count, 5)
+        }
+    }
+
+    func testRepeatedGuideVariationStaysStableAndPreservesPairRule() {
+        for seed in UInt64(0)..<16 {
+            XCTAssertEqual(FirstLesson.comparisonOrder(seed: seed), FirstLesson.comparisonOrder(seed: seed))
+            for transfer in [false, true] {
+                let spot = FirstLesson.pairExample(seed: seed, transfer: transfer)
+                XCTAssertEqual(Set(spot.hero + spot.villain + spot.board).count, 9)
+                XCTAssertEqual(spot.heroBest.category, 1)
+                XCTAssertEqual(spot.villainBest.category, 1)
+                XCTAssertNotEqual(spot.winner, 2)
+            }
+        }
+        XCTAssertNotEqual(FirstLesson.pairExample(seed: 0, transfer: false),
+                          FirstLesson.pairExample(seed: 1, transfer: false))
     }
 }

@@ -34,7 +34,8 @@ enum NodeSessionSeed {
         let aggregate = conceptTotals.reduce(into: UInt64.zero) {
             $0 &+= UInt64($1)
         }
-        return hash &+ aggregate
+        let seed = hash &+ aggregate
+        return nodeID == "u8-defend" ? LessonSessionSeed.variedDefend(seed) : seed
     }
 }
 
@@ -133,6 +134,10 @@ struct NodeSessionView: View {
                     advanceTeaching(skip: true)
                 }
             } else if stage == .together || isHelpedQuestion { hintButton }
+        })
+        .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
+            if stage == .solo, gesture.startLocation.x < 24, gesture.translation.width > 80,
+               abs(gesture.translation.height) < 60 { dismiss() }
         })
         .onAppear {
             if sessionEpoch == nil { sessionEpoch = model.epoch }
@@ -555,6 +560,8 @@ private struct GuidedHintView: View {
         .background(FeltBackground())
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("guided-hint")
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     private var content: some View {
@@ -801,6 +808,10 @@ struct FreePlayView: View {
             if let concept, introStage == .show {
                 ChromeTextButton(title: WalkthroughView.skipTitle(language)) { finishIntro(concept) }
             }
+        })
+        .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
+            if introStage == nil, gesture.startLocation.x < 24, gesture.translation.width > 80,
+               abs(gesture.translation.height) < 60 { dismiss() }
         })
         .onAppear {
             if sessionEpoch == nil { sessionEpoch = model.epoch }
@@ -1189,6 +1200,10 @@ struct ReviewSessionView: View {
         }
         .background(FeltBackground())
         .gtChrome(leading: { ChromeButton.close { dismiss() } })
+        .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
+            if gesture.startLocation.x < 24, gesture.translation.width > 80,
+               abs(gesture.translation.height) < 60 { dismiss() }
+        })
         .onAppear {
             if sessionEpoch == nil { sessionEpoch = model.epoch }
             guard !initialized else { return }

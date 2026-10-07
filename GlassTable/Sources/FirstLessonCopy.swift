@@ -34,7 +34,7 @@ enum FirstLessonCopy {
         case .transferQuestion: language.text(transferQuestion, "Use the same rule with new cards")
         case .examplePrompt: language.text(examplePrompt, "Each side compares its best five of seven.")
         case .transferPrompt: language.text(transferPrompt, "Only the cards changed. Find the higher pair.")
-        case .pairRule: language.text(pairRule, "Two cards of the same rank make one pair. An ace is higher than a king.")
+        case .pairRule: language.text(pairRule, "Two cards of the same rank make one pair. When hand types match, compare the ranks.")
         case .sharedCards: language.text(sharedCards, "Shared cards")
         case .heroCards: language.text(heroCards, "My cards")
         case .villainCards: language.text(villainCards, "Opponent's cards")
@@ -44,10 +44,10 @@ enum FirstLessonCopy {
         case .retryTitle: language.text(retryTitle, "Let's look at the cards again")
         case .higherPair: language.text(higherPair, "Higher pair")
         case .lowerPair: language.text(lowerPair, "Lower pair")
-        case .myPick: language.text(myPick, "My answer")
-        case .rightAnswer: language.text(rightAnswer, "Correct")
-        case .pickCorrect: language.text(pickCorrect, "My answer, correct")
-        case .pickWrong: language.text(pickWrong, "My answer, wrong")
+        case .myPick: language.text(myPick, "Your answer")
+        case .rightAnswer: language.text(rightAnswer, "Correct answer")
+        case .pickCorrect: language.text(pickCorrect, "Your answer, correct")
+        case .pickWrong: language.text(pickWrong, "Your answer, incorrect")
         case .tryTransfer: language.text(tryTransfer, "Try different cards")
         case .beginCourse: language.text(beginCourse, "Start the first lesson")
         case .returnToLearning: language.text(returnToLearning, "Back to Learn")
@@ -90,7 +90,7 @@ enum FirstLessonCopy {
     static let transferPrompt = String(localized: "firstLesson.transfer.prompt",
                                        defaultValue: "카드만 바뀌었어요. 더 높은 원 페어를 찾아보세요.")
     static let pairRule = String(localized: "firstLesson.example.rule",
-                                 defaultValue: "같은 숫자 두 장은 원 페어예요. A는 K보다 높아요.")
+                                 defaultValue: "같은 숫자 두 장은 원 페어예요. 같은 족보라면 높은 숫자부터 비교해요.")
     static let sharedCards = String(localized: "firstLesson.label.sharedCards",
                                     defaultValue: "공용 카드")
     static let heroCards = String(localized: "firstLesson.label.heroCards",
@@ -112,13 +112,13 @@ enum FirstLessonCopy {
     static let tryTransfer = String(localized: "firstLesson.action.tryTransfer",
                                     defaultValue: "다른 카드로 풀어보기")
     static let myPick = String(localized: "firstLesson.feedback.myPick",
-                               defaultValue: "내 답")
+                               defaultValue: "선택한 답")
     static let rightAnswer = String(localized: "firstLesson.feedback.rightAnswer",
                                     defaultValue: "정답")
     static let pickCorrect = String(localized: "firstLesson.feedback.pickCorrect",
-                                    defaultValue: "내 답, 맞았어요")
+                                    defaultValue: "선택한 답, 맞았어요")
     static let pickWrong = String(localized: "firstLesson.feedback.pickWrong",
-                                  defaultValue: "내 답, 틀렸어요")
+                                  defaultValue: "선택한 답, 틀렸어요")
     static let beginCourse = String(localized: "firstLesson.action.beginCourse",
                                     defaultValue: "첫 레슨 시작")
     static let returnToLearning = String(localized: "firstLesson.action.returnToLearning",
