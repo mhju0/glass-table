@@ -9,6 +9,27 @@ struct LearningGuideView: View {
     @State private var page = 0
     @State private var answer: Int?
 
+    private var questionChoices: some View {
+        VStack(spacing: 12) {
+            ForEach(Array(lesson.choices.enumerated()), id: \.offset) { index, choice in
+                Button { answer = index } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: answer == index ? "checkmark.circle.fill" : "circle")
+                        Text(choice).multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .font(GT.semibold(16)).foregroundStyle(GT.onFelt)
+                    .gtInset(GT.Space.card, firstText: .semibold(16)).frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+                        .strokeBorder(answer == index ? GT.mint : GT.borderStrong, lineWidth: 1))
+                }
+                .buttonStyle(GTPress())
+                .accessibilityAddTraits(answer == index ? .isSelected : [])
+                .disabled(answer != nil)
+            }
+        }
+    }
     private var lessons: [StudyNote] { language == .korean ? StudyNote.lessons : StudyNote.englishLessons }
     private var lesson: StudyNote { lessons[page] }
 
@@ -26,25 +47,6 @@ struct LearningGuideView: View {
                     .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
                 if let question = lesson.question {
                     Text(question).font(GT.semibold(17)).foregroundStyle(GT.onFelt)
-                    VStack(spacing: 12) {
-                        ForEach(Array(lesson.choices.enumerated()), id: \.offset) { index, choice in
-                            Button { answer = index } label: {
-                                HStack(spacing: 12) {
-                                    Image(systemName: answer == index ? "checkmark.circle.fill" : "circle")
-                                    Text(choice).multilineTextAlignment(.leading)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                                .font(GT.semibold(16)).foregroundStyle(GT.onFelt)
-                                .gtInset(GT.Space.card, firstText: .semibold(16)).frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
-                                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
-                                    .strokeBorder(answer == index ? GT.mint : GT.borderStrong, lineWidth: 1))
-                            }
-                            .buttonStyle(GTPress())
-                            .accessibilityAddTraits(answer == index ? .isSelected : [])
-                            .disabled(answer != nil)
-                        }
-                    }
                     if let answer {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(answer == lesson.correct
@@ -60,9 +62,15 @@ struct LearningGuideView: View {
             .gtContentEdge()
             .id(page)
         }
+        .simultaneousGesture(DragGesture().onEnded { gesture in
+            if gesture.startLocation.x < 24, gesture.translation.width > 70, page > 0 {
+                page -= 1; answer = nil
+            }
+        })
         .background(FeltBackground())
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
+                if lesson.question != nil, answer == nil { questionChoices }
                 FeltCTAButton(title: page == lessons.count - 1
                               ? language.text("연습하러 가기", "Go to practice")
                               : language.text("다음 이야기", "Next topic")) {

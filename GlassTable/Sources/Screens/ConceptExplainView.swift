@@ -11,6 +11,7 @@ struct ConceptExplainView: View {
     let concept: Concept
     let onClose: () -> Void
     @State private var showingExample = false
+    @State private var exampleSeed: UInt64?
 
     var body: some View {
         let intro = ConceptIntroduction.make(concept, language: language)
@@ -29,12 +30,18 @@ struct ConceptExplainView: View {
                     if let note = Self.notationNote(concept, language: language) {
                         section(language.text("표기", "Notation"), note)
                     }
-                    PrimaryCTAButton(title: language.text("예시 보기", "Watch an example")) {
-                        showingExample = true
-                    }
-                    .accessibilityIdentifier("explain-example")
+                    if concept == .rfi || concept == .defend || concept == .rangeNotation { LessonChartPrimer() }
                 }
                 .gtContentEdge()
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                ActionSheet {
+                    PrimaryCTAButton(title: language.text("예시 보기", "Watch an example")) {
+                        exampleSeed = GuideExampleRotation.next("explain-" + concept.rawValue)
+                        showingExample = true
+                    }
+                        .accessibilityIdentifier("explain-example")
+                }
             }
             .background(FeltBackground())
             .gtChrome(leading: { ChromeButton.close(onClose) })
@@ -60,10 +67,10 @@ struct ConceptExplainView: View {
     /// answer is never the question on screen.
     private var example: some View {
         let w = Walkthrough.make(concept: concept,
-                                 seed: 0xE9A1 &+ UInt64(model.seedCount(for: concept)),
+                                 seed: exampleSeed ?? (0xE9A1 &+ UInt64(model.seedCount(for: concept))),
                                  index: 0, language: language)
         return WalkthroughView(title: ConceptIntroduction.make(concept, language: language).title,
-                               beats: w.beats, rows: w.rows,
+                               concept: concept, beats: w.beats, rows: w.rows,
                                onFinish: { showingExample = false })
             .gtChrome(leading: {
                 ChromeButton.back(language.text("설명으로", "Back to explanation")) { showingExample = false }
@@ -78,8 +85,8 @@ struct ConceptExplainView: View {
         switch concept {
         case .position:
             return language.text(
-                "공용 카드 전에는 BB가 마지막이에요. 공용 카드 뒤에는 SB부터 시계 방향으로 행동해요.",
-                "Before shared cards, BB acts last. After them, play goes clockwise from SB.")
+                "공용 카드 전에는 큰 블라인드가 마지막이에요. 공용 카드 뒤에는 딜러 왼쪽의 참여 중인 자리부터 행동해요.",
+                "Before shared cards, the big blind acts last. After them, begin left of the dealer among active seats.")
         default:
             return nil
         }
@@ -90,8 +97,8 @@ struct ConceptExplainView: View {
         case .combos, .rangeNotation, .rfi, .defend, .rangeRead, .hitFrequency,
              .rangeAdvantage, .actionRead:
             return language.text(
-                "AKs는 같은 무늬, AKo는 다른 무늬예요. 99+는 99 이상의 모든 페어예요.",
-                "AKs means the same suit and AKo different suits. 99+ means every pair from 99 up.")
+                "K♠와 6♠는 같은 무늬예요. K6s의 s는 스페이드가 아니라 같은 무늬를 뜻해요. K6o는 다른 무늬, KK는 페어예요. 99+는 99 이상의 모든 페어예요.",
+                "K♠ and 6♠ share a suit. In K6s, s means suited, not spades. K6o means different suits; KK is a pair. 99+ means every pair from 99 up.")
         case .potOdds, .mdf, .callFold, .evCall, .evLoss:
             return language.text("bb는 빅 블라인드 한 개만큼의 칩이에요.",
                                  "bb means the chips in one big blind.")

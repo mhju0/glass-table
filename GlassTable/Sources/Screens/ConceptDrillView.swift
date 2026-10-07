@@ -92,6 +92,7 @@ struct ConceptDrillView: View {
             }
         }
         .environment(\.drillHintConcept, showsContextualHint || help != nil ? concept : nil)
+        .environment(\.lessonGuidedChart, showsContextualHint && help == nil)
         .onChange(of: questionID) { _, _ in
             answerCommitted = false
         }
@@ -320,12 +321,8 @@ extension EnvironmentValues {
     }
 }
 
-/// The reveal moment gets one notification tap: ✓/±/✕ as success/warning/error.
-/// No app toggle — the system Reduce Haptics setting is the opt-out.
-private func gradeHaptic(_ band: GradeBand) {
-    let type: UINotificationFeedbackGenerator.FeedbackType =
-        switch band { case .spotOn: .success; case .close: .warning; case .off: .error }
-    UINotificationFeedbackGenerator().notificationOccurred(type)
+@MainActor private func gradeHaptic(_ band: GradeBand) {
+    AppFeedback.answer(correct: band != .off)
 }
 
 /// Marks where the evidence a reveal adds begins. On reveal the shell scrolls that
@@ -378,7 +375,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: GT.Space.section) {
                         header
-                        if let hintConcept { ContextualHintCue(concept: hintConcept) }
+                        if let hintConcept { CompactLessonCue(concept: hintConcept) }
                         content().frame(maxWidth: .infinity, alignment: .leading)
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet() }
                             .padding(GT.Space.sheet).frame(maxWidth: .infinity, alignment: .leading)
@@ -389,43 +386,29 @@ struct DrillShell<Content: View, Sheet: View>: View {
                     .padding(.horizontal, 18).padding(.bottom, 28)
                 }
             } else {
-                VStack(spacing: 0) {
-                    header.padding(.horizontal, 18)
-                    GeometryReader { geo in
-                        // Pinned to the top, not centred: the graded sheet is a different
-                        // height from the answer sheet, and centred content would move
-                        // when the answer came in. Evidence a reveal adds goes below the
-                        // question and is scrolled into view.
-                        ScrollViewReader { proxy in
-                            ScrollView {
-                                VStack(spacing: GT.Space.related) {
-                                    if let hintConcept { ContextualHintCue(concept: hintConcept) }
-                                    content()
-                                    Color.clear.frame(height: 1).id(Self.contentEnd)
-                                }
-                                .padding(.horizontal, 18)
-                                .padding(.top, 8)
-                                .frame(maxWidth: .infinity, minHeight: geo.size.height,
-                                       alignment: .top)
-                            }
-                            .onChange(of: gradedBand) { _, band in
-                                guard band != nil else { return }
-                                withAnimation(reduceMotion ? nil : GT.Motion.change) {
-                                    if hasEvidenceStart {
-                                        proxy.scrollTo(revealEvidenceID, anchor: .top)
-                                    } else {
-                                        proxy.scrollTo(Self.contentEnd, anchor: .bottom)
-                                    }
-                                }
-                            }
-                        }
-                        .scrollBounceBehavior(.basedOnSize)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: GT.Space.related) {
+                            header
+                            if let hintConcept { CompactLessonCue(concept: hintConcept) }
+                            content()
+                            Color.clear.frame(height: 1).id(Self.contentEnd)
+                        }.padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 24)
                     }
-                    ActionSheet(band: gradedBand) { sheet() }
-                        .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier(sheetIdentifier)
-                        .layoutPriority(1)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        ActionSheet(band: gradedBand) { sheet() }
+                            .accessibilityElement(children: .contain)
+                            .accessibilityIdentifier(sheetIdentifier)
+                    }
+                    .onChange(of: gradedBand) { _, band in
+                        guard band != nil else { return }
+                        withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                            proxy.scrollTo(hasEvidenceStart ? revealEvidenceID : Self.contentEnd,
+                                           anchor: hasEvidenceStart ? .top : .bottom)
+                        }
+                    }
                 }
+
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -451,15 +434,9 @@ struct DrillShell<Content: View, Sheet: View>: View {
     /// The title stays on one line beside the explain button and counter when it fits.
     /// Otherwise it takes a full row, so a large text size wraps it between words.
     private var header: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: 8) {
-                titleText.fixedSize()
-                headerControls
-            }
-            VStack(alignment: .leading, spacing: 4) {
-                titleText.fixedSize(horizontal: false, vertical: true)
-                HStack(alignment: .center, spacing: 8) { headerControls }
-            }
+        VStack(alignment: .leading, spacing: 10) {
+            titleText.fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .center, spacing: 16) { headerControls }
         }
         .padding(.bottom, 12)
     }
@@ -480,7 +457,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
             .buttonStyle(GTPress())
             // The 44 pt target overhangs the row, so the row is as tall as the title
             // whether or not this button is shown.
-            .padding(.vertical, -12)
+
             .accessibilityLabel(language.text("개념 설명", "Explain this skill"))
             .accessibilityIdentifier("drill-explain")
         }
@@ -867,6 +844,7 @@ private struct PotMathDrill: View {
                         PotMathReplayView(spot: spot, stepIndex: $stepIndex,
                                           revealedPot: reveal == nil ? nil : spot.pot,
                                           showsPaidTotals: help?.isUsed == true,
+                                          showsReplayControls: false,
                                           showTotals: help == nil || reveal != nil ? nil : {
                                               confirmingTotals = true
                                           }) {
@@ -881,6 +859,7 @@ private struct PotMathDrill: View {
                             self.reveal = nil
                         }
                     } else {
+                        PotMathReplayControls(steps: spot.replaySteps.count, stepIndex: $stepIndex)
                         PotMathChoicesView(spot: spot, stepIndex: stepIndex) { choice in
                             reveal = gradePotMath(answer: choice, spot: spot, language: language)
                         }
@@ -1074,6 +1053,7 @@ private struct PotMathRevealSheet: View {
 private struct PositionDrill: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.leadsWithTerms) private var termsLead
+    @Environment(\.simpleQuestions) private var simple
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
@@ -1161,14 +1141,9 @@ private struct PositionDrill: View {
     /// At the accessibility sizes the one-row strip cannot grow, so the same seating is
     /// said in a sentence that does.
     @ViewBuilder private var seatDiagram: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            Text(seatSentence)
-                .font(GT.semibold(13)).foregroundStyle(GT.onFelt)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("position-seat-sentence")
-        } else {
-            seatStrip
-        }
+        LessonSeatLoop(markers: Dictionary(uniqueKeysWithValues: Position.allCases.compactMap { position in
+            marker(position).map { (position, $0) }
+        }), showsOrder: reveal != nil, postflop: !isPreflop)
     }
 
     private var seatSentence: String {
@@ -1241,9 +1216,9 @@ private struct PositionDrill: View {
     private var answerControls: some View {
         switch spot.question {
         case .behind:
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: simple ? 3 : 4),
                       spacing: 8) {
-                ForEach(0...7, id: \.self) { n in
+                ForEach(simple ? BeginnerQuestionChoices.integers(answer: spot.correctAnswer, bounds: 0...7, seed: seed &+ UInt64(index)) : Array(0...7), id: \.self) { n in
                     GTChoiceButton(title: "\(n)", minHeight: 50) {
                         reveal = gradePosition(answer: n, spot: spot, language: language)
                     }
@@ -1319,6 +1294,17 @@ private struct EquitySenseDrill: View {
                     Text(language.text("쇼다운까지 갔을 때 내가 이길 확률은?",
                                        "How often do you win at showdown?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
+                    if simple {
+                        LessonEstimateChoices(values: BeginnerQuestionChoices.percentages(answer: spot.equityPct, seed: seed &+ UInt64(index)), suffix: "%") { value in
+                            point = value
+
+                        reveal = gradeEquitySense(
+                            estimate: Estimate(point: point, lo: max(0, point - halfWidth),
+                                               hi: min(100, point + halfWidth)),
+                            spot: spot, language: language)
+
+                        }
+                    } else {
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: 1, unit: "%")
                     PrimaryCTAButton(title: language.text("확인", "Check answer")) {
@@ -1326,6 +1312,7 @@ private struct EquitySenseDrill: View {
                             estimate: Estimate(point: point, lo: max(0, point - halfWidth),
                                                hi: min(100, point + halfWidth)),
                             spot: spot, language: language)
+                    }
                     }
                 }
             }
@@ -1401,6 +1388,17 @@ private struct EVCallDrill: View {
                                         "What is this call's EV in bb?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if simple {
+                        LessonEstimateChoices(values: LessonEstimateChoices.evValues(answer: spot.evBB, seed: seed &+ UInt64(index)), suffix: "bb") { value in
+                            point = value
+
+                        reveal = gradeEVCall(
+                            estimate: Estimate(point: point, lo: point - halfWidth,
+                                               hi: point + halfWidth),
+                            spot: spot, language: language)
+
+                        }
+                    } else {
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: -20...20, step: 0.5, unit: "bb")
                     PrimaryCTAButton(title: language.text("확인", "Check answer")) {
@@ -1408,6 +1406,7 @@ private struct EVCallDrill: View {
                             estimate: Estimate(point: point, lo: point - halfWidth,
                                                hi: point + halfWidth),
                             spot: spot, language: language)
+                    }
                     }
                 }
             }
@@ -1474,10 +1473,19 @@ private struct CountDrill: View {
                                         "How many combos can they hold?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if simple {
+                        LessonCountChoices(values: BeginnerQuestionChoices.integers(
+                            answer: kind == .outs ? makeOutsSpot().outCount : makeComboSpot().count,
+                            bounds: kind == .outs ? 0...46 : 0...1326, seed: seed &+ UInt64(index)),
+                            suffix: kind == .outs ? language.text("장", " cards") : language.text("개", " ways")) { value in
+                            countEntry = String(value); submit()
+                        }
+                    } else {
                     CountEntryView(entry: $countEntry,
                                    suffix: kind == .outs ? language.text("장", " cards")
                                                          : language.text("개", " ways"),
                                    onSubmit: submit)
+                    }
                 }
             }
         }
@@ -1518,7 +1526,21 @@ private struct CountDrill: View {
             SectionLabel(text: language.text("리버 아웃 · \(spot.outCount)장 · 눌러서 확인",
                                               "Winning river cards · \(spot.outCount) · Tap a card"))
                 .padding(.top, 12)
-            outsGrid(spot.outs, dead: false)
+            ForEach(Array(OutsOutcomeGroups.make(hero: spot.hero, villain: spot.villain, board: spot.board, candidates: spot.outs).enumerated()), id: \.offset) { _, group in
+                DisclosureGroup(outsGroupTitle(group, spot: spot)) {
+                    outsGrid(group.cards, dead: false)
+                    if let representative = group.cards.first {
+                        let completed = ShowdownSpot(hero: spot.hero, villain: spot.villain, board: spot.board + [representative])
+                        Text(gradeShowdown(answer: completed.winner, spot: completed, language: language).whyText)
+                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }.foregroundStyle(GT.ink).padding(12).gtPanel()
+                if let representative = group.cards.first {
+                    Button(language.text("대표 카드로 비교", "Compare a representative")) { tappedOut = representative }
+                        .font(GT.semibold(14)).frame(minHeight: 44)
+                }
+            }
             if !spot.excluded.isEmpty {
                 SectionLabel(text: language.text("제외 · 상대 핸드 개선",
                                                  "Excluded · also helps the opponent"))
@@ -1530,6 +1552,13 @@ private struct CountDrill: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func outsGroupTitle(_ group: OutsOutcomeGroup, spot: OutsSpot) -> String {
+        guard let card = group.cards.first else { return "" }
+        let completed = ShowdownSpot(hero: spot.hero, villain: spot.villain, board: spot.board + [card])
+        let result = gradeShowdown(answer: completed.winner, spot: completed, language: language)
+        return result.heroName + language.text(" · \(group.cards.count)장", " · \(group.cards.count) cards")
     }
 
     private func outsGrid(_ cards: [Card], dead: Bool) -> some View {
@@ -1629,6 +1658,15 @@ private struct PercentDrill: View {
                                         "What equity does this call need?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if simple {
+                        LessonCountChoices(values: BeginnerQuestionChoices.integers(
+                            answer: Int((isMDF ? spot.mdfPct : spot.requiredPct).rounded()),
+                            bounds: 0...100, seed: seed &+ UInt64(index)), suffix: "%") { choice in
+                            value = choice
+                            reveal = isMDF ? gradeMDF(estimatePct: choice, spot: spot, language: language)
+                                           : gradePotOdds(estimatePct: choice, spot: spot, language: language)
+                        }
+                    } else {
                     // A count first: "1 in 4" is easier to picture than "25%".
                     if simple, !isMDF {
                         Text(oddsWords(value, language: language))
@@ -1645,6 +1683,7 @@ private struct PercentDrill: View {
                     PrimaryCTAButton(title: language.text("확인", "Check answer")) {
                         reveal = isMDF ? gradeMDF(estimatePct: value, spot: spot, language: language)
                                        : gradePotOdds(estimatePct: value, spot: spot, language: language)
+                    }
                     }
                 }
             }
@@ -1768,11 +1807,19 @@ private struct RangeNotationDrill: View {
                                         "How many combos is this range?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if simple {
+                        LessonCountChoices(values: BeginnerQuestionChoices.integers(answer: spot.comboCount,
+                            bounds: 0...1326, seed: seed &+ UInt64(index)), suffix: language.text("개", " combos")) { choice in
+                            countEntry = String(choice)
+                            reveal = gradeRangeNotation(estimate: choice, spot: spot, language: language)
+                        }
+                    } else {
                     CountEntryView(entry: $countEntry, suffix: language.text("개", " combinations"),
                                    onSubmit: {
                         guard let value = Int(countEntry) else { return }
                         reveal = gradeRangeNotation(estimate: value, spot: spot, language: language)
                     }, maximumDigits: 4, maximumValue: 1326)
+                    }
                 }
             }
         }
@@ -1947,8 +1994,7 @@ private struct RangeReadDrill: View {
     @State private var excludedTop: Double = 0
     @State private var reveal: RangeReadReveal?
     @Environment(\.simpleQuestions) private var simple
-    /// A newer player first says "strong, medium or anything" in words. The grid and
-    /// the fine controls follow, starting from that pick.
+    /// The chart stays hidden until a beginner commits to a complete range estimate.
     @State private var pickedStart = false
     private var asksInWords: Bool { simple && !pickedStart && reveal == nil }
 
@@ -2013,8 +2059,8 @@ private struct RangeReadDrill: View {
                     self.reveal = nil; width = 20; tendencies = []; excludedTop = 0
                     pickedStart = false
                 }
-            } else if asksInWords {
-                wordsFirst
+            } else if simple {
+                beginnerRanges
             } else {
                 input
             }
@@ -2038,24 +2084,26 @@ private struct RangeReadDrill: View {
         }
     }
 
-    private var wordsFirst: some View {
+    private var beginnerRanges: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(language.text("상대는 어떤 패로 \(actionVerb == "오픈" ? "먼저 올렸을까요" : "콜했을까요")?",
-                               "What kind of hands would they \(actionVerb) with?"))
+            Text(language.text("이 행동에 맞는 패 범위는 어느 쪽일까요?", "Which range fits these actions?"))
                 .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                 .fixedSize(horizontal: false, vertical: true)
-            ForEach([(language.text("강한 패만", "Only strong hands"), 10.0, "strong"),
-                     (language.text("괜찮은 패까지", "Strong and decent hands"), 25.0, "medium"),
-                     (language.text("거의 아무 패나", "Almost anything"), 50.0, "anything")], id: \.2) { title, start, id in
-                GTChoiceButton(title: title, minHeight: 52) {
-                    width = start; pickedStart = true
-                }
-                .accessibilityIdentifier("range-start-\(id)")
+            ForEach(Array(BeginnerQuestionChoices.rangeEstimates(spot: spot, seed: seed &+ UInt64(index)).enumerated()), id: \.offset) { option, candidate in
+                GTChoiceButton(title: language.text("가능한 패 약 \(pctText(candidate.range.percent))%", "About \(pctText(candidate.range.percent))% of hands"), minHeight: 52) {
+                    width = candidate.width
+                    tendencies = candidate.tendencies
+                    excludedTop = candidate.excludedTop
+                    pickedStart = true
+                    reveal = gradeRangeRead(estimate: candidate, spot: spot, language: language)
+                    if let reveal { gradeHaptic(reveal.band) }
+                }.accessibilityIdentifier("range-estimate-choice-\(option)")
             }
-            Text(language.text("고른 뒤에 표를 보면서 더 정확히 맞출 수 있어요.",
-                               "Next you can fine-tune it on the chart before checking."))
-                .font(GT.body(12)).foregroundStyle(GT.inkMuted)
-                .fixedSize(horizontal: false, vertical: true)
+            if isCall {
+                Text(language.text("레이즈할 가장 강한 패를 뺀 콜 범위예요.", "These calling ranges exclude the strongest raising hands."))
+                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
@@ -2330,6 +2378,17 @@ private struct HitFrequencyDrill: View {
                                        "What share made a pair or better?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if simple {
+                        LessonEstimateChoices(values: BeginnerQuestionChoices.percentages(answer: spot.pairOrBetterPct, seed: seed &+ UInt64(index)), suffix: "%") { value in
+                            point = value
+
+                        reveal = gradeHitFrequency(
+                            estimate: Estimate(point: point, lo: max(0, point - halfWidth),
+                                               hi: min(100, point + halfWidth)),
+                            spot: spot, language: language)
+
+                        }
+                    } else {
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: 1, unit: "%")
                     PrimaryCTAButton(title: language.text("확인", "Check answer")) {
@@ -2337,6 +2396,7 @@ private struct HitFrequencyDrill: View {
                             estimate: Estimate(point: point, lo: max(0, point - halfWidth),
                                                hi: min(100, point + halfWidth)),
                             spot: spot, language: language)
+                    }
                     }
                 }
             }
@@ -2459,6 +2519,13 @@ private struct RangeAdvantageDrill: View {
                                        "What's the raiser's showdown win rate?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if simple {
+                        LessonEstimateChoices(values: BeginnerQuestionChoices.percentages(answer: equity ?? 50, seed: seed &+ UInt64(index)), suffix: "%") { value in
+                            point = value
+
+                        submit(value)
+                        }.disabled(equity == nil)
+                    } else {
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: 1, unit: "%")
                     if equity == nil {
@@ -2467,6 +2534,7 @@ private struct RangeAdvantageDrill: View {
                             .frame(maxWidth: .infinity, minHeight: 54)
                     } else {
                         PrimaryCTAButton(title: language.text("확인", "Check answer")) { submit(point) }
+                    }
                     }
                 }
             }
@@ -2807,6 +2875,17 @@ private struct ActionReadDrill: View {
                         .fixedSize(horizontal: false, vertical: true)
                     // Steps of ten keep every answer within the on-target band of some
                     // choice, so the words never cost a learner the grade.
+                    if simple {
+                        LessonEstimateChoices(values: BeginnerQuestionChoices.percentages(answer: spot.pairOrBetterPct, seed: seed &+ UInt64(index)), suffix: "%") { value in
+                            point = value
+
+                        reveal = gradeActionRead(
+                            estimate: Estimate(point: point, lo: max(0, point - halfWidth),
+                                               hi: min(100, point + halfWidth)),
+                            spot: spot, language: language)
+
+                        }
+                    } else {
                     IntervalInput(point: $point, halfWidth: $halfWidth,
                                   range: 0...100, step: simple ? 10 : 1, unit: "%",
                                   describe: simple ? { value in
@@ -2817,6 +2896,7 @@ private struct ActionReadDrill: View {
                             estimate: Estimate(point: point, lo: max(0, point - halfWidth),
                                                hi: min(100, point + halfWidth)),
                             spot: spot, language: language)
+                    }
                     }
                 }
             }
@@ -2831,6 +2911,9 @@ private struct DefendDrill: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.simpleQuestions) private var simple
+    @Environment(\.lessonGuidedChart) private var guidedChart
+    @Environment(\.drillHelp) private var help
+    @State private var chartVisible = true
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: DefendReveal?
@@ -2853,6 +2936,16 @@ private struct DefendDrill: View {
                 Text(language.text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
                                    "This seat starts with roughly the top \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands."))
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                if reveal == nil, simple {
+                    Button(language.text(chartVisible && (guidedChart || help?.isUsed == true) ? "차트 접기" : "차트 보기",
+                                         chartVisible && (guidedChart || help?.isUsed == true) ? "Hide chart" : "Show chart")) {
+                        if guidedChart || help?.isUsed == true { chartVisible.toggle() }
+                        else if help?.mark() == true { chartVisible = true }
+                    }.font(GT.semibold(14)).frame(minHeight: 44).accessibilityIdentifier("defend-practice-chart-toggle")
+                    if chartVisible, guidedChart || help?.isUsed == true {
+                        DefendGridView(opener: spot.opener, highlight: nil).frame(maxWidth: 320)
+                    }
+                }
                 if reveal != nil {
                     // The evidence used to grade this exact hand, added below the
                     // question. The shell scrolls its start to the top, and the graded
@@ -2865,6 +2958,7 @@ private struct DefendDrill: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .onAppear {
+                if simple, !guidedChart, help?.isUsed != true { _ = help?.mark() }
                 #if DEBUG
                 // GT_DEMO_REVEAL=<0|1|2> answers 폴드/콜/3벳 — the chart is the payload
                 // and synthetic taps never reach Simulator content.

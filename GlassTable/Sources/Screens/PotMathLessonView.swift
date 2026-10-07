@@ -16,6 +16,7 @@ struct PotMathReplayView: View {
     @Binding var stepIndex: Int
     var revealedPot: Int?
     var showsPaidTotals = false
+    var showsReplayControls = true
     /// Offered only before the answer on graded questions; nil hides the control.
     var showTotals: (() -> Void)?
     let showHelp: () -> Void
@@ -50,7 +51,7 @@ struct PotMathReplayView: View {
                 .accessibilityIdentifier("pot-table-replay")
 
             actionLine
-            replayControls
+            if showsReplayControls { replayControls }
         }
         .onChange(of: stepIndex) { previous, next in
             guard next > previous, steps[next].addedChips > 0, !reduceMotion else {
@@ -201,8 +202,8 @@ struct PotMathReplayView: View {
 
     private func actorName(_ actor: PotMathSpot.Actor) -> String {
         switch actor {
-        case .sb: return "SB"
-        case .bb: return "BB"
+        case .sb: return language.text("작은 블라인드", "Small blind")
+        case .bb: return language.text("큰 블라인드", "Big blind")
         case .opener: return language.text("플레이어 A", "Player A")
         case .caller1: return language.text("플레이어 B", "Player B")
         case .caller2: return language.text("플레이어 C", "Player C")
@@ -230,19 +231,19 @@ struct PotMathIntroView: View {
                 introBlock(title: language.text("왜 배우나요?", "Why count?"),
                            body: language.text("팟을 알아야 콜 가격과 벳 크기를 비교해요.",
                                                "The pot lets you judge calls and bets."))
+                introBlock(title: language.text("작은 블라인드와 큰 블라인드", "Small and big blinds"),
+                           body: language.text("딜러 왼쪽 첫 자리가 작은 블라인드, 그 다음이 큰 블라인드예요. 카드를 받기 전에 1칩과 2칩을 먼저 내요.",
+                                               "The small blind sits left of the dealer, the big blind next. They post 1 and 2 before the deal."))
                 introBlock(title: language.text("어떻게 푸나요?", "How do I count?"),
                            body: language.text("각 자리의 ‘낸 칩’을 한 번씩 더해요. ‘총 18칩으로 레이즈’는 전에 낸 칩까지 포함해요.",
                                                "Add each seat's paid chips once. 'Raise to 18 total' includes chips paid before."))
-                introBlock(title: language.text("SB와 BB", "Small and big blinds"),
-                           body: language.text("SB는 딜러 왼쪽 첫 자리, BB는 그 다음 자리예요. 카드를 받기 전에 1칩과 2칩을 먼저 내요.",
-                                               "The small blind sits left of the dealer, the big blind next. They post 1 and 2 before the deal."))
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(language.text("짧은 예", "A quick example"))
                         .font(GT.semibold(14))
                         .foregroundStyle(GT.inkSecondary)
-                    Text(language.text("SB 1 + BB 2 + A 4 + B 4 = 11칩",
-                                       "SB 1 + BB 2 + A 4 + B 4 = 11 chips"))
+                    Text(language.text("블라인드 1 + 2, 콜 4 + 4\n합계 11칩",
+                                       "Blinds 1 + 2, calls 4 + 4\nTotal 11 chips"))
                         .font(GT.title(19).monospacedDigit())
                         .foregroundStyle(GT.ink)
                 }
@@ -252,9 +253,12 @@ struct PotMathIntroView: View {
                             in: RoundedRectangle(cornerRadius: GT.Radius.panel,
                                                  style: .continuous))
 
-                PrimaryCTAButton(title: language.text("문제 풀기", "Try a question"), action: onStart)
+
             }
             .gtContentEdge()
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            ActionSheet { PrimaryCTAButton(title: language.text("문제 풀기", "Try a question"), action: onStart) }
         }
         .accessibilityIdentifier("pot-math-intro")
     }

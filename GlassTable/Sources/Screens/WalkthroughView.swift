@@ -15,6 +15,7 @@ struct WalkthroughView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
+    @Environment(\.simpleQuestions) private var simple
     let title: String
     let concept: Concept?
     /// One sentence on why the concept matters, shown on the first step.
@@ -27,9 +28,11 @@ struct WalkthroughView: View {
     let onFinish: () -> Void
 
     @State private var index = 0
+    @State private var positionTeachingStep: Int?
     /// The learner's one action in the example: the first computed value stays covered
     /// until they tap it, and Next waits for that tap.
     @State private var practiceRevealed = false
+    @State private var workedAnswer: Int?
 
     init(title: String, concept: Concept? = nil, purpose: String? = nil, beats: [Beat], rows: [(String, [Card])],
          initialIndex: Int = 0, onStep: @escaping (Int) -> Bool = { _ in true },
@@ -37,10 +40,38 @@ struct WalkthroughView: View {
         self.title = title; self.concept = concept; self.purpose = purpose; self.beats = beats; self.rows = rows
         self.initialIndex = initialIndex; self.onStep = onStep
         self.onFinish = onFinish
+        _positionTeachingStep = State(initialValue: concept == .position && initialIndex == 0 ? 0 : nil)
     }
 
-    private var beat: Beat { beats[min(index, beats.count - 1)] }
-    private var isLast: Bool { index >= beats.count - 1 }
+    private var orientation: [Beat] {
+            var beats = [Beat(language.text("여덟 자리를 살펴봐요", "Explore eight seats"),
+                              detail: language.text("6번이 딜러예요. 그 왼쪽이 작은 블라인드, 다음이 큰 블라인드예요.", "Seat 6 is the dealer. Next are the small blind and big blind.")),
+                         Beat(language.text("차례 전에 칩을 내요", "Post before taking turns"),
+                              detail: language.text("작은 블라인드는 1칩, 큰 블라인드는 2칩을 먼저 내요. 미리 내는 것과 차례에 행동하는 것은 달라요.", "The small blind posts 1 chip and the big blind 2. Posting is different from taking a turn."))]
+            for position in Position.preflopOrder {
+                let number = LessonSeatLoop.number(position)
+                beats.append(Beat(language.text("플롭 전 · 자리 \(number)", "Before flop · Seat \(number)"),
+                                  detail: language.text("큰 블라인드 다음인 1번부터 시계 방향으로 행동해요. 이번은 \(number)번 차례예요.", "Start at seat 1 after the big blind and move clockwise. Seat \(number) acts now.")))
+            }
+            for position in Position.postflopOrder {
+                let number = LessonSeatLoop.number(position)
+                beats.append(Beat(language.text("플롭 이후 · 자리 \(number)", "After flop · Seat \(number)"),
+                                  detail: language.text("딜러 왼쪽부터 참여 중인 자리가 행동해요. 모두 참여 중이면 7번부터 시작해요. 지금은 \(number)번 차례예요. 폴드한 자리는 건너뛰어요.", "Begin left of the dealer among active seats. With all eight active, start at seat 7. Seat \(number) acts now. Skip folded seats.")))
+            }
+            return beats
+    }
+    private var beat: Beat {
+        if let positionTeachingStep { return orientation[positionTeachingStep] }
+        let original = beats[min(index, beats.count - 1)]
+        guard concept == .position else { return original }
+        func plain(_ text: String) -> String {
+            Position.allCases.sorted { $0.rawValue.count > $1.rawValue.count }.reduce(text) { text, position in
+                text.replacingOccurrences(of: position.rawValue, with: language.text("자리 \(LessonSeatLoop.number(position))", "Seat \(LessonSeatLoop.number(position))"))
+            }
+        }
+        return Beat(plain(original.caption), value: original.value.map(plain), detail: original.detail.map(plain), focus: original.focus)
+    }
+    private var isLast: Bool { positionTeachingStep == nil && index >= beats.count - 1 }
 
     /// The last step that carries a value: the example's conclusion (the count, the
     /// percentage, the call). Every concept's script has one after its opening step
@@ -50,49 +81,74 @@ struct WalkthroughView: View {
     }
 
     private var isCovered: Bool {
-        !practiceRevealed && index == Self.practiceIndex(in: beats)
+        positionTeachingStep == nil && !practiceRevealed && index == Self.practiceIndex(in: beats)
     }
 
     var body: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: GT.Space.section) {
-                        header
-                        content.frame(maxWidth: .infinity, alignment: .leading)
-                        VStack(alignment: .leading, spacing: GT.Space.related) { sheet }
-                            .gtInset(GT.Space.card, firstText: sheetFirstText)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .gtCard(radius: GT.Radius.panel)
-                    }
-                    .padding(.horizontal, 18).padding(.bottom, 28)
-                }
-            } else {
-                VStack(spacing: 0) {
-                    header
-                    GeometryReader { geo in
-                        ScrollView {
-                            content
-                                .padding(.horizontal, 18).padding(.vertical, GT.Space.related)
-                                .frame(maxWidth: .infinity, minHeight: geo.size.height)
-                        }
-                        .scrollBounceBehavior(.basedOnSize)
-                    }
-                    ActionSheet(firstText: sheetFirstText) { sheet }.layoutPriority(1)
-                }
-            }
+        ScrollView {
+            VStack(alignment: .leading, spacing: GT.Space.section) {
+                header
+                content.frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: GT.Space.related) { sheet }
+                    .gtInset(GT.Space.card, firstText: sheetFirstText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .gtCard(radius: GT.Radius.panel)
+            }.padding(.horizontal, 18).padding(.bottom, 24)
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) { navigationActions }
+        .simultaneousGesture(DragGesture().onEnded { gesture in
+            if gesture.startLocation.x < 24, gesture.translation.width > 70 { previousStep() }
+        })
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(FeltBackground())
         .onAppear {
             index = min(max(0, initialIndex), max(0, beats.count - 1))
             #if DEBUG
-            // GT_DEMO_BEAT=<n> opens on beat n — synthetic taps never reach Simulator
-            // content, so the highlight/strike states are otherwise unverifiable.
             if let n = ProcessInfo.processInfo.environment["GT_DEMO_BEAT"].flatMap(Int.init) {
                 index = min(max(0, n), beats.count - 1)
             }
             #endif
+        }
+    }
+
+    private func previousStep() {
+        if let step = positionTeachingStep {
+            if step > 0 { positionTeachingStep = step - 1 }
+            return
+        }
+        if concept == .position, index == 0 { positionTeachingStep = orientation.count - 1; return }
+        guard index > 0, onStep(index - 1) else { return }
+        withAnimation(reduceMotion ? nil : GT.Motion.change) { index -= 1 }
+    }
+
+    private var navigationActions: some View {
+        ActionSheet {
+            if concept == .potMath, isCovered,
+               let value = beat.value, let correct = Int(value.filter(\.isNumber)) {
+                LessonCountChoices(values: BeginnerQuestionChoices.integers(answer: correct, bounds: 0...max(1326, correct + 10), seed: UInt64(index)),
+                                   suffix: language.text("칩", " chips")) { chosen in
+                    workedAnswer = chosen
+                    practiceRevealed = true
+                }.accessibilityIdentifier("walkthrough-pot-check")
+            }
+            if let workedAnswer, let value = beat.value, let correct = Int(value.filter(\.isNumber)), index == Self.practiceIndex(in: beats) {
+                Text(workedAnswer == correct ? language.text("맞아요. 계산을 이어갈 수 있어요.", "Correct. You followed the contributions.")
+                                            : language.text("기여액을 다시 더해 봐요.", "Add the contributions again."))
+                    .font(GT.body(14)).foregroundStyle(GT.ink)
+            }
+            HStack(spacing: 12) {
+                SecondaryCTAButton(title: language.text("이전", "Previous"), action: previousStep)
+                    .disabled(positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)).accessibilityIdentifier("walkthrough-previous")
+                PrimaryCTAButton(title: isLast ? language.text("설명으로 돌아가기", "Finish example")
+                                               : language.text("다음", "Next")) {
+                    if let step = positionTeachingStep {
+                        positionTeachingStep = step + 1 < orientation.count ? step + 1 : nil
+                    } else if isLast { onFinish() }
+                    else if onStep(index + 1) {
+                        withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 }
+                    }
+                }.disabled(isCovered).accessibilityIdentifier("walkthrough-next")
+            }
         }
     }
 
@@ -109,7 +165,7 @@ struct WalkthroughView: View {
                 Text("\(title) · \(language.text("따라 배우기", "Worked example"))").font(GT.semibold(14))
                     .foregroundStyle(GT.onFeltSecondary)
                 Spacer()
-                Text("\(index + 1)/\(beats.count)")
+                Text(positionTeachingStep.map { "\($0 + 1)/\(orientation.count)" } ?? "\(index + 1)/\(beats.count)")
                     .font(GT.semibold(14).monospacedDigit())
                     .foregroundStyle(GT.onFeltSecondary)
             }
@@ -117,7 +173,7 @@ struct WalkthroughView: View {
                 ZStack(alignment: .leading) {
                     Capsule().fill(GT.hairlineFelt).frame(height: 2)
                     Capsule().fill(GT.onFelt)
-                        .frame(width: geo.size.width * Double(index + 1) / Double(beats.count),
+                        .frame(width: geo.size.width * Double((positionTeachingStep ?? index) + 1) / Double(positionTeachingStep == nil ? beats.count : orientation.count),
                                height: 2)
                 }
             }
@@ -134,8 +190,8 @@ struct WalkthroughView: View {
         }
         .padding(.horizontal, 18).padding(.top, 4)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(title + ", " + language.text("\(beats.count)단계 중 \(index + 1)단계",
-                                           "Step \(index + 1) of \(beats.count)")
+        .accessibilityLabel(title + ", " + language.text("\(positionTeachingStep == nil ? beats.count : orientation.count)단계 중 \((positionTeachingStep ?? index) + 1)단계",
+                                           "Step \((positionTeachingStep ?? index) + 1) of \(positionTeachingStep == nil ? beats.count : orientation.count)")
                             + (index == 0 ? purpose.map { ". " + $0 } ?? "" : ""))
         .accessibilityIdentifier("walkthrough-step-\(index)")
     }
@@ -143,8 +199,43 @@ struct WalkthroughView: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: GT.Space.related) {
             if concept == .combos, index == 0 { CombinationExampleView() }
-            beatContent
+            if concept == .position {
+                LessonSeatLoop(active: positionActiveSeat, showsOrder: true, postflop: (positionTeachingStep ?? -1) >= 10)
+            } else if concept == .potMath {
+                VStack(alignment: .leading, spacing: 12) {
+                    LessonPairedText(korean: ["블라인드는 차례 전에 내는 칩이에요.", "딜러 왼쪽 두 자리가 1칩과 2칩을 내요."],
+                                    english: ["Blinds are chips posted before turns.", "Two seats left of the dealer post 1 and 2."])
+                        .font(GT.body(15)).foregroundStyle(GT.ink)
+                    ForEach(0...index, id: \.self) { step in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(beats[step].caption).font(GT.semibold(15))
+                            if let detail = beats[step].detail {
+                                Text(step == beats.count - 2 && !practiceRevealed
+                                     ? detail.components(separatedBy: "=").dropLast().joined(separator: "=") + " = ?"
+                                     : detail).font(GT.body(15))
+                            }
+                            if let value = beats[step].value {
+                                if step == Self.practiceIndex(in: beats), !practiceRevealed { Text(language.text("합계는?", "Total?" )).font(GT.title(22)) }
+                                else { Text(value).font(GT.title(22)) }
+                            }
+                        }.foregroundStyle(GT.ink).padding(14).frame(maxWidth: .infinity, alignment: .leading).gtPanel()
+                    }
+                }
+            } else if concept == .rfi, simple, index == 0 || index == 2 {
+                if let hand = rows.first?.1 { LessonHandNotation(cards: hand) }
+                if index == 2 {
+                    LessonPairedText(korean: ["높은 숫자, 같은 무늬, 숫자 간격을 봐요.", "선택할 때는 이 자리의 차트를 사용해요."],
+                                    english: ["Look at high ranks, shared suit and gaps.", "Use this seat’s chart for the decision."])
+                        .font(GT.body(16)).foregroundStyle(GT.ink)
+                }
+            } else { beatContent }
         }
+    }
+
+    private var positionActiveSeat: Position? {
+        guard let step = positionTeachingStep else { return nil }
+        if (2...9).contains(step) { return Position.preflopOrder[step - 2] }
+        return (10...17).contains(step) ? Position.postflopOrder[step - 10] : nil
     }
 
     @ViewBuilder
@@ -156,7 +247,7 @@ struct WalkthroughView: View {
             // text beat. The payload moves up onto the felt so the beat has a subject;
             // the sheet keeps the label, the reasoning and the button.
             VStack(alignment: .leading, spacing: 10) {
-                Spacer(minLength: 24)
+
                 if isCovered {
                     revealTile
                 } else {
@@ -166,7 +257,7 @@ struct WalkthroughView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .contentTransition(.numericText())
                 }
-                Spacer(minLength: 0)
+
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         case .table:
@@ -186,9 +277,12 @@ struct WalkthroughView: View {
             }
             .frame(maxWidth: .infinity)
         case let .rangeGrid(range, highlight):
+            VStack(alignment: .leading, spacing: 14) {
+            LessonChartPrimer()
             RangeGridView(range: range, highlight: highlight)
                 .frame(maxWidth: 330)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            }
         case let .actionList(lines, lit):
             // Centred rather than pinned to the top: the action history is only a few
             // short lines, and a small box top-left under an empty felt reads as a
@@ -218,9 +312,12 @@ struct WalkthroughView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 8)
         case let .defendChart(opener, highlight):
+            VStack(alignment: .leading, spacing: 14) {
+            LessonChartPrimer()
             DefendGridView(opener: opener, highlight: highlight)
                 .frame(maxWidth: 330)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            }
         case let .grid(cards):
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
                       alignment: .leading, spacing: 8) {
@@ -301,7 +398,14 @@ struct WalkthroughView: View {
 
     private var sheet: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let value = beat.value, beat.focus != .none {
+            if concept == .rfi, simple, index == 2 {
+                DisclosureGroup(language.text("점수가 궁금하다면", "How the score works")) {
+                    Text([beat.value, beat.detail].compactMap { $0 }.joined(separator: "\n"))
+                        .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                    Text(language.text("패를 정렬하는 휴리스틱이며 정확한 승률이나 보편적인 최적 선택이 아니에요.", "This heuristic ranks hands; it is not exact equity or a universal best decision."))
+                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                }.foregroundStyle(GT.ink)
+            } else if let value = beat.value, beat.focus != .none {
                 Text(beat.caption)
                     .font(GT.semibold(13)).tracking(0.3)
                     .foregroundStyle(GT.inkMuted)
@@ -323,23 +427,16 @@ struct WalkthroughView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             if isCovered {
-                Text(language.text("먼저 스스로 계산해 본 뒤 눌러서 확인해요.",
-                                   "Work it out first, then tap to check."))
+                Text(language.text(concept == .potMath ? "앞의 기여액을 더한 뒤 아래에서 합계를 골라요." : "먼저 스스로 계산해 본 뒤 눌러서 확인해요.",
+                                   concept == .potMath ? "Add the contributions, then choose the total below." : "Work it out first, then tap to check."))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
-            } else if let detail = beat.detail {
+            } else if concept != .potMath, !(concept == .rfi && simple && index == 2), let detail = beat.detail {
                 Text(detail).font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            PrimaryCTAButton(title: isLast ? language.text("이해했어요", "I understand")
-                                            : language.text("다음", "Next")) {
-                if isLast { onFinish() }
-                else if onStep(index + 1) {
-                    withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 }
-                }
-            }
-            .disabled(isCovered)
+
         }
     }
 
