@@ -104,6 +104,14 @@ final class GradedDockFlowTests: XCTestCase {
             XCTAssertTrue(verdict.label.contains("선택한 행동:"))
             for _ in 0..<16 where !verdict.isHittable { row.swipeUp() }
             XCTAssertTrue(verdict.isHittable)
+            let targetTop = app.windows.firstMatch.frame.minY + 100
+            for _ in 0..<12 where verdict.frame.minY < targetTop - 1 {
+                let distance = min(200, targetTop - verdict.frame.minY)
+                let start = row.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+                start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: distance)))
+            }
+            XCTAssertGreaterThanOrEqual(verdict.frame.minY, targetTop - 1)
+            XCTAssertLessThan(verdict.frame.minY, app.windows.firstMatch.frame.maxY - 100)
             XCTAssertGreaterThanOrEqual(verdict.frame.minX, row.frame.minX - 1)
             XCTAssertLessThanOrEqual(verdict.frame.maxX, row.frame.maxX + 1)
             let feedback = XCTAttachment(screenshot: app.screenshot())
