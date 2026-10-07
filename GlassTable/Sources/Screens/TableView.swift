@@ -577,7 +577,7 @@ struct TableView: View {
         }
         return VStack(alignment: .leading, spacing: 6) {
             Text(title).font(GT.title(20)).foregroundStyle(turn.band.ink)
-            Text(language.text("내 선택: ", "Your choice: ") + turn.label(in: language))
+            Text(language.text("선택한 행동: ", "Your choice: ") + turn.label(in: language))
                 .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
             Text(reference).font(GT.semibold(15)).foregroundStyle(GT.ink)
         }
@@ -607,7 +607,7 @@ struct TableView: View {
                 Divider().overlay(GT.border)
                 priceRow(tag: language.text("선택한 답", "Your choice"), action: turn.label(in: language),
                          amount: "\(bbText(best.ev - loss))bb", ink: turn.band.ink)
-                Text(language.text("모델 선택과 내 선택의 평균값 차이: \(bbText(loss))bb",
+                Text(language.text("모델 선택과 선택한 행동의 평균값 차이: \(bbText(loss))bb",
                                    "Difference in average value: \(bbText(loss))bb"))
                     .font(GT.body(10)).foregroundStyle(GT.inkMuted)
                     .frame(maxWidth: .infinity, alignment: .leading)
