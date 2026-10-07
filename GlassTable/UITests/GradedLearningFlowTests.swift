@@ -27,10 +27,13 @@ final class GradedLearningFlowTests: XCTestCase {
     func testNormalPreflopFooterHugsControlsAndBothHandsFit() {
         let app = launch()
         let footer = app.scrollViews["table-footer-scroll"]
-        let content = app.descendants(matching: .any)["table-footer-content"]
-        XCTAssertTrue(content.waitForExistence(timeout: 5))
-        XCTAssertGreaterThan(content.frame.height, 0)
-        XCTAssertLessThanOrEqual(footer.frame.height, content.frame.height + 1,
+        let measurement = app.descendants(matching: .any)["table-footer-measured-height"]
+        XCTAssertTrue(measurement.waitForExistence(timeout: 5))
+        // Accessibility groups report a union of descendants, excluding some text
+        // leading and stack spacing. Read the actual SwiftUI layout measurement.
+        let contentHeight = Double(measurement.value as? String ?? "") ?? 0
+        XCTAssertGreaterThan(contentHeight, 0)
+        XCTAssertLessThanOrEqual(Double(footer.frame.height), contentHeight + 1,
                                  "The footer viewport must not add blank height beyond its controls")
         for identifier in ["table-hero-cards", "table-opponent-cards"] {
             let cards = app.descendants(matching: .any)[identifier]

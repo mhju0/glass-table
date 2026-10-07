@@ -266,6 +266,16 @@ struct TableView: View {
                                 .background {
                                     GeometryReader { content in
                                         Color.clear.preference(key: GradedFooterHeight.self, value: content.size.height)
+                                        #if DEBUG
+                                        if ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"] != nil {
+                                            Color.clear
+                                                .accessibilityElement(children: .ignore)
+                                                .accessibilityLabel("Measured footer content height")
+                                                .accessibilityValue(String(Double(content.size.height)))
+                                                .accessibilityIdentifier("table-footer-measured-height")
+                                                .allowsHitTesting(false)
+                                        }
+                                        #endif
                                     }
                                 }
                                 .accessibilityElement(children: .contain)
