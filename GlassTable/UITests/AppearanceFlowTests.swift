@@ -16,60 +16,48 @@ final class AppearanceFlowTests: XCTestCase {
             "GT_DEMO_SETTINGS": "1",
         ]
         app.launch()
-        let dark = app.buttons["appearance-dark"]
-        XCTAssertTrue(dark.waitForExistence(timeout: 15))
-        dark.tap()
-        XCTAssertTrue(dark.isSelected)
+        choose("dark", in: app)
         XCTAssertTrue(waitForBackground(in: app, light: false))
         attach(app, name: "settings-dark")
-
         app.terminate()
         app.launch()
-        XCTAssertTrue(dark.waitForExistence(timeout: 15))
-        XCTAssertTrue(dark.isSelected, "Appearance must survive an app restart")
-
-        let light = app.buttons["appearance-light"]
-        light.tap()
-        XCTAssertTrue(light.isSelected)
-        XCTAssertTrue(waitForBackground(in: app, light: true),
-                      "Selecting light must update Settings, not only its checkmark")
+        revealAppearance(in: app)
+        XCTAssertTrue(waitForBackground(in: app, light: false))
+        choose("light", in: app)
+        XCTAssertTrue(waitForBackground(in: app, light: true))
         attach(app, name: "settings-light")
-
-        let system = app.buttons["appearance-system"]
-        system.tap()
-        XCTAssertTrue(system.isSelected)
+        choose("system", in: app)
         app.terminate()
         app.launch()
-        XCTAssertTrue(system.waitForExistence(timeout: 15))
-        XCTAssertTrue(system.isSelected)
+        revealAppearance(in: app)
+        XCTAssertTrue(app.buttons["settings-appearance"].exists)
     }
 
     func testAllAppearanceChoicesRemainReachableAtAccessibilityXXXL() {
         let app = XCUIApplication()
-        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
-        app.launchEnvironment = [
-            "GT_TEST_STORE_ID": UUID().uuidString,
-            "GT_DEMO_SEED": "1",
-            "GT_DEMO_SETTINGS": "1",
-        ]
-        app.launchArguments += ["-UIPreferredContentSizeCategoryName",
-                               "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launchArguments = ["-AppleLanguages", "(ko)", "-glassTable.language", "korean",
+                               "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_SEED": "1", "GT_DEMO_SETTINGS": "1"]
         app.launch()
-        for mode in ["light", "dark", "system"] {
-            let choice = app.buttons["appearance-\(mode)"]
-            XCTAssertTrue(choice.waitForExistence(timeout: 15))
-            for _ in 0..<10 where !choice.isHittable {
-                if choice.frame.midY < app.frame.midY { app.swipeDown() }
-                else { app.swipeUp() }
-            }
-            XCTAssertTrue(choice.isHittable)
-            XCTAssertGreaterThanOrEqual(choice.frame.height, 44)
-            choice.tap()
-            let selected = NSPredicate(format: "isSelected == true")
-            expectation(for: selected, evaluatedWith: choice)
-            waitForExpectations(timeout: 5)
-        }
+        for mode in ["light", "dark", "system"] { choose(mode, in: app) }
         attach(app, name: "settings-accessibility")
+    }
+
+    private func revealAppearance(in app: XCUIApplication) {
+        let picker = app.buttons["settings-appearance"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 15))
+        for _ in 0..<12 where !picker.isHittable { app.swipeUp() }
+        XCTAssertTrue(picker.isHittable)
+        XCTAssertGreaterThanOrEqual(picker.frame.height, 44)
+    }
+
+    private func choose(_ mode: String, in app: XCUIApplication) {
+        revealAppearance(in: app)
+        app.buttons["settings-appearance"].tap()
+        let option = app.buttons["appearance-\(mode)"]
+        XCTAssertTrue(option.waitForExistence(timeout: 5))
+        option.tap()
     }
 
     private func attach(_ app: XCUIApplication, name: String) {

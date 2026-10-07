@@ -38,6 +38,7 @@ regressions and verification limits. Detailed historical handoff: `docs/PROJECT_
   describe the same spot and the published policy/chart. Preflop table choices
   use the defend chart; postflop EV uses the disclosed checkdown approximation.
   Do not reveal the correct choice before the user commits.
+- Device reinstall policy: every owner-requested reinstall starts with fresh local data. Uninstall the existing app first, then install and verify first-run welcome. Preserve data only when explicitly requested for that reinstall. Do not copy phone progress off-device unless asked.
 - The product is offline, with no accounts, analytics, ads, or real-money
   wagering. 1.0 has no purchases; 1.1 plans one one-time unlock (StoreKit, no
   subscriptions, consumables or ads) after Korean business registration, per

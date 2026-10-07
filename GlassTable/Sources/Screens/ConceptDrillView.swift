@@ -489,6 +489,7 @@ private struct RevealSheet: View {
     @Environment(\.simpleQuestions) private var simple
     @State private var saved = false
     @State private var showingWorkedExample = false
+    @State private var workedExampleSeed: UInt64 = 0
     let band: GradeBand
     let mine: String
     let correct: String
@@ -528,6 +529,7 @@ private struct RevealSheet: View {
             if saved, band == .off, let replayContext,
                model.record(for: replayContext.concept).consecutiveMisses >= 2 {
                 SecondaryCTAButton(title: language.text("예제를 함께 보고 다른 패로 다시 해봐요", "Try a worked example, then another hand")) {
+                    workedExampleSeed = GuideExampleRotation.next("retry-" + replayContext.concept.rawValue)
                     showingWorkedExample = true
                 }
                 .accessibilityIdentifier("drill-worked-example")
@@ -552,7 +554,7 @@ private struct RevealSheet: View {
             if let replayContext {
                 let concept = replayContext.concept
                 let worked = Walkthrough.make(concept: concept,
-                    seed: 0xE9A1 &+ UInt64(model.seedCount(for: concept)), index: 0, language: language)
+                    seed: 0xE9A1 &+ workedExampleSeed, index: 0, language: language)
                 NavigationStack {
                     WalkthroughView(title: skillNames(concept, language: language, termsLead: false).lead,
                                     concept: concept, beats: worked.beats, rows: worked.rows,
@@ -715,7 +717,7 @@ private struct ShowdownDrill: View {
                         .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("showdown-best-five-rule")
-                    Text(language.text("내 가장 좋은 다섯 장", "My best five"))
+                    Text(language.text("가장 좋은 5장", "Your best five"))
                         .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
                     CardRow(cards: bestFiveCards(spot.hero + spot.board))
                     Text(language.text("상대의 가장 좋은 다섯 장", "Opponent's best five"))
@@ -726,8 +728,8 @@ private struct ShowdownDrill: View {
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: ["내가 이김", "상대가 이김", "무승부"][reveal.answer],
-                            correct: ["내가 이김", "상대가 이김", "무승부"][reveal.winner],
+                            mine: HandOutcomeCopy.answer(reveal.answer, in: language),
+                            correct: HandOutcomeCopy.answer(reveal.winner, in: language),
                             why: reveal.whyText,
                             submittedInput: .integer(reveal.answer)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
@@ -2018,7 +2020,7 @@ private struct RangeReadDrill: View {
                 if !asksInWords {
                 SectionLabel(text: reveal == nil
                     ? language.text("내가 보는 범위", "My possible hands")
-                    : language.text("정답 · 내 답 비교", "Answer · my estimate"))
+                    : language.text("정답 · 선택한 답 비교", "Answer · your estimate"))
                     .padding(.top, 4)
                     .revealEvidenceStart()
                 // The legend goes *above* the grid. Below it, the one thing that makes
@@ -2585,7 +2587,7 @@ private struct EVLossRevealSheet: View {
         VStack(alignment: .leading, spacing: 12) {
             VerdictRow(band: reveal.band, mine: action(chosenCalls), correct: action(bestCalls),
                        title: evLossLabel(loss: reveal.grade.loss, language: language),
-                       mineTitle: language.text("내 선택", "You chose"),
+                       mineTitle: language.text("선택한 답", "Your answer"),
                        correctTitle: language.text("최선", "Best"))
             if !collapsed {
                 evComparison
@@ -2631,7 +2633,7 @@ private struct EVLossRevealSheet: View {
             evRow(tag: language.text("최선", "Best"), option: reveal.grade.best,
                   calls: bestCalls, ink: GTBand.spotOnInk)
             Divider().overlay(GT.border)
-            evRow(tag: language.text("내 선택", "You"), option: reveal.grade.chosen,
+            evRow(tag: language.text("선택한 답", "Your choice"), option: reveal.grade.chosen,
                   calls: chosenCalls, ink: reveal.band.ink)
             HStack {
                 Text(language.text("최선 대비 손실", "Value lost versus best"))
@@ -3047,7 +3049,7 @@ private struct DefendRevealSheet: View {
                        correct: action(reveal.correct),
                        title: matched ? language.text("차트와 일치해요", "Matches the chart")
                                       : language.text("차트와 달라요", "Different from the chart"),
-                       mineTitle: language.text("내 선택", "You chose"),
+                       mineTitle: language.text("선택한 답", "Your answer"),
                        correctTitle: language.text("차트", "Chart"))
             if !collapsed {
                 Text(localizedWhy)

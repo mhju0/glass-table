@@ -136,7 +136,7 @@ struct NodeSessionView: View {
             } else if stage == .together || isHelpedQuestion { hintButton }
         })
         .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
-            if stage == .solo, gesture.startLocation.x < 24, gesture.translation.width > 80,
+            if (stage == .solo || stage == .together), gesture.startLocation.x < 24, gesture.translation.width > 80,
                abs(gesture.translation.height) < 60 { dismiss() }
         })
         .onAppear {

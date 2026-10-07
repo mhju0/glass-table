@@ -10,6 +10,8 @@ struct SettingsView: View {
     @AppStorage(AppLanguage.storageKey) private var languagePreference = AppLanguage.system
     @Environment(\.leadsWithTerms) private var leadsWithTerms
     @AppStorage(PokerTerms.storageKey) private var termsChoice: Bool?
+    @AppStorage(AppFeedback.soundKey) private var soundOn = false
+    @AppStorage(AppFeedback.hapticsKey) private var hapticsOn = true
     @State private var showGlossary = false
     @State private var showGuide = false
     @State private var showFirstLesson = false
@@ -33,6 +35,17 @@ struct SettingsView: View {
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
     private static let feedbackURL =
         URL(string: "mailto:mj.apps.support@gmail.com?subject=Glass%20Table%20%ED%94%BC%EB%93%9C%EB%B0%B1")!
+    private func preferenceRow(_ title: String, _ value: String) -> some View {
+        HStack(spacing: 12) {
+            Text(title).font(GT.semibold(15))
+            Spacer(minLength: 12)
+            Text(value).foregroundStyle(GT.inkSecondary)
+            Image(systemName: "chevron.up.chevron.down").font(.system(size: 12, weight: .semibold))
+        }
+        .frame(maxWidth: .infinity, minHeight: 44)
+        .contentShape(Rectangle())
+    }
+
     private var version: String {
         let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
@@ -44,62 +57,6 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(language.text("설정", "Settings")).font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(language.text("언어", "Language")).font(GT.semibold(15)).foregroundStyle(GT.ink)
-                    Text(language.text("언어를 바꿔도 학습 기록은 그대로예요.", "Your progress stays saved when you switch."))
-                        .font(GT.body(12)).foregroundStyle(GT.inkMuted)
-                    VStack(spacing: 0) {
-                        ForEach(AppLanguage.allCases) { option in
-                            if option != .system { Divider() }
-                            Button { languagePreference = option } label: {
-                                HStack(spacing: 12) {
-                                    Text(option == .system ? language.text("기기 설정", "System") : option.title)
-                                        .font(GT.semibold(15)).foregroundStyle(GT.ink)
-                                    Spacer()
-                                    Image(systemName: languagePreference == option
-                                          ? "checkmark.circle.fill" : "circle")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundStyle(languagePreference == option ? GT.cta : GT.inkMuted)
-                                }
-                                .frame(minHeight: 48).contentShape(Rectangle())
-                            }
-                            .buttonStyle(GTPress())
-                            .accessibilityIdentifier("language-\(option.rawValue)")
-                            .accessibilityAddTraits(languagePreference == option ? .isSelected : [])
-                        }
-                    }
-                }
-                .gtInset(GT.Space.card)
-                .gtCard(radius: 20)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(language.text("화면 모드", "Appearance")).font(GT.semibold(15)).foregroundStyle(GT.ink)
-                    Text(language.text("기기 설정에 맞추거나 직접 골라요", "Follow your device or choose a look."))
-                        .font(GT.body(12)).foregroundStyle(GT.inkMuted)
-                    VStack(spacing: 0) {
-                        ForEach(AppAppearance.allCases) { mode in
-                            if mode != .system { Divider() }
-                            Button { appearance = mode } label: {
-                                HStack(spacing: 12) {
-                                    Text(mode.title(in: language))
-                                        .font(GT.semibold(15))
-                                        .foregroundStyle(GT.ink)
-                                    Spacer()
-                                    Image(systemName: appearance == mode
-                                          ? "checkmark.circle.fill" : "circle")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundStyle(appearance == mode ? GT.cta : GT.inkMuted)
-                                }
-                                .frame(minHeight: 48)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(GTPress())
-                            .accessibilityIdentifier("appearance-\(mode.rawValue)")
-                            .accessibilityAddTraits(appearance == mode ? .isSelected : [])
-                        }
-                    }
-                }
-                .gtInset(GT.Space.card)
-                .gtCard(radius: 20)
                 Toggle(isOn: Binding(get: { leadsWithTerms }, set: { termsChoice = $0 })) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(language.text("포커 용어 먼저 보기", "Use poker terms"))
@@ -114,6 +71,17 @@ struct SettingsView: View {
                 .accessibilityIdentifier("settings-poker-terms")
                 .gtInset(GT.Space.card)
                 .gtCard(radius: 20)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(language.text("플레이와 피드백", "Play & feedback"))
+                        .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    Toggle(language.text("효과음", "Sound effects"), isOn: $soundOn)
+                        .accessibilityIdentifier("settings-sound")
+                    Divider()
+                    Toggle(language.text("진동 피드백", "Haptic feedback"), isOn: $hapticsOn)
+                        .accessibilityIdentifier("settings-haptics")
+                }
+                .font(GT.body(15)).tint(GT.cta)
+                .gtInset(GT.Space.card).gtCard(radius: 20)
                 reminderCard
                 VStack(spacing: 0) {
                     Button { showFirstLesson = true } label: {
@@ -216,6 +184,33 @@ struct SettingsView: View {
                     .disabled(isReadingImport)
                 }
                 .gtCard(radius: 20)
+                VStack(spacing: 0) {
+                    Menu {
+                        ForEach(AppLanguage.allCases) { option in
+                            Button {
+                                languagePreference = option
+                            } label: {
+                                Label(option == .system ? language.text("기기 설정", "System") : option.title,
+                                      systemImage: languagePreference == option ? "checkmark" : "")
+                            }.accessibilityIdentifier("language-\(option.rawValue)")
+                        }
+                    } label: {
+                        preferenceRow(language.text("언어", "Language"),
+                                      languagePreference == .system ? language.text("기기 설정", "System") : languagePreference.title)
+                    }.accessibilityIdentifier("settings-language")
+                    Divider()
+                    Menu {
+                        ForEach(AppAppearance.allCases) { mode in
+                            Button { appearance = mode } label: {
+                                Label(mode.title(in: language), systemImage: appearance == mode ? "checkmark" : "")
+                            }.accessibilityIdentifier("appearance-\(mode.rawValue)")
+                        }
+                    } label: {
+                        preferenceRow(language.text("화면 모드", "Appearance"), appearance.title(in: language))
+                    }.accessibilityIdentifier("settings-appearance")
+                }
+                .font(GT.body(15)).foregroundStyle(GT.ink).tint(GT.ink)
+                .gtInset(GT.Space.card).gtCard(radius: 20)
                 VStack(spacing: 0) {
                     Button { showResponsible = true } label: {
                         row("heart.text.square", language.text("책임감 있게 이용하기", "Play responsibly"),

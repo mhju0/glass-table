@@ -278,8 +278,9 @@ final class RangeReadDrillTests: XCTestCase {
     func testABandAnswerRoundTripsAsASavedInput() throws {
         let input = SavedDrillInput.rangeBand(width: 6, excludedTop: 4, tendencies: ["pairs"])
         XCTAssertTrue(input.isValid(for: .rangeRead))
-        XCTAssertFalse(SavedDrillInput.rangeBand(width: 6, excludedTop: 41, tendencies: [])
+        XCTAssertFalse(SavedDrillInput.rangeBand(width: 6, excludedTop: 101, tendencies: [])
             .isValid(for: .rangeRead))
+        XCTAssertTrue(SavedDrillInput.rangeBand(width: 6, excludedTop: 60, tendencies: []).isValid(for: .rangeRead))
         let data = try JSONEncoder().encode(input)
         XCTAssertEqual(try JSONDecoder().decode(SavedDrillInput.self, from: data), input)
         // Answers saved before the band existed still decode as plain top reads.

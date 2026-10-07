@@ -153,6 +153,16 @@ extension GradeBand {
 ///   3. **text** — 정확 / 근접 / 빗나감, plus the gap named (`2 차이`)
 ///   4. **color** — additive only, never load-bearing.
 /// Numbers stay near-black (14.9:1 on the tint) because the band inks only reach ~5:1.
+enum HandOutcomeCopy {
+    static func answer(_ winner: Int, in language: LearningLanguage) -> String {
+        switch winner {
+        case 0: language.text("이겼어요", "You win")
+        case 1: language.text("상대가 이겼어요", "Opponent wins")
+        default: language.text("무승부", "Tie")
+        }
+    }
+}
+
 struct VerdictRow: View {
     @Environment(\.learningLanguage) private var language
     let band: GradeBand
@@ -173,8 +183,8 @@ struct VerdictRow: View {
     }
 
     private var heading: String { title ?? band.label(in: language) }
-    private var mineName: String { mineTitle ?? language.text("내 답", "My answer") }
-    private var correctName: String { correctTitle ?? language.text("정답", "Correct") }
+    private var mineName: String { mineTitle ?? language.text("선택한 답", "Your answer") }
+    private var correctName: String { correctTitle ?? language.text("정답", "Correct answer") }
     /// Counts: the gap is computed here rather than at nine call sites.
     init(band: GradeBand, mine: Int, correct: Int, unit: String) {
         self.band = band
@@ -213,34 +223,35 @@ struct VerdictRow: View {
         .background(band.tint, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(band == .spotOn
-            ? (title == nil
-               ? language.text("\(band.label). 정답 \(correct), 내 답과 같아요.",
-                               "\(band.label(in: language)). Correct answer \(correct), same as my answer.")
-               : "\(heading). \(correctName) \(correct).")
-            : (title == nil
-               ? language.text("\(band.label). 내 답 \(mine), 정답 \(correct).",
-                               "\(band.label(in: language)). My answer \(mine), correct answer \(correct).")
-               : "\(heading). \(mineName) \(mine), \(correctName) \(correct).")
-              + (delta.map { " \(localizedDelta($0))." } ?? ""))
+            ? "\(heading). \(correct)."
+            : "\(heading). \(mineName): \(mine). \(correctName): \(correct)."
+                + (delta.map { " \(localizedDelta($0))." } ?? ""))
     }
 
-    /// Right answer: one value, nothing to compare. Wrong: the correction shown as a move
-    /// from what you said to what's true, the truth carrying the weight.
     @ViewBuilder
     private var answers: some View {
         if band == .spotOn {
-            Text("\(correctName) \(correct)")
-                .font(GT.title(15)).foregroundStyle(GT.ink)
+            Text(correct)
+                .font(GT.title(17)).foregroundStyle(GT.ink)
+                .fixedSize(horizontal: false, vertical: true)
         } else {
-            HStack(spacing: 6) {
-                Text("\(mineName) \(mine)")
-                    .font(GT.body(13)).foregroundStyle(GT.inkMuted)
-                Image(systemName: "arrow.right").font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(GT.inkMuted)
-                Text("\(correctName) \(correct)")
-                    .font(GT.title(15)).foregroundStyle(GT.ink)
+            VStack(alignment: .leading, spacing: 12) {
+                answerField(label: mineName, value: mine, emphasized: false)
+                Divider().overlay(GT.border)
+                answerField(label: correctName, value: correct, emphasized: true)
             }
+            .padding(.top, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private func answerField(label: String, value: String, emphasized: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(GT.body(13)).foregroundStyle(GT.inkMuted)
+            Text(value).font(GT.semibold(17)).foregroundStyle(emphasized ? GT.ink : GT.inkSecondary)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func localizedDelta(_ value: String) -> String {
@@ -272,11 +283,11 @@ struct RiverExplainPanel: View {
                     .overlay(RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: PlayingCardView.canonicalSize))
                         .strokeBorder(GT.mint, lineWidth: 2.5))
             }
-            Text("\(language.text("내 핸드", "My hand")) · \(DrillTerms.hand(ex.hero, in: language))")
+            Text("\(language.text("현재 패", "Your hand")) · \(DrillTerms.hand(ex.hero, in: language))")
                 .font(GT.title(14)).foregroundStyle(GT.onFelt)
             Text("\(language.text("상대", "Opponent")) · \(DrillTerms.hand(ex.villain, in: language))")
                 .font(GT.semibold(13)).foregroundStyle(GT.onFelt.opacity(0.85))
-            Text(ex.heroWins ? language.text("내가 이겨요", "My hand wins")
+            Text(ex.heroWins ? language.text("이겼어요", "You win")
                              : language.text("완성해도 상대가 더 강해요", "The opponent still wins"))
                 .font(GT.title(13))
                 .foregroundStyle(ex.heroWins ? GTBand.spotOnInk : GTBand.offInk)
@@ -292,7 +303,7 @@ struct RiverExplainPanel: View {
 struct SolvedWithHelpLabel: View {
     @Environment(\.learningLanguage) private var language
     var body: some View {
-        Label(language.text("도움을 받아 풀었어요", "Solved with help"),
+        Label(language.text("풀이를 확인했어요", "Solution reviewed"),
               systemImage: "hand.raised")
             .font(GT.semibold(14))
             .foregroundStyle(GT.inkSecondary)
@@ -480,8 +491,7 @@ private struct GTContentEdge: ViewModifier {
 /// visibly changes shade while the sheet settles, and the ring around it reads as a
 /// floating bubble rather than a control. A bare glyph has no material to resolve.
 ///
-/// Direction carries the meaning, which is why these are arrows and not words: ∨ puts
-/// the sheet back down the way it came up, ‹ steps back one level inside it.
+/// Back steps within a flow; Close leaves the presented activity.
 struct ChromeButton: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.chromeEdge) private var edge
@@ -498,7 +508,7 @@ struct ChromeButton: View {
 
     /// Dismisses the sheet. It rose from the bottom; it leaves the same way.
     static func close(_ action: @escaping () -> Void) -> ChromeButton {
-        ChromeButton(symbol: "chevron.down", spoken: "닫기", action: action)
+        ChromeButton(symbol: "xmark", spoken: "닫기", action: action)
     }
 
     /// One level back, staying inside the sheet.

@@ -115,6 +115,10 @@ struct FreeTableView: View {
             stopReplay()
             cancelFeedback()
         }
+        .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
+            if gesture.startLocation.x < 24, gesture.translation.width > 80,
+               abs(gesture.translation.height) < 60 { onClose() }
+        })
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 startReplay()

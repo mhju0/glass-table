@@ -100,9 +100,9 @@ struct RangeGridView: View {
             let state: String
             if outline != nil {
                 switch (truth, compared) {
-                case (true, true): state = language.text("정답과 내 답에 포함", "in both the answer and my choice")
+                case (true, true): state = language.text("정답과 선택한 답에 포함", "in both the answer and your choice")
                 case (true, false): state = language.text("정답에만 포함", "only in the answer")
-                case (false, true): state = language.text("내 답에만 포함", "only in my choice")
+                case (false, true): state = language.text("선택한 답에만 포함", "only in your choice")
                 case (false, false): state = language.text("제외", "excluded")
                 }
             } else {

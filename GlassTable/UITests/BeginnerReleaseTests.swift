@@ -241,6 +241,14 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertFalse(seat(3).exists)
     }
 
+    private func chooseLanguage(_ value: String, in app: XCUIApplication) {
+        let picker = app.buttons["settings-language"]
+        for _ in 0..<12 where !picker.isHittable { app.swipeUp() }
+        XCTAssertTrue(picker.isHittable)
+        picker.tap()
+        app.buttons["language-\(value)"].tap()
+    }
+
     func testLanguageSwitchInSettingsKeepsTheSavedLesson() {
         let app = app()
         let storeID = app.launchEnvironment["GT_TEST_STORE_ID"]!
@@ -251,7 +259,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.buttons["Close"].firstMatch.tap()
         app.tabBars.buttons["Settings"].tap()
         XCTAssertFalse(app.buttons["language-menu"].exists)
-        app.buttons["language-korean"].tap()
+        chooseLanguage("korean", in: app)
         XCTAssertTrue(app.tabBars.buttons["설정"].isSelected)
         app.tabBars.buttons["배우기"].tap()
         app.buttons["레슨 이어서 하기"].tap()
@@ -259,7 +267,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["1/3"].exists)
         app.buttons["닫기"].firstMatch.tap()
         app.tabBars.buttons["설정"].tap()
-        app.buttons["language-english"].tap()
+        chooseLanguage("english", in: app)
         XCTAssertTrue(app.tabBars.buttons["Settings"].isSelected)
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0"]

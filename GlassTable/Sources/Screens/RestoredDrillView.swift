@@ -99,7 +99,7 @@ struct RestoredDrillView: View {
             VerdictRow(band: band, mine: mine, correct: correct,
                        title: band == .spotOn ? language.text("차트와 일치해요", "Matches the chart")
                                               : language.text("차트와 달라요", "Different from the chart"),
-                       mineTitle: language.text("내 선택", "You chose"),
+                       mineTitle: language.text("선택한 답", "Your answer"),
                        correctTitle: language.text("차트", "Chart"))
         case .rangeRead:
             VerdictRow(band: band, mine: mine, correct: correct,
@@ -136,7 +136,7 @@ private struct RestoredEVLossVerdict: View {
                                  language: language)
         VerdictRow(band: reveal.band, mine: action(calls), correct: action(reveal.grade.best.ev > 0),
                    title: evLossLabel(loss: reveal.grade.loss, language: language),
-                   mineTitle: language.text("내 선택", "You chose"),
+                   mineTitle: language.text("선택한 답", "Your answer"),
                    correctTitle: language.text("최선", "Best"))
     }
 
@@ -166,8 +166,8 @@ private struct RestoredEVLossResult: View {
             VStack(alignment: .leading, spacing: 8) {
                 row(language.text("최선", "Best"), action(bestCalls), grade.best.ev)
                 Divider().overlay(GT.border)
-                row(language.text("내 선택", "You"), action(calls), grade.chosen.ev)
-                Text(language.text("최선 EV \(bbText(grade.best.ev))bb − 내 선택 EV \(chosenTerm)bb = 손실 \(bbText(grade.loss))bb",
+                row(language.text("선택한 답", "Your choice"), action(calls), grade.chosen.ev)
+                Text(language.text("최선 EV \(bbText(grade.best.ev))bb − 선택한 답 EV \(chosenTerm)bb = 손실 \(bbText(grade.loss))bb",
                                    "Best value \(bbText(grade.best.ev))bb − your value \(chosenTerm)bb = \(bbText(grade.loss))bb lost"))
                     .font(GT.body(11).monospacedDigit()).foregroundStyle(GT.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -209,11 +209,9 @@ struct RestoredDrillDescription {
         case let (.showdown, .integer(value)):
             let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
             let result = gradeShowdown(answer: value, spot: spot, language: language)
-            let labels = language == .korean
-                ? ["내가 이김", "상대가 이김", "무승부"]
-                : ["I win", "Opponent wins", "Tie"]
             guard (0..<3).contains(value), (0..<3).contains(result.winner) else { return nil }
-            return Self(mine: labels[value], correct: labels[result.winner], why: result.whyText)
+            return Self(mine: HandOutcomeCopy.answer(value, in: language),
+                        correct: HandOutcomeCopy.answer(result.winner, in: language), why: result.whyText)
         case let (.potMath, .integer(value)):
             let result = gradePotMath(answer: value,
                 spot: PotMathSpotGenerator.spot(baseSeed: seed, index: index), language: language)

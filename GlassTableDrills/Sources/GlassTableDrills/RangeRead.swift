@@ -105,7 +105,7 @@ public struct RangeEstimate: Equatable, Sendable {
 /// Input bounds shared by the drill and saved-answer validation.
 public enum RangeReadInput {
     /// The most a call read can take off the top: past the widest raising range.
-    public static let excludedTopLimit = 40.0
+    public static let excludedTopLimit = 100.0
 }
 
 public struct RangeReadReveal: Equatable {

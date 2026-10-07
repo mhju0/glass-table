@@ -56,6 +56,11 @@ struct HoldemBasicsView: View {
             }
         }
         .background(FeltBackground())
+        .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { value in
+            guard value.startLocation.x < 24, value.translation.width > 80,
+                  abs(value.translation.height) < 60, page == .check else { return }
+            page = .ladder
+        })
         .gtChrome(leading: {
             ChromeButton.close(onClose).accessibilityIdentifier("basics.close")
         })
@@ -79,9 +84,19 @@ struct HoldemBasicsView: View {
     // MARK: Header
 
     private var header: some View {
-        headerTitle
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, GT.Space.edge).padding(.bottom, 10)
+        HStack(alignment: .center, spacing: 12) {
+            if page == .check {
+                Button { page = .ladder } label: {
+                    Image(systemName: "chevron.left").font(GT.semibold(18))
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .accessibilityLabel(language.text("이전 안내", "Previous guide"))
+                .accessibilityIdentifier("basics.previous")
+            }
+            headerTitle.frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .foregroundStyle(GT.onFelt)
+        .padding(.horizontal, GT.Space.edge).padding(.bottom, 10)
     }
 
     private var headerTitle: some View {
@@ -208,8 +223,8 @@ struct HoldemBasicsView: View {
         let picked = answer == rank.id
         let wins = rank.id == HoldemBasics.checkFlush.id
         let mark: (text: String, band: GradeBand)? = answer == nil ? nil
-            : picked ? (language.text(wins ? "내 답, 맞았어요" : "내 답, 틀렸어요",
-                                      wins ? "My answer, correct" : "My answer, wrong"), wins ? .spotOn : .off)
+            : picked ? (language.text(wins ? "선택한 답, 맞았어요" : "선택한 답, 다시 확인해요",
+                                      wins ? "Your answer, correct" : "Your answer, incorrect"), wins ? .spotOn : .off)
             : wins ? (language.text("정답", "Correct"), .spotOn) : nil
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
@@ -262,8 +277,7 @@ struct HoldemBasicsView: View {
                 ForEach([HoldemBasics.checkFlush, HoldemBasics.checkStraight]) { rank in
                     GTChoiceButton(title: rank.name(in: language)) {
                         answer = rank.id
-                        UINotificationFeedbackGenerator().notificationOccurred(
-                            rank.id == HoldemBasics.checkFlush.id ? .success : .error)
+                        AppFeedback.answer(correct: rank.id == HoldemBasics.checkFlush.id)
                     }
                     .accessibilityIdentifier("basics.choice.\(rank.id)")
                 }

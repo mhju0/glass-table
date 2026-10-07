@@ -23,13 +23,13 @@ final class LearningFlowTests: XCTestCase {
         let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         XCTAssertTrue(verdict.label.contains("맞았어요"))
-        XCTAssertTrue(firstElement(prefix: "내 카드", in: app).label.contains("내 답, 맞았어요"))
+        XCTAssertTrue(firstElement(prefix: "내 카드", in: app).label.contains("선택한 답, 맞았어요"))
         app.buttons["다른 카드로 풀어보기"].tap()
 
         XCTAssertTrue(app.staticTexts["같은 규칙으로 골라보세요"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["워밍업 2/2"].exists)
         firstButton(prefix: "상대 카드", in: app).tap()
-        XCTAssertTrue(app.staticTexts["방금 배운 규칙을 다른 카드에도 적용했어요."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["같은 족보라면 높은 숫자부터 비교해요."].waitForExistence(timeout: 5))
         next.tap()
 
         XCTAssertTrue(app.staticTexts["내 차례엔 넷 중 하나를 골라요"].waitForExistence(timeout: 5))
@@ -99,7 +99,7 @@ final class LearningFlowTests: XCTestCase {
         let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         XCTAssertTrue(verdict.label.contains("다시"))
-        XCTAssertTrue(firstElement(prefix: "상대 카드", in: app).label.contains("내 답, 틀렸어요"))
+        XCTAssertTrue(firstElement(prefix: "상대 카드", in: app).label.contains("선택한 답, 틀렸어요"))
         XCTAssertTrue(firstElement(prefix: "내 카드", in: app).label.contains("정답"))
     }
 
@@ -603,9 +603,10 @@ final class LearningFlowTests: XCTestCase {
         let tabs = app.tabBars.buttons
         XCTAssertTrue(tabs.element(boundBy: 3).waitForExistence(timeout: 15))
         tabs.element(boundBy: 3).tap()
-        let korean = app.buttons["language-korean"]
-        XCTAssertTrue(korean.waitForExistence(timeout: 5))
-        let wasKorean = korean.isSelected
+        let wasKorean = tabs["설정"].exists
+        let languagePicker = app.buttons["settings-language"]
+        for _ in 0..<12 where !languagePicker.isHittable { app.swipeUp() }
+        languagePicker.tap()
         app.buttons[wasKorean ? "language-english" : "language-korean"].tap()
         XCTAssertTrue(tabs[wasKorean ? "Learn" : "배우기"].waitForExistence(timeout: 5))
         tabs.element(boundBy: 0).tap()
@@ -619,6 +620,8 @@ final class LearningFlowTests: XCTestCase {
         if !wasKorean {
             button("닫기", "Close").tap()
             tabs.element(boundBy: 3).tap()
+            for _ in 0..<12 where !languagePicker.isHittable { app.swipeUp() }
+            languagePicker.tap()
             app.buttons["language-english"].tap()
             XCTAssertTrue(tabs["Learn"].waitForExistence(timeout: 5))
         }

@@ -566,7 +566,7 @@ struct TableView: View {
 
     /// The same words as the EV 손실 and 디펜드 차트 lessons.
     private func verdictRow(_ turn: TurnRecord) -> some View {
-        let mineTitle = language.text("내 선택", "You chose")
+        let mineTitle = language.text("선택한 답", "Your answer")
         switch turn.verdict {
         case let .ev(loss, best):
             return VerdictRow(band: turn.band, mine: turn.label(in: language),
@@ -598,7 +598,7 @@ struct TableView: View {
                 priceRow(tag: language.text("최선", "Best"), action: best.label(in: language),
                          amount: "0bb", ink: GTBand.spotOnInk)
                 Divider().overlay(GT.border)
-                priceRow(tag: language.text("내 선택", "You"), action: turn.label(in: language),
+                priceRow(tag: language.text("선택한 답", "Your choice"), action: turn.label(in: language),
                          amount: "\u{2212}\(bbText(loss))bb", ink: turn.band.ink)
                 Text(language.text("숫자는 최선 대비 손실이에요",
                                    "This is the estimated value lost versus the best choice."))

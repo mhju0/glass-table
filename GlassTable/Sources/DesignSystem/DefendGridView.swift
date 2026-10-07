@@ -109,9 +109,9 @@ struct DefendGridView: View {
                 .padding(.horizontal, 9)
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(language.text("내 핸드 \(hand.description) · \(verdict.rawValue)", "My hand \(hand.description) · \(verdict.englishTitle)"))
+                Text(language.text("현재 패 \(hand.description) · \(verdict.rawValue)", "Your hand \(hand.description) · \(verdict.englishTitle)"))
                     .font(GT.title(15)).foregroundStyle(GT.ink)
-                Text(language.text("테두리로 표시한 칸이 내 핸드예요", "The outlined cell is your hand"))
+                Text(language.text("테두리로 표시한 칸이 현재 패예요", "The outlined cell is your hand"))
                     .font(GT.body(11)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -120,7 +120,7 @@ struct DefendGridView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(language.text("내 핸드 \(hand.description), 디펜드 차트 판정 \(verdict.rawValue)", "My hand \(hand.description), chart action \(verdict.englishTitle)"))
+        .accessibilityLabel(language.text("현재 패 \(hand.description), 디펜드 차트 판정 \(verdict.rawValue)", "Your hand \(hand.description), chart action \(verdict.englishTitle)"))
         .accessibilityIdentifier("defend-selected-evidence")
     }
 
@@ -137,7 +137,7 @@ struct DefendGridView: View {
         guard let highlight else {
             return language.text("\(opener.rawValue) 오픈에 대한 디펜드 차트. 3벳, 콜, 폴드 밴드.", "Response chart against a raise from \(opener.rawValue). Raise, call and fold bands.")
         }
-        return language.text("\(opener.rawValue) 오픈에 대한 디펜드 차트. 내 핸드 \(highlight.description), 판정 \(action(highlight).rawValue).", "Response chart against \(opener.rawValue). My hand \(highlight.description), action \(action(highlight).englishTitle).")
+        return language.text("\(opener.rawValue) 오픈에 대한 디펜드 차트. 현재 패 \(highlight.description), 판정 \(action(highlight).rawValue).", "Response chart against \(opener.rawValue). Your hand \(highlight.description), action \(action(highlight).englishTitle).")
     }
 
     private func cell(_ h: HandClass, side: CGFloat) -> some View {
@@ -194,7 +194,7 @@ private struct DefendChartExplorer: View {
                             .font(GT.title(19)).accessibilityIdentifier("chart-explorer-selection")
                     }
                     if let ownHand {
-                        Button(language.text("내 핸드로 돌아가기", "Return to my hand")) {
+                        Button(language.text("현재 패로 돌아가기", "Return to my hand")) {
                             selected = ownHand
                             proxy.scrollTo(ownHand.description, anchor: .center)
                         }.frame(minHeight: 44)

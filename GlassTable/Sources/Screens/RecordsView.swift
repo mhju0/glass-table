@@ -12,6 +12,7 @@ struct RecordsView: View {
     @State private var clockRefresh = 0
     var onContinue: () -> Void = {}
     @State private var replay: Concept?
+    @State private var replaySeed: UInt64 = 0
     @State private var selectedPracticeConcept: Concept?
 
     /// Only concepts the user has actually met. An untouched roster reads as a
@@ -35,6 +36,7 @@ struct RecordsView: View {
                         recentTopics(activity)
                     }
                 }
+                learningPathCard
                 DisclosureGroup(language.text("자세한 학습 기록", "Detailed learning records")) {
                     VStack(alignment: .leading, spacing: GT.Space.section) {
                         headline
@@ -79,10 +81,10 @@ struct RecordsView: View {
         // free play's base, so the narrated answer never doubles as a review question.
         .sheet(item: $replay) { concept in
             let w = Walkthrough.make(concept: concept,
-                                     seed: 0x7EAC &+ UInt64(model.record(for: concept).total),
+                                     seed: 0x7EAC &+ replaySeed,
                                      index: 0, language: language)
             NavigationStack {
-                WalkthroughView(title: conceptName(concept),
+                WalkthroughView(title: conceptName(concept), concept: concept,
                                 purpose: ConceptIntroduction.make(concept, language: language).why,
                                 beats: w.beats, rows: w.rows,
                                 onFinish: {
@@ -126,6 +128,41 @@ struct RecordsView: View {
                     Rectangle().fill(GT.border).frame(height: 1)
                 }
             }
+        }
+    }
+
+    private var learningPathCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(language.text("학습 과정", "Learning path"))
+                .font(GT.title(20)).foregroundStyle(GT.ink)
+            ForEach(Curriculum.tracks.filter { !$0.isOptional }) { track in
+                let finished = track.lessons.filter { model.state.nodes[$0.id]?.cleared == true }.count
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(trackTitle(track.id)).font(GT.semibold(15))
+                        Spacer(minLength: 8)
+                        Text("\(finished) / \(track.lessons.count)")
+                            .font(GT.body(14).monospacedDigit())
+                    }.foregroundStyle(GT.ink)
+                    ProgressView(value: Double(finished), total: Double(track.lessons.count))
+                        .tint(GT.cta).accessibilityHidden(true)
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(language.text("\(trackTitle(track.id)), \(track.lessons.count)개 중 \(finished)개 완료",
+                                                  "\(trackTitle(track.id)), \(finished) of \(track.lessons.count) lessons completed"))
+            }
+        }
+        .gtInset(GT.Space.card).gtCard()
+        .accessibilityIdentifier("records-learning-path")
+    }
+
+    private func trackTitle(_ id: LearningTrack.ID) -> String {
+        switch id {
+        case .basics: language.text("카드와 게임", "Cards & play")
+        case .startingHands: language.text("첫 선택", "First decisions")
+        case .priceAndChance: language.text("칩과 확률", "Chips & chance")
+        case .readingOpponents: language.text("상대 읽기", "Reading opponents")
+        case .deeper: language.text("더 알아보기", "Go deeper")
         }
     }
 
@@ -536,7 +573,7 @@ struct RecordsView: View {
         .accessibilityIdentifier("record-\(concept.rawValue)")
 
         if stuck {
-            Button { replay = concept } label: { line.contentShape(Rectangle()) }
+            Button { replaySeed = GuideExampleRotation.next("records-" + concept.rawValue); replay = concept } label: { line.contentShape(Rectangle()) }
                 .buttonStyle(GTPress())
                 .accessibilityHint(language.text("따라 배우기 열기", "Open guided walkthrough"))
         } else {

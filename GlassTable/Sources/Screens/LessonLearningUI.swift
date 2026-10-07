@@ -109,9 +109,10 @@ struct LessonSeatLoop: View {
                 Text(language.text("시계 방향 · 여덟 자리 모두 참여 중", "Clockwise · all eight seats active"))
                     .font(GT.body(12)).foregroundStyle(GT.inkSecondary)
             }
-            Button(language.text(terms ? "용어 접기" : "포커 용어 보기", terms ? "Hide terms" : "Show poker terms")) {
-                terms.toggle()
-            }.font(GT.semibold(13)).frame(minHeight: 44)
+            Button { terms.toggle() } label: {
+                Text(language.text(terms ? "용어 접기" : "포커 용어 보기", terms ? "Hide terms" : "Show poker terms"))
+                    .font(GT.semibold(13)).frame(minHeight: 44).contentShape(Rectangle())
+            }
                 .accessibilityIdentifier("position-terms-toggle")
         }
         .accessibilityIdentifier("position-boxed-loop")
