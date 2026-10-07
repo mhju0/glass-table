@@ -83,7 +83,7 @@ final class FreeTableBackFlowTests: XCTestCase {
             let verdict = app.staticTexts["coach-verdict"]
             for _ in 0..<6 where !verdict.exists { app.swipeUp() }
             XCTAssertTrue(verdict.exists)
-            XCTAssertTrue(["Good choice.", "Fine.", "Risky."].contains { verdict.label.hasPrefix($0) }, verdict.label)
+            XCTAssertTrue(["Good:", "Fine:", "Risky:"].contains { verdict.label.hasPrefix($0) }, verdict.label)
             attach(app, "hand-coach-step-\(page)")
             app.buttons["coach-next"].tap()
         }

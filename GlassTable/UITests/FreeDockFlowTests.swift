@@ -78,7 +78,7 @@ final class FreeDockFlowTests: XCTestCase {
     func testMathPillOpensExistingPreflopPanel() {
         let app = tableApp()
         let math = app.buttons["free-table-help"]
-        XCTAssertTrue(math.label.contains("Hint"))
+        XCTAssertTrue(math.label.contains("Decision help"))
         math.tap()
         XCTAssertTrue(app.descendants(matching: .any)["free-table-help-sheet"].waitForExistence(timeout: 5))
     }
@@ -114,7 +114,7 @@ final class FreeDockFlowTests: XCTestCase {
             XCTAssertLessThanOrEqual(prose.frame.maxY, body.frame.maxY + 0.5)
             let nextAtProse = next.frame
             let first = prose.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "You · won")).firstMatch
-            let last = prose.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Sora · won")).firstMatch
+            let last = prose.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Alex · won")).firstMatch
             XCTAssertTrue(first.exists && last.exists)
             XCTAssertGreaterThan(last.frame.maxY - first.frame.minY, prose.frame.height,
                                  "The real three-winner fixture must overflow the bounded viewport")
@@ -212,7 +212,7 @@ final class FreeDockFlowTests: XCTestCase {
             let scroll = app.scrollViews["free-dock-content"]
             XCTAssertTrue(scroll.exists)
             if code == "en" {
-                let math = app.buttons["free-table-help"].staticTexts["Hint"]
+                let math = app.buttons["free-table-help"].staticTexts["Decision help"]
                 XCTAssertTrue(math.exists)
                 XCTAssertLessThan(math.frame.height, 70, "Hint must stay one complete word")
             }

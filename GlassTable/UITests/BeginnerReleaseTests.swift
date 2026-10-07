@@ -175,8 +175,8 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Set up the table"].waitForExistence(timeout: 5))
         let seats = (1...3).map { app.buttons["seat-style-\($0)"] }
         XCTAssertTrue(seats.allSatisfy(\.exists))
-        XCTAssertEqual(seats.map(\.label), ["Mina's style, Just for fun", "Joon's style, Just for fun",
-                                            "Sora's style, Just for fun"], "A first table is a friendly one")
+        XCTAssertEqual(seats.map(\.label), ["Tom's style, Just for fun", "Mike's style, Just for fun",
+                                            "Alex's style, Just for fun"], "A first table is a friendly one")
 
         seats[1].tap()
         app.buttons["Very aggressive"].firstMatch.tap()
@@ -195,7 +195,7 @@ final class BeginnerReleaseTests: XCTestCase {
         waitForYourTurnOrResult(in: app)
         let table = app.descendants(matching: .any)["practice-table"]
         let second = table.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH %@", "Joon,")).firstMatch
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Mike,")).firstMatch
         XCTAssertTrue(second.exists)
         XCTAssertTrue(second.label.contains("2 face-down cards"), second.label)
     }
@@ -234,7 +234,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Two players · Hand 1 of 10"].exists)
         func seat(_ n: Int) -> XCUIElement {
             table.descendants(matching: .any)
-                .matching(NSPredicate(format: "label BEGINSWITH %@", ["Mina", "Joon", "Sora"][n - 1] + ",")).firstMatch
+                .matching(NSPredicate(format: "label BEGINSWITH %@", ["Tom", "Mike", "Alex"][n - 1] + ",")).firstMatch
         }
         XCTAssertTrue(seat(1).exists)
         XCTAssertFalse(seat(2).exists)
@@ -623,7 +623,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let table = app.descendants(matching: .any)["practice-table"]
         for seat in 1...3 {
             let label = table.descendants(matching: .any)
-                .matching(NSPredicate(format: "label BEGINSWITH %@", ["Mina", "Joon", "Sora"][seat - 1] + ",")).firstMatch
+                .matching(NSPredicate(format: "label BEGINSWITH %@", ["Tom", "Mike", "Alex"][seat - 1] + ",")).firstMatch
             XCTAssertTrue(label.exists, "Seat \(seat) is named")
             XCTAssertTrue(label.label.contains("2 face-down cards"), label.label)
         }

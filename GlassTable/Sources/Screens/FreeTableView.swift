@@ -42,6 +42,8 @@ struct FreeTableView: View {
     @State private var helpTab = FreeTableHelpTab.hint
     @State private var revealFolded = false
     @State private var confirmNewTable = false
+    @State private var confirmEndGame = false
+    @State private var showGameReview = false
     @State private var showCoach = false
     @State private var failure = false
     @State private var replaySpeed = 1.0
@@ -130,7 +132,12 @@ struct FreeTableView: View {
         .onChange(of: showHelp) { _, _ in requestFeedback(.tick) }
         .onChange(of: helpTab) { _, _ in requestFeedback(.tick) }
         .onChange(of: raiseAmount) { old, new in if old != new, raising { requestFeedback(.tick) } }
-        .sensoryFeedback(trigger: feedbackPulse) { _, pulse in pulse?.kind.sensory }
+        .sensoryFeedback(trigger: feedbackPulse) { _, pulse in
+            AppFeedback.hapticsEnabled ? pulse?.kind.sensory : nil
+        }
+        .onChange(of: feedbackPulse) { _, pulse in
+            if let pulse { AppFeedback.table(kind: pulse.kind) }
+        }
         .onChange(of: replayKey) { _, _ in
             guard let table = presentationTable else { return }
             if table.handID != shownHandID {
@@ -148,16 +155,28 @@ struct FreeTableView: View {
                 FreeTableHandCoachView(table: table) { showCoach = false }
             }
         }
-        .confirmationDialog(language.text("새 테이블을 시작할까요?", "Start a fresh table?"),
-                            isPresented: $confirmNewTable, titleVisibility: .visible) {
-            Button(language.text("테이블 다시 만들기", "Set up a new table")) {
+        .fullScreenCover(isPresented: $showGameReview) {
+            QuickPlayArchiveView(sessions: currentReviewSessions) { showGameReview = false }
+        }
+        .confirmationDialog(language.text("게임을 마칠까요?", "End this game?"),
+                            isPresented: $confirmEndGame, titleVisibility: .visible) {
+            Button(language.text("게임 마치기", "End game"), role: .destructive) {
                 guard let table = model.state.tableState,
-                      model.leaveFinishedTable(handID: table.handID, expectedEpoch: epoch) else { return }
+                      model.endTable(handID: table.handID, expectedEpoch: epoch) else { return }
+                onClose()
+            }
+            Button(language.text("계속하기", "Keep playing"), role: .cancel) {}
+        } message: { Text(endGameMessage) }
+        .confirmationDialog(language.text("새 게임을 시작할까요?", "Start a new game?"),
+                            isPresented: $confirmNewTable, titleVisibility: .visible) {
+            Button(language.text("새 게임 시작", "Start new game")) {
+                guard let table = model.state.tableState,
+                      model.endTable(handID: table.handID, expectedEpoch: epoch) else { return }
                 onNewTable()
             }
             Button(language.text("취소", "Cancel"), role: .cancel) {}
         } message: {
-            Text(language.text("지금까지의 핸드 기록은 남아요.", "Your hand history stays saved."))
+            Text(endGameMessage)
         }
         .alert(language.text("선택을 처리하지 못했어요", "Couldn't apply that choice"), isPresented: $failure) {
             Button(language.text("확인", "OK"), role: .cancel) {}
@@ -166,6 +185,26 @@ struct FreeTableView: View {
                                "Your saved table is unchanged. Check the current turn and available choices."))
         }
         .modifier(ProgressSaveNotice())
+    }
+
+    private var currentReviewSessions: [QuickPlaySession] {
+        let saved = model.state.quickPlaySessions.filter {
+            $0.id == model.state.activeQuickPlaySessionID && !$0.hands.isEmpty
+        }
+        if !saved.isEmpty { return saved }
+        guard let table = presentationTable, table.handLimit != nil, table.review != nil else { return [] }
+        // A pre-archive game can still review its current settled hand before the next save.
+        var legacy = QuickPlaySession(table: table)
+        legacy.capture(table)
+        return [legacy]
+    }
+
+    private var endGameMessage: String {
+        if presentationTable?.street == .finished {
+            return language.text("끝난 빠른 게임 핸드는 기록에 남아요.", "Settled Quick Game hands stay in history.")
+        }
+        return language.text("진행 중인 핸드는 버리고, 끝난 빠른 게임 핸드는 기록에 남아요. 닫기는 게임을 잠시 멈추고 이어 할 수 있어요.",
+                             "The unfinished hand will be discarded. Settled Quick Game hands stay in history. Close pauses the game so you can resume.")
     }
 
     private var replayKey: String {
@@ -187,14 +226,16 @@ struct FreeTableView: View {
             let availableHeight = geometry.size.height
             Group {
             if typeSize.isAccessibilitySize {
-                VStack(spacing: 0) {
-                    ScrollView { tableSurface(table).padding(.horizontal, 8) }
-                    stableDock(table, heightLimit: availableHeight * 0.55 - 40)
-                }
+                ScrollView { tableSurface(table).padding(.horizontal, 8) }
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        stableDock(table, heightLimit: availableHeight * 0.55 - 40)
+                    }
             } else {
                 VStack(spacing: 12) {
                     tableSurface(table).padding(.horizontal, 8)
                     Spacer(minLength: 0)
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
                     stableDock(table, heightLimit: nil)
                 }
             }
@@ -206,7 +247,19 @@ struct FreeTableView: View {
                 Text(title(table)).font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-        }, trailing: { EmptyView() })
+        }, trailing: {
+            Menu {
+                Button(language.text("게임 마치기", "End game"), role: .destructive) { confirmEndGame = true }
+                Button(language.text("새 게임 시작", "Start new game")) { confirmNewTable = true }
+                if !currentReviewSessions.isEmpty {
+                    Button(language.text("게임 돌아보기", "Game review")) { showGameReview = true }
+                }
+            } label: {
+                Image(systemName: "ellipsis").frame(width: 44, height: 44)
+            }
+            .accessibilityLabel(language.text("게임 메뉴", "Game menu"))
+            .accessibilityIdentifier("free-game-menu")
+        })
     }
 
     private func title(_ table: PracticeTableState) -> String {
@@ -381,7 +434,7 @@ struct FreeTableView: View {
         ForEach([nil, language.text("남은 칩 전부로 콜해요", "Calling puts you all in"),
                  language.text("올인이 작아서 다시 올릴 수 없어요", "Their all-in was short, so no re-raise")], id: \.self) { warning in
             VStack(alignment: .leading, spacing: 12) {
-                dockHeader(language.text("내 차례", "Your turn"), warning: warning, onMath: {})
+                dockHeader(language.text("선택할 차례", "Your turn"), warning: warning, onMath: {})
                 actionSlots(owed: 14, price: 14, allIn: true, bet: false,
                             foldEnabled: false, middleEnabled: false, raiseEnabled: false,
                             reason: "", onFold: {}, onMiddle: {}, onRaise: {})
@@ -472,7 +525,7 @@ struct FreeTableView: View {
             return runningOut ? language.text("끝까지 펼쳐요", "Running it out")
                 : language.text("카드를 나눠요", "Dealing")
         }
-        return table.review == nil ? language.text("내 차례", "Your turn")
+        return table.review == nil ? language.text("선택할 차례", "Your turn")
             : table.isGameOver ? language.text("게임이 끝났어요", "Game over")
             : language.text("핸드가 끝났어요", "Hand over")
     }
@@ -643,7 +696,7 @@ struct FreeTableView: View {
 
     private func mathPill(onMath: @escaping () -> Void) -> some View {
         Button(action: onMath) {
-            Label(language.text("힌트", "Hint"), systemImage: "lightbulb")
+            Label(language.text("선택 도움말", "Decision help"), systemImage: "lightbulb")
                 .fixedSize(horizontal: true, vertical: false)
                 .font(GT.semibold(14)).foregroundStyle(GT.ink)
                 .padding(.horizontal, 12).frame(minHeight: 36)
@@ -833,6 +886,9 @@ struct FreeTableView: View {
                     .font(GT.semibold(14)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("free-game-over")
+                Button(language.text("전체 게임 돌아보기", "Review the whole game")) { showGameReview = true }
+                    .buttonStyle(GTPress()).frame(minHeight: 44)
+                    .accessibilityIdentifier("free-review-game")
             } else if table.seats.contains(where: { $0.stack == 0 }) {
                 Text(language.text("칩이 없는 자리는 다음 핸드 전에 \(table.startingStack)칩을 새로 받아요.",
                                    "Seats with no chips get \(table.startingStack) before the next hand."))
@@ -877,7 +933,7 @@ struct FreeTableView: View {
                 SecondaryCTAButton(title: language.text("핸드 돌아보기", "Review this hand"), action: onReview)
                     .accessibilityIdentifier("free-review")
                 if !gameOver {
-                    SecondaryCTAButton(title: language.text("테이블 바꾸기", "Change the table"), action: onChange)
+                    SecondaryCTAButton(title: language.text("새 게임 시작", "Start new game"), action: onChange)
                         .accessibilityIdentifier("free-change-table")
                 }
             }
@@ -1210,9 +1266,9 @@ enum FreeTableWords {
     static func seatName(_ seat: Int, language: LearningLanguage) -> String {
         switch seat {
         case 0: language.text("나", "You")
-        case 1: language.text("미나", "Mina")
-        case 2: language.text("준", "Joon")
-        default: language.text("소라", "Sora")
+        case 1: language.text("토마스", "Tom")
+        case 2: language.text("마이클", "Mike")
+        default: language.text("알렉스", "Alex")
         }
     }
 
@@ -1328,9 +1384,9 @@ private struct FreeTableBackHeader: View {
     }
     private var tabs: some View {
         HStack(spacing: 6) {
-            button(.hint, language.text("힌트", "Hint"))
-            button(.hand, language.text("이번 핸드", "This hand"))
-            button(.rules, language.text("규칙", "Rules"))
+            button(.hint, language.text("선택 도움말", "Decision help"))
+            button(.hand, language.text("핸드 기록", "Hand history"))
+            button(.rules, language.text("테이블 안내", "Table guide"))
         }
     }
     private var close: some View {
@@ -1352,7 +1408,15 @@ private struct FreeTableBackHeader: View {
         GTChoiceButton(title: title, selected: tab == value, minHeight: 44) { tab = value }
             .fixedSize(horizontal: typeSize.isAccessibilitySize, vertical: false)
             .accessibilityIdentifier("free-back-\(value)")
+            .accessibilityHint(destinationHint(value))
             .accessibilityAddTraits(tab == value ? .isSelected : [])
+    }
+    private func destinationHint(_ value: FreeTableHelpTab) -> String {
+        switch value {
+        case .hint: language.text("콜 가격과 선택 가능한 초보자 차트 도움말을 봐요", "See the call price and optional beginner-chart suggestion")
+        case .hand: language.text("행동 순서와 칩 이동을 돌아봐요", "Review actions and chip movement")
+        case .rules: language.text("테이블과 컴퓨터의 선택 방식을 알아봐요", "Learn the table and computer choices")
+        }
     }
 }
 
@@ -1461,7 +1525,7 @@ private struct FreeTableMathSummary: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             HStack(alignment: .top, spacing: 8) {
-                Text(language.text("내 패", "Hand")).font(GT.semibold(13))
+                Text(language.text("현재 패", "Hand")).font(GT.semibold(13))
                 if let hand { Text(hand).font(GT.semibold(15)) }
                 else {
                     ForEach(hole, id: \.self) { raw in
@@ -1530,13 +1594,13 @@ private struct FreeTableBackFace: View {
     @ViewBuilder private var hint: some View {
         if frame.settled {
             panel(language.text("이 핸드를 돌아봐요", "Review this hand")) {
-                Text(language.text("지금은 고를 행동이 없어요. ‘이번 핸드’에서 내 선택과 칩 이동을 확인해요.",
-                                   "There is no decision left. Open This hand to review your choices and chip movement."))
+                Text(language.text("지금은 고를 행동이 없어요. ‘핸드 기록’에서 선택과 칩 이동을 확인해요.",
+                                   "There is no decision left. Open Hand history to review your choices and chip movement."))
                     .font(GT.body(16)).fixedSize(horizontal: false, vertical: true)
                 SecondaryCTAButton(title: language.text("이 핸드 보기", "Review this hand")) { tab = .hand }
                     .accessibilityIdentifier("free-finished-help-review")
                 SecondaryCTAButton(title: table.isGameOver
-                    ? language.text("새 테이블 만들기", "Set up a new table")
+                    ? language.text("새 게임 시작", "Start new game")
                     : language.text("다음 핸드", "Next hand"), action: onNext)
                     .accessibilityIdentifier("free-finished-help-next")
             }

@@ -61,7 +61,6 @@ public struct ProgressionStore {
     /// to a sibling temp file and renames, and rename is atomic on APFS. Throws rather
     /// than swallowing, because a save that silently fails is how progress disappears.
     public func save(_ state: ProgressState) throws {
-        try Self.validate(state)
         try write(exportData(state))
     }
 
@@ -70,7 +69,6 @@ public struct ProgressionStore {
     /// still contains the original progress. A failed copy must abort replacement.
     @discardableResult
     public func replace(with state: ProgressState) throws -> URL? {
-        try Self.validate(state)
         let data = try exportData(state)
         var recovery: URL?
         if FileManager.default.fileExists(atPath: url.path) {
@@ -215,6 +213,7 @@ public struct ProgressionStore {
               state.recentHands.allSatisfy({ DayKey(raw: $0.day) != nil }),
               (try? state.tableState?.validate()) != nil || state.tableState == nil
         else { throw StoreError.invalidProgress }
+        do { try state.validateQuickPlayArchive() } catch { throw StoreError.invalidProgress }
     }
 
     private static func validCount(_ value: Int) -> Bool {

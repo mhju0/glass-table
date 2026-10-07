@@ -147,6 +147,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
     public var recentEvidence: [PracticeEvidence]
     public var tableState: PracticeTableState?
     public var recentHands: [PracticeHandObservation]
+    public var quickPlaySessions: [QuickPlaySession]
+    public var activeQuickPlaySessionID: String?
     public var processedAttemptIDs: Set<String>
     /// Lessons in a row that went cleanly (positive) or roughly (negative). `nil` in
     /// every file written before learner levels existed, which reads as none.
@@ -167,6 +169,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
                 recentEvidence: [PracticeEvidence] = [],
                 tableState: PracticeTableState? = nil,
                 recentHands: [PracticeHandObservation] = [],
+                quickPlaySessions: [QuickPlaySession] = [],
+                activeQuickPlaySessionID: String? = nil,
                 processedAttemptIDs: Set<String> = [],
                 basicsLessonCompleted: Bool? = nil) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
@@ -180,6 +184,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
         self.activeReviewSession = activeReviewSession
         self.dailySummaries = dailySummaries; self.recentEvidence = recentEvidence
         self.tableState = tableState; self.recentHands = recentHands
+        self.quickPlaySessions = quickPlaySessions
+        self.activeQuickPlaySessionID = activeQuickPlaySessionID
         self.processedAttemptIDs = processedAttemptIDs
         self.basicsLessonCompleted = basicsLessonCompleted
     }
@@ -188,7 +194,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case schemaVersion, concepts, nodes, streak, answers, firstLessonCompleted
         case revision, detailedTrackingStartedAt, introducedConcepts, placement
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
-             tableState, recentHands
+             tableState, recentHands, quickPlaySessions, activeQuickPlaySessionID
         case processedAttemptIDs, basicsLessonCompleted, lessonTrend
     }
 
@@ -218,6 +224,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
         tableState = try c.decodeIfPresent(PracticeTableState.self, forKey: .tableState)
         recentHands = try c.decodeIfPresent([PracticeHandObservation].self,
                                             forKey: .recentHands) ?? []
+        quickPlaySessions = try c.decodeIfPresent([QuickPlaySession].self, forKey: .quickPlaySessions) ?? []
+        activeQuickPlaySessionID = try c.decodeIfPresent(String.self, forKey: .activeQuickPlaySessionID)
         processedAttemptIDs = try c.decodeIfPresent(Set<String>.self,
                                                     forKey: .processedAttemptIDs) ?? []
         basicsLessonCompleted = try c.decodeIfPresent(Bool.self, forKey: .basicsLessonCompleted)

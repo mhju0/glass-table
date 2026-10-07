@@ -10,6 +10,7 @@ struct PlayView: View {
     @State private var showSetup = false
     @State private var showGraded = false
     @State private var showTable = false
+    @State private var showArchive = false
     /// A table just dealt from setup replays its blinds and the computers' first moves.
     @State private var replayFromStart = false
     /// Leaving a finished table lands on setup, not back here.
@@ -37,6 +38,7 @@ struct PlayView: View {
                 // safe area, so the midline is converted into this layout's space.
                 let screenHeight = viewport.safeAreaInsets.top + viewport.size.height
                     + viewport.safeAreaInsets.bottom
+                VStack(spacing: 20) {
                 MidlineSplitLayout(splitY: screenHeight / 2 - viewport.safeAreaInsets.top - 18,
                                    spacing: 22, gap: 12) {
                     playTitle
@@ -46,6 +48,11 @@ struct PlayView: View {
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                     freeCard
                     gradedCard
+                }
+                    if model.state.quickPlaySessions.contains(where: { !$0.hands.isEmpty }) {
+                        SecondaryCTAButton(title: language.text("빠른 게임 기록", "Quick Game history")) { showArchive = true }
+                            .accessibilityIdentifier("play-quick-history")
+                    }
                 }
                 .padding(18)
                 .frame(minHeight: viewport.size.height, alignment: .top)
@@ -75,11 +82,18 @@ struct PlayView: View {
                           onClose: { showTable = false },
                           onNewTable: { setupAfterTable = true; showTable = false })
         }
+        .fullScreenCover(isPresented: $showArchive) {
+            QuickPlayArchiveView(sessions: model.state.quickPlaySessions.filter { !$0.hands.isEmpty }) { showArchive = false }
+        }
         .modifier(ProgressSaveNotice())
         .onAppear {
             if epoch == nil { epoch = model.epoch }
             #if DEBUG
             if ProcessInfo.processInfo.environment["GT_DEMO_PRACTICE"] != nil {
+                if ProcessInfo.processInfo.environment["GT_DEMO_QUICK_REVIEW"] == "1",
+                   ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil {
+                    configureQuickReview()
+                }
                 if model.state.tableState == nil {
                     let players = ProcessInfo.processInfo.environment["GT_DEMO_PLAYERS"].flatMap(Int.init) ?? 4
                     let styles = Array([Archetype.tag, .station, .lag].prefix(max(1, min(3, players - 1))))
@@ -95,6 +109,29 @@ struct PlayView: View {
         }
     }
 
+    #if DEBUG
+    private func configureQuickReview() {
+        do {
+            if model.state.tableState == nil {
+                guard try model.startTable(seed: 97, styles: [.tag, .station, .lag],
+                    startingStack: 40, handLimit: 10, expectedEpoch: model.epoch) else { return }
+            }
+            for _ in 0..<200 {
+                guard let table = model.state.tableState, !table.isGameOver else { return }
+                let saved: Bool
+                if table.review != nil {
+                    saved = try model.nextTableHand(handID: UUID().uuidString, after: table.handID,
+                        expectedEpoch: model.epoch)
+                } else {
+                    saved = try model.applyTableAction(table.legalActions.contains(.check) ? .check : .call,
+                        actionID: UUID().uuidString, handID: table.handID, expectedEpoch: model.epoch)
+                }
+                guard saved else { return }
+            }
+        } catch { failure = true }
+    }
+    #endif
+
     /// Opens the table in progress, or sets up a new one.
     private var freeCard: some View {
         Button {
@@ -107,7 +144,7 @@ struct PlayView: View {
                              emphasized: true)
             } else {
                 TapCardLabel(title: language.text("자유 대전", "Free table"),
-                             detail: language.text("컴퓨터와 한 판을 치고 내 선택을 돌아봐요. EV 채점은 없어요.",
+                             detail: language.text("컴퓨터와 한 판을 치고 선택을 돌아봐요. EV 채점은 없어요.",
                                                    "Play a hand, then review your choices. No EV grade."),
                              emphasized: true)
             }

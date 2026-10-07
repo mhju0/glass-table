@@ -808,6 +808,7 @@ final class ProgressionModel {
         let observation = observationIfSettled(table, now: now)
         return commit { candidate in
             candidate.tableState = table
+            candidate.captureQuickPlay(table)
             if let observation { candidate.appendHandObservation(observation) }
         }
     }
@@ -827,6 +828,7 @@ final class ProgressionModel {
         let observation = observationIfSettled(table, now: now)
         return commit { candidate in
             candidate.tableState = table
+            candidate.captureQuickPlay(table)
             if let observation { candidate.appendHandObservation(observation) }
         }
     }
@@ -838,22 +840,33 @@ final class ProgressionModel {
               var table = state.tableState else { return false }
         if table.handID == handID { return true }
         guard table.handID == previousHandID else { return false }
+        let previous = table
         try table.nextHand(handID: handID)
         try table.advanceBots()
         let observation = observationIfSettled(table, now: now)
         return commit { candidate in
+            candidate.captureQuickPlay(previous)
             candidate.tableState = table
+            candidate.captureQuickPlay(table)
             if let observation { candidate.appendHandObservation(observation) }
         }
     }
 
-    /// Only a settled hand may return to opponent choice. Finished-hand evidence
-    /// and recent progress stay in the same saved transaction.
+    /// Explicit ending discards an unfinished hand and retains settled archive evidence.
+    @discardableResult
+    func endTable(handID: String, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, let table = state.tableState,
+              table.handID == handID else { return false }
+        return commit {
+            $0.finishQuickPlay(table)
+            $0.tableState = nil
+        }
+    }
+
     @discardableResult
     func leaveFinishedTable(handID: String, expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch, let table = state.tableState,
-              table.handID == handID, table.street == .finished else { return false }
-        return commit { $0.tableState = nil }
+        guard state.tableState?.street == .finished else { return false }
+        return endTable(handID: handID, expectedEpoch: expectedEpoch)
     }
 
     func observedStyle(asOf now: Date = Date()) -> PracticeStyleReport {

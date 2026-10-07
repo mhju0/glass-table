@@ -31,6 +31,9 @@ struct FreeTableHandCoachView: View {
                 .id(page)
                 .transition(.opacity)
             }
+            .accessibilityIdentifier("coach-scroll")
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             HStack(spacing: 8) {
                 if page > 0 {
                     SecondaryCTAButton(title: language.text("이전", "Back")) { move(-1) }
@@ -42,9 +45,10 @@ struct FreeTableHandCoachView: View {
                 .accessibilityIdentifier(last ? "coach-done" : "coach-next")
             }
             .padding(.horizontal, GT.Space.edge).padding(.top, 10).padding(.bottom, 12)
+            .background(GT.felt)
         }
         .background(FeltBackground())
-        .gtChrome(leading: { ChromeButton.close(onClose) })
+        .gtChrome(leading: { ChromeButton.close(onClose).accessibilityIdentifier("coach-close") })
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("hand-coach")
     }
@@ -59,7 +63,7 @@ struct FreeTableHandCoachView: View {
     private func decision(_ step: PracticeCoachStep) -> some View {
         let board = Array((table.review?.board ?? []).prefix(table.frame(after: step.stepIndex).boardCount))
         Text(FreeTableWords.street(step.street, language: language)).font(GT.title(28))
-        section(language.text("내 카드", "What you had")) {
+        section(language.text("선택 당시 카드", "What you had")) {
             cards(table.learnerHole, size: 54)
             if !board.isEmpty {
                 cards(board, size: 40)
@@ -72,7 +76,7 @@ struct FreeTableHandCoachView: View {
             }
         }
         if !step.pressure.isEmpty {
-            section(language.text("내 차례 전에", "Before your turn")) {
+            section(language.text("차례 전에", "Before your turn")) {
                 ForEach(step.pressure, id: \.seat) { pressure in
                     Text(pressureLine(pressure, street: step.street)).font(GT.body(15))
                 }
@@ -86,7 +90,7 @@ struct FreeTableHandCoachView: View {
         section(language.text("초보자 차트", "The beginner chart says")) {
             Text(FreeTableWords.chartAdvice(step.strength, language: language)).font(GT.body(15))
         }
-        section(language.text("내 선택", "You chose")) {
+        section(language.text("선택한 행동", "You chose")) {
             Text(actionLine(step)).font(GT.semibold(17))
             Text(verdictLine(step.verdict)).font(GT.semibold(15))
                 .foregroundStyle(step.verdict == .risky ? GT.cta : GT.ink)
@@ -157,9 +161,9 @@ struct FreeTableHandCoachView: View {
 
     private func verdictLine(_ verdict: PracticeCoachStep.Verdict) -> String {
         switch verdict {
-        case .good: language.text("좋은 선택이에요. 차트와 같아요.", "Good choice. It matches the chart.")
-        case .fine: language.text("괜찮아요. 차트와 조금 다르지만 무리는 아니에요.", "Fine. A little off the chart, but reasonable.")
-        case .risky: language.text("위험한 선택이에요. 차트는 다른 쪽을 권해요.", "Risky. The chart points the other way.")
+        case .good: language.text("초보자 차트와 같은 선택이에요.", "Good: this choice matches the beginner chart.")
+        case .fine: language.text("초보자 차트에서 괜찮은 선택으로 봐요.", "Fine: the beginner chart accepts this choice.")
+        case .risky: language.text("초보자 차트는 다른 선택을 권해요.", "Risky: the beginner chart recommends another choice.")
         }
     }
 
@@ -173,8 +177,8 @@ struct FreeTableHandCoachView: View {
                 Text(net > 0 ? language.text("+\(net)칩", "+\(net) chips")
                      : net < 0 ? language.text("−\(-net)칩", "−\(-net) chips") : language.text("±0칩", "±0 chips"))
                     .font(GT.title(24).monospacedDigit())
-                Text(language.text("이긴 것과 잘 고른 것은 달라요. 좋은 선택도 질 때가 있어요.",
-                                   "Winning and choosing well aren't the same. Good choices lose sometimes too."))
+                Text(language.text("칩 결과와 초보자 차트의 평가는 달라요. 이 차트는 몇 가지 단순한 규칙이며, 최적의 선택을 계산한 것은 아니에요.",
+                                   "Chip results and beginner-chart reviews measure different things. This chart uses a few simple rules and does not calculate optimal play."))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
             }
             let shown = (1..<table.seatCount).filter { seat in
