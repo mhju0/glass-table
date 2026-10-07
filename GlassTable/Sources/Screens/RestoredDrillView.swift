@@ -31,7 +31,8 @@ struct RestoredDrillView: View {
         let detail = input.flatMap { input in
             RestoredDrillDescription.make(concept: concept, seed: seed, index: index,
                                           input: input, stored: stored, language: language,
-                                          namesRange: !simple)
+                                          // Stored wire ranges do not record whether confidence was solicited.
+                                          namesRange: false)
         }
         let band = GradeBand(rawValue: answer.band) ?? .off
         let next = {
@@ -204,7 +205,7 @@ struct RestoredDrillDescription {
 
     static func make(concept: Concept, seed: UInt64, index: Int,
                      input: DrillSubmittedInput, stored: DrillStoredReveal?,
-                     language: LearningLanguage, namesRange: Bool = true) -> Self? {
+                     language: LearningLanguage, namesRange: Bool = false) -> Self? {
         switch (concept, input) {
         case let (.showdown, .integer(value)):
             let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
