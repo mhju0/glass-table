@@ -661,14 +661,12 @@ final class LearningFlowTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["table-fold"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(
-            format: "label CONTAINS %@", "프리플랍 판정은 디펜드 차트 기준"
+            format: "label CONTAINS %@", "시작 패는 앱 차트와 비교해요"
         )).firstMatch.exists)
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(
             format: "label CONTAINS %@", "필요 에퀴티"
         )).firstMatch.exists)
-        let policy = app.buttons.matching(NSPredicate(
-            format: "label BEGINSWITH %@", "상대 전략과 레인지 보기"
-        )).firstMatch
+        let policy = app.buttons["table-policy"]
         XCTAssertTrue(policy.waitForExistence(timeout: 5))
         policy.tap()
         XCTAssertTrue(app.staticTexts["선별형 전략과 레인지"].waitForExistence(timeout: 5))
@@ -678,8 +676,10 @@ final class LearningFlowTests: XCTestCase {
         let fold = app.buttons["table-fold"]
         XCTAssertTrue(fold.waitForExistence(timeout: 10))
         fold.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["table-verdict"].waitForExistence(timeout: 5))
+        app.buttons["table-continue"].tap()
         XCTAssertTrue(app.buttons["다음 핸드"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "EV 손실은 측정하지 않았어요.")).firstMatch.exists)
+        XCTAssertTrue(app.buttons["table-review-decisions"].exists || app.descendants(matching: .any)["table-review-decisions"].exists)
         XCTAssertFalse(app.buttons["핸드 시작"].exists)
     }
 

@@ -241,9 +241,11 @@ final class AccessibilityFlowTests: XCTestCase {
                       "The preflop fold action must remain reachable below the table context at AX XXXL.")
         fold.tap()
 
-        XCTAssertTrue(app.staticTexts["결과와 결정은 따로 봐요"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["프리플랍 결정은 공개된 디펜드 차트와 비교했어요. EV 손실은 측정하지 않았어요."]
-            .waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["table-verdict"].waitForExistence(timeout: 10))
+        let next = app.buttons["table-continue"]
+        XCTAssertTrue(scrollUntilHittable(next, in: app))
+        next.tap()
+        XCTAssertTrue(app.staticTexts["이긴 결과와 좋은 선택은 따로 봐요"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(
             format: "label CONTAINS %@", "EV 손실은 0bb예요"
         )).firstMatch.exists)
@@ -259,9 +261,7 @@ final class AccessibilityFlowTests: XCTestCase {
             "GT_DEMO_TABLE_STEP": "2",
         ])
 
-        let verdict = app.descendants(matching: .any).matching(NSPredicate(
-            format: "label CONTAINS %@ AND label CONTAINS %@", "내 선택", "최선"
-        )).firstMatch
+        let verdict = app.descendants(matching: .any)["table-verdict"]
         XCTAssertTrue(scrollUntilHittable(verdict, in: app),
                       "The graded verdict must be reachable at AX XXXL.")
         XCTAssertTrue(scrollUntilHittable(app.buttons["계속"], in: app),

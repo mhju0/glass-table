@@ -63,7 +63,10 @@ final class GradedDockFlowTests: XCTestCase {
         for _ in 0..<10 where !last.isHittable { app.scrollViews["table-bet-sizes"].swipeUp() }
         XCTAssertTrue(last.isHittable)
         last.tap()
-        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "You chose", "Best")).firstMatch.waitForExistence(timeout: 10))
+        let verdict = app.descendants(matching: .any)["table-verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 10))
+        XCTAssertTrue(verdict.label.contains("Your choice: Bet"))
+        XCTAssertTrue(verdict.label.contains("Model choice:"))
     }
 
     func testAXKOSizingChoiceFullyReachable() { sizingReach("ko") }
