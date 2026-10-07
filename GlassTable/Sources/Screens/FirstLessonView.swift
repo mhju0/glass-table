@@ -79,10 +79,16 @@ struct FirstLessonView: View {
             if returning { returning = false }
             else { history.append(old) }
         }
-        .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
-            if gesture.startLocation.x < 28, gesture.translation.width > 80,
-               abs(gesture.translation.height) < 70 { previous() }
-        })
+        .overlay(alignment: .leading) {
+            Color.clear.frame(width: 28)
+                .contentShape(Rectangle())
+                .gesture(DragGesture(minimumDistance: 45).onEnded { gesture in
+                    if gesture.translation.width > 80,
+                       abs(gesture.translation.height) < 70 { previous() }
+                })
+                .allowsHitTesting(!history.isEmpty)
+                .accessibilityHidden(true)
+        }
         .onAppear {
             if !rotationLoaded {
                 variationSeed = GuideExampleRotation.next("firstLesson")
