@@ -1849,8 +1849,8 @@ private struct RFIDrill: View {
         DrillShell(title: "RFI 차트", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: language.text("내 핸드", "Your hand"))
-                CardRow(cards: spot.hand)
                 if simple { LessonHandNotation(cards: spot.hand) }
+                else { CardRow(cards: spot.hand) }
                 SectionLabel(text: language.text("내 자리", "Your seat"))
                     .padding(.top, 8)
                 if simple {
