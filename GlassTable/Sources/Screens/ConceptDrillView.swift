@@ -2980,11 +2980,11 @@ private struct DefendDrill: View {
                 SectionLabel(text: language.text("내 핸드", "Your hand"))
                 CardRow(cards: spot.hand)
                 SectionLabel(text: language.text("상황", "Situation")).padding(.top, 8)
-                Text(termsLead && !simple
-                    ? language.text("\(KO.subject(spot.opener.rawValue)) 3bb 오픈했어요",
-                                    "\(spot.opener.rawValue) raises first to 3bb")
-                    : language.text("\(seatName)에서 \(raiseSize)까지 먼저 올렸어요",
-                                    "\(seatName) raises first to \(raiseSize)"))
+                LessonPairedText(
+                    korean: ["상대: \(seatName)",
+                             termsLead && !simple ? "3bb로 먼저 올렸어요" : "빅 블라인드 3개로 먼저 올렸어요"],
+                    english: ["Opponent: \(seatName)",
+                              termsLead && !simple ? "Raises first to 3bb" : "Raises first to 3 big blinds"])
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(language.text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
@@ -3052,7 +3052,11 @@ private struct DefendDrill: View {
     }
 
     private var seatName: String {
-        termsLead ? spot.opener.rawValue : spot.opener.plainName(in: language)
+        if termsLead && !simple { return spot.opener.rawValue }
+        let number = LessonSeatLoop.number(spot.opener)
+        let name = LessonSeatLoop.name(spot.opener, language: language)
+            .replacingOccurrences(of: "\n", with: " ")
+        return language.text("\(number)번 자리 · \(name)", "Seat \(number) · \(name)")
     }
 
     private var chartInvitation: some View {
@@ -3073,10 +3077,6 @@ private struct DefendDrill: View {
         }.padding(14).gtPanel()
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("defend-chart-invitation")
-    }
-
-    private var raiseSize: String {
-        simple ? language.text("빅 블라인드 3개", "3 big blinds") : "3bb"
     }
 
     private func defendAction(_ action: DefendAction) -> String {

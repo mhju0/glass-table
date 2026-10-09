@@ -184,8 +184,15 @@ struct DefendChartPrimer: View {
                                    "bb is the chip amount of one big blind. 3bb is three times that amount."))
                 Text(language.text("콜은 상대가 낸 만큼 맞추기, 폴드는 이번 패 내려놓기예요. 다시 올리기는 이미 올린 상대보다 더 올리는 행동이며 3벳이라고도 해요.",
                                    "Call matches the raise; fold leaves this hand. Raise again increases an existing raise, also called a 3-bet."))
-                Text(language.text("내 두 장의 숫자가 만나는 칸을 찾으세요. 대각선은 페어, 오른쪽 위 s는 같은 무늬, 왼쪽 아래 o는 다른 무늬예요. 색 옆의 행동 이름을 읽으세요.",
-                                   "Find the cell for your two ranks. The diagonal holds pairs; above right, s means the same suit; below left, o means different suits. Read the action names beside the colors."))
+                LessonPairedText(
+                    korean: ["내 두 장 숫자가 만나는 칸을 찾으세요.",
+                             "대각선은 같은 숫자 두 장(페어)이에요.",
+                             "위 s는 같은 무늬, 아래 o는 다른 무늬예요.",
+                             "색 옆의 행동 이름을 읽으세요."],
+                    english: ["Find the cell for your two ranks.",
+                              "Diagonal: two matching ranks (pairs).",
+                              "Above s: same suit. Below o: different suits.",
+                              "Read the action names beside the colors."])
             }
             .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
             .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
