@@ -8,8 +8,9 @@ final class GuidedHandFlowTests: XCTestCase {
     private func exercise(korean: Bool, ax: Bool) {
         let app = XCUIApplication()
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0", "GT_TEST_FIRST_PLACEMENT": "0"]
-        app.launchArguments = ["-glassTable.language", korean ? "korean" : "english"]
-        if ax { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+        app.launchArguments = ["-glassTable.language", korean ? "korean" : "english",
+                               "-UIPreferredContentSizeCategoryName",
+                               ax ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launch()
         func tap(_ id: String) {
             let button = app.buttons[id]
@@ -69,8 +70,9 @@ final class RestoredLessonParityFlowTests: XCTestCase {
     private func exercise(range: Bool, korean: Bool, ax: Bool) {
         let app = XCUIApplication()
         let store = UUID().uuidString
-        app.launchArguments = ["-glassTable.language", korean ? "korean" : "english"]
-        if ax { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+        app.launchArguments = ["-glassTable.language", korean ? "korean" : "english",
+                               "-UIPreferredContentSizeCategoryName",
+                               ax ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": store, "GT_TEST_FIRST_LESSON": "0", "GT_DEMO_SEED": "1",
                                  "GT_DEMO_NODE": range ? "u4-rangeRead" : "u1-position"]
         app.launch()
@@ -133,8 +135,9 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
     private func exercise(korean: Bool, ax: Bool, chooseHand: Bool) {
         let app = XCUIApplication()
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "1", "GT_TEST_FIRST_PLACEMENT": "0"]
-        app.launchArguments = ["-glassTable.language", korean ? "korean" : "english"]
-        if ax { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+        app.launchArguments = ["-glassTable.language", korean ? "korean" : "english",
+                               "-UIPreferredContentSizeCategoryName",
+                               ax ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launch()
         func tap(_ element: XCUIElement) {
             XCTAssertTrue(element.waitForExistence(timeout: 15))

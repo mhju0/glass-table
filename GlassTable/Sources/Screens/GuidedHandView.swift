@@ -55,15 +55,7 @@ struct GuidedHandView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button(language.text("이전", "Previous")) { previous() }
-                    .disabled(hand.page == 0).accessibilityIdentifier("guided-hand-previous")
-                Spacer()
-                Text(language.text("함께 한 판", "A hand together")).font(GT.semibold(16))
-                Spacer()
-                Button(language.text("닫기", "Close"), action: onClose)
-                    .accessibilityIdentifier("guided-hand-close")
-            }.font(GT.semibold(14)).frame(minHeight: 52).padding(.horizontal, 18)
+            header
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     title.font(GT.title(25)).accessibilityIdentifier("guided-hand-page-\(hand.page)")
@@ -124,21 +116,46 @@ struct GuidedHandView: View {
         }
     }
 
+    private var header: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                ChromeButton.back(language.text("이전", "Previous")) { previous() }
+                    .environment(\.chromeEdge, .leading)
+                    .disabled(hand.page == 0)
+                    .accessibilityIdentifier("guided-hand-previous")
+                Spacer(minLength: 0)
+                ChromeButton.close(onClose)
+                    .environment(\.chromeEdge, .trailing)
+                    .accessibilityIdentifier("guided-hand-close")
+            }
+            .frame(minHeight: 52)
+            .overlay {
+                if !textSize.isAccessibilitySize {
+                    Text(language.text("함께 한 판", "A hand together"))
+                        .font(GT.semibold(16))
+                        .padding(.horizontal, 52)
+                        .allowsHitTesting(false)
+                }
+            }
+            if textSize.isAccessibilitySize {
+                Text(language.text("함께 한 판", "A hand together"))
+                    .font(GT.semibold(16))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 8)
+            }
+        }.padding(.horizontal, 18)
+    }
+
     private var reviewHand: some View {
         let winner = hand.showdown.winner
         let cards = bestFiveCards((winner == 1 ? hand.opponent : hand.hero) + hand.board)
         return VStack(alignment: .leading, spacing: 8) {
             Text(HandOutcomeCopy.answer(winner, in: language) + language.text(" · 가장 좋은 다섯 장", " · best five"))
                 .font(GT.semibold(16))
-            ViewThatFits(in: .horizontal) {
-                CardRow(cards: cards)
-                HStack(spacing: 8) {
-                    ForEach(cards, id: \.self) { card in
-                        PlayingCardView(card: card, size: 48)
-                    }
-                }
-            }
+            CardRow(cards: cards)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("guided-hand-review-best-five")
     }
