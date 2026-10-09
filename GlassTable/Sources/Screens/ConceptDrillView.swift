@@ -422,6 +422,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                         .frame(width: max(0, geometry.size.width - 36), alignment: .leading)
                         .padding(.horizontal, 18).padding(.bottom, 28)
                     }
+                    .accessibilityIdentifier("drill-accessibility-scroll")
                 }
             } else {
                 ScrollViewReader { proxy in
@@ -433,6 +434,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                             Color.clear.frame(height: 1).id(Self.contentEnd)
                         }.padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 24)
                     }
+                    .accessibilityIdentifier("drill-content-scroll")
                     .safeAreaInset(edge: .bottom, spacing: 0) {
                         ActionSheet(band: gradedBand) { sheet() }
                             .accessibilityElement(children: .contain)
@@ -3068,7 +3070,9 @@ private struct DefendDrill: View {
             }
             .font(GT.semibold(14)).frame(minHeight: 44)
             .accessibilityIdentifier("defend-chart-keep-open")
-        }.padding(14).gtPanel().accessibilityIdentifier("defend-chart-invitation")
+        }.padding(14).gtPanel()
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("defend-chart-invitation")
     }
 
     private var raiseSize: String {

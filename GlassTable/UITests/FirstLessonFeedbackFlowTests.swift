@@ -24,11 +24,11 @@ final class FirstLessonFeedbackFlowTests: XCTestCase {
             element.tap()
         }
         let hero = app.buttons["firstLesson.choice.0"]
-        let villain = app.buttons["firstLesson.choice.1"]
+        let tie = app.buttons["firstLesson.choice.2"]
         let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
         let next = app.buttons["firstLesson.next"]
-        // Seed zero starts with a winning pair on the hero side. Commit a miss.
-        tap(villain)
+        // None of the required examples tie. Commit a miss.
+        tap(tie)
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         let initialVerdict = verdict.label
         tap(next)

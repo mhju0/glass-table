@@ -1,4 +1,5 @@
 import XCTest
+import GlassTableDrills
 
 final class ChartFirstUseFlowTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
@@ -20,7 +21,15 @@ final class ChartFirstUseFlowTests: XCTestCase {
     }
 
     private func reach(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<16 where !element.isHittable { app.swipeUp() }
+        let axScroll = app.scrollViews["drill-accessibility-scroll"]
+        let contentScroll = app.scrollViews["drill-content-scroll"]
+        let scroll = axScroll.exists ? axScroll : contentScroll
+        for _ in 0..<16 where !element.isHittable {
+            if scroll.exists {
+                if element.exists, element.frame.maxY <= scroll.frame.minY { scroll.swipeDown() }
+                else { scroll.swipeUp() }
+            } else { app.swipeUp() }
+        }
         XCTAssertTrue(element.isHittable)
         XCTAssertLessThanOrEqual(element.frame.maxX, app.windows.firstMatch.frame.maxX + 1)
     }
@@ -67,6 +76,50 @@ final class ChartFirstUseFlowTests: XCTestCase {
         keep.tap()
         XCTAssertFalse(app.descendants(matching: .any)["defend-chart-invitation"].exists)
         XCTAssertEqual(app.buttons["defend-practice-chart-toggle"].label, "차트 접기")
+    }
+
+    func testThreeCorrectCommitsOfferOneOptionalInvitation() {
+        for korean in [false, true] {
+            let app = launch(concept: "defend", korean: korean, ax: korean)
+            let invitation = app.descendants(matching: .any)["defend-chart-invitation"]
+            for index in 2...4 {
+                let question = app.staticTexts["drill-question-defend/1706/\(index)"]
+                XCTAssertTrue(question.waitForExistence(timeout: 15))
+                XCTAssertFalse(invitation.exists, "The invitation must wait for three correct commits.")
+                let correct = DefendSpotGenerator.spot(baseSeed: 0x6AA, index: index).correct
+                let label: String
+                switch correct {
+                case .fold: label = korean ? "폴드" : "Fold"
+                case .call: label = korean ? "콜" : "Call"
+                case .threeBet: label = korean ? "다시 올리기" : "Raise again"
+                }
+                let choice = app.buttons[label]
+                reach(choice, app: app)
+                choice.tap()
+                XCTAssertTrue(app.staticTexts[korean ? "차트와 일치해요" : "Matches the chart"].waitForExistence(timeout: 5))
+                let next = app.buttons["drill-completion-defend/1706/\(index)"]
+                XCTAssertTrue(next.waitForExistence(timeout: 5))
+                reach(next, app: app)
+                XCTAssertTrue(next.isEnabled, "Each real answer must be saved before advancing.")
+                next.tap()
+            }
+            XCTAssertTrue(app.staticTexts["drill-question-defend/1706/5"].waitForExistence(timeout: 5))
+            XCTAssertTrue(invitation.exists)
+            let fold = app.buttons["defend-chart-try-folded"]
+            XCTAssertTrue(fold.exists)
+            XCTAssertTrue(app.buttons["defend-chart-keep-open"].exists)
+            reach(fold, app: app)
+            fold.tap()
+            XCTAssertFalse(invitation.exists)
+            let toggle = app.buttons["defend-practice-chart-toggle"]
+            reach(toggle, app: app)
+            XCTAssertEqual(toggle.label, korean ? "차트 보기" : "Show chart")
+            toggle.tap()
+            XCTAssertEqual(toggle.label, korean ? "차트 접기" : "Hide chart")
+            XCTAssertFalse(invitation.exists)
+            XCTAssertFalse(app.descendants(matching: .any)["defend-selected-evidence"].exists)
+            app.terminate()
+        }
     }
 
     func testGradedChartStartsExpandedAndRemembersCollapseOnReopen() {

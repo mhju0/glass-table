@@ -141,8 +141,7 @@ struct RootView: View {
             if suggestAfterBasics {
                 suggestAfterBasics = false
                 suggestGuidedHand = true
-            }
-            if let node = nodeAfterBasics {
+            } else if let node = nodeAfterBasics {
                 nodeAfterBasics = nil
                 openNode = node
             }
@@ -150,25 +149,27 @@ struct RootView: View {
             HoldemBasicsView(onClose: { showBasics = false },
                              onFinish: { startNext in
                                  model.completeBasicsLesson()
-                                 if startNext { nodeAfterBasics = model.nextNode }
-                                 else { suggestAfterBasics = true }
+                                 nodeAfterBasics = startNext ? model.nextNode : nil
+                                 suggestAfterBasics = true
                                  showBasics = false
                              })
                 .modifier(ProgressSaveNotice())
                 .environment(model)
         }
         .sheet(isPresented: $suggestGuidedHand, onDismiss: {
-            if handAfterSuggestion { handAfterSuggestion = false; showGuidedHand = true }
+            if handAfterSuggestion {
+                handAfterSuggestion = false
+                nodeAfterBasics = nil
+                showGuidedHand = true
+            } else if let node = nodeAfterBasics {
+                nodeAfterBasics = nil
+                openNode = node
+            }
         }) {
-            VStack(alignment: .leading, spacing: 18) {
-                Text(language.text("기초를 한 판에 연결해 볼까요?", "Try the basics in a hand")).font(GT.title(24))
-                Text(language.text("선택 사항이에요. 블라인드부터 카드 공개까지 함께 따라가요.", "Optional: follow the blinds, betting rounds and showdown together.")).font(GT.body(17))
-                PrimaryCTAButton(title: language.text("함께 한 판", "A hand together")) {
-                    handAfterSuggestion = true
-                    suggestGuidedHand = false
-                }
-                GTChoiceButton(title: language.text("지금은 닫기", "Close for now"), minHeight: 52) { suggestGuidedHand = false }
-            }.padding(20).presentationDetents([.medium]).gtSheetSurface()
+            GuidedHandInvitationView(continuesLessons: nodeAfterBasics != nil, onHand: {
+                handAfterSuggestion = true
+                suggestGuidedHand = false
+            }, onContinue: { suggestGuidedHand = false })
         }
         .fullScreenCover(isPresented: $showGuidedHand, onDismiss: {
             if playAfterGuidedHand { playAfterGuidedHand = false; tab = .play }
@@ -237,7 +238,47 @@ struct RootView: View {
             if env["GT_DEMO_PLACEMENT"] != nil { showPlacement = true }
             if env["GT_DEMO_BASICS"] != nil { showBasics = true }
             if env["GT_DEMO_GUIDED_HAND"] != nil { showGuidedHand = true }
+            if env["GT_DEMO_GUIDED_INVITATION"] != nil {
+                nodeAfterBasics = model.nextNode
+                suggestGuidedHand = true
+            }
             #endif
+        }
+    }
+}
+
+private struct GuidedHandInvitationView: View {
+    @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var textSize
+    let continuesLessons: Bool
+    let onHand: () -> Void
+    let onContinue: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                Text(language.text("기초를 한 판에 연결해 볼까요?", "Try the basics in a hand"))
+                    .font(GT.title(24)).accessibilityIdentifier("guided-hand-invitation")
+                Text(language.text("선택 사항이에요. 블라인드부터 카드 공개까지 함께 따라가거나 레슨을 계속할 수 있어요.",
+                                   "Optional: follow a hand from blinds to showdown together, or continue your lessons."))
+                    .font(GT.body(17)).fixedSize(horizontal: false, vertical: true)
+                if textSize.isAccessibilitySize { actions }
+            }.padding(20)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !textSize.isAccessibilitySize { actions.padding(20).background(GT.surface) }
+        }
+        .presentationDetents(textSize.isAccessibilitySize ? [.large] : [.medium, .large])
+        .gtSheetSurface()
+    }
+    private var actions: some View {
+        VStack(spacing: 12) {
+            PrimaryCTAButton(title: language.text("함께 한 판", "A hand together"), action: onHand)
+                .accessibilityIdentifier("guided-hand-invitation-start")
+            GTChoiceButton(title: continuesLessons ? language.text("레슨 계속하기", "Continue lessons")
+                                                    : language.text("지금은 닫기", "Close for now"),
+                           minHeight: 52, action: onContinue)
+                .accessibilityIdentifier("guided-hand-invitation-continue")
         }
     }
 }
