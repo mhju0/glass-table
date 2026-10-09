@@ -115,6 +115,7 @@ struct LessonSeatLoop: View {
             }
                 .accessibilityIdentifier("position-terms-toggle")
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("position-boxed-loop")
     }
     private func seat(_ position: Position) -> some View {

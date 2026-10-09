@@ -75,9 +75,14 @@ final class RestoredLessonParityFlowTests: XCTestCase {
                                  "GT_DEMO_NODE": range ? "u4-rangeRead" : "u1-position"]
         app.launch()
         func reach(_ element: XCUIElement) {
-            XCTAssertTrue(element.waitForExistence(timeout: 15))
-            for _ in 0..<16 where !element.isHittable { app.swipeUp() }
-            XCTAssertTrue(element.isHittable)
+            for _ in 0..<20 {
+                if element.exists && element.isHittable { return }
+                let drillScroll = app.scrollViews[ax ? "drill-accessibility-scroll" : "drill-content-scroll"].firstMatch
+                if drillScroll.exists { drillScroll.swipeUp() }
+                else { app.swipeUp() }
+            }
+            XCTAssertTrue(element.waitForExistence(timeout: 3), "Missing after scrolling: \(element.identifier)")
+            XCTAssertTrue(element.isHittable, "Unreachable after scrolling: \(element.identifier)")
         }
         if range {
             let choice = app.buttons["range-estimate-choice-0"]
