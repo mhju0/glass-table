@@ -227,19 +227,18 @@ struct GuidedHandView: View {
                                        sameType ? "The higher pair wins." : "The higher hand type wins.",
                                        HandOutcomeCopy.answer(english.winner, in: .english)])
         } else {
-            let lines: (korean: [String], english: [String])
-            switch hand.page {
+            let lines: (korean: [String], english: [String]) = switch hand.page {
             case 1:
-                lines = (["2 − 1 = 1칩을 더 내요.", "둘 다 총 2칩을 냈어요.", "팟은 4칩이 돼요."],
+                (["2 − 1 = 1칩을 더 내요.", "둘 다 총 2칩을 냈어요.", "팟은 4칩이 돼요."],
                          ["2 − 1 = 1 more chip.", "Both have paid 2 chips.", "The pot is now 4 chips."])
             case 2:
-                lines = (["체크에는 추가 칩이 없어요.", "팟은 4칩 그대로예요."],
+                (["체크에는 추가 칩이 없어요.", "팟은 4칩 그대로예요."],
                          ["A check costs no more chips.", "The pot stays at 4 chips."])
             case 3:
-                lines = (["2칩을 콜해요.", "상대의 2칩과 내 2칩이 더해져요.", "팟은 8칩이 돼요."],
+                (["2칩을 콜해요.", "상대의 2칩과 내 2칩이 더해져요.", "팟은 8칩이 돼요."],
                          ["You call 2 chips.", "Their 2 plus your 2 adds 4.", "The pot is now 8 chips."])
             default:
-                lines = (["체크에는 추가 칩이 없어요.", "팟은 8칩 그대로예요."],
+                (["체크에는 추가 칩이 없어요.", "팟은 8칩 그대로예요."],
                          ["A check costs no more chips.", "The pot stays at 8 chips."])
             }
             LessonPairedText(korean: [koreanPrefix] + lines.korean, english: [englishPrefix] + lines.english)
