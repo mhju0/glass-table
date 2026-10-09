@@ -178,7 +178,7 @@ struct GuidedHandView: View {
         case 0:
             LessonPairedText(korean: ["딜러 자리에서 시작해요.", "작은 블라인드로 1칩을 내요.", "상대는 큰 블라인드로 2칩을 내요.",
                                      "플롭 전에는 딜러부터 행동해요.", "플롭 이후에는 상대부터 행동해요.", "각자 두 장을 받고 시작해요."],
-                             english: ["You start in the dealer seat.", "You pay the 1-chip small blind.", "The opponent pays the 2-chip blind.",
+                             english: ["You start in the dealer seat.", "You pay the 1-chip small blind.", "The opponent pays a 2-chip big blind.",
                                        "You act first before the flop.", "The opponent acts first after the flop.", "Each gets two private cards."])
         case 1:
             LessonPairedText(korean: ["작은 블라인드로 1칩을 냈어요.", "상대는 2칩. 콜은 몇 칩 더 낼까요?", "이번 예시에서는 콜해요.", "상대는 이어서 체크해요."],
