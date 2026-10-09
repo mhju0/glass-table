@@ -118,16 +118,13 @@ struct GuidedHandView: View {
 
     private var header: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                ChromeButton.back(language.text("이전", "Previous")) { previous() }
-                    .environment(\.chromeEdge, .leading)
+            GTChromeBar(
+                leading: ChromeButton.back(language.text("이전", "Previous")) { previous() }
                     .disabled(hand.page == 0)
-                    .accessibilityIdentifier("guided-hand-previous")
-                Spacer(minLength: 0)
-                ChromeButton.close(onClose)
-                    .environment(\.chromeEdge, .trailing)
+                    .accessibilityIdentifier("guided-hand-previous"),
+                trailing: ChromeButton.close(onClose)
                     .accessibilityIdentifier("guided-hand-close")
-            }
+            )
             .frame(minHeight: 52)
             .overlay {
                 if !textSize.isAccessibilitySize {
@@ -142,9 +139,10 @@ struct GuidedHandView: View {
                     .font(GT.semibold(16))
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 18)
                     .padding(.bottom, 8)
             }
-        }.padding(.horizontal, 18)
+        }
     }
 
     private var reviewHand: some View {
