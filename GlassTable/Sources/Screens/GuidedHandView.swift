@@ -67,9 +67,11 @@ struct GuidedHandView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     Text(title).font(GT.title(25)).accessibilityIdentifier("guided-hand-page-\(hand.page)")
-                    Text(language.text("기록에 점수를 남기지 않는 예시예요. 선택 뒤에는 아래에 적힌 예시 행동을 이어가요.",
-                                       "This worked example earns no score. After each choice, continue the example action described below."))
-                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    if hand.page == 0 {
+                        Text(language.text("한 판을 따라가며 규칙을 확인해요. 선택 뒤에는 설명에 나온 행동으로 이어가요.",
+                                           "Follow one hand to learn the rules. After each choice, continue with the action in the explanation."))
+                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    }
                     if hand.page > 0 {
                         ThreeRegionCardTable(opponent: hand.page >= 5 ? hand.opponent : [], board: hand.visibleBoard,
                                              hero: hand.hero, opponentTitle: language.text(hand.page >= 5 ? "상대 카드" : "상대 카드 · 아직 비공개", hand.page >= 5 ? "Opponent's cards" : "Opponent's cards · hidden"),
@@ -150,11 +152,11 @@ struct GuidedHandView: View {
     }
     private var context: String {
         switch hand.page {
-        case 0: return language.text("나는 딜러이자 작은 블라인드로 1칩, 상대는 큰 블라인드로 2칩을 냈어요. 두 사람일 때는 플롭 전에 딜러가 먼저, 플롭 이후에는 상대가 먼저 행동해요. 각자 두 장을 받고 시작해요.", "You are the dealer and small blind, paying 1 chip. The opponent pays the 2-chip big blind. With two players, the dealer acts first before the flop; the opponent acts first afterward. Each receives two private cards.")
-        case 1: return language.text("나는 1칩, 상대는 2칩을 냈어요. 콜하려면 몇 칩을 더 내야 할까요? 예시에서는 콜하고 상대는 체크해요.", "You paid 1 chip; the opponent paid 2. How many more chips does a call cost? In this example you call, then the opponent checks.")
-        case 2: return language.text("상대가 체크했어요. 나도 돈을 더 내지 않고 넘기는 행동은 무엇일까요? 예시에서는 둘 다 체크해요.", "The opponent checked. Which action lets you pass without paying more? Both players check in this example.")
+        case 0: return language.text("딜러 자리에서 작은 블라인드로 1칩을 냈어요. 상대는 큰 블라인드로 2칩을 냈어요. 두 사람일 때는 플롭 전에 딜러가 먼저, 플롭 이후에는 상대가 먼저 행동해요. 각자 두 장을 받고 시작해요.", "You are the dealer and small blind, paying 1 chip. The opponent pays the 2-chip big blind. With two players, the dealer acts first before the flop; the opponent acts first afterward. Each receives two private cards.")
+        case 1: return language.text("작은 블라인드로 1칩을 냈고, 상대는 2칩을 냈어요. 콜하려면 몇 칩을 더 내야 할까요? 예시에서는 콜하고 상대는 체크해요.", "You paid 1 chip; the opponent paid 2. How many more chips does a call cost? In this example you call, then the opponent checks.")
+        case 2: return language.text("상대가 체크했어요. 칩을 더 내지 않고 차례를 넘기는 행동은 무엇일까요? 예시에서는 둘 다 체크해요.", "The opponent checked. Which action lets you pass without paying more? Both players check in this example.")
         case 3: return language.text("상대가 2칩을 냈어요. 콜하는 데 필요한 칩은 몇 개일까요? 예시에서는 콜해요. 이것이 항상 좋은 전략이라는 뜻은 아니에요.", "The opponent bets 2 chips. How much does calling cost? You call in this example. This does not mean calling is always a good strategy.")
-        case 4: return language.text("상대가 체크했어요. 예시에서 나도 체크하려고 해요. 돈을 더 내야 할까요? 둘 다 체크한 뒤 카드를 공개해요.", "The opponent checks. You will check too in this example. Must you pay more? After both check, reveal the cards.")
+        case 4: return language.text("상대가 체크했어요. 이번 예시에서는 체크할 거예요. 돈을 더 내야 할까요? 둘 다 체크한 뒤 카드를 공개해요.", "The opponent checks. You will check too in this example. Must you pay more? After both check, reveal the cards.")
         case 5: return language.text("각자의 두 장과 공용 카드 다섯 장 중 가장 좋은 다섯 장을 비교해요. 누가 팟을 가져갈까요?", "Compare each player's best five from their two private and five shared cards. Who gets the pot?")
         default: return language.text("이번 선택은 규칙을 확인하는 연습이었어요. 다음 판에서는 먼저 주는 힌트를 줄여볼 수 있어요.", "These choices checked the rules. Try another hand with fewer advance hints.")
         }
