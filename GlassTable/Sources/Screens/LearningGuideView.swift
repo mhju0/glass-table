@@ -5,9 +5,12 @@ import GlassTableDrills
 /// Short orientation and study habits. These examples never award course credit.
 struct LearningGuideView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @State private var page = 0
     @State private var answer: Int?
+    @State private var variationSeed: UInt64 = 0
+    @State private var rotationLoaded = false
 
     private var questionChoices: some View {
         VStack(spacing: 12) {
@@ -30,7 +33,7 @@ struct LearningGuideView: View {
             }
         }
     }
-    private var lessons: [StudyNote] { language == .korean ? StudyNote.lessons : StudyNote.englishLessons }
+    private var lessons: [StudyNote] { StudyNote.rotatedLessons(seed: variationSeed, language: language) }
     private var lesson: StudyNote { lessons[page] }
 
     var body: some View {
@@ -58,6 +61,7 @@ struct LearningGuideView: View {
                         .accessibilityElement(children: .combine)
                     }
                 }
+                if dynamicTypeSize.isAccessibilitySize, lesson.question != nil, answer == nil { questionChoices }
             }
             .gtContentEdge()
             .id(page)
@@ -70,7 +74,7 @@ struct LearningGuideView: View {
         .background(FeltBackground())
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
-                if lesson.question != nil, answer == nil { questionChoices }
+                if !dynamicTypeSize.isAccessibilitySize, lesson.question != nil, answer == nil { questionChoices }
                 FeltCTAButton(title: page == lessons.count - 1
                               ? language.text("연습하러 가기", "Go to practice")
                               : language.text("다음 이야기", "Next topic")) {
@@ -89,6 +93,10 @@ struct LearningGuideView: View {
         .gtChrome(leading: { ChromeButton.close { dismiss() } })
         .gtSheetSurface()
         .onAppear {
+            if !rotationLoaded {
+                variationSeed = GuideExampleRotation.next("learningGuide")
+                rotationLoaded = true
+            }
             #if DEBUG
             if let requested = ProcessInfo.processInfo.environment["GT_DEMO_GUIDE_PAGE"].flatMap(Int.init) {
                 page = min(max(requested, 0), lessons.count - 1)
@@ -106,6 +114,54 @@ private struct StudyNote {
     var choices: [String] = []
     var correct: Int = 0
     var explanation: String = ""
+
+    static func rotatedLessons(seed: UInt64, language: LearningLanguage) -> [StudyNote] {
+        var notes = language == .korean ? lessons : englishLessons
+        if seed % 3 == 1 {
+            notes[1] = StudyNote(title: notes[1].title, body: notes[1].body,
+                example: language.text("내 카드 A·K, 공용 카드 Q·J·10·4·2라면 내 카드 두 장으로 스트레이트를 만들어요.",
+                                       "With A and K in your hand and Q, J, 10, 4, 2 shared, both of your cards complete a straight."),
+                question: language.text("내 카드를 한 장만 쓰는 조합도 가능할까요?", "Can your best hand use just one of your cards?"),
+                choices: [language.text("네, 가장 좋은 다섯 장만 골라요", "Yes, choose the best five"),
+                          language.text("아니요, 두 장을 항상 써야 해요", "No, always use both")],
+                explanation: language.text("내 카드를 두 장, 한 장 또는 하나도 쓰지 않을 수 있어요. 중요한 것은 일곱 장 중 가장 좋은 다섯 장이에요.",
+                                           "You may use two, one or none of your cards. What matters is the best five of all seven."))
+        } else if seed % 3 == 2 {
+            notes[1] = StudyNote(title: notes[1].title, body: notes[1].body,
+                example: language.text("공용 카드가 A·K·Q·J·10이고 두 사람 모두 이보다 강한 조합이 없다면, 같은 스트레이트를 써요.",
+                                       "If the shared cards are A, K, Q, J, 10 and neither player has a stronger combination, both play the same straight."),
+                question: language.text("내 카드 한 장의 숫자가 더 높으면 혼자 이길까요?", "Does a higher unused private card win the whole pot?"),
+                choices: [language.text("아니요, 최선의 다섯 장이 같으면 나눠요", "No, equal best fives split the pot"),
+                          language.text("네, 쓰지 않은 카드도 비교해요", "Yes, compare unused cards too")],
+                explanation: language.text("최선의 다섯 장만 비교해요. 쓰지 않은 카드는 무승부를 깨지 않아요.",
+                                           "Only the best five count. Unused cards do not break a tie."))
+        }
+        let prices = [(12, 4, 20, "20%", "25%"), (18, 6, 30, "20%", "33%"), (10, 5, 20, "25%", "50%")]
+        let (pot, bet, total, correct, other) = prices[Int(seed % UInt64(prices.count))]
+        notes[4] = StudyNote(title: notes[4].title, body: notes[4].body,
+            example: language.text("팟 \(pot)bb + 상대 벳 \(bet)bb + 내 콜 \(bet)bb\n\n콜한 뒤 팟은 \(total)bb예요. bb는 빅 블라인드를 1로 보는 단위예요.",
+                                   "Pot \(pot)bb + bet \(bet)bb + call \(bet)bb\n\nThe final pot is \(total)bb. One bb is the size of the big blind."),
+            question: notes[4].question, choices: [other, correct], correct: 1,
+            explanation: language.text("낼 돈 \(bet) ÷ 콜한 뒤 팟 \(total) = \(correct)예요. 이후 베팅이 있으면 판단이 달라질 수 있어요.",
+                                       "Pay \(bet) to contest \(total): \(bet) ÷ \(total) = \(correct). Later betting can change the decision."))
+        if seed % 2 == 1 {
+            notes[5] = StudyNote(title: notes[5].title, body: notes[5].body,
+                example: language.text("가격에 비해 낮은 확률로 콜했지만 이번에는 마지막 카드에서 이겼어요.",
+                                       "You called at poor odds for the price, but the last card won this hand."),
+                question: language.text("이번에 이겼다는 이유만으로 좋은 콜이었다고 할 수 있을까요?", "Does winning this time prove it was a good call?"),
+                choices: [language.text("네, 이겼으니 좋은 결정이에요", "Yes, a win means a good decision"),
+                          language.text("아니요, 결정할 때의 확률과 가격을 봐요", "No, judge the odds and price then")], correct: 1,
+                explanation: language.text("결과에는 운도 들어가요. 결정을 내릴 때의 정보와 가격으로 평가해요.",
+                                           "Results include luck. Judge the information and price when the decision was made."))
+            notes = notes.map { note in
+                guard note.question != nil else { return note }
+                return StudyNote(title: note.title, body: note.body, example: note.example,
+                    question: note.question, choices: Array(note.choices.reversed()),
+                    correct: note.choices.count - 1 - note.correct, explanation: note.explanation)
+            }
+        }
+        return notes
+    }
 
     static let lessons: [StudyNote] = [
         StudyNote(title: "한 번에 한 가지씩 배워요",

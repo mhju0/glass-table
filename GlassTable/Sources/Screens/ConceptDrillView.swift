@@ -25,6 +25,7 @@ typealias DrillSubmittedInput = SavedDrillInput
 /// `GlassTableDrills` and is tested there. This file only chooses a layout.
 struct ConceptDrillView: View {
     @State private var answerCommitted = false
+    @State private var defendChartPractice = DefendChartPracticeState()
     let concept: Concept
     let seed: UInt64
     let index: Int
@@ -96,6 +97,15 @@ struct ConceptDrillView: View {
         .onChange(of: questionID) { _, _ in
             answerCommitted = false
         }
+        .onAppear {
+            #if DEBUG
+            let environment = ProcessInfo.processInfo.environment
+            if environment["GT_TEST_STORE_ID"] != nil,
+               environment["GT_TEST_DEFEND_CHART_INVITATION"] == "1" {
+                defendChartPractice.correctDecisions = 3
+            }
+            #endif
+        }
     }
 
     private func scheduleDraft(_ input: SavedDrillDraftInput) {
@@ -105,7 +115,12 @@ struct ConceptDrillView: View {
 
     private func commit(_ outcome: DrillOutcome) -> Bool {
         let saved = onCommit(outcome)
-        if saved { answerCommitted = true }
+        if saved {
+            if !answerCommitted, concept == .defend, outcome.band == .spotOn {
+                defendChartPractice.correctDecisions += 1
+            }
+            answerCommitted = true
+        }
         return saved
     }
 
@@ -201,7 +216,8 @@ struct ConceptDrillView: View {
                             progressText: progressText, onAnswer: onAnswer)
         case .defend:
             DefendDrill(seed: seed, index: index,
-                        progressText: progressText, onAnswer: onAnswer)
+                        progressText: progressText, onAnswer: onAnswer,
+                        chartPractice: $defendChartPractice)
         }
     }
 }
@@ -1262,7 +1278,9 @@ private struct PositionDrill: View {
     private func answerLabel(_ n: Int) -> String {
         switch spot.question {
         case .behind: return language.text("\(n)명", "\(n) players")
-        case let .whichIsLater(a, b): return (n == 0 ? a : b).rawValue
+        case let .whichIsLater(a, b):
+            let position = n == 0 ? a : b
+            return termsLead ? position.rawValue : "\(LessonSeatLoop.number(position)) · " + LessonSeatLoop.name(position, language: language).replacingOccurrences(of: "\n", with: " ")
         }
     }
 }
@@ -1315,9 +1333,13 @@ private struct EquitySenseDrill: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(language.text("쇼다운까지 갔을 때 내가 이길 확률은?",
-                                       "How often do you win at showdown?"))
+                    Text(language.text("끝까지 가면 이긴 몫과 무승부에서 나눈 몫을 합쳐 몇 %일까요?",
+                                       "At showdown, what percentage is your wins plus your share of ties?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
+                    Text(language.text("이기면 100%, 둘이 비기면 50%, 지면 0%로 계산해요.",
+                                       "A win counts as 100%, a two-player tie as 50%, and a loss as 0%."))
+                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if simple {
                         LessonEstimateChoices(values: BeginnerQuestionChoices.percentages(answer: spot.equityPct, seed: seed &+ UInt64(index)), suffix: "%") { value in
                             point = value
@@ -2943,9 +2965,9 @@ private struct DefendDrill: View {
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.lessonGuidedChart) private var guidedChart
     @Environment(\.drillHelp) private var help
-    @State private var chartVisible = true
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
+    @Binding var chartPractice: DefendChartPracticeState
     @State private var reveal: DefendReveal?
 
     private var spot: DefendSpot { DefendSpotGenerator.spot(baseSeed: seed, index: index) }
@@ -2966,13 +2988,17 @@ private struct DefendDrill: View {
                 Text(language.text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
                                    "This seat starts with roughly the top \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands."))
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
-                if reveal == nil, simple {
-                    Button(language.text(chartVisible && (guidedChart || help?.isUsed == true) ? "차트 접기" : "차트 보기",
-                                         chartVisible && (guidedChart || help?.isUsed == true) ? "Hide chart" : "Show chart")) {
-                        if guidedChart || help?.isUsed == true { chartVisible.toggle() }
-                        else if help?.mark() == true { chartVisible = true }
+                if reveal == nil {
+                    DefendChartPrimer(expanded: $chartPractice.primerExpanded)
+                    if simple, chartPractice.offersIndependentTry {
+                        chartInvitation
+                    }
+                    Button(language.text(chartPractice.chartVisible && (guidedChart || help?.isUsed == true) ? "차트 접기" : "차트 보기",
+                                         chartPractice.chartVisible && (guidedChart || help?.isUsed == true) ? "Hide chart" : "Show chart")) {
+                        if guidedChart || help?.isUsed == true { chartPractice.chartVisible.toggle() }
+                        else if help?.mark() == true { chartPractice.chartVisible = true }
                     }.font(GT.semibold(14)).frame(minHeight: 44).accessibilityIdentifier("defend-practice-chart-toggle")
-                    if chartVisible, guidedChart || help?.isUsed == true {
+                    if chartPractice.chartVisible, guidedChart || help?.isUsed == true {
                         DefendGridView(opener: spot.opener, highlight: nil).frame(maxWidth: 320)
                     }
                 }
@@ -3027,6 +3053,24 @@ private struct DefendDrill: View {
         termsLead ? spot.opener.rawValue : spot.opener.plainName(in: language)
     }
 
+    private var chartInvitation: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(language.text("몇 번 잘 맞췄어요. 원하면 차트를 접고 한 번 생각해 보세요. 언제든 다시 펼칠 수 있어요.",
+                               "You’ve matched several choices. If you like, hide the chart and try one from memory. You can reopen it anytime."))
+                .font(GT.body(15)).foregroundStyle(GT.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            SecondaryCTAButton(title: language.text("차트 접고 해보기", "Try with the chart folded")) {
+                chartPractice.chartVisible = false
+                chartPractice.invitationDismissed = true
+            }.accessibilityIdentifier("defend-chart-try-folded")
+            Button(language.text("차트 계속 보기", "Keep the chart open")) {
+                chartPractice.invitationDismissed = true
+            }
+            .font(GT.semibold(14)).frame(minHeight: 44)
+            .accessibilityIdentifier("defend-chart-keep-open")
+        }.padding(14).gtPanel().accessibilityIdentifier("defend-chart-invitation")
+    }
+
     private var raiseSize: String {
         simple ? language.text("빅 블라인드 3개", "3 big blinds") : "3bb"
     }
@@ -3035,7 +3079,7 @@ private struct DefendDrill: View {
         switch action {
         case .fold: return language.text("폴드", "Fold")
         case .call: return language.text("콜", "Call")
-        case .threeBet: return language.text("3벳", "Re-raise")
+        case .threeBet: return language.text("다시 올리기", "Raise again")
         }
     }
 }

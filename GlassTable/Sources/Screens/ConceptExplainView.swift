@@ -12,6 +12,8 @@ struct ConceptExplainView: View {
     let onClose: () -> Void
     @State private var showingExample = false
     @State private var exampleSeed: UInt64?
+    @State private var chartPrimerExpanded = true
+    @State private var notationExpanded = false
 
     var body: some View {
         let intro = ConceptIntroduction.make(concept, language: language)
@@ -20,6 +22,7 @@ struct ConceptExplainView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text(intro.title).font(GT.title(26)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    if concept == .defend { DefendChartPrimer(expanded: $chartPrimerExpanded) }
                     if concept == .combos { CombinationExampleView() }
                     section(language.text("왜 중요할까요", "Why it matters"), intro.why)
                     section(language.text("이렇게 풀어요", "How to work it out"), intro.how)
@@ -28,9 +31,16 @@ struct ConceptExplainView: View {
                             .accessibilityIdentifier("explain-rule-example")
                     }
                     if let note = Self.notationNote(concept, language: language) {
-                        section(language.text("표기", "Notation"), note)
+                        DisclosureGroup(isExpanded: $notationExpanded) {
+                            Text(note).font(GT.body(16)).foregroundStyle(GT.inkSecondary)
+                                .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
+                        } label: {
+                            Text(language.text("표기 더 보기", "More about notation"))
+                                .font(GT.semibold(15)).frame(minHeight: 44)
+                        }
+                        .foregroundStyle(GT.ink).padding(.horizontal, 14).gtPanel()
                     }
-                    if concept == .rfi || concept == .defend || concept == .rangeNotation { LessonChartPrimer() }
+                    if concept == .rfi || concept == .rangeNotation { LessonChartPrimer() }
                 }
                 .gtContentEdge()
             }

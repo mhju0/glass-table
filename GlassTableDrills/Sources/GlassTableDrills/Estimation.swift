@@ -117,8 +117,8 @@ public func gradeEquitySense(estimate: Estimate, spot: EquitySenseSpot,
         estimate: estimate, correct: correct,
         intervalAnswer: estimate.answer(truth: correct),
         whyText: language.text(
-            "남은 \(unseen)장으로 가능한 모든 보드를 세어 계산했어요. \(pctText(correct))%. 근사가 아니라 정확한 수치예요.",
-            "We counted every possible board from the \(unseen) unseen cards. Your equity is \(pctText(correct))%. This is an exact count, not an estimate."))
+            "남은 \(unseen)장으로 가능한 모든 보드를 세고, 이기는 경우와 무승부 몫을 더했어요. \(pctText(correct))%. 근사가 아니라 정확한 수치예요.",
+            "We counted every possible board from the \(unseen) unseen cards, including wins and your share of ties. Your equity is \(pctText(correct))%. This is an exact count, not an estimate."))
 }
 
 public func gradeEVCall(estimate: Estimate, spot: EVCallSpot,

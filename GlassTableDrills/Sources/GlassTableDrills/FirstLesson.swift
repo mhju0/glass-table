@@ -1,8 +1,57 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import GlassTableEngine
 
-/// Two minimal pair comparisons followed by optional best-five comparisons.
+/// Curated, ungraded comparisons for the required beginner path.
 public enum FirstLesson {
+    public enum Rule: String, CaseIterable, Sendable {
+        case pairOverHighCard, higherPair, trips, straight, flush
+    }
+
+    public struct Comparison: Equatable {
+        public let rule: Rule
+        public let spot: ShowdownSpot
+    }
+
+    /// Rank and card-use changes provide transfer practice, rather than suit-only changes.
+    public static func bank(for rule: Rule) -> [ShowdownSpot] {
+        func spot(_ hero: String, _ villain: String, _ board: String) -> ShowdownSpot {
+            ShowdownSpot(hero: Card.parse(hero)!, villain: Card.parse(villain)!, board: Card.parse(board)!)
+        }
+        switch rule {
+        case .pairOverHighCard:
+            return [spot("8h8c", "AdKc", "2s5d7cJhQs"),
+                    spot("Qh3c", "AdTc", "Qs2d6c9hJs"),
+                    spot("6h6d", "AsQc", "2c4s8dJhKs")]
+        case .higherPair:
+            return [example, transfer,
+                    spot("Jh4c", "8d3c", "Js8h2d6cKs")]
+        case .trips:
+            return [comparisons[0],
+                    spot("ThTd", "AhAc", "Ts3d6c9hKs"),
+                    spot("Qh3c", "AhAc", "QsQd2c8hKs")]
+        case .straight:
+            return [comparisons[1],
+                    spot("Ah4d", "KcKd", "2s3h5c9dKh"),
+                    spot("JhTd", "AcAd", "9s8h7c2dAh")]
+        case .flush:
+            return [comparisons[2],
+                    spot("Kh4h", "QcJc", "2h7h9hTd8s"),
+                    spot("Ac3d", "7c5c", "8d6d4d9dTs")]
+        }
+    }
+
+    /// All five rules are required, in teaching order. The seed rotates ranks and
+    /// structures on each visit and alternates which side wins after a bank cycle.
+    public static func requiredComparisons(seed: UInt64) -> [Comparison] {
+        Rule.allCases.map { rule in
+            let variants = bank(for: rule)
+            let spot = variants[Int(seed % UInt64(variants.count))]
+            let swap = (seed / UInt64(variants.count)) % 2 == 1
+            return Comparison(rule: rule, spot: swap
+                ? ShowdownSpot(hero: spot.villain, villain: spot.hero, board: spot.board) : spot)
+        }
+    }
+
     public static let example = ShowdownSpot(
         hero: [Card(rank: 14, suit: 3), Card(rank: 14, suit: 1)],
         villain: [Card(rank: 13, suit: 3), Card(rank: 13, suit: 1)],

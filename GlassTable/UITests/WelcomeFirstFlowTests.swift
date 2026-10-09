@@ -34,7 +34,9 @@ final class WelcomeFirstFlowTests: XCTestCase {
     }
 
     private func assertExample(_ app: XCUIApplication, korean: Bool) {
-        XCTAssertTrue(app.staticTexts[korean ? "어느 쪽이 이길까요?" : "Which hand wins?"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["firstLesson.rule"].exists)
+        XCTAssertTrue(app.staticTexts[korean ? "비교 1/5" : "Comparison 1/5"].exists)
         XCTAssertFalse(app.staticTexts["firstLesson.welcome"].exists)
         XCTAssertFalse(app.buttons["placement.level.newToPoker"].exists)
     }

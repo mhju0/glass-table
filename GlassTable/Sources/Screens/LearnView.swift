@@ -10,6 +10,7 @@ struct LearnView: View {
     let onOpenReview: () -> Void
     let onOpenPractice: () -> Void
     let onOpenBasics: () -> Void
+    let onOpenGuidedHand: () -> Void
 
     private var due: [Concept] { model.dueConcepts() }
 
@@ -34,6 +35,10 @@ struct LearnView: View {
                     }
                     .buttonStyle(GTPress())
                     .accessibilityIdentifier("learn-path")
+                    Button(action: onOpenGuidedHand) {
+                        learningRow(language.text("함께 한 판", "A hand together"),
+                                    language.text("기초 다음에, 블라인드부터 카드 공개까지 천천히 따라가요.", "After the basics, follow a hand from blinds to showdown."), icon: "hand.draw")
+                    }.buttonStyle(GTPress()).accessibilityIdentifier("learn-guided-hand")
                     Button(action: onOpenPractice) {
                         learningRow(language.text("한 가지 집중 연습", "Practice one skill"),
                                     language.text("원하는 주제를 골라 다섯 문제씩 풀어요.", "Five questions on a topic you pick."), icon: "rectangle.stack")

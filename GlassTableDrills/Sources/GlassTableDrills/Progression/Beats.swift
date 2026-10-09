@@ -321,7 +321,7 @@ public enum BeatScript {
             Beat("콜한 뒤 전체 팟", value: "\(s.pot + s.bet * 2)bb",
                  detail: "팟 \(s.pot) + 상대 벳 \(s.bet) + 내 콜 \(s.bet)."),
             Beat("필요 에퀴티", value: "\(pctText(s.requiredPct))%",
-                 detail: "내 콜 ÷ 전체 팟. 이길 확률이 이보다 높으면 콜해요."),
+                 detail: "내 콜 ÷ 전체 팟. 이기는 경우와 무승부 몫을 포함한 에퀴티가 이보다 높으면 콜해요."),
         ]
     }
 
@@ -347,7 +347,7 @@ public enum BeatScript {
             Beat("내 카드", focus: .table, highlight: s.hero),
             Beat("상대 카드", focus: .table, highlight: s.villain),
             Beat("남은 \(unseen)장으로 가능한 보드를 전부 세요",
-                 detail: "몇 번 이기는지 세면 그게 에퀴티예요.", focus: .table),
+                 detail: "이기는 경우와 무승부로 나눠 갖는 몫을 함께 세어요. 그 비율이 에퀴티예요.", focus: .table),
             Beat("내 에퀴티", value: "\(pctText(s.equityPct))%",
                  detail: "근사가 아니라 전부 세어본 정확한 값이에요.", focus: .table),
         ]
@@ -698,7 +698,7 @@ public enum BeatScript {
         if language == .english { return EnglishBeatScript.callFold(s) }
         return [
             Beat("결정의 가격", value: "팟 \(s.pot)bb · 벳 \(s.bet)bb", focus: .table),
-            Beat("이길 확률", value: "\(pctText(s.equityPct))%", focus: .table,
+            Beat("내 몫의 비율", value: "\(pctText(s.equityPct))%", detail: "이기는 경우와 무승부로 나누는 몫을 포함해요.", focus: .table,
                  highlight: s.hero),
             Beat("필요 에퀴티", value: "\(pctText(s.requiredPct))%"),
             Beat("두 값을 비교해요", value: s.correctIsCall ? "콜" : "폴드",

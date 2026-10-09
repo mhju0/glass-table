@@ -173,8 +173,8 @@ enum EnglishBeatScript {
               detail: "The pot has \(s.pot)bb before the bet."),
          Beat("Whole pot after you call", value: "\(s.pot + s.bet * 2)bb",
               detail: "Pot \(s.pot) + their bet \(s.bet) + your call \(s.bet)."),
-         Beat("Break-even winning chance", value: "\(pctText(s.requiredPct))%",
-              detail: "Your call ÷ the whole pot. Call when your winning chance is higher.")]
+         Beat("Break-even equity", value: "\(pctText(s.requiredPct))%",
+              detail: "Your call ÷ the whole pot. Compare equity: wins plus your share of ties.")]
     }
 
     static func mdf(_ s: BetSpot) -> [Beat] {
@@ -191,7 +191,7 @@ enum EnglishBeatScript {
                 Beat("Your cards", focus: .table, highlight: s.hero),
                 Beat("Opponent's cards", focus: .table, highlight: s.villain),
                 Beat("Count possible endings", value: "\(unseen) unseen cards",
-                     detail: "Count how often you win at the final reveal.", focus: .table),
+                     detail: "Count wins plus your share of tied pots. That share is called equity.", focus: .table),
                 Beat("Your equity", value: "\(pctText(s.equityPct))%",
                      detail: "This comes from counting every possible ending, including shared pots.", focus: .table)]
     }
@@ -376,8 +376,8 @@ enum EnglishBeatScript {
 
     static func callFold(_ s: CallFoldSpot) -> [Beat] {
         [Beat("Price of the decision", value: "Pot \(s.pot)bb · bet \(s.bet)bb", focus: .table),
-         Beat("Your winning chance", value: "\(pctText(s.equityPct))%", focus: .table, highlight: s.hero),
-         Beat("Winning chance needed", value: "\(pctText(s.requiredPct))%"),
+         Beat("Your share of the pot", value: "\(pctText(s.equityPct))%", detail: "Includes wins and your share of tied pots.", focus: .table, highlight: s.hero),
+         Beat("Equity needed", value: "\(pctText(s.requiredPct))%"),
          Beat("Compare the two", value: s.correctIsCall ? "Call" : "Fold",
               detail: "\(pctText(s.equityPct))% versus \(pctText(s.requiredPct))%")]
     }

@@ -49,4 +49,48 @@ final class FirstLessonTests: XCTestCase {
         XCTAssertNotEqual(FirstLesson.pairExample(seed: 0, transfer: false),
                           FirstLesson.pairExample(seed: 1, transfer: false))
     }
+    func testRequiredPathContainsAllFiveRulesWithoutOptionalPractice() {
+        for seed in UInt64(0)..<18 {
+            let path = FirstLesson.requiredComparisons(seed: seed)
+            XCTAssertEqual(path.map(\.rule), [.pairOverHighCard, .higherPair, .trips, .straight, .flush])
+            XCTAssertEqual(path, FirstLesson.requiredComparisons(seed: seed))
+            for comparison in path {
+                let cards = comparison.spot.hero + comparison.spot.villain + comparison.spot.board
+                XCTAssertEqual(cards.count, 9)
+                XCTAssertEqual(Set(cards).count, 9)
+                XCTAssertNotEqual(comparison.spot.winner, 2)
+            }
+        }
+    }
+
+    func testCuratedBanksHaveSemanticVarietyAndEvaluatorConfirmedRules() {
+        for rule in FirstLesson.Rule.allCases {
+            let variants = FirstLesson.bank(for: rule)
+            XCTAssertEqual(variants.count, 3)
+            let rankStructures = variants.map { ($0.hero + $0.villain + $0.board).map(\.rank) }
+            XCTAssertEqual(Set(rankStructures).count, 3, "Repeat variety must change ranks, not only suits.")
+            for spot in variants {
+                XCTAssertEqual(Set(spot.hero + spot.villain + spot.board).count, 9)
+                let categories = [spot.heroBest.category, spot.villainBest.category].sorted()
+                switch rule {
+                case .pairOverHighCard: XCTAssertEqual(categories, [0, 1])
+                case .higherPair: XCTAssertEqual(categories, [1, 1])
+                case .trips:
+                    XCTAssertEqual(spot.heroBest.category, 3)
+                    XCTAssertTrue([1, 2].contains(spot.villainBest.category))
+                case .straight: XCTAssertEqual(categories, [3, 4])
+                case .flush: XCTAssertEqual(categories, [4, 5])
+                }
+                if rule != .higherPair { XCTAssertEqual(spot.winner, 0) }
+                else {
+                    let winner = spot.winner == 0 ? spot.heroBest : spot.villainBest
+                    let loser = spot.winner == 0 ? spot.villainBest : spot.heroBest
+                    XCTAssertGreaterThan(winner.topRank, loser.topRank)
+                }
+                XCTAssertEqual(gradeShowdown(answer: spot.winner, spot: spot).band, .spotOn)
+            }
+        }
+        XCTAssertNotEqual(FirstLesson.requiredComparisons(seed: 0), FirstLesson.requiredComparisons(seed: 1))
+    }
+
 }

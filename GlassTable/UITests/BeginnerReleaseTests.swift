@@ -664,7 +664,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let hero = app.otherElements["equity-hero-cards"]
         let opponent = app.otherElements["equity-opponent-cards"]
         let board = app.otherElements["equity-board-cards"]
-        let question = app.staticTexts["How often do you win at showdown?"]
+        let question = app.staticTexts["At showdown, what percentage is your wins plus your share of ties?"]
         XCTAssertTrue(app.buttons["Check answer"].waitForExistence(timeout: 15))
         XCTAssertTrue(hero.exists && opponent.exists && board.exists && question.exists)
         // ActionSheet places its question 12 + 4 + 13 points below the sheet edge.

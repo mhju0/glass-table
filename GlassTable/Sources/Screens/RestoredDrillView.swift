@@ -225,7 +225,7 @@ struct RestoredDrillDescription {
             func label(_ value: Int) -> String {
                 switch spot.question {
                 case .behind: return language.text("\(value)명", "\(value) players")
-                case let .whichIsLater(a, b): return value == 0 ? a.rawValue : b.rawValue
+                case let .whichIsLater(a, b): return RestoredLessonEvidence.positionLabel(value == 0 ? a : b, language: language)
                 }
             }
             return Self(mine: label(value), correct: label(result.correct), why: result.whyText)
@@ -418,13 +418,31 @@ private struct RestoredDrillContextView: View {
                 let spot = OutsSpotGenerator.spot(baseSeed: seed, index: index)
                 Text(language.text("이기는 마지막 카드 · 눌러서 확인", "Winning final cards · tap to explore"))
                     .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-                riverCards(spot.outs, excluded: false)
+                ForEach(Array(OutsOutcomeGroups.make(hero: spot.hero, villain: spot.villain, board: spot.board, candidates: spot.outs).enumerated()), id: \.offset) { _, group in
+                    if let representative = group.cards.first {
+                        let completed = ShowdownSpot(hero: spot.hero, villain: spot.villain, board: spot.board + [representative])
+                        let result = gradeShowdown(answer: completed.winner, spot: completed, language: language)
+                        DisclosureGroup(result.heroName + language.text(" · \(group.cards.count)장", " · \(group.cards.count) cards")) {
+                            riverCards(group.cards, excluded: false)
+                            Text(result.whyText).font(GT.body(14)).fixedSize(horizontal: false, vertical: true)
+                        }.foregroundStyle(GT.ink).padding(12).gtPanel()
+                        Button(language.text("대표 카드로 비교", "Compare a representative")) { selectedRiver = representative }
+                            .font(GT.semibold(14)).frame(minHeight: 44)
+                    }
+                }
+
                 if !spot.excluded.isEmpty {
                     Text(language.text("제외 · 상대도 더 좋아져요", "Excluded · the opponent improves too"))
                         .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
                     riverCards(spot.excluded, excluded: true)
                 }
                 if let selectedRiver { RiverExplainPanel(spot: spot, river: selectedRiver) }
+            } else if concept == .rangeRead, let input,
+                      let result = RestoredLessonEvidence.rangeReveal(seed: seed, index: index, input: input, language: language) {
+                Text(language.text("색: 정답 · 테두리: 선택한 답", "Fill: answer · outline: your estimate"))
+                    .font(GT.body(14)).foregroundStyle(GT.onFelt)
+                RangeGridView(range: result.truth, outline: result.guess).frame(maxWidth: 350)
+                RangeDifferenceList(truth: result.truth, guess: result.guess)
             } else if let focus = script.beats.last?.focus {
                 focusView(focus)
             }
@@ -471,29 +489,21 @@ private struct RestoredDrillContextView: View {
             .onAppear { potStepIndex = max(0, spot.replaySteps.count - 1) }
         case .position:
             let spot = PositionSpotGenerator.spot(baseSeed: seed, index: index)
-            HStack(spacing: 5) {
-                ForEach(Position.preflopOrder, id: \.self) { seat in
-                    Text(seat.rawValue).font(GT.semibold(10))
-                        .frame(maxWidth: .infinity, minHeight: 32)
-                        .foregroundStyle(GT.onFelt)
-                        .background(GT.onFelt.opacity(0.12),
-                                    in: RoundedRectangle(cornerRadius: 6))
-                }
-            }
-            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-            if case let .behind(seat, preflop) = spot.question {
-                Text(language.text("\(seat.rawValue) · \(preflop ? "프리플랍" : "플랍 이후")",
-                                   "\(seat.rawValue) · \(preflop ? "before" : "after") the flop"))
-                    .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
-            } else if case let .whichIsLater(a, b) = spot.question {
-                Text(language.text("\(KO.and(a.rawValue)) \(b.rawValue) 중 늦은 자리",
-                                   "Which acts later: \(a.rawValue) or \(b.rawValue)?"))
-                    .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+            switch spot.question {
+            case let .behind(seat, preflop):
+                LessonSeatLoop(active: seat, markers: [seat: language.text("나", "You")], postflop: !preflop)
+                Text(language.text("\(RestoredLessonEvidence.positionLabel(seat, language: language)) · \(preflop ? "플롭 전" : "플롭 이후")",
+                                   "\(RestoredLessonEvidence.positionLabel(seat, language: language)) · \(preflop ? "before" : "after") the flop"))
+                    .font(GT.body(15)).foregroundStyle(GT.onFelt)
+            case let .whichIsLater(a, b):
+                LessonSeatLoop(markers: [a: "A", b: "B"])
+                Text(language.text("A와 B 중 나중에 행동하는 자리는 어디일까요?", "Which acts later, A or B?"))
+                    .font(GT.body(15)).foregroundStyle(GT.onFelt)
             }
         case .evCall:
             let spot = EVCallSpotGenerator.spot(baseSeed: seed, index: index)
-            Text(language.text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb · 내 에퀴티 \(pctText(spot.equityPct))%",
-                               "Pot \(spot.pot)bb · Bet \(spot.bet)bb · Win chance \(pctText(spot.equityPct))%"))
+            Text(language.text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb · 내 에퀴티 \(pctText(spot.equityPct))% (무승부 몫 포함)",
+                               "Pot \(spot.pot)bb · Bet \(spot.bet)bb · Equity \(pctText(spot.equityPct))% (including tie shares)"))
                 .font(GT.body(15)).foregroundStyle(GT.onFelt)
         case .potOdds, .mdf:
             let spot = BetSpotGenerator.spot(baseSeed: seed, index: index)
@@ -593,5 +603,24 @@ private struct RestoredDrillContextView: View {
                 }
             }
         }
+    }
+}
+
+/// Semantic evidence shared by restored rendering and replay tests.
+enum RestoredLessonEvidence {
+    static func positionLabel(_ position: Position, language: LearningLanguage) -> String {
+        "\(LessonSeatLoop.number(position)) · " + LessonSeatLoop.name(position, language: language).replacingOccurrences(of: "\n", with: " ")
+    }
+    static func rangeReveal(seed: UInt64, index: Int, input: DrillSubmittedInput,
+                            language: LearningLanguage) -> RangeReadReveal? {
+        let estimate: RangeEstimate
+        switch input {
+        case let .range(width, tendencies):
+            estimate = RangeEstimate(width: width, tendencies: Set(tendencies.compactMap(RangeTendency.init(rawValue:))))
+        case let .rangeBand(width, excludedTop, tendencies):
+            estimate = RangeEstimate(width: width, tendencies: Set(tendencies.compactMap(RangeTendency.init(rawValue:))), excludedTop: excludedTop)
+        default: return nil
+        }
+        return gradeRangeRead(estimate: estimate, spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index), language: language)
     }
 }

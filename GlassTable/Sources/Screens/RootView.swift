@@ -14,6 +14,11 @@ struct RootView: View {
     @State private var showPath = false
     @State private var showPlacement = false
     @State private var showBasics = false
+    @State private var showGuidedHand = false
+    @State private var suggestGuidedHand = false
+    @State private var suggestAfterBasics = false
+    @State private var handAfterSuggestion = false
+    @State private var playAfterGuidedHand = false
     private enum FirstRunStage { case welcome, placement, lesson }
     // View-local routing keeps a saved check on its closing screen until Continue.
     @State private var firstRunStage: FirstRunStage = .welcome
@@ -93,7 +98,8 @@ struct RootView: View {
                 LearnView(onOpenNode: { openNode = $0 },
                           onOpenReview: { showReview = true },
                           onOpenPractice: { showFreePlay = true },
-                          onOpenBasics: { showBasics = true })
+                          onOpenBasics: { showBasics = true },
+                          onOpenGuidedHand: { showGuidedHand = true })
                     .modifier(ProgressSaveNotice())
                     .toolbar(.hidden, for: .navigationBar)
             }
@@ -132,6 +138,10 @@ struct RootView: View {
             }.environment(model)
         }
         .fullScreenCover(isPresented: $showBasics, onDismiss: {
+            if suggestAfterBasics {
+                suggestAfterBasics = false
+                suggestGuidedHand = true
+            }
             if let node = nodeAfterBasics {
                 nodeAfterBasics = nil
                 openNode = node
@@ -141,10 +151,32 @@ struct RootView: View {
                              onFinish: { startNext in
                                  model.completeBasicsLesson()
                                  if startNext { nodeAfterBasics = model.nextNode }
+                                 else { suggestAfterBasics = true }
                                  showBasics = false
                              })
                 .modifier(ProgressSaveNotice())
                 .environment(model)
+        }
+        .sheet(isPresented: $suggestGuidedHand, onDismiss: {
+            if handAfterSuggestion { handAfterSuggestion = false; showGuidedHand = true }
+        }) {
+            VStack(alignment: .leading, spacing: 18) {
+                Text(language.text("기초를 한 판에 연결해 볼까요?", "Try the basics in a hand")).font(GT.title(24))
+                Text(language.text("선택 사항이에요. 블라인드부터 카드 공개까지 함께 따라가요.", "Optional: follow the blinds, betting rounds and showdown together.")).font(GT.body(17))
+                PrimaryCTAButton(title: language.text("함께 한 판", "A hand together")) {
+                    handAfterSuggestion = true
+                    suggestGuidedHand = false
+                }
+                GTChoiceButton(title: language.text("지금은 닫기", "Close for now"), minHeight: 52) { suggestGuidedHand = false }
+            }.padding(20).presentationDetents([.medium]).gtSheetSurface()
+        }
+        .fullScreenCover(isPresented: $showGuidedHand, onDismiss: {
+            if playAfterGuidedHand { playAfterGuidedHand = false; tab = .play }
+        }) {
+            GuidedHandView(onClose: { showGuidedHand = false }, onPlay: {
+                playAfterGuidedHand = true
+                showGuidedHand = false
+            })
         }
         .fullScreenCover(isPresented: $showFreePlay) {
             NavigationStack {
@@ -204,6 +236,7 @@ struct RootView: View {
             if env["GT_DEMO_TAB"] == "path" { showPath = true }
             if env["GT_DEMO_PLACEMENT"] != nil { showPlacement = true }
             if env["GT_DEMO_BASICS"] != nil { showBasics = true }
+            if env["GT_DEMO_GUIDED_HAND"] != nil { showGuidedHand = true }
             #endif
         }
     }

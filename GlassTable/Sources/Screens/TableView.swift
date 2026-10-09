@@ -51,7 +51,7 @@ struct TableView: View {
                 if let amount { return language.text("콜 \(bbText(amount))bb", "Call \(bbText(amount))bb") }
                 return language.text("콜", "Call")
             case .raise:
-                if street == 0 { return language.text("3벳", "3-bet") }
+                if street == 0 { return language.text("다시 올리기", "Raise again") }
                 return language.text("레이즈 \(bbText(amount ?? 0))bb", "Raise to \(bbText(amount ?? 0))bb")
             case let .bet(f):
                 return language.text("벳 \(bbText(amount ?? 0))bb (\(pctText(f * 100))%)",
@@ -67,6 +67,7 @@ struct TableView: View {
         }
     }
     @State private var showChart = false
+    @State private var chartGuideExpanded = true
     @State private var showPolicyReference = false
 
     var body: some View {
@@ -88,7 +89,11 @@ struct TableView: View {
                         Text(language.text("상대가 \(hand.villainSeat.plainName(in: language))에서 먼저 올렸을 때의 기준이에요. 공용 카드가 나온 뒤의 행동을 알려주는 차트는 아니에요.",
                                            "A baseline against a raise from \(hand.villainSeat.plainName(in: language)). It does not advise decisions after the shared cards."))
                             .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
-                        DisclosureGroup(language.text("차트 읽는 법", "How to read the chart")) {
+                        Text(language.text("bb는 빅 블라인드 한 개만큼의 칩이에요. 다시 올리기는 상대의 올리기에 더 올리는 행동이며 3벳이라고도 해요.",
+                                           "bb is the chip amount of one big blind. Raising again increases the opponent’s raise, also called a 3-bet."))
+                            .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        DisclosureGroup(isExpanded: $chartGuideExpanded) {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(language.text("A는 에이스, K는 킹, Q는 퀸, J는 잭이에요. 숫자는 카드 숫자 그대로예요.",
                                                    "A is ace, K is king, Q is queen and J is jack. Numbers are the card ranks."))
@@ -102,6 +107,9 @@ struct TableView: View {
                             .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.top, 8)
+                        } label: {
+                            Text(language.text("차트 읽는 법", "How to read the chart"))
+                                .frame(minHeight: 44)
                         }
                         .font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
                         .accessibilityIdentifier("table-chart-reading-guide")
@@ -180,6 +188,9 @@ struct TableView: View {
                 Text(language.text("폴드, 콜, 올리기를 직접 골라 보세요. 매번 선택 뒤에 이유를 짧게 짚어드려요.",
                                    "Try folding, calling and raising. After each choice, get one short takeaway."))
                     .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
+                Text(language.text("1bb는 빅 블라인드 한 개만큼의 칩이에요. 상대가 먼저 올린 뒤 더 올리면 ‘다시 올리기(3벳)’예요.",
+                                   "1bb is the chip amount of one big blind. Increasing an existing raise is raising again, also called a 3-bet."))
+                    .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                 Text(language.text("시작 패는 앱 차트와 비교해요. 공용 카드 뒤에는 이후 베팅이 없다고 가정해 비교해요. 실제 포커의 정답은 아니에요.",
                                    "Starting hands use the app's chart. Later choices assume no more betting. These are practice rules, not perfect poker."))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
@@ -527,7 +538,7 @@ struct TableView: View {
                 gradedAction(language.text("콜", "Call"), price: "\(bbText(b))bb", role: .passive) {
                     actPreflop(.call, hand)
                 }.accessibilityIdentifier("table-passive")
-                gradedAction(language.text("레이즈", "Raise"), role: .aggressive, side: .trailing) {
+                gradedAction(language.text("다시 올리기", "Raise again"), role: .aggressive, side: .trailing) {
                     actPreflop(.raise, hand)
                 }.accessibilityIdentifier("table-aggressive")
             }
@@ -701,7 +712,7 @@ struct TableView: View {
         switch action {
         case .fold: return language.text("폴드", "Fold")
         case .call: return language.text("콜", "Call")
-        case .threeBet: return language.text("3벳", "3-bet")
+        case .threeBet: return language.text("다시 올리기", "Raise again")
         }
     }
 

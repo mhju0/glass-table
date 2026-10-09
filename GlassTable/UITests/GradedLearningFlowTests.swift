@@ -93,9 +93,9 @@ final class GradedLearningFlowTests: XCTestCase {
         XCTAssertFalse(app.descendants(matching: .any)["defend-selected-evidence"].exists)
         let guide = app.buttons["table-chart-reading-guide"]
         XCTAssertTrue(guide.exists)
-        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "The diagonal from AA to 22")).firstMatch.exists)
-        guide.tap()
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "The diagonal from AA to 22")).firstMatch.exists)
+        guide.tap()
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "The diagonal from AA to 22")).firstMatch.exists)
         XCTAssertFalse(app.descendants(matching: .any)["defend-selected-evidence"].exists)
         app.buttons["Close"].tap()
         XCTAssertTrue(app.buttons["table-fold"].exists)
