@@ -42,3 +42,19 @@ Check EN/KO × light/dark normal/AX5, actual default intro finish, voluntary cha
 collapse/reopen, wrong/right guided choices/back/replay, restored range/position,
 help finish/back/close and safe bottoms. Every requested owner reinstall resets
 data unless explicitly asked to preserve; never copy phone progress off-device.
+
+## Executed acceptance · October 10
+
+- Drills: 471 tests passed; app: 125 tests passed.
+- Seventeen distinct targeted UI cases passed across completion candidates.
+  Final source a3db5fc additionally passed both guided-hand interaction cases
+  after shared Back/Close chrome and explicit normal/AX test launch sizing.
+- Independent source review of a3db5fc returned no actionable findings.
+- Signed Release build 1.0 (19) compiled and its signature verified.
+- Report includes 88 native initial-frame fixtures, EN/KO and light/dark,
+  with selected AX5 coverage; per-frame capture commits identify unchanged
+  earlier fixtures. Actual interactions are separate from fixture evidence.
+- Normal guided copy uses matched natural line groups; AX5 wraps naturally.
+- Physical install remains pending connected/unlocked iPhone 12 mini; no
+  device data has been deleted or copied. Real beginner comprehension,
+  VoiceOver, haptics and minimum iOS 17 remain unverified.
