@@ -17,6 +17,13 @@ final class BilingualConsistencyB20Tests: XCTestCase {
     func testNormalDarkCaptureMatrixAndPairedRootHeadings() { captureMatrix(appearance: "dark", ax: false) }
     func testAX5LightCaptureMatrix() { captureMatrix(appearance: "light", ax: true) }
     func testAX5DarkCaptureMatrix() { captureMatrix(appearance: "dark", ax: true) }
+    func testTeachPairSupplementaryCopyAllModes() {
+        for ax in [false, true] {
+            for appearance in ["light", "dark"] {
+                captureMatrix(appearance: appearance, ax: ax, fixtureName: "opening-pair")
+            }
+        }
+    }
 
     func testEnglishLightAX5BottomActionsAndHelpReturn() { interactions(code: "en", appearance: "light") }
     func testKoreanLightAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "light") }
@@ -67,8 +74,8 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         return app
     }
 
-    private func captureMatrix(appearance: String, ax: Bool) {
-        for fixture in fixtures {
+    private func captureMatrix(appearance: String, ax: Bool, fixtureName: String? = nil) {
+        for fixture in fixtures where fixtureName == nil || fixture.name == fixtureName {
             var headingHeights: [CGFloat] = []
             var pairedTextHeights: [String: [CGFloat]] = [:]
             for (index, code) in ["en", "ko"].enumerated() {
@@ -109,6 +116,13 @@ final class BilingualConsistencyB20Tests: XCTestCase {
                     }
                 }
                 capture(app, "b20-\(fixture.name)-\(code)-\(appearance)-\(ax ? "AX5" : "normal")")
+                if fixtureName == "opening-pair", ax {
+                    let next = app.buttons["firstLesson.next"]
+                    tap(next, app: app)
+                    XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5),
+                                  "The AX5 teaching page's real Next action opens the question")
+                    print("B20_AX_FLOW teach-pair-next \(code) \(appearance) passed")
+                }
                 app.terminate()
             }
             if !ax, headingHeights.count == 2 {
@@ -130,7 +144,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
     private func pairedBodyIDs(_ fixtureName: String) -> [String] {
         switch fixtureName {
         case "opening-welcome": ["firstLesson.welcome.body"]
-        case "opening-pair": ["firstLesson.teachPair.body"]
+        case "opening-pair": ["firstLesson.teachPair.body", "firstLesson.teachPair.letters"]
         case "opening-question", "opening-transfer": ["firstLesson.question", "firstLesson.rule"]
         case "opening-checkpoint": ["firstLesson.checkpoint.body"]
         case "opening-preference": ["firstLesson.preference.body"]
@@ -295,7 +309,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         // AX labels preserve explicit breaks; their frames supplement screenshots,
         // but do not prove glyph-level Korean word wrapping or body line counts.
         let proseIDs = ["firstLesson.welcome", "firstLesson.welcome.body", "firstLesson.teachPair.heading",
-                        "firstLesson.teachPair.body", "firstLesson.heading", "firstLesson.question", "firstLesson.rule",
+                        "firstLesson.teachPair.body", "firstLesson.teachPair.letters", "firstLesson.heading", "firstLesson.question", "firstLesson.rule",
                         "firstLesson.checkpoint.heading", "firstLesson.checkpoint.body",
                         "firstLesson.preference.heading", "firstLesson.preference.body", "table-takeaway"]
         // Select prose before native element lookup. Chart glyphs remain in the
