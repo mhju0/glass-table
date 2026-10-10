@@ -27,8 +27,14 @@ final class BilingualConsistencyB20Tests: XCTestCase {
     func testExplanationAutomaticallyVisibleAllModes() {
         for ax in [false, true] {
             for appearance in ["light", "dark"] {
+                var reasonHeights: [CGFloat] = []
                 for code in ["en", "ko"] {
-                    explanation(code: code, appearance: appearance, ax: ax, response: "show-me")
+                    reasonHeights.append(explanation(code: code, appearance: appearance, ax: ax, response: "show-me"))
+                }
+                if !ax {
+                    print("B20_NORMAL_PAIR opening-show-me \(appearance) firstLesson.reason EN=\(reasonHeights[0]) KO=\(reasonHeights[1])")
+                    XCTAssertEqual(reasonHeights[0], reasonHeights[1], accuracy: 1,
+                                   "The same native reason font must preserve the normal paired line count")
                 }
             }
             explanation(code: "en", appearance: "light", ax: ax, response: "correct")
@@ -199,7 +205,8 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         app.terminate()
     }
 
-    private func explanation(code: String, appearance: String, ax: Bool, response: String) {
+    @discardableResult
+    private func explanation(code: String, appearance: String, ax: Bool, response: String) -> CGFloat {
         let app = launch(code: code, appearance: appearance, ax: ax, environment: ["GT_TEST_FIRST_LESSON": "1"])
         tap(app.buttons["firstLesson.start"], app: app)
         tap(app.buttons["firstLesson.next"], app: app)
@@ -217,7 +224,9 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         XCTAssertLessThanOrEqual(reason.frame.maxY, viewport.maxY + 1)
         capture(app, "b20-opening-\(response)-\(code)-\(appearance)-\(ax ? "AX5" : "normal")")
         print("B20_EXPLANATION_VISIBLE \(response) \(code) \(appearance) \(ax ? "AX5" : "normal") frame=\(reason.frame) viewport=\(viewport)")
+        let height = reason.frame.height
         app.terminate()
+        return height
     }
 
     private func workedExample(code: String, appearance: String) {
