@@ -15,7 +15,11 @@ enum AppFeedback {
 
     static func answer(correct: Bool) {
         if hapticsEnabled {
-            UINotificationFeedbackGenerator().notificationOccurred(correct ? .success : .warning)
+            if correct {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            } else {
+                UISelectionFeedbackGenerator().selectionChanged()
+            }
         }
         play(correct ? "answer-confirm" : "answer-review")
     }

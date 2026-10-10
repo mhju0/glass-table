@@ -27,7 +27,7 @@ targets:
         CFBundleLocalizations: [ko, en]
         CFBundleDisplayName: Glass Table
         CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "19"
+        CFBundleVersion: "20"
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
