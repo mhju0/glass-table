@@ -1,0 +1,317 @@
+// Copyright (c) 2026 Michael Ju (github.com/mhju0)
+import XCTest
+
+final class BilingualConsistencyB20Tests: XCTestCase {
+    private struct Fixture {
+        let name: String
+        let environment: [String: String]
+        let ready: String
+        var rootHeading: [String]? = nil
+        var pairedHeadingID: String? = nil
+        var primaryActionID: String? = nil
+    }
+
+    override func setUpWithError() throws { continueAfterFailure = false }
+
+    func testNormalLightCaptureMatrixAndPairedRootHeadings() { captureMatrix(appearance: "light", ax: false) }
+    func testNormalDarkCaptureMatrixAndPairedRootHeadings() { captureMatrix(appearance: "dark", ax: false) }
+    func testAX5LightCaptureMatrix() { captureMatrix(appearance: "light", ax: true) }
+    func testAX5DarkCaptureMatrix() { captureMatrix(appearance: "dark", ax: true) }
+
+    func testEnglishLightAX5BottomActionsAndHelpReturn() { interactions(code: "en", appearance: "light") }
+    func testKoreanLightAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "light") }
+    func testEnglishDarkAX5BottomActionsAndHelpReturn() { interactions(code: "en", appearance: "dark") }
+    func testKoreanDarkAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "dark") }
+
+    private var fixtures: [Fixture] {
+        [
+            Fixture(name: "opening-welcome", environment: ["GT_DEMO_FIRST_LESSON": "welcome"], ready: "firstLesson.start", pairedHeadingID: "firstLesson.welcome", primaryActionID: "firstLesson.start"),
+            Fixture(name: "opening-pair", environment: ["GT_DEMO_FIRST_LESSON": "teach-pair"], ready: "firstLesson.teachPair.heading", pairedHeadingID: "firstLesson.teachPair.heading", primaryActionID: "firstLesson.next"),
+            Fixture(name: "opening-question", environment: ["GT_DEMO_FIRST_LESSON": "example"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
+            Fixture(name: "opening-transfer", environment: ["GT_DEMO_FIRST_LESSON": "transfer"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
+            Fixture(name: "opening-show-me", environment: ["GT_DEMO_FIRST_LESSON": "example-help"], ready: "firstLesson.verdict", primaryActionID: "firstLesson.next"),
+            Fixture(name: "opening-checkpoint", environment: ["GT_DEMO_FIRST_LESSON": "checkpoint"], ready: "firstLesson.checkpoint.heading", pairedHeadingID: "firstLesson.checkpoint.heading", primaryActionID: "firstLesson.continueGuide"),
+            Fixture(name: "opening-preference", environment: ["GT_DEMO_FIRST_LESSON": "preference"], ready: "firstLesson.preference.newToPoker", pairedHeadingID: "firstLesson.preference.heading", primaryActionID: "firstLesson.preference.newToPoker"),
+            Fixture(name: "learn", environment: ["GT_DEMO_TAB": "learn"], ready: "learn-path", rootHeading: ["Learn", "배우기"]),
+            Fixture(name: "play", environment: ["GT_DEMO_TAB": "play"], ready: "play-free", rootHeading: ["Play", "플레이"]),
+            Fixture(name: "progress", environment: ["GT_DEMO_TAB": "records"], ready: "records-details", rootHeading: ["Progress", "학습 기록"]),
+            Fixture(name: "settings", environment: ["GT_DEMO_SETTINGS": "1"], ready: "settings-language", rootHeading: ["Settings", "설정"]),
+            Fixture(name: "showdown", environment: ["GT_DEMO_NODE": "u1-showdown"], ready: "drill-question-"),
+            Fixture(name: "pot", environment: ["GT_DEMO_NODE": "u1-potMath", "GT_DEMO_POT_STATE": "question", "GT_DEMO_POT_PLAYERS": "4:4"], ready: "pot-table-replay"),
+            Fixture(name: "pot-feedback", environment: ["GT_DEMO_NODE": "u1-potMath", "GT_DEMO_POT_STATE": "reveal", "GT_DEMO_POT_PLAYERS": "4:4"], ready: "drill-completion-"),
+            Fixture(name: "position", environment: ["GT_DEMO_NODE": "u1-position"], ready: "drill-question-"),
+            Fixture(name: "rfi", environment: ["GT_DEMO_NODE": "u3-rfi"], ready: "drill-question-"),
+            Fixture(name: "defend", environment: ["GT_DEMO_NODE": "u8-defend"], ready: "drill-question-"),
+            Fixture(name: "outs", environment: ["GT_DEMO_NODE": "u2-outs"], ready: "drill-question-"),
+            Fixture(name: "graded-chart", environment: ["GT_DEMO_TABLE": "tag", "GT_DEMO_TABLE_STEP": "1", "GT_DEMO_TABLE_CHART": "1"], ready: "table-chart-reading-guide"),
+            Fixture(name: "graded-feedback", environment: ["GT_DEMO_TABLE": "tag", "GT_DEMO_TABLE_STEP": "2"], ready: "table-verdict"),
+            Fixture(name: "free-play", environment: ["GT_DEMO_TAB": "play", "GT_DEMO_PRACTICE": "1"], ready: "free-table-help"),
+            Fixture(name: "free-help", environment: ["GT_DEMO_TAB": "play", "GT_DEMO_PRACTICE": "1", "GT_DEMO_FREE_PHASE": "raise-open", "GT_DEMO_FREE_BACK": "math"], ready: "free-table-back-close")
+        ]
+    }
+
+    private func launch(code: String, appearance: String, ax: Bool, environment: [String: String]) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(\(code))", "-AppleLocale", code == "ko" ? "ko_KR" : "en_US",
+                               "-glassTable.language", code == "ko" ? "korean" : "english", "-appAppearance", appearance,
+                               "-UIPreferredContentSizeCategoryName", ax ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
+                                 "GT_DEMO_LEVEL": "newToPoker", "GT_DEMO_LANGUAGE": code, "GT_DEMO_SEED": "1"]
+        app.launchEnvironment.merge(environment) { _, new in new }
+        if environment["GT_DEMO_FIRST_LESSON"] != nil || environment["GT_TEST_FIRST_LESSON"] == "1" {
+            app.launchEnvironment.removeValue(forKey: "GT_DEMO_SEED")
+        }
+        app.launch()
+        XCTAssertEqual(app.windows.firstMatch.frame.width, 375, accuracy: 1,
+                       "Run this acceptance suite on a 375-point compact phone, such as iPhone 12 mini.")
+        return app
+    }
+
+    private func captureMatrix(appearance: String, ax: Bool) {
+        for fixture in fixtures {
+            var headingHeights: [CGFloat] = []
+            var pairedTextHeights: [String: [CGFloat]] = [:]
+            for (index, code) in ["en", "ko"].enumerated() {
+                let app = launch(code: code, appearance: appearance, ax: ax, environment: fixture.environment)
+                let ready = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", fixture.ready)).firstMatch
+                XCTAssertTrue(ready.waitForExistence(timeout: 20), "\(fixture.name) must show its intended state")
+                if let titles = fixture.rootHeading {
+                    let heading = app.staticTexts.matching(NSPredicate(format: "label == %@", titles[index])).firstMatch
+                    XCTAssertTrue(heading.exists, "\(fixture.name) has its localized heading")
+                    XCTAssertGreaterThan(heading.frame.height, 0)
+                    XCTAssertGreaterThanOrEqual(heading.frame.minX, app.frame.minX - 1)
+                    XCTAssertLessThanOrEqual(heading.frame.maxX, app.frame.maxX + 1)
+                    headingHeights.append(heading.frame.height)
+                    XCTAssertTrue(app.tabBars.firstMatch.exists, "Root destinations retain the tab bar")
+                    XCTAssertFalse(heading.label.contains("…"))
+                } else if let identifier = fixture.pairedHeadingID {
+                    let heading = app.staticTexts[identifier]
+                    XCTAssertTrue(heading.waitForExistence(timeout: 5))
+                    XCTAssertGreaterThan(heading.frame.height, 0)
+                    XCTAssertFalse(heading.label.contains("…"))
+                    headingHeights.append(heading.frame.height)
+                }
+                if !ax, let identifier = fixture.primaryActionID {
+                    let action = app.buttons[identifier]
+                    XCTAssertTrue(action.exists)
+                    XCTAssertGreaterThanOrEqual(action.frame.height, 44)
+                    XCTAssertGreaterThanOrEqual(action.frame.width, 44)
+                    XCTAssertFalse(action.label.contains("…"))
+                    print("B20_NORMAL_ACTION \(fixture.name) \(code) \(appearance) \(identifier) frame=\(action.frame)")
+                }
+                if !ax {
+                    for identifier in pairedBodyIDs(fixture.name) {
+                        let text = app.staticTexts[identifier]
+                        XCTAssertTrue(text.waitForExistence(timeout: 5), "Native paired text: \(identifier)")
+                        XCTAssertGreaterThan(text.frame.height, 0)
+                        XCTAssertFalse(text.label.contains("…"))
+                        pairedTextHeights[identifier, default: []].append(text.frame.height)
+                    }
+                }
+                capture(app, "b20-\(fixture.name)-\(code)-\(appearance)-\(ax ? "AX5" : "normal")")
+                app.terminate()
+            }
+            if !ax, headingHeights.count == 2 {
+                print("B20_NORMAL_PAIR \(fixture.name) \(appearance) heading EN=\(headingHeights[0]) KO=\(headingHeights[1])")
+                XCTAssertEqual(headingHeights[0], headingHeights[1], accuracy: 1,
+                               "\(fixture.name): same typography must give paired normal headings the same native line height")
+            }
+            for (identifier, heights) in pairedTextHeights {
+                XCTAssertEqual(heights.count, 2)
+                if heights.count == 2 {
+                    print("B20_NORMAL_PAIR \(fixture.name) \(appearance) \(identifier) EN=\(heights[0]) KO=\(heights[1])")
+                    XCTAssertEqual(heights[0], heights[1], accuracy: 1,
+                                   "\(identifier): matching native font styles must preserve paired normal line counts")
+                }
+            }
+        }
+    }
+
+    private func pairedBodyIDs(_ fixtureName: String) -> [String] {
+        switch fixtureName {
+        case "opening-welcome": ["firstLesson.welcome.body"]
+        case "opening-pair": ["firstLesson.teachPair.body"]
+        case "opening-question", "opening-transfer": ["firstLesson.question", "firstLesson.rule"]
+        case "opening-checkpoint": ["firstLesson.checkpoint.body"]
+        case "opening-preference": ["firstLesson.preference.body"]
+        default: []
+        }
+    }
+
+    private func interactions(code: String, appearance: String) {
+        openingShowMe(code: code, appearance: appearance)
+        workedExample(code: code, appearance: appearance)
+        gradedChart(code: code, appearance: appearance)
+        freeHelp(code: code, appearance: appearance)
+    }
+
+    private func openingShowMe(code: String, appearance: String) {
+        let app = launch(code: code, appearance: appearance, ax: true, environment: ["GT_TEST_FIRST_LESSON": "1"])
+        tap(app.buttons["firstLesson.start"], app: app)
+        tap(app.buttons["firstLesson.next"], app: app)
+        for _ in 0..<2 {
+            XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+            tap(app.buttons["firstLesson.help"], app: app)
+            XCTAssertTrue(app.descendants(matching: .any)["firstLesson.verdict"].waitForExistence(timeout: 5))
+            let next = app.buttons["firstLesson.next"]
+            reveal(next, app: app)
+            capture(app, "b20-opening-show-me-bottom-\(code)-\(appearance)-AX5")
+            next.tap()
+        }
+        XCTAssertTrue(app.descendants(matching: .any)["firstLesson.checkpoint.heading"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["firstLesson.finish"].exists, "Two demonstrated examples are not the completed guide")
+        tap(app.buttons["firstLesson.preference"], app: app)
+        tap(app.buttons["firstLesson.preference.newToPoker"], app: app)
+        XCTAssertTrue(app.descendants(matching: .any)["firstLesson.checkpoint.heading"].waitForExistence(timeout: 5))
+        let stop = app.buttons["firstLesson.stop"]
+        reveal(stop, app: app)
+        capture(app, "b20-opening-checkpoint-bottom-\(code)-\(appearance)-AX5")
+        stop.tap()
+        XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.firstMatch.exists)
+        print("B20_AX_FLOW opening-show-me-checkpoint \(code) \(appearance) passed")
+        app.terminate()
+    }
+
+    private func workedExample(code: String, appearance: String) {
+        let app = launch(code: code, appearance: appearance, ax: true,
+                         environment: ["GT_DEMO_NODE": "u1-position", "GT_DEMO_EXPLAIN": "1"])
+        let example = app.buttons["explain-example"]
+        tap(example, app: app)
+        tap(app.buttons["walkthrough-next"], app: app)
+        tap(app.buttons["walkthrough-previous"], app: app)
+        for _ in 0..<40 {
+            let next = app.buttons["walkthrough-next"]
+            XCTAssertTrue(next.waitForExistence(timeout: 5))
+            if next.label == (code == "ko" ? "예시 마치기" : "Finish example") {
+                reveal(next, app: app)
+                capture(app, "b20-position-last-\(code)-\(appearance)-AX5")
+                next.tap()
+                XCTAssertTrue(example.waitForExistence(timeout: 5), "Finishing returns to the same explanation")
+                print("B20_AX_FLOW position-example-return \(code) \(appearance) passed")
+                app.terminate()
+                return
+            }
+            if !next.isEnabled { tap(app.buttons["walkthrough-reveal"], app: app) }
+            tap(next, app: app)
+        }
+        XCTFail("Position example did not reach its final bottom action")
+        app.terminate()
+    }
+
+    private func gradedChart(code: String, appearance: String) {
+        let app = launch(code: code, appearance: appearance, ax: true, environment: ["GT_DEMO_TABLE": "tag"])
+        let fold = app.buttons["table-fold"]
+        XCTAssertTrue(fold.waitForExistence(timeout: 15))
+        let originalCards = app.descendants(matching: .any)["table-hero-cards"].label
+        tap(app.buttons["table-chart"], app: app)
+        XCTAssertTrue(app.buttons["table-chart-reading-guide"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["defend-selected-evidence"].exists,
+                       "A precommit chart is a reference, not an answer")
+        capture(app, "b20-chart-open-\(code)-\(appearance)-AX5")
+        tap(app.buttons[code == "ko" ? "닫기" : "Close"], app: app)
+        XCTAssertEqual(app.descendants(matching: .any)["table-hero-cards"].label, originalCards)
+        XCTAssertFalse(app.descendants(matching: .any)["table-verdict"].exists)
+        tap(fold, app: app)
+        XCTAssertTrue(app.descendants(matching: .any)["table-verdict"].waitForExistence(timeout: 10))
+        let next = app.buttons["table-continue"]
+        reveal(next, app: app)
+        capture(app, "b20-graded-bottom-\(code)-\(appearance)-AX5")
+        next.tap()
+        XCTAssertTrue(app.buttons["table-next-hand"].waitForExistence(timeout: 10))
+        print("B20_AX_FLOW graded-chart-return-commit-continue \(code) \(appearance) passed")
+        app.terminate()
+    }
+
+    private func freeHelp(code: String, appearance: String) {
+        let app = launch(code: code, appearance: appearance, ax: true,
+                         environment: ["GT_DEMO_TAB": "play", "GT_DEMO_PRACTICE": "1", "GT_DEMO_FREE_PHASE": "raise-open"])
+        tap(app.buttons["free-raise-cancel"], app: app)
+        let fold = app.buttons["free-fold"]
+        XCTAssertTrue(fold.waitForExistence(timeout: 5))
+        let originalAction = fold.label
+        tap(app.buttons["free-table-help"], app: app)
+        let close = app.buttons["free-table-back-close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 5))
+        capture(app, "b20-free-help-open-\(code)-\(appearance)-AX5")
+        tap(close, app: app)
+        XCTAssertFalse(close.exists)
+        XCTAssertEqual(fold.label, originalAction, "Help returns to the uncommitted decision")
+        reveal(fold, app: app)
+        capture(app, "b20-free-help-return-\(code)-\(appearance)-AX5")
+        fold.tap()
+        XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 15),
+                      "The real bottom action commits the hand decision and reaches the hand result")
+        print("B20_AX_FLOW free-help-return-commit \(code) \(appearance) passed")
+        app.terminate()
+    }
+
+    private func tap(_ target: XCUIElement, app: XCUIApplication) {
+        reveal(target, app: app)
+        XCTAssertTrue(target.isEnabled)
+        target.tap()
+    }
+
+    private func reveal(_ target: XCUIElement, app: XCUIApplication) {
+        XCTAssertTrue(target.waitForExistence(timeout: 15))
+        let match = target.identifier.isEmpty
+            ? NSPredicate(format: "label == %@", target.label)
+            : NSPredicate(format: "identifier == %@", target.identifier)
+        let scroll = app.scrollViews.allElementsBoundByIndex.filter {
+            $0.descendants(matching: .any).matching(match).firstMatch.exists
+        }.min { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height }
+        for _ in 0..<30 {
+            let window = app.windows.firstMatch.frame
+            var top = window.minY + 60
+            let navigation = app.navigationBars.firstMatch
+            if navigation.exists {
+                if target.isHittable, navigation.frame.contains(target.frame) { return }
+                top = max(top, navigation.frame.maxY)
+            }
+            var bottom = window.maxY - 20
+            if let scroll { top = max(top, scroll.frame.minY); bottom = min(bottom, scroll.frame.maxY) }
+            let frame = target.frame
+            if target.isHittable, frame.minY >= top - 1, frame.maxY <= bottom + 1 {
+                XCTAssertGreaterThanOrEqual(frame.minX, window.minX - 1)
+                XCTAssertLessThanOrEqual(frame.maxX, window.maxX + 1)
+                return
+            }
+            let startY = max(top + 30, min(bottom - 30, (top + bottom) / 2))
+            let delta: CGFloat = frame.minY < top ? 100 : -100
+            let x = scroll.map { max(25, $0.frame.minX + 12) } ?? 25
+            let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: x, dy: startY))
+            start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: delta)),
+                        withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
+        capture(app, "b20-unreachable-\(target.identifier)")
+        XCTFail("Action bounds do not clear the native viewport: \(target.identifier) \(target.frame)")
+    }
+
+    private func capture(_ app: XCUIApplication, _ name: String) {
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = name; screenshot.lifetime = .keepAlways; add(screenshot)
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "\(name)-hierarchy"; hierarchy.lifetime = .keepAlways; add(hierarchy)
+        // AX labels preserve explicit breaks; their frames supplement screenshots,
+        // but do not prove glyph-level Korean word wrapping or body line counts.
+        let proseIDs = ["firstLesson.welcome", "firstLesson.welcome.body", "firstLesson.teachPair.heading",
+                        "firstLesson.teachPair.body", "firstLesson.heading", "firstLesson.question", "firstLesson.rule",
+                        "firstLesson.checkpoint.heading", "firstLesson.checkpoint.body",
+                        "firstLesson.preference.heading", "firstLesson.preference.body", "table-takeaway"]
+        // Select prose before native element lookup. Chart glyphs remain in the
+        // one hierarchy snapshot and screenshot, without hundreds of remote calls.
+        let prose = app.staticTexts.matching(NSPredicate(
+            format: "(identifier IN %@ OR identifier BEGINSWITH %@) AND NOT label MATCHES %@",
+            proseIDs, "drill-question-", "[2-9TJQKA]{1,2}[so]?"))
+        let frames = prose.allElementsBoundByIndex.map { element -> [String: Any] in
+            let frame = element.frame
+            return ["id": element.identifier, "label": element.label,
+                    "x": frame.minX, "y": frame.minY, "width": frame.width, "height": frame.height]
+        }
+        do {
+            let data = try JSONSerialization.data(withJSONObject: frames, options: [.prettyPrinted, .sortedKeys])
+            let geometry = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+            geometry.name = "\(name)-text-geometry"; geometry.lifetime = .keepAlways; add(geometry)
+        } catch { XCTFail("Cannot record native text geometry: \(error)") }
+    }
+}
