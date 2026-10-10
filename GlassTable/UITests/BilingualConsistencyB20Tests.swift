@@ -24,6 +24,17 @@ final class BilingualConsistencyB20Tests: XCTestCase {
             }
         }
     }
+    func testExplanationAutomaticallyVisibleAllModes() {
+        for ax in [false, true] {
+            for appearance in ["light", "dark"] {
+                for code in ["en", "ko"] {
+                    explanation(code: code, appearance: appearance, ax: ax, response: "show-me")
+                }
+            }
+            explanation(code: "en", appearance: "light", ax: ax, response: "correct")
+            explanation(code: "en", appearance: "light", ax: ax, response: "wrong")
+        }
+    }
 
     func testEnglishLightAX5BottomActionsAndHelpReturn() { interactions(code: "en", appearance: "light") }
     func testKoreanLightAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "light") }
@@ -187,6 +198,27 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         app.terminate()
     }
 
+    private func explanation(code: String, appearance: String, ax: Bool, response: String) {
+        let app = launch(code: code, appearance: appearance, ax: ax, environment: ["GT_TEST_FIRST_LESSON": "1"])
+        tap(app.buttons["firstLesson.start"], app: app)
+        tap(app.buttons["firstLesson.next"], app: app)
+        // Each unique test store's first guide uses seed zero: the hero has a pair
+        // against high card, so the choice cases exercise actual right/wrong entry.
+        tap(app.buttons[response == "show-me" ? "firstLesson.help" : response == "correct" ? "firstLesson.choice.0" : "firstLesson.choice.1"], app: app)
+        let reason = app.staticTexts["firstLesson.reason"]
+        XCTAssertTrue(reason.waitForExistence(timeout: 10))
+        let visible = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: reason)
+        wait(for: [visible], timeout: 10)
+        XCTAssertTrue(app.descendants(matching: .any)["firstLesson.verdict"].exists)
+        XCTAssertTrue(reason.isHittable, "Explanation must appear automatically after \(response), without a manual scroll")
+        let viewport = app.scrollViews.firstMatch.frame.intersection(app.windows.firstMatch.frame.insetBy(dx: 0, dy: 20))
+        XCTAssertGreaterThanOrEqual(reason.frame.minY, viewport.minY - 1)
+        XCTAssertLessThanOrEqual(reason.frame.maxY, viewport.maxY + 1)
+        capture(app, "b20-opening-\(response)-\(code)-\(appearance)-\(ax ? "AX5" : "normal")")
+        print("B20_EXPLANATION_VISIBLE \(response) \(code) \(appearance) \(ax ? "AX5" : "normal") frame=\(reason.frame) viewport=\(viewport)")
+        app.terminate()
+    }
+
     private func workedExample(code: String, appearance: String) {
         let app = launch(code: code, appearance: appearance, ax: true,
                          environment: ["GT_DEMO_NODE": "u1-position", "GT_DEMO_EXPLAIN": "1"])
@@ -292,7 +324,8 @@ final class BilingualConsistencyB20Tests: XCTestCase {
             }
             let startY = max(top + 30, min(bottom - 30, (top + bottom) / 2))
             let delta: CGFloat = frame.minY < top ? 100 : -100
-            let x = scroll.map { max(25, $0.frame.minX + 12) } ?? 25
+            // First Lesson reserves the leading 28 points for its back gesture.
+            let x = scroll.map { $0.frame.minX + min(60, $0.frame.width / 2) } ?? 60
             let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: x, dy: startY))
             start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: delta)),
                         withVelocity: .slow, thenHoldForDuration: 0.3)
@@ -311,7 +344,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         let proseIDs = ["firstLesson.welcome", "firstLesson.welcome.body", "firstLesson.teachPair.heading",
                         "firstLesson.teachPair.body", "firstLesson.teachPair.letters", "firstLesson.heading", "firstLesson.question", "firstLesson.rule",
                         "firstLesson.checkpoint.heading", "firstLesson.checkpoint.body",
-                        "firstLesson.preference.heading", "firstLesson.preference.body", "table-takeaway"]
+                        "firstLesson.preference.heading", "firstLesson.preference.body", "firstLesson.reason", "table-takeaway"]
         // Select prose before native element lookup. Chart glyphs remain in the
         // one hierarchy snapshot and screenshot, without hundreds of remote calls.
         let prose = app.staticTexts.matching(NSPredicate(
