@@ -93,25 +93,23 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.buttons["learn-path"].exists)
     }
 
-    func testStartingPointCheckOpensTheFirstLaunchOnceAndStaysOffLearn() {
+    func testOpeningGuideResumesWithoutMandatoryPlacement() {
         let app = app()
         app.launchEnvironment["GT_TEST_FIRST_LESSON"] = "1"
         app.launchEnvironment["GT_TEST_FIRST_PLACEMENT"] = "1"
+        app.launchArguments += ["-glassTable.language", "english"]
         app.launch()
-        let newPlayer = app.buttons["I'm new to poker"]
         XCTAssertTrue(app.buttons["firstLesson.start"].waitForExistence(timeout: 15))
         app.buttons["firstLesson.start"].tap()
-        XCTAssertTrue(newPlayer.waitForExistence(timeout: 5), "The check follows the welcome")
-        XCTAssertTrue(app.buttons["Start without the check"].exists)
-        newPlayer.tap()
-        let skipLesson = app.buttons["firstLesson.skip"]
-        XCTAssertTrue(skipLesson.waitForExistence(timeout: 5), "A new player goes straight to the first lesson")
-        XCTAssertFalse(app.staticTexts["1 of 3 · Take your time"].exists)
+        XCTAssertTrue(app.staticTexts["firstLesson.teachPair.heading"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["placement.level.newToPoker"].exists, "The default start teaches before any optional preference")
+        app.buttons["firstLesson.next"].tap()
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
         app.terminate()
-
         app.launch()
-        XCTAssertTrue(skipLesson.waitForExistence(timeout: 15), "The check is asked once")
-        XCTAssertFalse(newPlayer.exists)
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 15), "The saved guide resumes its current example")
+        XCTAssertFalse(app.buttons["placement.level.newToPoker"].exists)
+        let skipLesson = app.buttons["firstLesson.skip"]
         skipLesson.tap()
         let path = app.buttons["learn-path"]
         XCTAssertTrue(path.waitForExistence(timeout: 5))

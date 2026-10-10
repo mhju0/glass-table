@@ -103,6 +103,89 @@ final class WelcomeFirstFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["firstLesson.finish"].exists)
     }
 
+    func testFailedAnswerRetryRestoresRevealAndBack() {
+        let app = app()
+        app.launchEnvironment["GT_TEST_OPENING_SAVE_FAILURE"] = "answer"
+        begin(app)
+        tap("firstLesson.choice.1", in: app)
+        XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["firstLesson.verdict"].exists)
+        tap("Retry save", in: app)
+        let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        let label = verdict.label
+        tap("firstLesson.next", in: app)
+        tap("firstLesson.previous", in: app)
+        XCTAssertEqual(verdict.label, label)
+        app.terminate(); app.launch()
+        XCTAssertTrue(verdict.waitForExistence(timeout: 15))
+        XCTAssertEqual(verdict.label, label)
+    }
+
+    func testFailedChoiceReplacingHelpRetryKeepsCommittedChoice() {
+        let app = app()
+        begin(app)
+        tap("firstLesson.help", in: app)
+        tap("firstLesson.previous", in: app)
+        app.terminate()
+        app.launchEnvironment["GT_TEST_OPENING_SAVE_FAILURE"] = "answer"
+        app.launch()
+        tap("firstLesson.choice.1", in: app)
+        XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
+        tap("Retry save", in: app)
+        let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        XCTAssertFalse(verdict.label.contains("together"))
+        let label = verdict.label
+        tap("firstLesson.next", in: app)
+        tap("firstLesson.previous", in: app)
+        XCTAssertEqual(verdict.label, label)
+        app.terminate(); app.launch()
+        XCTAssertTrue(verdict.waitForExistence(timeout: 15))
+        XCTAssertEqual(verdict.label, label)
+    }
+
+    func testFailedResumedCompletionRetryOpensPromisedBasics() { failedCompletion(resumed: true) }
+    func testFailedFirstRunCompletionRetryOpensPromisedBasics() { failedCompletion(resumed: false) }
+
+    private func failedCompletion(resumed: Bool) {
+        let app = app()
+        app.launchEnvironment["GT_TEST_OPENING_SAVE_FAILURE"] = "completion"
+        checkpoint(app)
+        tap("firstLesson.continueGuide", in: app)
+        for _ in 0..<3 {
+            tap("firstLesson.help", in: app)
+            tap("firstLesson.next", in: app)
+        }
+        tap("firstLesson.next", in: app)
+        if resumed {
+            tap("firstLesson.skip", in: app)
+            tap("learn-resume-opening", in: app)
+        }
+        tap("firstLesson.finish", in: app)
+        XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["basics.close"].exists)
+        tap("Retry save", in: app)
+        XCTAssertTrue(app.buttons["basics.close"].waitForExistence(timeout: 10))
+        tap("basics.close", in: app)
+        XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["learn-resume-opening"].exists)
+    }
+
+    func testFailedCheckpointDismissalRetryReachesLearnWithResume() {
+        let app = app()
+        app.launchEnvironment["GT_TEST_OPENING_SAVE_FAILURE"] = "dismissal"
+        checkpoint(app)
+        tap("firstLesson.stop", in: app)
+        XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["learn-path"].exists)
+        tap("Retry save", in: app)
+        XCTAssertTrue(app.buttons["learn-resume-opening"].waitForExistence(timeout: 10))
+        tap("learn-resume-opening", in: app)
+        XCTAssertTrue(app.buttons["firstLesson.continueGuide"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["firstLesson.finish"].exists)
+    }
+
     func testCorrectAnswerExplainsRealCards() {
         let app = app()
         begin(app)

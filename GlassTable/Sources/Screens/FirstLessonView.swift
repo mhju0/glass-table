@@ -31,6 +31,9 @@ struct FirstLessonView: View {
     @State private var variationSeed: UInt64 = 0
     @State private var rotationLoaded = false
     @State private var openingEpoch: UUID?
+    @State private var pendingTransition: (step: Step, response: FirstLessonSnapshot.Response?)?
+    @State private var pendingStop = false
+    @State private var pendingPreference = false
 
     private var requiredComparisons: [FirstLesson.Comparison] { FirstLesson.requiredComparisons(seed: variationSeed) }
     private var exampleSpot: ShowdownSpot { requiredComparisons[0].spot }
@@ -80,8 +83,17 @@ struct FirstLessonView: View {
                 .layoutPriority(1)
             }
         }
+        .disabled(model.saveError != nil)
         .background(FeltBackground())
         .modifier(ProgressSaveNotice())
+        .onChange(of: model.saveError) { previous, current in
+            if previous != nil, current == nil { continueAfterRetry() }
+        }
+        .onChange(of: model.epoch) { _, _ in
+            pendingTransition = nil
+            pendingStop = false
+            pendingPreference = false
+        }
         .onChange(of: step) { old, _ in
             if returning { returning = false }
             else { history.append(old) }
@@ -165,12 +177,36 @@ struct FirstLessonView: View {
     }
 
     private func stop() {
-        guard context == .replay || openingEpoch == model.epoch else { return }
+        guard model.saveError == nil, context == .replay || openingEpoch == model.epoch else { return }
+        pendingStop = context != .replay
         onSkip()
+        if model.saveError == nil { pendingStop = false }
+    }
+
+    private func continueAfterRetry() {
+        guard context != .replay, openingEpoch == model.epoch else { return }
+        if pendingStop {
+            pendingStop = false
+            if model.state.openingDismissed == true { onSkip() }
+        } else if pendingPreference {
+            pendingPreference = false
+            previous()
+        } else if let pendingTransition {
+            if let saved = model.state.pendingFirstLesson,
+               saved.variationSeed == variationSeed,
+               saved.step == savedStep(pendingTransition.step),
+               pendingTransition.response == nil || responseIndex(pendingTransition.step).map({ saved.responses[$0] == pendingTransition.response }) == true {
+                self.pendingTransition = nil
+                restore(saved)
+            } else {
+                self.pendingTransition = nil
+                transition(to: pendingTransition.step, response: pendingTransition.response)
+            }
+        }
     }
 
     private func finish() {
-        guard context == .replay || openingEpoch == model.epoch else { return }
+        guard model.saveError == nil, context == .replay || openingEpoch == model.epoch else { return }
         onFinish()
     }
 
@@ -251,6 +287,8 @@ struct FirstLessonView: View {
 
     private func restore(_ saved: FirstLessonSnapshot) {
         variationSeed = saved.variationSeed
+        submitted = [:]
+        helped = []
         returning = true
         step = localStep(saved.step)
         for (index, response) in saved.responses {
@@ -274,6 +312,7 @@ struct FirstLessonView: View {
 
     @discardableResult
     private func transition(to target: Step, response: FirstLessonSnapshot.Response? = nil) -> Bool {
+        guard model.saveError == nil else { return false }
         var responses: [Int: FirstLessonSnapshot.Response] = [:]
         for index in 0..<5 {
             let target = answerStep(index)
@@ -284,11 +323,18 @@ struct FirstLessonView: View {
         if context != .replay {
             guard let openingEpoch else { return false }
             if model.state.pendingFirstLesson == nil {
-                guard model.beginFirstLesson(seed: variationSeed, expectedEpoch: openingEpoch) else { return false }
+                guard model.beginFirstLesson(seed: variationSeed, expectedEpoch: openingEpoch) else {
+                    pendingTransition = (target, response)
+                    return false
+                }
             }
             let snapshot = FirstLessonSnapshot(variationSeed: variationSeed, step: savedStep(target), responses: responses)
-            guard model.saveFirstLesson(snapshot, expectedEpoch: openingEpoch) else { return false }
+            guard model.saveFirstLesson(snapshot, expectedEpoch: openingEpoch) else {
+                pendingTransition = (target, response)
+                return false
+            }
         }
+        pendingTransition = nil
         if let response {
             switch response {
             case .choice(let value): submitted[target] = value; helped.remove(target); answer = value
@@ -504,7 +550,12 @@ struct FirstLessonView: View {
                                 "How familiar is poker? This only changes your suggested starting point. It is not a test or lesson completion."), identifier: "firstLesson.preference.heading")
             ForEach(PlacementSelfReport.allCases, id: \.self) { report in
                 GTChoiceButton(title: preferenceTitle(report)) {
-                    if let openingEpoch, model.state.placement == nil, model.setPlacement(report: report, answers: [:], skipped: true, expectedEpoch: openingEpoch) { previous() }
+                    guard let openingEpoch, model.state.placement == nil else { return }
+                    pendingPreference = true
+                    if model.setPlacement(report: report, answers: [:], skipped: true, expectedEpoch: openingEpoch) {
+                        pendingPreference = false
+                        previous()
+                    } else if model.saveError == nil { pendingPreference = false }
                 }.accessibilityIdentifier("firstLesson.preference.\(report.rawValue)")
             }
         }

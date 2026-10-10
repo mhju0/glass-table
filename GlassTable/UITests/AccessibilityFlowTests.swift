@@ -431,39 +431,26 @@ final class AccessibilityFlowTests: XCTestCase {
             "GT_TEST_FIRST_LESSON": "1",
         ])
 
-        let start = app.buttons["시작하기"]
-        XCTAssertTrue(start.waitForExistence(timeout: 15))
-        XCTAssertTrue(scrollUntilHittable(start, in: app),
-                      "The welcome action must remain reachable at AX XXXL.")
-        start.tap()
-        let next = app.buttons["firstLesson.next"]
-        XCTAssertTrue(app.staticTexts["어느 쪽이 이길까요?"].waitForExistence(timeout: 15))
-        let exampleAnswer = firstButton(prefix: "내 카드", in: app)
-        XCTAssertTrue(scrollUntilHittable(exampleAnswer, in: app),
-                      "The guided hand choice must remain reachable at AX XXXL.")
-        exampleAnswer.tap()
-
-        let tryTransfer = app.buttons["다른 카드로 풀어보기"]
-        XCTAssertTrue(scrollUntilHittable(tryTransfer, in: app),
-                      "The first explanation and transfer action must remain reachable at AX XXXL.")
-        tryTransfer.tap()
-
-        XCTAssertTrue(app.staticTexts["같은 규칙으로 골라보세요"].waitForExistence(timeout: 10))
-        let transferAnswer = firstButton(prefix: "상대 카드", in: app)
-        XCTAssertTrue(scrollUntilHittable(transferAnswer, in: app),
-                      "The transfer hand choice must remain reachable at AX XXXL.")
-        transferAnswer.tap()
-
-        XCTAssertTrue(scrollUntilHittable(next, in: app),
-                      "The transfer explanation and its next action must remain reachable at AX XXXL.")
-        next.tap()
-        XCTAssertTrue(scrollUntilHittable(next, in: app))
-        next.tap()
-        let finishGuide = app.buttons["firstLesson.finish"]
-        XCTAssertTrue(finishGuide.waitForExistence(timeout: 10))
-        XCTAssertTrue(scrollUntilHittable(finishGuide, in: app),
-                      "The wrap-up's action must remain reachable at AX XXXL.")
-        finishGuide.tap()
+        func tap(_ id: String) {
+            let element = app.buttons[id]
+            XCTAssertTrue(element.waitForExistence(timeout: 15), id)
+            XCTAssertTrue(scrollUntilHittable(element, in: app), "\(id) must remain reachable at AX XXXL")
+            element.tap()
+        }
+        tap("firstLesson.start")
+        XCTAssertTrue(app.staticTexts["firstLesson.teachPair.heading"].waitForExistence(timeout: 5))
+        tap("firstLesson.next")
+        for index in 1...5 {
+            XCTAssertTrue(app.staticTexts["비교 \(index)/5"].waitForExistence(timeout: 5))
+            tap("firstLesson.choice.0")
+            tap("firstLesson.next")
+            if index == 2 {
+                XCTAssertFalse(app.buttons["firstLesson.finish"].exists)
+                tap("firstLesson.continueGuide")
+            }
+        }
+        tap("firstLesson.next")
+        tap("firstLesson.finish")
 
         let basicsNext = app.buttons["basics.next"]
         XCTAssertTrue(basicsNext.waitForExistence(timeout: 10))
@@ -478,6 +465,9 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertTrue(scrollUntilHittable(finish, in: app),
                       "The basics verdict and course entry must remain reachable at AX XXXL.")
         finish.tap()
+        let invitation = app.buttons["guided-hand-invitation-continue"]
+        XCTAssertTrue(scrollUntilHittable(invitation, in: app))
+        invitation.tap()
 
         let firstStep = app.descendants(matching: .any)["walkthrough-step-0"]
         XCTAssertTrue(firstStep.waitForExistence(timeout: 10))

@@ -22,6 +22,8 @@ struct RootView: View {
     @State private var showOpening = false
     @State private var basicsAfterOpening = false
     @State private var nodeAfterOpening: CurriculumNode?
+    @State private var pendingOpeningFinishEpoch: UUID?
+    @State private var pendingOpeningFinishResumed = false
     /// Set when the basics lesson ends with "start the next lesson"; the node opens
     /// once the lesson's cover has finished dismissing.
     @State private var nodeAfterBasics: CurriculumNode?
@@ -40,6 +42,10 @@ struct RootView: View {
             rootContent
             #endif
         }
+        .onChange(of: model.saveError) { previous, current in
+            if previous != nil, current == nil { routeSavedOpeningFinish() }
+        }
+        .onChange(of: model.epoch) { _, _ in pendingOpeningFinishEpoch = nil }
         .environment(model)
         .environment(\.leadsWithTerms, PokerTerms.lead(choice: termsChoice, level: level))
         .environment(\.simpleQuestions, level != .playRegularly)
@@ -69,8 +75,10 @@ struct RootView: View {
                 StoreRecoveryView()
             } else if model.shouldPresentFirstLesson {
                 FirstLessonView(context: .firstRun,
-                                onFinish: finishOpening,
-                                onSkip: { _ = model.dismissFirstLesson(expectedEpoch: model.epoch) })
+                                onFinish: { finishOpening() },
+                                onSkip: {
+                                    if model.state.openingDismissed != true { _ = model.dismissFirstLesson(expectedEpoch: model.epoch) }
+                                })
             } else {
                 tabs
             }
@@ -78,9 +86,24 @@ struct RootView: View {
     }
 
 
-    private func finishOpening() {
-        guard model.completeFirstLesson(expectedEpoch: model.epoch) else { return }
-        if model.state.basicsLessonCompleted == true { openNode = model.nextNode }
+    private func finishOpening(resumed: Bool = false) {
+        pendingOpeningFinishEpoch = model.epoch
+        pendingOpeningFinishResumed = resumed
+        if model.completeFirstLesson(expectedEpoch: model.epoch) { routeSavedOpeningFinish() }
+        else if model.saveError == nil { pendingOpeningFinishEpoch = nil }
+    }
+
+    private func routeSavedOpeningFinish() {
+        guard pendingOpeningFinishEpoch == model.epoch,
+              model.saveError == nil,
+              model.state.firstLessonCompleted == true,
+              model.state.pendingFirstLesson == nil else { return }
+        pendingOpeningFinishEpoch = nil
+        if pendingOpeningFinishResumed {
+            if model.state.basicsLessonCompleted == true { nodeAfterOpening = model.nextNode }
+            else { basicsAfterOpening = true }
+            showOpening = false
+        } else if model.state.basicsLessonCompleted == true { openNode = model.nextNode }
         else { showBasics = true }
     }
 
@@ -134,14 +157,8 @@ struct RootView: View {
                 openNode = node
             }
         }) {
-            FirstLessonView(context: .resume, onFinish: {
-                if model.completeFirstLesson(expectedEpoch: model.epoch) {
-                    if model.state.basicsLessonCompleted == true { nodeAfterOpening = model.nextNode }
-                    else { basicsAfterOpening = true }
-                    showOpening = false
-                }
-            }, onSkip: {
-                if model.dismissFirstLesson(expectedEpoch: model.epoch) { showOpening = false }
+            FirstLessonView(context: .resume, onFinish: { finishOpening(resumed: true) }, onSkip: {
+                if model.state.openingDismissed == true || model.dismissFirstLesson(expectedEpoch: model.epoch) { showOpening = false }
             })
         }
         .fullScreenCover(item: $openNode) { node in

@@ -146,9 +146,11 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
             element.tap()
         }
         tap(app.buttons["firstLesson.start"])
-        for _ in 0..<5 {
+        tap(app.buttons["firstLesson.next"])
+        for index in 0..<5 {
             tap(app.buttons["firstLesson.choice.0"])
             tap(app.buttons["firstLesson.next"])
+            if index == 1 { tap(app.buttons["firstLesson.continueGuide"]) }
         }
         tap(app.buttons["firstLesson.next"])
         tap(app.buttons["firstLesson.finish"])
