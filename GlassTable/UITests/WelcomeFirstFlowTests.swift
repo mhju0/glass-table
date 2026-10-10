@@ -21,6 +21,18 @@ final class WelcomeFirstFlowTests: XCTestCase {
         element.tap()
     }
 
+    private func retrySave(in app: XCUIApplication) {
+        let buttons = app.buttons.matching(identifier: "Retry save")
+        XCTAssertTrue(buttons.firstMatch.waitForExistence(timeout: 5))
+        let matches = buttons.allElementsBoundByIndex
+        print("OPENING_RETRY_MATCHES: \(matches.map { "frame=\($0.frame), enabled=\($0.isEnabled), hittable=\($0.isHittable)" })")
+        guard let visibleRetry = matches.first(where: { $0.isHittable }) else {
+            XCTFail("The visible save notice must offer a hittable Retry control.\n\(app.debugDescription)")
+            return
+        }
+        visibleRetry.tap()
+    }
+
     private func begin(_ app: XCUIApplication) {
         app.launch()
         XCTAssertTrue(app.staticTexts["firstLesson.welcome"].waitForExistence(timeout: 15))
@@ -144,7 +156,7 @@ final class WelcomeFirstFlowTests: XCTestCase {
         tap("firstLesson.choice.1", in: app)
         XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.descendants(matching: .any)["firstLesson.verdict"].exists)
-        tap("Retry save", in: app)
+        retrySave(in: app)
         let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         let label = verdict.label
@@ -166,7 +178,7 @@ final class WelcomeFirstFlowTests: XCTestCase {
         app.launch()
         tap("firstLesson.choice.1", in: app)
         XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
-        tap("Retry save", in: app)
+        retrySave(in: app)
         let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         XCTAssertFalse(verdict.label.contains("together"))
@@ -199,7 +211,7 @@ final class WelcomeFirstFlowTests: XCTestCase {
         tap("firstLesson.finish", in: app)
         XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["basics.close"].exists)
-        tap("Retry save", in: app)
+        retrySave(in: app)
         XCTAssertTrue(app.buttons["basics.close"].waitForExistence(timeout: 10))
         tap("basics.close", in: app)
         XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 5))
@@ -213,7 +225,7 @@ final class WelcomeFirstFlowTests: XCTestCase {
         tap("firstLesson.stop", in: app)
         XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["learn-path"].exists)
-        tap("Retry save", in: app)
+        retrySave(in: app)
         XCTAssertTrue(app.buttons["learn-resume-opening"].waitForExistence(timeout: 10))
         tap("learn-resume-opening", in: app)
         XCTAssertTrue(app.buttons["firstLesson.continueGuide"].waitForExistence(timeout: 5))

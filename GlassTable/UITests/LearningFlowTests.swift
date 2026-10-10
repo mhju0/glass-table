@@ -62,7 +62,10 @@ final class LearningFlowTests: XCTestCase {
         app.buttons["basics.choice.straight"].tap()
         let basicsVerdict = app.descendants(matching: .any)["basics.verdict"]
         XCTAssertTrue(basicsVerdict.waitForExistence(timeout: 5))
-        XCTAssertTrue(basicsVerdict.label.contains("플러시가 이겨요"))
+        XCTAssertTrue(basicsVerdict.label.contains("이기는 패를 확인해요"))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "플러시 쪽이 이겨요."
+        )).firstMatch.waitForExistence(timeout: 5))
         app.buttons["basics.finish"].tap()
         XCTAssertTrue(app.buttons["guided-hand-invitation-continue"].waitForExistence(timeout: 10))
         app.buttons["guided-hand-invitation-continue"].tap()
