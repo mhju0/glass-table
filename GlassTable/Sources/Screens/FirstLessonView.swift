@@ -67,9 +67,9 @@ struct FirstLessonView: View {
                             .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
                     }
                     .scrollBounceBehavior(.basedOnSize)
-                    // The result hands are added below the question; bring them into view.
-                    .onChange(of: panelBand) { _, band in
-                        guard band != nil else { return }
+                    // Every answer includes a reveal, including the neutral demonstration.
+                    .onChange(of: step) { _, nextStep in
+                        guard responseIndex(nextStep) != nil else { return }
                         withAnimation(reduceMotion ? nil : GT.Motion.change) {
                             proxy.scrollTo(Self.resultEnd, anchor: .bottom)
                         }
