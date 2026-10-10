@@ -2,9 +2,7 @@
 import Foundation
 import GlassTableDrills
 
-/// Semantic keys for the bounded first-lesson localization surface. Korean remains
-/// the only reviewed language; these calls let Xcode extract translator-ready keys
-/// later without scattering the lesson script through its layout.
+/// Bilingual copy keys for the opening guide.
 enum FirstLessonCopy {
     enum Key {
         case title, skip, close, exampleProgress, transferProgress
@@ -29,14 +27,14 @@ enum FirstLessonCopy {
         case .noMoney: language.text(noMoney, "No real money")
         case .noAccount: language.text(noAccount, "No account")
         case .offline: language.text(offline, "Works offline")
-        case .startWelcome: language.text(startWelcome, "Get started")
+        case .startWelcome: language.text(startWelcome, "Try the example")
         case .exampleQuestion: language.text(exampleQuestion, "Which hand wins?")
         case .transferQuestion: language.text(transferQuestion, "Use the same rule with new cards")
         case .examplePrompt: language.text(examplePrompt, "Each side compares its best five of seven.")
         case .transferPrompt: language.text(transferPrompt, "Only the cards changed. Find the higher pair.")
         case .pairRule: language.text(pairRule, "Two cards of the same rank make one pair. When hand types match, compare the ranks.")
         case .sharedCards: language.text(sharedCards, "Shared cards")
-        case .heroCards: language.text(heroCards, "My cards")
+        case .heroCards: language.text(heroCards, "Your cards")
         case .villainCards: language.text(villainCards, "Opponent's cards")
         case .choiceHint: language.text(choiceHint, "This hand is stronger")
         case .selectWinnerHint: language.text(selectWinnerHint, "Choose this hand as the winner")
@@ -80,7 +78,7 @@ enum FirstLessonCopy {
     static let offline = String(localized: "firstLesson.welcome.offline",
                                 defaultValue: "오프라인")
     static let startWelcome = String(localized: "firstLesson.action.startWelcome",
-                                     defaultValue: "시작하기")
+                                     defaultValue: "예시 살펴보기")
     static let exampleQuestion = String(localized: "firstLesson.example.question",
                                         defaultValue: "어느 쪽이 이길까요?")
     static let transferQuestion = String(localized: "firstLesson.transfer.question",

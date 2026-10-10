@@ -19,9 +19,9 @@ struct RootView: View {
     @State private var suggestAfterBasics = false
     @State private var handAfterSuggestion = false
     @State private var playAfterGuidedHand = false
-    private enum FirstRunStage { case welcome, placement, lesson }
-    // View-local routing keeps a saved check on its closing screen until Continue.
-    @State private var firstRunStage: FirstRunStage = .welcome
+    @State private var showOpening = false
+    @State private var basicsAfterOpening = false
+    @State private var nodeAfterOpening: CurriculumNode?
     /// Set when the basics lesson ends with "start the next lesson"; the node opens
     /// once the lesson's cover has finished dismissing.
     @State private var nodeAfterBasics: CurriculumNode?
@@ -67,30 +67,22 @@ struct RootView: View {
                 // Spec §8.2: a store that exists but will not parse must never be
                 // silently replaced with empty progress.
                 StoreRecoveryView()
-            } else if model.shouldPresentFirstLesson, firstRunStage == .placement {
-                PlacementView(onFinish: { firstRunStage = .lesson })
             } else if model.shouldPresentFirstLesson {
                 FirstLessonView(context: .firstRun,
-                                startsAtExample: firstRunStage == .lesson,
-                                onStart: {
-                                    firstRunStage = model.shouldPresentFirstPlacement ? .placement : .lesson
-                                },
-                                onFinish: {
-                                    model.completeFirstLesson()
-                                    if model.state.basicsLessonCompleted == true {
-                                        openNode = model.nextNode
-                                    } else {
-                                        showBasics = true
-                                    }
-                                },
-                                onSkip: { model.completeFirstLesson() })
-                    .id(firstRunStage)
+                                onFinish: finishOpening,
+                                onSkip: { _ = model.dismissFirstLesson(expectedEpoch: model.epoch) })
             } else {
                 tabs
             }
         }
     }
 
+
+    private func finishOpening() {
+        guard model.completeFirstLesson(expectedEpoch: model.epoch) else { return }
+        if model.state.basicsLessonCompleted == true { openNode = model.nextNode }
+        else { showBasics = true }
+    }
 
     private var tabs: some View {
         TabView(selection: $tab) {
@@ -99,7 +91,8 @@ struct RootView: View {
                           onOpenReview: { showReview = true },
                           onOpenPractice: { showFreePlay = true },
                           onOpenBasics: { showBasics = true },
-                          onOpenGuidedHand: { showGuidedHand = true })
+                          onOpenGuidedHand: { showGuidedHand = true },
+                          onResumeOpening: { showOpening = true })
                     .modifier(ProgressSaveNotice())
                     .toolbar(.hidden, for: .navigationBar)
             }
@@ -132,6 +125,25 @@ struct RootView: View {
         }
         // Activities take the whole screen and leave only through their Close control;
         // each session saves its place, so closing never loses an answer.
+        .fullScreenCover(isPresented: $showOpening, onDismiss: {
+            if basicsAfterOpening {
+                basicsAfterOpening = false
+                showBasics = true
+            } else if let node = nodeAfterOpening {
+                nodeAfterOpening = nil
+                openNode = node
+            }
+        }) {
+            FirstLessonView(context: .resume, onFinish: {
+                if model.completeFirstLesson(expectedEpoch: model.epoch) {
+                    if model.state.basicsLessonCompleted == true { nodeAfterOpening = model.nextNode }
+                    else { basicsAfterOpening = true }
+                    showOpening = false
+                }
+            }, onSkip: {
+                if model.dismissFirstLesson(expectedEpoch: model.epoch) { showOpening = false }
+            })
+        }
         .fullScreenCover(item: $openNode) { node in
             NavigationStack {
                 NodeSessionView(node: node, onOpenLesson: { openNode = $0 }).modifier(ProgressSaveNotice())

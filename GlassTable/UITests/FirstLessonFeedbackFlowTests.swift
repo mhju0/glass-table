@@ -17,6 +17,10 @@ final class FirstLessonFeedbackFlowTests: XCTestCase {
         let start = app.buttons["firstLesson.start"]
         XCTAssertTrue(start.waitForExistence(timeout: 15))
         start.tap()
+        let teachNext = app.buttons["firstLesson.next"]
+        XCTAssertTrue(teachNext.waitForExistence(timeout: 5))
+        for _ in 0..<10 where !teachNext.isHittable { app.swipeUp() }
+        teachNext.tap()
         func tap(_ element: XCUIElement) {
             XCTAssertTrue(element.waitForExistence(timeout: 5))
             for _ in 0..<10 where !element.isHittable { app.swipeUp() }
@@ -50,6 +54,7 @@ final class FirstLessonFeedbackFlowTests: XCTestCase {
             attachment.lifetime = .keepAlways
             add(attachment)
             tap(next)
+            if index == 2 { tap(app.buttons["firstLesson.continueGuide"]) }
         }
         // The five required comparisons lead to actions, then the wrap-up.
         tap(next)

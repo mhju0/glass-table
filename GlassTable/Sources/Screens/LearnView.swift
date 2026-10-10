@@ -11,6 +11,7 @@ struct LearnView: View {
     let onOpenPractice: () -> Void
     let onOpenBasics: () -> Void
     let onOpenGuidedHand: () -> Void
+    var onResumeOpening: () -> Void = {}
 
     private var due: [Concept] { model.dueConcepts() }
 
@@ -22,6 +23,12 @@ struct LearnView: View {
                     Text(language.text("추천부터 시작하거나, 직접 골라요.", "Follow a suggestion or choose any lesson."))
                         .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
                     levelChip
+                }
+                if let opening = model.state.pendingFirstLesson {
+                    Button(action: onResumeOpening) {
+                        learningRow(language.text("시작 안내 이어서 보기", "Continue the opening guide"),
+                                    language.text("예시 \(opening.exploredCount)/5개를 살펴봤어요. 저장한 카드에서 이어가요.", "\(opening.exploredCount)/5 examples explored. Resume with your saved cards."), icon: "rectangle.stack")
+                    }.buttonStyle(GTPress()).accessibilityIdentifier("learn-resume-opening")
                 }
                 recommendation
                 VStack(alignment: .leading, spacing: 12) {
