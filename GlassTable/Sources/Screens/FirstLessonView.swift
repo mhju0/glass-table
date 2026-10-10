@@ -516,10 +516,10 @@ struct FirstLessonView: View {
                                 "A pair beats a hand with no pair. Next, compare two hands yourself."), identifier: "firstLesson.teachPair.heading")
             CardRow(cards: [Card(rank: 14, suit: 0), Card(rank: 14, suit: 1)])
                 .frame(maxWidth: .infinity)
-            Text(language.text("숫자 대신 A, K, Q, J도 같은 두 장이면 페어예요.",
-                               "Matching letters count too: two aces, kings, queens or jacks make a pair."))
+            LessonPairedText(korean: ["A, K, Q, J도 같은 글자", "두 장이면 페어예요."],
+                             english: ["A, K, Q and J count too:", "two matching letters make a pair."])
                 .font(GT.body(17)).foregroundStyle(GT.onFeltSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("firstLesson.teachPair.letters")
         }
     }
 
