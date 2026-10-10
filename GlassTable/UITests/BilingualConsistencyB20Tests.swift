@@ -308,6 +308,10 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         }.min { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height }
         for _ in 0..<30 {
             let window = app.windows.firstMatch.frame
+            if scroll == nil, target.isHittable {
+                let viewport = window.insetBy(dx: 0, dy: 20)
+                if viewport.contains(target.frame) { return }
+            }
             var top = window.minY + 60
             let navigation = app.navigationBars.firstMatch
             if navigation.exists {
