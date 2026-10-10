@@ -40,6 +40,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
     func testKoreanLightAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "light") }
     func testEnglishDarkAX5BottomActionsAndHelpReturn() { interactions(code: "en", appearance: "dark") }
     func testKoreanDarkAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "dark") }
+    func testEnglishLightAX5FreeHelpReturn() { freeHelp(code: "en", appearance: "light") }
 
     private var fixtures: [Fixture] {
         [
@@ -271,9 +272,13 @@ final class BilingualConsistencyB20Tests: XCTestCase {
 
     private func freeHelp(code: String, appearance: String) {
         let app = launch(code: code, appearance: appearance, ax: true,
-                         environment: ["GT_DEMO_TAB": "play", "GT_DEMO_PRACTICE": "1", "GT_DEMO_FREE_PHASE": "raise-open"])
-        tap(app.buttons["free-raise-cancel"], app: app)
+                         environment: ["GT_DEMO_TAB": "play", "GT_DEMO_PRACTICE": "1", "GT_DEMO_PLAYERS": "2"])
         let fold = app.buttons["free-fold"]
+        XCTAssertTrue(fold.waitForExistence(timeout: 15))
+        let ready = expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: fold)
+        wait(for: [ready], timeout: 20)
+        tap(app.buttons["free-raise"], app: app)
+        tap(app.buttons["free-raise-cancel"], app: app)
         XCTAssertTrue(fold.waitForExistence(timeout: 5))
         let originalAction = fold.label
         tap(app.buttons["free-table-help"], app: app)
@@ -286,7 +291,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         reveal(fold, app: app)
         capture(app, "b20-free-help-return-\(code)-\(appearance)-AX5")
         fold.tap()
-        XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 15),
+        XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 20),
                       "The real bottom action commits the hand decision and reaches the hand result")
         print("B20_AX_FLOW free-help-return-commit \(code) \(appearance) passed")
         app.terminate()
