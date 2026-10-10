@@ -536,7 +536,7 @@ struct FirstLessonView: View {
                     .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }.gtInset(GT.Space.card, firstText: .semibold(15)).gtCard(radius: GT.Radius.panel)
-            if model.state.placement == nil {
+            if context != .replay, model.state.placement == nil {
                 SecondaryCTAButton(title: language.text("시작점 직접 고르기 · 선택 사항", "Choose a starting preference · Optional")) { transition(to: .preference) }
                     .accessibilityIdentifier("firstLesson.preference")
             }

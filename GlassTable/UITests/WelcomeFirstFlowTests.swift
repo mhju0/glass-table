@@ -103,6 +103,40 @@ final class WelcomeFirstFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["firstLesson.finish"].exists)
     }
 
+    func testReplayKeepsPendingGuideAndHasNoPreferenceWrite() {
+        let app = app()
+        begin(app)
+        tap("firstLesson.choice.1", in: app)
+        let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        let originalVerdict = verdict.label
+        let originalReason = app.staticTexts["firstLesson.reason"].label
+        tap("firstLesson.next", in: app)
+        tap("firstLesson.help", in: app)
+        tap("firstLesson.next", in: app)
+        tap("firstLesson.stop", in: app)
+        app.tabBars.buttons["Settings"].tap()
+        let replay = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Replay the first decision")).firstMatch
+        XCTAssertTrue(replay.waitForExistence(timeout: 5))
+        for _ in 0..<10 where !replay.isHittable { app.swipeUp() }
+        replay.tap()
+        tap("firstLesson.start", in: app)
+        tap("firstLesson.next", in: app)
+        for _ in 0..<2 {
+            tap("firstLesson.help", in: app)
+            tap("firstLesson.next", in: app)
+        }
+        XCTAssertTrue(app.buttons["firstLesson.continueGuide"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["firstLesson.preference"].exists)
+        tap("firstLesson.close", in: app)
+        app.tabBars.buttons["Learn"].tap()
+        tap("learn-resume-opening", in: app)
+        XCTAssertTrue(app.buttons["firstLesson.continueGuide"].waitForExistence(timeout: 5))
+        for _ in 0..<3 { tap("firstLesson.previous", in: app) }
+        XCTAssertEqual(verdict.label, originalVerdict)
+        XCTAssertEqual(app.staticTexts["firstLesson.reason"].label, originalReason)
+    }
+
     func testFailedAnswerRetryRestoresRevealAndBack() {
         let app = app()
         app.launchEnvironment["GT_TEST_OPENING_SAVE_FAILURE"] = "answer"
