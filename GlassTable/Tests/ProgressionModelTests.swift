@@ -19,6 +19,152 @@ final class ProgressionModelTests: XCTestCase {
         try? FileManager.default.removeItem(at: dir)
     }
 
+    private func prepareFinishedOpening(_ model: ProgressionModel) {
+        XCTAssertTrue(model.beginFirstLesson(seed: 17, expectedEpoch: model.epoch))
+        XCTAssertTrue(model.saveFirstLesson(FirstLessonSnapshot(variationSeed: 17,
+            step: .wrapUp, responses: Dictionary(uniqueKeysWithValues:
+                (0..<5).map { ($0, FirstLessonSnapshot.Response.demonstrated) })),
+            expectedEpoch: model.epoch))
+    }
+
+    func testOpeningStopAndReloadPreserveSeedResponsesWithoutCompletionOrGrades() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        let before = model.state
+        XCTAssertTrue(model.beginFirstLesson(seed: UInt64.max, expectedEpoch: epoch))
+        let snapshot = FirstLessonSnapshot(variationSeed: UInt64.max, step: .checkpoint,
+            responses: [0: .choice(1), 1: .demonstrated])
+        XCTAssertTrue(model.saveFirstLesson(snapshot, expectedEpoch: epoch))
+        XCTAssertFalse(model.completeFirstLesson(expectedEpoch: epoch))
+        XCTAssertTrue(model.dismissFirstLesson(expectedEpoch: epoch))
+        let reloaded = ProgressionModel(store: store)
+        XCTAssertEqual(reloaded.state.pendingFirstLesson, snapshot)
+        XCTAssertFalse(reloaded.shouldPresentFirstLesson)
+        XCTAssertNil(reloaded.state.firstLessonCompleted)
+        XCTAssertEqual(reloaded.state.answers, before.answers)
+        XCTAssertEqual(reloaded.state.concepts, before.concepts)
+        XCTAssertEqual(reloaded.state.nodes, before.nodes)
+        XCTAssertEqual(reloaded.state.streak, before.streak)
+    }
+
+    func testOpeningRevealResumeAndFullFinish() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.beginFirstLesson(seed: 19, expectedEpoch: model.epoch))
+        let reveal = FirstLessonSnapshot(variationSeed: 19, step: .exampleAnswer,
+            responses: [0: .choice(2)])
+        XCTAssertTrue(model.saveFirstLesson(reveal, expectedEpoch: model.epoch))
+        let resumed = ProgressionModel(store: store)
+        XCTAssertEqual(resumed.state.pendingFirstLesson, reveal)
+        var finished = reveal
+        finished.step = .wrapUp
+        for index in 1..<5 { finished.responses[index] = .demonstrated }
+        XCTAssertTrue(resumed.saveFirstLesson(finished, expectedEpoch: resumed.epoch))
+        XCTAssertTrue(resumed.completeFirstLesson(expectedEpoch: resumed.epoch))
+        let reloaded = ProgressionModel(store: store)
+        XCTAssertNil(reloaded.state.pendingFirstLesson)
+        XCTAssertEqual(reloaded.state.firstLessonCompleted, true)
+        XCTAssertEqual(reloaded.state.openingDismissed, true)
+        XCTAssertTrue(reloaded.state.answers.isEmpty)
+    }
+
+    func testOpeningAllowsRevisitedChoiceButRejectsChangedSeedDroppedResponsesAndStaleEpoch() throws {
+        let model = ProgressionModel(store: store)
+        let oldEpoch = model.epoch
+        XCTAssertTrue(model.beginFirstLesson(seed: 3, expectedEpoch: oldEpoch))
+        let reveal = FirstLessonSnapshot(variationSeed: 3, step: .exampleAnswer,
+            responses: [0: .choice(1)])
+        XCTAssertTrue(model.saveFirstLesson(reveal, expectedEpoch: oldEpoch))
+        var changed = reveal
+        changed.variationSeed = 4
+        XCTAssertFalse(model.saveFirstLesson(changed, expectedEpoch: oldEpoch))
+        changed = reveal
+        changed.responses[0] = .choice(0)
+        XCTAssertTrue(model.saveFirstLesson(changed, expectedEpoch: oldEpoch))
+        XCTAssertEqual(ProgressionModel(store: store).state.pendingFirstLesson, changed)
+        let revised = changed
+        changed.responses = [:]
+        changed.step = .example
+        XCTAssertFalse(model.saveFirstLesson(changed, expectedEpoch: oldEpoch))
+        let backup = try model.exportData()
+        try model.resetProgress()
+        XCTAssertNil(model.state.pendingFirstLesson)
+        XCTAssertNil(model.state.openingDismissed)
+        XCTAssertFalse(model.dismissFirstLesson(expectedEpoch: oldEpoch))
+        try model.importData(backup)
+        XCTAssertEqual(model.state.pendingFirstLesson, revised)
+        XCTAssertFalse(model.saveFirstLesson(reveal, expectedEpoch: oldEpoch))
+    }
+
+    func testOpeningFailedRevealSaveAndDismissalKeepDiskUnchangedUntilRetry() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.beginFirstLesson(seed: 7, expectedEpoch: model.epoch))
+        let before = model.state
+        let bytes = try store.exportData()
+        let reveal = FirstLessonSnapshot(variationSeed: 7, step: .exampleAnswer,
+            responses: [0: .demonstrated])
+        try withReadOnlyDirectory {
+            XCTAssertFalse(model.saveFirstLesson(reveal, expectedEpoch: model.epoch))
+            XCTAssertEqual(model.state, before)
+            XCTAssertEqual(try store.exportData(), bytes)
+            XCTAssertFalse(model.dismissFirstLesson(expectedEpoch: model.epoch))
+            XCTAssertNotNil(model.saveError)
+        }
+        model.retrySave()
+        XCTAssertEqual(ProgressionModel(store: store).state.pendingFirstLesson, reveal)
+        XCTAssertTrue(model.dismissFirstLesson(expectedEpoch: model.epoch))
+    }
+
+    func testOpeningDismissalFailureRetriesWithoutClaimingCompletion() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.beginFirstLesson(seed: 2, expectedEpoch: model.epoch))
+        let snapshot = FirstLessonSnapshot(variationSeed: 2, step: .checkpoint,
+            responses: [0: .demonstrated, 1: .choice(0)])
+        XCTAssertTrue(model.saveFirstLesson(snapshot, expectedEpoch: model.epoch))
+        let bytes = try store.exportData()
+        try withReadOnlyDirectory {
+            XCTAssertFalse(model.dismissFirstLesson(expectedEpoch: model.epoch))
+            XCTAssertNil(model.state.openingDismissed)
+            XCTAssertEqual(model.state.pendingFirstLesson, snapshot)
+            XCTAssertEqual(try store.exportData(), bytes)
+        }
+        model.retrySave()
+        let reloaded = ProgressionModel(store: store)
+        XCTAssertEqual(reloaded.state.openingDismissed, true)
+        XCTAssertEqual(reloaded.state.pendingFirstLesson, snapshot)
+        XCTAssertNil(reloaded.state.firstLessonCompleted)
+    }
+
+    func testInvalidOpeningStorePreservesRecoveryBytesAndImportDoesNotReplaceHistory() throws {
+        var invalid = ProgressState()
+        invalid.pendingFirstLesson = FirstLessonSnapshot(variationSeed: 0,
+            step: .exampleAnswer, responses: [:])
+        let bytes = try JSONEncoder().encode(invalid)
+        try bytes.write(to: store.url)
+        let damaged = ProgressionModel(store: store)
+        XCTAssertNotNil(damaged.unreadable)
+        XCTAssertFalse(damaged.shouldPresentFirstLesson)
+        XCTAssertFalse(damaged.beginFirstLesson(seed: 1, expectedEpoch: damaged.epoch))
+        XCTAssertEqual(try Data(contentsOf: store.url), bytes)
+
+        try FileManager.default.removeItem(at: store.url)
+        let model = ProgressionModel(store: store)
+        prepareFinishedOpening(model)
+        let original = model.state
+        XCTAssertThrowsError(try model.importData(bytes))
+        XCTAssertEqual(model.state, original)
+    }
+
+    func testHistoricalOpeningMarkerSuppressesGuideWithoutFabricatingSnapshot() throws {
+        var old = ProgressState(firstLessonCompleted: true)
+        old.concepts["retired"] = ConceptRecord()
+        try store.save(old)
+        let model = ProgressionModel(store: store)
+        XCTAssertFalse(model.shouldPresentFirstLesson)
+        XCTAssertNil(model.state.pendingFirstLesson)
+        XCTAssertNil(model.state.openingDismissed)
+        XCTAssertEqual(model.state.concepts, old.concepts)
+    }
+
     func testFreshProgressPresentsFirstLesson() {
         let model = ProgressionModel(store: store)
 
@@ -190,9 +336,10 @@ final class ProgressionModelTests: XCTestCase {
 
     func testCompletingFirstLessonPersistsOnlyItsMarker() throws {
         let model = ProgressionModel(store: store)
+        prepareFinishedOpening(model)
         let before = model.state
 
-        model.completeFirstLesson()
+        model.completeFirstLesson(expectedEpoch: model.epoch)
 
         XCTAssertFalse(model.shouldPresentFirstLesson)
         XCTAssertEqual(model.state.firstLessonCompleted, true)
@@ -229,10 +376,11 @@ final class ProgressionModelTests: XCTestCase {
 
     func testFailedFirstLessonCompletionKeepsSavedProgressAndCanRetry() throws {
         let model = ProgressionModel(store: store)
+        prepareFinishedOpening(model)
         let savedBefore = try store.exportData()
 
         try withReadOnlyDirectory {
-            model.completeFirstLesson()
+            model.completeFirstLesson(expectedEpoch: model.epoch)
 
             XCTAssertNil(model.state.firstLessonCompleted)
             XCTAssertNotNil(model.saveError)

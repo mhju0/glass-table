@@ -130,7 +130,7 @@ final class ProgressionModel {
     /// and node keys count too because they can be valid history from another build.
     var shouldPresentFirstLesson: Bool {
         guard unreadable == nil else { return false }
-        guard state.firstLessonCompleted != true else { return false }
+        guard state.firstLessonCompleted != true, state.openingDismissed != true else { return false }
         #if DEBUG
         let environment = ProcessInfo.processInfo.environment
         if environment["GT_TEST_FIRST_LESSON"] == "1"
@@ -283,10 +283,43 @@ final class ProgressionModel {
         _ = commit { Mastery.completeWalkthrough(&$0, concept: concept) }
     }
 
-    /// The introduction is practice, not assessment. Completing or skipping it writes
-    /// only this marker: no answer, streak, review date, node, or mastery changes.
-    func completeFirstLesson() {
-        _ = commit { $0.firstLessonCompleted = true }
+    @discardableResult
+    func beginFirstLesson(seed: UInt64, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.pendingFirstLesson == nil else { return false }
+        return commit { $0.pendingFirstLesson = FirstLessonSnapshot(variationSeed: seed) }
+    }
+
+    @discardableResult
+    func saveFirstLesson(_ snapshot: FirstLessonSnapshot, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, snapshot.isValid,
+              let previous = state.pendingFirstLesson,
+              previous.variationSeed == snapshot.variationSeed,
+              Set(previous.responses.keys).isSubset(of: Set(snapshot.responses.keys)) else {
+            return false
+        }
+        return commit { $0.pendingFirstLesson = snapshot }
+    }
+
+    /// Stopping the guide keeps its resumable examples without claiming completion.
+    @discardableResult
+    func dismissFirstLesson(expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch else { return false }
+        return commit { $0.openingDismissed = true }
+    }
+
+    /// All five comparisons must have been answered or demonstrated. This writes no
+    /// graded answer, review, streak, node, or mastery evidence.
+    @discardableResult
+    func completeFirstLesson(expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch,
+              let snapshot = state.pendingFirstLesson,
+              snapshot.isValid, snapshot.hasExploredAllComparisons,
+              snapshot.step == .wrapUp else { return false }
+        return commit {
+            $0.firstLessonCompleted = true
+            $0.openingDismissed = true
+            $0.pendingFirstLesson = nil
+        }
     }
 
     /// Learn leads with the basics lesson only for someone who has not started the

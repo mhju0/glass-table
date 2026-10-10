@@ -81,6 +81,44 @@ final class ProgressStateTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(ProgressState.self, from: data).basicsLessonCompleted, true)
     }
 
+    func testOpeningSnapshotRoundTripPreservesSeedAndResponses() throws {
+        var state = ProgressState()
+        state.openingDismissed = true
+        state.pendingFirstLesson = FirstLessonSnapshot(variationSeed: UInt64.max,
+            step: .checkpoint, responses: [0: .choice(2), 1: .demonstrated])
+        let decoded = try JSONDecoder().decode(ProgressState.self, from: JSONEncoder().encode(state))
+        XCTAssertEqual(decoded, state)
+        XCTAssertNil(decoded.firstLessonCompleted)
+        XCTAssertEqual(decoded.schemaVersion, 2)
+    }
+
+    func testOldStatesDecodeWithoutInventingOpeningEvidence() throws {
+        for schema in 1...2 {
+            for marker in ["", ",\"firstLessonCompleted\":true"] {
+                let json = Data("{\"schemaVersion\":\(schema),\"concepts\":{},\"nodes\":{},\"streak\":{\"current\":0,\"longest\":0,\"freezesRemaining\":2},\"answers\":[]\(marker)}".utf8)
+                let decoded = try JSONDecoder().decode(ProgressState.self, from: json)
+                XCTAssertNil(decoded.openingDismissed)
+                XCTAssertNil(decoded.pendingFirstLesson)
+                XCTAssertEqual(decoded.firstLessonCompleted, marker.isEmpty ? nil : true)
+            }
+        }
+    }
+
+    func testInvalidOpeningSnapshotsAreRejectedOnDecode() throws {
+        let invalid = [
+            FirstLessonSnapshot(variationSeed: 0, step: .exampleAnswer),
+            FirstLessonSnapshot(variationSeed: 0, responses: [5: .demonstrated]),
+            FirstLessonSnapshot(variationSeed: 0, responses: [0: .choice(3)]),
+            FirstLessonSnapshot(variationSeed: 0, step: .checkpoint, responses: [0: .choice(0)]),
+            FirstLessonSnapshot(variationSeed: 0, step: .wrapUp, responses: [0: .choice(0)])
+        ]
+        for snapshot in invalid {
+            XCTAssertFalse(snapshot.isValid)
+            let encoded = try JSONEncoder().encode(snapshot)
+            XCTAssertThrowsError(try JSONDecoder().decode(FirstLessonSnapshot.self, from: encoded))
+        }
+    }
+
     func testIntervalKnowsWhetherItContainedTheTruth() {
         XCTAssertTrue(IntervalAnswer(point: 40, lo: 35, hi: 45, truth: 44).containsTruth)
         XCTAssertTrue(IntervalAnswer(point: 40, lo: 35, hi: 45, truth: 35).containsTruth)

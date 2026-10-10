@@ -113,6 +113,69 @@ public struct AnswerRecord: Codable, Equatable, Sendable {
     }
 }
 
+/// An ungraded opening guide, saved independently of course evidence.
+public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
+    public enum Step: String, Codable, Sendable {
+        case welcome, example, exampleAnswer, transfer, transferAnswer, checkpoint
+        case comparison0, comparison1, comparison2
+        case comparisonAnswer0, comparisonAnswer1, comparisonAnswer2
+        case actions, wrapUp, pot, blinds, flow, bestFive, teachPair, preference
+
+        public var revealIndex: Int? {
+            switch self {
+            case .exampleAnswer: 0
+            case .transferAnswer: 1
+            case .comparisonAnswer0: 2
+            case .comparisonAnswer1: 3
+            case .comparisonAnswer2: 4
+            default: nil
+            }
+        }
+    }
+
+    public enum Response: Codable, Equatable, Sendable {
+        case choice(Int)
+        case demonstrated
+    }
+
+    public var variationSeed: UInt64
+    public var step: Step
+    public var responses: [Int: Response]
+
+    public init(variationSeed: UInt64, step: Step = .welcome,
+                responses: [Int: Response] = [:]) {
+        self.variationSeed = variationSeed
+        self.step = step
+        self.responses = responses
+    }
+
+    public var exploredCount: Int { responses.count }
+    public var hasExploredAllComparisons: Bool { Set(responses.keys) == Set(0..<5) }
+    public var isValid: Bool {
+        guard responses.count <= 5, responses.allSatisfy({ index, response in
+            guard (0..<5).contains(index) else { return false }
+            if case .choice(let choice) = response { return (0...2).contains(choice) }
+            return true
+        }) else { return false }
+        if let index = step.revealIndex, responses[index] == nil { return false }
+        if step == .checkpoint, responses[0] == nil || responses[1] == nil { return false }
+        if step == .wrapUp, !hasExploredAllComparisons { return false }
+        return true
+    }
+
+    private enum CodingKeys: String, CodingKey { case variationSeed, step, responses }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        variationSeed = try c.decode(UInt64.self, forKey: .variationSeed)
+        step = try c.decode(Step.self, forKey: .step)
+        responses = try c.decode([Int: Response].self, forKey: .responses)
+        guard isValid else {
+            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath,
+                debugDescription: "Invalid opening guide snapshot"))
+        }
+    }
+}
+
 /// Everything the app persists, as one value type. Schema 2 keeps durable summaries
 /// alongside the bounded answer log, so older history is never inferred from a ring.
 public struct ProgressState: Codable, Equatable, Sendable {
@@ -128,10 +191,11 @@ public struct ProgressState: Codable, Equatable, Sendable {
     public var nodes: [String: NodeRecord]
     public var streak: StreakRecord
     public var answers: [AnswerRecord]
-    /// `nil` means this file predates the hands-on introduction. It stays optional so
-    /// existing schema-1 backups decode without a migration; historical activity is
-    /// handled by the app and also suppresses the introduction.
+    /// Historical builds used this marker for both completion and skipping.
+    /// A pre-existing true value does not establish five explored comparisons.
     public var firstLessonCompleted: Bool?
+    public var openingDismissed: Bool?
+    public var pendingFirstLesson: FirstLessonSnapshot?
     /// The ungraded Hold'em basics lesson. `nil` means not finished yet, which is also
     /// how every file written before the lesson existed reads.
     public var basicsLessonCompleted: Bool?
@@ -172,10 +236,14 @@ public struct ProgressState: Codable, Equatable, Sendable {
                 quickPlaySessions: [QuickPlaySession] = [],
                 activeQuickPlaySessionID: String? = nil,
                 processedAttemptIDs: Set<String> = [],
-                basicsLessonCompleted: Bool? = nil) {
+                basicsLessonCompleted: Bool? = nil,
+                openingDismissed: Bool? = nil,
+                pendingFirstLesson: FirstLessonSnapshot? = nil) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
         self.nodes = nodes; self.streak = streak; self.answers = answers
         self.firstLessonCompleted = firstLessonCompleted
+        self.openingDismissed = openingDismissed
+        self.pendingFirstLesson = pendingFirstLesson
         self.revision = revision
         self.detailedTrackingStartedAt = detailedTrackingStartedAt
         self.introducedConcepts = introducedConcepts
@@ -195,7 +263,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case revision, detailedTrackingStartedAt, introducedConcepts, placement
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands, quickPlaySessions, activeQuickPlaySessionID
-        case processedAttemptIDs, basicsLessonCompleted, lessonTrend
+        case processedAttemptIDs, basicsLessonCompleted, lessonTrend, openingDismissed, pendingFirstLesson
     }
 
     public init(from decoder: Decoder) throws {
@@ -206,6 +274,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
         streak = try c.decode(StreakRecord.self, forKey: .streak)
         answers = try c.decode([AnswerRecord].self, forKey: .answers)
         firstLessonCompleted = try c.decodeIfPresent(Bool.self, forKey: .firstLessonCompleted)
+        openingDismissed = try c.decodeIfPresent(Bool.self, forKey: .openingDismissed)
+        pendingFirstLesson = try c.decodeIfPresent(FirstLessonSnapshot.self, forKey: .pendingFirstLesson)
         revision = try c.decodeIfPresent(Int.self, forKey: .revision) ?? 0
         detailedTrackingStartedAt = try c.decodeIfPresent(Date.self,
                                                            forKey: .detailedTrackingStartedAt)
