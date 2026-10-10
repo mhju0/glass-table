@@ -1157,11 +1157,26 @@ struct FirstLessonView: View {
             if !correct && !usedHelp {
                 VerdictRow(band: band, mine: outcome(answer ?? -1), correct: outcome(spot.winner))
             }
-            Text(gradeShowdown(answer: spot.winner, spot: spot, language: language).whyText)
+            comparisonReason(spot)
                 .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                 .lineSpacing(GT.Typography.explanationLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("firstLesson.reason")
+        }
+    }
+
+    @ViewBuilder
+    private func comparisonReason(_ spot: ShowdownSpot) -> some View {
+        if spot.winner != 2, spot.heroBest != spot.villainBest {
+            let winner = spot.winner == 0 ? spot.heroBest : spot.villainBest
+            let loser = spot.winner == 0 ? spot.villainBest : spot.heroBest
+            LessonPairedText(
+                korean: [KO.subject(DrillTerms.hand(winner, in: .korean)),
+                         "\(DrillTerms.hand(loser, in: .korean))보다 강해요."],
+                english: [DrillTerms.hand(winner, in: .english),
+                          "beats \(DrillTerms.hand(loser, in: .english))."])
+        } else {
+            Text(gradeShowdown(answer: spot.winner, spot: spot, language: language).whyText)
         }
     }
 
