@@ -157,10 +157,17 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
             if case .choice(let choice) = response { return (0...2).contains(choice) }
             return true
         }) else { return false }
-        if let index = step.revealIndex, responses[index] == nil { return false }
-        if step == .checkpoint, responses[0] == nil || responses[1] == nil { return false }
-        if step == .wrapUp, !hasExploredAllComparisons { return false }
-        return true
+        let requiredCount: Int
+        switch step {
+        case .welcome, .teachPair, .example: requiredCount = 0
+        case .exampleAnswer, .transfer: requiredCount = 1
+        case .transferAnswer, .checkpoint, .preference, .comparison0: requiredCount = 2
+        case .comparisonAnswer0, .comparison1: requiredCount = 3
+        case .comparisonAnswer1, .comparison2: requiredCount = 4
+        case .comparisonAnswer2, .actions, .wrapUp, .pot, .blinds, .flow, .bestFive:
+            requiredCount = 5
+        }
+        return (0..<requiredCount).allSatisfy { responses[$0] != nil }
     }
 
     private enum CodingKeys: String, CodingKey { case variationSeed, step, responses }

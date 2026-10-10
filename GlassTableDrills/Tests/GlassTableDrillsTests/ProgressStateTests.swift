@@ -119,6 +119,50 @@ final class ProgressStateTests: XCTestCase {
         }
     }
 
+    func testOpeningStagesRequireTheirExploredPrefixAndAllowBackWithLaterResponses() throws {
+        let stages: [(FirstLessonSnapshot.Step, Int)] = [
+            (.welcome, 0), (.teachPair, 0), (.example, 0),
+            (.exampleAnswer, 1), (.transfer, 1),
+            (.transferAnswer, 2), (.checkpoint, 2), (.preference, 2), (.comparison0, 2),
+            (.comparisonAnswer0, 3), (.comparison1, 3),
+            (.comparisonAnswer1, 4), (.comparison2, 4),
+            (.comparisonAnswer2, 5), (.actions, 5), (.wrapUp, 5),
+            (.pot, 5), (.blinds, 5), (.flow, 5), (.bestFive, 5)
+        ]
+        let allResponses = Dictionary(uniqueKeysWithValues:
+            (0..<5).map { ($0, FirstLessonSnapshot.Response.demonstrated) })
+        for (step, requiredCount) in stages {
+            let prefix = Dictionary(uniqueKeysWithValues:
+                (0..<requiredCount).map { ($0, FirstLessonSnapshot.Response.choice(1)) })
+            let valid = FirstLessonSnapshot(variationSeed: 9, step: step, responses: prefix)
+            XCTAssertTrue(valid.isValid, "\(step) accepts its full prerequisite prefix")
+            XCTAssertEqual(try JSONDecoder().decode(FirstLessonSnapshot.self,
+                from: JSONEncoder().encode(valid)), valid)
+            let backward = FirstLessonSnapshot(variationSeed: 9, step: step, responses: allResponses)
+            XCTAssertTrue(backward.isValid, "\(step) preserves later responses on Back")
+            XCTAssertEqual(try JSONDecoder().decode(FirstLessonSnapshot.self,
+                from: JSONEncoder().encode(backward)), backward)
+            for missing in 0..<requiredCount {
+                var incomplete = backward
+                incomplete.responses.removeValue(forKey: missing)
+                XCTAssertFalse(incomplete.isValid, "\(step) must reject missing comparison \(missing)")
+                let encoded = try JSONEncoder().encode(incomplete)
+                XCTAssertThrowsError(try JSONDecoder().decode(FirstLessonSnapshot.self, from: encoded))
+            }
+        }
+    }
+
+    func testOpeningActionTrapCannotBeImportedEvenWithHistoricalRecords() throws {
+        let store = ProgressionStore(url: URL(fileURLWithPath: "/unused-opening-import.json"))
+        for step in [FirstLessonSnapshot.Step.actions, .pot, .blinds, .flow, .bestFive] {
+            var invalid = ProgressState(firstLessonCompleted: true)
+            invalid.nodes["retired-node"] = NodeRecord(cleared: true, attempts: 3)
+            invalid.pendingFirstLesson = FirstLessonSnapshot(variationSeed: 17, step: step,
+                responses: [0: .choice(0), 1: .demonstrated])
+            XCTAssertThrowsError(try store.importData(JSONEncoder().encode(invalid)))
+        }
+    }
+
     func testIntervalKnowsWhetherItContainedTheTruth() {
         XCTAssertTrue(IntervalAnswer(point: 40, lo: 35, hi: 45, truth: 44).containsTruth)
         XCTAssertTrue(IntervalAnswer(point: 40, lo: 35, hi: 45, truth: 35).containsTruth)

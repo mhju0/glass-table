@@ -24,6 +24,9 @@ final class ProgressionModel {
     /// A session captures this value. Import/reset changes it, rejecting late UI work.
     private(set) var epoch = UUID()
     private var pendingState: ProgressState?
+    #if DEBUG
+    private var openingSaveFailureConsumed = false
+    #endif
 
     private let store: ProgressionStore
     private let scheduler = FSRSScheduler()
@@ -960,6 +963,31 @@ final class ProgressionModel {
         }
     }
 
+    #if DEBUG
+    private func injectOpeningSaveFailureIfRequested(candidate: ProgressState) throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard !openingSaveFailureConsumed,
+              environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+              let phase = environment["GT_TEST_OPENING_SAVE_FAILURE"] else { return }
+        let matches: Bool
+        switch phase {
+        case "answer":
+            matches = candidate.pendingFirstLesson?.responses != state.pendingFirstLesson?.responses
+                && candidate.pendingFirstLesson != nil && state.pendingFirstLesson != nil
+        case "completion":
+            matches = candidate.firstLessonCompleted == true && state.firstLessonCompleted != true
+                && candidate.pendingFirstLesson == nil && state.pendingFirstLesson != nil
+        case "dismissal":
+            matches = candidate.openingDismissed == true && state.openingDismissed != true
+                && candidate.firstLessonCompleted == state.firstLessonCompleted
+        default: matches = false
+        }
+        guard matches else { return }
+        openingSaveFailureConsumed = true
+        throw CocoaError(.fileWriteUnknown)
+    }
+    #endif
+
     @discardableResult
     private func commit(_ mutate: (inout ProgressState) -> Void) -> Bool {
         guard unreadable == nil, saveError == nil else { return false }
@@ -970,6 +998,9 @@ final class ProgressionModel {
             candidate.detailedTrackingStartedAt = Date()
         }
         do {
+            #if DEBUG
+            try injectOpeningSaveFailureIfRequested(candidate: candidate)
+            #endif
             try store.save(candidate)
             state = candidate
             return true

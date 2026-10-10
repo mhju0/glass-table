@@ -154,6 +154,26 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.state, original)
     }
 
+    func testOpeningRejectsActionTrapWithoutReplacingSavedSnapshotOrHistory() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.beginFirstLesson(seed: 12, expectedEpoch: model.epoch))
+        let checkpoint = FirstLessonSnapshot(variationSeed: 12, step: .checkpoint,
+            responses: [0: .choice(1), 1: .demonstrated])
+        XCTAssertTrue(model.saveFirstLesson(checkpoint, expectedEpoch: model.epoch))
+        let original = model.state
+        let bytes = try store.exportData()
+        for step in [FirstLessonSnapshot.Step.actions, .pot, .blinds, .flow, .bestFive] {
+            var trap = checkpoint
+            trap.step = step
+            XCTAssertFalse(model.saveFirstLesson(trap, expectedEpoch: model.epoch))
+            var imported = original
+            imported.pendingFirstLesson = trap
+            XCTAssertThrowsError(try model.importData(JSONEncoder().encode(imported)))
+            XCTAssertEqual(model.state, original)
+            XCTAssertEqual(try store.exportData(), bytes)
+        }
+    }
+
     func testHistoricalOpeningMarkerSuppressesGuideWithoutFabricatingSnapshot() throws {
         var old = ProgressState(firstLessonCompleted: true)
         old.concepts["retired"] = ConceptRecord()
