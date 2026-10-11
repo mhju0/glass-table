@@ -552,15 +552,22 @@ struct NodeSessionView: View {
 private struct GuidedHintView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var textSize
+    @State private var contentHeight: CGFloat = 220
     let concept: Concept
     let onClose: () -> Void
     var body: some View {
-        ScrollView { content }
+        ScrollView {
+            content
+                .onGeometryChange(for: CGFloat.self) { $0.size.height.rounded(.up) } action: {
+                    contentHeight = $0
+                }
+        }
         .scrollBounceBehavior(.basedOnSize)
         .background(FeltBackground())
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("guided-hint")
-        .presentationDetents([.medium, .large])
+        .presentationDetents(textSize.isAccessibilitySize ? [.large] : [.height(max(220, contentHeight))])
         .presentationDragIndicator(.visible)
     }
 
@@ -578,7 +585,7 @@ private struct GuidedHintView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(GT.onFelt)
-                        .frame(width: 44, height: 44, alignment: .topTrailing)
+                        .frame(width: 48, height: 48)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(GTPress())
