@@ -82,6 +82,32 @@ final class WelcomeFirstFlowTests: XCTestCase {
         }
     }
 
+    private func verifyPairResumeKeepsBack(startBeforeSkipping: Bool) {
+        let app = app()
+        app.launch()
+        XCTAssertTrue(app.staticTexts["firstLesson.welcome"].waitForExistence(timeout: 15))
+        if startBeforeSkipping { tap("firstLesson.start", in: app) }
+        tap("firstLesson.skip", in: app)
+        XCTAssertTrue(app.buttons["learn-resume-opening"].waitForExistence(timeout: 5))
+        app.terminate()
+        app.launch()
+        tap("learn-resume-opening", in: app)
+        XCTAssertTrue(app.staticTexts["firstLesson.teachPair.heading"].waitForExistence(timeout: 5))
+        tap("firstLesson.next", in: app)
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+        tap("firstLesson.previous", in: app)
+        XCTAssertTrue(app.staticTexts["firstLesson.teachPair.heading"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["firstLesson.welcome"].exists)
+    }
+
+    func testBrandSkipResumePreservesBackToPairTeaching() {
+        verifyPairResumeKeepsBack(startBeforeSkipping: false)
+    }
+
+    func testPairTeachingStopResumePreservesBackToPairTeaching() {
+        verifyPairResumeKeepsBack(startBeforeSkipping: true)
+    }
+
     func testEnglishDefaultStartsWithTeachingNotPlacement() { begin(app()) }
     func testKoreanAX5DefaultStartsWithTeachingNotPlacement() { begin(app(korean: true, ax: true)) }
 

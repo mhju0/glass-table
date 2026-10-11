@@ -290,7 +290,7 @@ struct FirstLessonView: View {
         comparisonVersion = saved.comparisonVersion
         submitted = [:]
         helped = []
-        returning = true
+        returning = localStep(saved.step) != step
         step = localStep(saved.step)
         for (index, response) in saved.responses {
             let target = answerStep(index)
