@@ -11,3 +11,6 @@ GlassTable/Info.plist
 build-device/
 .uisweep/
 build-device-release/
+
+# Preserved source and verification evidence from retired worktrees
+/.archive/
