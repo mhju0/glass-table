@@ -52,6 +52,6 @@ final class RevealTests: XCTestCase {
     func testWhyWithoutExcludedIsSimple() {
         let s = OutsSpot(hero: Card.parse("AhKd")!, villain: Card.parse("QsQc")!,
                          board: Card.parse("2s7h9dTc")!, outs: Card.parse("Jc")!, excluded: [])
-        XCTAssertEqual(gradeOuts(estimate: 1, spot: s).whyText, "1 아웃.")
+        XCTAssertEqual(gradeOuts(estimate: 1, spot: s).whyText, "이기는 리버 카드 1장.")
     }
 }

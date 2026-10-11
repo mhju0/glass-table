@@ -80,7 +80,7 @@ final class BeatsTests: XCTestCase {
         XCTAssertFalse(all.contains("2h"), "copy must not leak the parse format")
         XCTAssertEqual(Set(beats.compactMap { $0.struck.isEmpty ? nil : $0.struck }.flatMap { $0 }),
                        Set(Card.parse("2h3h")!))
-        XCTAssertTrue(all.contains("진짜 아웃 7장"), all)
+        XCTAssertTrue(all.contains("이기는 리버 카드 7장"), all)
     }
 
     /// Every card shown in the counting grid must reconcile with the spot: the grid

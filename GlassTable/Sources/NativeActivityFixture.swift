@@ -17,6 +17,18 @@ enum NativeActivityFixture {
             return summary
         }
         switch name {
+        case "records-time":
+            for (concept, due) in [(Concept.potOdds, now.addingTimeInterval(6 * 3600)),
+                                   (.combos, calendar.date(byAdding: .day, value: 1, to: now)!),
+                                   (.outs, calendar.date(byAdding: .day, value: 3, to: now)!)] {
+                state.updateRecord(for: concept) {
+                    $0.total = 5
+                    $0.correct = 4
+                    $0.review.due = due
+                }
+            }
+            state.streak = StreakRecord(current: 12, longest: 12,
+                lastSessionDay: DayKey(calendar.date(byAdding: .day, value: -10, to: now)!, calendar: calendar))
         case "help-only": state.dailySummaries = [row(0, assisted: true, exact: 0)]
         case "wrong": state.dailySummaries = [row(0, exact: 0, miss: 1)]
         case "helped": state.dailySummaries = [row(0, assisted: true, exact: 0, miss: 1)]

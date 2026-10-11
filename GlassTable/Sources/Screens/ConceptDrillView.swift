@@ -1590,8 +1590,8 @@ private struct CountDrill: View {
                 }
             }
             if !spot.excluded.isEmpty {
-                SectionLabel(text: language.text("제외 · 상대 핸드 개선",
-                                                 "Excluded · also helps the opponent"))
+                SectionLabel(text: language.text("제외 · 무승부 또는 패배",
+                                                 "Excluded · ties or losses"))
                     .padding(.top, 10)
                 outsGrid(spot.excluded, dead: true)
             }

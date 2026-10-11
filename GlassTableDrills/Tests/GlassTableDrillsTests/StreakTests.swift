@@ -4,6 +4,41 @@ import XCTest
 final class StreakTests: XCTestCase {
     private func day(_ s: String) -> DayKey { DayKey(raw: s)! }
 
+    func testActiveProjectionKeepsTodayYesterdayAndBackwardClockWithoutMutation() {
+        let r = StreakRecord(current: 8, longest: 10, lastSessionDay: day("2026-10-11"),
+                             freezesRemaining: 0, lastFreezeEarnedDay: day("2026-10-11"))
+        let original = r
+        for today in ["2026-10-10", "2026-10-11", "2026-10-12"] {
+            XCTAssertEqual(Streak.activeCurrent(r, on: day(today)), 8)
+            XCTAssertEqual(r, original)
+        }
+        XCTAssertEqual(Streak.activeCurrent(StreakRecord(), on: day("2026-10-11")), 0)
+    }
+
+    func testActiveProjectionMatchesFreezeAccrualAndExpiryWithoutAwardingASession() {
+        for freezes in 0...StreakRecord.maxFreezes {
+            for earned in [nil, day("2026-10-11"), day("2026-10-09")] as [DayKey?] {
+                let r = StreakRecord(current: 8, longest: 10, lastSessionDay: day("2026-10-11"),
+                                     freezesRemaining: freezes, lastFreezeEarnedDay: earned)
+                let original = r
+                for today in ["2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-11-11"] {
+                    var afterSession = r
+                    Streak.recordSession(&afterSession, on: day(today))
+                    XCTAssertEqual(Streak.activeCurrent(r, on: day(today)), afterSession.current == 9 ? 8 : 0)
+                    XCTAssertEqual(r, original, "display cannot consume or accrue stored freezes or change history")
+                }
+            }
+        }
+    }
+
+    func testActiveProjectionCoversTwoMissedDaysThenExpires() {
+        let r = StreakRecord(current: 8, longest: 10, lastSessionDay: day("2026-10-11"))
+        XCTAssertEqual(Streak.activeCurrent(r, on: day("2026-10-14")), 8)
+        XCTAssertEqual(Streak.activeCurrent(r, on: day("2026-10-15")), 0)
+        XCTAssertEqual(r.current, 8)
+        XCTAssertEqual(r.longest, 10)
+    }
+
     func testFirstSessionStartsAStreakOfOne() {
         var r = StreakRecord()
         Streak.recordSession(&r, on: day("2026-08-03"))

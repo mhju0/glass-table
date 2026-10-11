@@ -8,7 +8,7 @@ public struct OutsSpot: Equatable {
     public let villain: [Card]   // 2
     public let board: [Card]     // 4 (turn)
     public let outs: [Card]      // winning river cards (engine countOuts)
-    public let excluded: [Card]  // "looks like an out but loses" (flush-draw heuristic)
+    public let excluded: [Card]  // apparent flush outs that lose or tie
 
     public var outCount: Int { outs.count }
     /// Rule-of-2 improvement estimate (one card to come), as a percent.

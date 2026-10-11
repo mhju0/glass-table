@@ -288,7 +288,8 @@ struct RiverExplainPanel: View {
             Text("\(language.text("상대", "Opponent")) · \(DrillTerms.hand(ex.villain, in: language))")
                 .font(GT.semibold(13)).foregroundStyle(GT.onFelt.opacity(0.85))
             Text(ex.heroWins ? language.text("이겼어요", "You win")
-                             : language.text("완성해도 상대가 더 강해요", "The opponent still wins"))
+                 : (ex.isTie ? language.text("무승부라서 이기는 아웃에는 포함되지 않아요", "This card ties the hand, so it is not an outright winning out")
+                             : language.text("완성해도 상대가 더 강해요", "The opponent still wins")))
                 .font(GT.title(13))
                 .foregroundStyle(ex.heroWins ? GTBand.spotOnInk : GTBand.offInk)
         }

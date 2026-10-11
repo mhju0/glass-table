@@ -203,6 +203,14 @@ public func bestHandOfAny(_ cards: [Card]) -> HandBrief {
     return HandBrief(category: key >> 20, topRank: (key >> 16) & 0xF)
 }
 
+/// Compare full five-card strengths, including kickers, from 5–7 cards per player.
+/// Returns 0 for hero, 1 for villain, and 2 for a tie.
+public func compareHands(hero: [Card], villain: [Card]) -> Int {
+    precondition((5...7).contains(hero.count) && (5...7).contains(villain.count))
+    let h = bestKeyOfAny(hero), v = bestKeyOfAny(villain)
+    return h == v ? 2 : (h > v ? 0 : 1)
+}
+
 /// Index combinations. At most 21 of them (7 choose 5), so this is computed per call
 /// rather than cached — a global cache here would buy nothing and cost thread safety.
 private func combinations(of n: Int, choose k: Int) -> [[Int]] {

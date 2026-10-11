@@ -150,7 +150,7 @@ public enum BeatScript {
         var beats: [Beat] = [
             Beat("지금 상황이에요", detail: "리버 한 장이 남았어요.", focus: .table),
             Beat("내 카드", focus: .table, highlight: s.hero),
-            Beat("상대 카드", detail: "지금은 상대가 앞서 있어요. 리버가 나를 이기게 해줘야 해요.",
+            Beat("상대 카드", detail: currentOutsSituation(s, language: language),
                  focus: .table, highlight: s.villain),
         ]
 
@@ -176,7 +176,7 @@ public enum BeatScript {
                               focus: .grid(remaining.sorted(by: byRank))))
             if !s.excluded.isEmpty {
                 beats.append(Beat("그런데 \(s.excluded.map(\.display).joined(separator: "·"))는 아니에요",
-                                  detail: "완성해도 상대가 더 강해져서 져요. 그래서 아웃에서 빼요.",
+                                  detail: excludedRiverReasons(s, language: language),
                                   focus: .grid(remaining.sorted(by: byRank)),
                                   struck: s.excluded))
             }
@@ -187,11 +187,11 @@ public enum BeatScript {
             }
         } else {
             beats.append(Beat("나를 이기게 해주는 카드",
-                              detail: "리버에 이 카드들이 오면 내가 앞서요.",
+                              detail: "리버에 이 카드들이 오면 단독으로 이겨요.",
                               focus: .grid(s.outs.sorted(by: byRank))))
         }
 
-        beats.append(Beat("진짜 아웃", value: "\(s.outCount)장",
+        beats.append(Beat("이기는 리버 카드", value: "\(s.outCount)장",
                           detail: "남은 \(unseen)장 중 \(s.outCount)장이에요. 룰 오브 2로 약 "
                                 + "\(Int(s.improvementPct))%예요.",
                           focus: .grid(s.outs.sorted(by: byRank))))
@@ -365,8 +365,8 @@ public enum BeatScript {
             Beat("지면 \(s.bet)bb를 잃어요",
                  detail: "\(pctText(100 - s.equityPct))% 확률로 −\(pctText((1 - s.equityPct / 100) * Double(s.bet)))bb"),
             Beat("둘을 더하면", value: "\(pctText(s.evBB))bb",
-                 detail: s.isProfitable ? "장기적으로 이득인 콜이에요."
-                                        : "장기적으로 손해인 콜이에요."),
+                 detail: s.evBB > 0 ? "장기적으로 이득인 콜이에요."
+                    : (s.evBB < 0 ? "장기적으로 손해인 콜이에요." : "평균적으로 본전인 콜이에요.")),
             Beat("이번 판의 결과는 상관없어요",
                  detail: "한 판의 승패는 이 계산을 바꾸지 않아요."),
         ]
@@ -460,7 +460,7 @@ public enum BeatScript {
             Beat("숫자로 보면", value: "VPIP \(Int(a.vpip))% · PFR \(Int(a.pfr))%",
                  detail: raising
                     ? "레이즈하는 건 PFR \(Int(a.pfr))%. 평균적으로 상위 \(Int(a.pfr))%를 열어요."
-                    : "들어오는 건 VPIP \(Int(a.vpip))%인데 그중 \(Int(a.pfr))%는 레이즈해요. "
+                    : "전체 핸드 중 \(Int(a.vpip))%로 참여하고, 전체 핸드 중 \(Int(a.pfr))%로 레이즈해요. "
                       + "콜은 그 사이 \(Int(a.vpip - a.pfr))%p예요.",
                  focus: .actionList(s.actionLines, lit: nil)),
             Beat("자리를 반영하면", value: raising ? "상위 \(pctText(truth.percent))%"

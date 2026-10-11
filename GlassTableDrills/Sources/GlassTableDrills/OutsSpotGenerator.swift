@@ -3,8 +3,8 @@ import GlassTableEngine
 
 /// Deterministic, procedural Outs-drill spots. Same (baseSeed, index) → same spot.
 public enum OutsSpotGenerator {
-    /// Draw hero/villain/turn-board from a seeded shuffle; keep only spots where hero
-    /// is behind and drawing — operationalized as 2...15 winning river outs.
+    /// Draw hero/villain/turn-board from a seeded shuffle; keep spots with 2...15
+    /// winning rivers. This filter does not require hero to be behind on the turn.
     public static func spot(baseSeed: UInt64, index: Int) -> OutsSpot {
         var attempt = 0
         var lo = 2, hi = 15
@@ -31,7 +31,7 @@ public enum OutsSpotGenerator {
     }
 
     /// Flush-draw heuristic: when hero holds four to a flush, the remaining cards of that
-    /// suit that are NOT winning outs (they complete the flush but lose). Empty otherwise.
+    /// suit that are NOT winning outs (they complete the flush but lose or tie). Empty otherwise.
     static func excludedCards(hero: [Card], villain: [Card], board: [Card], outs: [Card]) -> [Card] {
         var bySuit = [Int: Int]()
         for c in hero + board { bySuit[c.suit, default: 0] += 1 }

@@ -10,6 +10,7 @@ struct RecordsView: View {
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.scenePhase) private var scenePhase
     @State private var clockRefresh = 0
+    @State private var detailsExpanded = false
     var onContinue: () -> Void = {}
     @State private var replay: Concept?
     @State private var replaySeed: UInt64 = 0
@@ -23,39 +24,39 @@ struct RecordsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: GT.Space.section) {
-                Text(language.text("학습 기록", "Progress"))
-                    .font(GT.title(textSize.isAccessibilitySize ? 22 : 30))
-                    .foregroundStyle(GT.onFelt)
-                    .padding(.top, 14)
-                TimelineView(.everyMinute) { _ in
-                    let _ = clockRefresh
-                    let activity = PracticeActivityOverview(state: model.state, now: Date(), calendar: .current)
+            TimelineView(.everyMinute) { _ in
+                let _ = clockRefresh
+                let now = Date()
+                VStack(alignment: .leading, spacing: GT.Space.section) {
+                    Text(language.text("학습 기록", "Progress"))
+                        .font(GT.title(textSize.isAccessibilitySize ? 22 : 30))
+                        .foregroundStyle(GT.onFelt)
+                        .padding(.top, 14)
+                    let activity = PracticeActivityOverview(state: model.state, now: now, calendar: .current)
                     PracticeActivityView(overview: activity, onContinue: onContinue)
                     if !activity.recentTopics.isEmpty {
                         recentTopics(activity)
                     }
+                    learningPathCard
+                    DisclosureGroup(language.text("자세한 학습 기록", "Detailed learning records"), isExpanded: $detailsExpanded) {
+                        VStack(alignment: .leading, spacing: GT.Space.section) {
+                            headline(now: now)
+                            Text(language.text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실력 인증은 아니에요.",
+                                               "Stages describe practice in this app, not proven skill."))
+                                .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            practiceCard(now: now)
+                            styleCard
+                            calibrationCard
+                            evLossCard
+                            if studied.isEmpty { emptyState } else { conceptList(now: now) }
+                        }.padding(.top, 12)
+                    }
+                    .font(GT.semibold(16)).tint(GT.onFelt)
+                    .accessibilityIdentifier("records-details")
                 }
-                learningPathCard
-                DisclosureGroup(language.text("자세한 학습 기록", "Detailed learning records")) {
-                    VStack(alignment: .leading, spacing: GT.Space.section) {
-                        headline
-                        Text(language.text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실력 인증은 아니에요.",
-                                           "Stages describe practice in this app, not proven skill."))
-                            .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        practiceCard
-                        styleCard
-                        calibrationCard
-                        evLossCard
-                        if studied.isEmpty { emptyState } else { conceptList }
-                    }.padding(.top, 12)
-                }
-                .font(GT.semibold(16)).tint(GT.onFelt)
-                .accessibilityIdentifier("records-details")
-
+                .padding(.horizontal, GT.Space.edge)
             }
-            .padding(.horizontal, GT.Space.edge)
         }
         .gtTabBarClearance()
         .background(FeltBackground())
@@ -166,19 +167,21 @@ struct RecordsView: View {
         }
     }
 
-    private var headline: some View {
+    private func headline(now: Date) -> some View {
         Group {
             if textSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 6) {
                     stat("\(model.masteredCount)", language.text("능숙 이상", "Strong topics"))
-                    stat("\(model.state.streak.current)", language.text("연속 일수", "Day streak"))
-                    stat("\(model.dueConcepts().count)", language.text("오늘 복습", "Review due"))
+                    stat("\(Streak.activeCurrent(model.state.streak, on: DayKey(now)))", language.text("연속 일수", "Day streak"))
+                        .accessibilityIdentifier("records-day-streak")
+                    stat("\(model.dueConcepts(now: now).count)", language.text("오늘 복습", "Review due"))
                 }
             } else {
                 HStack(spacing: 9) {
                     stat("\(model.masteredCount)", language.text("능숙 이상", "Strong topics"))
-                    stat("\(model.state.streak.current)", language.text("연속 일수", "Day streak"))
-                    stat("\(model.dueConcepts().count)", language.text("오늘 복습", "Review due"))
+                    stat("\(Streak.activeCurrent(model.state.streak, on: DayKey(now)))", language.text("연속 일수", "Day streak"))
+                        .accessibilityIdentifier("records-day-streak")
+                    stat("\(model.dueConcepts(now: now).count)", language.text("오늘 복습", "Review due"))
                 }
             }
         }
@@ -195,7 +198,7 @@ struct RecordsView: View {
     }
 
     @ViewBuilder
-    private var practiceCard: some View {
+    private func practiceCard(now: Date) -> some View {
         let available = practiceConcepts
         VStack(alignment: .leading, spacing: 12) {
             SectionLabel(text: language.text("연습 변화", "Practice over time"), onDark: false)
@@ -223,7 +226,7 @@ struct RecordsView: View {
                     $0.key.formatVersion == latest.key.formatVersion &&
                     $0.key.language == latest.key.language
                 }
-                let today = DayKey(Date())
+                let today = DayKey(now)
                 let todayTotals = totals(comparable, from: 0, through: 0, today: today)
                 let recent = totals(comparable, from: 0, through: 6, today: today)
                 let earlier = totals(comparable, from: 7, through: 13, today: today)
@@ -531,12 +534,12 @@ struct RecordsView: View {
             .padding(.top, 4)
     }
 
-    private var conceptList: some View {
+    private func conceptList(now: Date) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionLabel(text: language.text("개념별", "By topic")).padding(.bottom, 8)
             VStack(spacing: 0) {
                 ForEach(Array(studied.enumerated()), id: \.element) { i, concept in
-                    row(concept)
+                    row(concept, now: now)
                     if i != studied.count - 1 {
                         Rectangle().fill(GT.surface).frame(height: 1)
                     }
@@ -547,13 +550,13 @@ struct RecordsView: View {
     }
 
     @ViewBuilder
-    private func row(_ concept: Concept) -> some View {
+    private func row(_ concept: Concept, now: Date) -> some View {
         let r = model.record(for: concept)
         let stuck = model.shouldOfferWalkthrough(concept)
         let line = HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(conceptName(concept)).font(GT.title(16)).foregroundStyle(GT.onFelt)
-                Text(subtitle(r, stuck: stuck))
+                Text(subtitle(r, stuck: stuck, now: now))
                     .font(GT.body(12.5))
                     .foregroundStyle(stuck ? GTBand.offInk : GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -569,7 +572,7 @@ struct RecordsView: View {
         }
         .padding(.vertical, 13)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(conceptName(concept)). \(tierWord(r.tier)). \(subtitle(r, stuck: stuck))")
+        .accessibilityLabel("\(conceptName(concept)). \(tierWord(r.tier)). \(subtitle(r, stuck: stuck, now: now))")
         .accessibilityIdentifier("record-\(concept.rawValue)")
 
         if stuck {
@@ -581,7 +584,7 @@ struct RecordsView: View {
         }
     }
 
-    private func subtitle(_ r: ConceptRecord, stuck: Bool) -> String {
+    private func subtitle(_ r: ConceptRecord, stuck: Bool, now: Date) -> String {
         if stuck { return language.text("\(r.consecutiveMisses)번 놓침 · 따라 배우기",
                                         "\(r.consecutiveMisses) misses in a row · guided walkthrough") }
         let accepted = Int((r.accuracy * 100).rounded())
@@ -589,9 +592,7 @@ struct RecordsView: View {
             return language.text("\(r.total)문제 · 정확·근접 \(accepted)%",
                                  "\(r.total) answers · exact or near \(accepted)%")
         }
-        let days = Calendar.current.dateComponents([.day], from: Date(), to: due).day ?? 0
-        let when = days <= 0 ? language.text("지금 복습", "review now")
-            : language.text("\(days)일 후 복습", "review in \(days) days")
+        let when = ReviewTiming.text(due: due, now: now, language: language)
         return language.text("\(r.total)문제 · 정확·근접 \(accepted)% · \(when)",
                              "\(r.total) answers · exact or near \(accepted)% · \(when)")
     }

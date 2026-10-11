@@ -125,7 +125,7 @@ public func gradeEVCall(estimate: Estimate, spot: EVCallSpot,
                         language: LearningLanguage = .korean) -> EstimateReveal {
     let correct = spot.evBB
     let win = pctText(spot.equityPct)
-    let sign = correct > 0 ? "이득" : "손해"
+    let sign = correct > 0 ? "이득" : (correct < 0 ? "손해" : "본전")
     return EstimateReveal(
         // EV is in bb, not percent, so the bands are much tighter than the equity ones.
         band: gradeEstimate(user: estimate.point, correct: correct,

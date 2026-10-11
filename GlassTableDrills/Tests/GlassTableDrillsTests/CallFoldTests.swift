@@ -30,7 +30,7 @@ final class CallFoldTests: XCTestCase {
         XCTAssertEqual(gradeCallFold(userCalls: true, spot: s).band, .spotOn)
         XCTAssertEqual(gradeCallFold(userCalls: false, spot: s).band, .off)
         XCTAssertEqual(gradeCallFold(userCalls: true, spot: s).whyText,
-                       "에퀴티 30% vs 필요 25% → 콜")
+                       "무승부 몫을 포함한 팟 지분 30% vs 필요 25% → 콜")
     }
 
     func testFoldSpotWhy() {
@@ -38,6 +38,6 @@ final class CallFoldTests: XCTestCase {
                              board: Card.parse("Qh7h2s3c")!, pot: 10, bet: 5, equityPct: 20)
         XCTAssertFalse(s.correctIsCall)
         XCTAssertEqual(gradeCallFold(userCalls: false, spot: s).whyText,
-                       "에퀴티 20% vs 필요 25% → 폴드")
+                       "무승부 몫을 포함한 팟 지분 20% vs 필요 25% → 폴드")
     }
 }

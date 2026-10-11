@@ -42,9 +42,9 @@ enum EnglishBeatScript {
         let suitOuts = flushSuit.map { suit in s.outs.filter { $0.suit == suit } } ?? []
         let otherOuts = flushSuit.map { suit in s.outs.filter { $0.suit != suit } } ?? s.outs
         var beats = [
-            Beat("One shared card remains", detail: "Only cards that make you win count as outs.", focus: .table),
+            Beat("One shared card remains", detail: "Count only river cards where you win outright.", focus: .table),
             Beat("Your cards", focus: .table, highlight: s.hero),
-            Beat("Opponent's cards", detail: "The opponent is ahead now.", focus: .table, highlight: s.villain),
+            Beat("Opponent's cards", detail: currentOutsSituation(s, language: .english), focus: .table, highlight: s.villain),
         ]
         if let suit = flushSuit {
             let inHand = s.hero.filter { $0.suit == suit }
@@ -64,7 +64,7 @@ enum EnglishBeatScript {
                               focus: .grid(remaining.sorted(by: BeatScript.byRank))))
             if !s.excluded.isEmpty {
                 beats.append(Beat("But \(s.excluded.map(\.display).joined(separator: " · ")) won't win",
-                                  detail: "They complete your draw but improve the opponent even more. Cross them out.",
+                                  detail: excludedRiverReasons(s, language: .english),
                                   focus: .grid(remaining.sorted(by: BeatScript.byRank)),
                                   struck: s.excluded))
             }
@@ -74,10 +74,10 @@ enum EnglishBeatScript {
             }
         } else {
             beats.append(Beat("Cards that make you win",
-                              detail: "If one of these arrives on the river, you take the lead.",
+                              detail: "If one of these arrives on the river, you win outright.",
                               focus: .grid(outs)))
         }
-        beats.append(Beat("Your real outs", value: "\(s.outCount) cards",
+        beats.append(Beat("Winning river cards", value: "\(s.outCount) cards",
                           detail: "\(s.outCount) of \(unseen) unseen cards make you win. The rule of 2 gives about \(Int(s.improvementPct))% for one card to come.",
                           focus: .grid(outs)))
         return beats
@@ -203,7 +203,8 @@ enum EnglishBeatScript {
          Beat("When you lose", value: "−\(s.bet)bb",
               detail: "This happens \(pctText(100 - s.equityPct))% of the time."),
          Beat("Call value", value: "\(pctText(s.evBB))bb",
-              detail: s.isProfitable ? "The call earns chips on average." : "The call loses chips on average."),
+              detail: s.evBB > 0 ? "The call earns chips on average."
+                : (s.evBB < 0 ? "The call loses chips on average." : "The call breaks even on average.")),
          Beat("One result does not change it", detail: "This value describes repeated decisions, not this hand's result.")]
     }
 
@@ -262,7 +263,7 @@ enum EnglishBeatScript {
                      focus: .actionList(lines, lit: nil)),
                 Beat("The numbers", value: "VPIP \(Int(opponent.vpip))% · PFR \(Int(opponent.pfr))%",
                      detail: opened ? "They raise first with about \(Int(opponent.pfr))% of hands on average."
-                        : "They join with \(Int(opponent.vpip))%, raise with \(Int(opponent.pfr))%, and call with the gap.",
+                        : "They enter \(Int(opponent.vpip))% of all hands and raise \(Int(opponent.pfr))% of all hands. Calls fill the gap.",
                      focus: .actionList(lines, lit: nil)),
                 Beat("Now account for the seat", value: opened ? "Top \(pctText(range.percent))%" : "\(pctText(range.percent))% of hands",
                      detail: "\(s.seat.playersBehind(preflop: true)) players still act after \(s.seat.rawValue). The \(Int(headline))% average becomes \(range.percent >= headline ? "wider" : "narrower") here.",

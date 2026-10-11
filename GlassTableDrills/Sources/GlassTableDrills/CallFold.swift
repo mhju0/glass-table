@@ -64,6 +64,6 @@ public func gradeCallFold(userCalls: Bool, spot: CallFoldSpot,
         userCalls: userCalls, correctIsCall: correct,
         equityPct: spot.equityPct, requiredPct: spot.requiredPct,
         whyText: language.text(
-            "에퀴티 \(pctText(spot.equityPct))% vs 필요 \(pctText(spot.requiredPct))% → \(correct ? "콜" : "폴드")",
-            "Winning chance \(pctText(spot.equityPct))% versus \(pctText(spot.requiredPct))% needed to call. \(correct ? "Call" : "Fold")."))
+            "무승부 몫을 포함한 팟 지분 \(pctText(spot.equityPct))% vs 필요 \(pctText(spot.requiredPct))% → \(correct ? "콜" : "폴드")",
+            "Your share of the pot, including ties, is \(pctText(spot.equityPct))% versus \(pctText(spot.requiredPct))% needed to call. \(correct ? "Call" : "Fold")."))
 }

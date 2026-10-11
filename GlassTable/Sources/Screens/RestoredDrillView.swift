@@ -432,7 +432,7 @@ private struct RestoredDrillContextView: View {
                 }
 
                 if !spot.excluded.isEmpty {
-                    Text(language.text("제외 · 상대도 더 좋아져요", "Excluded · the opponent improves too"))
+                    Text(language.text("제외 · 무승부 또는 패배", "Excluded · ties or losses"))
                         .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
                     riverCards(spot.excluded, excluded: true)
                 }

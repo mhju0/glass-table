@@ -19,19 +19,20 @@ public func gradeOuts(estimate: Int, spot: OutsSpot,
                       improvementPct: spot.improvementPct, whyText: whyText(for: spot, language: language))
 }
 
-/// What a tapped river card does for both players. `heroWins` comes straight from
-/// the spot's precomputed outs — no re-comparison.
+/// What a tapped river card does for both players, including a split pot.
 public struct RiverExplanation: Equatable {
     public let hero: HandBrief
     public let villain: HandBrief
     public let heroWins: Bool
+    public let isTie: Bool
 }
 
 public func explainRiver(spot: OutsSpot, river: Card) -> RiverExplanation {
     let full = spot.board + [river]
     return RiverExplanation(hero: bestHand(spot.hero + full),
                             villain: bestHand(spot.villain + full),
-                            heroWins: spot.outs.contains(river))
+                            heroWins: spot.outs.contains(river),
+                            isTie: compareHands(hero: spot.hero + full, villain: spot.villain + full) == 2)
 }
 
 /// Beginner-facing Korean hand name, using the same letter ranks as the cards.
@@ -56,13 +57,37 @@ func whyText(for spot: OutsSpot, language: LearningLanguage = .korean) -> String
     if language == .english {
         guard !spot.excluded.isEmpty else { return "\(spot.outCount) winning river cards." }
         let apparent = spot.outCount + spot.excluded.count
-        let cards = spot.excluded.map(\.display).joined(separator: " · ")
-        return "\(apparent) cards look promising, but \(cards) still leave the opponent ahead. There are \(spot.outCount) winning river cards."
+        return "\(apparent) cards look promising. \(excludedRiverReasons(spot, language: language)) There are \(spot.outCount) winning river cards."
     }
-    guard !spot.excluded.isEmpty else { return "\(spot.outCount) 아웃." }
-    let ex = spot.excluded.map(\.display).joined(separator: "·")
+    guard !spot.excluded.isEmpty else { return "이기는 리버 카드 \(spot.outCount)장." }
     let apparent = spot.outCount + spot.excluded.count
-    // Always-true reason: these cards complete the draw but hero still loses (the board
-    // pairs villain up, villain out-flushes, etc.). Spot-specific reasoning is deferred.
-    return "\(apparent) 아웃처럼 보이지만, \(KO.topic(ex)) 완성해도 상대가 더 강해 제외돼요. 진짜 아웃은 \(spot.outCount)장."
+    return "\(apparent) 아웃처럼 보이지만, \(excludedRiverReasons(spot, language: language)) 이기는 리버 카드는 \(spot.outCount)장."
+}
+
+func excludedRiverReasons(_ spot: OutsSpot, language: LearningLanguage) -> String {
+    let ties = spot.excluded.filter { explainRiver(spot: spot, river: $0).isTie }
+    let losses = spot.excluded.filter { !ties.contains($0) }
+    var reasons: [String] = []
+    if !ties.isEmpty {
+        let cards = ties.map(\.display).joined(separator: " · ")
+        reasons.append(language.text("\(KO.topic(cards)) 무승부라서 이기는 아웃에서 제외돼요.",
+                                     "\(cards) tie the hand, so they are not outright winning outs."))
+    }
+    if !losses.isEmpty {
+        let cards = losses.map(\.display).joined(separator: " · ")
+        reasons.append(language.text("\(KO.topic(cards)) 상대가 이겨서 아웃에서 제외돼요.",
+                                     "\(cards) leave the opponent ahead, so they are not winning outs."))
+    }
+    return reasons.joined(separator: " ")
+}
+
+func currentOutsSituation(_ spot: OutsSpot, language: LearningLanguage) -> String {
+    switch compareHands(hero: spot.hero + spot.board, villain: spot.villain + spot.board) {
+    case 0: return language.text("지금은 앞서 있어요. 리버에서도 단독으로 이기는 카드를 세어요.",
+                                 "You are ahead now. Count river cards where you still win outright.")
+    case 1: return language.text("지금은 상대가 앞서 있어요. 리버에서 단독으로 이기는 카드를 세어요.",
+                                 "The opponent is ahead now. Count river cards where you win outright.")
+    default: return language.text("지금은 무승부예요. 리버에서 단독으로 이기는 카드를 세어요.",
+                                  "You are tied now. Count river cards where you win outright.")
+    }
 }

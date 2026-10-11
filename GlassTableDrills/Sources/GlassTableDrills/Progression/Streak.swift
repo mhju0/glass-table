@@ -14,6 +14,15 @@ public enum Streak {
     /// Spec §7.1: one freeze earned per 48h, capped at `StreakRecord.maxFreezes`.
     public static let freezeEarnDays = 2
 
+    /// The streak still available today, without awarding a session or saving freezes.
+    public static func activeCurrent(_ r: StreakRecord, on today: DayKey) -> Int {
+        guard let last = r.lastSessionDay else { return 0 }
+        guard let gap = last.daysBetween(today), gap > 0 else { return r.current }
+        var projected = r
+        earnFreezes(&projected, upTo: today)
+        return gap - 1 <= projected.freezesRemaining ? r.current : 0
+    }
+
     public static func recordSession(_ r: inout StreakRecord, on today: DayKey) {
         defer { r.longest = max(r.longest, r.current) }
 
