@@ -229,7 +229,7 @@ struct PathView: View {
         let record = model.record(for: concept)
         guard record.total > 0 else { return nil }
         switch record.tier {
-        case .attempted: return language.text("막 시작했어요", "Just started")
+        case .attempted: return language.text("막 시작", "Just started")
         case .familiar: return language.text("익히는 중", "Getting familiar")
         case .proficient: return language.text("능숙 단계", "Practiced")
         case .mastered: return language.text("숙달 단계", "Mixed checks passed")

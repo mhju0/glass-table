@@ -617,7 +617,7 @@ struct RecordsView: View {
 
     private func tierWord(_ t: MasteryTier) -> String {
         switch t {
-        case .attempted:  return language.text("막 시작했어요", "Just started")
+        case .attempted:  return language.text("막 시작", "Just started")
         case .familiar:   return language.text("익히는 중", "Getting familiar")
         case .proficient: return language.text("능숙 단계", "Strong in app")
         case .mastered:   return language.text("숙달 단계", "Mastered in app")

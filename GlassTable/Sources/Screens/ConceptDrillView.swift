@@ -1002,6 +1002,7 @@ private struct PotMathChoicesView: View {
                 HStack(spacing: 8) { choices }
             }
         }
+        .padding(.top, 8)
     }
 
     @ViewBuilder

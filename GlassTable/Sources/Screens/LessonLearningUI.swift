@@ -219,10 +219,10 @@ struct PotMathReplayControls: View {
     @Binding var stepIndex: Int
     var body: some View {
         HStack(spacing: 12) {
-            GTChoiceButton(title: language.text("이전\n행동", "Previous\naction"), minHeight: 52) {
+            GTChoiceButton(title: language.text("이전 행동", "Previous action"), minHeight: 52) {
                 stepIndex = max(0, stepIndex - 1)
             }.disabled(stepIndex == 0).accessibilityIdentifier("pot-previous-action")
-            GTChoiceButton(title: language.text("다음\n행동", "Next\naction"), minHeight: 52) {
+            GTChoiceButton(title: language.text("다음 행동", "Next action"), minHeight: 52) {
                 stepIndex = min(steps - 1, stepIndex + 1)
             }.disabled(stepIndex >= steps - 1).accessibilityIdentifier("pot-next-action")
         }
