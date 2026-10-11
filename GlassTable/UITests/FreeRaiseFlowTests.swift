@@ -79,8 +79,8 @@ final class FreeRaiseFlowTests: XCTestCase {
         let app = app(phase: "raise-facing")
         XCTAssertEqual(app.staticTexts["free-raise-amount"].label, "Raise to 6")
         for index in 0..<5 { XCTAssertTrue(app.buttons["free-raise-preset-\(index)"].exists) }
-        XCTAssertEqual(app.buttons["free-raise-preset-1"].label, "3×, 12")
-        XCTAssertEqual(app.buttons["free-raise-preset-3"].label, "Pot, 12")
+        XCTAssertEqual(app.buttons["free-raise-preset-1"].label, "12, 3×")
+        XCTAssertEqual(app.buttons["free-raise-preset-3"].label, "12, Pot")
         app.buttons["free-raise-preset-1"].tap()
         XCTAssertEqual(app.staticTexts["free-raise-amount"].label, "Raise to 12")
         app.buttons["free-raise-preset-3"].tap()

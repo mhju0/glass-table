@@ -177,7 +177,7 @@ func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot, band: Grad
         }
         return text
     }
-    var text = "\(spot.archetype.name)의 \(actionWord(spot)) 레인지는 전체 조합의 "
+    var text = "\(spot.archetype.beginnerTitle(in: .korean))의 \(actionWord(spot)) 레인지는 전체 조합의 "
         + "\(pctText(tw))%예요. 내 추정은 \(pctText(gw))%."
     if raised != nil { text += " 가장 강한 핸드는 콜 대신 레이즈하니까 콜 레인지에는 없어요." }
     switch story {

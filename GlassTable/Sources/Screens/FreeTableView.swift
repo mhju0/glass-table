@@ -287,16 +287,21 @@ struct FreeTableView: View {
         let frame = projection?.frame ?? table.frame(after: shownCount(table))
         let board = projection?.visibleBoard ?? Array((table.review?.board ?? table.visibleBoard).prefix(frame.boardCount))
         let pot = projection?.pot ?? frame.pot
-        let potText = projection?.potIndex.map { index in
+        let sidePotText = projection?.potIndex.map { index in
             let remaining = projection!.remainingPots[index]
             let name = index == 0 ? language.text("메인 팟 · \(remaining)칩", "Main pot · \(remaining)")
                 : language.text("사이드 팟 \(index) · \(remaining)칩", "Side pot \(index) · \(remaining)")
             return name + language.text("\n전체 \(pot)칩", "\nTotal \(pot)")
-        } ?? language.text("\(pot)칩", "\(pot) chips")
+        }
+        let paidOut = frame.settled && pot == 0 && table.review != nil
+        let potText = sidePotText ?? (paidOut ? language.text("팟 지급 완료", "Pot paid out")
+                                              : language.text("팟 \(pot)칩", "Pot \(pot)"))
+        let potSpoken = sidePotText ?? (paidOut ? potText
+            : language.text("팟 \(pot)칩", "Pot, \(pot) \(pot == 1 ? "chip" : "chips")"))
         return TableSurface(
             seats: (0..<table.seatCount).map { seat($0, table: table, frame: frame) },
             center: TableCenter(board: board.compactMap(Card.init), reservesBoard: true,
-                                potTotal: potText),
+                                potTotal: potText, potSpoken: potSpoken),
             freeVisuals: projection?.visuals,
             freeReduceMotion: reduceMotion,
             freeHoles: projection?.transitioning == true ? projection!.visibleHole : table.review?.holeCards ?? [table.learnerHole],
@@ -342,12 +347,15 @@ struct FreeTableView: View {
         } else if let amount = projection?.credits[seat], frame.settled == false {
             status = "+\(amount)"
         } else if won, let review {
-            status = "+\(review.payouts[seat])"
+            // The seat shows the hand's net, the same number as the result headline.
+            // A payout includes the winner's own chips, so it read as a second total.
+            let net = review.endingStacks[seat] - review.startingStacks[seat]
+            status = net > 0 ? "+\(net)" : net < 0 ? "−\(-net)" : "±0"
         } else if thinkingSeat == seat {
             status = language.text("생각 중…", "Thinking…")
         } else if frame.stacks[seat] == 0, !frame.folded[seat] {
             let amount = replayPlan?.allInAmount(seat: seat, after: shownCount(table)) ?? frame.streetCommitted[seat]
-            status = language.text("올인 \(amount)", "All in \(amount)")
+            status = amount > 0 ? language.text("올인 \(amount)", "All in \(amount)") : language.text("올인", "All in")
         } else if let event = frame.lastEvent[seat], event.action != nil {
             if frame.stacks[seat] == 0, event.chips > 0 {
                 status = language.text("올인 \(frame.streetCommitted[seat])", "All in \(frame.streetCommitted[seat])")
@@ -364,6 +372,10 @@ struct FreeTableView: View {
             } else {
                 status = eventDescription(event)
             }
+        } else if let event = frame.lastEvent[seat], event.chips > 0, !frame.settled {
+            // A posted blind is the chip marker beside the seat. Unnamed, it was a dot
+            // and a number with no reason to be there.
+            status = language.text("블라인드 \(event.chips)칩", "Blind \(event.chips)")
         } else {
             status = seat == 0 ? nil : style?.beginnerTitle(in: language)
         }
@@ -814,8 +826,8 @@ struct FreeTableView: View {
                 let legal = (sizing.minimum...sizing.maximum).contains(preset.amount)
                 Button { if legal { onAmount(preset.amount) } } label: {
                     VStack(spacing: 4) {
-                        Text(language == .korean ? preset.korean : preset.english).font(GT.semibold(12))
-                        Text("\(preset.amount)").font(GT.title(13).monospacedDigit())
+                        Text(language.text("\(preset.amount)칩", "\(preset.amount)")).font(GT.title(14).monospacedDigit())
+                        Text(language == .korean ? preset.korean : preset.english).font(GT.semibold(11))
                     }
                     .fixedSize(horizontal: typeSize.isAccessibilitySize, vertical: true)
                     .padding(.horizontal, 8).padding(.vertical, 10)
@@ -946,14 +958,30 @@ struct FreeTableView: View {
 
     private func winnerLine(_ seat: Int, review: PracticeTableReview, table: PracticeTableState) -> String {
         let name = seatName(seat)
+        // Net and pot differ by the winner's own chips. Saying so keeps the headline,
+        // the seat and this line from reading as three different results.
+        let own = review.payouts[seat] - (review.endingStacks[seat] - review.startingStacks[seat])
+        let pot = own > 0
+            ? language.text("팟 \(review.payouts[seat])칩 (낸 칩 \(own) 포함)",
+                            "won \(review.payouts[seat]) chips (\(own) their own)")
+            : language.text("팟 \(review.payouts[seat])칩", "won \(review.payouts[seat]) chips")
         guard Self.wentToShowdown(review), review.board.count == 5,
               let cards = Card.parse((review.holeCards[seat] + review.board).joined()) else {
-            return language.text("\(name) · 팟 \(review.payouts[seat])칩",
-                                 "\(name) · won \(review.payouts[seat]) chips")
+            return "\(name) · \(pot)"
         }
-        let hand = DrillTerms.hand(bestHand(cards), in: language)
-        return language.text("\(name) · 팟 \(review.payouts[seat])칩 · \(hand)",
-                             "\(name) · won \(review.payouts[seat]) chips · \(hand)")
+        let brief = bestHand(cards)
+        let hand = DrillTerms.hand(brief, in: language)
+        // Same named hand on both sides means the side cards decided it. Without this
+        // the line gives no reason one pair beat the other.
+        let rivals = Set(review.pots.filter { $0.winners.contains(seat) }.flatMap(\.eligibleSeats))
+            .subtracting(review.pots.flatMap(\.winners))
+        let kicker = rivals.contains { rival in
+            guard let theirs = Card.parse((review.holeCards[rival] + review.board).joined()) else { return false }
+            let other = bestHand(theirs)
+            return other.category == brief.category && other.topRank == brief.topRank
+        }
+        return "\(name) · \(pot) · \(hand)"
+            + (kicker ? language.text(" · 나머지 카드(키커)가 더 높아요", " · higher side card (kicker)") : "")
     }
 
     // MARK: Acting
@@ -1862,14 +1890,14 @@ struct FreeRaisePresentation {
         let allIn = Preset(korean: "올인", english: "All in", amount: maximum)
         if street == .preflop, currentBet <= 2 {
             return [2.0, 2.5, 3.0, 4.0].map { factor in
-                let label = factor == factor.rounded() ? "\(Int(factor))BB" : "2.5BB"
-                return Preset(korean: label, english: label, amount: rounded(factor * 2))
+                let number = factor == factor.rounded() ? "\(Int(factor))" : "2.5"
+                return Preset(korean: "\(number)배", english: "\(number)×", amount: rounded(factor * 2))
             } + [allIn]
         }
         if street == .preflop {
             return [2.5, 3.0, 4.0].map { factor in
-                let label = factor == factor.rounded() ? "\(Int(factor))×" : "2.5×"
-                return Preset(korean: label, english: label, amount: rounded(factor * Double(currentBet)))
+                let number = factor == factor.rounded() ? "\(Int(factor))" : "2.5"
+                return Preset(korean: "\(number)배", english: "\(number)×", amount: rounded(factor * Double(currentBet)))
             } + [Preset(korean: "팟", english: "Pot", amount: potTarget(1)), allIn]
         }
         return [Preset(korean: "⅓", english: "⅓", amount: potTarget(1.0 / 3)),
@@ -1886,13 +1914,19 @@ struct FreeRaisePresentation {
     func context(amount: Int, language: LearningLanguage) -> String {
         let cost = max(0, amount - committed)
         if street == .preflop {
-            let bb = Double(amount) / 2
-            let value = bb == bb.rounded() ? "\(amount / 2)" : String(format: "%.1f", bb)
-            return language.text("스택에서 \(cost) · 빅 블라인드 \(value)개", "\(cost) from your stack · \(value) big blinds")
+            // Say what the multiple is a multiple of, in chips.
+            let base = currentBet <= 2 ? 2 : currentBet
+            let ratio = Double(amount) / Double(base)
+            let value = ratio == ratio.rounded() ? "\(Int(ratio))" : String(format: "%.1f", ratio)
+            return currentBet <= 2
+                ? language.text("내 칩에서 \(cost)칩 · 빅 블라인드(2칩)의 \(value)배",
+                                "\(cost) from your chips · \(value)× the big blind (2)")
+                : language.text("내 칩에서 \(cost)칩 · 앞 벳 \(base)칩의 \(value)배",
+                                "\(cost) from your chips · \(value)× the bet of \(base)")
         }
         let denominator = isBet ? pot : pot + toCall
         let percent = denominator > 0 ? rounded(Double(amount - currentBet) * 100 / Double(denominator)) : 0
-        return language.text("스택에서 \(cost) · 팟의 \(percent)%", "\(cost) from your stack · \(percent)% of pot")
+        return language.text("내 칩에서 \(cost)칩 · 팟의 \(percent)%", "\(cost) from your chips · \(percent)% of pot")
     }
 
     private func potTarget(_ fraction: Double) -> Int {

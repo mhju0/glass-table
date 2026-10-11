@@ -2,7 +2,8 @@
 import SwiftUI
 import GlassTableDrills
 
-/// Static term list from docs/glossary.md — only terms the app actually uses.
+/// Static term list from docs/glossary.md — only terms the app actually uses,
+/// ordered from the first words a beginner meets to the advanced ones.
 /// Always the whole list from the top, with no term singled out: a drill's 용어 chip
 /// opens the same plain reference Settings does.
 struct GlossaryView: View {
@@ -18,53 +19,53 @@ struct GlossaryView: View {
     }
 
     private static let terms: [Term] = [
+        Term(id: "chip", korean: "칩", english: "Chip",
+             koreanDefinition: "테이블에서 주고받는 점수 단위예요. 작은 블라인드가 1칩, 큰 블라인드가 2칩을 먼저 내요.",
+             englishDefinition: "The unit players put in and win at the table. The small blind posts 1 chip and the big blind 2."),
+        Term(id: "big-blind", korean: "bb", english: "Big blind",
+             koreanDefinition: "큰 블라인드 한 번의 크기를 1로 보는 단위예요. 블라인드 크기가 달라도 스택과 팟을 같은 기준으로 비교할 수 있어요.",
+             englishDefinition: "A chip unit equal to one big blind. It lets you compare stacks and pots across blind sizes."),
+        Term(id: "range", korean: "레인지", english: "Range",
+             koreanDefinition: "상대의 패를 한 가지로 찍지 않고, 이 상황에서 가질 수 있는 모든 패를 묶어서 생각하는 방법이에요.",
+             englishDefinition: "The set of hands someone could hold in this situation, instead of one exact guess."),
+        Term(id: "combo", korean: "콤보", english: "Combo",
+             koreanDefinition: "같은 종류의 패를 만드는 실제 카드 조합의 수예요. 페어는 6가지, 같은 무늬는 4가지, 다른 무늬는 12가지예요.",
+             englishDefinition: "One specific two-card holding. A pair has 6 combinations, suited cards 4, and offsuit cards 12."),
         Term(id: "equity", korean: "에퀴티", english: "Equity",
-             koreanDefinition: "쇼다운에서 받을 팟의 평균 몫입니다. 무승부 몫도 포함합니다.",
+             koreanDefinition: "끝까지 갔을 때 평균적으로 가져가는 팟의 몫이에요. 비기는 경우의 몫도 들어가요.",
              englishDefinition: "Your average share of the pot at showdown, including ties."),
         Term(id: "pot-odds", korean: "팟 오즈", english: "Pot odds",
-             koreanDefinition: "콜 금액 대비 팟이 주는 가격. 콜이 손해가 아니려면 에퀴티가 필요한 비율 이상이어야 합니다.",
+             koreanDefinition: "콜에 드는 칩과 이기면 받는 팟을 비교한 가격이에요. 에퀴티가 이 가격이 요구하는 비율보다 높아야 콜이 손해가 아니에요.",
              englishDefinition: "The price of a call compared with the pot you could win. Compare it with your equity."),
         Term(id: "required-equity", korean: "필요 에퀴티", english: "Required equity",
-             koreanDefinition: "벳 ÷ (팟 + 벳 + 콜). 이 비율이면 본전이고, 더 높으면 콜이 이득입니다.",
+             koreanDefinition: "콜 금액 ÷ (팟 + 벳 + 콜)이에요. 에퀴티가 이 비율이면 본전이고, 더 높으면 콜이 이득이에요.",
              englishDefinition: "Call amount ÷ pot after your call. Your equity must reach this share for a no-further-bet call to break even."),
-        Term(id: "mdf", korean: "MDF", english: "Minimum defense frequency",
-             koreanDefinition: "팟 ÷ (팟 + 벳). 상대 블러프가 자동 이익이 되지 않게 지켜야 할 최소 방어 빈도입니다.",
-             englishDefinition: "Pot ÷ (pot + bet). An overall frequency of continuing that stops an empty bet from winning automatically."),
         Term(id: "outs", korean: "아웃", english: "Outs",
-             koreanDefinition: "다음 공용 카드 중 내 핸드가 상대를 단독으로 이기게 되는 카드의 수입니다.",
+             koreanDefinition: "다음 공용 카드 가운데 내 패가 상대를 확실히 이기게 해 주는 카드의 수예요.",
              englishDefinition: "The number of next shared cards where your hand wins outright against the opponent."),
         Term(id: "rule-of-2-4", korean: "룰 오브 2/4", english: "Rule of 2/4",
-             koreanDefinition: "아웃 × 2%(카드 1장) 또는 × 4%(카드 2장)로 개선 확률을 빠르게 근사합니다.",
+             koreanDefinition: "아웃에 2%(카드 1장 남음)나 4%(카드 2장 남음)를 곱해서 패가 좋아질 확률을 빠르게 어림해요.",
              englishDefinition: "A quick estimate: outs × 2% with one card to come, or outs × 4% with two."),
         Term(id: "blocker", korean: "블로커", english: "Blocker",
-             koreanDefinition: "내가 들고 있어서 상대가 특정 핸드를 가질 콤보 수를 줄이는 카드입니다.",
+             koreanDefinition: "내가 들고 있어서 상대가 특정 패를 가질 조합 수를 줄여 주는 카드예요.",
              englishDefinition: "A card you hold that reduces the ways your opponent can hold a particular hand."),
-        Term(id: "combo", korean: "콤보", english: "Combo",
-             koreanDefinition: "핸드 클래스의 구체적 조합 수. 페어 6개, 수티드 4개, 오프수트 12개.",
-             englishDefinition: "One specific two-card holding. A pair has 6 combinations, suited cards 4, and offsuit cards 12."),
-        Term(id: "range", korean: "레인지", english: "Range",
-             koreanDefinition: "한 손이 아니라, 이 상황에서 가질 수 있는 모든 핸드의 집합으로 생각합니다.",
-             englishDefinition: "The set of hands someone could hold in this situation, instead of one exact guess."),
-        Term(id: "grade-bands", korean: "정확 · 근접 · 다시 살펴볼까요?", english: "Spot-on · Close · Review",
-             koreanDefinition: "추정 오차 등급. 정답 맞추기가 아니라 감각을 보정(캘리브레이션)하는 훈련입니다.",
-             englishDefinition: "Bands for estimation error. They help calibrate a guess; Close does not mean exact."),
-        // The revamp's vocabulary — VPIP/PFR sit on the 테이블 picker, 3벳 and bb on
-        // every priced screen, so the glossary owes each a sentence.
+        // The revamp's vocabulary — VPIP/PFR sit on the 테이블 picker, 3벳 on every
+        // priced screen, so the glossary owes each a sentence.
+        Term(id: "three-bet", korean: "3벳", english: "3-bet",
+             koreanDefinition: "첫 레이즈에 다시 레이즈하는 거예요. 블라인드가 첫 번째 벳, 첫 레이즈가 두 번째라서 3벳이라고 불러요.",
+             englishDefinition: "A raise over the first raise. The blind is the first bet, the opener the second, and this the third."),
+        Term(id: "mdf", korean: "MDF", english: "Minimum defense frequency",
+             koreanDefinition: "팟 ÷ (팟 + 벳)이에요. 상대의 블러프가 저절로 이득이 되지 않도록 계속 받아 줘야 하는 최소 비율이에요.",
+             englishDefinition: "Pot ÷ (pot + bet). An overall frequency of continuing that stops an empty bet from winning automatically."),
         Term(id: "vpip", korean: "VPIP", english: "Voluntarily put in pot",
-             koreanDefinition: "자발적으로 팟에 돈을 넣은 핸드의 비율. 상대가 얼마나 넓게 들어오는지를 나타냅니다.",
+             koreanDefinition: "스스로 팟에 칩을 넣은 판의 비율이에요. 상대가 얼마나 많은 패로 참여하는지 보여 줘요.",
              englishDefinition: "The share of hands where a player chooses to add chips before the shared cards. Forced blinds do not count."),
         Term(id: "pfr", korean: "PFR", english: "Preflop raise",
-             koreanDefinition: "프리플랍에서 레이즈한 핸드의 비율. VPIP와의 차이가 크면 콜만 많이 하는 수동적인 상대입니다.",
+             koreanDefinition: "프리플랍에서 레이즈한 판의 비율이에요. VPIP와 차이가 크면 콜을 많이 하는 상대예요.",
              englishDefinition: "The share of hands where a player raises before the shared cards. A large VPIP–PFR gap means more calls."),
-        Term(id: "three-bet", korean: "3벳", english: "3-bet",
-             koreanDefinition: "오픈 레이즈에 다시 레이즈하는 것. 블라인드가 첫 벳, 오픈이 두 번째라서 3벳입니다.",
-             englishDefinition: "A raise over the first raise. The blind is the first bet, the opener the second, and this the third."),
-        Term(id: "big-blind", korean: "bb", english: "Big blind",
-             koreanDefinition: "빅 블라인드를 1로 두는 금액 단위. 스택과 팟 크기를 블라인드 레벨과 무관하게 비교할 수 있습니다.",
-             englishDefinition: "A chip unit equal to one big blind. It lets you compare stacks and pots across blind sizes."),
-        Term(id: "chip", korean: "칩", english: "Chip",
-             koreanDefinition: "팟 계산 연습에서 쓰는 정수 단위. 이 연습은 SB 1칩, BB 2칩으로 시작합니다.",
-             englishDefinition: "The whole-number unit in pot-counting practice. The small blind posts 1 chip and the big blind 2."),
+        Term(id: "grade-bands", korean: "정확 · 근접 · 다시 살펴볼까요?", english: "Spot-on · Close · Review",
+             koreanDefinition: "어림한 값이 실제와 얼마나 가까운지 나타내는 등급이에요. 정답 맞히기보다 감각을 맞춰 가는 연습이에요.",
+             englishDefinition: "Bands for estimation error. They help calibrate a guess; Close does not mean exact."),
     ]
 
     static func displayName(for focus: String, language: LearningLanguage) -> String {

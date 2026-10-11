@@ -107,7 +107,7 @@ public struct EVLossSpot: Equatable {
 
     /// What he opened with. Printable, which is the point.
     public var villainRange: HandRange { villain.raiseRange(from: villainSeat) }
-    public var rangeLabel: String { "\(villainSeat.rawValue) 오픈 · \(villain.name)" }
+    public var rangeLabel: String { "\(villainSeat.rawValue) 오픈 · \(villain.beginnerTitle(in: .korean))" }
 
     public func rangeLabel(in language: LearningLanguage) -> String {
         language.text(rangeLabel, "\(villainSeat.rawValue) opens · \(villain.beginnerTitle(in: language))")

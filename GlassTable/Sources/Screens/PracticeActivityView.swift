@@ -36,7 +36,9 @@ struct PracticeActivityView: View {
             } else {
                 HStack(alignment: .top, spacing: 4) { dates }
             }
-            FeltCTAButton(title: language.text("이어서 배우기", "Continue learning"), action: onContinue)
+            FeltCTAButton(title: overview.mainCourseCompletedLessons >= overview.mainCourseLessonCount
+                          ? language.text("다시 연습하기", "Practice again")
+                          : language.text("이어서 배우기", "Continue learning"), action: onContinue)
                 .accessibilityIdentifier("records-continue")
             DisclosureGroup(language.text("기록은 어떻게 세나요?", "What counts as practice?")) {
                 Text(language.text("레슨, 한 가지 연습, 복습에서 답을 제출한 날짜를 세요. 예시 보기와 자유 대전은 포함하지 않아요. 레슨 완료와 실력은 다른 기록이에요.",

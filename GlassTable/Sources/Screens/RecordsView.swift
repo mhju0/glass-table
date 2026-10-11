@@ -113,7 +113,7 @@ struct RecordsView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(skillNames(topic.concept, language: language, termsLead: false).lead)
                                 .font(GT.semibold(16)).foregroundStyle(GT.onFelt)
-                            Text(topic.lastPracticedDay.raw).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                            Text(friendlyDay(topic.lastPracticedDay, in: activity)).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                         }
                         Spacer(minLength: 8)
                         Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
@@ -130,6 +130,19 @@ struct RecordsView: View {
                 }
             }
         }
+    }
+
+    /// "오늘", "어제" or a month-and-day date. The stored key is an ISO day, which
+    /// reads as data rather than as a date.
+    private func friendlyDay(_ day: DayKey, in activity: PracticeActivityOverview) -> String {
+        if let today = activity.last7.firstIndex(where: \.isToday) {
+            if activity.last7[today].day == day { return language.text("오늘", "Today") }
+            if today > 0, activity.last7[today - 1].day == day { return language.text("어제", "Yesterday") }
+        }
+        let parts = day.raw.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3, (1...12).contains(parts[1]) else { return day.raw }
+        let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        return language.text("\(parts[1])월 \(parts[2])일", "\(months[parts[1] - 1]) \(parts[2])")
     }
 
     private var learningPathCard: some View {
@@ -157,15 +170,7 @@ struct RecordsView: View {
         .accessibilityIdentifier("records-learning-path")
     }
 
-    private func trackTitle(_ id: LearningTrack.ID) -> String {
-        switch id {
-        case .basics: language.text("카드와 게임", "Cards & play")
-        case .startingHands: language.text("첫 선택", "First decisions")
-        case .priceAndChance: language.text("칩과 확률", "Chips & chance")
-        case .readingOpponents: language.text("상대 읽기", "Reading opponents")
-        case .deeper: language.text("더 알아보기", "Go deeper")
-        }
-    }
+    private func trackTitle(_ id: LearningTrack.ID) -> String { id.title(in: language) }
 
     private func headline(now: Date) -> some View {
         Group {
@@ -612,8 +617,8 @@ struct RecordsView: View {
 
     private func tierWord(_ t: MasteryTier) -> String {
         switch t {
-        case .attempted:  return language.text("기록 시작", "Started")
-        case .familiar:   return language.text("반복 중", "Practicing")
+        case .attempted:  return language.text("막 시작했어요", "Just started")
+        case .familiar:   return language.text("익히는 중", "Getting familiar")
         case .proficient: return language.text("능숙 단계", "Strong in app")
         case .mastered:   return language.text("숙달 단계", "Mastered in app")
         }

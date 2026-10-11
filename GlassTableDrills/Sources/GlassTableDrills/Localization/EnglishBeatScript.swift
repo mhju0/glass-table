@@ -169,9 +169,9 @@ enum EnglishBeatScript {
     }
 
     static func potOdds(_ s: BetSpot) -> [Beat] {
-        [Beat("Price of the call", value: "\(s.bet)bb",
-              detail: "The pot has \(s.pot)bb before the bet."),
-         Beat("Whole pot after you call", value: "\(s.pot + s.bet * 2)bb",
+        [Beat("Price of the call", value: "\(s.bet) chips",
+              detail: "The pot has \(s.pot) chips before the bet."),
+         Beat("Whole pot after you call", value: "\(s.pot + s.bet * 2) chips",
               detail: "Pot \(s.pot) + their bet \(s.bet) + your call \(s.bet)."),
          Beat("Break-even equity", value: "\(pctText(s.requiredPct))%",
               detail: "Your call ÷ the whole pot. Compare equity: wins plus your share of ties.")]

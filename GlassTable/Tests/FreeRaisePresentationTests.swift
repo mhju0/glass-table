@@ -7,7 +7,7 @@ struct FreeRaisePresentationTests {
         let sizing = FreeRaisePresentation(street: .preflop, minimum: 4, maximum: 100,
                                            committed: 0, currentBet: 2, pot: 3, toCall: 2)
         #expect(sizing.presets.map(\.amount) == [4, 5, 6, 8, 100])
-        #expect(sizing.context(amount: 7, language: .english) == "7 from your stack · 3.5 big blinds")
+        #expect(sizing.context(amount: 7, language: .english) == "7 from your chips · 3.5× the big blind (2)")
     }
 
     @Test func facingRaiseRetainsDuplicateTargetsAndOddAmounts() throws {
@@ -16,7 +16,7 @@ struct FreeRaisePresentationTests {
         #expect(sizing.presets.map(\.amount) == [10, 12, 16, 12, 100])
         #expect(sizing.presets[1].english == "3×")
         #expect(sizing.presets[3].english == "Pot")
-        #expect(sizing.context(amount: 7, language: .english) == "5 from your stack · 3.5 big blinds")
+        #expect(sizing.context(amount: 7, language: .english) == "5 from your chips · 1.8× the bet of 4")
         var table = PracticeTableState(seed: 31, styles: [.station])
         try table.apply(.call, actionID: "hero-call")
         try table.apply(.raise(to: 4), actionID: "computer-raise")
@@ -29,11 +29,11 @@ struct FreeRaisePresentationTests {
                                         committed: 0, currentBet: 0, pot: 18, toCall: 0)
         #expect(bet.presets.map(\.amount) == [6, 9, 14, 18, 100])
         #expect(bet.title(amount: 9, language: .korean) == "9칩 벳")
-        #expect(bet.context(amount: 14, language: .english) == "14 from your stack · 78% of pot")
+        #expect(bet.context(amount: 14, language: .english) == "14 from your chips · 78% of pot")
         let raise = FreeRaisePresentation(street: .turn, minimum: 24, maximum: 100,
                                           committed: 6, currentBet: 12, pot: 30, toCall: 6)
         #expect(raise.presets.map(\.amount) == [24, 30, 39, 48, 100])
-        #expect(raise.context(amount: 30, language: .english) == "24 from your stack · 50% of pot")
+        #expect(raise.context(amount: 30, language: .english) == "24 from your chips · 50% of pot")
     }
 
     @Test func IllegalPresetsStayUnclamped() {

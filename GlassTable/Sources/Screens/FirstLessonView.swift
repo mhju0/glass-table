@@ -405,7 +405,7 @@ struct FirstLessonView: View {
         case .comparison(let i), .comparisonAnswer(let i): return language.text("비교 \(i + 3)/5", "Comparison \(i + 3)/5")
         case .actions: return language.text("내 차례의 행동", "Actions on your turn")
         case .wrapUp: return language.text("안내 마치기", "Finish the guide")
-        default: return rulePage.map { "\($0)/4" }
+        default: return rulePage.map { language.text("테이블 규칙 \($0)/4", "Table rules \($0)/4") }
         }
     }
 
@@ -541,9 +541,10 @@ struct FirstLessonView: View {
             intro(language.text("같은 숫자 두 장이 페어예요", "Two matching ranks make a pair"),
                   language.text("페어는 한 쌍이 없는 패보다 강해요. 다음에는 두 패를 직접 비교해 봐요.",
                                 "A pair beats a hand with no pair. Next, compare two hands yourself."), identifier: "firstLesson.teachPair.heading")
-            LessonPairedText(korean: ["A, K, Q, J도 같은 글자", "두 장이면 페어예요."],
-                             english: ["A, K, Q and J count too:", "two matching letters make a pair."])
+            Text(language.text("A, K, Q, J도 같은 글자 두 장이면 페어예요.",
+                               "A, K, Q and J count too: two matching letters make a pair."))
                 .font(GT.body(17)).foregroundStyle(GT.onFeltSecondary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("firstLesson.teachPair.letters")
         }
     }
@@ -570,14 +571,7 @@ struct FirstLessonView: View {
                 .accessibilityIdentifier(identifier)
                 .font(GT.title(28)).foregroundStyle(GT.onFelt)
                 .accessibilityAddTraits(.isHeader)
-            Group {
-                switch identifier {
-                case "firstLesson.teachPair.heading":
-                    LessonPairedText(korean: ["페어는 한 쌍이 없는 패보다 강해요.", "다음에는 두 패를", "직접 비교해 봐요."],
-                                     english: ["A pair beats a hand with no pair.", "Next, compare", "two hands yourself."])
-                default: Text(body).fixedSize(horizontal: false, vertical: true)
-                }
-            }
+            Text(body).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier(identifier.replacingOccurrences(of: ".heading", with: ".body"))
                 .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                 .lineSpacing(GT.Typography.bodyLineSpacing)
@@ -629,7 +623,12 @@ struct FirstLessonView: View {
                     VStack(spacing: 10) { blindTokens }
                 }
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(language.text("SB 1칩, BB 2칩, 팟 3칩", "SB 1 chip, BB 2 chips, pot 3 chips"))
+                .accessibilityLabel(language.text("작은 블라인드 1칩, 큰 블라인드 2칩, 팟 3칩",
+                                                  "Small blind 1 chip, big blind 2 chips, pot 3 chips"))
+                Text(language.text("SB는 작은 블라인드, BB는 큰 블라인드예요.",
+                                   "SB is the small blind; BB is the big blind."))
+                    .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 VStack(spacing: 9) {
                     SectionLabel(text: copy(.heroCards))
                     CardRow(cards: HoldemBasics.hole)
@@ -922,31 +921,16 @@ struct FirstLessonView: View {
                     .font(GT.title(28)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
-                Group {
-                    switch comparisonRule {
-                    case .pairOverHighCard:
-                        LessonPairedText(korean: ["같은 숫자나 글자 두 장이", "페어예요.", "페어는 한 쌍이 없는 패보다 강해요."],
-                                         english: ["Two matching numbers or letters", "make a pair.", "A pair beats a hand with no pair."])
-                    case .higherPair:
-                        LessonPairedText(korean: ["둘 다 페어이면 높이를 비교해요.", "A, K, Q, J, 10 순서로 높아요."],
-                                         english: ["Compare each pair’s rank.", "Ace, king, queen, jack, then ten."])
-                    case .trips:
-                        LessonPairedText(korean: ["같은 숫자 세 장은 트리플이에요.", "트리플은 원페어·투페어보다 강해요.", "내 카드와 공용 카드를 함께 봐요."],
-                                         english: ["Three matching ranks make trips.", "Trips beat one pair and two pair.", "Use your cards and shared cards."])
-                    case .straight:
-                        LessonPairedText(korean: ["연속된 숫자 5장은 스트레이트예요.", "무늬는 달라도 되고 트리플보다 강해요.", "A는 A·2·3·4·5에서 낮게도 쓰여요."],
-                                         english: ["Five consecutive ranks make a straight.", "It beats trips; suits do not matter.", "An ace can be low in A, 2, 3, 4, 5."])
-                    case .flush:
-                        LessonPairedText(korean: ["같은 무늬 5장은 플러시예요.", "숫자가 이어질 필요는 없어요.", "플러시는 스트레이트보다 강해요.", "7장 중 가장 좋은 5장을 찾아보세요."],
-                                         english: ["Five cards of one suit make a flush.", "Ranks need not be consecutive.", "A flush beats a straight.", "Find your best five out of seven cards."])
-                    }
-                }
+                Text(comparisonRuleText)
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("firstLesson.rule")
-                LessonPairedText(korean: ["이길 패를 골라요.", "설명부터 봐도 괜찮아요."],
-                                 english: ["Choose the winning hand,", "or see the explanation first."])
+                // The offer to see the answer first is made once, on the first comparison.
+                Text(step == .example
+                     ? language.text("이길 패를 골라요. 설명부터 봐도 괜찮아요.",
+                                     "Choose the winning hand, or see the explanation first.")
+                     : language.text("이길 패를 골라요.", "Choose the winning hand."))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("firstLesson.question")
@@ -1145,11 +1129,9 @@ struct FirstLessonView: View {
         if spot.winner != 2, spot.heroBest != spot.villainBest {
             let winner = spot.winner == 0 ? spot.heroBest : spot.villainBest
             let loser = spot.winner == 0 ? spot.villainBest : spot.heroBest
-            LessonPairedText(
-                korean: [KO.subject(DrillTerms.hand(winner, in: .korean)),
-                         "\(DrillTerms.hand(loser, in: .korean))보다 강해요."],
-                english: [DrillTerms.hand(winner, in: .english),
-                          "beats \(DrillTerms.hand(loser, in: .english))."])
+            Text(language.text(
+                "\(KO.subject(DrillTerms.hand(winner, in: .korean))) \(DrillTerms.hand(loser, in: .korean))보다 강해요.",
+                "\(DrillTerms.hand(winner, in: .english)) beats \(DrillTerms.hand(loser, in: .english))."))
         } else {
             Text(gradeShowdown(answer: spot.winner, spot: spot, language: language).whyText)
         }

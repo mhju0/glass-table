@@ -144,8 +144,8 @@ struct PlayView: View {
                              emphasized: true)
             } else {
                 TapCardLabel(title: language.text("자유 대전", "Free table"),
-                             detail: language.text("컴퓨터와 한 판을 치고 선택을 돌아봐요. EV 채점은 없어요.",
-                                                   "Play a hand, then review your choices. No EV grade."),
+                             detail: language.text("컴퓨터와 한 판을 치고 선택을 돌아봐요. 점수는 매기지 않아요.",
+                                                   "Play a hand, then review your choices. Nothing is graded."),
                              emphasized: true)
             }
         }
@@ -162,8 +162,8 @@ struct PlayView: View {
     private var gradedCard: some View {
         Button { showGraded = true } label: {
             TapCardLabel(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
-                         detail: language.text("행동을 고른 뒤 공개 차트나 평균 손익 기준을 확인해요.",
-                                               "Choose an action, then inspect its chart or EV grade."))
+                         detail: language.text("컴퓨터 한 명과 치면서, 고른 행동이 얼마나 좋았는지 바로 확인해요.",
+                                               "Play one opponent and see right away how good each choice was."))
         }
         .buttonStyle(GTPress())
         .accessibilityIdentifier("play-graded")
@@ -221,6 +221,12 @@ struct PlayTableGuideList: View {
             ("arrow.up.arrow.down", language.text("행동의 가격", "What each action costs"),
              language.text("폴드는 무료로 핸드를 떠나요. 콜은 버튼에 적힌 칩을 내고, 레이즈는 가격을 더 올려요.",
                            "Folding leaves the hand for free. Calling pays the chips on the button; raising sets a higher price.")),
+            ("circle.fill", language.text("자리 옆 칩", "Chips beside a seat"),
+             language.text("자리 옆 작은 칩과 숫자는 그 사람이 이번 베팅에서 이미 낸 칩이에요. 처음 두 사람은 카드를 받기 전에 1칩, 2칩(블라인드)을 내요.",
+                           "The small chip and number beside a seat are what that player has put in this round. The first two players post 1 and 2 chips (the blinds) before the cards.")),
+            ("minus", language.text("버튼 아래 색", "Colour under each button"),
+             language.text("회색은 포기, 주황은 그대로 따라가기, 초록은 금액을 올리는 선택이에요.",
+                           "Grey gives up, amber stays in for the same price, green raises the price.")),
             ("lightbulb", language.text("계산", "Math"),
              language.text("계산 버튼은 필요할 때만 열어요. 내 핸드와 콜 가격 같은 사실을 보여 주고, 무엇을 고를지는 정해 주지 않아요.",
                            "Open Math only when you want it. It shows facts like your hand and the price to call, never a pick.")),

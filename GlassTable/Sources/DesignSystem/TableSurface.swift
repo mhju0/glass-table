@@ -35,6 +35,8 @@ struct TableCenter {
     var reservesBoard = false
     /// `nil` keeps the total hidden; the label then only names the pot.
     var potTotal: String?
+    /// Spoken in place of "Pot, <potTotal>" when the visible text already names the pot.
+    var potSpoken: String?
 }
 
 /// The one table used wherever seats and actions matter: pot counting and Play.
@@ -456,7 +458,8 @@ struct TableSurface: View {
             }
             .background { anchorProbe(.pot) }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(center.potTotal.map { language.text("팟 \($0)", "Pot, \($0)") }
+            .accessibilityLabel(center.potSpoken
+                ?? center.potTotal.map { language.text("팟 \($0)", "Pot, \($0)") }
                 ?? language.text("가운데 칩. 팟 총액은 아직 숨겨져 있어요",
                                  "Center chips. The pot total is hidden for now"))
             .accessibilityIdentifier("table-pot")

@@ -152,7 +152,11 @@ struct PathView: View {
         let startsTrack = status != .cleared
             && Curriculum.tracks.contains { !$0.isOptional && $0.lessons.first == node }
         let tag = challenge ? language.text("선택 도전 · 섞어 풀기", "Optional challenge · mixed")
-            : names.map { startsTrack ? language.text("여기서 시작 · \($0.tag)", "Start here · \($0.tag)") : $0.tag }
+            : names.map {
+                // In plain-words mode the tag is the poker term, so it is labelled as one.
+                let tag = termsLead ? $0.tag : language.text("용어: \($0.tag)", "Term: \($0.tag)")
+                return startsTrack ? language.text("여기서 시작 · \(tag)", "Start here · \(tag)") : tag
+            }
         return Button {
             if status != .cleared, !Curriculum.unfinishedGroundwork(for: node, in: model.state).isEmpty {
                 early = node
@@ -225,8 +229,8 @@ struct PathView: View {
         let record = model.record(for: concept)
         guard record.total > 0 else { return nil }
         switch record.tier {
-        case .attempted: return language.text("기록 시작", "Started")
-        case .familiar: return language.text("반복 중", "Building familiarity")
+        case .attempted: return language.text("막 시작했어요", "Just started")
+        case .familiar: return language.text("익히는 중", "Getting familiar")
         case .proficient: return language.text("능숙 단계", "Practiced")
         case .mastered: return language.text("숙달 단계", "Mixed checks passed")
         }

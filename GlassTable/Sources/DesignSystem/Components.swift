@@ -59,16 +59,28 @@ struct ThreeRegionCardTable: View {
     var opponentTitle = "상대 카드"
     var heroTitle = "내 카드"
     var highlight: [Card] = []
+    /// Both hands share one row above the board. Three stacked regions push the
+    /// learner's own cards under a tall answer panel on a small phone.
+    var sideBySide = false
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
-        VStack(spacing: 0) {
-            region(opponentTitle == "상대 카드" ? language.text("상대 카드", "Opponent's cards") : opponentTitle,
-                   cards: opponent)
-            boundary
-            region(language.text("공용 카드", "Shared cards"), cards: board)
-            boundary
-            region(heroTitle == "내 카드" ? language.text("내 카드", "My cards") : heroTitle,
-                   cards: hero)
+        let opponentRegion = region(opponentTitle == "상대 카드" ? language.text("상대 카드", "Opponent's cards") : opponentTitle,
+                                    cards: opponent)
+        let heroRegion = region(heroTitle == "내 카드" ? language.text("내 카드", "My cards") : heroTitle,
+                                cards: hero)
+        return VStack(spacing: 0) {
+            if sideBySide && !typeSize.isAccessibilitySize {
+                HStack(alignment: .top, spacing: 12) { heroRegion; opponentRegion }
+                boundary
+                region(language.text("공용 카드", "Shared cards"), cards: board)
+            } else {
+                opponentRegion
+                boundary
+                region(language.text("공용 카드", "Shared cards"), cards: board)
+                boundary
+                heroRegion
+            }
         }
         .frame(maxWidth: .infinity)
     }

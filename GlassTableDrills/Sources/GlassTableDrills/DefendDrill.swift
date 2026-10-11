@@ -69,7 +69,7 @@ public func gradeDefend(chosen: DefendAction, spot: DefendSpot,
     // The numbers derive from the same constants the chart uses (spec §4.3) — the
     // reveal shows the rule, not just the verdict.
     let why = language.text(
-        "\(spot.opener.plainName(in: language)) 자리는 상위 \(pctText(openPct))%로 먼저 올려요. "
+        "\(spot.opener.plainName(in: language)): 상위 \(pctText(openPct))%로 먼저 올려요. "
         + "그 폭의 상위 \(pctText(openPct * DefendChart.threeBetShare))%는 다시 올리고(3벳), "
         + "\(pctText(openPct * DefendChart.defendShare))%까지는 콜이에요. "
         + "\(KO.topic(spot.handClass.description)) \(correct.rawValue) 밴드예요.",

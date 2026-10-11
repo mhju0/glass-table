@@ -2,8 +2,8 @@
 import SwiftUI
 import GlassTableDrills
 
-/// Pot counting on the shared table. Seats show who is acting and who folded, never
-/// a running total: the learner adds the actions. The middle names the total only
+/// Pot counting on the shared table. Seats show who is acting, who folded and each
+/// separate addition, never a running total: the learner adds the actions. The middle names the total only
 /// once `revealedPot` is set, after the answer. `showsPaidTotals` is the help the
 /// learner opts into: each seat shows what it has paid so far, and the question then
 /// counts as practice with help.
@@ -104,9 +104,14 @@ struct PotMathReplayView: View {
             }
             let shown = steps.prefix(visibleStepIndex + 1)
             let folded = shown.contains { $0.actor == actor && $0.kind == .fold }
-            let paid = shown.filter { $0.actor == actor }.reduce(0) { $0 + $1.addedChips }
+            let additions = shown.filter { $0.actor == actor && $0.addedChips > 0 }
+                .map(\.addedChips)
+            let paid = additions.reduce(0, +)
+            // Each addition stays visible so the task is adding, not remembering.
             let paidText = showsPaidTotals
-                ? language.text("낸 칩 \(paid)", "Paid \(paid)") : nil
+                ? language.text("낸 칩 \(paid)", "Paid \(paid)")
+                : additions.isEmpty ? nil
+                : additions.map { "+\($0)" }.joined(separator: " ")
             let foldText = folded ? language.text("폴드", "Folded") : nil
             let status = [foldText, paidText].compactMap { $0 }.joined(separator: " · ")
             return TableSeat(id: actor.rawValue, place: place, name: actorName(actor),

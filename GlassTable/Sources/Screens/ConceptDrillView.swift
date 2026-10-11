@@ -750,7 +750,7 @@ private struct ShowdownDrill: View {
                                                     : language.text("상대 카드", "Opponent's cards"),
                 heroTitle: reveal?.winner == 0 ? language.text("내 카드 · 승", "Your cards · won")
                                             : language.text("내 카드", "Your cards"),
-                highlight: winningFive)
+                highlight: winningFive, sideBySide: true)
                 if reveal != nil {
                     Text(language.text("각자 7장 중 가장 좋은 다섯 장으로 비교해요. 내 카드는 0장, 1장, 2장 모두 가능해요.",
                                        "Compare each player's best five of seven. Your hand can use neither, one or both of your cards."))
@@ -986,7 +986,7 @@ private struct PotMathChoicesView: View {
     private var reachedLastAction: Bool { stepIndex >= spot.replaySteps.count - 1 }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             // Stays at the last action too, so the sheet never changes height mid-question.
             Label(reachedLastAction
                   ? language.text("이제 답을 고를 수 있어요.", "Now choose an answer.")
@@ -1430,8 +1430,8 @@ private struct EVCallDrill: View {
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(simple
-                        ? language.text("이 콜을 여러 번 하면 평균 몇 bb를 얻거나 잃을까요? (EV)",
-                                        "Over many tries, how many bb does this call win or lose on average? (its EV)")
+                        ? language.text("이 콜을 여러 번 하면 평균 몇 bb를 얻거나 잃을까요? 가장 가까운 값을 골라요. (EV)",
+                                        "Over many tries, how many bb does this call win or lose on average? Pick the closest value. (its EV)")
                         : language.text("이 콜의 EV는 몇 bb인가요?",
                                         "What is this call's EV in bb?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
@@ -2502,7 +2502,7 @@ private struct RangeAdvantageDrill: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(language.text("\(spot.openerSeat.rawValue) 오픈 3bb",
                                        "\(spot.openerSeat.rawValue) raises first to 3bb"))
-                    Text(language.text("\(spot.callerSeat.rawValue) 콜 · \(spot.caller.name)",
+                    Text(language.text("\(spot.callerSeat.rawValue) 콜 · \(spot.caller.beginnerTitle(in: .korean))",
                                        "\(spot.callerSeat.rawValue) calls · \(spot.caller.beginnerTitle(in: language))"))
                 }
                 .font(GT.semibold(14)).foregroundStyle(GT.onFelt)

@@ -348,6 +348,14 @@ struct HoldemBasicsView: View {
                 onFinish(startsCourse)
             }
             .accessibilityIdentifier("basics.finish")
+            if !correct {
+                // A miss gets a fresh pair of hands, since this one is already explained.
+                SecondaryCTAButton(title: language.text("다른 문제로 다시 풀기", "Try another one")) {
+                    variationSeed += 1
+                    answer = nil
+                }
+                .accessibilityIdentifier("basics.retry")
+            }
         }
     }
 }

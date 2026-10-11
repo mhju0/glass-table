@@ -316,9 +316,9 @@ public enum BeatScript {
     public static func potOdds(_ s: BetSpot, language: LearningLanguage = .korean) -> [Beat] {
         if language == .english { return EnglishBeatScript.potOdds(s) }
         return [
-            Beat("콜 가격", value: "\(s.bet)bb",
-                 detail: "상대가 벳하기 전 팟은 \(s.pot)bb예요."),
-            Beat("콜한 뒤 전체 팟", value: "\(s.pot + s.bet * 2)bb",
+            Beat("콜 가격", value: "\(s.bet)칩",
+                 detail: "상대가 벳하기 전 팟은 \(s.pot)칩이에요."),
+            Beat("콜한 뒤 전체 팟", value: "\(s.pot + s.bet * 2)칩",
                  detail: "팟 \(s.pot) + 상대 벳 \(s.bet) + 내 콜 \(s.bet)."),
             Beat("필요 에퀴티", value: "\(pctText(s.requiredPct))%",
                  detail: "내 콜 ÷ 전체 팟. 이기는 경우와 무승부 몫을 포함한 에퀴티가 이보다 높으면 콜해요."),
@@ -534,7 +534,7 @@ public enum BeatScript {
         let c = rangeOnBoard(s.callerRange, board: s.board)
         let eq = s.openerEquityPct
         let bars = [BucketBar(label: "\(s.openerSeat.rawValue) 오픈", distribution: o),
-                    BucketBar(label: "\(s.callerSeat.rawValue) 콜 · \(s.caller.name)",
+                    BucketBar(label: "\(s.callerSeat.rawValue) 콜 · \(s.caller.beginnerTitle(in: .korean))",
                               distribution: c)]
         return [
             Beat("보드", value: s.texture.summary,
@@ -545,7 +545,7 @@ public enum BeatScript {
                  detail: "먼저 들어온 쪽은 좁고 센 범위예요.",
                  focus: .rangeGrid(s.openerRange, highlight: nil)),
             Beat("콜러의 레인지", value: "전체의 \(pctText(s.callerRange.percent))%",
-                 detail: "\(KO.subject(s.caller.name)) 콜만 하는 구간이에요. 올리기에는 아까운 패들이에요. "
+                 detail: "\(KO.subject(s.caller.beginnerTitle(in: .korean))) 콜만 하는 구간이에요. 올리기에는 아까운 패들이에요. "
                        + "\(s.caller.blurb).",
                  focus: .rangeGrid(s.callerRange, highlight: nil)),
             // The bucket that actually separates them, not a fixed one — on many
@@ -586,7 +586,7 @@ public enum BeatScript {
         if language == .english { return EnglishBeatScript.actionRead(s) }
         let acted = s.acted
         let full = s.full
-        let bars = [BucketBar(label: "\(s.villain.name) 오픈 레인지 전체",
+        let bars = [BucketBar(label: "\(s.villain.beginnerTitle(in: .korean)) 오픈 레인지 전체",
                               distribution: full),
                     BucketBar(label: "\(s.action.rawValue) 이후",
                               distribution: acted.distribution)]
@@ -596,14 +596,14 @@ public enum BeatScript {
         }
         return [
             Beat("상황", value: "\(s.villainSeat.rawValue) 오픈 → \(s.actionLine)",
-                 detail: "\(s.villain.name): \(s.villain.blurb). "
+                 detail: "\(s.villain.beginnerTitle(in: .korean)): \(s.villain.blurb). "
                        + "\(s.texture.summary).",
                  focus: .table, highlight: s.board),
             Beat("상대 레인지", value: "상위 \(pctText(s.range.percent))%",
                  detail: "행동을 읽기 전의 출발점이에요. \(s.villainSeat.rawValue)에서 "
                        + "여는 범위 그대로.",
                  focus: .rangeGrid(s.range, highlight: nil)),
-            Beat("이 성향의 규칙", value: "\(s.villain.name)의 플랍",
+            Beat("이 성향의 규칙", value: "\(s.villain.beginnerTitle(in: .korean))의 플랍",
                  detail: "실제 상대는 섞어서 쳐요. 이 표는 성향을 규칙으로 단순화한 거예요 "
                        + "이 규칙을 이용하면 행동에서 남은 패를 거꾸로 읽을 수 있어요.",
                  focus: .actionList(ruleLines, lit: nil)),
@@ -670,7 +670,7 @@ public enum BeatScript {
             // claiming to know it (spec §3.1).
             Beat("상대 레인지", value: s.rangeLabel,
                  detail: "상대가 리버에서 어떻게 좁혔는지는 아직 안 따져요. "
-                       + "\(KO.subject(s.villain.name)) 이 자리에서 여는 범위 그대로예요.",
+                       + "\(KO.subject(s.villain.beginnerTitle(in: .korean))) 이 자리에서 여는 범위 그대로예요.",
                  focus: .rangeGrid(s.villainRange, highlight: nil)),
             Beat("이 레인지 상대로 내 에퀴티", value: "\(pctText(s.equityPct))%",
                  detail: "한 손이 아니라 저 범위 전체를 상대로 계산한 값이에요.",

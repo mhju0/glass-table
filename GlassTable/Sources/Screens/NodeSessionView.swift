@@ -506,23 +506,41 @@ struct NodeSessionView: View {
                         .accessibilityIdentifier("summary-skip-ahead")
                     }
                 }
-                FeltCTAButton(title: language.text("완료", "Done")) {
-                    let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
-                    if RatingPrompt.shouldRequest(milestones: milestones, version: version) {
-                        RatingPrompt.markRequested(version: version)
-                        requestReview()
+                // Finishing used to end on "Done" alone and send the learner back to find
+                // their own way. The next lesson is one tap from here.
+                if let onOpenLesson, let next = model.nextNode, next.id != node.id {
+                    FeltCTAButton(title: language.text("다음 레슨: \(learningNodeTitle(next, language: language))",
+                                                       "Next lesson: \(learningNodeTitle(next, language: language))")) {
+                        if let savedSession {
+                            _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
+                                expectedEpoch: sessionEpoch ?? model.epoch)
+                        }
+                        onOpenLesson(next)
                     }
-                    if let savedSession {
-                        _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
-                            expectedEpoch: sessionEpoch ?? model.epoch)
-                    }
-                    dismiss()
+                    .accessibilityIdentifier("summary-next-lesson")
+                    SecondaryCTAButton(title: language.text("완료", "Done"), action: finishSummary)
+                        .accessibilityIdentifier("summary-done")
+                } else {
+                    FeltCTAButton(title: language.text("완료", "Done"), action: finishSummary)
                 }
             }
             .gtContentEdge()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    private func finishSummary() {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        if RatingPrompt.shouldRequest(milestones: milestones, version: version) {
+            RatingPrompt.markRequested(version: version)
+            requestReview()
+        }
+        if let savedSession {
+            _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
+                expectedEpoch: sessionEpoch ?? model.epoch)
+        }
+        dismiss()
     }
 
     /// Read from saved progress, so a relaunch into this summary shows the same ones.

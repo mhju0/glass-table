@@ -303,7 +303,7 @@ final class FreeTableBackFlowTests: XCTestCase {
     private func reveal(_ target: XCUIElement, app: XCUIApplication, scroll: XCUIElement, windowBottomInset: CGFloat = 20) {
         XCTAssertTrue(target.waitForExistence(timeout: 5))
         let window = app.windows.firstMatch.frame
-        for _ in 0..<40 {
+        for _ in 0..<60 {
             let frame = target.frame
             let top = max(130, scroll.frame.minY)
             let bottom = min(window.maxY - windowBottomInset, scroll.frame.maxY)

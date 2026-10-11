@@ -393,7 +393,7 @@ private struct RestoredDrillContextView: View {
                                        : language.text("상대 카드", "Opponent's cards"),
             heroTitle: winner == 0 ? language.text("내 카드 · 승", "Your cards · won")
                                    : language.text("내 카드", "Your cards"),
-            highlight: winningFive)
+            highlight: winningFive, sideBySide: true)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(answerID)
     }
