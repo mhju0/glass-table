@@ -5,31 +5,21 @@ final class BeginnerReleaseTests: XCTestCase {
 
     private func app() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-glassTable.language", "english"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_TEST_FIRST_LESSON": "0"]
         return app
     }
 
-    func testLevelChipMovesTheSuggestionWithoutLockingAnything() {
+    func testLearnOffersLessonsWithoutAnExperienceQuestion() {
         let app = app()
         app.launch()
-        let chip = app.buttons["learn-level"]
-        XCTAssertTrue(chip.waitForExistence(timeout: 15))
-        XCTAssertEqual(chip.label, "My level: New player")
-        XCTAssertTrue(app.buttons["learn-basics-start"].exists, "A new player is led to the basics")
-        chip.tap()
-        let knows = app.buttons["Knows the rules"]
-        XCTAssertTrue(knows.waitForExistence(timeout: 5))
-        knows.tap()
-        XCTAssertTrue(app.staticTexts["Who acts first?"].waitForExistence(timeout: 5),
-                      "Someone who knows the rules starts at starting hands")
-        XCTAssertEqual(chip.label, "My level: Knows the rules")
+        XCTAssertTrue(app.buttons["learn-basics-start"].waitForExistence(timeout: 15))
+        XCTAssertFalse(app.buttons["learn-level"].exists)
         app.buttons["learn-path"].tap()
         let first = app.buttons["lesson-u1-showdown"]
         XCTAssertTrue(first.waitForExistence(timeout: 5))
-        XCTAssertTrue(first.label.contains("Start here"), "Each track's first lesson says where to start")
-        XCTAssertTrue(first.isEnabled, "Earlier lessons stay open")
+        XCTAssertTrue(first.isEnabled)
     }
 
     func testPokerTermsSwitchPutsTheTermFirst() {
@@ -59,7 +49,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertEqual(toggle.value as? String, "1")
     }
 
-    func testFourTabsAndPlacementRemainOptional() {
+    func testFourTabsWithoutExperienceQuestion() {
         let app = app()
         app.launch()
         let tabs = app.tabBars.buttons
@@ -83,10 +73,8 @@ final class BeginnerReleaseTests: XCTestCase {
                        "The starting-point check no longer lives on Learn")
         settings.tap()
         let recheck = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Recheck your starting point")).firstMatch
-        scrollTo(recheck, in: app)
-        recheck.tap()
-        XCTAssertTrue(app.buttons["Start without the check"].waitForExistence(timeout: 5))
-        app.buttons["Start without the check"].tap()
+        app.swipeUp()
+        XCTAssertFalse(recheck.exists)
         app.tabBars.buttons["Progress"].tap()
         XCTAssertFalse(app.staticTexts["100%"].exists)
         app.tabBars.buttons["Learn"].tap()
@@ -663,7 +651,8 @@ final class BeginnerReleaseTests: XCTestCase {
         let opponent = app.otherElements["equity-opponent-cards"]
         let board = app.otherElements["equity-board-cards"]
         let question = app.staticTexts["At showdown, what percentage is your wins plus your share of ties?"]
-        XCTAssertTrue(app.buttons["Check answer"].waitForExistence(timeout: 15))
+        let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "lesson-estimate-choice-")).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 15))
         XCTAssertTrue(hero.exists && opponent.exists && board.exists && question.exists)
         // ActionSheet places its question 12 + 4 + 13 points below the sheet edge.
         let answerSheetTop = question.frame.minY - 29

@@ -28,7 +28,6 @@ final class LearningFlowTests: XCTestCase {
             tap("firstLesson.next")
             if index == 2 {
                 XCTAssertFalse(app.buttons["firstLesson.finish"].exists)
-                tap("firstLesson.continueGuide")
             }
         }
         tap("firstLesson.next")

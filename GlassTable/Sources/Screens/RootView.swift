@@ -7,6 +7,7 @@ enum Tab: Hashable { case learn, play, progress, settings }
 struct RootView: View {
     @Environment(\.learningLanguage) private var language
     @State private var model = ProgressionModel()
+    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @State private var tab: Tab = .learn
     @State private var openNode: CurriculumNode?
     @State private var showFreePlay = false
@@ -46,6 +47,7 @@ struct RootView: View {
             if previous != nil, current == nil { routeSavedOpeningFinish() }
         }
         .onChange(of: model.epoch) { _, _ in pendingOpeningFinishEpoch = nil }
+        .preferredColorScheme(model.isShowingBrandWelcome ? .dark : appearance.colorScheme)
         .environment(model)
         .environment(\.leadsWithTerms, PokerTerms.lead(choice: termsChoice, level: level))
         .environment(\.simpleQuestions, level != .playRegularly)

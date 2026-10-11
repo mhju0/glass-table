@@ -16,6 +16,7 @@ enum ProgressCommandError: Error, Equatable { case staleImport }
 @MainActor
 final class ProgressionModel {
     private(set) var state = ProgressState()
+    var isShowingBrandWelcome = false
     /// Set when the store exists but will not parse. The UI must offer recovery rather
     /// than silently starting the user over (spec §8.2).
     private(set) var unreadable: String?
@@ -62,6 +63,18 @@ final class ProgressionModel {
            environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
            let name = environment["GT_DEMO_ACTIVITY"] {
             state = NativeActivityFixture.make(name)
+            return
+        }
+        if !hasInjectedStore,
+           environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+           let rawStep = environment["GT_TEST_OPENING_LEGACY_STEP"],
+           let step = FirstLessonSnapshot.Step(rawValue: rawStep),
+           [.welcome, .checkpoint, .preference].contains(step) {
+            var fixture = ProgressState()
+            fixture.pendingFirstLesson = FirstLessonSnapshot(variationSeed: 0, step: step,
+                responses: step == .welcome ? [:] : [0: .choice(1), 1: .demonstrated], comparisonVersion: 1)
+            state = fixture
+            save()
             return
         }
         // GT_DEMO_SEED=1 — a representative mid-path state for screenshot runs.
@@ -297,6 +310,7 @@ final class ProgressionModel {
         guard expectedEpoch == epoch, snapshot.isValid,
               let previous = state.pendingFirstLesson,
               previous.variationSeed == snapshot.variationSeed,
+              previous.comparisonVersion == snapshot.comparisonVersion,
               Set(previous.responses.keys).isSubset(of: Set(snapshot.responses.keys)) else {
             return false
         }

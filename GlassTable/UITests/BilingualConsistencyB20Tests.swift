@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import XCTest
+import GlassTableDrills
 
 final class BilingualConsistencyB20Tests: XCTestCase {
     private struct Fixture {
@@ -48,6 +49,96 @@ final class BilingualConsistencyB20Tests: XCTestCase {
     func testKoreanDarkAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "dark") }
     func testEnglishLightAX5FreeHelpReturn() { freeHelp(code: "en", appearance: "light") }
 
+    func testOpeningB22AllModes() {
+        for ax in [false, true] {
+            for appearance in ["light", "dark"] {
+                for name in ["opening-welcome", "opening-pair", "opening-question", "opening-transfer", "opening-show-me", "opening-third", "settings", "learn"] {
+                    captureMatrix(appearance: appearance, ax: ax, fixtureName: name)
+                }
+            }
+        }
+    }
+
+    func testBrandLightAppearanceTrialB22() {
+        let app = launch(code: "en", appearance: "light", ax: false,
+                         environment: ["GT_TEST_FIRST_LESSON": "1"])
+        XCTAssertTrue(app.staticTexts["firstLesson.welcome"].waitForExistence(timeout: 15))
+        capture(app, "b22-trial-brand-en-light-normal")
+        tap(app.buttons["firstLesson.start"], app: app)
+        XCTAssertTrue(app.staticTexts["firstLesson.teachPair.heading"].waitForExistence(timeout: 5))
+        capture(app, "b22-trial-start-guide-en-light-normal")
+        app.terminate()
+    }
+
+    func testBrandAppearanceTransitionB22AllModes() {
+        for ax in [false, true] {
+            for appearance in ["light", "dark"] {
+                for code in ["en", "ko"] {
+                    let app = launch(code: code, appearance: appearance, ax: ax,
+                                     environment: ["GT_TEST_FIRST_LESSON": "1"])
+                    XCTAssertTrue(app.staticTexts["firstLesson.welcome"].waitForExistence(timeout: 15))
+                    capture(app, "b22-final-brand-\(code)-\(appearance)-\(ax ? "AX5" : "normal")")
+                    tap(app.buttons["firstLesson.start"], app: app)
+                    XCTAssertTrue(app.staticTexts["firstLesson.teachPair.heading"].waitForExistence(timeout: 5))
+                    XCTAssertFalse(app.staticTexts["firstLesson.welcome"].exists)
+                    capture(app, "b22-final-start-guide-\(code)-\(appearance)-\(ax ? "AX5" : "normal")")
+                    app.terminate()
+                }
+            }
+        }
+    }
+
+    func testLegacyWelcomeB22RespectsSelectedLightAppearance() {
+        for code in ["en", "ko"] {
+            let app = launch(code: code, appearance: "light", ax: false,
+                             environment: ["GT_TEST_FIRST_LESSON": "1", "GT_TEST_OPENING_LEGACY_STEP": "welcome"])
+            XCTAssertTrue(app.staticTexts["firstLesson.teachPair.heading"].waitForExistence(timeout: 15))
+            XCTAssertFalse(app.staticTexts["firstLesson.welcome"].exists)
+            capture(app, "b22-final-legacy-welcome-guide-\(code)-light-normal")
+            app.terminate()
+        }
+    }
+
+    func testRemainingComparisonsB22AllModes() {
+        for ax in [false, true] {
+            for appearance in ["light", "dark"] {
+                var heights: [String: [CGFloat]] = [:]
+                for code in ["en", "ko"] {
+                    let app = launch(code: code, appearance: appearance, ax: ax,
+                                     environment: ["GT_TEST_FIRST_LESSON": "1"])
+                    tap(app.buttons["firstLesson.start"], app: app)
+                    tap(app.buttons["firstLesson.next"], app: app)
+                    for index in 0..<5 {
+                        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+                        do {
+                            if !ax {
+                                for id in ["firstLesson.heading", "firstLesson.rule", "firstLesson.question"] {
+                                    let text = app.staticTexts[id]
+                                    XCTAssertTrue(text.exists)
+                                    XCTAssertFalse(text.label.contains("…"))
+                                    heights["\(index)-\(id)", default: []].append(text.frame.height)
+                                }
+                            }
+                            capture(app, "b22-final-comparison-\(index + 1)-\(code)-\(appearance)-\(ax ? "AX5" : "normal")")
+                        }
+                        tap(app.buttons["firstLesson.help"], app: app)
+                        XCTAssertTrue(app.descendants(matching: .any)["firstLesson.verdict"].waitForExistence(timeout: 5))
+                        tap(app.buttons["firstLesson.next"], app: app)
+                    }
+                    XCTAssertTrue(app.staticTexts[code == "ko" ? "내 차례의 행동" : "Actions on your turn"].exists)
+                    app.terminate()
+                }
+                for (id, values) in heights {
+                    XCTAssertEqual(values.count, 2)
+                    if values.count == 2 {
+                        print("B22_FINAL_PAIR \(appearance) \(id) EN=\(values[0]) KO=\(values[1])")
+                        XCTAssertEqual(values[0], values[1], accuracy: 1)
+                    }
+                }
+            }
+        }
+    }
+
     private var fixtures: [Fixture] {
         [
             Fixture(name: "opening-welcome", environment: ["GT_DEMO_FIRST_LESSON": "welcome"], ready: "firstLesson.start", pairedHeadingID: "firstLesson.welcome", primaryActionID: "firstLesson.start"),
@@ -55,8 +146,9 @@ final class BilingualConsistencyB20Tests: XCTestCase {
             Fixture(name: "opening-question", environment: ["GT_DEMO_FIRST_LESSON": "example"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
             Fixture(name: "opening-transfer", environment: ["GT_DEMO_FIRST_LESSON": "transfer"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
             Fixture(name: "opening-show-me", environment: ["GT_DEMO_FIRST_LESSON": "example-help"], ready: "firstLesson.verdict", primaryActionID: "firstLesson.next"),
-            Fixture(name: "opening-checkpoint", environment: ["GT_DEMO_FIRST_LESSON": "checkpoint"], ready: "firstLesson.checkpoint.heading", pairedHeadingID: "firstLesson.checkpoint.heading", primaryActionID: "firstLesson.continueGuide"),
-            Fixture(name: "opening-preference", environment: ["GT_DEMO_FIRST_LESSON": "preference"], ready: "firstLesson.preference.newToPoker", pairedHeadingID: "firstLesson.preference.heading", primaryActionID: "firstLesson.preference.newToPoker"),
+            Fixture(name: "opening-third", environment: ["GT_DEMO_FIRST_LESSON": "comparison-2"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
+            Fixture(name: "opening-fourth", environment: ["GT_DEMO_FIRST_LESSON": "comparison-3"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
+            Fixture(name: "opening-fifth", environment: ["GT_DEMO_FIRST_LESSON": "comparison-4"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
             Fixture(name: "learn", environment: ["GT_DEMO_TAB": "learn"], ready: "learn-path", rootHeading: ["Learn", "배우기"]),
             Fixture(name: "play", environment: ["GT_DEMO_TAB": "play"], ready: "play-free", rootHeading: ["Play", "플레이"]),
             Fixture(name: "progress", environment: ["GT_DEMO_TAB": "records"], ready: "records-details", rootHeading: ["Progress", "학습 기록"]),
@@ -161,11 +253,8 @@ final class BilingualConsistencyB20Tests: XCTestCase {
 
     private func pairedBodyIDs(_ fixtureName: String) -> [String] {
         switch fixtureName {
-        case "opening-welcome": ["firstLesson.welcome.body"]
         case "opening-pair": ["firstLesson.teachPair.body", "firstLesson.teachPair.letters"]
-        case "opening-question", "opening-transfer": ["firstLesson.question", "firstLesson.rule"]
-        case "opening-checkpoint": ["firstLesson.checkpoint.body"]
-        case "opening-preference": ["firstLesson.preference.body"]
+        case "opening-question", "opening-transfer", "opening-third", "opening-fourth", "opening-fifth": ["firstLesson.question", "firstLesson.rule"]
         default: []
         }
     }
@@ -190,15 +279,10 @@ final class BilingualConsistencyB20Tests: XCTestCase {
             capture(app, "b20-opening-show-me-bottom-\(code)-\(appearance)-AX5")
             next.tap()
         }
-        XCTAssertTrue(app.descendants(matching: .any)["firstLesson.checkpoint.heading"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["firstLesson.finish"].exists, "Two demonstrated examples are not the completed guide")
-        tap(app.buttons["firstLesson.preference"], app: app)
-        tap(app.buttons["firstLesson.preference.newToPoker"], app: app)
-        XCTAssertTrue(app.descendants(matching: .any)["firstLesson.checkpoint.heading"].waitForExistence(timeout: 5))
-        let stop = app.buttons["firstLesson.stop"]
-        reveal(stop, app: app)
-        capture(app, "b20-opening-checkpoint-bottom-\(code)-\(appearance)-AX5")
-        stop.tap()
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["firstLesson.finish"].exists)
+        XCTAssertFalse(app.buttons["firstLesson.preference"].exists)
+        tap(app.buttons["firstLesson.skip"], app: app)
         XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.tabBars.firstMatch.exists)
         print("B20_AX_FLOW opening-show-me-checkpoint \(code) \(appearance) passed")
@@ -210,9 +294,9 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         let app = launch(code: code, appearance: appearance, ax: ax, environment: ["GT_TEST_FIRST_LESSON": "1"])
         tap(app.buttons["firstLesson.start"], app: app)
         tap(app.buttons["firstLesson.next"], app: app)
-        // Each unique test store's first guide uses seed zero: the hero has a pair
-        // against high card, so the choice cases exercise actual right/wrong entry.
-        tap(app.buttons[response == "show-me" ? "firstLesson.help" : response == "correct" ? "firstLesson.choice.0" : "firstLesson.choice.1"], app: app)
+        let winner = FirstLesson.requiredComparisons(seed: 0)[0].spot.winner
+        let choice = response == "correct" ? winner : 1 - winner
+        tap(app.buttons[response == "show-me" ? "firstLesson.help" : "firstLesson.choice.\(choice)"], app: app)
         let reason = app.staticTexts["firstLesson.reason"]
         XCTAssertTrue(reason.waitForExistence(timeout: 10))
         let visible = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: reason)

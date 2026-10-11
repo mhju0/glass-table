@@ -1,4 +1,5 @@
 import XCTest
+import GlassTableDrills
 
 final class FirstLessonFeedbackFlowTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
@@ -28,11 +29,10 @@ final class FirstLessonFeedbackFlowTests: XCTestCase {
             element.tap()
         }
         let hero = app.buttons["firstLesson.choice.0"]
-        let villain = app.buttons["firstLesson.choice.1"]
         let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
         let next = app.buttons["firstLesson.next"]
-        // A fresh test store starts rotation at zero, with the hero winning.
-        tap(villain)
+        let loser = 1 - FirstLesson.requiredComparisons(seed: 0)[0].spot.winner
+        tap(app.buttons["firstLesson.choice.\(loser)"])
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         let initialVerdict = verdict.label
         tap(next)
@@ -54,7 +54,6 @@ final class FirstLessonFeedbackFlowTests: XCTestCase {
             attachment.lifetime = .keepAlways
             add(attachment)
             tap(next)
-            if index == 2 { tap(app.buttons["firstLesson.continueGuide"]) }
         }
         // The five required comparisons lead to actions, then the wrap-up.
         tap(next)

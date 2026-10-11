@@ -15,7 +15,6 @@ struct SettingsView: View {
     @State private var showGlossary = false
     @State private var showGuide = false
     @State private var showFirstLesson = false
-    @State private var showPlacement = false
     @State private var showLicense = false
     @State private var showResponsible = false
     @State private var backup: BackupDocument?
@@ -87,12 +86,6 @@ struct SettingsView: View {
                     Button { showFirstLesson = true } label: {
                         row("suit.spade.fill", language.text("첫 포커 결정 다시 보기", "Replay the first decision"),
                             language.text("두 패를 비교하며 기본 규칙을 익혀요", "Compare two hands, learn the rule"), chevron: true)
-                    }
-                    .buttonStyle(GTPress())
-                    Divider().padding(.leading, 56)
-                    Button { showPlacement = true } label: {
-                        row("scope", language.text("시작점 다시 찾아보기", "Recheck your starting point"),
-                            language.text("짧은 확인으로 추천 주제를 바꿔요", "A short check updates your topic"), chevron: true)
                     }
                     .buttonStyle(GTPress())
                     Divider().padding(.leading, 56)
@@ -260,7 +253,6 @@ struct SettingsView: View {
         .preferredColorScheme(appearance.colorScheme)
         .sheet(isPresented: $showGlossary) { GlossaryView() }
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
-        .sheet(isPresented: $showPlacement) { NavigationStack { PlacementView() } }
         .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }
         .sheet(isPresented: $showResponsible) { NavigationStack { ResponsiblePlayView() } }
         .fullScreenCover(isPresented: $showFirstLesson) {

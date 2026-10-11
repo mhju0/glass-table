@@ -5,7 +5,6 @@ struct LearnView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.leadsWithTerms) private var termsLead
-    @State private var pickingLevel = false
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenReview: () -> Void
     let onOpenPractice: () -> Void
@@ -22,7 +21,6 @@ struct LearnView: View {
                     Text(language.text("배우기", "Learn")).font(GT.title(30))
                     Text(language.text("추천부터 시작하거나, 직접 골라요.", "Follow a suggestion or choose any lesson."))
                         .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
-                    levelChip
                 }
                 if let opening = model.state.pendingFirstLesson {
                     Button(action: onResumeOpening) {
@@ -111,41 +109,6 @@ struct LearnView: View {
         }
         .gtInset(GT.Space.card, firstText: .semibold(13)).frame(maxWidth: .infinity, alignment: .leading)
         .gtCard(radius: GT.Radius.panel)
-    }
-
-    /// The level only moves the suggestion, the help that starts switched on and which
-    /// words lead, so changing it is one tap and never touches finished lessons.
-    private var levelChip: some View {
-        Button { pickingLevel = true } label: {
-            HStack(spacing: 6) {
-                Text(language.text("내 수준: \(model.state.level.levelName(in: language))",
-                                   "My level: \(model.state.level.levelName(in: language))"))
-                    .font(GT.semibold(13))
-                Image(systemName: "chevron.down").font(.system(size: 10, weight: .semibold))
-                    .accessibilityHidden(true)
-            }
-            .foregroundStyle(GT.ink)
-            .padding(.horizontal, 12).frame(minHeight: 44)
-            .background(GT.glass, in: Capsule())
-            .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(GTPress())
-        .accessibilityHint(language.text("수준을 바꿔요", "Changes your level"))
-        .accessibilityIdentifier("learn-level")
-        .confirmationDialog(language.text("어느 쪽에 가까운가요?", "Which fits you best?"),
-                            isPresented: $pickingLevel, titleVisibility: .visible) {
-            ForEach(PlacementSelfReport.allCases, id: \.self) { level in
-                Button(level.levelName(in: language)) {
-                    _ = model.setPlacement(report: level, answers: [:], skipped: true,
-                                           expectedEpoch: model.epoch)
-                }
-            }
-            Button(language.text("취소", "Cancel"), role: .cancel) {}
-        } message: {
-            Text(language.text("추천 레슨, 기본으로 켜지는 도움, 먼저 나오는 말만 달라져요. 끝낸 레슨과 기록은 그대로예요.",
-                               "This changes only the suggested lesson, how much help starts on, and which words lead. Finished lessons and progress stay as they are."))
-        }
     }
 
     private func learningRow(_ title: String, _ detail: String, icon: String) -> some View {

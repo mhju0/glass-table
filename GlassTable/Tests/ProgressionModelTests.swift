@@ -27,6 +27,39 @@ final class ProgressionModelTests: XCTestCase {
             expectedEpoch: model.epoch))
     }
 
+    func testOpeningSaveCannotReplaceItsComparisonVersion() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.beginFirstLesson(seed: 4, expectedEpoch: model.epoch))
+        let original = model.state
+        let bytes = try store.exportData()
+        let legacy = FirstLessonSnapshot(variationSeed: 4, step: .teachPair, comparisonVersion: 1)
+        XCTAssertFalse(model.saveFirstLesson(legacy, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state, original)
+        XCTAssertEqual(try store.exportData(), bytes)
+    }
+
+    func testLegacyOpeningContinuesWithoutReplacingCardsResponsesOrPlacement() throws {
+        for step in [FirstLessonSnapshot.Step.welcome, .checkpoint, .preference] {
+            var state = ProgressState()
+            let responses: [Int: FirstLessonSnapshot.Response] = step == .welcome ? [:] : [0: .choice(1), 1: .demonstrated]
+            let snapshot = FirstLessonSnapshot(variationSeed: 7, step: step,
+                                               responses: responses, comparisonVersion: 1)
+            state.pendingFirstLesson = snapshot
+            try store.save(state)
+            let model = ProgressionModel(store: store)
+            var continued = snapshot
+            continued.step = step == .welcome ? .teachPair : .comparison0
+            XCTAssertTrue(model.saveFirstLesson(continued, expectedEpoch: model.epoch))
+            let reloaded = ProgressionModel(store: store)
+            XCTAssertEqual(reloaded.state.pendingFirstLesson, continued)
+            XCTAssertNil(reloaded.state.placement)
+            XCTAssertEqual(reloaded.state.answers, state.answers)
+            var switched = continued
+            switched.comparisonVersion = 2
+            XCTAssertFalse(reloaded.saveFirstLesson(switched, expectedEpoch: reloaded.epoch))
+        }
+    }
+
     func testOpeningStopAndReloadPreserveSeedResponsesWithoutCompletionOrGrades() throws {
         let model = ProgressionModel(store: store)
         let epoch = model.epoch

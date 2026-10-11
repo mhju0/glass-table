@@ -36,7 +36,7 @@ enum FirstLessonCopy {
         case .sharedCards: language.text(sharedCards, "Shared cards")
         case .heroCards: language.text(heroCards, "Your cards")
         case .villainCards: language.text(villainCards, "Opponent's cards")
-        case .choiceHint: language.text(choiceHint, "This hand is stronger")
+        case .choiceHint: language.text(choiceHint, "Choose this hand")
         case .selectWinnerHint: language.text(selectWinnerHint, "Choose this hand as the winner")
         case .correctTitle: language.text(correctTitle, "You got it")
         case .retryTitle: language.text(retryTitle, "Let's look at the cards again")
@@ -96,7 +96,7 @@ enum FirstLessonCopy {
     static let villainCards = String(localized: "firstLesson.label.villainCards",
                                      defaultValue: "상대 카드")
     static let choiceHint = String(localized: "firstLesson.choice.hint",
-                                   defaultValue: "이 패가 더 높아요")
+                                   defaultValue: "이 패 선택하기")
     static let selectWinnerHint = String(localized: "firstLesson.choice.accessibilityHint",
                                          defaultValue: "이 패를 승자로 선택")
     static let correctTitle = String(localized: "firstLesson.feedback.correctTitle",

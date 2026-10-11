@@ -4,7 +4,6 @@ import GlassTableDrills
 
 @main
 struct GlassTableApp: App {
-    @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system
 
     private var resolvedLanguage: LearningLanguage {
@@ -19,7 +18,6 @@ struct GlassTableApp: App {
         WindowGroup {
             RootView()
                 .disclosureGroupStyle(GTDisclosureStyle())
-                .preferredColorScheme(appearance.colorScheme)
                 .environment(\.learningLanguage, resolvedLanguage)
                 .environment(\.locale, Locale(identifier: resolvedLanguage.rawValue))
         }

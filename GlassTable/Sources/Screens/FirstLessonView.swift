@@ -12,7 +12,7 @@ struct FirstLessonView: View {
     @Environment(ProgressionModel.self) private var model
     enum Context { case firstRun, resume, replay }
     private enum Step: Hashable {
-        case welcome, teachPair, checkpoint, preference, pot, blinds, actions, flow, bestFive
+        case welcome, teachPair, pot, blinds, actions, flow, bestFive
         case example, exampleAnswer, transfer, transferAnswer, wrapUp
         case comparison(Int), comparisonAnswer(Int)
     }
@@ -28,14 +28,14 @@ struct FirstLessonView: View {
     @State private var returning = false
     @State private var submitted: [Step: Int] = [:]
     @State private var helped: Set<Step> = []
+    @State private var comparisonVersion = FirstLesson.currentComparisonVersion
     @State private var variationSeed: UInt64 = 0
     @State private var rotationLoaded = false
     @State private var openingEpoch: UUID?
     @State private var pendingTransition: (step: Step, response: FirstLessonSnapshot.Response?)?
     @State private var pendingStop = false
-    @State private var pendingPreference = false
 
-    private var requiredComparisons: [FirstLesson.Comparison] { FirstLesson.requiredComparisons(seed: variationSeed) }
+    private var requiredComparisons: [FirstLesson.Comparison] { FirstLesson.requiredComparisons(seed: variationSeed, version: comparisonVersion) }
     private var exampleSpot: ShowdownSpot { requiredComparisons[0].spot }
     private var transferSpot: ShowdownSpot { requiredComparisons[1].spot }
     private var comparisons: [ShowdownSpot] { Array(requiredComparisons.dropFirst(2)).map(\.spot) }
@@ -44,7 +44,7 @@ struct FirstLessonView: View {
         self.context = context
         self.onFinish = onFinish
         self.onSkip = onSkip
-        _step = State(initialValue: startsAtExample ? .teachPair : .welcome)
+        _step = State(initialValue: startsAtExample || context != .firstRun ? .teachPair : .welcome)
     }
 
     private func copy(_ key: FirstLessonCopy.Key) -> String {
@@ -53,18 +53,18 @@ struct FirstLessonView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            if step == .welcome { brandHeader } else { header }
             GeometryReader { geo in
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: GT.Space.section) {
                             content
-                            if dynamicTypeSize.isAccessibilitySize {
+                            if dynamicTypeSize.isAccessibilitySize, step != .welcome {
                                 ActionSheet(band: panelBand) { panel }
                             }
                         }
                             .padding(.horizontal, 18).padding(.vertical, 12)
-                            .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
+                            .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: step == .welcome ? .center : .top)
                     }
                     .scrollBounceBehavior(.basedOnSize)
                     // Every answer includes a reveal, including the neutral demonstration.
@@ -76,7 +76,9 @@ struct FirstLessonView: View {
                     }
                 }
             }
-            if !dynamicTypeSize.isAccessibilitySize {
+            if step == .welcome {
+                brandStart
+            } else if !dynamicTypeSize.isAccessibilitySize {
                 ActionSheet(band: panelBand) {
                     VStack(alignment: .leading, spacing: GT.Space.related) { panel }
                 }
@@ -84,7 +86,10 @@ struct FirstLessonView: View {
             }
         }
         .disabled(model.saveError != nil)
-        .background(FeltBackground())
+        .background {
+            if step == .welcome { Color(hex: 0x153D33).ignoresSafeArea() }
+            else { FeltBackground() }
+        }
         .modifier(ProgressSaveNotice())
         .onChange(of: model.saveError) { previous, current in
             if previous != nil, current == nil { continueAfterRetry() }
@@ -92,11 +97,12 @@ struct FirstLessonView: View {
         .onChange(of: model.epoch) { _, _ in
             pendingTransition = nil
             pendingStop = false
-            pendingPreference = false
         }
-        .onChange(of: step) { old, _ in
+        .onDisappear { model.isShowingBrandWelcome = false }
+        .onChange(of: step) { old, next in
+            model.isShowingBrandWelcome = next == .welcome
             if returning { returning = false }
-            else { history.append(old) }
+            else if old != .welcome { history.append(old) }
         }
         .overlay(alignment: .leading) {
             Color.clear.frame(width: 28)
@@ -130,8 +136,7 @@ struct FirstLessonView: View {
             case "best": step = .bestFive
             case "wrap-up": step = .wrapUp
             case "teach-pair": step = .teachPair
-            case "checkpoint": step = .checkpoint
-            case "preference": step = .preference
+            case "checkpoint", "preference": step = .comparison(0)
             case "example-help": answer = nil; helped.insert(.exampleAnswer); step = .exampleAnswer
             case "example": step = .example
             case "example-answer": answer = 0; step = .exampleAnswer
@@ -153,6 +158,7 @@ struct FirstLessonView: View {
                 }
             }
             #endif
+            model.isShowingBrandWelcome = step == .welcome
         }
     }
 
@@ -188,9 +194,6 @@ struct FirstLessonView: View {
         if pendingStop {
             pendingStop = false
             if model.state.openingDismissed == true { onSkip() }
-        } else if pendingPreference {
-            pendingPreference = false
-            previous()
         } else if let pendingTransition {
             if let saved = model.state.pendingFirstLesson,
                saved.variationSeed == variationSeed,
@@ -226,8 +229,6 @@ struct FirstLessonView: View {
         case .exampleAnswer: .exampleAnswer
         case .transfer: .transfer
         case .transferAnswer: .transferAnswer
-        case .checkpoint: .checkpoint
-        case .preference: .preference
         case .comparison(0): .comparison0
         case .comparison(1): .comparison1
         case .comparison: .comparison2
@@ -245,14 +246,13 @@ struct FirstLessonView: View {
 
     private func localStep(_ value: FirstLessonSnapshot.Step) -> Step {
         switch value.rawValue {
-        case "welcome": .welcome
+        case "welcome": .teachPair
         case "teachPair": .teachPair
         case "example": .example
         case "exampleAnswer": .exampleAnswer
         case "transfer": .transfer
         case "transferAnswer": .transferAnswer
-        case "checkpoint": .checkpoint
-        case "preference": .preference
+        case "checkpoint", "preference": .comparison(0)
         case "comparison0": .comparison(0)
         case "comparison1": .comparison(1)
         case "comparison2": .comparison(2)
@@ -287,6 +287,7 @@ struct FirstLessonView: View {
 
     private func restore(_ saved: FirstLessonSnapshot) {
         variationSeed = saved.variationSeed
+        comparisonVersion = saved.comparisonVersion
         submitted = [:]
         helped = []
         returning = true
@@ -299,11 +300,10 @@ struct FirstLessonView: View {
             }
         }
         answer = submitted[step]
-        let route: [Step] = [.welcome, .teachPair, .example, .exampleAnswer, .transfer, .transferAnswer,
-                             .checkpoint, .comparison(0), .comparisonAnswer(0), .comparison(1),
+        let route: [Step] = [.teachPair, .example, .exampleAnswer, .transfer, .transferAnswer,
+                             .comparison(0), .comparisonAnswer(0), .comparison(1),
                              .comparisonAnswer(1), .comparison(2), .comparisonAnswer(2), .actions, .wrapUp]
         if let index = route.firstIndex(of: step) { history = Array(route.prefix(index)) }
-        else if step == .preference { history = Array(route.prefix(7)) }
         else {
             let optional: [Step] = [.wrapUp, .pot, .blinds, .flow, .bestFive]
             history = Array(route.dropLast()) + Array(optional.prefix { $0 != step })
@@ -328,7 +328,7 @@ struct FirstLessonView: View {
                     return false
                 }
             }
-            let snapshot = FirstLessonSnapshot(variationSeed: variationSeed, step: savedStep(target), responses: responses)
+            let snapshot = FirstLessonSnapshot(variationSeed: variationSeed, step: savedStep(target), responses: responses, comparisonVersion: comparisonVersion)
             guard model.saveFirstLesson(snapshot, expectedEpoch: openingEpoch) else {
                 pendingTransition = (target, response)
                 return false
@@ -400,7 +400,6 @@ struct FirstLessonView: View {
         switch step {
         case .welcome: return nil
         case .teachPair: return language.text("페어 알아보기", "Explore a pair")
-        case .checkpoint, .preference: return language.text("첫 예시 2개를 살펴봤어요", "First 2 examples explored")
         case .example, .exampleAnswer: return language.text("비교 1/5", "Comparison 1/5")
         case .transfer, .transferAnswer: return language.text("비교 2/5", "Comparison 2/5")
         case .comparison(let i), .comparisonAnswer(let i): return language.text("비교 \(i + 3)/5", "Comparison \(i + 3)/5")
@@ -421,8 +420,6 @@ struct FirstLessonView: View {
         switch step {
         case .welcome: welcome
         case .teachPair: teachPair
-        case .checkpoint: checkpoint
-        case .preference: preference
         case .pot: potPage
         case .blinds: blindsPage
         case .actions: actionsPage
@@ -447,13 +444,6 @@ struct FirstLessonView: View {
             }
             .accessibilityIdentifier("firstLesson.start")
         case .teachPair: nextButton { transition(to: .example) }
-        case .checkpoint:
-            PrimaryCTAButton(title: language.text("계속하기 · 비교 3가지", "Continue · 3 comparisons")) { transition(to: .comparison(0)) }
-                .accessibilityIdentifier("firstLesson.continueGuide")
-            SecondaryCTAButton(title: language.text("오늘은 여기까지", "Finish for now"), action: stop)
-                .accessibilityIdentifier("firstLesson.stop")
-        case .preference:
-            SecondaryCTAButton(title: language.text("선택 없이 돌아가기", "Back without choosing")) { previous() }
         case .pot: nextButton { transition(to: .blinds) }
         case .blinds: nextButton { transition(to: .flow) }
         case .actions: nextButton { transition(to: .wrapUp) }
@@ -484,38 +474,73 @@ struct FirstLessonView: View {
 
     private func isCorrect(_ spot: ShowdownSpot) -> Bool { answer == spot.winner }
 
-    private var welcome: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Spacer(minLength: 0)
-            Image(systemName: "suit.spade.fill")
-                .font(.system(size: 44, weight: .semibold)).foregroundStyle(GT.green)
-                .accessibilityHidden(true)
-            LessonPairedText(korean: ["카드 한 번만", "비교해 볼까요"], english: ["Try one", "simple hand"])
-                .accessibilityIdentifier("firstLesson.welcome")
-                .font(GT.title(30)).foregroundStyle(GT.onFelt)
-            LessonPairedText(korean: ["카드 몇 장을 함께 살펴볼게요.", "시간 제한은 없고,", "언제든 설명을 볼 수 있어요."],
-                             english: ["We’ll look at a few cards together.", "There’s no timer,", "and help is always available."])
-                .accessibilityIdentifier("firstLesson.welcome.body")
-                .font(GT.body(17)).foregroundStyle(GT.onFeltSecondary)
-                .lineSpacing(GT.Typography.bodyLineSpacing)
-            SecondaryCTAButton(title: language.text("해 본 적 있어요 · 배우기로", "I’ve played · Go to Learn"), action: stop)
-                .accessibilityIdentifier("firstLesson.bypass")
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 8) { promises }
-                VStack(alignment: .leading, spacing: 8) { promises }
+    private var brandHeader: some View {
+        HStack {
+            Spacer()
+            Button(action: stop) {
+                Text(copy(.skip))
+                    .font(GT.semibold(14)).foregroundStyle(Color(hex: 0xC8D6D0))
+                    .frame(minWidth: 44, minHeight: 44)
             }
-            Spacer(minLength: 0)
+            .buttonStyle(GTPress())
+            .accessibilityIdentifier("firstLesson.skip")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, GT.Space.edge)
+    }
+
+    private var brandStart: some View {
+        Button { transition(to: .teachPair) } label: {
+            Text(language.text("시작하기", "Start"))
+                .font(GT.semibold(GT.Typography.buttonSize))
+                .foregroundStyle(Color(hex: 0x241B0E))
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.vertical, 16).padding(.horizontal, 18)
+                .frame(maxWidth: .infinity, minHeight: 56)
+                .background(Color(hex: 0xEDC17F), in: RoundedRectangle(cornerRadius: GT.Radius.control))
+        }
+        .buttonStyle(GTPress())
+        .accessibilityIdentifier("firstLesson.start")
+        .padding(.horizontal, GT.Space.screen).padding(.vertical, GT.Space.screen)
+    }
+
+    private var welcome: some View {
+        VStack(spacing: 32) {
+            RoundedRectangle(cornerRadius: 13)
+                .strokeBorder(Color(hex: 0xC8D6D0), lineWidth: 1.5)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 7)
+                        .strokeBorder(Color(hex: 0x547A70), lineWidth: 1)
+                        .padding(8)
+                }
+                .overlay {
+                    Image(systemName: "suit.spade.fill")
+                        .font(.system(size: 44)).foregroundStyle(Color(hex: 0xF4F0E6))
+                }
+                .frame(width: 104, height: 146)
+                .accessibilityHidden(true)
+            Text("Glass Table")
+                .font(GT.semibold(34)).foregroundStyle(Color(hex: 0xF4F0E6))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("firstLesson.welcome")
+                .accessibilityAddTraits(.isHeader)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, GT.Space.screen)
     }
 
     private var teachPair: some View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: GT.Space.section) { pairSignature }
+                VStack(alignment: .leading, spacing: GT.Space.related) { pairSignature }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, GT.Space.related)
+            .overlay(alignment: .bottom) { Rectangle().fill(GT.border).frame(height: 1) }
             intro(language.text("같은 숫자 두 장이 페어예요", "Two matching ranks make a pair"),
                   language.text("페어는 한 쌍이 없는 패보다 강해요. 다음에는 두 패를 직접 비교해 봐요.",
                                 "A pair beats a hand with no pair. Next, compare two hands yourself."), identifier: "firstLesson.teachPair.heading")
-            CardRow(cards: [Card(rank: 14, suit: 0), Card(rank: 14, suit: 1)])
-                .frame(maxWidth: .infinity)
             LessonPairedText(korean: ["A, K, Q, J도 같은 글자", "두 장이면 페어예요."],
                              english: ["A, K, Q and J count too:", "two matching letters make a pair."])
                 .font(GT.body(17)).foregroundStyle(GT.onFeltSecondary)
@@ -523,60 +548,12 @@ struct FirstLessonView: View {
         }
     }
 
-    private var checkpoint: some View {
-        VStack(alignment: .leading, spacing: GT.Space.section) {
-            intro(language.text("페어가 이기는 기준을 살펴봤어요", "You explored how pairs win"),
-                  language.text("여기서 마쳐도 괜찮아요. 비교 세 가지를 더 살펴볼 수도 있어요.",
-                                "You can finish here or explore three more comparisons."), identifier: "firstLesson.checkpoint.heading")
-            VStack(alignment: .leading, spacing: 14) {
-                checkRow(language.text("페어는 한 쌍이 없는 패보다 강해요", "A pair beats a hand with no pair"))
-                checkRow(language.text("둘 다 페어이면 더 높은 페어가 이겨요", "Between two pairs, the higher pair wins"))
-                Text(language.text("첫 예시 2개를 살펴봤어요. 다섯 가지 안내를 모두 마친 것은 아니에요.",
-                                   "First 2 examples explored. The five-comparison guide is still unfinished."))
-                    .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }.gtInset(GT.Space.card, firstText: .semibold(15)).gtCard(radius: GT.Radius.panel)
-            if context != .replay, model.state.placement == nil {
-                SecondaryCTAButton(title: language.text("시작점 직접 고르기 · 선택 사항", "Choose a starting preference · Optional")) { transition(to: .preference) }
-                    .accessibilityIdentifier("firstLesson.preference")
-            }
-        }
-    }
-
-    private var preference: some View {
-        VStack(alignment: .leading, spacing: GT.Space.section) {
-            intro(language.text("편한 시작을 골라요", "Choose a comfortable start"),
-                  language.text("포커가 얼마나 익숙한가요? 추천할 시작점만 바뀌어요. 시험이나 레슨 완료가 아니에요.",
-                                "How familiar is poker? This only changes your suggested starting point. It is not a test or lesson completion."), identifier: "firstLesson.preference.heading")
-            ForEach(PlacementSelfReport.allCases, id: \.self) { report in
-                GTChoiceButton(title: preferenceTitle(report)) {
-                    guard let openingEpoch, model.state.placement == nil else { return }
-                    pendingPreference = true
-                    if model.setPlacement(report: report, answers: [:], skipped: true, expectedEpoch: openingEpoch) {
-                        pendingPreference = false
-                        previous()
-                    } else if model.saveError == nil { pendingPreference = false }
-                }.accessibilityIdentifier("firstLesson.preference.\(report.rawValue)")
-            }
-        }
-    }
-
-    private func preferenceTitle(_ report: PlacementSelfReport) -> String {
-        switch report {
-        case .newToPoker: language.text("처음이에요", "New to poker")
-        case .knowRules: language.text("조금 알아요", "Know a little")
-        case .playRegularly: language.text("해 본 적 있어요", "Played before")
-        }
-    }
-
     @ViewBuilder
-    private var promises: some View {
-        ForEach([copy(.noMoney), copy(.noAccount), copy(.offline)], id: \.self) { item in
-            Text(item)
-                .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
-                .padding(.horizontal, 10).padding(.vertical, 5)
-                .overlay(Capsule().strokeBorder(GT.border, lineWidth: 1))
-        }
+    private var pairSignature: some View {
+        CardRow(cards: [Card(rank: 14, suit: 0), Card(rank: 14, suit: 1)])
+        Text(language.text("페어", "A pair"))
+            .font(GT.semibold(24)).foregroundStyle(GT.ink)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: Rule screens
@@ -587,10 +564,6 @@ struct FirstLessonView: View {
                 switch identifier {
                 case "firstLesson.teachPair.heading":
                     LessonPairedText(korean: ["같은 숫자나 글자", "두 장이면 페어예요"], english: ["Two matching numbers", "or letters make a pair"])
-                case "firstLesson.checkpoint.heading":
-                    LessonPairedText(korean: ["페어가 이기는 기준을", "살펴봤어요"], english: ["You explored", "how pairs win"])
-                case "firstLesson.preference.heading":
-                    LessonPairedText(korean: ["편한 시작을", "골라요"], english: ["Choose a comfortable", "start"])
                 default: Text(title).fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -602,12 +575,6 @@ struct FirstLessonView: View {
                 case "firstLesson.teachPair.heading":
                     LessonPairedText(korean: ["페어는 한 쌍이 없는 패보다 강해요.", "다음에는 두 패를", "직접 비교해 봐요."],
                                      english: ["A pair beats a hand with no pair.", "Next, compare", "two hands yourself."])
-                case "firstLesson.checkpoint.heading":
-                    LessonPairedText(korean: ["여기서 마쳐도 괜찮아요.", "다른 비교 세 가지를", "살펴볼 수도 있어요."],
-                                     english: ["You can finish here", "or explore three", "other comparisons."])
-                case "firstLesson.preference.heading":
-                    LessonPairedText(korean: ["포커가 얼마나 익숙한가요?", "추천할 시작점만 바뀌어요.", "시험이나 레슨 완료가 아니에요."],
-                                     english: ["How familiar is poker?", "It only changes your next suggestion.", "It is not a test or lesson completion."])
                 default: Text(body).fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -963,7 +930,15 @@ struct FirstLessonView: View {
                     case .higherPair:
                         LessonPairedText(korean: ["둘 다 페어이면 높이를 비교해요.", "A, K, Q, J, 10 순서로 높아요."],
                                          english: ["Compare each pair’s rank.", "Ace, king, queen, jack, then ten."])
-                    default: Text(comparisonRuleText).fixedSize(horizontal: false, vertical: true)
+                    case .trips:
+                        LessonPairedText(korean: ["같은 숫자 세 장은 트리플이에요.", "트리플은 원페어·투페어보다 강해요.", "내 카드와 공용 카드를 함께 봐요."],
+                                         english: ["Three matching ranks make trips.", "Trips beat one pair and two pair.", "Use your cards and shared cards."])
+                    case .straight:
+                        LessonPairedText(korean: ["연속된 숫자 5장은 스트레이트예요.", "무늬는 달라도 되고 트리플보다 강해요.", "A는 A·2·3·4·5에서 낮게도 쓰여요."],
+                                         english: ["Five consecutive ranks make a straight.", "It beats trips; suits do not matter.", "An ace can be low in A, 2, 3, 4, 5."])
+                    case .flush:
+                        LessonPairedText(korean: ["같은 무늬 5장은 플러시예요.", "숫자가 이어질 필요는 없어요.", "플러시는 스트레이트보다 강해요.", "7장 중 가장 좋은 5장을 찾아보세요."],
+                                         english: ["Five cards of one suit make a flush.", "Ranks need not be consecutive.", "A flush beats a straight.", "Find your best five out of seven cards."])
                     }
                 }
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
@@ -1186,7 +1161,7 @@ struct FirstLessonView: View {
             PrimaryCTAButton(title: language.text("다음", "Next")) {
                 if case .comparisonAnswer(let i) = step {
                     transition(to: i < comparisons.count - 1 ? .comparison(i + 1) : .actions)
-                } else { transition(to: .checkpoint) }
+                } else { transition(to: .comparison(0)) }
             }
             .accessibilityIdentifier("firstLesson.next")
         } else {
