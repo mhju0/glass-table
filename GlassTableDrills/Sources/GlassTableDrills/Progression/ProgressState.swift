@@ -138,12 +138,15 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
         case demonstrated
     }
 
+    public var comparisonVersion: Int
     public var variationSeed: UInt64
     public var step: Step
     public var responses: [Int: Response]
 
     public init(variationSeed: UInt64, step: Step = .welcome,
-                responses: [Int: Response] = [:]) {
+                responses: [Int: Response] = [:],
+                comparisonVersion: Int = FirstLesson.currentComparisonVersion) {
+        self.comparisonVersion = comparisonVersion
         self.variationSeed = variationSeed
         self.step = step
         self.responses = responses
@@ -152,7 +155,8 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
     public var exploredCount: Int { responses.count }
     public var hasExploredAllComparisons: Bool { Set(responses.keys) == Set(0..<5) }
     public var isValid: Bool {
-        guard responses.count <= 5, responses.allSatisfy({ index, response in
+        guard (1...FirstLesson.currentComparisonVersion).contains(comparisonVersion),
+              responses.count <= 5, responses.allSatisfy({ index, response in
             guard (0..<5).contains(index) else { return false }
             if case .choice(let choice) = response { return (0...2).contains(choice) }
             return true
@@ -170,9 +174,11 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
         return (0..<requiredCount).allSatisfy { responses[$0] != nil }
     }
 
-    private enum CodingKeys: String, CodingKey { case variationSeed, step, responses }
+    private enum CodingKeys: String, CodingKey { case comparisonVersion, variationSeed, step, responses }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
+        comparisonVersion = c.contains(.comparisonVersion)
+            ? try c.decode(Int.self, forKey: .comparisonVersion) : 1
         variationSeed = try c.decode(UInt64.self, forKey: .variationSeed)
         step = try c.decode(Step.self, forKey: .step)
         responses = try c.decode([Int: Response].self, forKey: .responses)

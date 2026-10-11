@@ -17,6 +17,23 @@ final class ProgressionStoreTests: XCTestCase {
         ProgressionStore(url: dir.appendingPathComponent("progress.json"))
     }
 
+    func testUnknownOpeningVersionPreservesRecoveryBytesAndRejectsImport() throws {
+        let s = store()
+        var current = ProgressState()
+        current.updateRecord(for: .outs) { $0.total = 7; $0.correct = 5 }
+        try s.save(current)
+        let goodBytes = try Data(contentsOf: s.url)
+        var unsupported = current
+        unsupported.pendingFirstLesson = FirstLessonSnapshot(variationSeed: 19, comparisonVersion: 99)
+        XCTAssertFalse(try XCTUnwrap(unsupported.pendingFirstLesson).isValid)
+        let original = try JSONEncoder().encode(unsupported)
+        XCTAssertThrowsError(try s.importData(original))
+        XCTAssertEqual(try Data(contentsOf: s.url), goodBytes)
+        try original.write(to: s.url)
+        guard case .unreadable = s.load() else { return XCTFail("unknown version must require recovery") }
+        XCTAssertEqual(try Data(contentsOf: s.url), original)
+    }
+
     func testMissingFileLoadsAsFreshNotAsEmptyLoaded() {
         guard case .fresh = store().load() else {
             return XCTFail("a first launch must report .fresh")

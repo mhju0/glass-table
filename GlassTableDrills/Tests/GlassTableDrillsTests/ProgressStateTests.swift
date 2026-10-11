@@ -1,4 +1,5 @@
 import XCTest
+import GlassTableEngine
 @testable import GlassTableDrills
 
 final class ProgressStateTests: XCTestCase {
@@ -90,6 +91,38 @@ final class ProgressStateTests: XCTestCase {
         XCTAssertEqual(decoded, state)
         XCTAssertNil(decoded.firstLessonCompleted)
         XCTAssertEqual(decoded.schemaVersion, 2)
+    }
+
+    func testUnversionedGuideKeepsLegacyCardsAndAnswersAcrossRoundTrip() throws {
+        let data = Data(#"{"variationSeed":0,"step":"comparisonAnswer2","responses":{"0":{"choice":{"_0":0}},"1":{"choice":{"_0":1}},"2":{"demonstrated":{}},"3":{"choice":{"_0":2}},"4":{"choice":{"_0":0}}}}"#.utf8)
+        let saved = try JSONDecoder().decode(FirstLessonSnapshot.self, from: data)
+        XCTAssertEqual(saved.comparisonVersion, 1)
+        XCTAssertEqual(saved.responses, [0: .choice(0), 1: .choice(1), 2: .demonstrated,
+                                        3: .choice(2), 4: .choice(0)])
+        let original = FirstLesson.requiredComparisons(seed: saved.variationSeed, version: saved.comparisonVersion)
+        XCTAssertEqual(original.map { $0.spot.winner }, [0, 0, 0, 0, 0])
+        XCTAssertEqual(original[4].spot.hero, Card.parse("Ad3d")!)
+        let resumed = try JSONDecoder().decode(FirstLessonSnapshot.self, from: JSONEncoder().encode(saved))
+        XCTAssertEqual(resumed, saved)
+        XCTAssertEqual(FirstLesson.requiredComparisons(seed: resumed.variationSeed,
+                                                      version: resumed.comparisonVersion), original)
+        XCTAssertEqual(FirstLessonSnapshot(variationSeed: 0).comparisonVersion, 2)
+    }
+
+    func testVersionedGuidesResumeIdenticalCardsAndRejectExplicitInvalidVersions() throws {
+        for seed in Array(UInt64(0)..<32) + [UInt64.max] {
+            let saved = FirstLessonSnapshot(variationSeed: seed, step: .checkpoint,
+                                            responses: [0: .choice(0), 1: .demonstrated])
+            let resumed = try JSONDecoder().decode(FirstLessonSnapshot.self, from: JSONEncoder().encode(saved))
+            XCTAssertEqual(resumed, saved)
+            XCTAssertEqual(FirstLesson.requiredComparisons(seed: resumed.variationSeed,
+                                                          version: resumed.comparisonVersion),
+                           FirstLesson.requiredComparisons(seed: seed, version: 2))
+        }
+        for version in ["0", "-1", "3", "99", "null"] {
+            let invalid = Data("{\"comparisonVersion\":\(version),\"variationSeed\":0,\"step\":\"welcome\",\"responses\":{}}".utf8)
+            XCTAssertThrowsError(try JSONDecoder().decode(FirstLessonSnapshot.self, from: invalid))
+        }
     }
 
     func testOldStatesDecodeWithoutInventingOpeningEvidence() throws {

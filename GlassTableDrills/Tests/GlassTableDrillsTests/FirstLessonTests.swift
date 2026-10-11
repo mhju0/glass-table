@@ -93,4 +93,62 @@ final class FirstLessonTests: XCTestCase {
         XCTAssertNotEqual(FirstLesson.requiredComparisons(seed: 0), FirstLesson.requiredComparisons(seed: 1))
     }
 
+    func testNewGuidesStayBalancedAndFlushUsesExactlyFiveSuitedCards() {
+        var winnerOrders = Set<[Int]>()
+        var paths = Set<[[Card]]>()
+        for seed in Array(UInt64(0)..<256) + [UInt64.max] {
+            let path = FirstLesson.requiredComparisons(seed: seed, version: 2)
+            let winners = path.map { $0.spot.winner }
+            XCTAssertTrue([2, 3].contains(winners.filter { $0 == 0 }.count))
+            XCTAssertTrue(winners.allSatisfy { $0 == 0 || $0 == 1 })
+            winnerOrders.insert(winners)
+            paths.insert(path.map { $0.spot.hero + $0.spot.villain + $0.spot.board })
+            for comparison in path {
+                let spot = comparison.spot
+                XCTAssertEqual(Set(spot.hero + spot.villain + spot.board).count, 9)
+                XCTAssertEqual(gradeShowdown(answer: spot.winner, spot: spot).band, .spotOn)
+                let categories = [spot.heroBest.category, spot.villainBest.category].sorted()
+                switch comparison.rule {
+                case .pairOverHighCard: XCTAssertEqual(categories, [0, 1])
+                case .higherPair:
+                    XCTAssertEqual(categories, [1, 1])
+                    XCTAssertGreaterThan(spot.winner == 0 ? spot.heroBest.topRank : spot.villainBest.topRank,
+                                         spot.winner == 0 ? spot.villainBest.topRank : spot.heroBest.topRank)
+                case .trips: XCTAssertTrue(categories == [1, 3] || categories == [2, 3])
+                case .straight: XCTAssertEqual(categories, [3, 4])
+                case .flush:
+                    XCTAssertEqual(categories, [4, 5])
+                    let winningCards = (spot.winner == 0 ? spot.hero : spot.villain) + spot.board
+                    let allCards = spot.hero + spot.villain + spot.board
+                    XCTAssertEqual((0..<4).map { suit in winningCards.filter { $0.suit == suit }.count }.max(), 5)
+                    XCTAssertEqual((0..<4).map { suit in allCards.filter { $0.suit == suit }.count }.max(), 5)
+                }
+            }
+        }
+        XCTAssertGreaterThan(winnerOrders.count, 10)
+        XCTAssertGreaterThan(paths.count, 100)
+    }
+
+    func testLegacySeedMappingMatchesFrozenCardFixtures() {
+        let fixtures = [
+            [("8h8c", "AdKc", "2s5d7cJhQs"), ("AsAd", "KsKd", "2c5d8hJcQs"),
+             ("7h7c", "KdKc", "7s2d4c9hQs"), ("9h8d", "QcQd", "7s6h5c2dQh"),
+             ("Ad3d", "6cQc", "7d8d9dTd2c")],
+            [("Qh3c", "AdTc", "Qs2d6c9hJs"), ("8s8h", "TcTd", "2d4c7sJhQd"),
+             ("ThTd", "AhAc", "Ts3d6c9hKs"), ("Ah4d", "KcKd", "2s3h5c9dKh"),
+             ("Kh4h", "QcJc", "2h7h9hTd8s")],
+            [("6h6d", "AsQc", "2c4s8dJhKs"), ("Jh4c", "8d3c", "Js8h2d6cKs"),
+             ("Qh3c", "AhAc", "QsQd2c8hKs"), ("JhTd", "AcAd", "9s8h7c2dAh"),
+             ("Ac3d", "7c5c", "8d6d4d9dTs")]
+        ]
+        for seed in Array(UInt64(0)..<60) + [UInt64.max] {
+            let expected = fixtures[Int(seed % 3)].map { hero, villain, board in
+                let swap = (seed / 3) % 2 == 1
+                return ShowdownSpot(hero: Card.parse(swap ? villain : hero)!,
+                                    villain: Card.parse(swap ? hero : villain)!, board: Card.parse(board)!)
+            }
+            XCTAssertEqual(FirstLesson.requiredComparisons(seed: seed, version: 1).map(\.spot), expected)
+        }
+    }
+
 }
