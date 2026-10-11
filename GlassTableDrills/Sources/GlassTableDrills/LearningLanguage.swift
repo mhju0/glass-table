@@ -126,7 +126,7 @@ public struct ConceptIntroduction: Sendable {
         case .potOdds:
             copy = ("콜하려면 얼마나 자주 이겨야 할까요?", "How often must I win to call?", "이길 가능성과 내야 할 가격을 함께 봐야 해요.", "Your chance of winning needs to justify the price.", "지금 낼 금액을 콜한 뒤의 전체 팟으로 나눠요.", "Divide the amount to call by the whole pot after your call.")
         case .outs:
-            copy = ("이기는 리버 카드는 몇 장일까요?", "Which river cards make you win?", "더 좋아지는 카드가 모두 이기는 카드는 아니에요.", "Not every card that improves your hand makes it win.", "마지막 공용 카드 중 상대를 이기게 만드는 카드만 세요.", "Count only unseen final cards that make your hand beat the opponent.")
+            copy = ("이기는 리버 카드는 몇 장일까요?", "Which river cards win?", "더 좋아지는 카드가 모두 이기는 카드는 아니에요.", "Not every card that improves your hand makes it win.", "마지막 공용 카드 중 상대를 이기게 만드는 카드만 세요.", "Count only unseen final cards that make your hand beat the opponent.")
         case .equitySense:
             copy = ("끝까지 가면 이길 가능성", "Chances at the final reveal", "카드가 더 나와도 유리한지 가늠해 봐요.", "Estimate how often your cards will hold up.", "승률을 예상하고, 답이 들어갈 만한 범위도 골라요. 무승부는 몫을 나눠요.", "Estimate your chance and a plausible range. Ties count as a share of the pot.")
         case .evCall:
