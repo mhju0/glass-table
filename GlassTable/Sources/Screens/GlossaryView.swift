@@ -19,10 +19,10 @@ struct GlossaryView: View {
 
     private static let terms: [Term] = [
         Term(id: "equity", korean: "에퀴티", english: "Equity",
-             koreanDefinition: "지금 쇼다운까지 가면 이길 확률. 무승부는 절반으로 계산합니다.",
-             englishDefinition: "Your share of wins if the hand reaches a showdown now. A tie counts as half."),
+             koreanDefinition: "쇼다운에서 받을 팟의 평균 몫입니다. 무승부 몫도 포함합니다.",
+             englishDefinition: "Your average share of the pot at showdown, including ties."),
         Term(id: "pot-odds", korean: "팟 오즈", english: "Pot odds",
-             koreanDefinition: "콜 금액 대비 팟이 주는 가격. 콜이 손해가 아니려면 필요 에퀴티를 넘어야 합니다.",
+             koreanDefinition: "콜 금액 대비 팟이 주는 가격. 콜이 손해가 아니려면 에퀴티가 필요한 비율 이상이어야 합니다.",
              englishDefinition: "The price of a call compared with the pot you could win. Compare it with your equity."),
         Term(id: "required-equity", korean: "필요 에퀴티", english: "Required equity",
              koreanDefinition: "벳 ÷ (팟 + 벳 + 콜). 이 비율이면 본전이고, 더 높으면 콜이 이득입니다.",
