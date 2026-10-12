@@ -111,7 +111,7 @@ struct ConceptExplainView: View {
                 "K♠ and 6♠ share a suit. In K6s, s means suited, not spades. K6o means different suits; KK is a pair. 99+ means every pair from 99 up.")
         case .potOdds, .mdf, .callFold, .evCall, .evLoss:
             return language.text("bb는 빅 블라인드 한 개만큼의 칩이에요.",
-                                 "bb means the chips in one big blind.")
+                                 "bb is the chip amount of one big blind.")
         case .showdown, .potMath, .position, .outs, .equitySense:
             return nil
         }

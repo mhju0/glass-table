@@ -1407,7 +1407,7 @@ private struct EVCallDrill: View {
                                        "Your chance to win \(pctText(spot.equityPct))%"))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                     if simple {
-                        Text(language.text("1bb는 빅 블라인드 한 개예요.", "1bb is one big blind."))
+                        Text(language.text("bb는 빅 블라인드 한 개만큼의 칩이에요.", "bb is the chip amount of one big blind."))
                             .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
                     }
                 }

@@ -188,8 +188,8 @@ struct TableView: View {
                 Text(language.text("폴드, 콜, 올리기를 직접 골라 보세요. 매번 선택 뒤에 이유를 짧게 짚어드려요.",
                                    "Try folding, calling and raising. After each choice, get one short takeaway."))
                     .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
-                Text(language.text("1bb는 빅 블라인드 한 개만큼의 칩이에요. 상대가 먼저 올린 뒤 더 올리면 ‘다시 올리기(3벳)’예요.",
-                                   "1bb is the chip amount of one big blind. Increasing an existing raise is raising again, also called a 3-bet."))
+                Text(language.text("bb는 빅 블라인드 한 개만큼의 칩이에요. 상대가 먼저 올린 뒤 더 올리면 ‘다시 올리기(3벳)’예요.",
+                                   "bb is the chip amount of one big blind. Increasing an existing raise is raising again, also called a 3-bet."))
                     .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                 Text(language.text("시작 패는 앱 차트와 비교해요. 공용 카드 뒤에는 이후 베팅이 없다고 가정해 비교해요. 실제 포커의 정답은 아니에요.",
                                    "Starting hands use the app's chart. Later choices assume no more betting. These are practice rules, not perfect poker."))

@@ -45,7 +45,7 @@ struct PriceBarView: View {
         }
         .frame(height: 58)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(segments.map { "\(displayLabel($0.label)) \($0.bb) \(language.text("빅블라인드", "big blinds"))" }
+        .accessibilityLabel(segments.map { "\(displayLabel($0.label)) \($0.bb) \(language.text("빅 블라인드", "big blinds"))" }
             .joined(separator: ", "))
     }
 
