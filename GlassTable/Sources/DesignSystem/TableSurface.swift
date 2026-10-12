@@ -63,6 +63,9 @@ struct TableSurface: View {
     var freeReduceMotion: Bool?
     var freeHoles: [[String]] = []
     var freeBoard: [String] = []
+    /// The free table lets the felt take the height above its dock, with a larger board.
+    var fillsHeight = false
+    private var boardHeight: CGFloat { fillsHeight ? 46 : TableCard.height }
     @State private var freeAnchors: [FreeTableFlight.Anchor: CGPoint] = [:]
     private var reduceMotion: Bool { freeReduceMotion ?? systemReduceMotion }
 
@@ -89,7 +92,9 @@ struct TableSurface: View {
     private var tableLayout: some View {
         VStack(spacing: 0) {
             row(leading: seat(at: .topLeading), trailing: seat(at: .topTrailing))
-            if seats.contains(where: { $0.stack != nil }) {
+            if fillsHeight {
+                Spacer(minLength: centerHeight + 32)
+            } else if seats.contains(where: { $0.stack != nil }) {
                 Color.clear.frame(height: centerHeight + 32).accessibilityHidden(true)
             } else {
                 Spacer(minLength: centerHeight + 16)
@@ -106,7 +111,8 @@ struct TableSurface: View {
             }
         }
         .padding(Self.rail + Self.inset)
-        .frame(maxWidth: .infinity, minHeight: typeSize >= .xLarge ? 280 : 240)
+        .frame(maxWidth: .infinity, minHeight: typeSize >= .xLarge ? 280 : 240,
+               maxHeight: fillsHeight ? .infinity : nil)
         .background { felt }
         .overlay { centerGroup }
         .overlay { chipInFlight }
@@ -413,7 +419,7 @@ struct TableSurface: View {
     // MARK: Center
 
     private var centerHeight: CGFloat {
-        (center.reservesBoard || !center.board.isEmpty) ? TableCard.height + 8 + ChipStack.height
+        (center.reservesBoard || !center.board.isEmpty) ? boardHeight + 8 + ChipStack.height
             : ChipStack.height
     }
 
@@ -425,7 +431,7 @@ struct TableSurface: View {
                         ForEach(0..<5) { index in
                             let actual = freeBoard.indices.contains(index) ? Card(freeBoard[index]) : nil
                             let flip = visuals.boardFlips[index] ?? (index < center.board.count ? 1 : 0)
-                            PlayingCardView(card: actual ?? Card(rank: 2, suit: 0), size: 36, faceDown: flip < 0.5)
+                            PlayingCardView(card: actual ?? Card(rank: 2, suit: 0), size: boardHeight, faceDown: flip < 0.5)
                                 .rotation3DEffect(.degrees(reduceMotion ? 0 : flip < 0.5 ? -180 * flip : 180 * (1 - flip)), axis: (x: 0, y: 1, z: 0))
                                 .opacity(index < max(visuals.boardArrived, center.board.count) ? 1 - visuals.clearProgress : 0)
                                 .modifier(FreeWinnerCardModifier(card: actual, visuals: visuals, reduceMotion: reduceMotion))
@@ -439,7 +445,7 @@ struct TableSurface: View {
                     }
                     }
                 }
-                .frame(height: TableCard.height)
+                .frame(height: boardHeight)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(center.board.isEmpty
                     ? language.text("아직 공용 카드가 없어요", "No shared cards yet")

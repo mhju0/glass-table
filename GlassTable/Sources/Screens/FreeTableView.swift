@@ -235,10 +235,9 @@ struct FreeTableView: View {
                         stableDock(table, heightLimit: availableHeight * 0.55 - 40)
                     }
             } else {
-                VStack(spacing: 12) {
-                    tableSurface(table).padding(.horizontal, 8)
-                    Spacer(minLength: 0)
-                }
+                tableSurface(table, fillsHeight: true)
+                    .padding(.horizontal, 8).padding(.bottom, 12)
+                    .frame(maxHeight: .infinity, alignment: .top)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     stableDock(table, heightLimit: nil)
                 }
@@ -282,7 +281,7 @@ struct FreeTableView: View {
 
     // MARK: Table
 
-    private func tableSurface(_ table: PracticeTableState) -> some View {
+    private func tableSurface(_ table: PracticeTableState, fillsHeight: Bool = false) -> some View {
         let projection = visualProjection(table)
         let frame = projection?.frame ?? table.frame(after: shownCount(table))
         let board = projection?.visibleBoard ?? Array((table.review?.board ?? table.visibleBoard).prefix(frame.boardCount))
@@ -305,7 +304,8 @@ struct FreeTableView: View {
             freeVisuals: projection?.visuals,
             freeReduceMotion: reduceMotion,
             freeHoles: projection?.transitioning == true ? projection!.visibleHole : table.review?.holeCards ?? [table.learnerHole],
-            freeBoard: projection?.transitioning == true ? projection!.visibleBoard : table.review?.board ?? table.visibleBoard)
+            freeBoard: projection?.transitioning == true ? projection!.visibleBoard : table.review?.board ?? table.visibleBoard,
+            fillsHeight: fillsHeight)
             .accessibilityIdentifier("practice-table")
             .accessibilityValue(replayDebugValue)
     }
@@ -498,6 +498,11 @@ struct FreeTableView: View {
             if raising && !isReplaying(table), table.review == nil {
                 raiseHeader(FreeRaisePresentation(table: table), amount: raiseAmount,
                             onCancel: { raising = false }, onMath: { helpTab = .hint; showHelp = true })
+            } else if !isReplaying(table), table.review == nil, table.currentSeat == 0 {
+                VStack(alignment: .leading, spacing: 14) {
+                    statusRow(table)
+                    turnFacts(table)
+                }
             } else {
                 statusRow(table)
             }
@@ -590,6 +595,31 @@ struct FreeTableView: View {
             helpTab = .hint
             showHelp = true
         }
+    }
+
+    /// What the choice costs and what is in the middle, in the dock's otherwise blank area.
+    private func turnFacts(_ table: PracticeTableState) -> some View {
+        let frame = table.frame(after: shownCount(table))
+        let price = FreeDockChoices(frame: frame).price
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 28))
+        return layout {
+            turnFact(language.text("콜하려면", "To call"),
+                     price == 0 ? language.text("낼 칩 없음", "Nothing")
+                                : language.text("\(price)칩", "\(price) \(price == 1 ? "chip" : "chips")"))
+            turnFact(language.text("팟", "Pot"),
+                     language.text("\(frame.pot)칩", "\(frame.pot) \(frame.pot == 1 ? "chip" : "chips")"))
+        }
+        .accessibilityIdentifier("free-turn-facts")
+    }
+
+    private func turnFact(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
+            Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
+        }
+        .accessibilityElement(children: .combine)
     }
 
     private func dockHeader(_ title: String, warning: String?, onMath: @escaping () -> Void) -> some View {
