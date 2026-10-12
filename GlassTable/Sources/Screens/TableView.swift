@@ -238,10 +238,15 @@ struct TableView: View {
             if dynamicTypeSize.isAccessibilitySize {
                 ScrollView {
                     VStack(spacing: GT.Space.section) {
-                        seatRow(hand)
-                        if case .hero = hand.phase { streetStrip(hand) }
-                        boardBlock(hand)
-                        heroBlock(hand)
+                        VStack(spacing: GT.Space.section) {
+                            seatRow(hand)
+                            if case .hero = hand.phase { streetStrip(hand) }
+                            boardBlock(hand)
+                            heroBlock(hand)
+                        }
+                        .padding(.horizontal, 10).padding(.top, 14)
+                        .frame(maxWidth: .infinity)
+                        .background { felt }
                         VStack(alignment: .leading, spacing: GT.Space.related) { sheet(hand) }
                             .gtInset(GT.Space.sheet, firstText: .title(18))
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -266,9 +271,10 @@ struct TableView: View {
                         Spacer(minLength: compactHeight ? 6 : 14)
                         heroBlock(hand, compact: compactHeight)
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, compactHeight ? 8 : 0)
+                    .padding(.horizontal, compactHeight ? 24 : 18)
+                    .padding(.top, compactHeight ? 12 : 14)
                     .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                    .background { felt.padding(.horizontal, 8).padding(.bottom, 10) }
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 // When the zones overflow, the hero's own cards stay in view above the
@@ -319,9 +325,20 @@ struct TableView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// The same felt and rail as the free table, drawn behind the graded zones.
+    private var felt: some View {
+        let shape = RoundedRectangle(cornerRadius: TableSurface.radius, style: .continuous)
+        return shape.fill(GT.tableFelt)
+            .overlay { shape.strokeBorder(GT.tableRail, lineWidth: TableSurface.rail) }
+    }
+
+    private func feltLabel(_ text: String) -> some View {
+        Text(text).font(GT.semibold(13)).foregroundStyle(GT.tableStatus)
+    }
+
     private func streetStrip(_ hand: TableHand) -> some View {
         Text(TableEvent.streetName(hand.street, in: language))
-            .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+            .font(GT.semibold(14)).foregroundStyle(GT.tableStatus)
             .padding(.top, 6)
             .accessibilityLabel(language.text("현재 라운드: ", "Current round: ")
                                 + TableEvent.streetName(hand.street, in: language))
@@ -330,14 +347,14 @@ struct TableView: View {
     private func boardBlock(_ hand: TableHand, compact: Bool = false) -> some View {
         VStack(spacing: compact ? 5 : 10) {
             if !hand.board.isEmpty {
-                if !compact { SectionLabel(text: language.text("공용 카드", "Shared cards")) }
+                if !compact { feltLabel(language.text("공용 카드", "Shared cards")) }
                 boardRow(hand, compact: compact)
             }
             Text(language.text("팟 \(bbText(hand.pot))bb", "Pot \(bbText(hand.pot))bb"))
-                .font(GT.title(22).monospacedDigit()).foregroundStyle(GT.onFelt)
+                .font(GT.title(22).monospacedDigit()).foregroundStyle(GT.onTable)
             if let toCall = hand.toCall, lastTurn == nil {
                 Text(language.text("따라가려면 \(bbText(toCall))bb", "To call · \(bbText(toCall))bb"))
-                    .font(GT.body(16).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
+                    .font(GT.body(16).monospacedDigit()).foregroundStyle(GT.tableStatus)
             }
         }
         .frame(maxWidth: .infinity)
@@ -347,13 +364,13 @@ struct TableView: View {
     private func heroBlock(_ hand: TableHand, compact: Bool = false) -> some View {
         let layout = compact ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(spacing: 7))
         return layout {
-            SectionLabel(text: language.text("내 카드 · \(hand.heroSeat.plainName(in: language))",
-                                             "Your cards · \(hand.heroSeat.plainName(in: language))"))
+            feltLabel(language.text("내 카드 · \(hand.heroSeat.plainName(in: language))",
+                                    "Your cards · \(hand.heroSeat.plainName(in: language))"))
             if compact { Spacer(minLength: 0) }
             tableCards(hand.hero, compact: compact)
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, compact ? 6 : 16)
+        .padding(.bottom, compact ? 20 : 26)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("table-hero-cards")
     }
@@ -363,7 +380,7 @@ struct TableView: View {
         return VStack(spacing: compact ? 4 : 8) {
             layout {
             Text(hand.villain.beginnerTitle(in: language))
-                .font(GT.title(18)).foregroundStyle(GT.onFelt)
+                .font(GT.title(18)).foregroundStyle(GT.onTable)
                 .fixedSize(horizontal: false, vertical: true)
             if compact { Spacer(minLength: 0) }
             if case let .over(outcome) = hand.phase {
@@ -381,7 +398,7 @@ struct TableView: View {
             }
             if case .hero = hand.phase, let event = hand.events.last, lastTurn == nil {
                 Text(event.text(in: language, plain: !termsLead))
-                    .font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
+                    .font(GT.body(15)).foregroundStyle(GT.tableStatus)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
