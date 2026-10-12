@@ -536,6 +536,7 @@ private struct RevealSheet: View {
     let why: String
     var interval: IntervalAnswer? = nil
     var evLoss: Double? = nil
+    var correctTitle: String? = nil
     let submittedInput: DrillSubmittedInput
     let onNext: () -> Void
 
@@ -554,7 +555,8 @@ private struct RevealSheet: View {
                        correct: localized?.correct ?? correct,
                        title: replayContext.flatMap {
                             practiceFeedbackTitle($0.concept, band: band, language: language)
-                       })
+                       },
+                       correctTitle: correctTitle)
             if !collapsed {
                 Text(localized?.why ?? why)
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
@@ -2514,10 +2516,10 @@ private struct RangeAdvantageDrill: View {
                     VStack(alignment: .leading, spacing: 18) {
                         BucketBarView(label: language.text("\(spot.openerSeat.rawValue) 오픈",
                                                            "\(spot.openerSeat.rawValue) first raise"),
-                                      distribution: buckets.opener)
+                                      distribution: buckets.opener, showsHeadline: false)
                         BucketBarView(label: language.text("\(spot.callerSeat.rawValue) 콜",
                                                            "\(spot.callerSeat.rawValue) call"),
-                                      distribution: buckets.caller)
+                                      distribution: buckets.caller, showsHeadline: false)
                     }
                     .padding(.top, 8)
                     .revealEvidenceStart()
@@ -2557,6 +2559,7 @@ private struct RangeAdvantageDrill: View {
                             why: reveal.whyText + (simple ? "" : reveal.intervalHit
                                  ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
                             interval: reveal.intervalAnswer,
+                            correctTitle: language.text("오프너 승률", "Raiser's win rate"),
                             submittedInput: .interval(point: reveal.estimate.point,
                                                       lo: reveal.estimate.lo,
                                                       hi: reveal.estimate.hi)) {

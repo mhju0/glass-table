@@ -16,6 +16,8 @@ struct BucketBarView: View {
     @Environment(\.learningLanguage) private var language
     let label: String
     let distribution: RangeOnBoard
+    /// Off where another percentage is the answer, so the reveal has one headline number.
+    var showsHeadline = true
 
     /// Weakest to strongest: dim felt-ink through to full mint. A single hue ramp, so
     /// "further right is stronger" is legible to any form of colour blindness.
@@ -34,9 +36,11 @@ struct BucketBarView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(label).font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                 Spacer(minLength: 8)
-                Text(language.text("페어 이상 \(pctText(distribution.pairOrBetter * 100))%",
-                                   "Pair or better \(pctText(distribution.pairOrBetter * 100))%"))
-                    .font(GT.title(13).monospacedDigit()).foregroundStyle(GT.onFelt)
+                if showsHeadline {
+                    Text(language.text("페어 이상 \(pctText(distribution.pairOrBetter * 100))%",
+                                       "Pair or better \(pctText(distribution.pairOrBetter * 100))%"))
+                        .font(GT.title(13).monospacedDigit()).foregroundStyle(GT.onFelt)
+                }
             }
             GeometryReader { geo in
                 HStack(spacing: 1.5) {

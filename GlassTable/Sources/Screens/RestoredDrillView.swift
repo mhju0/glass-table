@@ -111,6 +111,10 @@ struct RestoredDrillView: View {
             } else {
                 VerdictRow(band: band, mine: mine, correct: correct)
             }
+        case .rangeAdvantage:
+            VerdictRow(band: band, mine: mine, correct: correct,
+                       title: practiceFeedbackTitle(concept, band: band, language: language),
+                       correctTitle: language.text("오프너 승률", "Raiser's win rate"))
         default:
             VerdictRow(band: band, mine: mine, correct: correct,
                        title: practiceFeedbackTitle(concept, band: band, language: language))
@@ -599,7 +603,8 @@ private struct RestoredDrillContextView: View {
         case let .buckets(bars):
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
-                    BucketBarView(label: bar.label, distribution: bar.distribution)
+                    BucketBarView(label: bar.label, distribution: bar.distribution,
+                                  showsHeadline: concept != .rangeAdvantage)
                 }
             }
         }
