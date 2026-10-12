@@ -53,7 +53,9 @@ struct FirstLessonView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if step == .welcome { brandHeader } else { header }
+            // The brand screen has no bar; its Skip sits under Start.
+            if step == .welcome { Color.clear.frame(height: 44) }
+            else { header.dynamicTypeSize(...DynamicTypeSize.accessibility1) }
             GeometryReader { geo in
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -474,32 +476,35 @@ struct FirstLessonView: View {
 
     private func isCorrect(_ spot: ShowdownSpot) -> Bool { answer == spot.winner }
 
-    private var brandHeader: some View {
-        HStack {
-            Spacer()
+    private var brandStart: some View {
+        VStack(spacing: 8) {
+            Button { transition(to: .teachPair) } label: {
+                Text(language.text("시작하기", "Start"))
+                    .font(GT.semibold(GT.Typography.buttonSize))
+                    .foregroundStyle(Color(hex: 0x241B0E))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.vertical, 16).padding(.horizontal, 18)
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .background(Color(hex: 0xEDC17F), in: RoundedRectangle(cornerRadius: GT.Radius.control))
+            }
+            .buttonStyle(GTPress())
+            .accessibilityIdentifier("firstLesson.start")
             Button(action: stop) {
-                Text(copy(.skip))
-                    .font(GT.semibold(14)).foregroundStyle(Color(hex: 0xC8D6D0))
-                    .frame(minWidth: 44, minHeight: 44)
+                Text(language.text("홀덤을 이미 알아요 · 안내 건너뛰기",
+                                   "I already know Hold'em · Skip the guide"))
+                    .font(GT.semibold(15)).foregroundStyle(Color(hex: 0xC8D6D0))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.vertical, 12).padding(.horizontal, 18)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: GT.Radius.control)
+                            .strokeBorder(Color(hex: 0xC8D6D0).opacity(0.35), lineWidth: 1)
+                    }
+                    .contentShape(Rectangle())
             }
             .buttonStyle(GTPress())
             .accessibilityIdentifier("firstLesson.skip")
         }
-        .padding(.horizontal, GT.Space.edge)
-    }
-
-    private var brandStart: some View {
-        Button { transition(to: .teachPair) } label: {
-            Text(language.text("시작하기", "Start"))
-                .font(GT.semibold(GT.Typography.buttonSize))
-                .foregroundStyle(Color(hex: 0x241B0E))
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.vertical, 16).padding(.horizontal, 18)
-                .frame(maxWidth: .infinity, minHeight: 56)
-                .background(Color(hex: 0xEDC17F), in: RoundedRectangle(cornerRadius: GT.Radius.control))
-        }
-        .buttonStyle(GTPress())
-        .accessibilityIdentifier("firstLesson.start")
         .padding(.horizontal, GT.Space.screen).padding(.vertical, GT.Space.screen)
     }
 
@@ -899,17 +904,34 @@ struct FirstLessonView: View {
             return language.text("숫자나 글자가 같은 두 장이 페어예요. 페어는 한 쌍이 없는 패보다 강해요.",
                                  "Two matching numbers or letters make a pair. A pair beats a hand with no pair.")
         case .higherPair:
-            return language.text("둘 다 페어이면 페어의 높이를 비교해요. A, K, Q, J, 10 순서로 높아요.",
-                                 "When both hands have a pair, compare its rank. Ace, king, queen, jack, then ten rank highest.")
+            return language.text("둘 다 페어이면 높은 페어가 이겨요. A가 가장 높고, K, Q, J, 10, 9부터 2까지 차례로 낮아져요.",
+                                 "When both hands have a pair, the higher pair wins. Ace is highest, then K, Q, J, 10, 9 and so on down to 2.")
         case .trips:
-            return language.text("같은 숫자 3장이면 트리플이에요. 트리플은 원페어와 투페어보다 강해요. 내 카드와 공용 카드를 함께 살펴보세요.",
-                                 "Three cards of one rank make three of a kind, or trips. Trips beat one pair and two pair. Look at your cards together with the shared cards.")
+            return language.text("같은 숫자 3장이면 트리플이에요. 트리플은 원페어와 투페어보다 강해요.",
+                                 "Three cards of one rank make three of a kind, or trips. Trips beat one pair and two pair.")
         case .straight:
-            return language.text("숫자가 이어지는 5장이면 스트레이트예요. 무늬는 달라도 돼요. 스트레이트는 트리플보다 강하고, A는 A·2·3·4·5에서 낮게도 쓰여요.",
-                                 "Five consecutive ranks make a straight, in any suits. A straight beats trips. An ace can also be low in A, 2, 3, 4, 5.")
+            return language.text("숫자가 이어지는 5장이면 스트레이트예요. 스트레이트는 트리플보다 강해요.",
+                                 "Five consecutive ranks make a straight. A straight beats trips.")
         case .flush:
-            return language.text("같은 무늬 5장이면 플러시예요. 숫자가 이어질 필요는 없어요. 플러시는 스트레이트보다 강해요. 7장 중 가장 좋은 5장을 찾아보세요.",
-                                 "Five cards of one suit make a flush; their ranks need not be consecutive. A flush beats a straight. Find the best five of your seven cards.")
+            return language.text("같은 무늬 5장이면 플러시예요. 플러시는 스트레이트보다 강해요.",
+                                 "Five cards of one suit make a flush. A flush beats a straight.")
+        }
+    }
+
+    /// Side facts kept out of the rule above the question; shown after answering.
+    private var comparisonSideFact: String? {
+        switch comparisonRule {
+        case .pairOverHighCard, .higherPair:
+            return nil
+        case .trips:
+            return language.text("내 카드와 공용 카드를 함께 살펴보세요.",
+                                 "Look at your cards together with the shared cards.")
+        case .straight:
+            return language.text("무늬는 달라도 돼요. A는 A·2·3·4·5에서 낮게도 쓰여요.",
+                                 "The suits can differ. An ace can also be low in A, 2, 3, 4, 5.")
+        case .flush:
+            return language.text("숫자가 이어질 필요는 없어요. 7장 중 가장 좋은 5장을 찾아보세요.",
+                                 "The ranks need not be consecutive. Find the best five of your seven cards.")
         }
     }
 
@@ -1093,7 +1115,7 @@ struct FirstLessonView: View {
             detail = language.text("7장 중 가장 좋은 5장의 족보와 숫자를 비교해요.",
                                    "Compare the hand types and ranks of each best five.")
         default:
-            detail = comparisonRuleText
+            detail = [comparisonRuleText, comparisonSideFact].compactMap { $0 }.joined(separator: " ")
         }
         return VStack(alignment: .leading, spacing: GT.Space.related) {
             HStack(alignment: .top, spacing: 10) {
