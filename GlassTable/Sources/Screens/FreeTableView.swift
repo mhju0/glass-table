@@ -615,7 +615,11 @@ struct FreeTableView: View {
     }
 
     private func turnFact(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        // At accessibility sizes a stacked label and value push the actions off the screen.
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+            : AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+        return layout {
             Text(label).font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
             Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
         }
@@ -1453,9 +1457,9 @@ private struct FreeTableBackHeader: View {
     }
     private var tabs: some View {
         HStack(spacing: 6) {
-            button(.hint, language.text("선택 도움말", "Decision help"))
-            button(.hand, language.text("핸드 기록", "Hand history"))
-            button(.rules, language.text("테이블 안내", "Table guide"))
+            button(.hint, language.text("선택 도움말", "Help"))
+            button(.hand, language.text("핸드 기록", "History"))
+            button(.rules, language.text("테이블 안내", "Guide"))
         }
     }
     private var close: some View {
@@ -1664,7 +1668,7 @@ private struct FreeTableBackFace: View {
         if frame.settled {
             panel(language.text("이 핸드를 돌아봐요", "Review this hand")) {
                 Text(language.text("지금은 고를 행동이 없어요. ‘핸드 기록’에서 선택과 칩 이동을 확인해요.",
-                                   "There is no decision left. Open Hand history to review your choices and chip movement."))
+                                   "There is no decision left. Open History to review your choices and chip movement."))
                     .font(GT.body(16)).fixedSize(horizontal: false, vertical: true)
                 SecondaryCTAButton(title: language.text("이 핸드 보기", "Review this hand")) { tab = .hand }
                     .accessibilityIdentifier("free-finished-help-review")

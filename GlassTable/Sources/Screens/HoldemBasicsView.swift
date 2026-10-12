@@ -239,7 +239,7 @@ struct HoldemBasicsView: View {
         VStack(alignment: .leading, spacing: GT.Space.section) {
             intro(language.text("어느 쪽이 이길까요?", "Which hand wins?"),
                   language.text("두 조합의 족보를 먼저 비교하고, 같으면 조합을 만든 숫자를 비교해요.",
-                                "Compare the hand types first. If they match, compare the ranks that form the combination."))
+                                "Compare hand types first. If they match, compare the ranks."))
             VStack(spacing: 12) {
                 ForEach(checkRanks) { rank in checkHand(rank) }
             }

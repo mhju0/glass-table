@@ -331,7 +331,7 @@ struct LessonHandNotation: View {
                 let suited = cards[0].suit == cards[1].suit
                 Text(pair ? language.text("같은 숫자 두 장: 페어예요.", "Two matching ranks make a pair.")
                           : suited ? language.text("두 장의 무늬가 같아요.", "The two cards share a suit.")
-                                   : language.text("두 장의 무늬가 달라요.", "The two cards have different suits."))
+                                   : language.text("두 장의 무늬가 달라요.", "The suits are different."))
                     .font(GT.title(18)).foregroundStyle(GT.ink)
                 if !pair {
                     LessonPairedText(korean: ["s는 같은 무늬, o는 다른 무늬예요.", "s는 스페이드만 뜻하지 않아요."],

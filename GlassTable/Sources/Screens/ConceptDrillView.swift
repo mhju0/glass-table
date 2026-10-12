@@ -779,7 +779,7 @@ private struct ShowdownDrill: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(language.text("누가 이겼나요?", "Who won this hand?"))
+                    Text(language.text("가장 좋은 다섯 장으로 누가 이길까요?", "Who wins with their best five cards?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     ForEach(Array(["내가 이김", "상대가 이김", "무승부"].enumerated()), id: \.offset) { i, label in
                         GTChoiceButton(title: language == .korean ? label
