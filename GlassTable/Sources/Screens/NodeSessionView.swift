@@ -76,7 +76,6 @@ struct NodeSessionView: View {
     @State private var evidence: [Concept: SessionEvidence] = [:]
     @State private var finished = false
     @State private var stage: Stage = .solo
-    @State private var showHint = false
     @State private var sessionSeed: UInt64?
     @State private var sessionConcepts: [Concept] = []
     @State private var attemptLedger = SessionAttemptLedger()
@@ -133,7 +132,7 @@ struct NodeSessionView: View {
                 ChromeTextButton(title: WalkthroughView.skipTitle(language)) {
                     advanceTeaching(skip: true)
                 }
-            } else if stage == .together || isHelpedQuestion { hintButton }
+            }
         })
         .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
             if (stage == .solo || stage == .together), gesture.startLocation.x < 24, gesture.translation.width > 80,
@@ -354,29 +353,6 @@ struct NodeSessionView: View {
         restore(updated)
     }
 
-    private var hintButton: some View {
-        Button { showHint = true } label: {
-            HStack(spacing: 5) {
-                Image(systemName: "lightbulb.fill").font(.system(size: 11))
-                Text(language.text("힌트", "Hint")).font(GT.semibold(12)).lineLimit(1)
-            }
-            // The toolbar may propose less width than the pill needs; it must not truncate.
-            .fixedSize()
-            .foregroundStyle(GT.onCTA)
-            .padding(.horizontal, 13).padding(.vertical, 7)
-            .background(GT.cta, in: Capsule())
-            // A 28 pt pill centred on the close chevron's row, with the full 44 pt target
-            // around it, so it does not hang over the title below.
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(GTPress())
-        .sheet(isPresented: $showHint) {
-            GuidedHintView(concept: taughtConcept) { showHint = false }
-                .gtSheetSurface()
-        }
-    }
-
     private var current: some View {
         // Indices 0 and 1 are reserved for 보여주기 and 함께 풀기, so the graded items
         // are never a spot the user has already been walked through.
@@ -565,118 +541,6 @@ struct NodeSessionView: View {
                       "You finished \(itemCount) questions. Try the same idea with different cards.")
     }
 
-}
-
-private struct GuidedHintView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.learningLanguage) private var language
-    @Environment(\.dynamicTypeSize) private var textSize
-    @State private var contentHeight: CGFloat = 220
-    let concept: Concept
-    let onClose: () -> Void
-    var body: some View {
-        ScrollView {
-            content
-                .onGeometryChange(for: CGFloat.self) { $0.size.height.rounded(.up) } action: {
-                    contentHeight = $0
-                }
-        }
-        .scrollBounceBehavior(.basedOnSize)
-        .background(FeltBackground())
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("guided-hint")
-        .presentationDetents(textSize.isAccessibilitySize ? [.large] : [.height(max(220, contentHeight))])
-        .presentationDragIndicator(.visible)
-    }
-
-    private var content: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                Text(language.text("풀이 순서", "How to work it out"))
-                    .font(GT.title(GT.Typography.resultSize))
-                    .foregroundStyle(GT.onFelt)
-                Spacer(minLength: 12)
-                Button {
-                    onClose()
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(GT.onFelt)
-                        .frame(width: 48, height: 48)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(GTPress())
-                .accessibilityLabel(language.text("힌트 닫기", "Close hint"))
-            }
-            Text(cue)
-                .font(GT.body(GT.Typography.explanationSize))
-                .foregroundStyle(GT.onFeltSecondary)
-                .lineSpacing(GT.Typography.explanationLineSpacing)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("guided-hint-cue")
-        }
-        .gtInset(GT.Space.sheet, firstText: .title(GT.Typography.resultSize))
-    }
-
-    private var cue: String {
-        switch concept {
-        case .showdown: return language.text(
-            "가장 높은 5장 조합을 만들고, 같으면 높은 카드부터 비교해 보세요.",
-            "Make each player's best five-card hand. If tied, compare the highest cards first.")
-        case .potMath: return language.text(
-            "시작 팟과 각 행동에서 들어온 칩을 한 번씩 더해 보세요.",
-            "Start with the pot, then add each contribution once.")
-        case .position: return language.text(
-            "버튼에서 시계 방향으로 좌석을 세고, 누가 먼저 행동하는지 확인하세요.",
-            "Count seats clockwise from the dealer button, then check who acts first.")
-        case .combos: return language.text(
-            "두 장 조합에서 이미 보인 카드가 들어간 조합을 빼세요.",
-            "Count two-card pairs, then remove pairs containing a visible card.")
-        case .potOdds: return language.text(
-            "콜 금액을 콜 뒤 전체 팟으로 나눠 보세요.",
-            "Divide the call amount by the full pot after your call.")
-        case .outs: return language.text(
-            "상대 패를 이기게 하는 카드만 세고, 이미 보인 카드는 빼세요.",
-            "Count cards that beat the shown opponent hand, excluding visible cards.")
-        case .equitySense: return language.text(
-            "남은 카드에서 이기거나 비기는 경우가 얼마나 될지 가늠하세요.",
-            "Estimate how often the remaining cards let you win or tie.")
-        case .evCall: return language.text(
-            "이길 때 얻는 돈과 질 때 내는 돈을 각각 확률만큼 반영하세요.",
-            "Weight the money won and the call lost by their chances.")
-        case .callFold: return language.text(
-            "콜에 필요한 승률을 내 승률과 비교하세요.",
-            "Compare the win chance your call needs with your own win chance.")
-        case .rangeNotation: return language.text(
-            "같은 숫자, 같은 무늬, 다른 무늬를 먼저 구분해 보세요.",
-            "First separate pairs, same-suit hands, and different-suit hands.")
-        case .rfi: return language.text(
-            "내 자리의 표에서 손패 칸이 열기 범위에 있는지 보세요.",
-            "Find your hand on the chart for your seat and see whether it is in range.")
-        case .rangeRead: return language.text(
-            "시작 손패에서 지금까지의 행동과 보드에 맞지 않는 조합을 빼세요.",
-            "Start with possible hands, then remove ones that do not fit the action or board.")
-        case .hitFrequency: return language.text(
-            "맞은 손패, 드로, 놓친 손패로 나눠 비중을 보세요.",
-            "Separate made hands, draws, and misses, then compare their shares.")
-        case .rangeAdvantage: return language.text(
-            "두 사람의 시작 손패가 이 보드에서 얼마나 강해지는지 비교하세요.",
-            "Compare how often each player's starting hands become strong on this board.")
-        case .evLoss: return language.text(
-            "두 선택의 예상 가치를 비교하고, 더 좋은 선택과의 차이를 보세요.",
-            "Compare the two choices' expected value, then find the gap from the better one.")
-        case .actionRead: return language.text(
-            "이 크기로 벳할 법한 손패가 무엇인지 좁혀 보세요.",
-            "Narrow down which hands would likely choose this bet size.")
-        case .defend: return language.text(
-            "내 자리와 상대가 처음 올린 자리를 확인하고 표에서 손패를 찾으세요.",
-            "Check both seats, then find your hand on the defend chart.")
-        case .mdf: return language.text(
-            "1 − 벳/(기존 팟 + 벳)으로 전체 방어 비율을 구하세요. 한 손패의 콜 여부는 따로 판단해요.",
-            "Use 1 − bet/(pot + bet) for the overall defend share. One hand's call is a separate decision.")
-        }
-    }
 }
 
 /// Unlimited practice on any single concept, no node and no grading pressure

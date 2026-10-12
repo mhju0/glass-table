@@ -39,9 +39,16 @@ struct CompactLessonCue: View {
     @State private var expanded = false
     var body: some View {
         DisclosureGroup(isExpanded: $expanded) {
-            Text(ConceptIntroduction.make(concept, language: language).how)
-                .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
-                .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(lessonCueSentence(concept, language: language))
+                    .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("guided-hint-cue")
+                Text(ConceptIntroduction.make(concept, language: language).how)
+                    .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.top, 8)
         } label: {
             Label(language.text("푸는 방법", "How to work it out"), systemImage: "lightbulb")
                 .font(GT.semibold(14)).frame(minHeight: 44)
@@ -49,6 +56,66 @@ struct CompactLessonCue: View {
         .foregroundStyle(GT.ink)
         .padding(.horizontal, 14).gtPanel()
         .accessibilityIdentifier("contextual-hint-cue")
+    }
+}
+
+/// The one-sentence way in, shown first when the help row opens.
+func lessonCueSentence(_ concept: Concept, language: LearningLanguage) -> String {
+    switch concept {
+    case .showdown: return language.text(
+        "가장 높은 5장 조합을 만들고, 같으면 높은 카드부터 비교해 보세요.",
+        "Make each player's best five-card hand. If tied, compare the highest cards first.")
+    case .potMath: return language.text(
+        "시작 팟과 각 행동에서 들어온 칩을 한 번씩 더해 보세요.",
+        "Start with the pot, then add each contribution once.")
+    case .position: return language.text(
+        "버튼에서 시계 방향으로 좌석을 세고, 누가 먼저 행동하는지 확인하세요.",
+        "Count seats clockwise from the dealer button, then check who acts first.")
+    case .combos: return language.text(
+        "두 장 조합에서 이미 보인 카드가 들어간 조합을 빼세요.",
+        "Count two-card pairs, then remove pairs containing a visible card.")
+    case .potOdds: return language.text(
+        "콜 금액을 콜 뒤 전체 팟으로 나눠 보세요.",
+        "Divide the call amount by the full pot after your call.")
+    case .outs: return language.text(
+        "상대 패를 이기게 하는 카드만 세고, 이미 보인 카드는 빼세요.",
+        "Count cards that beat the shown opponent hand, excluding visible cards.")
+    case .equitySense: return language.text(
+        "남은 카드에서 이기거나 비기는 경우가 얼마나 될지 가늠하세요.",
+        "Estimate how often the remaining cards let you win or tie.")
+    case .evCall: return language.text(
+        "이길 때 얻는 돈과 질 때 내는 돈을 각각 확률만큼 반영하세요.",
+        "Weight the money won and the call lost by their chances.")
+    case .callFold: return language.text(
+        "콜에 필요한 승률을 내 승률과 비교하세요.",
+        "Compare the win chance your call needs with your own win chance.")
+    case .rangeNotation: return language.text(
+        "같은 숫자, 같은 무늬, 다른 무늬를 먼저 구분해 보세요.",
+        "First separate pairs, same-suit hands, and different-suit hands.")
+    case .rfi: return language.text(
+        "내 자리의 표에서 손패 칸이 열기 범위에 있는지 보세요.",
+        "Find your hand on the chart for your seat and see whether it is in range.")
+    case .rangeRead: return language.text(
+        "시작 손패에서 지금까지의 행동과 보드에 맞지 않는 조합을 빼세요.",
+        "Start with possible hands, then remove ones that do not fit the action or board.")
+    case .hitFrequency: return language.text(
+        "맞은 손패, 드로, 놓친 손패로 나눠 비중을 보세요.",
+        "Separate made hands, draws, and misses, then compare their shares.")
+    case .rangeAdvantage: return language.text(
+        "두 사람의 시작 손패가 이 보드에서 얼마나 강해지는지 비교하세요.",
+        "Compare how often each player's starting hands become strong on this board.")
+    case .evLoss: return language.text(
+        "두 선택의 예상 가치를 비교하고, 더 좋은 선택과의 차이를 보세요.",
+        "Compare the two choices' expected value, then find the gap from the better one.")
+    case .actionRead: return language.text(
+        "이 크기로 벳할 법한 손패가 무엇인지 좁혀 보세요.",
+        "Narrow down which hands would likely choose this bet size.")
+    case .defend: return language.text(
+        "내 자리와 상대가 처음 올린 자리를 확인하고 표에서 손패를 찾으세요.",
+        "Check both seats, then find your hand on the defend chart.")
+    case .mdf: return language.text(
+        "1 − 벳/(기존 팟 + 벳)으로 전체 방어 비율을 구하세요. 한 손패의 콜 여부는 따로 판단해요.",
+        "Use 1 − bet/(pot + bet) for the overall defend share. One hand's call is a separate decision.")
     }
 }
 
