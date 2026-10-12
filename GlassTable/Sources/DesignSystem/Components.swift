@@ -717,8 +717,8 @@ struct ActionSheet<Content: View>: View {
                 shape.fill(GT.glass).overlay(shape.stroke(GT.glassEdge, lineWidth: 1))
             }
         } else {
-            let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.sheet,
-                                               topTrailingRadius: GT.Radius.sheet,
+            let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.control,
+                                               topTrailingRadius: GT.Radius.control,
                                                style: .continuous)
             if let band {
                 shape.fill(band.tint)

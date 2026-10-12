@@ -767,11 +767,11 @@ struct FreeTableView: View {
                     Spacer(minLength: 8)
                     mathPill(onMath: onMath)
                 }
-                raiseAmountTitle(sizing, amount: amount)
+                raiseAmountTitle(sizing, amount: amount, besideControls: false)
             } else {
                 HStack(alignment: .center, spacing: 8) {
                     raiseBack(onCancel: onCancel)
-                    raiseAmountTitle(sizing, amount: amount)
+                    raiseAmountTitle(sizing, amount: amount, besideControls: true)
                     mathPill(onMath: onMath)
                 }
             }
@@ -799,17 +799,19 @@ struct FreeTableView: View {
         .accessibilityIdentifier("free-raise-cancel")
     }
 
-    private func raiseAmountTitle(_ sizing: FreeRaisePresentation, amount: Int) -> some View {
+    private func raiseAmountTitle(_ sizing: FreeRaisePresentation, amount: Int,
+                                  besideControls: Bool) -> some View {
         ScrollView {
             Text(sizing.title(amount: amount, language: language))
                 .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .contentTransition(.numericText())
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, minHeight: besideControls ? raiseAmountHeight : nil, alignment: .leading)
                 .accessibilityIdentifier("free-raise-amount")
         }
         .frame(height: raiseAmountHeight)
-        .offset(y: GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18
+        // Beside the back arrow and the help pill the title shares their centre line.
+        .offset(y: besideControls ? 0 : GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18
                 - GT.TextRole.title(24).inkLeading(in: language) * raiseTitleMetric / 24)
         .accessibilityIdentifier("free-raise-amount-scroll")
     }
@@ -850,6 +852,7 @@ struct FreeTableView: View {
                 raiseStep("+", enabled: amount < sizing.maximum, spoken: language.text("1칩 늘리기", "Increase by 1 chip")) { onStep(1) }
                     .accessibilityIdentifier("free-raise-plus")
             }
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -887,7 +890,7 @@ struct FreeTableView: View {
         Button(action: action) {
             Image(systemName: title == "−" ? "minus" : "plus")
                 .font(.system(size: 24, weight: .semibold)).foregroundStyle(GT.ink)
-                .frame(width: 68, height: 68)
+                .frame(width: 54).frame(minHeight: 54, maxHeight: .infinity)
                 .background { GTDockControlBackground(side: title == "−" ? .leading : .trailing) }
         }
         .buttonStyle(GTHoldStepStyle(enabled: enabled)).disabled(!enabled).opacity(enabled ? 1 : 0.45)
