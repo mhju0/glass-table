@@ -710,9 +710,7 @@ struct ActionSheet<Content: View>: View {
     @ViewBuilder
     private var sheetBackground: some View {
         if #available(iOS 26.0, *), floats {
-            // Nested with the controls inside: control radius plus the sheet inset.
-            let shape = RoundedRectangle(cornerRadius: GT.Radius.control + GT.Space.sheet,
-                                         style: .continuous)
+            let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
             if let band {
                 shape.fill(band.tint).overlay(shape.stroke(band.ink, lineWidth: 2))
             } else {
@@ -1105,8 +1103,8 @@ struct EstimateStepper: View {
         Button { onAdjust(d) } label: {
             Text(s).font(GT.semibold(24)).foregroundStyle(GT.ink)
                 .frame(width: 50, height: 50)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                     .strokeBorder(GT.borderStrong, lineWidth: 1))
         }.buttonStyle(GTPress())
     }

@@ -69,11 +69,10 @@ struct TableSurface: View {
     @State private var freeAnchors: [FreeTableFlight.Anchor: CGPoint] = [:]
     private var reduceMotion: Bool { freeReduceMotion ?? systemReduceMotion }
 
-    static let radius: CGFloat = 32
+    static let radius: CGFloat = GT.Radius.control
     static let rail: CGFloat = 3
     static let inset: CGFloat = 10
     static let seatGap: CGFloat = 16
-    static var seatOuterRadius: CGFloat { radius - rail - inset }
 
     var body: some View {
         Group {
@@ -176,7 +175,7 @@ struct TableSurface: View {
     }
 
     private func legacySeat(_ seat: TableSeat, place: TableSeat.Place?) -> some View {
-        let shape = seatShape(place)
+        let shape = seatShape
         return ViewThatFits(in: .horizontal) {
             HStack(spacing: 8) {
                 seatDetail(seat)
@@ -209,7 +208,7 @@ struct TableSurface: View {
     }
 
     private func practiceSeat(_ seat: TableSeat, place: TableSeat.Place?) -> some View {
-        let shape = seatShape(place)
+        let shape = seatShape
         let ink = seat.isHero ? Color(hex: 0x1D221F) : GT.onTable
         let secondary = seat.isHero ? Color(hex: 0x5D625B) : GT.tableStatus
         let actionInk = seat.isHero ? Color(hex: 0x88600F) : GT.tableSeatActive
@@ -369,30 +368,8 @@ struct TableSurface: View {
         }
     }
 
-    private func seatShape(_ place: TableSeat.Place?) -> UnevenRoundedRectangle {
-        let outer = Self.seatOuterRadius, inner: CGFloat = 10
-        switch place {
-        case .topLeading?:
-            return UnevenRoundedRectangle(topLeadingRadius: outer, bottomLeadingRadius: inner,
-                                          bottomTrailingRadius: inner, topTrailingRadius: inner,
-                                          style: .continuous)
-        case .topTrailing?:
-            return UnevenRoundedRectangle(topLeadingRadius: inner, bottomLeadingRadius: inner,
-                                          bottomTrailingRadius: inner, topTrailingRadius: outer,
-                                          style: .continuous)
-        case .bottomLeading?:
-            return UnevenRoundedRectangle(topLeadingRadius: inner, bottomLeadingRadius: outer,
-                                          bottomTrailingRadius: inner, topTrailingRadius: inner,
-                                          style: .continuous)
-        case .bottomTrailing?:
-            return UnevenRoundedRectangle(topLeadingRadius: inner, bottomLeadingRadius: inner,
-                                          bottomTrailingRadius: outer, topTrailingRadius: inner,
-                                          style: .continuous)
-        case .bottomCenter?, nil:
-            return UnevenRoundedRectangle(topLeadingRadius: inner, bottomLeadingRadius: inner,
-                                          bottomTrailingRadius: inner, topTrailingRadius: inner,
-                                          style: .continuous)
-        }
+    private var seatShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
     }
 
     private func spokenLabel(_ seat: TableSeat) -> String {
