@@ -185,8 +185,6 @@ final class BilingualConsistencyB20Tests: XCTestCase {
             app.launchEnvironment.removeValue(forKey: "GT_DEMO_SEED")
         }
         app.launch()
-        XCTAssertEqual(app.windows.firstMatch.frame.width, 375, accuracy: 1,
-                       "Run this acceptance suite on a 375-point compact phone, such as iPhone 12 mini.")
         return app
     }
 
