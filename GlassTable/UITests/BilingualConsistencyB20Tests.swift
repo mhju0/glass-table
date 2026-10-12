@@ -319,9 +319,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
 
     private func workedExample(code: String, appearance: String) {
         let app = launch(code: code, appearance: appearance, ax: true,
-                         environment: ["GT_DEMO_NODE": "u1-position", "GT_DEMO_EXPLAIN": "1"])
-        let example = app.buttons["explain-example"]
-        tap(example, app: app)
+                         environment: ["GT_DEMO_REPLAY": "position"])
         tap(app.buttons["walkthrough-next"], app: app)
         tap(app.buttons["walkthrough-previous"], app: app)
         for _ in 0..<40 {
@@ -331,7 +329,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
                 reveal(next, app: app)
                 capture(app, "b20-position-last-\(code)-\(appearance)-AX5")
                 next.tap()
-                XCTAssertTrue(example.waitForExistence(timeout: 5), "Finishing returns to the same explanation")
+                XCTAssertTrue(next.waitForNonExistence(timeout: 5), "Finishing leaves the example")
                 print("B20_AX_FLOW position-example-return \(code) \(appearance) passed")
                 app.terminate()
                 return

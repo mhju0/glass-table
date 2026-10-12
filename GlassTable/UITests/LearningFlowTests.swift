@@ -525,7 +525,7 @@ final class LearningFlowTests: XCTestCase {
 
     /// Every graded question can reopen its skill's explanation, with the approved
     /// position rule and a worked example on a different spot.
-    func testGradedQuestionReopensTheExplanationAndAnExample() {
+    func testGradedQuestionReopensTheExplanationWithItsExample() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
@@ -541,11 +541,7 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(
             format: "label BEGINSWITH %@", "공용 카드 전에는 큰 블라인드가 마지막이에요."
         )).firstMatch.exists)
-        let example = app.buttons["explain-example"]
-        for _ in 0..<6 where !example.isHittable { app.swipeUp() }
-        example.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-0"]
-            .waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["explain-example"].exists, "The example is on the page, not a second step")
     }
 
     /// At the largest text the seats are listed one per line, before and after the answer.

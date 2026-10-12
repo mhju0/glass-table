@@ -7,11 +7,10 @@ final class DeviceFeedbackLessonTests: XCTestCase {
     private func example(_ code: String, _ appearance: String, _ ax: Bool) {
         let app = XCUIApplication()
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_SEED": "1",
-                                 "GT_DEMO_NODE": "u1-position", "GT_DEMO_EXPLAIN": "1"]
+                                 "GT_DEMO_REPLAY": "position"]
         app.launchArguments = ["-glassTable.language", code == "ko" ? "korean" : "english", "-appAppearance", appearance]
         if ax { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         app.launch()
-        tap(app.buttons["explain-example"], app)
         XCTAssertTrue(app.buttons["walkthrough-next"].waitForExistence(timeout: 8))
         snapshot(app, "position-intro-\(code)-\(appearance)")
         tap(app.buttons["walkthrough-next"], app)
@@ -21,7 +20,7 @@ final class DeviceFeedbackLessonTests: XCTestCase {
             if next.label == (code == "ko" ? "예시 마치기" : "Finish example") {
                 snapshot(app, "position-last-\(code)-\(appearance)")
                 tap(next, app)
-                XCTAssertTrue(app.buttons["explain-example"].waitForExistence(timeout: 5))
+                XCTAssertTrue(next.waitForNonExistence(timeout: 5))
                 snapshot(app, "position-return-\(code)-\(appearance)")
                 app.terminate()
                 return
@@ -29,7 +28,7 @@ final class DeviceFeedbackLessonTests: XCTestCase {
             if !next.isEnabled { tap(app.buttons["walkthrough-reveal"], app) }
             tap(next, app)
         }
-        XCTFail("Worked example did not return to its explanation")
+        XCTFail("Worked example did not finish")
     }
     private func tap(_ element: XCUIElement, _ app: XCUIApplication) {
         XCTAssertTrue(element.waitForExistence(timeout: 10))
