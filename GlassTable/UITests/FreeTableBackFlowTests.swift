@@ -242,7 +242,13 @@ final class FreeTableBackFlowTests: XCTestCase {
         reveal(tabs, app: app, scroll: app.scrollViews["free-dock-content"])
         for id in ["hint", "hand", "rules"] {
             let tab = app.buttons["free-back-\(id)"]
-            for _ in 0..<5 where tab.frame.maxX > tabs.frame.maxX + 0.5 { tabs.swipeLeft() }
+            // A full swipe runs to the end of the row and pushes the middle tab off the left.
+            for _ in 0..<12 where tab.frame.maxX > tabs.frame.maxX + 0.5 {
+                let from = tabs.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5))
+                let delta = max(40, min(160, tab.frame.maxX - tabs.frame.maxX + 12))
+                from.press(forDuration: 0.1, thenDragTo: from.withOffset(CGVector(dx: -delta, dy: 0)),
+                           withVelocity: .slow, thenHoldForDuration: 0.3)
+            }
             XCTAssertGreaterThanOrEqual(tab.frame.minX, tabs.frame.minX - 0.5)
             XCTAssertLessThanOrEqual(tab.frame.maxX, tabs.frame.maxX + 0.5)
         }

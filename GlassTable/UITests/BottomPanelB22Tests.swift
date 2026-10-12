@@ -20,43 +20,25 @@ final class BottomPanelB22Tests: XCTestCase {
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_DEMO_NODE": "u1-showdown", "GT_DEMO_STAGE": "together"]
         app.launch()
-        let hint = app.buttons[code == "ko" ? "힌트" : "Hint"]
-        XCTAssertTrue(hint.waitForExistence(timeout: 20))
-        hint.tap()
-        let cue = app.descendants(matching: .any)["guided-hint-cue"].firstMatch
-        let close = app.buttons[code == "ko" ? "힌트 닫기" : "Close hint"]
-        XCTAssertTrue(cue.waitForExistence(timeout: 8))
-        let settled = NSPredicate { _, _ in
-            close.exists && close.isHittable && close.frame.width >= 44 && close.frame.height >= 44
-        }
-        let settleResult = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: settled, object: nil)], timeout: 5)
-        if settleResult != .completed {
-            let diagnostic = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-            diagnostic.name = "hint-close-geometry-\(code)-\(theme)"
-            diagnostic.lifetime = .keepAlways
-            add(diagnostic)
-            let hierarchy = XCTAttachment(string: app.debugDescription)
-            hierarchy.lifetime = .keepAlways
-            add(hierarchy)
-        }
-        XCTAssertEqual(settleResult, .completed, "The sheet must settle with a full-size close target")
-        XCTAssertTrue(close.isHittable)
-        XCTAssertGreaterThanOrEqual(close.frame.width, 44)
-        XCTAssertGreaterThanOrEqual(close.frame.height, 44)
-        let sheet = app.descendants(matching: .any)["guided-hint"].firstMatch
-        XCTAssertTrue(sheet.exists)
-        if !large {
-            XCTAssertLessThan(sheet.frame.height, app.frame.height * 0.5,
-                              "A brief hint should not occupy half the screen")
-        }
-        XCTAssertGreaterThanOrEqual(cue.frame.minY, sheet.frame.minY)
-        XCTAssertLessThanOrEqual(cue.frame.maxY, sheet.frame.maxY + 1)
+        // One help control: the in-place row. The pill and its sheet are gone.
+        let row = app.buttons[code == "ko" ? "푸는 방법" : "How to work it out"]
+        XCTAssertTrue(row.waitForExistence(timeout: 20))
+        XCTAssertFalse(app.buttons[code == "ko" ? "힌트" : "Hint"].exists)
+        for _ in 0..<6 where !row.isHittable { app.swipeUp() }
+        XCTAssertTrue(row.isHittable)
+        XCTAssertGreaterThanOrEqual(row.frame.height, 44)
+        row.tap()
+        let cue = app.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", code == "ko" ? "가장 높은 5장 조합을 만들고" : "Make each player's best five-card hand."
+        )).firstMatch
+        XCTAssertTrue(cue.waitForExistence(timeout: 8), "The row opens with the one-sentence cue")
+        XCTAssertFalse(app.descendants(matching: .any)["guided-hint"].firstMatch.exists,
+                       "Help opens in place, never as a sheet over the answers")
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-        attachment.name = "compact-hint-\(code)-\(theme)-\(large ? "AX5" : "normal")"
+        attachment.name = "help-row-\(code)-\(theme)-\(large ? "AX5" : "normal")"
         attachment.lifetime = .keepAlways
         add(attachment)
-        close.tap()
-        XCTAssertFalse(close.waitForExistence(timeout: 2))
-        XCTAssertTrue(hint.isHittable)
+        row.tap()
+        XCTAssertFalse(cue.waitForExistence(timeout: 2), "The same row closes it")
     }
 }

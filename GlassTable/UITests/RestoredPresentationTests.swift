@@ -25,7 +25,7 @@ final class RestoredPresentationTests: XCTestCase {
                 let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "pot-answer-")).firstMatch
                 reach(choice, app: app); choice.tap()
             } else {
-                let submit = app.buttons[node == "u6-evLoss" ? (language == "ko" ? "폴드" : "Fold") : (language == "ko" ? "확인" : "Check answer")]
+                let submit = node == "u6-evLoss" ? app.buttons[language == "ko" ? "폴드" : "Fold"] : app.firstLessonChoice
                 reach(submit, app: app); submit.tap()
             }
             let completion = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "drill-completion-")).firstMatch

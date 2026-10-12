@@ -246,13 +246,22 @@ final class FreeTableMotionFlowTests: XCTestCase {
                                  ax: true, frozen: true, fraction: 0.5)
                 let caption = app.otherElements["table-pot"]
                 let scroll = app.scrollViews.element(boundBy: 0)
-                for _ in 0..<8 {
-                    let viewport = scroll.frame.intersection(app.frame)
+                let dock = app.descendants(matching: .any)["free-dock"]
+                // The table shows through only above the dock; a swipe from the middle of
+                // its frame can land on the dock instead.
+                var viewport = CGRect.zero
+                for _ in 0..<20 {
+                    viewport = scroll.frame.intersection(app.frame)
+                    viewport.size.height = min(viewport.maxY, dock.frame.minY) - viewport.minY
                     if viewport.intersection(caption.frame).height >= caption.frame.height - 0.5 { break }
-                    scroll.swipeUp()
+                    let delta = min(80, max(-80, caption.frame.midY - viewport.midY))
+                    let from = app.coordinate(withNormalizedOffset: .zero)
+                        .withOffset(CGVector(dx: viewport.midX, dy: viewport.midY))
+                    from.press(forDuration: 0.05, thenDragTo: from.withOffset(CGVector(dx: 0, dy: -delta)),
+                               withVelocity: .slow, thenHoldForDuration: 0.5)
                 }
                 XCTAssertTrue(caption.isHittable)
-                XCTAssertEqual(scroll.frame.intersection(app.frame).intersection(caption.frame).height,
+                XCTAssertEqual(viewport.intersection(caption.frame).height,
                                caption.frame.height, accuracy: 0.5)
                 let amount = pot == 2 ? "18" : "100"
                 let total = pot == 2 ? "308" : "100"

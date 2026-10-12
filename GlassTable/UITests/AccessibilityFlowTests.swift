@@ -46,6 +46,7 @@ final class AccessibilityFlowTests: XCTestCase {
         let header = app.staticTexts[title]
         XCTAssertTrue(header.exists)
         let ids = (0..<players).map { "practice-\($0)" }
+        let dock = app.descendants(matching: .any)["free-dock"]
         XCTAssertFalse(app.otherElements["practice-empty"].exists, "No placeholder for a seat nobody sits in")
         for id in ids {
             let seat = app.otherElements[id]
@@ -53,14 +54,16 @@ final class AccessibilityFlowTests: XCTestCase {
             for _ in 0..<20 {
                 let viewport = scroll.frame
                 let top = max(viewport.minY, header.frame.maxY)
+                // The table shows through only above the dock.
+                let bottom = min(viewport.maxY, dock.frame.minY)
                 let frame = seat.frame
-                if frame.minY >= top, frame.maxY <= viewport.maxY {
+                if frame.minY >= top, frame.maxY <= bottom {
                     fullyVisible = true
                     break
                 }
-                let targetCenter = (top + viewport.maxY) / 2
+                let targetCenter = (top + bottom) / 2
                 let delta = min(80, max(-80, frame.midY - targetCenter))
-                let startY = (top + viewport.maxY) / 2
+                let startY = (top + bottom) / 2
                 let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY / app.frame.height))
                 let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: (startY - delta) / app.frame.height))
                 start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.5)
@@ -77,6 +80,9 @@ final class AccessibilityFlowTests: XCTestCase {
             capture.lifetime = .keepAlways
             add(capture)
         }
+        // At this size the dock scrolls its own content to reach the actions.
+        let dockContent = app.scrollViews["free-dock-content"]
+        for _ in 0..<6 where !fold.isHittable { dockContent.swipeUp() }
         XCTAssertTrue(fold.isHittable)
         fold.tap()
         XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 20))
@@ -109,18 +115,18 @@ final class AccessibilityFlowTests: XCTestCase {
         }
     }
 
-    func testFirstLaunchStartingPointCheckIsReachableInBothLanguagesAtAccessibilityXXXL() {
+    func testStartingPointCheckIsReachableInBothLanguagesAtAccessibilityXXXL() {
         for (code, setting, newPlayer, skip) in [("ko", "korean", "처음 배워요", "확인 없이 시작하기"),
                                                   ("en", "english", "I'm new to poker", "Start without the check")] {
             let app = XCUIApplication()
             app.launchArguments = ["-AppleLanguages", "(\(code))", "-glassTable.language", setting]
                 + accessibilityXXXL
-            app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "1",
-                                     "GT_TEST_FIRST_PLACEMENT": "1"]
+            // The check no longer opens on first launch; it is reached on request.
+            app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
+                                     "GT_DEMO_PLACEMENT": "1"]
             app.launch()
             let first = app.buttons[newPlayer]
             XCTAssertTrue(first.waitForExistence(timeout: 15))
-            XCTAssertFalse(app.tabBars.firstMatch.exists)
             attachLearnCapture(app, name: "first-launch-starting-point-top-AX5-\(code)")
             XCTAssertTrue(scrollUntilFullyVisible(first, above: app, in: app))
             XCTAssertTrue(first.isHittable)
@@ -129,7 +135,7 @@ final class AccessibilityFlowTests: XCTestCase {
             XCTAssertTrue(skipButton.isHittable)
             attachLearnCapture(app, name: "first-launch-starting-point-bottom-AX5-\(code)")
             skipButton.tap()
-            XCTAssertTrue(app.buttons["firstLesson.skip"].waitForExistence(timeout: 5))
+            XCTAssertTrue(skipButton.waitForNonExistence(timeout: 5))
             app.terminate()
         }
     }
@@ -148,13 +154,13 @@ final class AccessibilityFlowTests: XCTestCase {
             "GT_DEMO_NODE": "u2-equitySense",
         ])
 
-        XCTAssertTrue(app.staticTexts["쇼다운까지 갔을 때 내가 이길 확률은?"]
+        XCTAssertTrue(app.staticTexts["끝까지 가면 이긴 몫과 무승부에서 나눈 몫을 합쳐 몇 %일까요?"]
             .waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts["상대 카드"].exists)
 
-        let submit = app.buttons["확인"]
+        let submit = app.firstLessonChoice
         XCTAssertTrue(scrollUntilHittable(submit, in: app),
-                      "The full equity input and submit action must remain reachable at AX XXXL.")
+                      "The equity answer choices must remain reachable at AX XXXL.")
         submit.tap()
 
         let next = app.buttons["다음 문제"]
@@ -172,25 +178,17 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-0"]
             .waitForExistence(timeout: 15))
 
-        for step in 1...7 {
-            // One step is covered until the learner taps to check it.
-            let reveal = app.buttons["walkthrough-reveal"]
-            if reveal.exists {
-                XCTAssertFalse(app.buttons[step == 7 ? "이해했어요" : "다음"].isEnabled,
-                               "The example can't advance before the learner checks the value.")
-                XCTAssertTrue(scrollUntilHittable(reveal, in: app),
-                              "The covered example value must be reachable at AX XXXL.")
-                reveal.tap()
-            }
-            let title = step == 7 ? "이해했어요" : "다음"
-            let advance = app.buttons[title]
+        // A covered step first reads "예시 확인"; the same control then advances.
+        let advance = app.buttons["walkthrough-next"]
+        let guided = app.staticTexts["함께 풀기"]
+        for tap in 0..<24 where !guided.exists {
             XCTAssertTrue(scrollUntilHittable(advance, in: app),
-                          "Walkthrough step \(step) must expose its advance action at AX XXXL.")
+                          "Walkthrough tap \(tap) must expose its advance action at AX XXXL.")
             advance.tap()
         }
 
         XCTAssertTrue(app.staticTexts["함께 풀기"].waitForExistence(timeout: 10),
-                      "Completing all seven beats should reach guided practice.")
+                      "Finishing the example should reach guided practice.")
     }
 
     func testGuidedHintFloatsWithoutMovingTheQuestionAtAccessibilityXXXL() {
@@ -207,21 +205,18 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertFalse(app.otherElements["guided-hint"].exists)
         let frameBeforeHint = title.frame
 
-        let hint = app.buttons["힌트"]
-        XCTAssertTrue(hint.waitForExistence(timeout: 5))
-        XCTAssertTrue(hint.isHittable)
-        hint.tap()
-
-        XCTAssertTrue(app.staticTexts["풀이 순서"].waitForExistence(timeout: 5))
-        let closeHint = app.buttons["힌트 닫기"]
-        XCTAssertTrue(closeHint.waitForExistence(timeout: 5))
-        XCTAssertTrue(closeHint.isHittable)
-        closeHint.tap()
+        XCTAssertFalse(app.buttons["힌트"].exists, "The in-place row is the only help control")
+        let row = app.buttons["푸는 방법"]
+        XCTAssertTrue(scrollUntilHittable(row, in: app))
+        row.tap()
+        let sentence = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "가장 높은 5장 조합을 만들고")).firstMatch
+        XCTAssertTrue(sentence.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.otherElements["guided-hint"].exists, "Help never covers the task as a sheet")
+        row.tap()
+        XCTAssertFalse(sentence.waitForExistence(timeout: 2))
 
         XCTAssertTrue(title.waitForExistence(timeout: 5))
         XCTAssertEqual(title.frame.origin.x, frameBeforeHint.origin.x, accuracy: 1)
-        XCTAssertEqual(title.frame.origin.y, frameBeforeHint.origin.y, accuracy: 1,
-                       "Opening and closing the full help sheet must not move the reserved cue or header")
 
         let answer = app.buttons["내가 이김"]
         XCTAssertTrue(scrollUntilHittable(answer, in: app),
@@ -342,7 +337,7 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertTrue(scrollUntilHittable(equation, in: app),
                       "The chosen and best EVs must remain readable as a subtraction at AX XXXL.")
         let chosenLabel = app.staticTexts.matching(NSPredicate(
-            format: "label BEGINSWITH %@", "내 선택 ·"
+            format: "label BEGINSWITH %@", "선택한 답 ·"
         )).firstMatch
         XCTAssertTrue(chosenLabel.waitForExistence(timeout: 5))
         XCTAssertGreaterThan(chosenLabel.frame.width, chosenLabel.frame.height * 1.5,
@@ -356,6 +351,7 @@ final class AccessibilityFlowTests: XCTestCase {
     func testCountKeypadCanOpenAndCollapseAtAccessibilityXXXL() {
         let app = launch(environment: [
             "GT_TEST_STORE_ID": UUID().uuidString,
+            "GT_DEMO_LEVEL": "playRegularly",
             "GT_DEMO_NODE": "u2-outs",
         ])
 

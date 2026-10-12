@@ -43,7 +43,6 @@ struct CompactLessonCue: View {
                 Text(lessonCueSentence(concept, language: language))
                     .font(GT.semibold(15)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("guided-hint-cue")
                 Text(ConceptIntroduction.make(concept, language: language).how)
                     .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)

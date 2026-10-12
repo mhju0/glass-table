@@ -238,10 +238,19 @@ final class BeginnerReleaseTests: XCTestCase {
     func testLanguageSwitchInSettingsKeepsTheSavedLesson() {
         let app = app()
         let storeID = app.launchEnvironment["GT_TEST_STORE_ID"]!
+        // A language launch argument would pin the preference against the switch, so
+        // the saved preference is set to English through Settings first.
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launchEnvironment["GT_DEMO_SETTINGS"] = "1"
+        app.launch()
+        chooseLanguage("english", in: app)
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 5))
+        app.terminate()
+        app.launchEnvironment["GT_DEMO_SETTINGS"] = nil
         app.launchEnvironment["GT_DEMO_SEED"] = "1"
         app.launchEnvironment["GT_DEMO_NODE"] = "u2-potOdds"
         app.launch()
-        XCTAssertTrue(app.buttons["Check answer"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.firstLessonChoice.waitForExistence(timeout: 15))
         app.buttons["Close"].firstMatch.tap()
         app.tabBars.buttons["Settings"].tap()
         XCTAssertFalse(app.buttons["language-menu"].exists)
@@ -249,7 +258,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["설정"].isSelected)
         app.tabBars.buttons["배우기"].tap()
         app.buttons["레슨 이어서 하기"].tap()
-        XCTAssertTrue(app.buttons["확인"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.firstLessonChoice.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["1/3"].exists)
         app.buttons["닫기"].firstMatch.tap()
         app.tabBars.buttons["설정"].tap()
@@ -261,7 +270,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Learn"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Learn"].tap()
         app.buttons["Resume lesson"].tap()
-        XCTAssertTrue(app.buttons["Check answer"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.firstLessonChoice.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["1/3"].exists)
     }
 
@@ -331,7 +340,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launchEnvironment["GT_DEMO_SEED"] = "1"
         app.launchEnvironment["GT_DEMO_NODE"] = "u2-potOdds"
         app.launch()
-        let submit = app.buttons["Check answer"]
+        let submit = app.firstLessonChoice
         XCTAssertTrue(submit.waitForExistence(timeout: 15))
         submit.tap()
         // In-session the live reveal stays; the saved answer is drawn after a relaunch.
@@ -357,7 +366,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launchEnvironment["GT_DEMO_SEED"] = "1"
         app.launchEnvironment["GT_DEMO_NODE"] = "u2-potOdds"
         app.launch()
-        let submit = app.buttons["Check answer"]
+        let submit = app.firstLessonChoice
         XCTAssertTrue(submit.waitForExistence(timeout: 15))
         submit.tap()
         let sheet = app.descendants(matching: .any).matching(NSPredicate(
@@ -374,26 +383,21 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(verdict.exists, "The tint must match the verdict shown")
     }
 
-    func testPlayGradeUsesTheLessonVerdictAndFoldsToShowTheHand() {
+    func testPlayGradeNamesTheChoiceAndItsReferenceBelowTheHand() {
         let app = app()
         app.launchEnvironment["GT_DEMO_TABLE"] = "tag"
         app.launchEnvironment["GT_DEMO_TABLE_STEP"] = "2"
         app.launch()
-        let verdict = app.descendants(matching: .any).matching(NSPredicate(
-            format: "label CONTAINS %@ AND label CONTAINS %@", "You chose", "Best"
-        )).firstMatch
-        XCTAssertTrue(verdict.waitForExistence(timeout: 15),
-                      "Play must grade with the same verdict row as the lessons")
-        let detail = app.staticTexts["This is the estimated value lost versus the best choice."]
-        XCTAssertTrue(detail.exists)
-        let toggle = app.buttons["reveal-sheet-toggle"]
-        XCTAssertTrue(toggle.exists)
-        toggle.tap()
-        XCTAssertTrue(detail.waitForNonExistence(timeout: 5), "Folding hides the explanation")
-        XCTAssertTrue(verdict.exists, "Folding keeps the verdict")
+        let verdict = app.descendants(matching: .any)["table-verdict"].firstMatch
+        XCTAssertTrue(verdict.waitForExistence(timeout: 15))
+        XCTAssertTrue(verdict.label.contains("Your choice:"), verdict.label)
+        XCTAssertTrue(verdict.label.contains("Model choice:") || verdict.label.contains("Chart:"),
+                      verdict.label)
+        XCTAssertTrue(app.descendants(matching: .any)["table-takeaway"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["table-decision-details"].firstMatch.exists)
         let hero = app.otherElements["table-hero-cards"]
-        XCTAssertLessThanOrEqual(hero.frame.maxY, toggle.frame.minY,
-                                 "The folded sheet must uncover the hero cards")
+        XCTAssertLessThanOrEqual(hero.frame.maxY, verdict.frame.minY,
+                                 "The answer panel must leave the hero cards uncovered")
     }
 
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {
@@ -433,6 +437,8 @@ final class BeginnerReleaseTests: XCTestCase {
         let app = app()
         let storeID = app.launchEnvironment["GT_TEST_STORE_ID"]!
         app.launchEnvironment["GT_DEMO_SEED"] = "1"
+        // Typed entry, the only input with a draft, is the top level's.
+        app.launchEnvironment["GT_DEMO_LEVEL"] = "playRegularly"
         app.launchEnvironment["GT_DEMO_NODE"] = "u1-combos"
         app.launch()
         XCTAssertTrue(app.buttons["Enter answer"].waitForExistence(timeout: 15))
@@ -443,7 +449,8 @@ final class BeginnerReleaseTests: XCTestCase {
         // Leaving the lesson flushes pending input without grading it.
         app.buttons["Close"].firstMatch.tap()
         app.terminate()
-        app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0",
+                                 "GT_DEMO_LEVEL": "playRegularly"]
         app.launch()
         XCTAssertTrue(app.buttons["Resume lesson"].waitForExistence(timeout: 15))
         app.buttons["Resume lesson"].tap()

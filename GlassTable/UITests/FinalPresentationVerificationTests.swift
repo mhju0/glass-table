@@ -16,7 +16,7 @@ final class FinalPresentationVerificationTests: XCTestCase {
             let app = application(code: code, ax: true)
             app.launchEnvironment["GT_TEST_FIRST_LESSON"] = "1"
             app.launch()
-            let skip = app.buttons[code == "ko" ? "안내 건너뛰기" : "Skip guide"]
+            let skip = app.buttons["firstLesson.skip"]
             XCTAssertTrue(skip.waitForExistence(timeout: 15))
             skip.tap()
             let start = app.buttons["learn-basics-start"]
@@ -62,26 +62,19 @@ final class FinalPresentationVerificationTests: XCTestCase {
         app.launchEnvironment["GT_DEMO_SEED"] = "1"
         app.launchEnvironment["GT_DEMO_NODE"] = "u4-rangeRead"
         app.launch()
-        // Below "Plays sometimes" the chart follows a first answer in words.
-        let start = app.buttons["range-start-medium"]
+        // Below "Plays regularly" the question is answered in words and the chart
+        // appears once, as the comparison.
+        let start = app.buttons["range-estimate-choice-0"]
         XCTAssertTrue(start.waitForExistence(timeout: 15))
         XCTAssertFalse(app.otherElements.matching(NSPredicate(
             format: "label BEGINSWITH %@", code == "ko" ? "2 행." : "Row 2.")).firstMatch.exists)
+        reveal(start, app: app, ax: ax, content: false)
         start.tap()
         let prefix = code == "ko" ? "2 행." : "Row 2."
         let rows = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", prefix))
-        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 15))
-        XCTAssertEqual(rows.count, 1, "One learner grid, not a hidden duplicate")
-        let learner = rows.firstMatch
-        XCTAssertFalse(learner.label.contains(code == "ko" ? "정답과 내 답" : "the answer and my choice"))
-        reveal(learner, app: app, ax: ax)
-        capture("range-learner-bottom-\(code)-\(ax)")
-        let submit = app.buttons[code == "ko" ? "확인" : "Check answer"]
-        reveal(submit, app: app, ax: ax, content: false)
-        submit.tap()
         let difference = app.staticTexts["range-difference-list"]
         XCTAssertTrue(difference.waitForExistence(timeout: 10))
-        XCTAssertEqual(rows.count, 1, "The learner grid is replaced by one comparison grid")
+        XCTAssertEqual(rows.count, 1, "One comparison grid, not a hidden duplicate")
         let comparedRows = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", prefix))
         let comparison = comparedRows.firstMatch
         let summary = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", code == "ko" ? "레인지 비교 표." : "Range comparison.")).firstMatch

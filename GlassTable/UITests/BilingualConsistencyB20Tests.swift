@@ -14,6 +14,10 @@ final class BilingualConsistencyB20Tests: XCTestCase {
 
     override func setUpWithError() throws { continueAfterFailure = false }
 
+    /// Korean and English body text may wrap one line apart, never two. One line of the
+    /// largest paired text is under 30 pt; two lines of the smallest are over 40.
+    private let oneLine: CGFloat = 30
+
     func testNormalLightCaptureMatrixAndPairedRootHeadings() { captureMatrix(appearance: "light", ax: false) }
     func testNormalDarkCaptureMatrixAndPairedRootHeadings() { captureMatrix(appearance: "dark", ax: false) }
     func testAX5LightCaptureMatrix() { captureMatrix(appearance: "light", ax: true) }
@@ -116,10 +120,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
                                     let text = app.staticTexts[id]
                                     XCTAssertTrue(text.exists)
                                     XCTAssertFalse(text.label.contains("…"))
-                                    // Body text wraps naturally, so only headings keep paired heights.
-                                    if id == "firstLesson.heading" {
-                                        heights["\(index)-\(id)", default: []].append(text.frame.height)
-                                    }
+                                    heights["\(index)-\(id)", default: []].append(text.frame.height)
                                 }
                             }
                             capture(app, "b22-final-comparison-\(index + 1)-\(code)-\(appearance)-\(ax ? "AX5" : "normal")")
@@ -135,7 +136,9 @@ final class BilingualConsistencyB20Tests: XCTestCase {
                     XCTAssertEqual(values.count, 2)
                     if values.count == 2 {
                         print("B22_FINAL_PAIR \(appearance) \(id) EN=\(values[0]) KO=\(values[1])")
-                        XCTAssertEqual(values[0], values[1], accuracy: 1)
+                        // Body text wraps naturally; only headings keep paired heights.
+                        XCTAssertEqual(values[0], values[1], accuracy: id.hasSuffix("heading") ? 1 : oneLine,
+                                       "\(id): the two languages may differ by one line at most")
                     }
                 }
             }
@@ -247,6 +250,8 @@ final class BilingualConsistencyB20Tests: XCTestCase {
                 XCTAssertEqual(heights.count, 2)
                 if heights.count == 2 {
                     print("B20_NORMAL_PAIR \(fixture.name) \(appearance) \(identifier) EN=\(heights[0]) KO=\(heights[1])")
+                    XCTAssertEqual(heights[0], heights[1], accuracy: oneLine,
+                                   "\(fixture.name) \(identifier): the two languages may differ by one line at most")
                 }
             }
         }

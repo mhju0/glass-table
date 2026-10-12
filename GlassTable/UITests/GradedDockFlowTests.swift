@@ -31,7 +31,7 @@ final class GradedDockFlowTests: XCTestCase {
         let app = launch()
         let fold = app.buttons["table-fold"], call = app.buttons["table-passive"], raise = app.buttons["table-aggressive"]
         XCTAssertEqual(fold.label, "Fold")
-        XCTAssertEqual(raise.label, "Raise")
+        XCTAssertEqual(raise.label, "Raise again")
         XCTAssertTrue(call.label.hasPrefix("Call, "))
         for button in [call, raise] {
             XCTAssertEqual(button.frame.width, fold.frame.width, accuracy: 1)
