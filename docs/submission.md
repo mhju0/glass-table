@@ -177,24 +177,25 @@ for adult beginners; the app is not child-targeted.
 
 ## Screenshots
 
-The historical iPhone 6.9" set (1320×2868, from iPhone 17 Pro Max simulator), reused for
-both locales: `docs/store-assets/ko-0[1-5]-*.png` — 오늘, 길, 테이블, a graded
-reveal, 기록. **Captured 2026-08-07** against the pre-revamp UI, replacing the
-M1 set (home / outs reveal / pot-odds / stats / glossary), which was two design
-generations old.
+The iPhone 6.9" set (1320×2868, iPhone 17 Pro Max simulator on iOS 26.5, light
+appearance, default text size), one per locale, **captured 2026-10-12** from
+`feat/audit-followups`: `docs/store-assets/{ko,en}-0[1-5]-*.png` — Learn, a
+pot-odds lesson question, a four-seat hand on your turn, the hand review with
+its action history, and Progress. It replaces the August set, which showed the
+old Today/Path navigation.
 
-The former capture recipe used `today`, `path`, `table-hand`,
-`drill-evloss-call` and `records`. It belongs to the August set and is no
-longer a current submission recipe. The revised set should show actual Learn,
-Play, Progress, an open lesson and a factual four-seat review; choose the final
-sequence only after reviewing the captured frames in both locales.
+Capture recipe, run once per language:
 
-The 2026-09-23 combined release has new README images and a 256-capture Mini
-language/appearance/text-size sweep; neither is a submitted App Store set. The
-August store images above depict the older Today/navigation flow and must be
-replaced with current Learn/Play/Progress screens before submission. Capture
-final store sizes and locales from the approved candidate, then review each image
-for actual on-screen copy and content.
+```sh
+GT_SIM="iPhone 17 Pro Max" GT_APPEARANCE=light GT_CONTENT_SIZE=large GT_LANGUAGE=ko \
+  tools/uisweep.sh --screen learn --screen drill-potodds --screen play-hand \
+  --screen play-review --screen records
+```
+
+The frames land in `.uisweep/<run>/large/`; copy them to `docs/store-assets/`
+as `01-learn`, `02-lesson`, `03-play`, `04-review`, `05-progress` with the
+language prefix. Retake after any change to those five screens, and read each
+image for its on-screen copy before submitting.
 
 These are raw frames with no caption layer. If App Store Connect ends up
 wanting captioned marketing shots, that is a separate pass.

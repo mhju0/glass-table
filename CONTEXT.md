@@ -140,9 +140,10 @@ and XcodeGen installation step because `sharedBackgroundVisibility` is compiled
 against the newer SDK.
 
 Store submission is paused for dogfood; the age-rating answers need
-reassessment before resuming (`docs/submission.md` banner). Screenshots in
-`docs/store-assets/` and `docs/readme-assets/` are current as of 2026-08-07;
-the later performance-only changes did not alter their UI. On this audit of
+reassessment before resuming (`docs/submission.md` banner). Store screenshots in
+`docs/store-assets/` were retaken on 2026-10-12 (Korean and English, five
+screens each); `docs/readme-assets/` is from the 2026-09-23 release and does
+not show the later table and lesson changes. On this audit of
 `main`, `swift test --package-path GlassTableDrills` passes 316 tests and
 `swift test -c release --package-path GlassTableEngine` passes 92 tests.
 Known deferred work is listed at the end of each spec's scope-out section.
