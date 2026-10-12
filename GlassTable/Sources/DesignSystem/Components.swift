@@ -710,10 +710,9 @@ struct ActionSheet<Content: View>: View {
     @ViewBuilder
     private var sheetBackground: some View {
         if #available(iOS 26.0, *), floats {
-            // Concentric with the display on Face ID phones; the minimum is what a
-            // square-cornered Home-button screen gets.
-            let shape = ConcentricRectangle(corners: .concentric(minimum: .fixed(GT.Radius.sheet)),
-                                            isUniform: true)
+            // Nested with the controls inside: control radius plus the sheet inset.
+            let shape = RoundedRectangle(cornerRadius: GT.Radius.control + GT.Space.sheet,
+                                         style: .continuous)
             if let band {
                 shape.fill(band.tint).overlay(shape.stroke(band.ink, lineWidth: 2))
             } else {
