@@ -624,11 +624,15 @@ struct FreeTableView: View {
 
     private func dockHeader(_ title: String, warning: String?, onMath: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: typeSize.isAccessibilitySize ? .top : .center, spacing: 8) {
+            // Beside the pill a large title is left one letter wide, so it goes above.
+            let layout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
+            layout {
                 Text(title).font(GT.title(18)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("free-table-status")
-                Spacer(minLength: 0)
+                if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 mathPill(onMath: onMath)
             }
             if let warning {
