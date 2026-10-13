@@ -1,0 +1,58 @@
+{
+  "top": [
+    {"sev": "crash", "title": "Free table crashes when you open ‘컴퓨터는 어떻게 고를까요?’ with 2 or 3 players",
+     "detail": "PlayView.policyDetails loops over seats 1–3 and reads table.styles[seat - 1]. A 2-player table has one style and a 3-player table has two, so the index goes out of range and the app ends (EXC_BREAKPOINT in Array._checkSubscript, PlayView.swift:352; reproduced twice, crash logs GlassTable-2026-09-30-013304.ips and -021506.ips). The 4-player table is fine.",
+     "where": [["play-crash", 1], ["play-crash", 2]]},
+    {"sev": "high", "title": "Range read: grade and explanation contradict each other",
+     "detail": "The band comes from Jaccard overlap (≥0.70 right, ≥0.45 close), but the sentence under it uses a separate ±20% width rule and a shape check that only looks for missing categories. So an estimate of 20.1% vs 26.8% is graded 정답 while the text says ‘너무 좁게 봤어요’, and 20.4% vs 20.2% is graded 오답 (‘다시 살펴볼까요?’) while the text says ‘모양도 비슷해요’. For calling ranges, matching the displayed width with no shape chips still grades 오답, so the learner has no way to find the right answer from the reveal. Source: GlassTableDrills RangeRead.swift gradeRangeRead / explain.",
+     "where": [["u4-rangeRead-a", 16], ["u4-rangeRead-a", 20], ["u4-rangeRead-b", 3], ["u4-rangeRead-b", 4]]},
+    {"sev": "high", "title": "Graded play: the action sheet covers your own cards on later streets",
+     "detail": "On the flop decision the bet-size sheet sits over ‘내 카드 · CO’; only the top edge of the two cards shows. You have to scroll the page to see your hand before choosing. iPhone 12 mini, default text size.",
+     "where": [["play-graded", 10]]},
+    {"sev": "medium", "title": "Free table: the raise control starts under the floating tab bar",
+     "detail": "On a turn, 폴드 and 콜 fit, but ‘금액 올리기’ sits under the tab bar on the first frame. Raising needs a scroll first, which nudges beginners toward check/call.",
+     "where": [["play-free-3", 6], ["play-free-4", 6]]},
+    {"sev": "medium", "title": "Pot counting: the answer buttons look active while they are locked",
+     "detail": "29칩 / 28칩 / 31칩 are disabled until you step through every action with ‘다음 행동’, but they are drawn exactly like enabled buttons. Tapping them does nothing. The only cue is the small line ‘마지막 행동까지 넘기면 답을 고를 수 있어요’.",
+     "where": [["u1-potMath-a", 11], ["u1-potMath-a", 14]]},
+    {"sev": "medium", "title": "Scrolled content runs under the status bar and floating buttons with no material behind them",
+     "detail": "When a table page scrolls, the felt and headings slide under the clock and under the round back button (e.g. ‘상대 카드 · HJ · 선별형’ is cut by the back button). There is no blur or fade at the top edge.",
+     "where": [["play-graded", 12], ["play-free-3", 7], ["play-free-3", 11]]},
+    {"sev": "low", "title": "‘예시 보기’ inside the concept sheet has no close button",
+     "detail": "The example walkthrough only offers ‹ (back to the explanation) and 건너뛰기. To return to the question you go back, then close, or swipe the sheet down. Seen in every lesson that has the ⓘ explanation.",
+     "where": [["u4-boss-a", 5], ["u1-potMath-a", 18]]},
+    {"sev": "low", "title": "‘테이블 다시 만들기’ drops you on the Play home, not table setup",
+     "detail": "The confirm says 새 테이블을 시작할까요?, but you land on the Play landing and have to tap 자유 대전 again.",
+     "where": [["play-free-3", 15], ["play-free-3", 16]]},
+    {"sev": "low", "title": "Hand review uses ‘반환’ without explaining it",
+     "detail": "‘낸 칩 2 · 반환 1 · 받은 팟 2’ after everyone folds to the big blind. A beginner has not met returned (uncalled) chips anywhere earlier.",
+     "where": [["play-free-3", 14]]},
+    {"sev": "low", "title": "Progress: a returning learner sees an empty ‘연습 변화’ card",
+     "detail": "Streak 12 days and 90+ answers, yet the practice-change card says a history will appear after one question. This may be the GT_DEMO_SEED data lacking daily history rather than the app; check with real progress.",
+     "where": [["progress-returning", 1]]}
+  ],
+  "steps": {
+    "settings": {
+      "5": ["Crawler note: the reminder was already on from an earlier run on this simulator, so this tap turned it off. The screen shown is the reminder switched off."],
+      "13": ["Unconfirmed: the system file exporter had not appeared 1.2 s after the tap. It may present later; check by hand once."],
+      "14": ["Unconfirmed: the system file importer had not appeared 1.2 s after the tap. It may present later; check by hand once."]
+    },
+    "play-graded": {
+      "10": ["Your cards are under the sheet; only their top edge is visible."],
+      "12": ["The heading ‘상대 카드 · HJ · 선별형’ is cut by the floating back button."]
+    },
+    "play-free-3": {
+      "6": ["‘금액 올리기’ is under the tab bar in this first frame."]
+    },
+    "u4-rangeRead-a": {
+      "16": ["Graded 정답 but the text says the range was too narrow (20.1% vs 26.8%)."],
+      "20": ["Graded 오답 but the text says the width and shape are both close (20.1% vs 20.2%)."]
+    },
+    "u4-rangeRead-b": {
+      "3": ["Second pass set the width to the revealed 20.2% with no shape chip: still 오답, and the text says ‘모양도 비슷해요’."]
+    },
+    "u1-potMath-a": {
+      "11": ["The three answers look tappable but are disabled until the last action."]
+    }
+  }
+}
