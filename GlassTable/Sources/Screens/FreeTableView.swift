@@ -303,7 +303,7 @@ struct FreeTableView: View {
                                 potTotal: potText, potSpoken: potSpoken),
             freeVisuals: projection?.visuals,
             freeReduceMotion: reduceMotion,
-            freeHoles: projection?.transitioning == true ? projection!.visibleHole : table.review?.holeCards ?? [table.learnerHole],
+            freeHoles: (projection?.transitioning == true ? projection!.visibleHole : table.review?.holeCards ?? [table.learnerHole]).map(\.highCardFirst),
             freeBoard: projection?.transitioning == true ? projection!.visibleBoard : table.review?.board ?? table.visibleBoard,
             fillsHeight: fillsHeight)
             .accessibilityIdentifier("practice-table")
@@ -327,11 +327,11 @@ struct FreeTableView: View {
         if let projection, !projection.visuals.exposed.contains(seat), !(frame.settled && revealFolded) {
             hand = .faceDown
         } else if let projection, projection.visuals.exposed.contains(seat) {
-            hand = .faceUp(projection.visibleHole[seat].compactMap(Card.init))
+            hand = .faceUp(projection.visibleHole[seat].highCardFirst.compactMap(Card.init))
         } else if seat == 0 {
-            hand = .faceUp(table.learnerHole.compactMap(Card.init))
+            hand = .faceUp(table.learnerHole.highCardFirst.compactMap(Card.init))
         } else if let review, revealFolded || (Self.wentToShowdown(review) && !frame.folded[seat]) {
-            hand = .faceUp(review.holeCards[seat].compactMap(Card.init))
+            hand = .faceUp(review.holeCards[seat].highCardFirst.compactMap(Card.init))
         } else {
             hand = .faceDown
         }
@@ -1809,7 +1809,7 @@ private struct FreeTableBackFace: View {
                 .font(GT.body(14)).monospacedDigit()
             if shown {
                 HStack(spacing: 5) {
-                    ForEach(review.holeCards[seat], id: \.self) { raw in
+                    ForEach(review.holeCards[seat].highCardFirst, id: \.self) { raw in
                         if let card = Card(raw) { PlayingCardView(card: card, size: 44) }
                     }
                 }
@@ -1979,5 +1979,16 @@ struct FreeRaisePresentation {
     private func rounded(_ value: Double) -> Int {
         guard value < Double(Int.max) else { return Int.max }
         return max(0, Int(value.rounded()))
+    }
+}
+
+extension Array where Element == String {
+    /// Hole cards in reading order, higher card first, as lessons and guides show them.
+    /// The table state keeps the dealt order.
+    var highCardFirst: [String] {
+        sorted { a, b in
+            guard let x = Card(a), let y = Card(b) else { return false }
+            return BeatScript.byRank(x, y)
+        }
     }
 }

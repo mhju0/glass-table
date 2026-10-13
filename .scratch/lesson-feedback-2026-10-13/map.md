@@ -20,8 +20,13 @@ Branch `feat/lesson-feedback-clarity`. Mocks: https://claude.ai/artifact/9GBTnNb
 
 Limits: at AX5 the pot example's pinned panel still covers most of the screen on its last step (it did before answering already). A marked three-choice button wraps "24 chips" onto two lines on the 12 mini.
 
-## Awaiting owner
+## Owner's answers to the open questions (2026-10-13): 1A, 1C, 2A, 3A
 
-- C. Which screen is "the fold example"? Candidates: defend lesson one-step miss shows amber `.close` and the success haptic; the EV-loss lesson shows green "Near best" with a check when the learner folds and calling was 0.2bb better.
-- D. One corner radius for everything, or keep 20 for cards/hint and 10 for controls.
-- E. Sort hole cards on the Play table too?
+Mocks: https://claude.ai/artifact/8aPmc5HftjZcezcpN6TkYs
+
+11. 1A, EV-loss lesson: a choice that lost any value shows amber ± "Near best" with the review sound instead of a green check (`EVLossReveal.shownBand`, live and saved). The stored band and progress are unchanged: a loss up to 0.5bb is still `.spotOn`.
+12. 1C, "An opponent raised" lesson: one step off the chart stays amber and now plays the review sound, not the success one. Other lessons' `.close` answers still play the success sound (not asked).
+13. 2A: `GT.Radius.panel` is 10, the same as controls, so cards, the hint, panels and buttons share one corner. Two 14pt boxes in the drills follow. Playing cards, pills and small grid cells keep their own shape.
+14. 3A: the Play table, its hand review and the hand coach show hole cards high card first (`highCardFirst`); the table state keeps the dealt order.
+
+Not decided: whether a near miss should count as wrong toward clearing a lesson.

@@ -64,7 +64,7 @@ struct FreeTableHandCoachView: View {
         let board = Array((table.review?.board ?? []).prefix(table.frame(after: step.stepIndex).boardCount))
         Text(FreeTableWords.street(step.street, language: language)).font(GT.title(28))
         section(language.text("선택 당시 카드", "What you had")) {
-            cards(table.learnerHole, size: 54)
+            cards(table.learnerHole.highCardFirst, size: 54)
             if !board.isEmpty {
                 cards(board, size: 40)
                     .accessibilityLabel(language.text("공용 카드 \(board.count)장", "\(board.count) shared cards"))

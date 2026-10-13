@@ -2200,7 +2200,7 @@ private struct RangeReadDrill: View {
         }
         .gtInset(GT.Space.card, firstText: .semibold(13))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+        .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: GT.Radius.control))
     }
 
     /// Fill = truth, ring = your guess. Spelled out, because an unexplained two-channel
@@ -2512,7 +2512,7 @@ private struct RangeAdvantageDrill: View {
                 .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
                 .gtInset(GT.Space.card, firstText: .semibold(14))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+                .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: GT.Radius.control))
                 if reveal != nil, let buckets {
                     VStack(alignment: .leading, spacing: 18) {
                         BucketBarView(label: language.text("\(spot.openerSeat.rawValue) 오픈",
@@ -2603,6 +2603,12 @@ private struct RangeAdvantageDrill: View {
 
 // MARK: - EV 손실
 
+extension EVLossReveal {
+    /// How the verdict looks and sounds. A choice that gave up any value is never shown
+    /// as right: a small loss still counts as `.spotOn` for progress but reads as close.
+    var shownBand: GradeBand { band == .spotOn && grade.loss > 0 ? .close : band }
+}
+
 /// Lead with the better action, then make the EV subtraction inspectable.
 ///
 /// The progression band remains visible as a small severity label, while the selected
@@ -2641,7 +2647,7 @@ private struct EVLossRevealSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            VerdictRow(band: reveal.band, mine: action(chosenCalls), correct: action(bestCalls),
+            VerdictRow(band: reveal.shownBand, mine: action(chosenCalls), correct: action(bestCalls),
                        title: evLossLabel(loss: reveal.grade.loss, language: language),
                        mineTitle: language.text("선택한 답", "Your answer"),
                        correctTitle: language.text("최선", "Best"))
@@ -2654,7 +2660,7 @@ private struct EVLossRevealSheet: View {
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .gtInset(GT.Space.card, firstText: .body(16))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .gtExplanation(band: reveal.band)
+                    .gtExplanation(band: reveal.shownBand)
                     .fixedSize(horizontal: false, vertical: true)
                 if let term { GlossaryChip(term: term) }
             }
@@ -2673,12 +2679,12 @@ private struct EVLossRevealSheet: View {
             }
         }
         .accessibilityElement(children: .contain)
-        .preference(key: GradedBandKey.self, value: reveal.band)
+        .preference(key: GradedBandKey.self, value: reveal.shownBand)
         .onAppear {
             saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
                                           evLoss: reveal.grade.loss,
                                           submittedInput: submittedInput))
-            if saved { gradeHaptic(reveal.band) }
+            if saved { AppFeedback.answer(correct: reveal.shownBand == .spotOn) }
         }
     }
 
@@ -2688,13 +2694,13 @@ private struct EVLossRevealSheet: View {
                   calls: bestCalls, ink: GTBand.spotOnInk)
             Divider().overlay(GT.border)
             evRow(tag: language.text("선택한 답", "Your choice"), option: reveal.grade.chosen,
-                  calls: chosenCalls, ink: reveal.band.ink)
+                  calls: chosenCalls, ink: reveal.shownBand.ink)
             HStack {
                 Text(language.text("최선 대비 손실", "Value lost versus best"))
                     .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
                 Spacer(minLength: 8)
                 Text("\(bbText(reveal.grade.loss))bb")
-                    .font(GT.title(15).monospacedDigit()).foregroundStyle(reveal.band.ink)
+                    .font(GT.title(15).monospacedDigit()).foregroundStyle(reveal.shownBand.ink)
             }
             .accessibilityElement(children: .combine)
             Text(lossEquation)
@@ -3159,7 +3165,8 @@ private struct DefendRevealSheet: View {
         .onAppear {
             saved = onCommit(DrillOutcome(band: reveal.band, interval: nil,
                                           submittedInput: submittedInput))
-            if saved { gradeHaptic(reveal.band) }
+            // One step off the chart is amber, not right: it gets the review sound.
+            if saved { AppFeedback.answer(correct: reveal.band == .spotOn) }
         }
     }
 }

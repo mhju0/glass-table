@@ -35,6 +35,11 @@ struct RestoredDrillView: View {
                                           namesRange: false)
         }
         let band = GradeBand(rawValue: answer.band) ?? .off
+        // The EV loss verdict shows a small loss as close, as its live reveal does.
+        let shown: GradeBand = if concept == .evLoss, case let .boolean(calls)? = input {
+            gradeEVLoss(userCalls: calls, spot: EVLossSpotGenerator.spot(baseSeed: seed, index: index),
+                        language: language).shownBand
+        } else { band }
         let next = {
             onNext(DrillOutcome(band: band, interval: stored?.interval,
                                 evLoss: stored?.evLoss, submittedInput: input))
@@ -53,7 +58,7 @@ struct RestoredDrillView: View {
                 RevealDetail { explanation(detail: detail, input: input, band: band) }
                 nextButton(next)
             }
-            .preference(key: GradedBandKey.self, value: band)
+            .preference(key: GradedBandKey.self, value: shown)
         }
         .background(FeltBackground())
     }
@@ -137,7 +142,7 @@ private struct RestoredEVLossVerdict: View {
         let reveal = gradeEVLoss(userCalls: calls,
                                  spot: EVLossSpotGenerator.spot(baseSeed: seed, index: index),
                                  language: language)
-        VerdictRow(band: reveal.band, mine: action(calls), correct: action(reveal.grade.best.ev > 0),
+        VerdictRow(band: reveal.shownBand, mine: action(calls), correct: action(reveal.grade.best.ev > 0),
                    title: evLossLabel(loss: reveal.grade.loss, language: language),
                    mineTitle: language.text("선택한 답", "Your answer"),
                    correctTitle: language.text("최선", "Best"))
@@ -182,7 +187,7 @@ private struct RestoredEVLossResult: View {
                 .foregroundStyle(GT.ink)
                 .gtInset(GT.Space.card, firstText: .body(16))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .gtExplanation(band: outcome.band)
+                .gtExplanation(band: outcome.shownBand)
         }
     }
 

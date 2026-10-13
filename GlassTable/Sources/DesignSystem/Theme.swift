@@ -62,7 +62,7 @@ enum GT {
     enum Radius {
         static let tile: CGFloat = 8
         static let control: CGFloat = 10
-        static let panel: CGFloat = 20
+        static let panel: CGFloat = 10
     }
 
     enum Motion {
