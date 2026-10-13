@@ -500,7 +500,7 @@ struct TableView: View {
                 Text(language.text("내 차례", "Your turn")).font(GT.title(18)).foregroundStyle(GT.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 actionLayout {
-                    gradedAction(language.text("폴드", "Fold"), role: .fold, side: .leading,
+                    gradedAction(language.text("폴드", "Fold"), role: .fold,
                                  enabled: fold != nil,
                                  reason: options.isEmpty ? language.text("선택을 계산하고 있어요", "The choices are being calculated") : language.text("따라갈 금액이 없어 폴드할 수 없어요", "Fold is unavailable because nothing is owed")) {
                         if let fold { act(fold.choice) }
@@ -511,7 +511,7 @@ struct TableView: View {
                         if let passive { act(passive.choice) }
                     }.accessibilityIdentifier("table-passive")
                     gradedAction(bets.isEmpty ? language.text("레이즈", "Raise") : language.text("벳", "Bet"),
-                                 role: .aggressive, side: .trailing, enabled: raise != nil || !bets.isEmpty,
+                                 role: .aggressive, enabled: raise != nil || !bets.isEmpty,
                                  reason: options.isEmpty ? language.text("선택을 계산하고 있어요", "The choices are being calculated") : language.text("이 결정에서는 레이즈가 허용되지 않아요", "This decision does not allow another raise")) {
                         if let raise { act(raise.choice) } else { choosingBetSize = true }
                     }.accessibilityIdentifier("table-aggressive")
@@ -536,10 +536,10 @@ struct TableView: View {
     }
 
     private func gradedAction(_ title: String, price: String = "", role: GTActionRole,
-                              side: GTCornerSide = .none, enabled: Bool = true,
+                              enabled: Bool = true,
                               reason: String = "", action: @escaping () -> Void) -> some View {
         GTActionButton(title: title, price: price, role: role, freeTablePresentation: true,
-                       minHeight: 87, cornerSide: side, action: action)
+                       minHeight: 87, action: action)
             .disabled(!enabled).opacity(enabled ? 1 : 0.45)
             .accessibilityHint(enabled ? "" : reason)
     }
@@ -549,13 +549,13 @@ struct TableView: View {
             Text(language.text("내 차례", "Your turn")).font(GT.title(18)).foregroundStyle(GT.ink)
                 .fixedSize(horizontal: false, vertical: true)
             actionLayout {
-                gradedAction(language.text("폴드", "Fold"), role: .fold, side: .leading) {
+                gradedAction(language.text("폴드", "Fold"), role: .fold) {
                     actPreflop(.fold, hand)
                 }.accessibilityIdentifier("table-fold")
                 gradedAction(language.text("콜", "Call"), price: "\(bbText(b))bb", role: .passive) {
                     actPreflop(.call, hand)
                 }.accessibilityIdentifier("table-passive")
-                gradedAction(language.text("다시 올리기", "Raise again"), role: .aggressive, side: .trailing) {
+                gradedAction(language.text("다시 올리기", "Raise again"), role: .aggressive) {
                     actPreflop(.raise, hand)
                 }.accessibilityIdentifier("table-aggressive")
             }

@@ -423,35 +423,10 @@ private struct GTInkInset: ViewModifier {
     }
 }
 
-/// The outer bottom corner follows its floating sheet; all other corners keep the
-/// control radius. Attached sheets deliberately keep ordinary button corners.
-private struct DockCornerKey: EnvironmentKey { static let defaultValue = false }
-extension EnvironmentValues {
-    var floatingDock: Bool {
-        get { self[DockCornerKey.self] }
-        set { self[DockCornerKey.self] = newValue }
-    }
-}
-
-enum GTCornerSide { case none, leading, trailing }
-
 struct GTDockControlBackground: View {
-    @Environment(\.floatingDock) private var floats
-    let side: GTCornerSide
-
     var body: some View {
-        if #available(iOS 26.0, *), floats {
-            let shape = ConcentricRectangle(
-                topLeadingCorner: .fixed(GT.Radius.control),
-                topTrailingCorner: .fixed(GT.Radius.control),
-                bottomLeadingCorner: side == .leading ? .concentric(minimum: .fixed(GT.Radius.control)) : .fixed(GT.Radius.control),
-                bottomTrailingCorner: side == .trailing ? .concentric(minimum: .fixed(GT.Radius.control)) : .fixed(GT.Radius.control))
-            shape.fill(GT.surface)
-                .overlay(shape.stroke(GT.borderStrong, lineWidth: 1).padding(0.5))
-        } else {
-            let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
-            shape.fill(GT.surface).overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
-        }
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+        shape.fill(GT.surface).overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
     }
 }
 
@@ -615,9 +590,9 @@ private struct GTChrome<L: View, T: View>: ViewModifier {
 
 /// The bottom action sheet, shaped like the system's own sheets on the running iOS.
 ///
-/// iOS 26 floats a partial-height sheet: inset from the screen edges, every corner
-/// concentric with the display's. Earlier systems attach it to the bottom edge with only
-/// the top corners rounded. The app's real `.sheet`s already follow the system, so this
+/// iOS 26 floats a partial-height sheet: inset from the screen edges. Its corners and
+/// its buttons' corners are the fixed control radius on every phone, never the display's
+/// curve. Earlier systems attach it to the bottom edge with only the top corners rounded. The app's real `.sheet`s already follow the system, so this
 /// one does too. At the accessibility sizes the sheet grows toward full height, where
 /// iOS 26 also goes edge to edge, so it attaches there as well.
 ///
@@ -675,7 +650,6 @@ struct ActionSheet<Content: View>: View {
             if band != nil { grabber }
             content()
                 .environment(\.revealCollapsed, band != nil && collapsed)
-                .environment(\.floatingDock, floats)
         }
         .modifier(GTDockTopInset(firstText: firstText, graded: band != nil))
         .padding(.horizontal, GT.Space.sheet)
@@ -1024,7 +998,6 @@ struct GTActionButton: View {
     var freeTablePresentation = false
     var secondaryTitle: String? = nil
     var minHeight: CGFloat = 56
-    var cornerSide: GTCornerSide = .none
     let action: () -> Void
 
     var body: some View {
@@ -1087,7 +1060,7 @@ struct GTActionButton: View {
             .frame(maxWidth: .infinity, minHeight: minHeight,
                    maxHeight: freeTablePresentation && !typeSize.isAccessibilitySize ? .infinity : nil)
             .frame(height: freeTablePresentation && !typeSize.isAccessibilitySize ? 87 : nil)
-            .background { GTDockControlBackground(side: cornerSide) }
+            .background { GTDockControlBackground() }
         }
         .buttonStyle(GTPress(pressedScale: freeTablePresentation ? 0.97 : 0.98))
         .accessibilityLabel([title, secondaryTitle, price.isEmpty ? nil : price].compactMap { $0 }.joined(separator: ", "))

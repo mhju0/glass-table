@@ -704,7 +704,7 @@ struct FreeTableView: View {
             ? AnyLayout(VStackLayout(spacing: 8))
             : AnyLayout(HStackLayout(spacing: 8))
         return layout {
-            freeAction(language.text("폴드", "Fold"), price: "", role: .fold, side: .leading,
+            freeAction(language.text("폴드", "Fold"), price: "", role: .fold,
                        enabled: foldEnabled,
                        reason: owed == 0 ? language.text("따라갈 금액이 없어 폴드할 수 없어요", "Fold is unavailable because nothing is owed") : reason,
                        action: onFold)
@@ -715,7 +715,7 @@ struct FreeTableView: View {
                        enabled: middleEnabled, reason: reason, action: onMiddle)
                 .accessibilityIdentifier(owed == 0 ? "free-check" : "free-call")
             freeAction(bet ? language.text("벳", "Bet") : language.text("레이즈", "Raise"),
-                       price: "", role: .aggressive, side: .trailing, enabled: raiseEnabled,
+                       price: "", role: .aggressive, enabled: raiseEnabled,
                        reason: raiseReason ?? reason,
                        action: onRaise)
                 .accessibilityIdentifier("free-raise")
@@ -723,7 +723,7 @@ struct FreeTableView: View {
     }
 
     private func freeAction(_ title: String, price: String, role: GTActionRole,
-                            side: GTCornerSide = .none, enabled: Bool, reason: String,
+                            enabled: Bool, reason: String,
                             action: @escaping () -> Void) -> some View {
         let plain: String = switch role {
         case .fold: language.text("포기", "Give up")
@@ -733,7 +733,7 @@ struct FreeTableView: View {
         }
         return GTActionButton(title: termsLead ? title : plain, price: termsLead ? price : "", role: role,
                        freeTablePresentation: true, secondaryTitle: termsLead ? nil : title,
-                       minHeight: 87, cornerSide: side, action: action)
+                       minHeight: 87, action: action)
             .disabled(!enabled).opacity(enabled ? 1 : 0.45)
             .accessibilityHint(enabled ? actionMeaning(role, price: price) : reason)
     }
@@ -895,7 +895,7 @@ struct FreeTableView: View {
             Image(systemName: title == "−" ? "minus" : "plus")
                 .font(.system(size: 24, weight: .semibold)).foregroundStyle(GT.ink)
                 .frame(width: 54).frame(minHeight: 54, maxHeight: .infinity)
-                .background { GTDockControlBackground(side: title == "−" ? .leading : .trailing) }
+                .background { GTDockControlBackground() }
         }
         .buttonStyle(GTHoldStepStyle(enabled: enabled)).disabled(!enabled).opacity(enabled ? 1 : 0.45)
         .accessibilityLabel(spoken)
