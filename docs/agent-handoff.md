@@ -8,15 +8,18 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 ## Current state (2026-10-13)
 
 - Branch `feat/audit-followups` is pushed to `origin` and holds every audit follow-up
-  the owner decided. `main` on `origin` is far behind local work; never push `main`.
+  the owner decided. Local `main` is fast-forwarded to it. `main` on `origin` is far
+  behind local work; never push `main`.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
   Report: https://claude.ai/artifact/JUwpSsMWHvXqjEsmLeHADQ. Example wording the owner
   read and accepted (bb kept in examples 8, 15, 18): https://claude.ai/artifact/Xd6qk866FFQJCbz9h5J9sH.
 - One corner radius: `GT.Radius.control` (10) for seats, felt, bottom panel and controls.
   Nothing in the app's own shapes may follow the display curve (owner, 2026-10-13).
   Pills, playing cards and `GT.Radius.panel` cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (22); iPhone 13 mini has build 18. Build list:
-  `docs/build-history.md`.
+- Phones: iPhone 12 mini has signed 1.0 (23), fresh install; iPhone 13 mini has build
+  18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
+  `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
+  source only by the build number and docs.
 - Old sibling worktrees are archived at `.archive/2026-10-11-workspace-cleanup/`
   (`docs/workspace-cleanup.md`). Work only in this folder.
 - Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the
@@ -57,8 +60,11 @@ Product and numbers:
   `GlassTable/UITests/UXAuditCrawl.swift`); keep the untracked files.
 
 Tests:
-- `AccessibilityAuditTests/testPlayTable` failed overnight on 2026-10-13 on iPhone 12
-  mini, including on older code, and passed there the next afternoon; unexplained.
+- `AccessibilityAuditTests/testPlayTable` (contrast, no element named) on the iPhone 12
+  mini simulator: failed overnight on 2026-10-13 including on older code, passed 4/4
+  that afternoon, failed again in the final run and 4/4 right after, same code. The
+  audited hand is fixed (seed 97) and simulator appearance/text size match iPhone 17,
+  where it passes. Unexplained; measured text contrast is at least 5.2:1.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
   `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes`.
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`.
@@ -73,8 +79,17 @@ Tests:
   accessibility sizes (`7e9ac4b`), dock buttons no longer follow the display curve
   (`89a55c3`), store screenshots retaken (`9a1822f`, `4c191a6`).
 - Full UI suite on iPhone 12 mini and iPhone 17 at `9a1822f`: 238 tests, 11 skipped,
-  1 failed (the contrast audit). Later commits had unit and targeted UI tests; a final
-  full run on both phones was started on the final code.
+  1 failed (the contrast audit). Final full run at `e3ef792`: iPhone 17 238 tests, 11
+  skipped, 0 failed; iPhone 12 mini 1 failed (the contrast audit, see Open issues).
 - Reorganized this file and the handoff rules in `AGENTS.md`; the archive is frozen.
-- Next: read the final full run; fast-forward local `main`; fresh install on the
-  owner's iPhone mini.
+- Build 23 (`dd7637b`): signed Release, build 22 uninstalled first, fresh install on
+  the physical iPhone 12 mini, Korean first-run welcome seen and left unadvanced, no
+  progress copied. Evidence in `.build/device-install-b23/`.
+- Next: owner tries build 23 on the phone.
+
+### 2026-10-13 — GRAC gameplay recording (separate session)
+
+- Recorded normal Release 1.0(22) UI on a dedicated fresh simulator from frozen source `4c191a690bcda0ef5d495b9730cd6a82ce2137d5`; 146 production files fingerprint `823347f2325216749d791086ee3491cf1aef499fa6ea768be769d743ae744ca6`. Production source showed no drift after capture. No demo injection or direct progress edits.
+- Final video: `docs/grac-submission/2026-10-13/GlassTable_GRAC_1.0_22_2026-10-13.mp4`; identical copy in `/Users/michaelju/Downloads/GlassTable_GRAC_1.0_22_2026-10-13.mp4`. 31:01, H264, 1206×2622, 149,169,691 bytes, silent. SHA256 `4ad06ce8fea6d74acd71a4878b1c115440fb58879fd5eb24dd435b375b75c2a1`.
+- Real footage covers Korean teaching and quizzes, quick 40-chip game ending at hand 3 on depletion, long 100-chip table with normal actions/payouts and visible free 100-chip replenishment at 14:26, four graded teaching hands, Records, responsible-use guidance and native version. Whole-game recap is not evidenced or claimed.
+- Exact paste rows: `docs/grac-submission/2026-10-13/section-3.6.md`; provenance/timeline: `video-timeline.json`; checks and limits: `media-report.md`. Final complete VFR-aware decode exited 0 with no diagnostics; representative final frames independently accepted by root. Dedicated simulator shut down, prior three booted simulators preserved, no owned recorder/test processes remain. No upload, form submission, or commit.
