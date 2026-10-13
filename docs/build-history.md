@@ -73,3 +73,10 @@ This index is newly consolidated. Earlier records remain intact; missing install
 - Verification at `e3ef792` (later commits are docs and the build number): iPhone 17 iOS 26.5 simulator 238 tests, 11 skipped, 0 failed. iPhone 12 mini simulator 238 tests, 11 skipped, 1 failed: `AccessibilityAuditTests/testPlayTable` reports a contrast finding with no element; it passes on iPhone 17 and passed 4/4 on the mini the day before on the same screen. Unexplained.
 - Signed Release 1.0 (23), build 22 uninstalled first, then freshly installed on the physical iPhone 12 mini. Installed metadata and normal launch verified; green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.build/device-install-b23/` (`welcome.png`, devicectl JSON). Binary SHA256 `ffa14d74f7561a22c1e33e89d0d34a4cacffe2a7c863e1c13c605d61f503c645`.
 - Remaining: novice comprehension, physical VoiceOver and minimum-iOS17 runtime. No App Store release claim.
+
+
+## Build 24 — hand rank list, 2026-10-13
+
+- Source `2543ad3`: the hand rank page shows all ten hands at once, strongest first, with "1 in N hands" / "N판에 한 번" in each row (two significant figures from the engine counts) and no toggles; owner chose mock A1.
+- Verification: iPhone 17 iOS 26.5 simulator, 89 unit tests and three UI tests covering the page (first lesson flow, basics close, AX5 both languages to row 10) passed. No full-suite run. Top-of-page screenshots inspected on the iPhone 12 mini simulator, Korean and English, normal and AX5.
+- Signed Release 1.0 (24), build 23 uninstalled first, then freshly installed on the physical iPhone 12 mini. Installed metadata and normal launch verified; green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.build/device-install-b24/`. Binary SHA256 `d114599a0250f06352aeb2bf659add7af3a692fa08c7138a6f3a1b2a76a10e72`.

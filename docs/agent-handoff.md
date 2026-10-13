@@ -7,11 +7,10 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 ## Current state (2026-10-13)
 
-- Branch `feat/hand-rank-list` (pushed, not merged, not on a phone): the hand rank page
-  shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles (owner chose
-  mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy). Next: owner decides on
-  merging to `main` and a build 24 install.
-- `main` is the only other branch, local and on `origin`, and both hold all work through the
+- Hand rank page shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles
+  (owner chose mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy); in `main`
+  and in build 24.
+- `main` is the only branch, local and on `origin`, and both hold all work through the
   audit follow-ups (owner approved that one push of `main` on 2026-10-13; the standing
   rule is still to work on a feature branch and not push `main` unasked). Old branches
   were deleted; their history is in `main` or in the bundle under `.archive/`.
@@ -23,7 +22,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - One corner radius: `GT.Radius.control` (10) for seats, felt, bottom panel and controls.
   Nothing in the app's own shapes may follow the display curve (owner, 2026-10-13).
   Pills, playing cards and `GT.Radius.panel` cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (23), fresh install; iPhone 13 mini has build
+- Phones: iPhone 12 mini has signed 1.0 (24), fresh install; iPhone 13 mini has build
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
@@ -70,6 +69,8 @@ Tests:
   that afternoon, failed again in the final run and 4/4 right after, same code. The
   audited hand is fixed (seed 97) and simulator appearance/text size match iPhone 17,
   where it passes. Unexplained; measured text contrast is at least 5.2:1.
+- Build 24 had only the unit tests and three hand-rank UI tests on iPhone 17, not the
+  full suite.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
   `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes`.
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`.
@@ -93,7 +94,10 @@ Tests:
 - Repository tidy-up at the owner's request: committed the October audits, reports,
   research, issue records and the UX crawler; ignored the GRAC packages; merged to
   `main`, pushed it, deleted the other branches.
-- Next: owner tries build 23 on the phone.
+- Hand rank page rebuilt (`170e2f0`), merged and pushed to `main` with the owner's
+  approval; build 24 fresh installed on the iPhone 12 mini, welcome seen, no progress
+  copied (`.build/device-install-b24/`).
+- Next: owner tries build 24 on the phone.
 
 ### 2026-10-13 — GRAC gameplay recording (separate session)
 
