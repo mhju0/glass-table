@@ -759,14 +759,14 @@ final class ProgressionModel {
                 let answers = candidate.activeNodeSession?.answers.map(\.answer) ?? []
                 candidate.recordLessonResult(
                     questions: answers.count,
-                    missed: answers.filter { !$0.isAssisted && $0.band != GradeBand.spotOn.rawValue }.count,
+                    missed: answers.filter { !$0.isAssisted && $0.countedBand != .spotOn }.count,
                     helped: answers.filter(\.isAssisted).count)
                 let scheduled = session.scheduledConcepts.compactMap(Concept.init(rawValue:))
                 var evidence: [Concept: SessionEvidence] = [:]
                 for graded in candidate.activeNodeSession?.answers ?? [] {
                     guard let gradedConcept = Concept(rawValue: graded.concept) else { continue }
                     evidence[gradedConcept, default: SessionEvidence()].record(
-                        spotOn: graded.answer.band == GradeBand.spotOn.rawValue,
+                        spotOn: graded.answer.countedBand == .spotOn,
                         assisted: graded.answer.isAssisted)
                 }
                 if Curriculum.isValidSession(scheduled, for: node, format: session.formatVersion),
@@ -1093,7 +1093,7 @@ final class ProgressionModel {
         for (i, loss) in [0.0, 0.0, 0.3, 1.4, 0.0, 2.9].enumerated() {
             s.append(AnswerRecord(concept: .evLoss,
                                   at: now.addingTimeInterval(-Double(i) * 1800),
-                                  correct: loss <= 0.5, evLoss: loss))
+                                  correct: loss == 0, evLoss: loss))
         }
 
         s.streak = StreakRecord(current: 12, longest: 12, lastSessionDay: DayKey(now),

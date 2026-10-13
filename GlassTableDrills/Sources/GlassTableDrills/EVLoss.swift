@@ -36,8 +36,17 @@ public func evLossBand(bb loss: Double) -> GradeBand {
     return .off
 }
 
-/// Human label for an EV loss. Exact and near-best choices share the `.spotOn`
-/// progression band, but the words stay honest about whether another option was better.
+extension GradeBand {
+    /// The band an answer counts as. Only the best choice is right: a choice that gave
+    /// up value inside the `.spotOn` tolerance is a near miss, and a near miss is wrong.
+    /// Stored answers keep the graded band, so saved answers still regrade to it.
+    public func counted(evLoss: Double?) -> GradeBand {
+        self == .spotOn && (evLoss ?? 0) > 0 ? .close : self
+    }
+}
+
+/// Human label for an EV loss. Exact and near-best choices share the graded `.spotOn`
+/// band, but the words stay honest about whether another option was better.
 public func evLossLabel(loss: Double, language: LearningLanguage = .korean) -> String {
     if loss <= 0 { return language.text("최선", "Best choice") }
     switch evLossBand(bb: loss) {

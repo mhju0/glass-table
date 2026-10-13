@@ -51,4 +51,4 @@ languages. See [D45](decisions.md) and the
 | bb | big blind | unit | Latin lowercase; one big blind, never label a 1/2 chip blind structure as 1/2bb |
 | 칩 | chips | unit | Pot calculation counts whole chips with 1-chip SB / 2-chip BB; fraction answers round to a whole chip |
 | 디펜드 차트 | defend chart | concept | vs an open: 3벳/콜/폴드 bands |
-| 최선 / 거의 최선 / 부정확 / 실수 | best / near-best / inaccuracy / mistake | EV-loss display | 0bb is 최선; a positive loss up to 0.5bb is 거의 최선; the first two share the best progression band |
+| 최선 / 거의 최선 / 부정확 / 실수 | best / near-best / inaccuracy / mistake | EV-loss display | 0bb is 최선; a positive loss up to 0.5bb is 거의 최선; only 최선 counts as correct; 거의 최선 is shown and counted as a near miss |

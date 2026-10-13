@@ -82,6 +82,64 @@ final class ReviewQueueTests: XCTestCase {
                           passed.record(for: .outs).review.due!)
     }
 
+    /// A near miss is a wrong answer: it adds to the total and the miss streak, never to
+    /// the correct count.
+    func testANearMissCountsAsWrong() {
+        var s = state(due: [(.outs, -1)])
+        ReviewQueue.recordReview(&s, concept: .outs, rating: .forBand(.close), interval: nil,
+                                 now: t0, scheduler: sched)
+        let r = s.record(for: .outs)
+        XCTAssertEqual(r.total, 6)
+        XCTAssertEqual(r.correct, 4)
+        XCTAssertEqual(r.consecutiveMisses, 1)
+        XCTAssertEqual(s.answers.last?.correct, false)
+    }
+
+    /// A choice that gave up value is a near miss even inside the EV-loss tolerance.
+    func testAChoiceThatGaveUpValueCountsAsWrong() throws {
+        var s = state(due: [(.evLoss, -1)])
+        var exact = s
+        ReviewQueue.recordReview(&s, concept: .evLoss,
+                                 rating: .forBand(evLossBand(bb: 0.3)), interval: nil,
+                                 now: days(5), scheduler: sched, evLoss: 0.3)
+        XCTAssertEqual(s.record(for: .evLoss).correct, 4)
+        XCTAssertEqual(s.record(for: .evLoss).consecutiveMisses, 1)
+
+        ReviewQueue.recordReview(&exact, concept: .evLoss, rating: .good, interval: nil,
+                                 now: days(5), scheduler: sched, evLoss: 0)
+        XCTAssertEqual(exact.record(for: .evLoss).correct, 5)
+        XCTAssertLessThan(try XCTUnwrap(s.record(for: .evLoss).review.due),
+                          try XCTUnwrap(exact.record(for: .evLoss).review.due))
+    }
+
+    func testCountedBandTreatsALossInsideToleranceAsNear() throws {
+        XCTAssertEqual(GradeBand.spotOn.counted(evLoss: 0.3), .close)
+        XCTAssertEqual(GradeBand.spotOn.counted(evLoss: 0), .spotOn)
+        XCTAssertEqual(GradeBand.spotOn.counted(evLoss: nil), .spotOn)
+        XCTAssertEqual(GradeBand.off.counted(evLoss: 3), .off)
+
+        let reveal = try JSONEncoder().encode(SavedDrillReveal(band: "spotOn", evLoss: 0.3))
+        let nearBest = RoundAnswer(attemptID: "a", ordinal: 0, band: .spotOn, submittedAt: t0,
+                                   input: Data("i".utf8), reveal: reveal)
+        XCTAssertEqual(nearBest.countedBand, .close)
+        let plain = RoundAnswer(attemptID: "b", ordinal: 0, band: .spotOn, submittedAt: t0,
+                                input: Data("i".utf8), reveal: Data("r".utf8))
+        XCTAssertEqual(plain.countedBand, .spotOn)
+    }
+
+    func testDailySummaryPutsALossInsideToleranceUnderNear() {
+        var s = ProgressState()
+        let key = DailyPracticeKey(day: DayKey(t0), concept: Concept.evLoss.rawValue,
+                                   mode: "path", formatVersion: 1, language: "en",
+                                   assisted: false)
+        s.recordDetailedAttempt(PracticeEvidence(attemptID: "a", key: key, at: t0,
+            band: .spotOn, eligibleCorrectSeconds: nil, decisionLossBB: 0.3))
+        s.recordDetailedAttempt(PracticeEvidence(attemptID: "b", key: key, at: t0,
+            band: .spotOn, eligibleCorrectSeconds: nil, decisionLossBB: 0))
+        XCTAssertEqual(s.dailySummaries.first?.exact, 1)
+        XCTAssertEqual(s.dailySummaries.first?.near, 1)
+    }
+
     func testAnsweringOneDueConceptEarnsAStreakWhileAnotherRemainsDue() {
         for rating in [FSRS.Rating.good, .again] {
             var s = state(due: [(.outs, -1), (.combos, -2)])

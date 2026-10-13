@@ -255,12 +255,12 @@ struct NodeSessionView: View {
         for item in session.answers {
             guard let concept = Concept(rawValue: item.concept) else { continue }
             evidence[concept, default: SessionEvidence()].record(
-                spotOn: item.answer.band == GradeBand.spotOn.rawValue,
+                spotOn: item.answer.countedBand == .spotOn,
                 assisted: item.answer.isAssisted)
         }
         helped = session.answers.filter(\.answer.isAssisted).count
         missed = session.answers.filter {
-            !$0.answer.isAssisted && $0.answer.band != GradeBand.spotOn.rawValue
+            !$0.answer.isAssisted && $0.answer.countedBand != .spotOn
         }.count
         finished = session.phase == .finished
         switch session.phase {

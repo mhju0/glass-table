@@ -72,6 +72,13 @@ public struct RoundAnswer: Codable, Equatable, Sendable {
     }
 
     public var isAssisted: Bool { assisted == true }
+
+    /// The band this answer counts as: the stored band, except that a choice which gave
+    /// up value is a near miss (`GradeBand.counted`).
+    public var countedBand: GradeBand? {
+        let loss = (try? JSONDecoder().decode(SavedDrillReveal.self, from: reveal))?.evLoss
+        return GradeBand(rawValue: band)?.counted(evLoss: loss)
+    }
 }
 
 /// A question that has not been submitted. No score or review credit is inferred
@@ -283,9 +290,9 @@ public extension ProgressState {
         let key = evidence.key
         let index = dailySummaries.firstIndex { $0.key == key }
         var summary = index.map { dailySummaries[$0] } ?? DailyPracticeSummary(key: key)
-        switch evidence.band {
-        case GradeBand.spotOn.rawValue: summary.exact += 1
-        case GradeBand.close.rawValue: summary.near += 1
+        switch GradeBand(rawValue: evidence.band)?.counted(evLoss: evidence.decisionLossBB) {
+        case .spotOn: summary.exact += 1
+        case .close: summary.near += 1
         default: summary.miss += 1
         }
         if let seconds = evidence.eligibleCorrectSeconds {

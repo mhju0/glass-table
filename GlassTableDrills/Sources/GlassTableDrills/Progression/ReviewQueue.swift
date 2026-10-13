@@ -55,7 +55,9 @@ public enum ReviewQueue {
         if due.isEmpty || due.contains(concept) {
             Streak.recordSession(&state.streak, on: DayKey(now))
         }
-        Mastery.record(&state, concept: concept, correct: rating != .again,
+        // A near miss is wrong, and so is a choice that gave up any value.
+        let rating = rating == .good && (evLoss ?? 0) > 0 ? .hard : rating
+        Mastery.record(&state, concept: concept, correct: rating.rawValue >= FSRS.Rating.good.rawValue,
                        interval: interval, now: now, evLoss: evLoss)
         state.updateRecord(for: concept) {
             scheduler.review(&$0.review, rating: rating, now: now)

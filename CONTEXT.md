@@ -90,8 +90,8 @@ four-player practice uses **play → factual hand review**, without an EV grade.
   current street settles, no further betting. Exact on the river.
 - **EV-loss grade** — a decision priced as `bestEV − chosenEV` in bb; severity
   최선 at zero, 거의 최선 for a positive loss up to 0.5bb, 부정확 through 2.0bb,
-  and 실수 above that. Exact and near-best share a progression band, not a claim
-  of equal EV. Distinct from the estimation bands 정확/근접/빗나감.
+  and 실수 above that. Only 최선 counts as a correct answer; near-best is stored
+  in the exact band but shown and counted as a near miss (`GradeBand.counted`). Distinct from the estimation bands 정확/근접/빗나감.
 - **Defend chart** — vs an open: 3벳/콜/폴드 bands derived from the opener's
   width (top 0.30× / to 0.75×, by Chen). Chart match/mismatch is not an estimate
   of how many big blinds a decision costs.

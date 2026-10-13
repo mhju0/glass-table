@@ -18,8 +18,8 @@ public enum Mastery {
     public static let missesBeforeStopDrilling = 8
 
     /// Promotion uses only this concept's answers from the completed session. The
-    /// lifetime aggregate still includes `.close` answers for the familiar tier and
-    /// scheduling, but a proficiency claim requires every current answer to be spot-on.
+    /// lifetime accuracy for the familiar tier counts only spot-on answers, and a
+    /// proficiency claim requires every current answer to be spot-on.
     public static func promote(_ r: inout ConceptRecord, evidence: SessionEvidence,
                                viaBoss: Bool, now: Date) {
         guard evidence.isComplete else { return }

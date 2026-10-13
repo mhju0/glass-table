@@ -338,7 +338,7 @@ extension EnvironmentValues {
 }
 
 @MainActor private func gradeHaptic(_ band: GradeBand) {
-    AppFeedback.answer(correct: band != .off)
+    AppFeedback.answer(correct: band == .spotOn)
 }
 
 /// Marks where the evidence a reveal adds begins. On reveal the shell scrolls that
@@ -2605,8 +2605,8 @@ private struct RangeAdvantageDrill: View {
 
 extension EVLossReveal {
     /// How the verdict looks and sounds. A choice that gave up any value is never shown
-    /// as right: a small loss still counts as `.spotOn` for progress but reads as close.
-    var shownBand: GradeBand { band == .spotOn && grade.loss > 0 ? .close : band }
+    /// as right: a small loss is stored as `.spotOn` but reads and counts as close.
+    var shownBand: GradeBand { band.counted(evLoss: grade.loss) }
 }
 
 /// Lead with the better action, then make the EV subtraction inspectable.

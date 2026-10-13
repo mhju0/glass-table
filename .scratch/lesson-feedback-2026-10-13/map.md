@@ -29,4 +29,8 @@ Mocks: https://claude.ai/artifact/8aPmc5HftjZcezcpN6TkYs
 13. 2A: `GT.Radius.panel` is 10, the same as controls, so cards, the hint, panels and buttons share one corner. Two 14pt boxes in the drills follow. Playing cards, pills and small grid cells keep their own shape.
 14. 3A: the Play table, its hand review and the hand coach show hole cards high card first (`highCardFirst`); the table state keeps the dealt order.
 
-Not decided: whether a near miss should count as wrong toward clearing a lesson.
+## Near miss is wrong (owner, 2026-10-14)
+
+15. Only an exact answer counts as correct. A near miss (amber, including an EV-loss choice that gave up any value) adds to the answer total but not to the correct count, adds to the miss streak, is scheduled as a hard review, counts as missed on the lesson result, goes under "Near" in Records, and plays the review sound in every lesson. Records now says "exact N%". Rule: `GradeBand.counted(evLoss:)`, `RoundAnswer.countedBand`. Stored bands are unchanged so saved answers still validate. Counts saved before this build are not recomputed.
+
+Not decided: a lesson is marked cleared once every question is answered, right or wrong (`ProgressionModel.commitNodeAnswer`). The owner said only correct answers should count toward clearing; no pass mark has been chosen, so this is unchanged.

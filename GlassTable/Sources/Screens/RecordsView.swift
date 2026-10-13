@@ -594,12 +594,12 @@ struct RecordsView: View {
                                         "\(r.consecutiveMisses) misses in a row · guided walkthrough") }
         let accepted = Int((r.accuracy * 100).rounded())
         guard let due = r.review.due else {
-            return language.text("\(r.total)문제 · 정확·근접 \(accepted)%",
-                                 "\(r.total) answers · exact or near \(accepted)%")
+            return language.text("\(r.total)문제 · 정확 \(accepted)%",
+                                 "\(r.total) answers · exact \(accepted)%")
         }
         let when = ReviewTiming.text(due: due, now: now, language: language)
-        return language.text("\(r.total)문제 · 정확·근접 \(accepted)% · \(when)",
-                             "\(r.total) answers · exact or near \(accepted)% · \(when)")
+        return language.text("\(r.total)문제 · 정확 \(accepted)% · \(when)",
+                             "\(r.total) answers · exact \(accepted)% · \(when)")
     }
 
     /// Four filled pips, so the tier survives greyscale and reads without the word.
