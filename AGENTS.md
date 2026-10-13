@@ -28,7 +28,7 @@ selects one size for a focused check. Inspect both sets of affected screenshots
 and run relevant UI interactions: an initial frame cannot prove scroll reachability.
 Before reopening learner-trust audit findings, read
 `docs/specs/2026-09-20-learner-trust-audit.md` for branch scope, resolved claims,
-regressions and verification limits. Detailed historical handoff: `docs/PROJECT_HANDOFF.md`.
+regressions and verification limits.
 
 - `project.yml` owns the generated, gitignored `GlassTable.xcodeproj/` and
   `GlassTable/Info.plist`. Edit the YAML, not those outputs.
@@ -66,7 +66,12 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/do
 
 ## Agent handoff
 
-- At session start, read `docs/agent-handoff.md`.
-- Before ending a session where you made decisions, changed architecture, or left work unfinished, append a dated entry: what changed, decisions and why, open issues, next step. Keep it brief and append-only.
-- When the file exceeds ~200 lines, condense the oldest entries into a short dated summary. Never delete unresolved open issues.
+- At session start, read `docs/agent-handoff.md`. Do not read `docs/handoff-archive/`
+  or `docs/PROJECT_HANDOFF.md` unless tracing one specific past decision.
+- Before ending a session where you made decisions, changed architecture, or left work unfinished:
+  rewrite "Current state" so it is true now; add new open issues and remove resolved
+  ones; add one short dated entry under "Recent sessions" (what changed, decisions and
+  why, next step).
+- Keep at most five entries under "Recent sessions" and delete older ones; git history
+  is the archive. Do not create archive files. Never delete an unresolved open issue.
 - Durable rules belong in AGENTS.md, not in the handoff file.
