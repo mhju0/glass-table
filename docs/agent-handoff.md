@@ -91,6 +91,10 @@ Tests:
   that afternoon, failed again in the final run and 4/4 right after, same code. The
   audited hand is fixed (seed 97) and simulator appearance/text size match iPhone 17,
   where it passes. Unexplained; measured text contrast is at least 5.2:1.
+- `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes` fails
+  on the iPhone 12 mini simulator on `main` (build 25) as well as on the guided-hand
+  branch, three runs: the result text sits 1.5pt above its scroll area (line 160). It
+  passed on iPhone 17 at `a469449`. Not investigated; first seen 2026-10-14.
 - Build 24 had only the unit tests and three hand-rank UI tests on iPhone 17, not the
   full suite.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
@@ -143,9 +147,9 @@ Tests:
   `TableSurface` (new `spotlight` and `ringed`); the quiz, Previous, the "less help"
   replay and the seeded alternate deals are gone. Unit tests (93) and the four guided-hand UI
   tests pass (12 mini and iPhone 17 simulators); screens checked in both languages at
-  normal size and samples at AX5. A full 12 mini run was still going when this was
-  written: the only failures so far were the two Play table contrast audits (see Open
-  issues); both pass on iPhone 17 with the table change.
+  normal size and samples at AX5. Full 12 mini run on `aafc0b5`: 317 passed, 3
+  failed, none in the guided hand: the two Play table contrast audits (both pass on
+  iPhone 17 with the table change) and the Play result scroll test below.
 - A full run of `a469449` on iPhone 17 had 203 passed, then one failure
   (`FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable`, passed on a re-run),
   before a second run on the same simulator spoiled the rest. Do not run two test
