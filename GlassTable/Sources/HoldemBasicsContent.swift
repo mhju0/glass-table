@@ -75,12 +75,14 @@ enum HoldemBasics {
 
     static func rank(_ id: String) -> Rank { ladder.first { $0.id == id }! }
 
-    /// Two significant figures below 1%, one decimal place above: 0.0032%, 0.17%, 4.6%.
-    static func percentText(_ share: Double) -> String {
-        let percent = share * 100
-        if percent >= 1 { return String(format: "%.1f%%", percent) }
-        let digits = max(0, 1 - Int(floor(log10(percent))))
-        return String(format: "%.\(digits)f%%", percent)
+    /// "1 in N hands", N to two significant figures: 2.3, 39, 600, 31,000.
+    static func frequencyText(_ share: Double, in language: LearningLanguage) -> String {
+        let hands = 1 / share
+        let step = pow(10, floor(log10(hands)) - 1)
+        let rounded = (hands / step).rounded() * step
+        let number = rounded < 10 ? String(format: "%.1f", rounded)
+            : Int(rounded).formatted(.number.locale(Locale(identifier: "en_US")))
+        return language.text("\(number)판에 한 번", "1 in \(number) hands")
     }
 
     /// The check question: a flush against a straight on the same page.

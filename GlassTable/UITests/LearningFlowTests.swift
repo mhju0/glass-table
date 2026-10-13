@@ -45,11 +45,8 @@ final class LearningFlowTests: XCTestCase {
         let royal = app.staticTexts.matching(NSPredicate(
             format: "label BEGINSWITH %@", "1, 로열 플러시,"
         )).firstMatch
-        XCTAssertFalse(royal.exists)
-        let ranks = app.buttons["basics.rank-order"]
-        revealLearning(ranks, in: app)
-        ranks.tap()
-        revealLearning(royal, in: app)
+        XCTAssertTrue(royal.waitForExistence(timeout: 5), "All ten ranks show without a tap.")
+        XCTAssertTrue(royal.label.contains("31,000판에 한 번"))
         let basicsNext = app.buttons["basics.next"]
         XCTAssertTrue(basicsNext.waitForExistence(timeout: 5))
         XCTAssertTrue(basicsNext.isHittable)
@@ -83,7 +80,7 @@ final class LearningFlowTests: XCTestCase {
         let start = app.buttons["learn-basics-start"]
         XCTAssertTrue(start.waitForExistence(timeout: 10))
         start.tap()
-        XCTAssertTrue(app.staticTexts["한 쌍은 높은 카드보다 강해요"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["족보 순서, 강한 패부터"].waitForExistence(timeout: 5))
         app.buttons["basics.close"].tap()
         XCTAssertTrue(start.waitForExistence(timeout: 5), "Closing early must not mark the lesson finished.")
     }

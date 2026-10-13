@@ -36,9 +36,14 @@ final class HoldemBasicsContentTests: XCTestCase {
                        Set(Card.parse("7c2h")!))
     }
 
-    func testPercentTextMatchesThePublishedRoundings() {
-        let texts = HoldemBasics.ladder.map { HoldemBasics.percentText($0.share) }
-        XCTAssertEqual(texts, ["0.0032%", "0.028%", "0.17%", "2.6%", "3.0%", "4.6%",
-                               "4.8%", "23.5%", "43.8%", "17.4%"])
+    func testFrequencyTextRoundsOneInNToTwoSignificantFigures() {
+        let english = HoldemBasics.ladder.map { HoldemBasics.frequencyText($0.share, in: .english) }
+        XCTAssertEqual(english, ["1 in 31,000 hands", "1 in 3,600 hands", "1 in 600 hands",
+                                 "1 in 39 hands", "1 in 33 hands", "1 in 22 hands", "1 in 21 hands",
+                                 "1 in 4.3 hands", "1 in 2.3 hands", "1 in 5.7 hands"])
+        XCTAssertEqual(HoldemBasics.frequencyText(HoldemBasics.rank("royal").share, in: .korean),
+                       "31,000판에 한 번")
+        XCTAssertEqual(HoldemBasics.frequencyText(HoldemBasics.rank("pair").share, in: .korean),
+                       "2.3판에 한 번")
     }
 }
