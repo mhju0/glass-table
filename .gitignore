@@ -14,3 +14,11 @@ build-device-release/
 
 # Preserved source and verification evidence from retired worktrees
 /.archive/
+
+# Local tool caches and compiled probe output
+.playwright-mcp/
+/.scratch/numerical-audit-2026-10-11/
+/.scratch/consistent-learning-table/native-audit/.build-ocr-lines
+
+# Rating-board submission packages (videos, forms); kept locally only
+/docs/grac-submission/
