@@ -5,8 +5,18 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
-## Current state (2026-10-13)
+## Current state (2026-10-14)
 
+- Build 25 is in `main` and on the iPhone 12 mini: the owner's build 24 lesson feedback
+  (direct fixes, answer marking F2, white answer cards S1, picks 1A, 1C, 2A, 3A) and
+  "a near miss is wrong". Mocks: https://claude.ai/artifact/9GBTnNb66MwufA7B19rG7e and
+  https://claude.ai/artifact/8aPmc5HftjZcezcpN6TkYs. Items and limits:
+  `.scratch/lesson-feedback-2026-10-13/map.md`.
+- Only an exact answer counts as correct (owner, 2026-10-14). A near miss, including an
+  EV-loss choice that gave up any value, is wrong for accuracy, the miss streak, the
+  lesson result, Records and sound, and is scheduled as a hard review
+  (`GradeBand.counted(evLoss:)`, `RoundAnswer.countedBand`). Stored bands are unchanged,
+  so saved answers still validate; counts saved by earlier builds are not recomputed.
 - Hand rank page shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles
   (owner chose mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy); in `main`
   and in build 24.
@@ -19,10 +29,10 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
   Report: https://claude.ai/artifact/JUwpSsMWHvXqjEsmLeHADQ. Example wording the owner
   read and accepted (bb kept in examples 8, 15, 18): https://claude.ai/artifact/Xd6qk866FFQJCbz9h5J9sH.
-- One corner radius: `GT.Radius.control` (10) for seats, felt, bottom panel and controls.
-  Nothing in the app's own shapes may follow the display curve (owner, 2026-10-13).
-  Pills, playing cards and `GT.Radius.panel` cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (24), fresh install; iPhone 13 mini has build
+- One corner radius, 10, for cards, panels, seats, felt and controls (`GT.Radius.panel`
+  and `.control`; owner chose "everything 10" on 2026-10-13). Nothing in the app's own
+  shapes may follow the display curve. Pills and playing cards are separate.
+- Phones: iPhone 12 mini has signed 1.0 (25), fresh install; iPhone 13 mini has build
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
@@ -34,6 +44,11 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   before a UI run, or the simulator can run an old test bundle.
 
 ## Open issues
+
+Owner decision:
+- A lesson is marked cleared once every question is answered, right or wrong
+  (`ProgressionModel.commitNodeAnswer`). The owner said only correct answers should
+  count toward clearing; no pass mark is chosen, so the rule is unchanged.
 
 Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
@@ -64,7 +79,8 @@ Product and numbers:
   identity; free raise 2BB presets and graded range/equity jargon.
 
 Tests:
-- `AccessibilityAuditTests/testPlayTable` (contrast, no element named) on the iPhone 12
+- `AccessibilityAuditTests/testPlayTable` (and `testPlayTableScrolled` once, 2026-10-13
+  night) (contrast, no element named) on the iPhone 12
   mini simulator: failed overnight on 2026-10-13 including on older code, passed 4/4
   that afternoon, failed again in the final run and 4/4 right after, same code. The
   audited hand is fixed (seed 97) and simulator appearance/text size match iPhone 17,
@@ -97,7 +113,25 @@ Tests:
 - Hand rank page rebuilt (`170e2f0`), merged and pushed to `main` with the owner's
   approval; build 24 fresh installed on the iPhone 12 mini, welcome seen, no progress
   copied (`.build/device-install-b24/`).
-- Next: owner tries build 24 on the phone.
+- Lesson feedback from build 24 on `feat/lesson-feedback-clarity`: best five and hole
+  cards strongest first, open river-card groups, rule of 2 explained, hint padding, then
+  F2 and S1, then 1A, 1C, 2A, 3A (all owner's picks). Unit tests and the guided hand,
+  restored-answer and accessibility-audit UI tests pass on iPhone 17; the full suite on
+  the final commit was started and its result not read. On `a3a4d16` a partial 12 mini
+  run failed `AccessibilityAuditTests/testPlayTable` and `testPlayTableScrolled`.
+
+### 2026-10-14 (Claude)
+
+- Owner: a near miss is wrong; only correct answers count. Applied to accuracy, miss
+  streak, review rating, lesson result, Records ("exact N%") and sound (`a31472e`).
+  Drills 425 + 75, app 91 unit tests and 57 UI tests (records, graded and learning
+  flows, restored answers, smoke) passed on the 12 mini simulator. The full suite was
+  not run on this commit; a full run of the previous commit on iPhone 17 was still
+  going, no failures in the first 158 tests.
+- Merged to `main` and pushed with the owner's approval. Build 25: build 24 uninstalled,
+  fresh install on the iPhone 12 mini, welcome seen, no progress copied
+  (`.build/device-install-b25/`).
+- Next: owner tries build 25 and decides whether clearing a lesson needs a pass mark.
 
 ### 2026-10-13 — GRAC gameplay recording (separate session)
 

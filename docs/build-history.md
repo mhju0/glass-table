@@ -80,3 +80,9 @@ This index is newly consolidated. Earlier records remain intact; missing install
 - Source `2543ad3`: the hand rank page shows all ten hands at once, strongest first, with "1 in N hands" / "N판에 한 번" in each row (two significant figures from the engine counts) and no toggles; owner chose mock A1.
 - Verification: iPhone 17 iOS 26.5 simulator, 89 unit tests and three UI tests covering the page (first lesson flow, basics close, AX5 both languages to row 10) passed. No full-suite run. Top-of-page screenshots inspected on the iPhone 12 mini simulator, Korean and English, normal and AX5.
 - Signed Release 1.0 (24), build 23 uninstalled first, then freshly installed on the physical iPhone 12 mini. Installed metadata and normal launch verified; green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.build/device-install-b24/`. Binary SHA256 `d114599a0250f06352aeb2bf659add7af3a692fa08c7138a6f3a1b2a76a10e72`.
+
+## Build 25 — lesson feedback and "a near miss is wrong", 2026-10-14
+
+- Source `a31472e` plus the build bump: answers marked in place with a green or red panel, white answer cards, amber near-best in the EV-loss lesson, one corner radius of 10, hole cards high card first, and only exact answers count as correct (accuracy, miss streak, lesson result, Records, sound).
+- Verification: Drills 425 XCTest + 75 Swift Testing, 91 app unit tests and 57 UI tests (records, graded and learning flows, restored answers, release smoke) passed on the iPhone 12 mini iOS 26.5 simulator. No full-suite run on this source.
+- Signed Release 1.0 (25), build 24 uninstalled first, then freshly installed on the physical iPhone 12 mini. Installed metadata and normal launch verified; green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.build/device-install-b25/`. Binary SHA256 `65af94ba95edf3f98887e62d56ba106f278fd38cd4d4b0642f81de32f6e4ea4d`.
