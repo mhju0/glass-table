@@ -7,9 +7,12 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 ## Current state (2026-10-13)
 
-- Branch `feat/audit-followups` is pushed to `origin` and holds every audit follow-up
-  the owner decided. Local `main` is fast-forwarded to it. `main` on `origin` is far
-  behind local work; never push `main`.
+- `main` is the only branch, local and on `origin`, and both hold all work through the
+  audit follow-ups (owner approved that one push of `main` on 2026-10-13; the standing
+  rule is still to work on a feature branch and not push `main` unasked). Old branches
+  were deleted; their history is in `main` or in the bundle under `.archive/`.
+- Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
+  caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
   Report: https://claude.ai/artifact/JUwpSsMWHvXqjEsmLeHADQ. Example wording the owner
   read and accepted (bb kept in examples 8, 15, 18): https://claude.ai/artifact/Xd6qk866FFQJCbz9h5J9sH.
@@ -56,8 +59,6 @@ Product and numbers:
 - (old) iOS 27 watchdog check on the affected phone; iPhone 16e AX walkthrough
   failure; live Bold Text redraw; tiny EV-loss grid labels; unseeded PotMath question
   identity; free raise 2BB presets and graded range/equity jargon.
-- Owner has not decided whether to commit the UX crawler (`tools/uxaudit/`,
-  `GlassTable/UITests/UXAuditCrawl.swift`); keep the untracked files.
 
 Tests:
 - `AccessibilityAuditTests/testPlayTable` (contrast, no element named) on the iPhone 12
@@ -85,6 +86,9 @@ Tests:
 - Build 23 (`dd7637b`): signed Release, build 22 uninstalled first, fresh install on
   the physical iPhone 12 mini, Korean first-run welcome seen and left unadvanced, no
   progress copied. Evidence in `.build/device-install-b23/`.
+- Repository tidy-up at the owner's request: committed the October audits, reports,
+  research, issue records and the UX crawler; ignored the GRAC packages; merged to
+  `main`, pushed it, deleted the other branches.
 - Next: owner tries build 23 on the phone.
 
 ### 2026-10-13 — GRAC gameplay recording (separate session)
