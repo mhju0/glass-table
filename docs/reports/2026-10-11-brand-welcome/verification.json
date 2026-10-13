@@ -1,0 +1,1130 @@
+{
+  "date": "2026-10-11",
+  "source_build": "1.0 (21)",
+  "prototype_only": true,
+  "native_unchanged": true,
+  "flow_cases": [
+    {
+      "variant": "A",
+      "lang": "en",
+      "theme": "light",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "A",
+      "lang": "en",
+      "theme": "light",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "A",
+      "lang": "en",
+      "theme": "dark",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "A",
+      "lang": "en",
+      "theme": "dark",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "A",
+      "lang": "ko",
+      "theme": "light",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "A",
+      "lang": "ko",
+      "theme": "light",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "A",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "A",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "B",
+      "lang": "en",
+      "theme": "light",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "B",
+      "lang": "en",
+      "theme": "light",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "B",
+      "lang": "en",
+      "theme": "dark",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "B",
+      "lang": "en",
+      "theme": "dark",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "B",
+      "lang": "ko",
+      "theme": "light",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "B",
+      "lang": "ko",
+      "theme": "light",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "B",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "B",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "C",
+      "lang": "en",
+      "theme": "light",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "C",
+      "lang": "en",
+      "theme": "light",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "C",
+      "lang": "en",
+      "theme": "dark",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "C",
+      "lang": "en",
+      "theme": "dark",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "C",
+      "lang": "ko",
+      "theme": "light",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "C",
+      "lang": "ko",
+      "theme": "light",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "C",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "normal",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    },
+    {
+      "variant": "C",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "large",
+      "frames": [
+        {
+          "stage": "intro",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "guide",
+          "overflow": false,
+          "buttonReachable": true
+        },
+        {
+          "stage": "example",
+          "overflow": false,
+          "buttonReachable": true
+        }
+      ],
+      "explained": true,
+      "back": true,
+      "skip": true
+    }
+  ],
+  "line_groups": [
+    {
+      "variant": "A",
+      "lang": "en",
+      "theme": "light",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "A",
+      "lang": "en",
+      "theme": "light",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 3
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "A",
+      "lang": "en",
+      "theme": "dark",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "A",
+      "lang": "en",
+      "theme": "dark",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 3
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "A",
+      "lang": "ko",
+      "theme": "light",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "A",
+      "lang": "ko",
+      "theme": "light",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "A",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "A",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "lang": "en",
+      "theme": "light",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "lang": "en",
+      "theme": "light",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 4
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "lang": "en",
+      "theme": "dark",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "lang": "en",
+      "theme": "dark",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 4
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "lang": "ko",
+      "theme": "light",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "lang": "ko",
+      "theme": "light",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "C",
+      "lang": "en",
+      "theme": "light",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "C",
+      "lang": "en",
+      "theme": "light",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 3
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "C",
+      "lang": "en",
+      "theme": "dark",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "C",
+      "lang": "en",
+      "theme": "dark",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 3
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "C",
+      "lang": "ko",
+      "theme": "light",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "C",
+      "lang": "ko",
+      "theme": "light",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "C",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "normal",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "variant": "C",
+      "lang": "ko",
+      "theme": "dark",
+      "size": "large",
+      "groups": [
+        {
+          "key": "guide-heading",
+          "lines": 2
+        },
+        {
+          "key": "guide-body",
+          "lines": 2
+        },
+        {
+          "key": "guide-note",
+          "lines": 1
+        }
+      ]
+    }
+  ],
+  "captures": 36,
+  "limits": [
+    "HTML typography and safe areas approximate native rendering",
+    "165% browser scaling is not native Dynamic Type or VoiceOver verification",
+    "No engagement or retention effect established"
+  ],
+  "prototype_sha256": "ed8c9f41ea37703c245476f0cf1491e91c2cae170ca2099d0241079c5aa05bfb",
+  "report_checks": {
+    "mobile_390_no_overflow": true,
+    "desktop_1440_no_overflow": true,
+    "all_43_image_instances_loaded": true,
+    "all_anchors_exist": true,
+    "filter_A_KO_dark_count": 3,
+    "final_console_errors": 0,
+    "prototype_375_no_page_overflow": true
+  }
+}

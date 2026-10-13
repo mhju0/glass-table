@@ -1,0 +1,1168 @@
+Building for debugging...
+[Pre-planning 1 / 154]
+[Planning deferred tasks]
+[1 / 1]
+[8 / 36] GlassTableEngine
+[10 / 37] GlassTableEngine
+[15 / 39] GlassTableDrills
+[26 / 50] GlassTableDrills
+[27 / 51] GlassTableDrills
+[34 / 59] GlassTableDrills
+[35 / 59] GlassTableDrills
+[39 / 63] GlassTableDrills
+/Users/michaelju/Workspace/Projects/glass-table/GlassTableDrills/Sources/GlassTableDrills/Progression/LearningProgress.swift:275:5: warning: 'public' modifier is redundant for instance method declared in a public extension
+273 |     /// Answers given with calculation help. Daily summaries keep every day, so this
+274 |     /// only grows; spot seeds add it so that help, leave and restart deals a new spot.
+275 |     public func assistedAttempts(for concept: Concept) -> Int {
+    |     `- warning: 'public' modifier is redundant for instance method declared in a public extension
+276 |         dailySummaries.reduce(0) { sum, summary in
+277 |             summary.key.assisted && summary.key.concept == concept.rawValue
+[45 / 62] GlassTableDrills
+[45 / 62] DrillBenchmarks-product
+[47 / 64] DrillBenchmarks-product
+/Users/michaelju/Workspace/Projects/glass-table/GlassTableDrills/Sources/GlassTableDrills/Progression/LearningProgress.swift:275:5: warning: 'public' modifier is redundant for instance method declared in a public extension
+273 |     /// Answers given with calculation help. Daily summaries keep every day, so this
+274 |     /// only grows; spot seeds add it so that help, leave and restart deals a new spot.
+275 |     public func assistedAttempts(for concept: Concept) -> Int {
+    |     `- warning: 'public' modifier is redundant for instance method declared in a public extension
+276 |         dailySummaries.reduce(0) { sum, summary in
+277 |             summary.key.assisted && summary.key.concept == concept.rawValue
+[50 / 64] GlassTableDrills
+[55 / 65] GlassTableDrillsTests-product
+[59 / 83]
+[61 / 83]
+[72 / 83] GlassTableDrillsTests-product
+[73 / 82] GlassTableDrillsTests-product
+[76 / 82] GlassTableDrillsTests-product
+[78 / 82] GlassTableDrillsTests-product
+Build complete! (11.18 sec)
+Test Suite 'All tests' started at 2026-10-11 12:31:40.150.
+Test Suite 'GlassTableDrillsTests.xctest' started at 2026-10-11 12:31:40.152.
+Test Suite 'ActionReadTests' started at 2026-10-11 12:31:40.152.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testActionReadIsAnEstimationConceptTaughtOnce]' started.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testActionReadIsAnEstimationConceptTaughtOnce]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ActionReadTests testBothActionsActuallyOccur]' started.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testBothActionsActuallyOccur]' passed (0.078 seconds).
+Test Case '-[GlassTableDrillsTests.ActionReadTests testGenerationIsDeterministic]' started.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testGenerationIsDeterministic]' passed (0.047 seconds).
+Test Case '-[GlassTableDrillsTests.ActionReadTests testGradeBandsMatchHitFrequencys]' started.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testGradeBandsMatchHitFrequencys]' passed (0.018 seconds).
+Test Case '-[GlassTableDrillsTests.ActionReadTests testSpotsAreAlwaysGradeable]' started.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testSpotsAreAlwaysGradeable]' passed (0.460 seconds).
+Test Case '-[GlassTableDrillsTests.ActionReadTests testTheDirectionSentenceIsTrue]' started.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testTheDirectionSentenceIsTrue]' passed (0.320 seconds).
+Test Case '-[GlassTableDrillsTests.ActionReadTests testTheRevealShowsItsWork]' started.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testTheRevealShowsItsWork]' passed (0.136 seconds).
+Test Case '-[GlassTableDrillsTests.ActionReadTests testTheWalkthroughShowsRuleThenBars]' started.
+Test Case '-[GlassTableDrillsTests.ActionReadTests testTheWalkthroughShowsRuleThenBars]' passed (0.008 seconds).
+Test Suite 'ActionReadTests' passed at 2026-10-11 12:31:41.221.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 1.068 (1.070) seconds
+Test Suite 'ArchetypeTests' started at 2026-10-11 12:31:41.221.
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testAveragingSeatsReturnsTheDeclaredStatistics]' started.
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testAveragingSeatsReturnsTheDeclaredStatistics]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testCallRangeIsExactlyWhatIsPlayedButNotRaised]' started.
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testCallRangeIsExactlyWhatIsPlayedButNotRaised]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testLatePositionOpensWiderThanEarly]' started.
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testLatePositionOpensWiderThanEarly]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testRaisingIsASubsetOfPlaying]' started.
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testRaisingIsASubsetOfPlaying]' passed (0.006 seconds).
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testTheStationIsPassiveNotMerelyLoose]' started.
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testTheStationIsPassiveNotMerelyLoose]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testWidthOrdersAsTheArchetypesDo]' started.
+Test Case '-[GlassTableDrillsTests.ArchetypeTests testWidthOrdersAsTheArchetypesDo]' passed (0.000 seconds).
+Test Suite 'ArchetypeTests' passed at 2026-10-11 12:31:41.233.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.011 (0.011) seconds
+Test Suite 'BeatsTests' started at 2026-10-11 12:31:41.233.
+Test Case '-[GlassTableDrillsTests.BeatsTests testCombosScriptDefinesAComboWithOneExampleFirst]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testCombosScriptDefinesAComboWithOneExampleFirst]' passed (0.005 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testCombosScriptWalksFromBaselineToCount]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testCombosScriptWalksFromBaselineToCount]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testEveryScriptRunsOnManyGeneratedSpotsAndIsWellFormed]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testEveryScriptRunsOnManyGeneratedSpotsAndIsWellFormed]' passed (0.177 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testEVScriptShowsBothSidesAndDisownsTheOutcome]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testEVScriptShowsBothSidesAndDisownsTheOutcome]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testLastSeatScriptDoesNotClaimSeatsBehind]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testLastSeatScriptDoesNotClaimSeatsBehind]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testOutsScriptOnlyMentionsAFlushWhenTheSpotActuallyHasOne]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testOutsScriptOnlyMentionsAFlushWhenTheSpotActuallyHasOne]' passed (0.358 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testPositionScriptListsTheSeatsThatActBehind]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testPositionScriptListsTheSeatsThatActBehind]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testPotMathScriptEndsOnTheAnswerAndShowsEveryAction]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testPotMathScriptEndsOnTheAnswerAndShowsEveryAction]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testRiverRereadNamesTheChangeOnlyWhenThereIsOne]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testRiverRereadNamesTheChangeOnlyWhenThereIsOne]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testShowdownHighlightsOnlyTheFivePlayingCards]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testShowdownHighlightsOnlyTheFivePlayingCards]' passed (0.006 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testShowdownScriptWalksTheTurnThenTheRiver]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testShowdownScriptWalksTheTurnThenTheRiver]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testShowdownTieHighlightOnlyUsesTheBoardWhenTheBoardPlays]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testShowdownTieHighlightOnlyUsesTheBoardWhenTheBoardPlays]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testTheCountingGridIsExactlyOutsPlusExcluded]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testTheCountingGridIsExactlyOutsPlusExcluded]' passed (0.194 seconds).
+Test Case '-[GlassTableDrillsTests.BeatsTests testTheReferenceOutsScriptReproducesTheSevenBeatWalkthrough]' started.
+Test Case '-[GlassTableDrillsTests.BeatsTests testTheReferenceOutsScriptReproducesTheSevenBeatWalkthrough]' passed (0.000 seconds).
+Test Suite 'BeatsTests' passed at 2026-10-11 12:31:41.978.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.744 (0.746) seconds
+Test Suite 'BeginnerQuestionChoicesTests' started at 2026-10-11 12:31:41.978.
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testDefendSessionSeedCoversEveryActualGradedAction]' started.
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testDefendSessionSeedCoversEveryActualGradedAction]' passed (0.661 seconds).
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testEquivalentSuitOutcomesGroupWithoutDroppingSuits]' started.
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testEquivalentSuitOutcomesGroupWithoutDroppingSuits]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testNumericChoicesRemainLegalDistinctAndContainAnswerAtBoundaries]' started.
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testNumericChoicesRemainLegalDistinctAndContainAnswerAtBoundaries]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testOutsGroupingKeepsKickersAndOpponentOutcomeSeparate]' started.
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testOutsGroupingKeepsKickersAndOpponentOutcomeSeparate]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testPercentChoicesHaveMeaningfullyDifferentDisplayedValues]' started.
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testPercentChoicesHaveMeaningfullyDifferentDisplayedValues]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testRangeChoicesIncludeAnAttainableOnTargetAnswer]' started.
+Test Case '-[GlassTableDrillsTests.BeginnerQuestionChoicesTests testRangeChoicesIncludeAnAttainableOnTargetAnswer]' passed (0.036 seconds).
+Test Suite 'BeginnerQuestionChoicesTests' passed at 2026-10-11 12:31:42.679.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.701 (0.701) seconds
+Test Suite 'BetSpotTests' started at 2026-10-11 12:31:42.679.
+Test Case '-[GlassTableDrillsTests.BetSpotTests testDeterministicAndVaried]' started.
+Test Case '-[GlassTableDrillsTests.BetSpotTests testDeterministicAndVaried]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BetSpotTests testMDFGradeAndWhy]' started.
+Test Case '-[GlassTableDrillsTests.BetSpotTests testMDFGradeAndWhy]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BetSpotTests testPctText]' started.
+Test Case '-[GlassTableDrillsTests.BetSpotTests testPctText]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BetSpotTests testPotOddsGradeAndWhy]' started.
+Test Case '-[GlassTableDrillsTests.BetSpotTests testPotOddsGradeAndWhy]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BetSpotTests testSpotInvariants]' started.
+Test Case '-[GlassTableDrillsTests.BetSpotTests testSpotInvariants]' passed (0.001 seconds).
+Test Suite 'BetSpotTests' passed at 2026-10-11 12:31:42.681.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'BlockerTests' started at 2026-10-11 12:31:42.681.
+Test Case '-[GlassTableDrillsTests.BlockerTests testClassNamesAndBaselines]' started.
+Test Case '-[GlassTableDrillsTests.BlockerTests testClassNamesAndBaselines]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BlockerTests testDeterministic]' started.
+Test Case '-[GlassTableDrillsTests.BlockerTests testDeterministic]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BlockerTests testGradeAndWhy]' started.
+Test Case '-[GlassTableDrillsTests.BlockerTests testGradeAndWhy]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.BlockerTests testSpotInvariants]' started.
+Test Case '-[GlassTableDrillsTests.BlockerTests testSpotInvariants]' passed (0.001 seconds).
+Test Suite 'BlockerTests' passed at 2026-10-11 12:31:42.683.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'BoardDrillTests' started at 2026-10-11 12:31:42.683.
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testATightOpenerIsAheadOnAnAceHighBoard]' started.
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testATightOpenerIsAheadOnAnAceHighBoard]' passed (0.173 seconds).
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testBoardBeatScriptsAreCompleteOnArbitrarySpots]' started.
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testBoardBeatScriptsAreCompleteOnArbitrarySpots]' passed (0.714 seconds).
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testBothGradersProduceAUsableRevealForEverySpot]' started.
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testBothGradersProduceAUsableRevealForEverySpot]' passed (0.702 seconds).
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testHitFrequencyGeneratorIsDeterministicAndCoherent]' started.
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testHitFrequencyGeneratorIsDeterministicAndCoherent]' passed (0.310 seconds).
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testHitFrequencyGradesPairOrBetterNotHitRate]' started.
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testHitFrequencyGradesPairOrBetterNotHitRate]' passed (0.003 seconds).
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testRangeAdvantageCallerAlwaysActsAfterTheOpener]' started.
+Test Case '-[GlassTableDrillsTests.BoardDrillTests testRangeAdvantageCallerAlwaysActsAfterTheOpener]' passed (0.013 seconds).
+Test Suite 'BoardDrillTests' passed at 2026-10-11 12:31:44.598.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 1.914 (1.914) seconds
+Test Suite 'CalibrationTests' started at 2026-10-11 12:31:44.598.
+Test Case '-[GlassTableDrillsTests.CalibrationTests testAWideAlwaysCorrectIntervalScoresWorseThanATightCorrectOne]' started.
+Test Case '-[GlassTableDrillsTests.CalibrationTests testAWideAlwaysCorrectIntervalScoresWorseThanATightCorrectOne]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CalibrationTests testExactAnswersAreExcludedFromCalibration]' started.
+Test Case '-[GlassTableDrillsTests.CalibrationTests testExactAnswersAreExcludedFromCalibration]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.CalibrationTests testHitRateIsNilWithoutIntervalAnswers]' started.
+Test Case '-[GlassTableDrillsTests.CalibrationTests testHitRateIsNilWithoutIntervalAnswers]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CalibrationTests testHitRateIsTheShareOfIntervalsContainingTheTruth]' started.
+Test Case '-[GlassTableDrillsTests.CalibrationTests testHitRateIsTheShareOfIntervalsContainingTheTruth]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CalibrationTests testVerdictNamesOverconfidenceAndUnderconfidence]' started.
+Test Case '-[GlassTableDrillsTests.CalibrationTests testVerdictNamesOverconfidenceAndUnderconfidence]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CalibrationTests testWinklerPenalisesMissesInProportionToTheShortfall]' started.
+Test Case '-[GlassTableDrillsTests.CalibrationTests testWinklerPenalisesMissesInProportionToTheShortfall]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CalibrationTests testWinklerScoresWidthWhenTheTruthIsContained]' started.
+Test Case '-[GlassTableDrillsTests.CalibrationTests testWinklerScoresWidthWhenTheTruthIsContained]' passed (0.000 seconds).
+Test Suite 'CalibrationTests' passed at 2026-10-11 12:31:44.599.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'CallFoldTests' started at 2026-10-11 12:31:44.599.
+Test Case '-[GlassTableDrillsTests.CallFoldTests testDeterministic]' started.
+Test Case '-[GlassTableDrillsTests.CallFoldTests testDeterministic]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.CallFoldTests testFoldSpotWhy]' started.
+Test Case '-[GlassTableDrillsTests.CallFoldTests testFoldSpotWhy]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CallFoldTests testGradeBothWays]' started.
+Test Case '-[GlassTableDrillsTests.CallFoldTests testGradeBothWays]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CallFoldTests testSpotInvariants]' started.
+Test Case '-[GlassTableDrillsTests.CallFoldTests testSpotInvariants]' passed (0.043 seconds).
+Test Suite 'CallFoldTests' passed at 2026-10-11 12:31:44.645.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.045 (0.046) seconds
+Test Suite 'ConceptTests' started at 2026-10-11 12:31:44.645.
+Test Case '-[GlassTableDrillsTests.ConceptTests testMasteryTiersOrderLowToHigh]' started.
+Test Case '-[GlassTableDrillsTests.ConceptTests testMasteryTiersOrderLowToHigh]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ConceptTests testOnlyEstimationConceptsTakeAnInterval]' started.
+Test Case '-[GlassTableDrillsTests.ConceptTests testOnlyEstimationConceptsTakeAnInterval]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ConceptTests testRosterCoversBlockA]' started.
+Test Case '-[GlassTableDrillsTests.ConceptTests testRosterCoversBlockA]' passed (0.000 seconds).
+Test Suite 'ConceptTests' passed at 2026-10-11 12:31:44.646.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'CurriculumTests' started at 2026-10-11 12:31:44.646.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testBossBagIsBalancedDeterministicAndSeedShuffled]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testBossBagIsBalancedDeterministicAndSeedShuffled]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CurriculumTests testBossMixesOnlyReferenceConceptsAlreadyTaught]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testBossMixesOnlyReferenceConceptsAlreadyTaught]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CurriculumTests testCompletedSessionsPracticeEveryConceptTheyCanPromote]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testCompletedSessionsPracticeEveryConceptTheyCanPromote]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CurriculumTests testEveryConceptIsTaughtExactlyOnce]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testEveryConceptIsTaughtExactlyOnce]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CurriculumTests testEveryUnitDeclaresANonEmptySection]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testEveryUnitDeclaresANonEmptySection]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CurriculumTests testEveryUnitEndsInABossNodeAndNoOtherNodeIsABoss]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testEveryUnitEndsInABossNodeAndNoOtherNodeIsABoss]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CurriculumTests testEveryUnitIsAChapterRatherThanASingleNode]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testEveryUnitIsAChapterRatherThanASingleNode]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CurriculumTests testLaterBossMixesInEarlierUnitConcepts]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testLaterBossMixesInEarlierUnitConcepts]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.CurriculumTests testNodeIDsAreUniqueAndLookupWorks]' started.
+Test Case '-[GlassTableDrillsTests.CurriculumTests testNodeIDsAreUniqueAndLookupWorks]' passed (0.000 seconds).
+Test Suite 'CurriculumTests' passed at 2026-10-11 12:31:44.648.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'DayKeyTests' started at 2026-10-11 12:31:44.648.
+Test Case '-[GlassTableDrillsTests.DayKeyTests testDSTTransitionStillCountsAsOneDay]' started.
+Test Case '-[GlassTableDrillsTests.DayKeyTests testDSTTransitionStillCountsAsOneDay]' passed (0.006 seconds).
+Test Case '-[GlassTableDrillsTests.DayKeyTests testGapOfMoreThanOneDay]' started.
+Test Case '-[GlassTableDrillsTests.DayKeyTests testGapOfMoreThanOneDay]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.DayKeyTests testMidnightRollsToTheNextDay]' started.
+Test Case '-[GlassTableDrillsTests.DayKeyTests testMidnightRollsToTheNextDay]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.DayKeyTests testRawIsSortableYearMonthDay]' started.
+Test Case '-[GlassTableDrillsTests.DayKeyTests testRawIsSortableYearMonthDay]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.DayKeyTests testRoundTripsThroughCodableAndRawString]' started.
+Test Case '-[GlassTableDrillsTests.DayKeyTests testRoundTripsThroughCodableAndRawString]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.DayKeyTests testSameCalendarDayAcrossHoursIsOneKey]' started.
+Test Case '-[GlassTableDrillsTests.DayKeyTests testSameCalendarDayAcrossHoursIsOneKey]' passed (0.001 seconds).
+Test Suite 'DayKeyTests' passed at 2026-10-11 12:31:44.659.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.010 (0.011) seconds
+Test Suite 'DefendChartTests' started at 2026-10-11 12:31:44.659.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testBandsAreDisjointNestedAndTotal]' started.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testBandsAreDisjointNestedAndTotal]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.DefendChartTests testContinueBandsAreNestedAndSharesAreInCharacterOrder]' started.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testContinueBandsAreNestedAndSharesAreInCharacterOrder]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.DefendChartTests testDefenseIsMonotoneInOpenerWidth]' started.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testDefenseIsMonotoneInOpenerWidth]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.DefendChartTests testPreflopFoldNetsExactlyZero]' started.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testPreflopFoldNetsExactlyZero]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.DefendChartTests testPreflopVerdictAgreesWithTheChart]' started.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testPreflopVerdictAgreesWithTheChart]' passed (0.013 seconds).
+Test Case '-[GlassTableDrillsTests.DefendChartTests testTheStationNeverFoldsPreflop]' started.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testTheStationNeverFoldsPreflop]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.DefendChartTests testThreeBetOutcomesBalanceTheBooks]' started.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testThreeBetOutcomesBalanceTheBooks]' passed (0.003 seconds).
+Test Case '-[GlassTableDrillsTests.DefendChartTests testVerdictIsNilOncePreflopIsOver]' started.
+Test Case '-[GlassTableDrillsTests.DefendChartTests testVerdictIsNilOncePreflopIsOver]' passed (0.002 seconds).
+Test Suite 'DefendChartTests' passed at 2026-10-11 12:31:44.682.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.022 (0.023) seconds
+Test Suite 'DefendDrillTests' started at 2026-10-11 12:31:44.682.
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testAllThreeBandsOccurAsCorrectAnswers]' started.
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testAllThreeBandsOccurAsCorrectAnswers]' passed (0.004 seconds).
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testDefendIsWiredIntoThePathOnce]' started.
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testDefendIsWiredIntoThePathOnce]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testGenerationIsDeterministicAndBoundaryBiased]' started.
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testGenerationIsDeterministicAndBoundaryBiased]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testGradeFollowsTheOrdinalDistance]' started.
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testGradeFollowsTheOrdinalDistance]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testTheDrillGradesWithTheTablesFunction]' started.
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testTheDrillGradesWithTheTablesFunction]' passed (0.003 seconds).
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testTheRevealDerivesItsNumbersFromTheChartConstants]' started.
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testTheRevealDerivesItsNumbersFromTheChartConstants]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testTheWalkthroughDerivesThenShowsTheChart]' started.
+Test Case '-[GlassTableDrillsTests.DefendDrillTests testTheWalkthroughDerivesThenShowsTheChart]' passed (0.000 seconds).
+Test Suite 'DefendDrillTests' passed at 2026-10-11 12:31:44.692.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.008 (0.009) seconds
+Test Suite 'EVCallTests' started at 2026-10-11 12:31:44.692.
+Test Case '-[GlassTableDrillsTests.EVCallTests testEVIsZeroAtExactlyTheRequiredEquity]' started.
+Test Case '-[GlassTableDrillsTests.EVCallTests testEVIsZeroAtExactlyTheRequiredEquity]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVCallTests testEVOfAClearlyLosingCall]' started.
+Test Case '-[GlassTableDrillsTests.EVCallTests testEVOfAClearlyLosingCall]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVCallTests testEVOfAClearlyProfitableCall]' started.
+Test Case '-[GlassTableDrillsTests.EVCallTests testEVOfAClearlyProfitableCall]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVCallTests testEVRisesMonotonicallyWithEquity]' started.
+Test Case '-[GlassTableDrillsTests.EVCallTests testEVRisesMonotonicallyWithEquity]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVCallTests testGeneratorIsDeterministicAndProducesBothSigns]' started.
+Test Case '-[GlassTableDrillsTests.EVCallTests testGeneratorIsDeterministicAndProducesBothSigns]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.EVCallTests testGradingBandsAreTightBecauseEVIsInBigBlinds]' started.
+Test Case '-[GlassTableDrillsTests.EVCallTests testGradingBandsAreTightBecauseEVIsInBigBlinds]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVCallTests testTheHandsResultDoesNotAffectTheAnswerOrTheGrade]' started.
+Test Case '-[GlassTableDrillsTests.EVCallTests testTheHandsResultDoesNotAffectTheAnswerOrTheGrade]' passed (0.000 seconds).
+Test Suite 'EVCallTests' passed at 2026-10-11 12:31:44.694.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'EVLossTests' started at 2026-10-11 12:31:44.694.
+Test Case '-[GlassTableDrillsTests.EVLossTests testAlwaysCallingProducesEveryBand]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testAlwaysCallingProducesEveryBand]' passed (0.307 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testAlwaysFoldingProducesEveryBand]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testAlwaysFoldingProducesEveryBand]' passed (0.281 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testBandBoundariesAreInclusiveDownward]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testBandBoundariesAreInclusiveDownward]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testBBTextDoesNotPrintASignedZero]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testBBTextDoesNotPrintASignedZero]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testCallEVMatchesTheEngineFormula]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testCallEVMatchesTheEngineFormula]' passed (0.050 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testCallIsBestExactlyWhenEquityClearsThePrice]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testCallIsBestExactlyWhenEquityClearsThePrice]' passed (0.079 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testDecisionSeverityWordsDistinguishExactFromNearBest]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testDecisionSeverityWordsDistinguishExactFromNearBest]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testEVLossCollectsNoInterval]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testEVLossCollectsNoInterval]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testEVLossIsTaughtByExactlyOneNode]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testEVLossIsTaughtByExactlyOneNode]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testFoldIsAlwaysWorthNothing]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testFoldIsAlwaysWorthNothing]' passed (0.033 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testGenerationIsDeterministic]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testGenerationIsDeterministic]' passed (0.043 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testLossIsNeverNegative]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testLossIsNeverNegative]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testLossIsTheGapToTheBest]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testLossIsTheGapToTheBest]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testMeanEVLossIgnoresAnswersThatAreNotGradedThatWay]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testMeanEVLossIgnoresAnswersThatAreNotGradedThatWay]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testOldAnswerRecordsWithoutEVLossStillDecode]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testOldAnswerRecordsWithoutEVLossStillDecode]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testRevealNamesTheChosenOptionWhenNothingWasLost]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testRevealNamesTheChosenOptionWhenNothingWasLost]' passed (0.084 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testRevealPrintsBothPricesAlways]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testRevealPrintsBothPricesAlways]' passed (0.130 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testSpotsAreDecisionsNotForegoneConclusions]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testSpotsAreDecisionsNotForegoneConclusions]' passed (0.098 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testTheBestOptionAlwaysScoresZero]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testTheBestOptionAlwaysScoresZero]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testTheWalkthroughEndsOnTheCostNotTheChoice]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testTheWalkthroughEndsOnTheCostNotTheChoice]' passed (0.003 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testTiedOptionsBothLoseNothing]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testTiedOptionsBothLoseNothing]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.EVLossTests testVerdictParticlesAgreeWithTheWord]' started.
+Test Case '-[GlassTableDrillsTests.EVLossTests testVerdictParticlesAgreeWithTheWord]' passed (0.000 seconds).
+Test Suite 'EVLossTests' passed at 2026-10-11 12:31:45.807.
+	 Executed 22 tests, with 0 failures (0 unexpected) in 1.111 (1.114) seconds
+Test Suite 'EquitySenseTests' started at 2026-10-11 12:31:45.807.
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testADominatedHandHasLowEquityAndTheDominatorHigh]' started.
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testADominatedHandHasLowEquityAndTheDominatorHigh]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testEquityIsAlwaysAPercentage]' started.
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testEquityIsAlwaysAPercentage]' passed (0.419 seconds).
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testGeneratorIsDeterministicAndDealsFlopsAndTurns]' started.
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testGeneratorIsDeterministicAndDealsFlopsAndTurns]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testGradingBandsWidenFromTheExactAnswer]' started.
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testGradingBandsWidenFromTheExactAnswer]' passed (0.003 seconds).
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testIntervalHitIsReportedIndependentlyOfTheBand]' started.
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testIntervalHitIsReportedIndependentlyOfTheBand]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testTurnEquityMatchesTheOutsTheAppAlreadyTeaches]' started.
+Test Case '-[GlassTableDrillsTests.EquitySenseTests testTurnEquityMatchesTheOutsTheAppAlreadyTeaches]' passed (0.001 seconds).
+Test Suite 'EquitySenseTests' passed at 2026-10-11 12:31:46.236.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.428 (0.429) seconds
+Test Suite 'EquityTeachingTests' started at 2026-10-11 12:31:46.236.
+Test Case '-[GlassTableDrillsTests.EquityTeachingTests testSharedBoardCountsHalfThePotRatherThanAWin]' started.
+Test Case '-[GlassTableDrillsTests.EquityTeachingTests testSharedBoardCountsHalfThePotRatherThanAWin]' passed (0.000 seconds).
+Test Suite 'EquityTeachingTests' passed at 2026-10-11 12:31:46.237.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'EstimateTests' started at 2026-10-11 12:31:46.237.
+Test Case '-[GlassTableDrillsTests.EstimateTests testBoundsAreNormalisedSoAnInvertedIntervalStillScores]' started.
+Test Case '-[GlassTableDrillsTests.EstimateTests testBoundsAreNormalisedSoAnInvertedIntervalStillScores]' passed (0.000 seconds).
+Test Suite 'EstimateTests' passed at 2026-10-11 12:31:46.237.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'FSRSTests' started at 2026-10-11 12:31:46.237.
+Test Case '-[GlassTableDrillsTests.FSRSTests testABetterFirstRatingGivesMoreStabilityAndLessDifficulty]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testABetterFirstRatingGivesMoreStabilityAndLessDifficulty]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testANewConceptIsDueAndAJustReviewedOneIsNot]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testANewConceptIsDueAndAJustReviewedOneIsNot]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testDifficultyStaysInsideOneToTen]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testDifficultyStaysInsideOneToTen]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testFirstReviewSeedsStabilityFromTheRatingsOwnParameter]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testFirstReviewSeedsStabilityFromTheRatingsOwnParameter]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testForgettingCollapsesStabilityAndCountsALapse]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testForgettingCollapsesStabilityAndCountsALapse]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testGlassTableGradesMapOntoRatings]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testGlassTableGradesMapOntoRatings]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testHardScoresBetweenAgainAndGood]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testHardScoresBetweenAgainAndGood]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testHigherDesiredRetentionMeansShorterIntervals]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testHigherDesiredRetentionMeansShorterIntervals]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testHugeFiniteStabilityClampsBeforeIntegerConversion]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testHugeFiniteStabilityClampsBeforeIntegerConversion]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testIntervalIsAtLeastOneDayAndRespectsTheMaximum]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testIntervalIsAtLeastOneDayAndRespectsTheMaximum]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testRetrievabilityIsOneAtZeroElapsedAndDecaysMonotonically]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testRetrievabilityIsOneAtZeroElapsedAndDecaysMonotonically]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testSameDayRepsGrowStabilityFarLessThanSpacedOnes]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testSameDayRepsGrowStabilityFarLessThanSpacedOnes]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testSchedulingIsDeterministic]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testSchedulingIsDeterministic]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testShipsTheTwentyOnePublishedFSRS6Parameters]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testShipsTheTwentyOnePublishedFSRS6Parameters]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testSuccessfulSpacedReviewsGrowStabilityAndStretchIntervals]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testSuccessfulSpacedReviewsGrowStabilityAndStretchIntervals]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FSRSTests testTheChosenIntervalLandsOnDesiredRetention]' started.
+Test Case '-[GlassTableDrillsTests.FSRSTests testTheChosenIntervalLandsOnDesiredRetention]' passed (0.000 seconds).
+Test Suite 'FSRSTests' passed at 2026-10-11 12:31:46.242.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'FirstLessonTests' started at 2026-10-11 12:31:46.242.
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testBothFirstLessonHandsAreLegalAndHeroWinsWithTheNamedPair]' started.
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testBothFirstLessonHandsAreLegalAndHeroWinsWithTheNamedPair]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testCuratedBanksHaveSemanticVarietyAndEvaluatorConfirmedRules]' started.
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testCuratedBanksHaveSemanticVarietyAndEvaluatorConfirmedRules]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testFirstLessonFeedbackComesFromTheShowdownGrader]' started.
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testFirstLessonFeedbackComesFromTheShowdownGrader]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testOptionalComparisonsAreLegalAndTeachIncreasingCategories]' started.
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testOptionalComparisonsAreLegalAndTeachIncreasingCategories]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testRepeatedGuideVariationStaysStableAndPreservesPairRule]' started.
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testRepeatedGuideVariationStaysStableAndPreservesPairRule]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testRequiredPathContainsAllFiveRulesWithoutOptionalPractice]' started.
+Test Case '-[GlassTableDrillsTests.FirstLessonTests testRequiredPathContainsAllFiveRulesWithoutOptionalPractice]' passed (0.007 seconds).
+Test Suite 'FirstLessonTests' passed at 2026-10-11 12:31:46.253.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.011 (0.011) seconds
+Test Suite 'JaccardTests' started at 2026-10-11 12:31:46.253.
+Test Case '-[GlassTableDrillsTests.JaccardTests testDisjointRangesScoreZero]' started.
+Test Case '-[GlassTableDrillsTests.JaccardTests testDisjointRangesScoreZero]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.JaccardTests testIdenticalRangesScoreOne]' started.
+Test Case '-[GlassTableDrillsTests.JaccardTests testIdenticalRangesScoreOne]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.JaccardTests testOverlapFallsAsRangesDiverge]' started.
+Test Case '-[GlassTableDrillsTests.JaccardTests testOverlapFallsAsRangesDiverge]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.JaccardTests testOverlapIsWeightedByCombosNotByClassCount]' started.
+Test Case '-[GlassTableDrillsTests.JaccardTests testOverlapIsWeightedByCombosNotByClassCount]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.JaccardTests testTwoEmptyRangesAreIdentical]' started.
+Test Case '-[GlassTableDrillsTests.JaccardTests testTwoEmptyRangesAreIdentical]' passed (0.000 seconds).
+Test Suite 'JaccardTests' passed at 2026-10-11 12:31:46.255.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'KoreanTests' started at 2026-10-11 12:31:46.255.
+Test Case '-[GlassTableDrillsTests.KoreanTests testCopulaAgreesWithTheFinalConsonant]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testCopulaAgreesWithTheFinalConsonant]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testDifferentHandNamesUseAgreeingParticles]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testDifferentHandNamesUseAgreeingParticles]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testEqualHandNamesExplainViaTheKicker]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testEqualHandNamesExplainViaTheKicker]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testEveryHandNameTakesAParticleWithoutCrashing]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testEveryHandNameTakesAParticleWithoutCrashing]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testEverySeatTakesTheRightTopicParticle]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testEverySeatTakesTheRightTopicParticle]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testInstrumentalParticleTreatsRieulLikeAVowel]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testInstrumentalParticleTreatsRieulLikeAVowel]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testNonHangulTailsFollowTheirKoreanReading]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testNonHangulTailsFollowTheirKoreanReading]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testObjectParticleAgreesWithTheFinalConsonant]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testObjectParticleAgreesWithTheFinalConsonant]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testSubjectParticleAgreesWithTheFinalConsonant]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testSubjectParticleAgreesWithTheFinalConsonant]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testWordJoinedKeepsDigitsAndParticlesTogether]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testWordJoinedKeepsDigitsAndParticlesTogether]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.KoreanTests testWordJoinedLeavesOrdinaryBreaksAlone]' started.
+Test Case '-[GlassTableDrillsTests.KoreanTests testWordJoinedLeavesOrdinaryBreaksAlone]' passed (0.000 seconds).
+Test Suite 'KoreanTests' passed at 2026-10-11 12:31:46.258.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'LearnerLevelTests' started at 2026-10-11 12:31:46.258.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testALessonSolvedOnlyWithHelpIsNeitherCleanNorRough]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testALessonSolvedOnlyWithHelpIsNeitherCleanNorRough]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testAPassedTrackChallengeSkipsThatTracksLessons]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testAPassedTrackChallengeSkipsThatTracksLessons]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testLessonsBeforeTheLevelStartAreNotAskedForFirst]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testLessonsBeforeTheLevelStartAreNotAskedForFirst]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testLessonTrendSurvivesSavingAndOldFilesReadAsNone]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testLessonTrendSurvivesSavingAndOldFilesReadAsNone]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testLevelIsTheSavedSelfReportAndDefaultsToNewPlayer]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testLevelIsTheSavedSelfReportAndDefaultsToNewPlayer]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testPlainWordsLeadUnlessTheLearnerPlaysSometimes]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testPlainWordsLeadUnlessTheLearnerPlaysSometimes]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testSkipAheadChallengeIsTheTracksOwnWhileLessonsRemain]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testSkipAheadChallengeIsTheTracksOwnWhileLessonsRemain]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testTheStartingCheckResultWinsOverTheLevelDefault]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testTheStartingCheckResultWinsOverTheLevelDefault]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testThreeCleanLessonsInARowOfferSkippingAhead]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testThreeCleanLessonsInARowOfferSkippingAhead]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testTwoRoughLessonsInARowTurnGuidanceUpAndOneBetterLessonTurnsItBack]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testTwoRoughLessonsInARowTurnGuidanceUpAndOneBetterLessonTurnsItBack]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testUpNextReturnsToEarlierLessonsOnceTheLaterOnesAreDone]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testUpNextReturnsToEarlierLessonsOnceTheLaterOnesAreDone]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testUpNextStartsWhereTheLevelStarts]' started.
+Test Case '-[GlassTableDrillsTests.LearnerLevelTests testUpNextStartsWhereTheLevelStarts]' passed (0.000 seconds).
+Test Suite 'LearnerLevelTests' passed at 2026-10-11 12:31:46.261.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'LearningTrackTests' started at 2026-10-11 12:31:46.261.
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testGroundworkAndEasierLessonPointBackAlongTheTracks]' started.
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testGroundworkAndEasierLessonPointBackAlongTheTracks]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testSkillsToPractiseFollowTheTracksAndLeaveOutHiddenTopics]' started.
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testSkillsToPractiseFollowTheTracksAndLeaveOutHiddenTopics]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testSuggestionFollowsTheTracksButNeverLocksAndIgnoresHiddenProgress]' started.
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testSuggestionFollowsTheTracksButNeverLocksAndIgnoresHiddenProgress]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testTrackChallengesMixOnlyTheirOwnTrackAndOldSavedOnesKeepTheirMix]' started.
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testTrackChallengesMixOnlyTheirOwnTrackAndOldSavedOnesKeepTheirMix]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testTracksRegroupExistingLessonsAndLeaveTheNineUnitsAlone]' started.
+Test Case '-[GlassTableDrillsTests.LearningTrackTests testTracksRegroupExistingLessonsAndLeaveTheNineUnitsAlone]' passed (0.000 seconds).
+Test Suite 'LearningTrackTests' passed at 2026-10-11 12:31:46.262.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'LegacyMigrationTests' started at 2026-10-11 12:31:46.262.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testBlockersHistoryBecomesCombos]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testBlockersHistoryBecomesCombos]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testCorruptLegacyFileIsSkippedNotFatal]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testCorruptLegacyFileIsSkippedNotFatal]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testDoesNotOverwriteAConceptThatAlreadyHasState]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testDoesNotOverwriteAConceptThatAlreadyHasState]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testEmptyLegacyProgressIsSkippedRatherThanCreatingBlankRecords]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testEmptyLegacyProgressIsSkippedRatherThanCreatingBlankRecords]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testFoldsEachLegacyDrillIntoItsConcept]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testFoldsEachLegacyDrillIntoItsConcept]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testHighestLegacyStreakSeedsTheLongestStreak]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testHighestLegacyStreakSeedsTheLongestStreak]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testNoLegacyFilesLeavesStateUntouched]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testNoLegacyFilesLeavesStateUntouched]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testParkedMdfHistoryIsStillCarried]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testParkedMdfHistoryIsStillCarried]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testTierIsDerivedFromLegacyAccuracy]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testTierIsDerivedFromLegacyAccuracy]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testUnsafeLegacyNumbersAreSkippedAndOriginalBytesRemain]' started.
+Test Case '-[GlassTableDrillsTests.LegacyMigrationTests testUnsafeLegacyNumbersAreSkippedAndOriginalBytesRemain]' passed (0.001 seconds).
+Test Suite 'LegacyMigrationTests' passed at 2026-10-11 12:31:46.274.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.010 (0.011) seconds
+Test Suite 'MasteryTests' started at 2026-10-11 12:31:46.274.
+Test Case '-[GlassTableDrillsTests.MasteryTests testACleanRunReachesProficientAndStampsTheTime]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testACleanRunReachesProficientAndStampsTheTime]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testAnswersWithHelpFinishTheScheduleButNeverPromote]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testAnswersWithHelpFinishTheScheduleButNeverPromote]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testBlockedPracticeCanNeverReachMasteredNoMatterHowPerfect]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testBlockedPracticeCanNeverReachMasteredNoMatterHowPerfect]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testBossAfterTheTwelveHourCooldownAwardsMastered]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testBossAfterTheTwelveHourCooldownAwardsMastered]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testBossBeforeTheCooldownDoesNotAwardMastered]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testBossBeforeTheCooldownDoesNotAwardMastered]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testBossCannotGrantMasteryWithoutExistingProficiency]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testBossCannotGrantMasteryWithoutExistingProficiency]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testBossCannotSkipStraightToMasteredFromFamiliar]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testBossCannotSkipStraightToMasteredFromFamiliar]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testCloseAnswersCanSupportFamiliarButNotProficient]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testCloseAnswersCanSupportFamiliarButNotProficient]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testCompletedWalkthroughOnlyResetsConsecutiveMisses]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testCompletedWalkthroughOnlyResetsConsecutiveMisses]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testEightMissesStopsDrillingTheConcept]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testEightMissesStopsDrillingTheConcept]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testFailedBossCannotGrantMasteryAfterCooldown]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testFailedBossCannotGrantMasteryAfterCooldown]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testIntervalAnswersAreLoggedForCalibration]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testIntervalAnswersAreLoggedForCalibration]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testMissingOrEmptyEvidenceCannotPromote]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testMissingOrEmptyEvidenceCannotPromote]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testRecordingACorrectAnswerClearsTheMissStreak]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testRecordingACorrectAnswerClearsTheMissStreak]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testSessionEvidenceMustCoverTheExactSchedule]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testSessionEvidenceMustCoverTheExactSchedule]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testSeventyPercentReachesFamiliar]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testSeventyPercentReachesFamiliar]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testThreeConsecutiveMissesTriggersTheSlowWalkthroughOffer]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testThreeConsecutiveMissesTriggersTheSlowWalkthroughOffer]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testTierNeverRegresses]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testTierNeverRegresses]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.MasteryTests testUnderSeventyPercentStaysAttempted]' started.
+Test Case '-[GlassTableDrillsTests.MasteryTests testUnderSeventyPercentStaysAttempted]' passed (0.000 seconds).
+Test Suite 'MasteryTests' passed at 2026-10-11 12:31:46.278.
+	 Executed 19 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'NodeUnlockTests' started at 2026-10-11 12:31:46.278.
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testClearingANodeUnlocksExactlyTheNextOne]' started.
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testClearingANodeUnlocksExactlyTheNextOne]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testNextNodeIsTheFirstAvailableOne]' started.
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testNextNodeIsTheFirstAvailableOne]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testOnlyTheFirstNodeIsAvailableOnAFreshState]' started.
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testOnlyTheFirstNodeIsAvailableOnAFreshState]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testPreClearedNodesLetTheUserResumeAfterTheGap]' started.
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testPreClearedNodesLetTheUserResumeAfterTheGap]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testUnitTwoStaysLockedUntilUnitOnesBossIsCleared]' started.
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testUnitTwoStaysLockedUntilUnitOnesBossIsCleared]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testUnknownNodeIsLocked]' started.
+Test Case '-[GlassTableDrillsTests.NodeUnlockTests testUnknownNodeIsLocked]' passed (0.000 seconds).
+Test Suite 'NodeUnlockTests' passed at 2026-10-11 12:31:46.280.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'OutsSpotGeneratorTests' started at 2026-10-11 12:31:46.280.
+Test Case '-[GlassTableDrillsTests.OutsSpotGeneratorTests testDeterministic]' started.
+Test Case '-[GlassTableDrillsTests.OutsSpotGeneratorTests testDeterministic]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.OutsSpotGeneratorTests testDifferentIndicesDiffer]' started.
+Test Case '-[GlassTableDrillsTests.OutsSpotGeneratorTests testDifferentIndicesDiffer]' passed (0.003 seconds).
+Test Case '-[GlassTableDrillsTests.OutsSpotGeneratorTests testOutsMatchEngine]' started.
+Test Case '-[GlassTableDrillsTests.OutsSpotGeneratorTests testOutsMatchEngine]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.OutsSpotGeneratorTests testQualityFilterWindowAndShape]' started.
+Test Case '-[GlassTableDrillsTests.OutsSpotGeneratorTests testQualityFilterWindowAndShape]' passed (0.069 seconds).
+Test Suite 'OutsSpotGeneratorTests' passed at 2026-10-11 12:31:46.354.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.074 (0.075) seconds
+Test Suite 'OutsSpotTests' started at 2026-10-11 12:31:46.354.
+Test Case '-[GlassTableDrillsTests.OutsSpotTests testDerivedValues]' started.
+Test Case '-[GlassTableDrillsTests.OutsSpotTests testDerivedValues]' passed (0.000 seconds).
+Test Suite 'OutsSpotTests' passed at 2026-10-11 12:31:46.355.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PlainQuestionWordsTests' started at 2026-10-11 12:31:46.355.
+Test Case '-[GlassTableDrillsTests.PlainQuestionWordsTests testExplanationsLeadWithThePlainSeatName]' started.
+Test Case '-[GlassTableDrillsTests.PlainQuestionWordsTests testExplanationsLeadWithThePlainSeatName]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.PlainQuestionWordsTests testFrequencyWordsCoverTheWholeScaleInOrder]' started.
+Test Case '-[GlassTableDrillsTests.PlainQuestionWordsTests testFrequencyWordsCoverTheWholeScaleInOrder]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PlainQuestionWordsTests testOddsWordsReduceAWholePercentExactly]' started.
+Test Case '-[GlassTableDrillsTests.PlainQuestionWordsTests testOddsWordsReduceAWholePercentExactly]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PlainQuestionWordsTests testOpeningGroupsComeFromThePublishedChart]' started.
+Test Case '-[GlassTableDrillsTests.PlainQuestionWordsTests testOpeningGroupsComeFromThePublishedChart]' passed (0.002 seconds).
+Test Suite 'PlainQuestionWordsTests' passed at 2026-10-11 12:31:46.360.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'PositionTests' started at 2026-10-11 12:31:46.360.
+Test Case '-[GlassTableDrillsTests.PositionTests testActsAfterUsesPostflopOrderAndIsAStrictOrdering]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testActsAfterUsesPostflopOrderAndIsAStrictOrdering]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testBlindsActLastPreflopAndFirstPostflop]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testBlindsActLastPreflopAndFirstPostflop]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testComparisonSpotsNeverPitASeatAgainstItself]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testComparisonSpotsNeverPitASeatAgainstItself]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testEightMaxSeatsInPreflopOrder]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testEightMaxSeatsInPreflopOrder]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testEveryGeneratedSpotHasAReachableCorrectAnswer]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testEveryGeneratedSpotHasAReachableCorrectAnswer]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testEverySeatHasADistinctCountOnEachStreet]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testEverySeatHasADistinctCountOnEachStreet]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testGeneratorIsDeterministicAndVaried]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testGeneratorIsDeterministicAndVaried]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testGradingIsBinaryAndExplains]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testGradingIsBinaryAndExplains]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testPlayersBehindPostflop]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testPlayersBehindPostflop]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testPlayersBehindPreflop]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testPlayersBehindPreflop]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PositionTests testTheLastSeatExplanationDoesNotClaimAnEmptyList]' started.
+Test Case '-[GlassTableDrillsTests.PositionTests testTheLastSeatExplanationDoesNotClaimAnEmptyList]' passed (0.000 seconds).
+Test Suite 'PositionTests' passed at 2026-10-11 12:31:46.365.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'PostflopPolicyTests' started at 2026-10-11 12:31:46.365.
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testActionBucketsPartitionTheFiveBuckets]' started.
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testActionBucketsPartitionTheFiveBuckets]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testAggressiveBetRowsWidenMonotonically]' started.
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testAggressiveBetRowsWidenMonotonically]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testBetSizesComeFromTheSizingMenu]' started.
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testBetSizesComeFromTheSizingMenu]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testFacingABetEveryBucketGetsExactlyOneResponse]' started.
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testFacingABetEveryBucketGetsExactlyOneResponse]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testNarrowingPartitionsTheLiveRange]' started.
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testNarrowingPartitionsTheLiveRange]' passed (0.014 seconds).
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testTheCaricatureInvariants]' started.
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testTheCaricatureInvariants]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testTheCertainTellsAreCertain]' started.
+Test Case '-[GlassTableDrillsTests.PostflopPolicyTests testTheCertainTellsAreCertain]' passed (0.007 seconds).
+Test Suite 'PostflopPolicyTests' passed at 2026-10-11 12:31:46.387.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.022 (0.022) seconds
+Test Suite 'PotMathTests' started at 2026-10-11 12:31:46.387.
+Test Case '-[GlassTableDrillsTests.PotMathTests testABlindRaisingReplacesItsOwnPostButAnOpenerAdds]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testABlindRaisingReplacesItsOwnPostButAnOpenerAdds]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testAnswerChoicesAreUniqueIncludeTheAnswerAndVaryItsPosition]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testAnswerChoicesAreUniqueIncludeTheAnswerAndVaryItsPosition]' passed (0.030 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testAnswerChoicesTerminateForZeroAndOneChipLegacySpots]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testAnswerChoicesTerminateForZeroAndOneChipLegacySpots]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testBlindsAloneMakeTheOpeningPot]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testBlindsAloneMakeTheOpeningPot]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testFirstPracticeIndicesAskForThePotBeforeIntroducingFractions]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testFirstPracticeIndicesAskForThePotBeforeIntroducingFractions]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testFourSeatFixtureStopsBeforeTheEarlierCallerRespondsAgain]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testFourSeatFixtureStopsBeforeTheEarlierCallerRespondsAgain]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testFractionOfPotRoundsToWholeChips]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testFractionOfPotRoundsToWholeChips]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testFractionRevealPreservesWholeChipMagnitudes]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testFractionRevealPreservesWholeChipMagnitudes]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testFractionRevealShowsTheUnroundedValueBeforeTheWholeChipAnswer]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testFractionRevealShowsTheUnroundedValueBeforeTheWholeChipAnswer]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testGeneratedPotsAreConsistentWithTheirOwnBreakdown]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testGeneratedPotsAreConsistentWithTheirOwnBreakdown]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testGeneratorAsksBothQuestionShapes]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testGeneratorAsksBothQuestionShapes]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testGeneratorIsDeterministicAndAlwaysProducesALegalPot]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testGeneratorIsDeterministicAndAlwaysProducesALegalPot]' passed (0.032 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testGeneratorProducesThreeAndFourSeatTables]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testGeneratorProducesThreeAndFourSeatTables]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testGradingIsBinaryAndShowsTheArithmetic]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testGradingIsBinaryAndShowsTheArithmetic]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testOpenAndTwoCallers]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testOpenAndTwoCallers]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testParticipantCountIncludesEveryContributorExactlyOnce]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testParticipantCountIncludesEveryContributorExactlyOnce]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testReplaySplitsBlindPostsAndKeepsFoldedChipsInThePot]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testReplaySplitsBlindPostsAndKeepsFoldedChipsInThePot]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.PotMathTests testThreeBetSequence]' started.
+Test Case '-[GlassTableDrillsTests.PotMathTests testThreeBetSequence]' passed (0.000 seconds).
+Test Suite 'PotMathTests' passed at 2026-10-11 12:31:46.454.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.066 (0.067) seconds
+Test Suite 'ProgressStateTests' started at 2026-10-11 12:31:46.454.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testAnswerLogIsACappedRingBufferKeepingTheNewest]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testAnswerLogIsACappedRingBufferKeepingTheNewest]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testBasicsLessonMarkerSurvivesEncoding]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testBasicsLessonMarkerSurvivesEncoding]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testEmptyStateHasCurrentSchemaVersionAndNoRecords]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testEmptyStateHasCurrentSchemaVersionAndNoRecords]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testIntervalKnowsWhetherItContainedTheTruth]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testIntervalKnowsWhetherItContainedTheTruth]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testInvalidOpeningSnapshotsAreRejectedOnDecode]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testInvalidOpeningSnapshotsAreRejectedOnDecode]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testOldStatesDecodeWithoutInventingOpeningEvidence]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testOldStatesDecodeWithoutInventingOpeningEvidence]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testOpeningActionTrapCannotBeImportedEvenWithHistoricalRecords]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testOpeningActionTrapCannotBeImportedEvenWithHistoricalRecords]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testOpeningSnapshotRoundTripPreservesSeedAndResponses]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testOpeningSnapshotRoundTripPreservesSeedAndResponses]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testOpeningStagesRequireTheirExploredPrefixAndAllowBackWithLaterResponses]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testOpeningStagesRequireTheirExploredPrefixAndAllowBackWithLaterResponses]' passed (0.003 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testRoundTripsThroughCodable]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testRoundTripsThroughCodable]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testSchemaOneStateWithoutFirstLessonMarkerStillDecodes]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testSchemaOneStateWithoutFirstLessonMarkerStillDecodes]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testUnknownConceptKeysSurviveDecodingAndAreIgnoredByTypedAccess]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testUnknownConceptKeysSurviveDecodingAndAreIgnoredByTypedAccess]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testUntouchedConceptReadsAsDefaultRecord]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testUntouchedConceptReadsAsDefaultRecord]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testUpdateRecordWritesThrough]' started.
+Test Case '-[GlassTableDrillsTests.ProgressStateTests testUpdateRecordWritesThrough]' passed (0.000 seconds).
+Test Suite 'ProgressStateTests' passed at 2026-10-11 12:31:46.463.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds
+Test Suite 'ProgressionStoreTests' started at 2026-10-11 12:31:46.463.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testCanonicalExportDoesNotInflateSlashHeavyImportedKeys]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testCanonicalExportDoesNotInflateSlashHeavyImportedKeys]' passed (0.084 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testCorruptFileReportsUnreadableAndNeverSilentlyResets]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testCorruptFileReportsUnreadableAndNeverSilentlyResets]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testExportProducesTheStoreBytesAndImportValidates]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testExportProducesTheStoreBytesAndImportValidates]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testFailedReplacementWriteKeepsTheLiveFileAndRecoveryCopy]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testFailedReplacementWriteKeepsTheLiveFileAndRecoveryCopy]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testHelpFieldsAreOmittedUntilUsedAndOlderAnswersReadAsIndependent]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testHelpFieldsAreOmittedUntilUsedAndOlderAnswersReadAsIndependent]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportAcceptsConservativeLifetimeBoundsAndUnknownKeys]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportAcceptsConservativeLifetimeBoundsAndUnknownKeys]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportAndDiskLoadRejectOversizedFilesWithoutChangingBytes]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportAndDiskLoadRejectOversizedFilesWithoutChangingBytes]' passed (0.018 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRegradesSavedAnswerAndRejectsFalseVerdictOrTruth]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRegradesSavedAnswerAndRejectsFalseVerdictOrTruth]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRejectsAFutureSchemaVersion]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRejectsAFutureSchemaVersion]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRejectsSemanticallyUnsafeProgress]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRejectsSemanticallyUnsafeProgress]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRejectsUnknownRoundFormatAndInventedNodeSchedule]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRejectsUnknownRoundFormatAndInventedNodeSchedule]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRejectsUnsafeSavedAnswerBeforeAnyRevealCanRender]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testImportRejectsUnsafeSavedAnswerBeforeAnyRevealCanRender]' passed (0.028 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testLessonSavedInTheFiveQuestionFormatStillLoadsAndFormatsCannotBeMixed]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testLessonSavedInTheFiveQuestionFormatStillLoadsAndFormatsCannotBeMixed]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testLoadRejectsAFutureSchemaVersionWithoutChangingTheFile]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testLoadRejectsAFutureSchemaVersionWithoutChangingTheFile]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testMissingFileLoadsAsFreshNotAsEmptyLoaded]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testMissingFileLoadsAsFreshNotAsEmptyLoaded]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testNegativeEVCallIntervalRoundTrips]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testNegativeEVCallIntervalRoundTrips]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testOversizedEncodedReplacementKeepsOriginalAndCreatesNoRecoveryCopy]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testOversizedEncodedReplacementKeepsOriginalAndCreatesNoRecoveryCopy]' passed (1.038 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testRepeatedReplacementsKeepDistinctRecoveryCopies]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testRepeatedReplacementsKeepDistinctRecoveryCopies]' passed (0.004 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testReplacementAbortsWhenRecoveryCopyCannotBeWritten]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testReplacementAbortsWhenRecoveryCopyCannotBeWritten]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testReplacementPreservesUnreadableBytesAndSavesFreshProgress]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testReplacementPreservesUnreadableBytesAndSavesFreshProgress]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testReplacementWorksWhenThereIsNoPreviousFile]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testReplacementWorksWhenThereIsNoPreviousFile]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testRoundIntroductionCannotRecordHelp]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testRoundIntroductionCannotRecordHelp]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testSaveIsAtomicSoAFailedWriteLeavesThePreviousFileIntact]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testSaveIsAtomicSoAFailedWriteLeavesThePreviousFileIntact]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testSaveThenLoadRoundTrips]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testSaveThenLoadRoundTrips]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testSchemaOneMigrationFailureLeavesOriginalBytesUntouched]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testSchemaOneMigrationFailureLeavesOriginalBytesUntouched]' passed (0.004 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testSchemaOneMigrationPreservesOriginalBytesAndDoesNotInventDailyHistory]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testSchemaOneMigrationPreservesOriginalBytesAndDoesNotInventDailyHistory]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testTruncatedFileAlsoReportsUnreadable]' started.
+Test Case '-[GlassTableDrillsTests.ProgressionStoreTests testTruncatedFileAlsoReportsUnreadable]' passed (0.001 seconds).
+Test Suite 'ProgressionStoreTests' passed at 2026-10-11 12:31:47.664.
+	 Executed 27 tests, with 0 failures (0 unexpected) in 1.199 (1.201) seconds
+Test Suite 'RFIChartTests' started at 2026-10-11 12:31:47.664.
+Test Case '-[GlassTableDrillsTests.RFIChartTests testBoundaryHandsLandWhereChartsPutThem]' started.
+Test Case '-[GlassTableDrillsTests.RFIChartTests testBoundaryHandsLandWhereChartsPutThem]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RFIChartTests testChartsWidenAsPlayersBehindDecrease]' started.
+Test Case '-[GlassTableDrillsTests.RFIChartTests testChartsWidenAsPlayersBehindDecrease]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RFIChartTests testEarliestSeatOpeningIsTheTightestOneThatDoes]' started.
+Test Case '-[GlassTableDrillsTests.RFIChartTests testEarliestSeatOpeningIsTheTightestOneThatDoes]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RFIChartTests testPremiumsOpenEverywhereAndTrashOpensNowhere]' started.
+Test Case '-[GlassTableDrillsTests.RFIChartTests testPremiumsOpenEverywhereAndTrashOpensNowhere]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RFIChartTests testSevenSeatsOpen_BigBlindNeverDoes]' started.
+Test Case '-[GlassTableDrillsTests.RFIChartTests testSevenSeatsOpen_BigBlindNeverDoes]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RFIChartTests testTighterChartsNestInsideWiderOnes]' started.
+Test Case '-[GlassTableDrillsTests.RFIChartTests testTighterChartsNestInsideWiderOnes]' passed (0.001 seconds).
+Test Suite 'RFIChartTests' passed at 2026-10-11 12:31:47.666.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'RFIDrillTests' started at 2026-10-11 12:31:47.666.
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testAFoldNamesTheSeatThatWouldOpenIt]' started.
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testAFoldNamesTheSeatThatWouldOpenIt]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testBeatScriptsRunOnAnyGeneratedSpot]' started.
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testBeatScriptsRunOnAnyGeneratedSpot]' passed (0.007 seconds).
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testBothVerdictsAppear]' started.
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testBothVerdictsAppear]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testGeneratorIsDeterministicAndLegal]' started.
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testGeneratorIsDeterministicAndLegal]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testGradingIsBinaryAndExplainsWithTheChenArithmetic]' started.
+Test Case '-[GlassTableDrillsTests.RFIDrillTests testGradingIsBinaryAndExplainsWithTheChenArithmetic]' passed (0.000 seconds).
+Test Suite 'RFIDrillTests' passed at 2026-10-11 12:31:47.678.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.011 (0.012) seconds
+Test Suite 'RangeGridLayoutTests' started at 2026-10-11 12:31:47.678.
+Test Case '-[GlassTableDrillsTests.RangeGridLayoutTests testRanksRunAceFirst]' started.
+Test Case '-[GlassTableDrillsTests.RangeGridLayoutTests testRanksRunAceFirst]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.RangeGridLayoutTests testSuitedIsAboveTheDiagonalAndOffsuitBelow]' started.
+Test Case '-[GlassTableDrillsTests.RangeGridLayoutTests testSuitedIsAboveTheDiagonalAndOffsuitBelow]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RangeGridLayoutTests testTheDiagonalIsThePairs]' started.
+Test Case '-[GlassTableDrillsTests.RangeGridLayoutTests testTheDiagonalIsThePairs]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RangeGridLayoutTests testTheGridCoversAllOneSixtyNineExactlyOnce]' started.
+Test Case '-[GlassTableDrillsTests.RangeGridLayoutTests testTheGridCoversAllOneSixtyNineExactlyOnce]' passed (0.000 seconds).
+Test Suite 'RangeGridLayoutTests' passed at 2026-10-11 12:31:47.680.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'RangeNotationDrillTests' started at 2026-10-11 12:31:47.680.
+Test Case '-[GlassTableDrillsTests.RangeNotationDrillTests testComboCountMatchesTheShapeArithmetic]' started.
+Test Case '-[GlassTableDrillsTests.RangeNotationDrillTests testComboCountMatchesTheShapeArithmetic]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RangeNotationDrillTests testGeneratorIsDeterministicAndAlwaysParses]' started.
+Test Case '-[GlassTableDrillsTests.RangeNotationDrillTests testGeneratorIsDeterministicAndAlwaysParses]' passed (0.006 seconds).
+Test Case '-[GlassTableDrillsTests.RangeNotationDrillTests testWhyTextShowsThePerClassArithmetic]' started.
+Test Case '-[GlassTableDrillsTests.RangeNotationDrillTests testWhyTextShowsThePerClassArithmetic]' passed (0.000 seconds).
+Test Suite 'RangeNotationDrillTests' passed at 2026-10-11 12:31:47.686.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'RangeReadBeatTests' started at 2026-10-11 12:31:47.686.
+Test Case '-[GlassTableDrillsTests.RangeReadBeatTests testEveryGeneratedSpotProducesACompleteScript]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadBeatTests testEveryGeneratedSpotProducesACompleteScript]' passed (0.065 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadBeatTests testTheScriptDerivesTheAnswerRatherThanAnnouncingIt]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadBeatTests testTheScriptDerivesTheAnswerRatherThanAnnouncingIt]' passed (0.001 seconds).
+Test Suite 'RangeReadBeatTests' passed at 2026-10-11 12:31:47.752.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.066 (0.066) seconds
+Test Suite 'RangeReadCurriculumTests' started at 2026-10-11 12:31:47.752.
+Test Case '-[GlassTableDrillsTests.RangeReadCurriculumTests testEveryConceptWithANodeIsReachableFromThePath]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadCurriculumTests testEveryConceptWithANodeIsReachableFromThePath]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadCurriculumTests testUnitFourTeachesRangeReadAndItsBossReachesBack]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadCurriculumTests testUnitFourTeachesRangeReadAndItsBossReachesBack]' passed (0.000 seconds).
+Test Suite 'RangeReadCurriculumTests' passed at 2026-10-11 12:31:47.753.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'RangeReadDrillTests' started at 2026-10-11 12:31:47.753.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testABandAnswerRoundTripsAsASavedInput]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testABandAnswerRoundTripsAsASavedInput]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testAPerfectReadScoresSpotOn]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testAPerfectReadScoresSpotOn]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testAWildlyWrongReadMissesAndSaysWhichWay]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testAWildlyWrongReadMissesAndSaysWhichWay]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testEveryCallingRangeIsReachableWithTheBandInput]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testEveryCallingRangeIsReachableWithTheBandInput]' passed (0.008 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testEveryGeneratedSpotIsGradableWithoutCrashing]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testEveryGeneratedSpotIsGradableWithoutCrashing]' passed (0.243 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testGeneratorIsDeterministicAndCoherent]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testGeneratorIsDeterministicAndCoherent]' passed (0.014 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testRangeWidthIsQuotedAsAShareOfAllHands]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testRangeWidthIsQuotedAsAShareOfAllHands]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testRightWidthWrongShapeIsNamedAsShape]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testRightWidthWrongShapeIsNamedAsShape]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testTheExplanationNeverContradictsTheBand]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testTheExplanationNeverContradictsTheBand]' passed (1.471 seconds).
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testTheFirstExposuresNameTheOpponent]' started.
+Test Case '-[GlassTableDrillsTests.RangeReadDrillTests testTheFirstExposuresNameTheOpponent]' passed (0.000 seconds).
+Test Suite 'RangeReadDrillTests' passed at 2026-10-11 12:31:49.493.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 1.739 (1.740) seconds
+Test Suite 'RevealTests' started at 2026-10-11 12:31:49.493.
+Test Case '-[GlassTableDrillsTests.RevealTests testExactIsSpotOn]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testExactIsSpotOn]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RevealTests testExplainRiverExcluded]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testExplainRiverExcluded]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RevealTests testExplainRiverOut]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testExplainRiverOut]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RevealTests testHandNames]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testHandNames]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RevealTests testImprovementPct]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testImprovementPct]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RevealTests testOffByThreeIsOff]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testOffByThreeIsOff]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RevealTests testWhyMentionsExcludedAndTrueCount]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testWhyMentionsExcludedAndTrueCount]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RevealTests testWhyWithoutExcludedIsSimple]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testWhyWithoutExcludedIsSimple]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.RevealTests testWithinTwoIsClose]' started.
+Test Case '-[GlassTableDrillsTests.RevealTests testWithinTwoIsClose]' passed (0.000 seconds).
+Test Suite 'RevealTests' passed at 2026-10-11 12:31:49.496.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'ReviewQueueTests' started at 2026-10-11 12:31:49.496.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAFailedReviewCountsAMissAndComesBackSooner]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAFailedReviewCountsAMissAndComesBackSooner]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAnsweringFreshMaterialDoesNotFarmAStreakWhenReviewIsDue]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAnsweringFreshMaterialDoesNotFarmAStreakWhenReviewIsDue]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAnsweringOneDueConceptEarnsAStreakWhileAnotherRemainsDue]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAnsweringOneDueConceptEarnsAStreakWhileAnotherRemainsDue]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAnswerWithHelpKeepsTheStreakButLeavesScheduleAndCountsAlone]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAnswerWithHelpKeepsTheStreakButLeavesScheduleAndCountsAlone]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAssistedAttemptsCountOnlyTheConceptsHelpedLanes]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testAssistedAttemptsCountOnlyTheConceptsHelpedLanes]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testConceptsPastTheStopDrillingThresholdAreWithheld]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testConceptsPastTheStopDrillingThresholdAreWithheld]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testFirstAnswerWithNothingDueEarnsAStreak]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testFirstAnswerWithNothingDueEarnsAStreak]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testMostOverdueComesFirst]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testMostOverdueComesFirst]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testOnlyStudiedConceptsPastTheirDueDateAreReturned]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testOnlyStudiedConceptsPastTheirDueDateAreReturned]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testRecordingAReviewAdvancesTheScheduleAndClearsTheDueState]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testRecordingAReviewAdvancesTheScheduleAndClearsTheDueState]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testReviewSessionSnapshotsAtMostFiveConceptsOnceEach]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testReviewSessionSnapshotsAtMostFiveConceptsOnceEach]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testUntouchedConceptsAreNotDue]' started.
+Test Case '-[GlassTableDrillsTests.ReviewQueueTests testUntouchedConceptsAreNotDue]' passed (0.000 seconds).
+Test Suite 'ReviewQueueTests' passed at 2026-10-11 12:31:49.501.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'ShapedRangeTests' started at 2026-10-11 12:31:49.501.
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testASaturatedCategoryIsANoOp]' started.
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testASaturatedCategoryIsANoOp]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testEveryTendencyBitesSomewhereWithoutChangingWidth]' started.
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testEveryTendencyBitesSomewhereWithoutChangingWidth]' passed (0.013 seconds).
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testNoTendenciesMatchesThePlainChenCut]' started.
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testNoTendenciesMatchesThePlainChenCut]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testShapedHitsRoughlyTheRequestedWidth]' started.
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testShapedHitsRoughlyTheRequestedWidth]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testShapedRangesHaveNoHoles]' started.
+Test Case '-[GlassTableDrillsTests.ShapedRangeTests testShapedRangesHaveNoHoles]' passed (0.001 seconds).
+Test Suite 'ShapedRangeTests' passed at 2026-10-11 12:31:49.517.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.015 (0.016) seconds
+Test Suite 'ShowdownTests' started at 2026-10-11 12:31:49.517.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testBoardThatPlaysIsAChop]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testBoardThatPlaysIsAChop]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testChopCanRequireBothPlayersHoleCards]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testChopCanRequireBothPlayersHoleCards]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testCounterfeitedTwoPairLosesToTheBoard]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testCounterfeitedTwoPairLosesToTheBoard]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testFlushBeatsStraight]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testFlushBeatsStraight]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testGeneratorIsDeterministicAndDealsLegalSpots]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testGeneratorIsDeterministicAndDealsLegalSpots]' passed (0.009 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testGeneratorProducesAllThreeOutcomesOverEnoughSpots]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testGeneratorProducesAllThreeOutcomesOverEnoughSpots]' passed (0.014 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testGradingIsBinaryAndNamesBothHands]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testGradingIsBinaryAndNamesBothHands]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testHandNamingReusesTheShippedRevealNaming]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testHandNamingReusesTheShippedRevealNaming]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testHigherPairWins]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testHigherPairWins]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testKickerDecidesOtherwiseIdenticalPairs]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testKickerDecidesOtherwiseIdenticalPairs]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.ShowdownTests testTwoPairIsDecidedBySecondPairNotJustTheTopPair]' started.
+Test Case '-[GlassTableDrillsTests.ShowdownTests testTwoPairIsDecidedBySecondPairNotJustTheTopPair]' passed (0.000 seconds).
+Test Suite 'ShowdownTests' passed at 2026-10-11 12:31:49.543.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.025 (0.026) seconds
+Test Suite 'StreakTests' started at 2026-10-11 12:31:49.543.
+Test Case '-[GlassTableDrillsTests.StreakTests testAConsumedFreezeCanBeEarnedBack]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testAConsumedFreezeCanBeEarnedBack]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testAGapWiderThanTheFreezesResetsTheStreakButKeepsTheRecord]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testAGapWiderThanTheFreezesResetsTheStreakButKeepsTheRecord]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testAnOlderDayThanTheLastSessionIsIgnored]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testAnOlderDayThanTheLastSessionIsIgnored]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testAnUnsetEarnClockSeedsFromTheLastSessionInsteadOfStalling]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testAnUnsetEarnClockSeedsFromTheLastSessionInsteadOfStalling]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testASecondSessionTheSameDayDoesNotDoubleCount]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testASecondSessionTheSameDayDoesNotDoubleCount]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testConsecutiveDaysExtendTheStreak]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testConsecutiveDaysExtendTheStreak]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testFirstSessionStartsAStreakOfOne]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testFirstSessionStartsAStreakOfOne]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testFreezesAreConsumedOnePerMissedDay]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testFreezesAreConsumedOnePerMissedDay]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testFreezesEarnBackEveryFortyEightHoursAndCapAtTwo]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testFreezesEarnBackEveryFortyEightHoursAndCapAtTwo]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.StreakTests testOneMissedDayIsCoveredByAFreezeWithoutBreakingTheStreak]' started.
+Test Case '-[GlassTableDrillsTests.StreakTests testOneMissedDayIsCoveredByAFreezeWithoutBreakingTheStreak]' passed (0.000 seconds).
+Test Suite 'StreakTests' passed at 2026-10-11 12:31:49.545.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'TableLocalizationTests' started at 2026-10-11 12:31:49.545.
+Test Case '-[GlassTableDrillsTests.TableLocalizationTests testGradedOptionAmountDoesNotDependOnKoreanLabel]' started.
+Test Case '-[GlassTableDrillsTests.TableLocalizationTests testGradedOptionAmountDoesNotDependOnKoreanLabel]' passed (0.000 seconds).
+Test Case '-[GlassTableDrillsTests.TableLocalizationTests testHistoryFactsRenderInEitherLanguageWithoutChangingHand]' started.
+Test Case '-[GlassTableDrillsTests.TableLocalizationTests testHistoryFactsRenderInEitherLanguageWithoutChangingHand]' passed (0.001 seconds).
+Test Suite 'TableLocalizationTests' passed at 2026-10-11 12:31:49.547.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'TableTests' started at 2026-10-11 12:31:49.547.
+Test Case '-[GlassTableDrillsTests.TableTests testABustedDrawChecksTheRiverInsteadOfBluffingIt]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testABustedDrawChecksTheRiverInsteadOfBluffingIt]' passed (0.002 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testCheckCallAlwaysReachesShowdown]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testCheckCallAlwaysReachesShowdown]' passed (0.049 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testClosedFormsOnAKnownRiverNode]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testClosedFormsOnAKnownRiverNode]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testDealtHandsAreWellFormed]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testDealtHandsAreWellFormed]' passed (0.006 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testEveryVillainActionMatchesThePolicy]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testEveryVillainActionMatchesThePolicy]' passed (0.031 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testGradedRejectsAChoiceNotOnTheMenu]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testGradedRejectsAChoiceNotOnTheMenu]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testHeroActsAfterTheOpenerOnEveryStreet]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testHeroActsAfterTheOpenerOnEveryStreet]' passed (0.072 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testNoArchetypeSlowplaysSoHeroNeverFacesARaise]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testNoArchetypeSlowplaysSoHeroNeverFacesARaise]' passed (0.001 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testNoStreetEverSeesASecondRaise]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testNoStreetEverSeesASecondRaise]' passed (0.030 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testRandomLegalPlayAlwaysTerminatesWithBalancedBooks]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testRandomLegalPlayAlwaysTerminatesWithBalancedBooks]' passed (0.036 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testRiverCallPricingAgreesWithS2]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testRiverCallPricingAgreesWithS2]' passed (0.005 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testSameSeedSameHandSameLine]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testSameSeedSameHandSameLine]' passed (0.031 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testThePickedVillainIsRespected]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testThePickedVillainIsRespected]' passed (0.003 seconds).
+Test Case '-[GlassTableDrillsTests.TableTests testVillainReRaiseIsCappedToACall]' started.
+Test Case '-[GlassTableDrillsTests.TableTests testVillainReRaiseIsCappedToACall]' passed (0.002 seconds).
+Test Suite 'TableTests' passed at 2026-10-11 12:31:49.818.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.269 (0.271) seconds
+Test Suite 'GlassTableDrillsTests.xctest' passed at 2026-10-11 12:31:49.818.
+	 Executed 401 tests, with 0 failures (0 unexpected) in 9.630 (9.666) seconds
+Test Suite 'All tests' passed at 2026-10-11 12:31:49.818.
+	 Executed 401 tests, with 0 failures (0 unexpected) in 9.630 (9.668) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 2084
+􀄵  Target Platform: arm64e-apple-macos14.0
+􀟈  Suite PracticeActivityOverviewTests started.
+􀟈  Suite LearningLanguageTests started.
+􀟈  Test botObservationContainsOnlyOwnCardsAndPublicFacts() started.
+􀟈  Test oneShortAllInDoesNotReopenForPriorRaiser() started.
+􀟈  Test importedTableRejectsUnsupportedPolicyAndTurnTampering() started.
+􀟈  Test replayEndsExactlyWhereTheTableIs(computers:) started.
+􀟈  Test beginnerChartRaisesTheBestFoldsTheWorstAndKeepsDrawsCheap() started.
+􀟈  Test threeHandedBlindsAndFirstActor() started.
+􀟈  Test casualBotSometimesBluffsWhenCheckedToButMostlyChecks() started.
+􀟈  Test coachRetellsEveryLearnerDecisionFromWhatWasVisibleThen() started.
+􀟈  Test practiceTableSeatsOneMoreThanItsStyles(computers:) started.
+􀟈  Test learnerFoldStillAllowsOtherPlayersToSettle() started.
+􀟈  Test blindAllInsAndBigBlindOptionRemainLegal() started.
+􀟈  Test everyLessonCarriesItsPokerTermAndEveryTrackItsName() started.
+􀟈  Test largeStackBotsSettleWithoutUnboundedReraising() started.
+􀟈  Test oddChipGoesClockwiseFromDealerAmongTiedEligibleSeats() started.
+􀟈  Test casualBotBetsHalfThePotWithTopPairAndNeverMoreThanItsStack() started.
+􀟈  Test fourSeatDealIsUnchanged() started.
+􀟈  Test decisionFactsDescribeTheSpotOnly() started.
+􀟈  Suite QuickPlayArchiveTests started.
+􀟈  Test longTableKeepsHundredChipsNoEndingAndItsSavedShape() started.
+􀟈  Test dealStepsSitBetweenStreets() started.
+􀟈  Test hintSuggestsWhatTheReviewWouldLaterCallGoodAndLeansCheapOtherwise() started.
+􀟈  Test casualTableReplaysIdenticallyAndStaysValid() started.
+􀟈  Test decisionFactsSubtractNewShortBlindRefund() started.
+􀟈  Test foldBeforeBoardDoesNotRevealUndealtFutureCards() started.
+􀟈  Test publicFactsStayAtTheirRenderedPrefix() started.
+􀟈  Test observedStyleClassifiesOnlyWhollySupportedBands() started.
+􀟈  Test casualStyleStaysOutOfThePublishedStyles() started.
+􀟈  Test quickGameStartsShortAndEndsAfterItsHandLimit() started.
+􀟈  Test coachCallsABetWithNothingABluffOnlyWhenTheCardsWereShown() started.
+􀟈  Test headsUpButtonPostsSmallBlindAndActsFirstPreflopOnly() started.
+􀟈  Test noRaiseWhenEveryOtherLiveSeatIsAllIn() started.
+􀟈  Test practiceTableRejectsIllegalRaiseWithoutChangingState() started.
+􀟈  Test aPartialFrameOnlyCountsTheShownSteps() started.
+􀟈  Test observedStyleRequiresEvidenceAndSeparatesPolicyVersions() started.
+􀟈  Test cumulativeShortAllInsReopenOnlyAfterFullIncrement() started.
+􀟈  Test casualBotFoldsNothingHandsToARealBetAndCallsWithAPair() started.
+􀟈  Test decisionFactsExcludeUnmatchedOpponentChips() started.
+􀟈  Test publicFactsSafelyEvaluateFlopAndTurn() started.
+􀟈  Test seatsReadInPlainWordsWithThePokerTermBesideThem() started.
+􀟈  Test importedTableRejectsOverflowAndFabricatedReview() started.
+􀟈  Test practiceTableResumeAndConservation() started.
+􀟈  Test randomLegalActionsResumeAndConserveAcrossHands() started.
+􀟈  Test sidePotsWithUnequalStacksConserveChips() started.
+􀟈  Test computerSeatsMatchTheTableSize(computers:) started.
+􀟈  Test case passing 1 argument computers → 1 to replayEndsExactlyWhereTheTableIs(computers:) started.
+􀟈  Test case passing 1 argument computers → 2 to replayEndsExactlyWhereTheTableIs(computers:) started.
+􀟈  Test aDrawThatMissedByTheRiverIsNothing() started.
+􀟈  Test case passing 1 argument computers → 3 to replayEndsExactlyWhereTheTableIs(computers:) started.
+􀟈  Test quickGameRefillsABustedComputerToTheQuickStackAndEndsWhenTheLearnerBusts() started.
+􀟈  Test case passing 1 argument computers → 1 to practiceTableSeatsOneMoreThanItsStyles(computers:) started.
+􀟈  Test case passing 1 argument computers → 2 to practiceTableSeatsOneMoreThanItsStyles(computers:) started.
+􀟈  Test case passing 1 argument computers → 3 to practiceTableSeatsOneMoreThanItsStyles(computers:) started.
+􀟈  Test zeroFutureAndUnsupportedModesDoNotGrantPractice() started.
+􀟈  Test flameRequiresFourConsecutiveDatesEndingToday() started.
+􀟈  Test derivingActivityPreservesEncodedPastFutureAndLegacyState() started.
+􀟈  Test consecutiveRunCanExtendBeyondSevenDays() started.
+􀟈  Test genericLegacyPracticeRemainsRecordedActivity() started.
+􀟈  Test midnightRefreshAndTimeZoneUseRawHistoricalDates() started.
+􀟈  Test mixesLanguageModeFormatAndHelpWithoutDuplicatingDates() started.
+􀟈  Test lessonCompletionUsesOnlyActualTrackLessonFlagsIncludingLegacyClears() started.
+􀟈  Test freeTableHistoryAloneDoesNotGrantLearningActivity() started.
+􀟈  Test guidedActiveAnswersAndRecentEvidenceCannotFillMissingDailyRows() started.
+􀟈  Test calendarDaysSurviveBothDSTTransitions(instant:) started.
+􀟈  Test sparsePracticeDoesNotBecomeAConsecutiveRun() started.
+􀟈  Test topicDatesAreLatestEligibleDayWithStableTies() started.
+􀟈  Test emptyHistoryHasSevenOrderedUnrecordedDates() started.
+􀟈  Test walkthroughStepsStayAlignedAcrossLanguages() started.
+􀟈  Test englishTerminologyUsesSemanticCategories() started.
+􀟈  Test everyConceptHasAnEnglishReveal() started.
+􀟈  Test localizedGradesKeepTheSameFactsAndOutcome() started.
+􀟈  Test everyConceptHasEnglishWorkedExample() started.
+􀟈  Test case passing 1 argument computers → 1 to computerSeatsMatchTheTableSize(computers:) started.
+􀟈  Test case passing 1 argument computers → 2 to computerSeatsMatchTheTableSize(computers:) started.
+􀟈  Test case passing 1 argument computers → 3 to computerSeatsMatchTheTableSize(computers:) started.
+􁁛  Test beginnerChartRaisesTheBestFoldsTheWorstAndKeepsDrawsCheap() passed after 0.115 seconds.
+􁁛  Test threeHandedBlindsAndFirstActor() passed after 0.115 seconds.
+􁁛  Test oneShortAllInDoesNotReopenForPriorRaiser() passed after 0.115 seconds.
+􁁛  Test botObservationContainsOnlyOwnCardsAndPublicFacts() passed after 0.115 seconds.
+􁁛  Test blindAllInsAndBigBlindOptionRemainLegal() passed after 0.115 seconds.
+􁁛  Test importedTableRejectsUnsupportedPolicyAndTurnTampering() passed after 0.115 seconds.
+􁁛  Test everyLessonCarriesItsPokerTermAndEveryTrackItsName() passed after 0.115 seconds.
+􁁛  Test casualBotSometimesBluffsWhenCheckedToButMostlyChecks() passed after 0.115 seconds.
+􁁛  Test oddChipGoesClockwiseFromDealerAmongTiedEligibleSeats() passed after 0.115 seconds.
+􁁛  Test casualBotBetsHalfThePotWithTopPairAndNeverMoreThanItsStack() passed after 0.115 seconds.
+􁁛  Test fourSeatDealIsUnchanged() passed after 0.115 seconds.
+􁁛  Test decisionFactsDescribeTheSpotOnly() passed after 0.115 seconds.
+􀟈  Test learnerBustedReasonIsDerivedFromActualSettlement() started.
+􀟈  Test missingFieldCompatibleButMalformedArchiveRejected() started.
+􀟈  Test maximumRetentionReadSavePerformance() started.
+􀟈  Test legacyPartialCoverageAndEarlyEndKeepSettledHands() started.
+􀟈  Test individuallyValidDifferentGameHandCannotBreakSessionContinuity() started.
+􀟈  Test emptyEndAndWholeSessionRetention() started.
+􀟈  Test duplicateCaptureAndSameSeedGamesHaveDifferentIdentity() started.
+􀟈  Test storeRestartImportResetAndRecoveryPreserveArchive() started.
+􁁛  Test longTableKeepsHundredChipsNoEndingAndItsSavedShape() passed after 0.115 seconds.
+􀟈  Test tamperedSnapshotAndCrossHandTransitionRejected() started.
+􀟈  Test limitedGameWithDefaultStackRemainsCompatible() started.
+􀟈  Test everySettledHandRoundTripsAndReviews() started.
+􁁛  Test replayEndsExactlyWhereTheTableIs(computers:) with 3 test cases passed after 0.117 seconds.
+􁁛  Test hintSuggestsWhatTheReviewWouldLaterCallGoodAndLeansCheapOtherwise() passed after 0.116 seconds.
+􁁛  Test dealStepsSitBetweenStreets() passed after 0.116 seconds.
+􁁛  Test decisionFactsSubtractNewShortBlindRefund() passed after 0.116 seconds.
+􁁛  Test foldBeforeBoardDoesNotRevealUndealtFutureCards() passed after 0.116 seconds.
+􁁛  Test publicFactsStayAtTheirRenderedPrefix() passed after 0.117 seconds.
+􁁛  Test coachRetellsEveryLearnerDecisionFromWhatWasVisibleThen() passed after 0.153 seconds.
+􁁛  Test largeStackBotsSettleWithoutUnboundedReraising() passed after 0.153 seconds.
+􁁛  Test casualStyleStaysOutOfThePublishedStyles() passed after 0.156 seconds.
+􀟈  Test case passing 1 argument instant → "2026-03-09T12:00:00-04:00" to calendarDaysSurviveBothDSTTransitions(instant:) started.
+􀟈  Test case passing 1 argument instant → "2026-11-02T12:00:00-05:00" to calendarDaysSurviveBothDSTTransitions(instant:) started.
+􁁛  Test headsUpButtonPostsSmallBlindAndActsFirstPreflopOnly() passed after 0.169 seconds.
+􁁛  Test noRaiseWhenEveryOtherLiveSeatIsAllIn() passed after 0.256 seconds.
+􁁛  Test practiceTableRejectsIllegalRaiseWithoutChangingState() passed after 0.256 seconds.
+􁁛  Test aPartialFrameOnlyCountsTheShownSteps() passed after 0.256 seconds.
+􁁛  Test quickGameStartsShortAndEndsAfterItsHandLimit() passed after 0.256 seconds.
+􁁛  Test cumulativeShortAllInsReopenOnlyAfterFullIncrement() passed after 0.256 seconds.
+􁁛  Test casualBotFoldsNothingHandsToARealBetAndCallsWithAPair() passed after 0.256 seconds.
+􁁛  Test decisionFactsExcludeUnmatchedOpponentChips() passed after 0.256 seconds.
+􁁛  Test publicFactsSafelyEvaluateFlopAndTurn() passed after 0.256 seconds.
+􁁛  Test seatsReadInPlainWordsWithThePokerTermBesideThem() passed after 0.256 seconds.
+􁁛  Test learnerFoldStillAllowsOtherPlayersToSettle() passed after 0.256 seconds.
+􁁛  Test importedTableRejectsOverflowAndFabricatedReview() passed after 0.256 seconds.
+􁁛  Test sidePotsWithUnequalStacksConserveChips() passed after 0.256 seconds.
+􁁛  Test computerSeatsMatchTheTableSize(computers:) with 3 test cases passed after 0.256 seconds.
+􁁛  Test aDrawThatMissedByTheRiverIsNothing() passed after 0.256 seconds.
+􁁛  Test quickGameRefillsABustedComputerToTheQuickStackAndEndsWhenTheLearnerBusts() passed after 0.256 seconds.
+􁁛  Test zeroFutureAndUnsupportedModesDoNotGrantPractice() passed after 0.351 seconds.
+􁁛  Test flameRequiresFourConsecutiveDatesEndingToday() passed after 0.351 seconds.
+􁁛  Test derivingActivityPreservesEncodedPastFutureAndLegacyState() passed after 0.351 seconds.
+􁁛  Test consecutiveRunCanExtendBeyondSevenDays() passed after 0.351 seconds.
+􁁛  Test genericLegacyPracticeRemainsRecordedActivity() passed after 0.351 seconds.
+􁁛  Test midnightRefreshAndTimeZoneUseRawHistoricalDates() passed after 0.351 seconds.
+􁁛  Test mixesLanguageModeFormatAndHelpWithoutDuplicatingDates() passed after 0.351 seconds.
+􁁛  Test lessonCompletionUsesOnlyActualTrackLessonFlagsIncludingLegacyClears() passed after 0.351 seconds.
+􁁛  Test freeTableHistoryAloneDoesNotGrantLearningActivity() passed after 0.351 seconds.
+􁁛  Test guidedActiveAnswersAndRecentEvidenceCannotFillMissingDailyRows() passed after 0.333 seconds.
+􁁛  Test observedStyleRequiresEvidenceAndSeparatesPolicyVersions() passed after 0.435 seconds.
+􁁛  Test calendarDaysSurviveBothDSTTransitions(instant:) with 2 test cases passed after 0.333 seconds.
+􁁛  Test topicDatesAreLatestEligibleDayWithStableTies() passed after 0.333 seconds.
+􁁛  Test sparsePracticeDoesNotBecomeAConsecutiveRun() passed after 0.333 seconds.
+􁁛  Test emptyHistoryHasSevenOrderedUnrecordedDates() passed after 0.333 seconds.
+􁁛  Test englishTerminologyUsesSemanticCategories() passed after 0.333 seconds.
+􁁛  Test observedStyleClassifiesOnlyWhollySupportedBands() passed after 0.435 seconds.
+􁁛  Test localizedGradesKeepTheSameFactsAndOutcome() passed after 0.333 seconds.
+􁁛  Test coachCallsABetWithNothingABluffOnlyWhenTheCardsWereShown() passed after 0.435 seconds.
+􁁛  Test learnerBustedReasonIsDerivedFromActualSettlement() passed after 0.320 seconds.
+􁁛  Test missingFieldCompatibleButMalformedArchiveRejected() passed after 0.320 seconds.
+􁁛  Test legacyPartialCoverageAndEarlyEndKeepSettledHands() passed after 0.320 seconds.
+􁁛  Test individuallyValidDifferentGameHandCannotBreakSessionContinuity() passed after 0.320 seconds.
+􁁛  Test practiceTableResumeAndConservation() passed after 0.435 seconds.
+􁁛  Test duplicateCaptureAndSameSeedGamesHaveDifferentIdentity() passed after 0.320 seconds.
+􁁛  Test emptyEndAndWholeSessionRetention() passed after 0.320 seconds.
+􁁛  Test storeRestartImportResetAndRecoveryPreserveArchive() passed after 0.320 seconds.
+􁁛  Test limitedGameWithDefaultStackRemainsCompatible() passed after 0.320 seconds.
+􁁛  Test everyConceptHasEnglishWorkedExample() passed after 0.333 seconds.
+􁁛  Suite PracticeActivityOverviewTests passed after 0.436 seconds.
+􁁛  Test tamperedSnapshotAndCrossHandTransitionRejected() passed after 0.327 seconds.
+􁁛  Test everyConceptHasAnEnglishReveal() passed after 0.359 seconds.
+􁁛  Test practiceTableSeatsOneMoreThanItsStyles(computers:) with 3 test cases passed after 0.462 seconds.
+􁁛  Test everySettledHandRoundTripsAndReviews() passed after 0.365 seconds.
+􁁛  Test casualTableReplaysIdenticallyAndStaysValid() passed after 0.604 seconds.
+QUICK_ARCHIVE_PERFORMANCE hands=210 bytes=1146924 save=0.15138709545135498s load=0.16019892692565918s
+􁁛  Test maximumRetentionReadSavePerformance() passed after 0.633 seconds.
+􁁛  Suite QuickPlayArchiveTests passed after 0.748 seconds.
+􁁛  Test randomLegalActionsResumeAndConserveAcrossHands() passed after 1.548 seconds.
+􁁛  Test walkthroughStepsStayAlignedAcrossLanguages() passed after 1.780 seconds.
+􁁛  Suite LearningLanguageTests passed after 1.883 seconds.
+􁁛  Test run with 75 tests in 3 suites passed after 1.883 seconds.

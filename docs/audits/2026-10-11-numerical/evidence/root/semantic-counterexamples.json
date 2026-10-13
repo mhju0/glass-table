@@ -1,0 +1,43 @@
+{
+  "zeroEV": {
+    "potBeforeBet": 20,
+    "villainBet": 10,
+    "equityPercent": 25,
+    "EV": 0.0,
+    "currentKoreanSign": "손해",
+    "correctSign": "본전"
+  },
+  "pfrDenominator": {
+    "hands": 100,
+    "VPIP": 40,
+    "PFR": 10,
+    "raisesPerAllHandsPercent": 10,
+    "raisesAmongEntrantsPercent": 25,
+    "callingGapPercentagePoints": 30
+  },
+  "allTieRiver": {
+    "wins": 0,
+    "ties": 1,
+    "total": 1,
+    "strictWinningPercent": 0,
+    "equityPercent": 50
+  },
+  "dirtyOutTie": {
+    "seed": "0xA0D17",
+    "index": 116,
+    "hero": "Qc9c",
+    "villain": "2hJd",
+    "board": "4s9sJsKs",
+    "river": "2s",
+    "result": "Both play board-only K-high flush; tie, not opponent win"
+  },
+  "alreadyAheadOuts": {
+    "seed": "0xA0D17",
+    "index": 35,
+    "hero": "Js4h",
+    "villain": "3hJh",
+    "board": "8d2sJcAc",
+    "currentResult": "Hero leads with higher fourth kicker,4vs3",
+    "winningRivers": 3
+  }
+}

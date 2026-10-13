@@ -1,0 +1,409 @@
+{
+  "proposalSourceSHA256": {
+    "prototype.html": "aa3b077f7f0115a9bf55577e53040888ee7643ebcbed9f90070a6148a7c4546e",
+    "assets/system.css": "6563ee95e9865a254a7253774be5ca6426fb0223ab18b09d31914ee3afb2349d",
+    "assets/system.js": "db0efdad1be6f8d675063e795b91dc3c005d45b78a50e78320fb7cadcc7d0bc0"
+  },
+  "screenshots": [
+    {
+      "file": "assets/after/en/dark/feedback-help.png",
+      "kind": "HTML browser proposal",
+      "sha256": "4118dd6413ca6ce815f0cedfee815bf05173a1a3ccca2496608e9105717345b6"
+    },
+    {
+      "file": "assets/after/en/dark/feedback-wrong.png",
+      "kind": "HTML browser proposal",
+      "sha256": "23c956e95d3a2c09ab1b686dd428b0798d689300fa005fa174cb14bb90e9d93b"
+    },
+    {
+      "file": "assets/after/en/dark/feedback.png",
+      "kind": "HTML browser proposal",
+      "sha256": "f5dbe84096f3222d47f6cd9ee7cb9980e662167c43d125343d8980eed3de7216"
+    },
+    {
+      "file": "assets/after/en/dark/free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "f782978f988f4a8af0b81772c4e706967b46f59a40e2739da248258f345d231b"
+    },
+    {
+      "file": "assets/after/en/dark/graded-chart-large.png",
+      "kind": "HTML browser proposal",
+      "sha256": "4d27a37aded70f312efe7f2054299fec572e3268e73e4c4902575ce1bcf6b2fe"
+    },
+    {
+      "file": "assets/after/en/dark/graded-chart.png",
+      "kind": "HTML browser proposal",
+      "sha256": "9d12b6ab9d4b64be85d2ee5476d2ea7ebfce27f43e23cb4ecb1c1e21b8aabdce"
+    },
+    {
+      "file": "assets/after/en/dark/graded.png",
+      "kind": "HTML browser proposal",
+      "sha256": "1ad11012c8ebc5afeb0e3704b2b5183cc3c3d531674c2a9e467b6b1420497444"
+    },
+    {
+      "file": "assets/after/en/dark/help-free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "5bff5628650465375f98980d0bef41a0a5e95d7df310a496d365de05801c9fda"
+    },
+    {
+      "file": "assets/after/en/dark/help.png",
+      "kind": "HTML browser proposal",
+      "sha256": "35618e7e797fa5341ff59c2547eff5f3d589d5111e5e8ca08f3ee85445176c4a"
+    },
+    {
+      "file": "assets/after/en/dark/learn.png",
+      "kind": "HTML browser proposal",
+      "sha256": "5093c5dd2f9879d7d4369aa15dd22fc98a3f98654e6edbd619ccaa470809c465"
+    },
+    {
+      "file": "assets/after/en/dark/lesson-large.png",
+      "kind": "HTML browser proposal",
+      "sha256": "c2a53b91b3503727179d87fc537a734f5ecddb5888ad67cc0194c87cf9de4c5c"
+    },
+    {
+      "file": "assets/after/en/dark/lesson.png",
+      "kind": "HTML browser proposal",
+      "sha256": "cd97d80083e29a44e08897c7d0a0abfcba4a425b35a9447476548c414dfe8d83"
+    },
+    {
+      "file": "assets/after/en/dark/play.png",
+      "kind": "HTML browser proposal",
+      "sha256": "f793abd31b267a800307640f28920b8a8762e57e2a09499fc68e76fe9a582b92"
+    },
+    {
+      "file": "assets/after/en/dark/progress.png",
+      "kind": "HTML browser proposal",
+      "sha256": "6ee4abd1f65b8658222ff39dbba1a23f50b2e07e402cabf1293748aa838e34ec"
+    },
+    {
+      "file": "assets/after/en/dark/recap-free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "d592e40db43c15a605633eb61e518fd87bcd6d6a2c6785a42a6ef2981cd41ba2"
+    },
+    {
+      "file": "assets/after/en/dark/recap.png",
+      "kind": "HTML browser proposal",
+      "sha256": "006bef7a6ebc9615a7ddd26e46f0acf73fba63c634096ea85deecbc1d8c0b275"
+    },
+    {
+      "file": "assets/after/en/dark/settings-menu.png",
+      "kind": "HTML browser proposal",
+      "sha256": "6138672a6a7f18c8184f3395fb8ff8b9b1155c7afe51e3496c5aac458a155535"
+    },
+    {
+      "file": "assets/after/en/dark/settings.png",
+      "kind": "HTML browser proposal",
+      "sha256": "56bc9a1d43206d594e62dde4e2685381a8f6f171bdec07fc13bdfe3862974323"
+    },
+    {
+      "file": "assets/after/en/dark/welcome-60.png",
+      "kind": "HTML browser proposal",
+      "sha256": "2f82ac539ab8746b9a48b6fcca9877e522d4e56524c66b90fedf4e24da1f42f5"
+    },
+    {
+      "file": "assets/after/en/dark/welcome.png",
+      "kind": "HTML browser proposal",
+      "sha256": "9af5e94bd1155b87bfa9abd1f8c8229331dddff7caee965dee75f78e083acafe"
+    },
+    {
+      "file": "assets/after/en/light/feedback-help.png",
+      "kind": "HTML browser proposal",
+      "sha256": "bed55bfe00f4228867268f9456ebedafb08aa72b1bdfb431cc42db98171d25ee"
+    },
+    {
+      "file": "assets/after/en/light/feedback-wrong.png",
+      "kind": "HTML browser proposal",
+      "sha256": "7470b4343b7e1d1889594db03d99142e998c37d665712f27897c6260f85a9b49"
+    },
+    {
+      "file": "assets/after/en/light/feedback.png",
+      "kind": "HTML browser proposal",
+      "sha256": "965ba644b49ebc0c8880e44c6a25aa6d67f307a99ef77f3985e50086ce404267"
+    },
+    {
+      "file": "assets/after/en/light/free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "94b1cdb4c7200d680151836ebc580f5489090f17ed6732e14716ea1114eb9a3e"
+    },
+    {
+      "file": "assets/after/en/light/graded-chart-large.png",
+      "kind": "HTML browser proposal",
+      "sha256": "c858684c31412c7ae8cdac0871e713865495a0957bf246f5e5260c57621da5ce"
+    },
+    {
+      "file": "assets/after/en/light/graded-chart.png",
+      "kind": "HTML browser proposal",
+      "sha256": "95bf814e8bd058520f4945753ceef2fec3f209550b5616fdc11c738dd342fa91"
+    },
+    {
+      "file": "assets/after/en/light/graded.png",
+      "kind": "HTML browser proposal",
+      "sha256": "29d7741e4c55851d5371afe56e4f715446247c6dbf964e3afb6303afb91e7d61"
+    },
+    {
+      "file": "assets/after/en/light/help-free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "b2d5015f825239c4993ab4ba4e54bb9f903e3fa348058014645542968e0bb958"
+    },
+    {
+      "file": "assets/after/en/light/help.png",
+      "kind": "HTML browser proposal",
+      "sha256": "d637eaa55d654afdf1209e24edbf76f3c848b2c885247ea8bbbeabc0cbdbc500"
+    },
+    {
+      "file": "assets/after/en/light/learn.png",
+      "kind": "HTML browser proposal",
+      "sha256": "e27eff7e16fe5963b2c1f0cdece082e157542cce925d1310f01de2d81b45df48"
+    },
+    {
+      "file": "assets/after/en/light/lesson-large.png",
+      "kind": "HTML browser proposal",
+      "sha256": "5ecfa7dfdde37fd9e40247f4a56b8fba4bc94af38be36d447d8b4820a212a4f5"
+    },
+    {
+      "file": "assets/after/en/light/lesson.png",
+      "kind": "HTML browser proposal",
+      "sha256": "73ca65e96296fcf11986c7a18c992cbd8afcbe844df1f51d55f2fb2702aa62c8"
+    },
+    {
+      "file": "assets/after/en/light/play.png",
+      "kind": "HTML browser proposal",
+      "sha256": "bc7899b3f1d415766c77feb9a4f1b2d15abfe4401be590ba366180dfb6fc61bc"
+    },
+    {
+      "file": "assets/after/en/light/progress.png",
+      "kind": "HTML browser proposal",
+      "sha256": "603b7825f66ce639ae9f143c5475687ecf6d07057e2f7d8ae3fa555785f04d2d"
+    },
+    {
+      "file": "assets/after/en/light/recap-free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "793158e39fbfb9d68ca9f8a85161d7ef9edc1f362730756524fb65d245348128"
+    },
+    {
+      "file": "assets/after/en/light/recap.png",
+      "kind": "HTML browser proposal",
+      "sha256": "02d8570d452a6f85c6d89108c072f708a5ef57ce0817c803acbbeb73f7bcf0a0"
+    },
+    {
+      "file": "assets/after/en/light/settings-menu.png",
+      "kind": "HTML browser proposal",
+      "sha256": "9ba37652b94cc48417d8e0c620e33f59527bdc864d1428d053ac8abfe34fa51a"
+    },
+    {
+      "file": "assets/after/en/light/settings.png",
+      "kind": "HTML browser proposal",
+      "sha256": "508377f6fa69f65d22f2e6d0a85ba8b8c4a3d9d58b733e982b66a659838adae9"
+    },
+    {
+      "file": "assets/after/en/light/welcome-60.png",
+      "kind": "HTML browser proposal",
+      "sha256": "3b035ffc134008a0dfa1035267c9eddebab3a6c1c39b663880c17e151a05ef11"
+    },
+    {
+      "file": "assets/after/en/light/welcome.png",
+      "kind": "HTML browser proposal",
+      "sha256": "a288f90bcce2b11f532ca10262e73b335ba68103f39a2f6ddaaa9f223112aa0d"
+    },
+    {
+      "file": "assets/after/ko/dark/feedback-help.png",
+      "kind": "HTML browser proposal",
+      "sha256": "b6d91a643385f0646dc15586c1efc9c80055b4c4079e276173b8cbb7723c7e8f"
+    },
+    {
+      "file": "assets/after/ko/dark/feedback-wrong.png",
+      "kind": "HTML browser proposal",
+      "sha256": "72c365cfa6e1b55c19e95135853473ffaa87db45a85f5dde601c8b1f68359ada"
+    },
+    {
+      "file": "assets/after/ko/dark/feedback.png",
+      "kind": "HTML browser proposal",
+      "sha256": "8d8dfdba05c10083df974b3803046cbba369e56716e0261713657267b878d141"
+    },
+    {
+      "file": "assets/after/ko/dark/free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "fbcd04873fb72484701dd181dde49b0bda368f3079c31157d23c0310c8e5d6f2"
+    },
+    {
+      "file": "assets/after/ko/dark/graded-chart-large.png",
+      "kind": "HTML browser proposal",
+      "sha256": "a104b6cbcce77091cf4b5fb3f2ae85da9bcd5960dfc7799d794ace0f6077ebed"
+    },
+    {
+      "file": "assets/after/ko/dark/graded-chart.png",
+      "kind": "HTML browser proposal",
+      "sha256": "f3625fe2f0d3e89df10a84e07e23684ee0e0fd80957ec873e2f4c5d66791d2c4"
+    },
+    {
+      "file": "assets/after/ko/dark/graded.png",
+      "kind": "HTML browser proposal",
+      "sha256": "b461147037d06cd863a8ed6e5bf2506ffc28f03670d59e285628420bec702b17"
+    },
+    {
+      "file": "assets/after/ko/dark/help-free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "b5a3280083d321f18304e53bc47862c7e6e52083691a2653e6b4efb4aad756df"
+    },
+    {
+      "file": "assets/after/ko/dark/help.png",
+      "kind": "HTML browser proposal",
+      "sha256": "e361dc7301426c7400ac4893321c582c970a7ef9ba093764e18314312d21deca"
+    },
+    {
+      "file": "assets/after/ko/dark/learn.png",
+      "kind": "HTML browser proposal",
+      "sha256": "ee7548d88f97a6d8e38f43cc436926a4d4a78256e8d156c492e7e4d16113f4c0"
+    },
+    {
+      "file": "assets/after/ko/dark/lesson-large.png",
+      "kind": "HTML browser proposal",
+      "sha256": "d5d0231cd37ae41a57de1ee32041f32d0b4bf87e3b38610e1565d68cbaafff9a"
+    },
+    {
+      "file": "assets/after/ko/dark/lesson.png",
+      "kind": "HTML browser proposal",
+      "sha256": "a6a7fe062f59610b069c2beaea55f344f89327df73d0d05cddfd5fc6871a5d33"
+    },
+    {
+      "file": "assets/after/ko/dark/play.png",
+      "kind": "HTML browser proposal",
+      "sha256": "8c8b56a570e7a0deb1832ee10f341a14ae632bb0f01c4d2ee2327803b97aef03"
+    },
+    {
+      "file": "assets/after/ko/dark/progress.png",
+      "kind": "HTML browser proposal",
+      "sha256": "b4425d6d0c2e617d895be7a1380892edea2e5bc6f3d73a033daf7082af08792a"
+    },
+    {
+      "file": "assets/after/ko/dark/recap-free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "c8d6df5b4f443531414b20f2dc26915f2e66cc3ea2c06fa7b84a7594d3783cac"
+    },
+    {
+      "file": "assets/after/ko/dark/recap.png",
+      "kind": "HTML browser proposal",
+      "sha256": "bce078d6a410cc51bd9c3411cb267024723f5556fdad6e48b9d6fbbff975b9aa"
+    },
+    {
+      "file": "assets/after/ko/dark/settings-menu.png",
+      "kind": "HTML browser proposal",
+      "sha256": "23c4bdfb5ecc2a58ea1f8fbeeebf4bd44d190584daffe0fc92c24944b34b8733"
+    },
+    {
+      "file": "assets/after/ko/dark/settings.png",
+      "kind": "HTML browser proposal",
+      "sha256": "71fda41d658c8798821b0c2133bc068ca14a306748d8c21bb3608c5b96d1211f"
+    },
+    {
+      "file": "assets/after/ko/dark/welcome-60.png",
+      "kind": "HTML browser proposal",
+      "sha256": "210d28253376487e6d31a2ffda6c1481f819493b4a2de9b9aa4e55914a172cd8"
+    },
+    {
+      "file": "assets/after/ko/dark/welcome.png",
+      "kind": "HTML browser proposal",
+      "sha256": "be0472bb793394c3e0ba8fe5bf5884a156ace172c837faa6c313af04e99bb18a"
+    },
+    {
+      "file": "assets/after/ko/light/feedback-help.png",
+      "kind": "HTML browser proposal",
+      "sha256": "760ef46e7d80f3d83170191d12b7280e48b6cea5e598f5a26582ae34359d1e21"
+    },
+    {
+      "file": "assets/after/ko/light/feedback-wrong.png",
+      "kind": "HTML browser proposal",
+      "sha256": "c464c18732df65aa77db532f485cf9a795bac49823e5f90b7617871898b488b5"
+    },
+    {
+      "file": "assets/after/ko/light/feedback.png",
+      "kind": "HTML browser proposal",
+      "sha256": "38ee1d13359093e53bd79b70a8af9f815f86e2389998a1d2ac8b40cbf3585e7a"
+    },
+    {
+      "file": "assets/after/ko/light/free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "ea757a7806ae9e813ff6f7491838de1c245ff6d633df18712570b91ca53f6cd6"
+    },
+    {
+      "file": "assets/after/ko/light/graded-chart-large.png",
+      "kind": "HTML browser proposal",
+      "sha256": "18bf72001d2d4972f91106f39a062652cf7ecd80ab495e1de3ec705bd3aa5f3f"
+    },
+    {
+      "file": "assets/after/ko/light/graded-chart.png",
+      "kind": "HTML browser proposal",
+      "sha256": "9264db810504f2fb26a3ef0bcfcdbab17643c9f1e6f5e8680565e26a70f957de"
+    },
+    {
+      "file": "assets/after/ko/light/graded.png",
+      "kind": "HTML browser proposal",
+      "sha256": "d1c83ee002fe79f5550c8c0cfc08cf2e0816973fdad340f6f7b800f3a79ff800"
+    },
+    {
+      "file": "assets/after/ko/light/help-free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "21e01698a369bb0751c0e50ce637a29e39d202a6dc5282e4521018f626ee7ba7"
+    },
+    {
+      "file": "assets/after/ko/light/help.png",
+      "kind": "HTML browser proposal",
+      "sha256": "843d34dc5d1dd8a9cbd29265862b46532fe3e527e12df902eff0f24989513569"
+    },
+    {
+      "file": "assets/after/ko/light/learn.png",
+      "kind": "HTML browser proposal",
+      "sha256": "5d3c472fe352a936a99b9271a9236fc2fed4e7c30e34cf32b935f5bab0e0c475"
+    },
+    {
+      "file": "assets/after/ko/light/lesson-large.png",
+      "kind": "HTML browser proposal",
+      "sha256": "20da26c1c610478302f548155af384a2f26fc5c50ea567f387516bb10760b151"
+    },
+    {
+      "file": "assets/after/ko/light/lesson.png",
+      "kind": "HTML browser proposal",
+      "sha256": "6e9e7257e7fe50bfa5ff80953dd679d918636b5d693821941b5c26f7a59d6d65"
+    },
+    {
+      "file": "assets/after/ko/light/play.png",
+      "kind": "HTML browser proposal",
+      "sha256": "4cfee7fa095d0563585141f913db9000635895065055741773d73adf6ee33628"
+    },
+    {
+      "file": "assets/after/ko/light/progress.png",
+      "kind": "HTML browser proposal",
+      "sha256": "70f7c9c13830e80e70cc534bf455b4c2d28f6c74e2e16155666187b07bff0c58"
+    },
+    {
+      "file": "assets/after/ko/light/recap-free.png",
+      "kind": "HTML browser proposal",
+      "sha256": "012079e2a8fb7b70bd00e09f3d60ed0a7fdb223d7cb78d04c482d3aaec3e84f3"
+    },
+    {
+      "file": "assets/after/ko/light/recap.png",
+      "kind": "HTML browser proposal",
+      "sha256": "d076d9239069ea4dee90e27db9b8b559dbb0f8025de180be2aeb71794c1b0892"
+    },
+    {
+      "file": "assets/after/ko/light/settings-menu.png",
+      "kind": "HTML browser proposal",
+      "sha256": "cf575b6873c2a425ac9b15e30195c3decda49c6bd83edcbe9f114ba473e96293"
+    },
+    {
+      "file": "assets/after/ko/light/settings.png",
+      "kind": "HTML browser proposal",
+      "sha256": "8cea34f97a5507b1163cd77c183c549abdc0ccbb873369705948e7b0391f9dc0"
+    },
+    {
+      "file": "assets/after/ko/light/welcome-60.png",
+      "kind": "HTML browser proposal",
+      "sha256": "2c563b964e7dac705c901b1622b04316cd621cde6daa32d112a7429903f12e95"
+    },
+    {
+      "file": "assets/after/ko/light/welcome.png",
+      "kind": "HTML browser proposal",
+      "sha256": "a8bfb7e072bbf3454d2bc0b6ab4d67f1d2d6046c3de44e30b7c45a0d9d3844ef"
+    }
+  ]
+}

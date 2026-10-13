@@ -1,0 +1,14 @@
+{
+  "sevenCardTotal": 133784560,
+  "sumCategories": 133784560,
+  "royalFlushIndependent": 4324,
+  "fiveCardTotal": 2598960,
+  "startingHands": 1326,
+  "classes": 169,
+  "classCombos": 1326,
+  "nineOutOneCard47": 19.148936170212767,
+  "nineOutByRiver47": 34.96762257169288,
+  "nineOutKnownOpponentOneCard44": 20.454545454545457,
+  "sample8000WorstStandardErrorPP": 0.5590169943749475,
+  "sample8000Worst95MarginPP": 1.095673308974897
+}

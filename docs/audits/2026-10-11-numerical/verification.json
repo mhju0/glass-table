@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "07054d0366b88ce268ae237cc26ce73291ad8adc",
+  "all128AuditedSourceHashesUnchanged": true,
+  "engineReleaseTests": 93,
+  "drillsXCTest": 401,
+  "drillsSwiftTesting": 75,
+  "independentFullFiveCardHands": 2598960,
+  "independentFullSevenCardSets": 133784560,
+  "browserViewports": [
+    390,
+    1440
+  ],
+  "reportOuterOverflow": false,
+  "allLocalLinksHTTP200": true,
+  "consoleErrors": 0,
+  "all14RfiDefendSelectorsHave169CellsAndExpectedWeightedCounts": true,
+  "findings": {
+    "currentTeachingDefects": 5,
+    "currentDisplayDefects": 2,
+    "qualificationItems": 5,
+    "separateLatentModelRisks": 2
+  },
+  "appChanges": false,
+  "reinstall": false
+}

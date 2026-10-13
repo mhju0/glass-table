@@ -1,0 +1,283 @@
+Building for production...
+[Pre-planning 1 / 125]
+[Planning deferred tasks]
+[1 / 4]
+[2 / 5] GlassTableEngine
+[12 / 40]
+[14 / 40]
+[19 / 40]
+[21 / 40]
+[24 / 40]
+[25 / 40]
+[27 / 40]
+[30 / 40]
+[33 / 40]
+[34 / 40]
+[35 / 40]
+[36 / 40]
+[37 / 40] GlassTableEngine
+[45 / 46] GlassTableEngineTests-product
+[58 / 80]
+[66 / 80]
+[68 / 80]
+[71 / 80]
+[74 / 80]
+[77 / 80]
+[78 / 80]
+[79 / 80] GlassTableEngineTests-product
+[86 / 90] GlassTableEngineTests-product
+[88 / 90] GlassTableEngineTests-product
+Build complete! (14.75 sec)
+Test Suite 'All tests' started at 2026-10-11 12:31:42.038.
+Test Suite 'GlassTableEngineTests.xctest' started at 2026-10-11 12:31:42.039.
+Test Suite 'BestFiveTests' started at 2026-10-11 12:31:42.039.
+Test Case '-[GlassTableEngineTests.BestFiveTests testBoardPlayingReturnsOnlyBoardCards]' started.
+Test Case '-[GlassTableEngineTests.BestFiveTests testBoardPlayingReturnsOnlyBoardCards]' passed (0.001 seconds).
+Test Case '-[GlassTableEngineTests.BestFiveTests testChosenFiveAlwaysScoresEqualToTheSevenCardEvaluation]' started.
+Test Case '-[GlassTableEngineTests.BestFiveTests testChosenFiveAlwaysScoresEqualToTheSevenCardEvaluation]' passed (0.002 seconds).
+Test Case '-[GlassTableEngineTests.BestFiveTests testPicksTheFlushAndDropsTheOffsuitCards]' started.
+Test Case '-[GlassTableEngineTests.BestFiveTests testPicksTheFlushAndDropsTheOffsuitCards]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.BestFiveTests testPicksTheStraightFlushOverTheOffsuitJunk]' started.
+Test Case '-[GlassTableEngineTests.BestFiveTests testPicksTheStraightFlushOverTheOffsuitJunk]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.BestFiveTests testReturnsExactlyFiveOfTheSevenGivenCards]' started.
+Test Case '-[GlassTableEngineTests.BestFiveTests testReturnsExactlyFiveOfTheSevenGivenCards]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.BestFiveTests testTwoPairKeepsTheBestKicker]' started.
+Test Case '-[GlassTableEngineTests.BestFiveTests testTwoPairKeepsTheBestKicker]' passed (0.000 seconds).
+Test Suite 'BestFiveTests' passed at 2026-10-11 12:31:42.044.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'BlockersTests' started at 2026-10-11 12:31:42.044.
+Test Case '-[GlassTableEngineTests.BlockersTests testBaselineCounts]' started.
+Test Case '-[GlassTableEngineTests.BlockersTests testBaselineCounts]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.BlockersTests testBlockerRemovesCombos]' started.
+Test Case '-[GlassTableEngineTests.BlockersTests testBlockerRemovesCombos]' passed (0.000 seconds).
+Test Suite 'BlockersTests' passed at 2026-10-11 12:31:42.044.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'BoardTextureTests' started at 2026-10-11 12:31:42.044.
+Test Case '-[GlassTableEngineTests.BoardTextureTests testSuitednessAndPairing]' started.
+Test Case '-[GlassTableEngineTests.BoardTextureTests testSuitednessAndPairing]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.BoardTextureTests testTheSummaryIsDerivedAndReadsRight]' started.
+Test Case '-[GlassTableEngineTests.BoardTextureTests testTheSummaryIsDerivedAndReadsRight]' passed (0.000 seconds).
+Test Suite 'BoardTextureTests' passed at 2026-10-11 12:31:42.045.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'CardTests' started at 2026-10-11 12:31:42.045.
+Test Case '-[GlassTableEngineTests.CardTests testDeckHas52UniqueCards]' started.
+Test Case '-[GlassTableEngineTests.CardTests testDeckHas52UniqueCards]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.CardTests testDescriptionRoundTrips]' started.
+Test Case '-[GlassTableEngineTests.CardTests testDescriptionRoundTrips]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.CardTests testInvalidReturnsNil]' started.
+Test Case '-[GlassTableEngineTests.CardTests testInvalidReturnsNil]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.CardTests testParseSequence]' started.
+Test Case '-[GlassTableEngineTests.CardTests testParseSequence]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.CardTests testParseSingleCard]' started.
+Test Case '-[GlassTableEngineTests.CardTests testParseSingleCard]' passed (0.000 seconds).
+Test Suite 'CardTests' passed at 2026-10-11 12:31:42.046.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'ChenTests' started at 2026-10-11 12:31:42.046.
+Test Case '-[GlassTableEngineTests.ChenTests testExplanationShowsTheArithmeticNotJustTheScore]' started.
+Test Case '-[GlassTableEngineTests.ChenTests testExplanationShowsTheArithmeticNotJustTheScore]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.ChenTests testGapLadder]' started.
+Test Case '-[GlassTableEngineTests.ChenTests testGapLadder]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.ChenTests testPublishedValues]' started.
+Test Case '-[GlassTableEngineTests.ChenTests testPublishedValues]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.ChenTests testRankingCoversEveryClassExactlyOnce]' started.
+Test Case '-[GlassTableEngineTests.ChenTests testRankingCoversEveryClassExactlyOnce]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.ChenTests testRankingMatchesConventionWhereEquityVsRandomDidNot]' started.
+Test Case '-[GlassTableEngineTests.ChenTests testRankingMatchesConventionWhereEquityVsRandomDidNot]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.ChenTests testSmallPairsTakeTheMinimumOfFive]' started.
+Test Case '-[GlassTableEngineTests.ChenTests testSmallPairsTakeTheMinimumOfFive]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.ChenTests testStraightBonusBoundary]' started.
+Test Case '-[GlassTableEngineTests.ChenTests testStraightBonusBoundary]' passed (0.001 seconds).
+Test Case '-[GlassTableEngineTests.ChenTests testTiesBreakByPlayabilityNotByIncidentalSortOrder]' started.
+Test Case '-[GlassTableEngineTests.ChenTests testTiesBreakByPlayabilityNotByIncidentalSortOrder]' passed (0.000 seconds).
+Test Suite 'ChenTests' passed at 2026-10-11 12:31:42.049.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'DrawDetectionTests' started at 2026-10-11 12:31:42.049.
+Test Case '-[GlassTableEngineTests.DrawDetectionTests testADoubleGutshotReadsAsOpenEnded]' started.
+Test Case '-[GlassTableEngineTests.DrawDetectionTests testADoubleGutshotReadsAsOpenEnded]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.DrawDetectionTests testCompletingRanksAgreeWithBruteForce]' started.
+Test Case '-[GlassTableEngineTests.DrawDetectionTests testCompletingRanksAgreeWithBruteForce]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.DrawDetectionTests testFlushDrawIsFourNotFive]' started.
+Test Case '-[GlassTableEngineTests.DrawDetectionTests testFlushDrawIsFourNotFive]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.DrawDetectionTests testOpenEndedAndGutshotAreNamedByCompletingRankCount]' started.
+Test Case '-[GlassTableEngineTests.DrawDetectionTests testOpenEndedAndGutshotAreNamedByCompletingRankCount]' passed (0.000 seconds).
+Test Suite 'DrawDetectionTests' passed at 2026-10-11 12:31:42.050.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'DrillTests' started at 2026-10-11 12:31:42.050.
+Test Case '-[GlassTableEngineTests.DrillTests testEstimateBands]' started.
+Test Case '-[GlassTableEngineTests.DrillTests testEstimateBands]' passed (0.000 seconds).
+Test Suite 'DrillTests' passed at 2026-10-11 12:31:42.050.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'EquityOracleTests' started at 2026-10-11 12:31:42.050.
+Test Case '-[GlassTableEngineTests.EquityOracleTests testEngineMatchesEval7Oracle]' started.
+Test Case '-[GlassTableEngineTests.EquityOracleTests testEngineMatchesEval7Oracle]' passed (110.301 seconds).
+Test Suite 'EquityOracleTests' passed at 2026-10-11 12:33:32.351.
+	 Executed 1 test, with 0 failures (0 unexpected) in 110.301 (110.301) seconds
+Test Suite 'EquityTests' started at 2026-10-11 12:33:32.352.
+Test Case '-[GlassTableEngineTests.EquityTests testAAvsKK]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testAAvsKK]' passed (1.503 seconds).
+Test Case '-[GlassTableEngineTests.EquityTests testAKvsAQ]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testAKvsAQ]' passed (1.533 seconds).
+Test Case '-[GlassTableEngineTests.EquityTests testEquitiesSumToOne]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testEquitiesSumToOne]' passed (2.985 seconds).
+Test Case '-[GlassTableEngineTests.EquityTests testEquityVsRangeAveragesCombos]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testEquityVsRangeAveragesCombos]' passed (6.272 seconds).
+Test Case '-[GlassTableEngineTests.EquityTests testEquityVsRangeSkipsCardCollisions]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testEquityVsRangeSkipsCardCollisions]' passed (3.003 seconds).
+Test Case '-[GlassTableEngineTests.EquityTests testMonteCarloApproximatesExact]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testMonteCarloApproximatesExact]' passed (0.175 seconds).
+Test Case '-[GlassTableEngineTests.EquityTests testMonteCarloIsDeterministic]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testMonteCarloIsDeterministic]' passed (0.070 seconds).
+Test Case '-[GlassTableEngineTests.EquityTests testQQvsAKs]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testQQvsAKs]' passed (1.530 seconds).
+Test Case '-[GlassTableEngineTests.EquityTests testRiverAlreadyDecided]' started.
+Test Case '-[GlassTableEngineTests.EquityTests testRiverAlreadyDecided]' passed (0.000 seconds).
+Test Suite 'EquityTests' passed at 2026-10-11 12:33:49.424.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 17.071 (17.072) seconds
+Test Suite 'HandClassTests' started at 2026-10-11 12:33:49.424.
+Test Case '-[GlassTableEngineTests.HandClassTests testASuitedPairIsNotConstructible]' started.
+Test Case '-[GlassTableEngineTests.HandClassTests testASuitedPairIsNotConstructible]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandClassTests testClassifiesAConcreteHolding]' started.
+Test Case '-[GlassTableEngineTests.HandClassTests testClassifiesAConcreteHolding]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandClassTests testComboCountsByShape]' started.
+Test Case '-[GlassTableEngineTests.HandClassTests testComboCountsByShape]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandClassTests testExpandedCombosAreLegalAndCorrectlyCounted]' started.
+Test Case '-[GlassTableEngineTests.HandClassTests testExpandedCombosAreLegalAndCorrectlyCounted]' passed (0.002 seconds).
+Test Case '-[GlassTableEngineTests.HandClassTests testNamesMatchChartNotation]' started.
+Test Case '-[GlassTableEngineTests.HandClassTests testNamesMatchChartNotation]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandClassTests testRemovalReducesCombos]' started.
+Test Case '-[GlassTableEngineTests.HandClassTests testRemovalReducesCombos]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandClassTests testThereAreExactlyOneSixtyNineClassesAnd1326Combos]' started.
+Test Case '-[GlassTableEngineTests.HandClassTests testThereAreExactlyOneSixtyNineClassesAnd1326Combos]' passed (0.000 seconds).
+Test Suite 'HandClassTests' passed at 2026-10-11 12:33:49.427.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'HandEvaluatorTests' started at 2026-10-11 12:33:49.427.
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testBestHandBriefs]' started.
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testBestHandBriefs]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testCategoryOrdering]' started.
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testCategoryOrdering]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testEqualHandsEqualKeys]' started.
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testEqualHandsEqualKeys]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testEvaluate7FindsStraightAcrossSevenCards]' started.
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testEvaluate7FindsStraightAcrossSevenCards]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testEvaluate7PicksBestFive]' started.
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testEvaluate7PicksBestFive]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testKickerMatters]' started.
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testKickerMatters]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testWheelIsFiveHighStraight]' started.
+Test Case '-[GlassTableEngineTests.HandEvaluatorTests testWheelIsFiveHighStraight]' passed (0.000 seconds).
+Test Suite 'HandEvaluatorTests' passed at 2026-10-11 12:33:49.429.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'HandFrequencyTests' started at 2026-10-11 12:33:49.429.
+Test Case '-[GlassTableEngineTests.HandFrequencyTests testPublishedCountsMatchFullEnumeration]' started.
+Test Case '-[GlassTableEngineTests.HandFrequencyTests testPublishedCountsMatchFullEnumeration]' passed (9.240 seconds).
+Test Case '-[GlassTableEngineTests.HandFrequencyTests testSharesSumToOne]' started.
+Test Case '-[GlassTableEngineTests.HandFrequencyTests testSharesSumToOne]' passed (0.000 seconds).
+Test Suite 'HandFrequencyTests' passed at 2026-10-11 12:33:58.669.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 9.240 (9.240) seconds
+Test Suite 'HandRangeTests' started at 2026-10-11 12:33:58.669.
+Test Case '-[GlassTableEngineTests.HandRangeTests testComboCountIsWeightedByShapeNotByClass]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testComboCountIsWeightedByShapeNotByClass]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testContainsUsesTheConcreteHolding]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testContainsUsesTheConcreteHolding]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testEveryClassIsAHundredPercent]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testEveryClassIsAHundredPercent]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testIntersectionTakesTheSmallerWeight]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testIntersectionTakesTheSmallerWeight]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testPartialWeightsScaleTheCount]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testPartialWeightsScaleTheCount]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testRemovalReducesTheComboCount]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testRemovalReducesTheComboCount]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testSetAlgebra]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testSetAlgebra]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testTighterChartsAreSubsetsOfWiderOnes]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testTighterChartsAreSubsetsOfWiderOnes]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testTopByChenCutsOnCombosAndIsMonotonic]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testTopByChenCutsOnCombosAndIsMonotonic]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.HandRangeTests testTopChartsContainTheHandsEveryChartOpens]' started.
+Test Case '-[GlassTableEngineTests.HandRangeTests testTopChartsContainTheHandsEveryChartOpens]' passed (0.000 seconds).
+Test Suite 'HandRangeTests' passed at 2026-10-11 12:33:58.671.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'MadeHandTests' started at 2026-10-11 12:33:58.671.
+Test Case '-[GlassTableEngineTests.MadeHandTests testABoardPairIsNotTheHandsPair]' started.
+Test Case '-[GlassTableEngineTests.MadeHandTests testABoardPairIsNotTheHandsPair]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.MadeHandTests testEveryHandOnEveryBoardLandsInExactlyOneBucket]' started.
+Test Case '-[GlassTableEngineTests.MadeHandTests testEveryHandOnEveryBoardLandsInExactlyOneBucket]' passed (0.003 seconds).
+Test Case '-[GlassTableEngineTests.MadeHandTests testTheMadeHandDecidesTheBucketNotTheDraw]' started.
+Test Case '-[GlassTableEngineTests.MadeHandTests testTheMadeHandDecidesTheBucketNotTheDraw]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.MadeHandTests testTopPairVersusWeakPair]' started.
+Test Case '-[GlassTableEngineTests.MadeHandTests testTopPairVersusWeakPair]' passed (0.000 seconds).
+Test Suite 'MadeHandTests' passed at 2026-10-11 12:33:58.674.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'OutsTests' started at 2026-10-11 12:33:58.674.
+Test Case '-[GlassTableEngineTests.OutsTests testFlushDrawOutsExcludeBoardPairingHearts]' started.
+Test Case '-[GlassTableEngineTests.OutsTests testFlushDrawOutsExcludeBoardPairingHearts]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.OutsTests testRuleOfTwoAndFour]' started.
+Test Case '-[GlassTableEngineTests.OutsTests testRuleOfTwoAndFour]' passed (0.000 seconds).
+Test Suite 'OutsTests' passed at 2026-10-11 12:33:58.675.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PotOddsTests' started at 2026-10-11 12:33:58.675.
+Test Case '-[GlassTableEngineTests.PotOddsTests testCallEV]' started.
+Test Case '-[GlassTableEngineTests.PotOddsTests testCallEV]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.PotOddsTests testCallProfitability]' started.
+Test Case '-[GlassTableEngineTests.PotOddsTests testCallProfitability]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.PotOddsTests testMDFAgainstHalfPotBet]' started.
+Test Case '-[GlassTableEngineTests.PotOddsTests testMDFAgainstHalfPotBet]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.PotOddsTests testRequiredEquityHalfPotCall]' started.
+Test Case '-[GlassTableEngineTests.PotOddsTests testRequiredEquityHalfPotCall]' passed (0.000 seconds).
+Test Suite 'PotOddsTests' passed at 2026-10-11 12:33:58.676.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'RangeEquityTests' started at 2026-10-11 12:33:58.676.
+Test Case '-[GlassTableEngineTests.RangeEquityTests testANuttedRangeDominates]' started.
+Test Case '-[GlassTableEngineTests.RangeEquityTests testANuttedRangeDominates]' passed (0.011 seconds).
+Test Case '-[GlassTableEngineTests.RangeEquityTests testARangeAgainstItselfIsAToss]' started.
+Test Case '-[GlassTableEngineTests.RangeEquityTests testARangeAgainstItselfIsAToss]' passed (0.015 seconds).
+Test Case '-[GlassTableEngineTests.RangeEquityTests testEquitiesAreSymmetricAndSumToOne]' started.
+Test Case '-[GlassTableEngineTests.RangeEquityTests testEquitiesAreSymmetricAndSumToOne]' passed (0.028 seconds).
+Test Case '-[GlassTableEngineTests.RangeEquityTests testSameSeedSameAnswer]' started.
+Test Case '-[GlassTableEngineTests.RangeEquityTests testSameSeedSameAnswer]' passed (0.029 seconds).
+Test Case '-[GlassTableEngineTests.RangeEquityTests testSamplingAgreesWithExactEnumerationOnACompleteBoard]' started.
+Test Case '-[GlassTableEngineTests.RangeEquityTests testSamplingAgreesWithExactEnumerationOnACompleteBoard]' passed (0.007 seconds).
+Test Suite 'RangeEquityTests' passed at 2026-10-11 12:33:58.766.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.089 (0.090) seconds
+Test Suite 'RangeNotationTests' started at 2026-10-11 12:33:58.766.
+Test Case '-[GlassTableEngineTests.RangeNotationTests testAWholeChartLine]' started.
+Test Case '-[GlassTableEngineTests.RangeNotationTests testAWholeChartLine]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeNotationTests testPairPlusWalksUp]' started.
+Test Case '-[GlassTableEngineTests.RangeNotationTests testPairPlusWalksUp]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeNotationTests testParsesSingleClasses]' started.
+Test Case '-[GlassTableEngineTests.RangeNotationTests testParsesSingleClasses]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeNotationTests testRejectsGarbage]' started.
+Test Case '-[GlassTableEngineTests.RangeNotationTests testRejectsGarbage]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeNotationTests testRoundTrips]' started.
+Test Case '-[GlassTableEngineTests.RangeNotationTests testRoundTrips]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeNotationTests testRunsStepBothRanksDown]' started.
+Test Case '-[GlassTableEngineTests.RangeNotationTests testRunsStepBothRanksDown]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeNotationTests testSuitedPlusWalksTheLowCardUp]' started.
+Test Case '-[GlassTableEngineTests.RangeNotationTests testSuitedPlusWalksTheLowCardUp]' passed (0.000 seconds).
+Test Suite 'RangeNotationTests' passed at 2026-10-11 12:33:58.767.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'RangeOnBoardTests' started at 2026-10-11 12:33:58.767.
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testAnEmptyRangeIsHandledRatherThanDividedByZero]' started.
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testAnEmptyRangeIsHandledRatherThanDividedByZero]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testARangeThatCannotHaveHitHasNoMadeHands]' started.
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testARangeThatCannotHaveHitHasNoMadeHands]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testComboFactoryAgreesWithTheRangeFactory]' started.
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testComboFactoryAgreesWithTheRangeFactory]' passed (0.001 seconds).
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testComboFactoryOnAnEmptyListIsTheEmptyDistribution]' started.
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testComboFactoryOnAnEmptyListIsTheEmptyDistribution]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testComboFactorySkipsBoardCollisions]' started.
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testComboFactorySkipsBoardCollisions]' passed (0.000 seconds).
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testSharesSumToOne]' started.
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testSharesSumToOne]' passed (0.001 seconds).
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testTheBoardRemovesCombos]' started.
+Test Case '-[GlassTableEngineTests.RangeOnBoardTests testTheBoardRemovesCombos]' passed (0.000 seconds).
+Test Suite 'RangeOnBoardTests' passed at 2026-10-11 12:33:58.770.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'GlassTableEngineTests.xctest' passed at 2026-10-11 12:33:58.770.
+	 Executed 93 tests, with 0 failures (0 unexpected) in 136.722 (136.731) seconds
+Test Suite 'All tests' passed at 2026-10-11 12:33:58.770.
+	 Executed 93 tests, with 0 failures (0 unexpected) in 136.722 (136.732) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 2084
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.

@@ -1,0 +1,944 @@
+{
+  "screenshots": 68,
+  "normalPairedLineCounts": true,
+  "largeTextNaturalReflow": true,
+  "browserFlowChecks": 64,
+  "matrix": [
+    {
+      "id": "A-welcome",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "A-familiarity",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        1,
+        4,
+        1,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-welcome",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-correct",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-wrong",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-help",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-transfer",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-transfer-feedback",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-recap",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-remaining",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-done",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "C-tiny",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        2,
+        2,
+        1,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-60",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-teal",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-recap-teal",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-large",
+      "lang": "en",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        5,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "A-welcome",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "A-familiarity",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        1,
+        4,
+        1,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-welcome",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-correct",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-wrong",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-help",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-transfer",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-transfer-feedback",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-recap",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-remaining",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-done",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "C-tiny",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        2,
+        2,
+        1,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-60",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-teal",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-recap-teal",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-large",
+      "lang": "en",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        5,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "A-welcome",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "A-familiarity",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        1,
+        4,
+        1,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-welcome",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-correct",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-wrong",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-help",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-transfer",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-transfer-feedback",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-recap",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-remaining",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-done",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "C-tiny",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        2,
+        2,
+        1,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-60",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-teal",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-recap-teal",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-large",
+      "lang": "ko",
+      "mode": "light",
+      "lines": [
+        1,
+        2,
+        4,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "A-welcome",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "A-familiarity",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        1,
+        4,
+        1,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-welcome",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-correct",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-wrong",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-feedback-help",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-transfer",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-transfer-feedback",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        1,
+        4,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-recap",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-remaining",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-done",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "C-tiny",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        2,
+        2,
+        1,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-60",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-teal",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        3,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-recap-teal",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        2,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    },
+    {
+      "id": "B-example-large",
+      "lang": "ko",
+      "mode": "dark",
+      "lines": [
+        1,
+        2,
+        4,
+        1,
+        1,
+        1
+      ],
+      "overflow": false
+    }
+  ],
+  "contrast": [
+    {
+      "pair": "amber light",
+      "contrast": 6.21
+    },
+    {
+      "pair": "amber dark",
+      "contrast": 10.12
+    },
+    {
+      "pair": "teal light",
+      "contrast": 6.75
+    },
+    {
+      "pair": "teal dark",
+      "contrast": 7.66
+    },
+    {
+      "pair": "muted light",
+      "contrast": 5.46
+    },
+    {
+      "pair": "muted dark",
+      "contrast": 9.94
+    }
+  ],
+  "reportViewports": [
+    390,
+    1440
+  ],
+  "consoleErrors": 0,
+  "localLinksMissing": 0
+}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Glass Table · Opening exploration</title><link rel="icon" href="data:,"><link rel="stylesheet" href="assets/prototype.css"></head>
+<body>
+<main class="workspace">
+<section class="controls" aria-label="Prototype controls">
+<a href="index.html" class="report-link">Back to report</a>
+<p class="eyebrow">Glass Table / HTML prototype</p><h1>One comfortable start</h1>
+<p class="description">Three opening routes to compare. This is an interactive design proposal, not a native app or a learning assessment.</p>
+<fieldset><legend>Opening route</legend><div class="routes"><button data-route="A">A · Familiarity first</button><button data-route="B">B · Experience first</button><button data-route="C">C · Tiny question first</button></div></fieldset>
+<div class="settings">
+<label>Language<select id="language"><option value="en">English</option><option value="ko">한국어</option></select></label>
+<label>Appearance<select id="mode"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+<label>Action accent<select id="accent"><option value="amber">Warm amber</option><option value="teal">Muted teal</option></select></label>
+<label>Button height<select id="height"><option value="52">52 pt proposal</option><option value="60">60 pt proposal</option></select></label>
+<label>Text size<select id="zoom"><option value="1">Standard</option><option value="1.3">Large · 130%</option><option value="1.6">Extra large · 160%</option><option value="2">Accessibility · 200%</option></select></label>
+<label class="check"><input type="checkbox" id="motion">Reduced motion</label>
+</div>
+<button id="reset" class="reset">Reset this route</button>
+<p class="design-note">Optional motion trial: about 120 ms press feedback and a 180 ms screen fade. The native app currently uses springs with 0.22 s press response and 0.34 s change response. This trial does not establish a need to replace them or validate comprehension. No audio, haptics, saved progress, or network calls.</p>
+<p id="scene" class="scene"></p>
+</section>
+<section class="stage" aria-label="Portrait prototype"><div class="phone" id="phone">
+<div class="status" aria-hidden="true"><span>9:41</span><span>● ▰</span></div>
+<nav class="topbar" aria-label="Flow navigation"><button id="previous"></button><span id="routeLabel"></span><button id="close"></button></nav>
+<div class="flow" id="flow"><div class="screen" id="screen" tabindex="-1"></div>
+<div class="dock" id="dock"></div></div><div class="home" aria-hidden="true"></div>
+</div><p class="stage-caption">375 px portrait · HTML exploration · No progress saved</p></section>
+</main><script src="assets/prototype.js"></script>
+</body></html>
