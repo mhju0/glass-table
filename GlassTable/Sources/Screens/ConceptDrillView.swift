@@ -559,12 +559,11 @@ private struct RevealSheet: View {
                        correctTitle: correctTitle)
             if !collapsed {
                 Text(localized?.why ?? why)
-                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .gtInset(GT.Space.card, firstText: .body(16))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
-                                                                 style: .continuous))
+                    .gtExplanation(band: band)
                     .fixedSize(horizontal: false, vertical: true)
                 if let term { GlossaryChip(term: term) }
             }
@@ -1058,7 +1057,7 @@ private struct PotMathRevealSheet: View {
                                 isExpanded: $calculationExpanded) {
                     Text(localizedWhy)
                         .font(GT.body(15).monospacedDigit())
-                        .foregroundStyle(GT.inkSecondary)
+                        .foregroundStyle(GT.ink)
                         .lineSpacing(GT.Typography.explanationLineSpacing)
                         .padding(.top, 8)
                         .fixedSize(horizontal: false, vertical: true)
@@ -1066,9 +1065,7 @@ private struct PotMathRevealSheet: View {
                 .font(GT.semibold(15))
                 .foregroundStyle(GT.ink)
                 .gtInset(GT.Space.card, firstText: .semibold(15))
-                .background(GT.surface,
-                            in: RoundedRectangle(cornerRadius: GT.Radius.control,
-                                                 style: .continuous))
+                .gtExplanation(band: reveal.band)
                 if let term { GlossaryChip(term: term) }
             }
             PrimaryCTAButton(title: language.text("다음 문제", "Next question"), action: onNext)
@@ -1590,7 +1587,7 @@ private struct CountDrill: View {
                     }
                 }
                 .foregroundStyle(GT.ink).frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12).gtPanel()
+                .padding(12).gtCard()
                 if let representative = group.cards.first {
                     Button(language.text("대표 카드로 비교", "Compare a representative")) { tappedOut = representative }
                         .font(GT.semibold(14)).frame(minHeight: 44)
@@ -2653,13 +2650,11 @@ private struct EVLossRevealSheet: View {
 
                 Text(localizedWhy)
                     .font(GT.body(GT.Typography.explanationSize))
-                    .foregroundStyle(GT.inkSecondary)
+                    .foregroundStyle(GT.ink)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .gtInset(GT.Space.card, firstText: .body(16))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
-                    .overlay(RoundedRectangle(cornerRadius: GT.Radius.control)
-                        .strokeBorder(GT.border, lineWidth: 1))
+                    .gtExplanation(band: reveal.band)
                     .fixedSize(horizontal: false, vertical: true)
                 if let term { GlossaryChip(term: term) }
             }
@@ -2707,7 +2702,7 @@ private struct EVLossRevealSheet: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .gtInset(GT.Space.card, firstText: dynamicTypeSize.isAccessibilitySize ? .semibold(11) : .title(14))
-        .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+        .gtExplanation()
     }
 
     private var lossEquation: String {
@@ -3139,11 +3134,11 @@ private struct DefendRevealSheet: View {
                        correctTitle: language.text("차트", "Chart"))
             if !collapsed {
                 Text(localizedWhy)
-                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .gtInset(GT.Space.card, firstText: .body(16))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                    .gtExplanation(band: reveal.band)
                     .fixedSize(horizontal: false, vertical: true)
                 if let term { GlossaryChip(term: term) }
             }

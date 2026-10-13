@@ -26,9 +26,18 @@ final class GuidedHandFlowTests: XCTestCase {
         page(0)
         tap("guided-hand-next")
         page(1)
+        // A wrong answer: both choices stay exactly where they were, the pick and the
+        // right answer are marked in words, and the verdict names the miss.
+        let wrongChoice = app.buttons["guided-hand-choice-2"], rightChoice = app.buttons["guided-hand-choice-1"]
+        XCTAssertFalse(app.buttons["guided-hand-next"].isEnabled)
+        let framesBefore = [wrongChoice.frame, rightChoice.frame]
         tap("guided-hand-choice-2")
         let feedback = app.staticTexts["guided-hand-feedback"]
         XCTAssertTrue(feedback.waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["lesson-answer-verdict"].label, korean ? "아쉬워요" : "Not quite")
+        XCTAssertEqual(wrongChoice.value as? String, korean ? "선택한 답, 오답" : "Your answer, incorrect")
+        XCTAssertEqual(rightChoice.value as? String, korean ? "정답" : "Correct answer")
+        if !ax { XCTAssertEqual([wrongChoice.frame, rightChoice.frame], framesBefore) }
         let wrongFeedback = feedback.label
         tap("guided-hand-next")
         tap("guided-hand-previous")

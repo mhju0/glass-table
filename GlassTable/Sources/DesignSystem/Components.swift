@@ -389,6 +389,14 @@ extension View {
     }
 
 
+    /// A box inside a verdict: white, edged in the verdict's colour when it explains
+    /// the answer, so the reason stands out from the tinted panel around it.
+    func gtExplanation(band: GradeBand? = nil) -> some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+        return background(GT.glass, in: shape)
+            .overlay(shape.strokeBorder(band?.ink ?? GT.borderStrong, lineWidth: band == nil ? 1 : 1.5))
+    }
+
     /// A quiet grouping directly on felt. Use it for supporting information that does
     /// not need to compete with the current task as an elevated card.
     func gtPanel(radius: CGFloat = GT.Radius.panel) -> some View {
@@ -622,6 +630,8 @@ struct ActionSheet<Content: View>: View {
     /// A graded result tints the whole sheet and outlines its edge, so right and
     /// wrong read at a glance; the verdict's glyph and words still carry the meaning.
     var band: GradeBand? = nil
+    /// False where the sheet holds the answer buttons themselves and has nothing to fold.
+    var collapsible = true
     var firstText: GT.TextRole? = .title(18)
     @ViewBuilder var content: () -> Content
     /// A graded sheet folds down to its verdict and Next, so evidence the reveal added
@@ -640,6 +650,8 @@ struct ActionSheet<Content: View>: View {
         bottomInset <= indicator + 0.5 ? bottomInset : 0
     }
 
+    private var folds: Bool { band != nil && collapsible }
+
     private var floats: Bool {
         if #available(iOS 26.0, *) { return !dynamicTypeSize.isAccessibilitySize }
         return false
@@ -647,11 +659,11 @@ struct ActionSheet<Content: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if band != nil { grabber }
+            if folds { grabber }
             content()
-                .environment(\.revealCollapsed, band != nil && collapsed)
+                .environment(\.revealCollapsed, folds && collapsed)
         }
-        .modifier(GTDockTopInset(firstText: firstText, graded: band != nil))
+        .modifier(GTDockTopInset(firstText: firstText, graded: folds))
         .padding(.horizontal, GT.Space.sheet)
         .padding(.bottom, GT.Space.sheet)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -672,7 +684,7 @@ struct ActionSheet<Content: View>: View {
                 }
         }
         .simultaneousGesture(DragGesture(minimumDistance: 16).onEnded { value in
-            guard band != nil else { return }
+            guard folds else { return }
             if value.translation.height > 30 { setCollapsed(true) }
             if value.translation.height < -30 { setCollapsed(false) }
         })
@@ -910,23 +922,40 @@ struct GTChoiceButton: View {
     let title: String
     var selected: Bool = false
     var minHeight: CGFloat = 54
+    /// Once answered: the picked choice and the right one take the verdict's colour and
+    /// glyph in place, so the answer is marked where the learner tapped.
+    var verdict: GradeBand? = nil
     let action: () -> Void
 
     /// A locked choice drops its fill and draws a dashed edge, so it never reads as
     /// tappable (audit: pot answers looked live while waiting for the last action).
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
         Button(action: action) {
-            Text(title)
-                .font(selected ? GT.title(GT.Typography.buttonSize)
-                               : GT.semibold(GT.Typography.buttonSize))
-                .foregroundStyle(selected ? GT.onCTA : (isEnabled ? GT.ink : GT.inkMuted))
+            if let verdict {
+                HStack(spacing: 6) {
+                    Image(systemName: verdict.glyph).accessibilityHidden(true)
+                    Text(title).lineLimit(2).minimumScaleFactor(0.8)
+                }
+                .font(GT.title(GT.Typography.buttonSize))
+                .foregroundStyle(verdict.ink)
+                .padding(.horizontal, 6)
                 .frame(maxWidth: .infinity, minHeight: minHeight)
-                .background(selected ? AnyShapeStyle(GT.cta)
-                                     : AnyShapeStyle(GT.surface.opacity(isEnabled ? 1 : 0.35)),
-                            in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
-                    .strokeBorder(selected ? Color.clear : GT.borderStrong.opacity(isEnabled ? 1 : 0.6),
-                                  style: StrokeStyle(lineWidth: 1, dash: isEnabled ? [] : [4, 3])))
+                .background(verdict.tint, in: shape)
+                .overlay(shape.strokeBorder(verdict.ink, lineWidth: 2.5))
+            } else {
+                Text(title)
+                    .font(selected ? GT.title(GT.Typography.buttonSize)
+                                   : GT.semibold(GT.Typography.buttonSize))
+                    .foregroundStyle(selected ? GT.onCTA : (isEnabled ? GT.ink : GT.inkMuted))
+                    .frame(maxWidth: .infinity, minHeight: minHeight)
+                    .background(selected ? AnyShapeStyle(GT.cta)
+                                         : AnyShapeStyle(GT.surface.opacity(isEnabled ? 1 : 0.35)),
+                                in: shape)
+                    .overlay(shape
+                        .strokeBorder(selected ? Color.clear : GT.borderStrong.opacity(isEnabled ? 1 : 0.6),
+                                      style: StrokeStyle(lineWidth: 1, dash: isEnabled ? [] : [4, 3])))
+            }
         }
         .buttonStyle(GTPress())
         .animation(GT.Motion.change, value: isEnabled)

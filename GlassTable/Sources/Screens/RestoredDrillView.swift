@@ -50,7 +50,7 @@ struct RestoredDrillView: View {
         } sheet: {
             VStack(alignment: .leading, spacing: GT.Space.related) {
                 verdict(band: band, detail: detail, input: input)
-                RevealDetail { explanation(detail: detail, input: input) }
+                RevealDetail { explanation(detail: detail, input: input, band: band) }
                 nextButton(next)
             }
             .preference(key: GradedBandKey.self, value: band)
@@ -59,32 +59,30 @@ struct RestoredDrillView: View {
     }
 
     @ViewBuilder
-    private func explanation(detail: RestoredDrillDescription?, input: DrillSubmittedInput?) -> some View {
+    private func explanation(detail: RestoredDrillDescription?, input: DrillSubmittedInput?, band: GradeBand) -> some View {
         if concept == .evLoss, case let .boolean(calls)? = input {
             RestoredEVLossResult(seed: seed, index: index, calls: calls)
         } else if concept == .potMath {
             DisclosureGroup(language.text("계산 보기", "See the calculation"),
                             isExpanded: $calculationExpanded) {
                 Text(detail?.why ?? "").font(GT.body(15).monospacedDigit())
-                    .foregroundStyle(GT.inkSecondary)
+                    .foregroundStyle(GT.ink)
                     .padding(.top, 8)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .font(GT.semibold(15)).foregroundStyle(GT.ink)
             .gtInset(GT.Space.card, firstText: .semibold(15))
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
-                                                         style: .continuous))
+            .gtExplanation(band: band)
         } else {
             Text(detail?.why ?? language.text(
                 "답은 저장됐어요. 다음 문제로 이어가세요.",
                 "Your answer was saved. Continue to the next question."))
                 .font(GT.body(GT.Typography.explanationSize))
-                .foregroundStyle(GT.inkSecondary)
+                .foregroundStyle(GT.ink)
                 .lineSpacing(GT.Typography.explanationLineSpacing)
                 .gtInset(GT.Space.card, firstText: .body(16))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
-                                                             style: .continuous))
+                .gtExplanation(band: band)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -178,13 +176,13 @@ private struct RestoredEVLossResult: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .gtInset(GT.Space.card, firstText: .semibold(13))
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+            .gtExplanation()
             Text(outcome.whyText)
                 .font(GT.body(GT.Typography.explanationSize))
-                .foregroundStyle(GT.inkSecondary)
+                .foregroundStyle(GT.ink)
                 .gtInset(GT.Space.card, firstText: .body(16))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                .gtExplanation(band: outcome.band)
         }
     }
 
@@ -433,7 +431,7 @@ private struct RestoredDrillContextView: View {
                             Text(result.whyText).font(GT.body(14)).fixedSize(horizontal: false, vertical: true)
                         }
                         .foregroundStyle(GT.ink).frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12).gtPanel()
+                        .padding(12).gtCard()
                         Button(language.text("대표 카드로 비교", "Compare a representative")) { selectedRiver = representative }
                             .font(GT.semibold(14)).frame(minHeight: 44)
                     }

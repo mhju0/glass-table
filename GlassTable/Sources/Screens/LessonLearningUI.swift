@@ -20,16 +20,76 @@ struct LessonCountChoices: View {
     @Environment(\.dynamicTypeSize) private var textSize
     let values: [Int]
     var suffix = ""
+    /// Set once answered: the row stays where it is and marks the pick and the answer.
+    var picked: Int? = nil
+    var correct: Int? = nil
     let choose: (Int) -> Void
     var body: some View {
         let layout = textSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
         layout {
-            ForEach(values, id: \.self) { value in
-                GTChoiceButton(title: "\(value)\(suffix)", minHeight: 52) { choose(value) }
+            // At accessibility sizes the stacked row is tall: once answered, only the
+            // marked choices stay, so the panel leaves room for the lesson above it.
+            ForEach(values.filter { !textSize.isAccessibilitySize || picked == nil
+                                    || LessonAnswer.mark($0, picked: picked, correct: correct) != nil }, id: \.self) { value in
+                let verdict = LessonAnswer.mark(value, picked: picked, correct: correct)
+                GTChoiceButton(title: "\(value)\(suffix)", minHeight: 52, verdict: verdict) { choose(value) }
+                    .lessonAnswerMark(verdict, answered: picked != nil)
                     .accessibilityIdentifier("lesson-choice-\(value)")
             }
         }
+    }
+}
+
+enum LessonAnswer {
+    /// How a choice is marked once answered: the right one green, a wrong pick red.
+    static func mark(_ value: Int, picked: Int?, correct: Int?) -> GradeBand? {
+        guard let picked else { return nil }
+        if value == correct { return .spotOn }
+        return value == picked ? .off : nil
+    }
+}
+
+/// The verdict at the top of an answered lesson panel: glyph and words in the
+/// verdict's colour, with the reason under them. Colour is never the only signal.
+struct LessonAnswerVerdict<Detail: View>: View {
+    @Environment(\.learningLanguage) private var language
+    let correct: Bool
+    @ViewBuilder var detail: () -> Detail
+
+    var body: some View {
+        let band: GradeBand = correct ? .spotOn : .off
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: band.glyph).font(GT.title(18))
+                .foregroundStyle(band.ink).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(correct ? language.text("맞아요", "That's right") : language.text("아쉬워요", "Not quite"))
+                    .font(GT.title(18)).foregroundStyle(band.ink)
+                    .accessibilityIdentifier("lesson-answer-verdict")
+                detail().foregroundStyle(GT.ink)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+extension View {
+    /// Locks an answered choice in place and says what its mark means.
+    func lessonAnswerMark(_ verdict: GradeBand?, answered: Bool) -> some View {
+        modifier(LessonAnswerMark(verdict: verdict, answered: answered))
+    }
+}
+
+private struct LessonAnswerMark: ViewModifier {
+    @Environment(\.learningLanguage) private var language
+    let verdict: GradeBand?
+    let answered: Bool
+    func body(content: Content) -> some View {
+        content
+            .disabled(answered && verdict == nil)
+            .allowsHitTesting(!answered)
+            .accessibilityValue(verdict == .spotOn ? language.text("정답", "Correct answer")
+                                : verdict == .off ? language.text("선택한 답, 오답", "Your answer, incorrect") : "")
     }
 }
 

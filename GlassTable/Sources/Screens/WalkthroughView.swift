@@ -89,10 +89,14 @@ struct WalkthroughView: View {
             VStack(alignment: .leading, spacing: GT.Space.section) {
                 header
                 content.frame(maxWidth: .infinity, alignment: .leading)
-                VStack(alignment: .leading, spacing: GT.Space.related) { sheet }
-                    .gtInset(GT.Space.card, firstText: sheetFirstText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .gtCard(radius: GT.Radius.panel)
+                // The pot example's steps are cards already; its caption card would only
+                // repeat the last step's title, so it shows just the instruction.
+                if concept != .potMath || isCovered {
+                    VStack(alignment: .leading, spacing: GT.Space.related) { sheet }
+                        .gtInset(GT.Space.card, firstText: sheetFirstText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .gtCard(radius: GT.Radius.panel)
+                }
             }.padding(.horizontal, 18).padding(.bottom, 24)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { navigationActions }
@@ -121,21 +125,36 @@ struct WalkthroughView: View {
         withAnimation(reduceMotion ? nil : GT.Motion.change) { index -= 1 }
     }
 
+    /// The pot example's one question: its total, on the step that asks for it.
+    private var potCheck: Int? {
+        guard concept == .potMath, positionTeachingStep == nil, index == Self.practiceIndex(in: beats) else { return nil }
+        return beat.value.flatMap { Int($0.filter(\.isNumber)) }
+    }
+
+    /// The choices stay where they are once answered: the pick and the right total are
+    /// marked in place and the whole panel takes the verdict's colour.
     private var navigationActions: some View {
-        ActionSheet {
+        let correct = potCheck
+        let picked = correct == nil ? nil : workedAnswer
+        return ActionSheet(band: picked.map { $0 == correct ? .spotOn : .off }, collapsible: false) {
             VStack(alignment: .leading, spacing: 12) {
-                if concept == .potMath, isCovered,
-                   let value = beat.value, let correct = Int(value.filter(\.isNumber)) {
-                    LessonCountChoices(values: BeginnerQuestionChoices.integers(answer: correct, bounds: 0...max(1326, correct + 10), seed: UInt64(index)),
-                                       suffix: language.text("칩", " chips")) { chosen in
-                        workedAnswer = chosen
-                        practiceRevealed = true
-                    }.accessibilityIdentifier("walkthrough-pot-check")
+                if let picked {
+                    LessonAnswerVerdict(correct: picked == correct) {
+                        Text(picked == correct ? language.text("계산을 이어갈 수 있어요.", "You followed the contributions.")
+                                               : language.text("기여액을 다시 더해 봐요.", "Add the contributions again."))
+                            .font(GT.body(16)).fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("walkthrough-pot-feedback")
+                    }
                 }
-                if let workedAnswer, let value = beat.value, let correct = Int(value.filter(\.isNumber)), index == Self.practiceIndex(in: beats) {
-                    Text(workedAnswer == correct ? language.text("맞아요. 계산을 이어갈 수 있어요.", "Correct. You followed the contributions.")
-                                                : language.text("기여액을 다시 더해 봐요.", "Add the contributions again."))
-                        .font(GT.body(14)).foregroundStyle(GT.ink)
+                if let correct {
+                    LessonCountChoices(values: BeginnerQuestionChoices.integers(answer: correct, bounds: 0...max(1326, correct + 10), seed: UInt64(index)),
+                                       suffix: language.text("칩", " chips"), picked: picked, correct: correct) { chosen in
+                        AppFeedback.answer(correct: chosen == correct)
+                        withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                            workedAnswer = chosen
+                            practiceRevealed = true
+                        }
+                    }.accessibilityIdentifier("walkthrough-pot-check")
                 }
                 let layout = dynamicTypeSize.isAccessibilitySize
                     ? AnyLayout(VStackLayout(spacing: 12))
@@ -227,7 +246,13 @@ struct WalkthroughView: View {
                                 if step == Self.practiceIndex(in: beats), !practiceRevealed { Text(language.text("합계는?", "Total?" )).font(GT.title(22)) }
                                 else { Text(value).font(GT.title(22)) }
                             }
-                        }.foregroundStyle(GT.ink).padding(14).frame(maxWidth: .infinity, alignment: .leading).gtPanel()
+                        }.foregroundStyle(GT.ink).padding(14).frame(maxWidth: .infinity, alignment: .leading).gtCard()
+                            .overlay {
+                                if step == index {
+                                    RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
+                                        .strokeBorder(GT.cta, lineWidth: 2)
+                                }
+                            }
                     }
                 }
             } else if concept == .rfi, simple, index == 0 || index == 2 {

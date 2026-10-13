@@ -49,6 +49,7 @@ struct GuidedHandState {
 struct GuidedHandView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var textSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hand = GuidedHandState()
     let onClose: () -> Void
     let onPlay: () -> Void
@@ -78,23 +79,20 @@ struct GuidedHandView: View {
                     if !hand.lessGuidance && hand.needsAnswer {
                         cue.font(GT.body(16)).foregroundStyle(GT.inkSecondary)
                     }
-                    if let answer = hand.answers[hand.page] {
-                        feedback(correct: answer == hand.correct)
-                            .font(GT.body(17)).padding(16).gtPanel()
-                            .accessibilityIdentifier("guided-hand-feedback")
-                    }
                     if hand.page == 6 {
                         LessonPairedText(korean: ["각자 4칩을 내서 팟은 8칩이었어요.", "이긴 사람은 24칩으로 마쳐요.", "다른 사람은 16칩으로 마쳐요."],
                                          english: ["Each paid 4; the pot held 8 chips.", "Winner: 24 chips.", "Other player: 16 chips."])
                             .font(GT.body(17))
                     }
-                    if textSize.isAccessibilitySize { controls }
+                    if textSize.isAccessibilitySize {
+                        controls.padding(GT.Space.card).gtCard(radius: GT.Radius.control, band: band)
+                    }
                 }.padding(18)
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if !textSize.isAccessibilitySize {
-                controls.padding(.horizontal, 18).padding(.bottom, 12).background(GT.surface)
+                ActionSheet(band: band, collapsible: false) { controls }
             }
         }
         .foregroundStyle(GT.ink).background(FeltBackground())
@@ -158,18 +156,38 @@ struct GuidedHandView: View {
         .accessibilityIdentifier("guided-hand-review-best-five")
     }
 
+    /// The answered page's verdict; it tints the whole bottom panel.
+    private var band: GradeBand? {
+        hand.answers[hand.page].map { $0 == hand.correct ? .spotOn : .off }
+    }
+
+    /// The choices stay where they are once answered: the pick and the right answer are
+    /// marked in place, and the verdict and Next join them in the same panel.
     @ViewBuilder private var controls: some View {
-        VStack(spacing: 10) {
-            if hand.needsAnswer {
+        let answer = hand.answers[hand.page]
+        VStack(alignment: .leading, spacing: 12) {
+            if let answer {
+                LessonAnswerVerdict(correct: answer == hand.correct) {
+                    feedback.font(GT.body(16)).accessibilityIdentifier("guided-hand-feedback")
+                }
+            }
+            if (1...5).contains(hand.page) {
                 let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
                 layout {
                     ForEach(choices, id: \.0) { value, text in
-                        GTChoiceButton(title: text, minHeight: 52) { hand.choose(value) }
-                            .accessibilityIdentifier("guided-hand-choice-\(value)")
+                        let verdict = LessonAnswer.mark(value, picked: answer, correct: hand.correct)
+                        GTChoiceButton(title: text, minHeight: 52, verdict: verdict) {
+                            AppFeedback.answer(correct: value == hand.correct)
+                            withAnimation(reduceMotion ? nil : GT.Motion.change) { hand.choose(value) }
+                        }
+                        .lessonAnswerMark(verdict, answered: answer != nil)
+                        .accessibilityIdentifier("guided-hand-choice-\(value)")
                     }
                 }
-            } else if hand.page < 6 {
+            }
+            if hand.page < 6 {
                 PrimaryCTAButton(title: language.text("다음", "Next")) { hand.next() }
+                    .disabled(hand.needsAnswer)
                     .accessibilityIdentifier("guided-hand-next")
             } else {
                 PrimaryCTAButton(title: language.text("안내를 줄여 한 판 더", "Another hand with less help")) { hand.replay(lessGuidance: true) }
@@ -178,7 +196,7 @@ struct GuidedHandView: View {
                     .accessibilityIdentifier("guided-hand-play")
                 GTChoiceButton(title: language.text("안내와 함께 다시", "Replay with guidance"), minHeight: 52) { hand.replay(lessGuidance: false) }
             }
-        }.padding(.top, 12)
+        }
     }
     private func previous() { if hand.page == 0 { onClose() } else { hand.previous() } }
     private var title: some View {
@@ -228,17 +246,15 @@ struct GuidedHandView: View {
                              english: ["Compare the best-five hand types.", "Same type? Compare the ranks."])
         }
     }
-    @ViewBuilder private func feedback(correct: Bool) -> some View {
-        let koreanPrefix = correct ? "맞아요." : "다시 짚어볼게요."
-        let englishPrefix = correct ? "That's right." : "Let's look again."
+    @ViewBuilder private var feedback: some View {
         if hand.page == 5 {
             let korean = gradeShowdown(answer: hand.answers[5] ?? 0, spot: hand.showdown, language: .korean)
             let english = gradeShowdown(answer: hand.answers[5] ?? 0, spot: hand.showdown, language: .english)
             let sameType = hand.showdown.heroBest.category == hand.showdown.villainBest.category
-            LessonPairedText(korean: [koreanPrefix, "내 패: \(korean.heroName)", "상대 패: \(korean.villainName)",
+            LessonPairedText(korean: ["내 패: \(korean.heroName)", "상대 패: \(korean.villainName)",
                                      sameType ? "더 높은 쌍이 이겨요." : "더 높은 족보가 이겨요.",
                                      HandOutcomeCopy.answer(korean.winner, in: .korean)],
-                             english: [englishPrefix, "Your hand: \(english.heroName)", "Their hand: \(english.villainName)",
+                             english: ["Your hand: \(english.heroName)", "Their hand: \(english.villainName)",
                                        sameType ? "The higher pair wins." : "The higher hand type wins.",
                                        HandOutcomeCopy.answer(english.winner, in: .english)])
         } else {
@@ -256,7 +272,7 @@ struct GuidedHandView: View {
                 (["체크에는 추가 칩이 없어요.", "팟은 8칩 그대로예요."],
                          ["A check costs no more chips.", "The pot stays at 8 chips."])
             }
-            LessonPairedText(korean: [koreanPrefix] + lines.korean, english: [englishPrefix] + lines.english)
+            LessonPairedText(korean: lines.korean, english: lines.english)
         }
     }
     private var choices: [(Int, String)] {
