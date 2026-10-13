@@ -1,0 +1,75 @@
+# Build and feedback history
+
+Reconciled October 10, 2026 from repository records. Entries distinguish plans, builds, installation and observation; a sequential number is not proof of release. No App Store release is implied. Raw evidence can be ignored/local and historical gaps are retained.
+
+| Build | Date2026 | Main change | Evidence/status | Record |
+|---|---|---|---|---|
+|1|July 23|M1 submission design|Planned; no build/install evidence found|[Record](../docs/specs/2026-07-23-m1-submission-design.md)|
+|2|September 14|Course revamp and bilingual native layout|Unsigned Release and simulator evidence; no device install claim|[Record](../docs/specs/2026-09-14-revamp-delivery.md)|
+|3|September 23|Pot replay, beginner pot explanation and appearance|Signed build installed in place; progress preserved|[Record](../docs/specs/2026-09-23-pot-appearance.md)|
+|4|September 23|Combined beginner release: lessons, placement and four-seat Play|Installed; metadata/process and progress verified|[Record](../docs/specs/2026-09-23-beginner-native-release.md)|
+|5|September 23|Settings as fourth tab, language settings and AX fixes|Installed in place; progress preserved|[Record](../docs/specs/2026-09-23-settings-navigation.md)|
+|6|September 24|Delivery checkpoint bb87591 + build bump d3982dc|Install recorded; detailed raw evidence subsequently lost|[Record](../docs/handoff-archive/2026-09-25-before-autonomous-session.md)|
+|7|September 24|Full-screen lessons and shared table surface|Installed in place; preserved progress|[Record](../docs/handoff-archive/2026-09-25-before-autonomous-session.md)|
+|8|September 24|Exact-combo explanation before counting|Fresh install recorded at 07f9a1e; historical backup existed|[Record](../docs/handoff-archive/2026-09-25-before-autonomous-session.md)|
+|9|September 25|Welcome/warm-up, Play modes and bottom answers checkpoint|Git build bump for intended install; outcome not located|[Record](../docs/handoff-archive/2026-09-28-before-spacing-rules.md)|
+|10|September 26|Help, large-text headers and practice layout checkpoint|Git build bump for intended install; outcome not located|[Record](../docs/handoff-archive/2026-09-28-before-spacing-rules.md)|
+|11|September 26|UI refinement checkpoint; detailed delta not enumerated|Device install recorded; progress preserved|[Record](../docs/handoff-archive/2026-09-28-before-spacing-rules.md)|
+|12|September 26|Contrast changes and CI type-check fix, PR7 merged|Install requested; result not located|[Record](../docs/handoff-archive/2026-09-28-before-spacing-rules.md)|
+|13|September 27|Question retained through reveals, foldable feedback|Branch/build checkpoint; phone install not located|[Record](../docs/handoff-archive/2026-10-01-before-direction-a.md)|
+|14|October 2|Free Table Direction A; support/privacy delivery|Installed in place; preserved progress; observed Learn|[Record](../docs/verification/2026-10-02-iphone-install.md)|
+|15|October 4–5|Casual direction, coaching and beginner tracks|In-place then owner-requested fresh reinstall; historical crawl evidence|[Record](../docs/handoff-archive/2026-10-06-friendly-casual-checkpoints.md)|
+|16|October 6–7|Native spacing, feedback, encouragement and Records|Fresh12mini install; subsequent13mini owner feedback28 comments|[Record](../docs/verification/2026-10-06-native-refinement.md)|
+|17|October 7|Welcome-first isolated candidate|Not a confirmed phone installation|[Record](../.scratch/device-feedback-2026-10-07/README.md)|
+|18|October 8|28feedback changes plus graded1v1 revamp|Fresh install12mini/13mini; metadata/launch verified, screen not observed|[Record](../docs/specs/2026-10-07-graded-table-learning.md)|
+|19|October 10|Five intro comparisons, chart invitation, guided hand, restore and copy parity|Fresh12mini install; version19 and Korean welcome physically verified|[Record](../docs/specs/2026-10-10-complete-beginner-ux.md)|
+
+|20|October 11|Experience-first teaching, optional later preference, resumable guide and bilingual native refinement|Fresh12mini install; signed version20, Korean welcome physically verified; native gates passed|[Record](../docs/specs/2026-10-11-consistent-experience-first-opening.md)|
+
+## Feedback → change trace
+
+- Build16 owner session: all28 comments at `.scratch/device-feedback-2026-10-07/feedback.json`; report `.build/device-feedback-2026-10-07/index.html`. Subsequent clarification on voice, portrait seat loop, bottom actions and language line groups is retained in delivery specs.
+- Build18 reconciliation: `docs/audits/2026-10-08-implementation-reconciliation/ledger.json` separates18 source-implemented comments from10 partial ones at that time; not a current completion verdict.
+- Build 19 gap completion: `docs/specs/2026-10-10-complete-beginner-ux.md`, native gallery `.build/native-ux-b19/index.html`, signed-build/test evidence in sibling completion worktree. Installation evidence `.build/device-install-b19/` confirms current 1.0 (19) and Korean first-run welcome.
+- Build 19 new feedback: `.scratch/first-five-minutes/feedback.md` records abrupt familiarity transition, engaging-first-five-minutes request, progress/copy/buttons/color/motion exploration and traceability. `docs/reports/2026-10-10-first-five-minutes/index.html` explores proposals; no build 20/native change is made in this research turn.
+- Build 19 proposal approval and app-wide exploration: owner approved the opening proposals, then requested consistency research without building. `.scratch/whole-app-consistency/feedback.md` records WAC01–06; `docs/reports/2026-10-10-whole-app-consistency/index.html` compares their impact on lessons, practice, Free Play, Progress, Settings, tone and shared components. This is research/HTML work, not a new app version.
+
+## Next build record format
+
+For each subsequent candidate, append: build number/date/source commit; feedback IDs and exact change; preserved invariants; tests/capture provenance; signed/installed version; device and reset/preservation; observed first-run or flow; remaining gaps. Link proposals separately from implemented screens. Append new evidence rather than overwriting historical outcomes.
+
+This index is newly consolidated. Earlier records remain intact; missing installation evidence for builds 9/10/12/13 and plannedbuild 1 is not reconstructed as success. New default reinstalls reset data; historical in-place installs predate that rule.
+
+
+## Build 20 — approved experience-first and whole-app consistency delivery
+
+- Implemented approved FFM01–08 and WAC01–06 recommendations: welcome and pair teaching before assessment; choice or neutral demonstration; factual two-example checkpoint; optional starting preference; stop/resume with stable cards; independent replay and separate five-example completion. Preserved native typography, adaptive palette, bottom task actions, chart/model/game meanings and help-neutral progress. Wrong-answer haptics now use quiet selection feedback.
+- Source `07054d0366b88ce268ae237cc26ce73291ad8adc`; final production change `132c331906346f244fdb1dc8b963970748a56d0c`. Manual bilingual review corrected letter-helper line parity, automatic explanation visibility and paired answer-reason phrases. Normal selected English/Korean line groups match; AX text wraps naturally at word boundaries.
+- Verification: 401 Drills XCTest + 75 Swift Testing, 60 progression tests, 9 opening recovery tests; EN/KO × light/dark normal/AX matrix, 16 actual accessibility routes, 4 additional Next transitions and 12 final reason-visibility entries passed. Independent final source review accepted. [Native before/after report](../.build/native-ux-b20/index.html) contains 206 native screenshots, 8 labeled historical frames, decisions, provenance and limits.
+- Signed Release 1.0 (20) freshly installed after uninstall on iPhone 12 mini; metadata/ordinary launch and physical Korean welcome verified. No phone progress copied; welcome left unadvanced. [Installation record](../.build/device-install-b20/verification.json). Final signed binary SHA256 `8fb2eab8c64b03cdfd4164e80a9510f77858136a9ab511c49328c24668f092e4`; interim source802 build20 install is superseded and archived separately.
+- Remaining: observed novice comprehension/retention, physical VoiceOver/thumb comfort and minimum-iOS17 runtime. No App Store release claim. Raw evidence retained in sibling `glass-table-consistent-opening/.build/consistent-opening-b20/`.
+
+
+## Build 21 — numerical audit corrections, 2026-10-11
+
+- Source `3e219db` includes N01–N07 at `21c3907`: break-even, PFR denominator, actual outs premise, excluded ties, equity pot-share wording, exact review deadlines and active streak display. Saved question identities, grades and progress schemas preserved.
+- Signed Release 1.0 (21), uninstalled build 20 then freshly installed on iPhone 12 mini. Installed metadata and normal launch verified; physical Korean first-run welcome visually observed and left unadvanced. No phone progress copied. Evidence: `.build/device-install-b21/verification.json`; corrections/tests/screenshots: `.build/numerical-fixes/index.html`.
+- N08–N12/model qualifications and prior novice/accessibility/minimum-iOS acceptance gaps remain open. No App Store release claim.
+
+
+## Build 22 — green welcome and uninterrupted beginner guide, 2026-10-11
+
+- Owner approved option C and requested removal of experience assessment and midpoint stopping prompt. Implemented green Glass Table brand welcome with bottom Start; Start teaches a pair. Normal experience-question routes removed from opening, Learn and Settings. Direct help/terminology controls remain; saved placement is retained.
+- New comparison version2 uses a seeded stable balanced winner sequence (two/three wins per side), progressive five-rule order and exactly five suited cards in flush examples. Frozen version1 questions and old responses remain unchanged; missing version decodes as1, unknown versions preserve recovery bytes. Old checkpoint/preference restore to comparison three without credit.
+- Short hints fit measured content; AX hints remain large/scrollable. Centered48pt close frame keeps44pt effective target in compact native presentation. Choice subtitle now Choose this hand / 이 패 선택하기. Green welcome has light status ink, then selected guide theme. Independent review found and fixed a same-step resume history regression; Previous now returns to pair teaching.
+- Final native source `113e27b4a4290b2b25a28a21c89e8e8775fef070`, independently accepted. Package420 XCTest +75 Swift Testing; model62;34 distinct relevant UI cases have successful scoped evidence. Earlier failed invocations are retained and qualified; corrected hint/equity checks passed reruns. Final66 native frames (58opening+8hint), EN/KO ×light/dark ×normal/AX, with exact normal paired heights for allfive comparisons and actual AX Help/Next routes. Capture source6480c42 differs only by the separately tested resume-history fix.
+- Signed Release1.0(22) fresh installed after uninstall on physical iPhone12mini. Installed metadata/ordinary launch and green Korean first-run welcome visually verified and left unadvanced. No phone progress copied. [Before/after native report](../.build/opening-b22/report/index.html); [installation evidence](../.build/device-install-b22/verification.json). Binary SHA256 `8625f80831f8865ac890e6cf3b32095a780a52dd87bab903a840ed632c5a2eb9`.
+- Remaining: novice comprehension, physical VoiceOver/thumb comfort and minimum-iOS17 runtime; other bottom-menu routes received source inventory rather than a complete fresh runtime sweep. No App Store release claim. Raw results retained in sibling glass-table-opening-b22 worktree.
+
+
+## Build 23 — audit follow-ups, 2026-10-13
+
+- Source `dd7637b` on `feat/audit-followups`: written example on every explanation page, raise panel alignment, sharper hand-ranking question, shorter English texts and Help / History / Guide tabs, one-line turn facts at accessibility sizes, and one fixed corner radius (dock buttons no longer follow the display curve). Decisions: `.scratch/audit-followups-2026-10-11/map.md`.
+- Verification at `e3ef792` (later commits are docs and the build number): iPhone 17 iOS 26.5 simulator 238 tests, 11 skipped, 0 failed. iPhone 12 mini simulator 238 tests, 11 skipped, 1 failed: `AccessibilityAuditTests/testPlayTable` reports a contrast finding with no element; it passes on iPhone 17 and passed 4/4 on the mini the day before on the same screen. Unexplained.
+- Signed Release 1.0 (23), build 22 uninstalled first, then freshly installed on the physical iPhone 12 mini. Installed metadata and normal launch verified; green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.build/device-install-b23/` (`welcome.png`, devicectl JSON). Binary SHA256 `ffa14d74f7561a22c1e33e89d0d34a4cacffe2a7c863e1c13c605d61f503c645`.
+- Remaining: novice comprehension, physical VoiceOver and minimum-iOS17 runtime. No App Store release claim.
