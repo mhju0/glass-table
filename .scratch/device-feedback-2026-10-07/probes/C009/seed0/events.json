@@ -1,0 +1,154 @@
+[
+  {
+    "buttons" : [
+
+    ],
+    "finishEnabled" : false,
+    "finishExists" : false,
+    "revealExists" : false,
+    "seedCount" : 0,
+    "state" : "en-dark-step-0"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "finishEnabled" : false,
+    "finishExists" : false,
+    "revealExists" : false,
+    "seedCount" : 0,
+    "state" : "en-dark-step-1"
+  },
+  {
+    "buttons" : [
+      {
+        "enabled" : true,
+        "hittable" : true,
+        "id" : "walkthrough-reveal",
+        "label" : "Hidden result. Tap to check"
+      }
+    ],
+    "finishEnabled" : false,
+    "finishExists" : false,
+    "revealExists" : true,
+    "seedCount" : 0,
+    "state" : "en-dark-step-2"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "state" : "en-dark-step-2-revealed"
+  },
+  {
+    "buttons" : [
+      {
+        "enabled" : true,
+        "hittable" : true,
+        "id" : "",
+        "label" : "I understand"
+      }
+    ],
+    "finishEnabled" : true,
+    "finishExists" : true,
+    "revealExists" : false,
+    "seedCount" : 0,
+    "state" : "en-dark-step-3"
+  },
+  {
+    "actual" : true,
+    "buttons" : [
+
+    ],
+    "expected" : "explain-example hittable",
+    "state" : "en-dark-finished-explanation"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "state" : "en-dark-back-explanation"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "state" : "en-dark-close-question"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "finishEnabled" : false,
+    "finishExists" : false,
+    "revealExists" : false,
+    "seedCount" : 0,
+    "state" : "ko-light-step-0"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "finishEnabled" : false,
+    "finishExists" : false,
+    "revealExists" : false,
+    "seedCount" : 0,
+    "state" : "ko-light-step-1"
+  },
+  {
+    "buttons" : [
+      {
+        "enabled" : true,
+        "hittable" : true,
+        "id" : "walkthrough-reveal",
+        "label" : "가려진 결과. 눌러서 확인하기"
+      }
+    ],
+    "finishEnabled" : false,
+    "finishExists" : false,
+    "revealExists" : true,
+    "seedCount" : 0,
+    "state" : "ko-light-step-2"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "state" : "ko-light-step-2-revealed"
+  },
+  {
+    "buttons" : [
+      {
+        "enabled" : true,
+        "hittable" : true,
+        "id" : "",
+        "label" : "이해했어요"
+      }
+    ],
+    "finishEnabled" : true,
+    "finishExists" : true,
+    "revealExists" : false,
+    "seedCount" : 0,
+    "state" : "ko-light-step-3"
+  },
+  {
+    "actual" : true,
+    "buttons" : [
+
+    ],
+    "expected" : "explain-example hittable",
+    "state" : "ko-light-finished-explanation"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "state" : "ko-light-back-explanation"
+  },
+  {
+    "buttons" : [
+
+    ],
+    "state" : "ko-light-close-question"
+  }
+]

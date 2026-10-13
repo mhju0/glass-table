@@ -1,0 +1,863 @@
+{
+  "date": "2026-10-07",
+  "device": "iPhone 13 mini",
+  "testingBuild": "1.0 (16)",
+  "testingSource": "8fe0bddbe93a80b6134bc1cd06480bdc164235d6",
+  "workflow": "Collect each comment, research in the background, deliver one comprehensive HTML report only after the user explicitly ends testing for today",
+  "testingStatus": "finished for today",
+  "installationDuringTesting": "deferred; preserve stable test build",
+  "comments": [
+    {
+      "id": "C001",
+      "area": "First launch / onboarding order",
+      "comment": "The app needs to welcome the user first, then ask for their level of knowledge in poker. Right now it is the opposite way. Can we do this first?",
+      "status": "Isolated build17 candidate committed and worker-tested; awaiting root review/integration after active testing. Not installed.",
+      "expectedFlow": "Welcome → Get started → optional poker knowledge check → first decision introduction → Learn",
+      "openChecks": [
+        "KO/EN normal and AX5 routing",
+        "No duplicate welcome after placement",
+        "Settings replay/recheck remain separate",
+        "Existing-user and interruption behavior"
+      ],
+      "candidateCommit": "90755337055585097a4be7f9eff23985f5d603d3",
+      "workerVerification": "8 UI route/full-introduction tests + 52 ProgressionModel unit tests passed; no root acceptance/integration yet",
+      "candidateWorktree": "/Users/michaelju/Workspace/Projects/glass-table-welcome-first",
+      "independentResearch": [
+        "R12"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C002",
+      "area": "Start guide / hand comparison variety",
+      "comment": "The comparisons are A pair vs K pair, then 10 pair vs 8 pair. Add 3–5 more varied comparisons, including three of a kind, straights and flushes.",
+      "status": "Research gathered; 3 progressive additional comparisons proposed, not implemented or engine-validated",
+      "researchQuestions": [
+        "Which 3–5 seven-card comparison examples teach a new concept each?",
+        "How much should be mandatory versus optional for a novice?",
+        "Can both players share a straight or flush, or improve beyond the intended hand?",
+        "Does each example require best-five reasoning rather than a higher-pair shortcut?",
+        "How to word and show ranks consistently in English and Korean?"
+      ],
+      "userHypothesis": "Straights and flushes are strong and somewhat common",
+      "implementationApproved": false,
+      "researchFile": "research-C002-hand-variety.md",
+      "independentResearch": [
+        "R1",
+        "R5"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C003",
+      "area": "First lesson / incorrect-answer feedback alignment",
+      "comment": "Deliberately chose a wrong answer. The My answer Tie → Correct Opponent wins spacing and alignment is inconsistent.",
+      "status": "Screenshot observed and shared layout cause confirmed in source; proposals pending final report; no native modification",
+      "evidence": ".scratch/device-feedback-2026-10-07/screenshots/C003-feedback-alignment.jpeg",
+      "observed": [
+        "English dark mode, question 2/3, wrong-answer feedback",
+        "My answer Tie stays on one line; Correct Opponent wins wraps into two lines",
+        "Center-aligned comparison arrow and unlike type styles produce inconsistent vertical alignment"
+      ],
+      "source": "GlassTable/Sources/DesignSystem/Components.swift:232-245, VerdictRow.answers",
+      "rootCause": "HStack uses its default center alignment; labels and values are concatenated in individual Text views with different font sizes/weights and no shared label/value alignment structure",
+      "scope": [
+        "Categorical feedback with short versus long labels",
+        "Shared numeric, percentage, chart and EV verdicts",
+        "Korean/English, light/dark, normal/larger text",
+        "Correct, near and incorrect feedback states"
+      ],
+      "proposedDirection": "Use explicit, leading-aligned label/value structure with consistent spacing; allow text to grow at accessibility sizes. Compare stacked rows and equally structured columns in final report. Preserve encouraging feedback and Next question.",
+      "implementationApproved": false,
+      "independentResearch": [
+        "R9",
+        "R12"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C004",
+      "area": "App-wide narrator voice / answer choices versus feedback",
+      "comment": "Correct I win should be Correct you win. Choices naturally use the user perspective (my hand/opponent hand); feedback should speak from the app to the user (yes, you won). Audit this throughout the app.",
+      "status": "App-wide bilingual source audit gathered; context-sensitive recommendations pending final report",
+      "voiceRule": {
+        "choices": "User perspective; preserve first-person choices and clearly quoted submitted selections where appropriate",
+        "feedback": "App addresses user; use you/your in English; natural supportive Korean that often omits pronouns",
+        "tense": "You win/Your hand wins for static comparison; You won for a completed played hand",
+        "semanticDistinction": "Separate answer correctness from hand outcome. A correct answer can be Opponent wins or Tie."
+      },
+      "examples": [
+        {
+          "before": "Correct I win",
+          "proposed": "Correct · You win"
+        },
+        {
+          "before": "My answer Tie → Correct Opponent wins",
+          "proposed": "Your answer: Tie / Correct answer: Opponent wins"
+        }
+      ],
+      "scope": [
+        "First-run guide",
+        "Lesson and practice feedback",
+        "Restored sessions",
+        "Free-table and graded-table explanations",
+        "Records and completion summaries",
+        "Accessibility/VoiceOver labels",
+        "English and Korean localization resources"
+      ],
+      "relatedComments": [
+        "C003"
+      ],
+      "implementationApproved": false,
+      "researchFile": "research-C004-voice-audit.md",
+      "independentResearch": [
+        "R12",
+        "R13"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C005",
+      "area": "Count the pot / blind explanation and cumulative worked guide",
+      "comment": "Include a brief small-blind/big-blind explanation in the lesson. Keep each equation visible and append the next below it instead of replacing screens on Next. Build gradually with smooth animation, then ask the final number and let the user check.",
+      "status": "Source audit complete; earlier blind explanation and cumulative guide proposals pending final report",
+      "parts": [
+        {
+          "id": "C005a",
+          "request": "Brief contextual explanation of small and big blinds",
+          "sourceObservation": "A short explanation already exists in PotMathIntroView, PotMathLessonView.swift:236-245, but it is a separate first-use primer; check whether the worked lesson teaches blind meaning before using SB/BB."
+        },
+        {
+          "id": "C005b",
+          "request": "Cumulative, stepwise contributions/equations ending in an active answer check",
+          "userProblem": "Replacing each equation lets the learner tap through without retaining the calculation trail",
+          "candidateDirection": "Keep a cumulative contribution ledger with earlier rows visible, append only the next step, use restrained motion, preserve Back and reconstruct visible history on resume",
+          "openDesignConstraint": "Do not print the complete final answer before asking it. Retain earlier subtotals and leave the last total unknown until commitment, or use a distinct transfer question."
+        }
+      ],
+      "scope": [
+        "PotMath worked-example sequence",
+        "SB/BB introductory terminology",
+        "Contribution versus cumulative bet totals",
+        "Final answer and correctness feedback",
+        "English/Korean",
+        "Light/dark",
+        "Dynamic Type/Reduce Motion",
+        "Scroll, Back, saved-step resume and save-failure behavior"
+      ],
+      "implementationApproved": false,
+      "researchFile": "research-C005-potmath-guide.md",
+      "independentResearch": [
+        "R1",
+        "R6"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C006",
+      "area": "Count the pot / replay controls and hint presentation",
+      "comment": "Previous action and Next action buttons are cut off. Hint opens a full-screen sheet with little content and wastes space; explore options, perhaps center-aligned.",
+      "status": "Both screenshots visually inspected; source distinguishes obscured scroll-area replay controls and oversized one-sentence GuidedHintView; proposals pending final report",
+      "parts": [
+        {
+          "id": "C006a",
+          "request": "Keep Previous action and Next action fully visible and easy to operate",
+          "evidence": ".scratch/device-feedback-2026-10-07/screenshots/C006a-pot-replay-controls-obscured.jpeg",
+          "observation": "English dark potMath guided retry at action3/6; replay button row is partially covered by the fixed answer panel. Answer choices are disabled while replay is unfinished.",
+          "evidenceLimit": "Screenshot confirms initial-view overlap, not whether a scroll can expose controls or whether taps are unreachable. Investigate both."
+        },
+        {
+          "id": "C006b",
+          "request": "Explore an appropriately sized hint surface for short content",
+          "evidence": ".scratch/device-feedback-2026-10-07/screenshots/C006b-full-height-short-hint.jpeg",
+          "observation": "Hint sheet titled How to work it out contains one brief sentence followed by almost a whole screen of empty space.",
+          "candidateOptions": [
+            "Inline expandable hint near the relevant content",
+            "Content-height native bottom sheet with constrained growth/scrolling at large text",
+            "Centered compact panel/card with clear dismissal and focus handling"
+          ],
+          "relatedDistinction": "Top Hint and replay How to count may open different shared surfaces; audit both rather than assuming the screenshot is the full count primer."
+        }
+      ],
+      "scope": [
+        "PotMath guided/practice normal-size viewport",
+        "Shared DrillShell and ActionSheet content measurement",
+        "Replay controls after scrolling",
+        "Other lessons that use the same shell",
+        "Shared hint presentation",
+        "English/Korean, light/dark, normal/AX5",
+        "VoiceOver focus and dismissal",
+        "Retaining current replay step and saved answers"
+      ],
+      "implementationApproved": false,
+      "relatedComments": [
+        "C003",
+        "C005"
+      ],
+      "independentResearch": [
+        "R3",
+        "R4",
+        "R9"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C007",
+      "area": "Who acts first / beginner acronyms and teaching-area layout",
+      "comment": "In new beginner mode, lesson3 shows Order before the flop and a UTG → UTG+1 → LJ → HJ → CO... chain in the bottom bar. The acronyms are unknown and the middle is mostly empty. Put important lesson information in the middle; reserve the bottom for Next or choices. Change this.",
+      "status": "Source and existing screenshot audit complete; beginner-label and central teaching-layout proposal pending final report",
+      "userMode": "new beginner",
+      "observations": [
+        "Unexplained seat acronyms appear during a beginner worked lesson",
+        "Key order information is in the bottom action/instruction panel",
+        "Main lesson area underuses available space"
+      ],
+      "sourceFindings": [
+        "Beats.swift:244 onward and EnglishBeatScript.swift:121 onward build position order from Position.rawValue, not beginner plain-language seat explanations",
+        "WalkthroughView.swift:153 onward handles no-graphic beats as a large title/value with Spacers; explanatory detail remains in bottom sheet at :302 onward"
+      ],
+      "candidateDirection": "Explain seat meaning and order in the main learning area with plain-language labels and a legible sequence/seat diagram. Keep footer focused on Next or choices. Introduce acronyms as optional secondary terminology, not unexplained primary lesson content.",
+      "constraints": [
+        "Respect preflop versus postflop order",
+        "State which table/seat model the lesson depicts; do not imply eight-seat acronym order applies unchanged to heads-up",
+        "Preserve underlying stable position IDs and saved progression",
+        "Shared teaching layout changes must also be checked against potMath C005",
+        "English/Korean, light/dark, normal/AX5",
+        "Footer controls remain fully visible, linked to C006"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C005",
+        "C006"
+      ],
+      "researchFile": "research-C007-position-beginner-layout.md",
+      "depictedTableModel": "8-max: UTG, UTG+1, LJ, HJ, CO, BTN, SB, BB",
+      "independentResearch": [
+        "R1",
+        "R2",
+        "R6"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C008",
+      "area": "Navigation model / edge-swipe back and revisiting lesson steps",
+      "comment": "Current navigation mostly uses arrow controls and screens sliding up from the bottom. Incorporate the familiar left-edge swipe right to go back, either mixed with bottom-up components or replacing the navigation approach. Current lessons, especially the beginning guide, also need an option to go back.",
+      "status": "Source audit complete: FirstLesson and worked guide have no Previous control; hybrid versus native-push design tradeoffs and Apple references gathered",
+      "parts": [
+        {
+          "id": "C008a",
+          "request": "Explore familiar edge-swipe back for navigation",
+          "candidateOptions": [
+            "Hybrid: native hierarchical push/back for deeper pages, sheets for short contextual tasks",
+            "Broader navigation rebuild emphasizing push/back routes while retaining appropriate modal tasks"
+          ],
+          "designConstraint": "Keep visible Back/Close alternatives and accessible navigation; gesture-only navigation is not recommended."
+        },
+        {
+          "id": "C008b",
+          "request": "Allow learners to go back to earlier guide/lesson steps",
+          "designConstraint": "Distinguish previous teaching step from leaving the activity; preserve saved progress and do not silently resubmit, overwrite or duplicate already committed grades."
+        }
+      ],
+      "scope": [
+        "First-launch guide",
+        "Worked-example step navigation",
+        "Node lessons, one-skill practice and review",
+        "Root NavigationStack/fullScreenCover/sheet routing",
+        "Settings details and help surfaces",
+        "Horizontal sliders/range grids/table interactions",
+        "Progress/resume and immutable committed answers",
+        "English/Korean, VoiceOver, Dynamic Type, Reduce Motion"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C005",
+        "C006",
+        "C007"
+      ],
+      "researchFile": "research-C008-navigation-and-back.md",
+      "independentResearch": [
+        "R2",
+        "R4"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C009",
+      "area": "Lesson info/help / example completion and conflicting Back/Close",
+      "comment": "Who acts first info → Watch an example → I understand at the end appears to do nothing. Top-left back arrow and top-right down arrow are confusing. Audit every lesson and help button; consider edge back.",
+      "status": "User-reported no-response; source and bounded simulator probe complete, not reproduced in tested cases",
+      "source": "ConceptExplainView.swift:17-43,61-75; WalkthroughView.swift:45-53,335-365",
+      "findings": [
+        "Example completion and leading Back should return to the explanation; trailing Close should return to the original question",
+        "Footer CTA can be disabled while a required Tap to check result is covered; this is a possible cause, not confirmed for the user case",
+        "Existing explanation test only checked first example step, not completion"
+      ],
+      "reproductionEvidence": ".scratch/device-feedback-2026-10-07/probes/C009/proof.json",
+      "testedCases": "Fresh position seedCount0 EN-dark/KO-light: enabled I understand completed correctly; Back/Close correct. Seed15 EN-dark completion/back also worked. 23 PNGs retained.",
+      "limits": [
+        "User exact progress/position variant unknown",
+        "whichIsLater variant and native edge swipe not tested",
+        "A prior probe Close selector matched two buttons and failed; classified as test ambiguity, not native defect"
+      ],
+      "request": "Audit completion, Back and Close across all help wrappers; make required reveal action and end-state obvious",
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C006",
+        "C008"
+      ],
+      "independentResearch": [
+        "R4",
+        "R12"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C010",
+      "area": "Who acts first / full beginner lesson overhaul",
+      "comment": "Early/Middle/Late/Blinds seating chart is not understandable for a new user. Explain each position and the flow through an eight-person table before asking questions; use the empty middle better.",
+      "status": "Source and pedagogical overhaul proposal gathered; requested change deferred during stable phone testing",
+      "parts": [
+        "Explain all eight seat roles and action order before quiz",
+        "Do not use Early/Middle/Late/Blinds as unexplained prerequisite labels",
+        "Use main screen for the seat map and explanations; footer for actions"
+      ],
+      "source": "Position.swift:12-31; ConceptDrillView.swift:1084-1237; EnglishBeatScript.swift:121-140; WalkthroughView.swift:150-171,302-343",
+      "candidateSequence": [
+        "Orient an eight-seat table using dealer-button marker",
+        "Explain small/big blind seats and compulsory initial contributions",
+        "Highlight first preflop actor after the big blind",
+        "Walk each remaining seat clockwise with plain labels",
+        "Finish preflop at small then big blind, distinguish posting from taking a turn",
+        "Show shared-card stage and postflop order among still-active seats",
+        "Compare before/after order on the same persistent map",
+        "Introduce early/middle/late group terms only after concrete seats/order are understood"
+      ],
+      "constraints": [
+        "Eight-seat static position order differs from actual fold-aware turns",
+        "Canonical Latin codes and stored position IDs remain stable",
+        "Do not add a perfection gate or silently change the persisted three-question completion format",
+        "Introduce gentle ungraded checks separately from saved question grading",
+        "Visible Previous, correct help completion, bilingual/accessibility reachability"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C005",
+        "C007",
+        "C008",
+        "C009"
+      ],
+      "independentResearch": [
+        "R1",
+        "R6"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C011",
+      "area": "Should I enter first / first-use notation and app-wide terminology",
+      "comment": "The guide shows king of spades and six of spades then immediately K6s, which a beginner will not understand. Explain every poker term before using it and ease users into poker language.",
+      "status": "Source audit complete; coherent beginner preflop/notation/chart proposals gathered",
+      "candidateDirection": "Show card faces and plain-language hand description first; introduce the abbreviation with its meaning in context. Keep shorthand secondary until taught. Audit first-use terms throughout the beginner path.",
+      "scope": [
+        "K6s and suited/offsuit/pair shorthand",
+        "Beginner RFI worked guide",
+        "First-use poker language across all lessons",
+        "Canonical notation, glossary and optional terminology preference",
+        "English/Korean and readable card symbols"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C005",
+        "C007",
+        "C010",
+        "C013"
+      ],
+      "researchFile": "research-C011-C013-preflop-prerequisites.md",
+      "independentResearch": [
+        "R1",
+        "R2"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C012",
+      "area": "Should I enter first / hand-score cognitive load",
+      "comment": "Calculating hand score is too difficult right now. Treat the learner as a beginner.",
+      "status": "Source audit complete; coherent beginner preflop/notation/chart proposals gathered",
+      "candidateDirection": "Compare a feature-first beginner explanation and guided chart use with making score arithmetic optional deeper explanation. Preserve published grading policy and disclose the heuristic accurately.",
+      "constraints": [
+        "Do not present heuristic score as exact equity or a universal optimal decision",
+        "Do not silently change deterministic chart/grading policy",
+        "Completion remains encouraging and not gated on perfect arithmetic",
+        "Teach the relevant hand features/notation before formulas"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C011",
+        "C013"
+      ],
+      "researchFile": "research-C011-C013-preflop-prerequisites.md",
+      "independentResearch": [
+        "R1",
+        "R3"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C013",
+      "area": "First hand chart / axes, cells, notation and legend onboarding",
+      "comment": "Before the first hand-strength chart, explain what it is, how to read it, each axis, each cell, and broad orientation such as top-left strong hands and high cards near the top.",
+      "status": "Source audit complete; coherent beginner preflop/notation/chart proposals gathered",
+      "candidateDirection": "Introduce one highlighted hand cell, then rank axes, pair diagonal, suited/offsuit regions and the exact color legend before a chart-based question. Provide readable zoom/list and accessible non-color alternatives.",
+      "constraints": [
+        "Verify triangle orientation and label order from the actual code",
+        "Chart membership colors are not necessarily a strength scale or winning probability",
+        "Do not imply strength is strictly monotonic across neighboring cells",
+        "Avoid presenting all notation and combination-count math at once",
+        "English/Korean, normal/AX5, light/dark and VoiceOver"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C011",
+        "C012"
+      ],
+      "researchFile": "research-C011-C013-preflop-prerequisites.md",
+      "independentResearch": [
+        "R1",
+        "R2"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C014",
+      "area": "Lesson hint footprint / persistent lightbulb panel",
+      "comment": "The lightbulb section at the top of lessons takes up too much space. Consider a nice small popup that disappears after 2–3 seconds.",
+      "status": "Shared cue audit complete; compact persistent/reopenable hint recommended over timed essential instructions",
+      "source": "ContextualHintCue.swift:4-18; ConceptDrillView.swift:94,381,402",
+      "sourceObservation": "The full method sentence is rendered as a permanently expanded panel in the upper lesson content when the contextual hint environment is enabled. Its height competes with the question, table and replay controls.",
+      "candidateOptions": [
+        "Collapsed Hint control that opens compact contextual help and can be reopened",
+        "Brief optional reminder popup with no essential instruction dependent on its timer",
+        "First-use essential explanation in the actual teaching sequence, rather than repeated hint panel"
+      ],
+      "constraints": [
+        "A 2–3 second timer may be too short for unfamiliar terms or larger text",
+        "Keep essential instructions available at the learner’s pace",
+        "Provide persistent access to full hint; preserve learner state on dismissal",
+        "Respect VoiceOver, Reduce Motion and language/text-length differences",
+        "Do not announce an answer before commitment or turn help into a public assisted/solo barrier",
+        "Reclaim meaningful screen space without leaving a confusing blank teaching area"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C005",
+        "C006",
+        "C007",
+        "C010"
+      ],
+      "researchFile": "research-C014-hint-footprint.md",
+      "independentResearch": [
+        "R3",
+        "R4",
+        "R11"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C015",
+      "area": "Answer feedback / distinct app-voiced labels and layout",
+      "comment": "Again My answer Raise → Correct Fold should use Your answer. Prefer clearer separation: Your answer: Raise → Correct answer: Fold.",
+      "status": "Explicit preferred wording recorded; shared verdict proposal connected to C003/C004; no implementation",
+      "preferredEnglish": {
+        "submittedLabel": "Your answer:",
+        "correctLabel": "Correct answer:",
+        "exampleSubmitted": "Your answer: Raise",
+        "exampleCorrect": "Correct answer: Fold"
+      },
+      "candidateKorean": {
+        "submittedLabel": "선택한 답:",
+        "correctLabel": "정답:",
+        "note": "Proposal only; natural Korean avoids a literal 당신의 답 translation."
+      },
+      "layoutDirection": "Separate label and value structurally; compare two leading-aligned rows against equally structured columns. Arrow optional and must not control text alignment.",
+      "scope": [
+        "Shared VerdictRow and restored feedback",
+        "Raise/Fold decisions",
+        "Win/loss/tie values and long labels",
+        "Numeric/percentage feedback",
+        "English/Korean normal/AX5, light/dark and accessible narration"
+      ],
+      "constraints": [
+        "Preserve quoted submitted choice and separate app narration",
+        "Use policy-specific labels for chart or model comparisons where Correct answer would overstate certainty",
+        "Keep values legible without forced shrinking or fixed line counts"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "relatedComments": [
+        "C003",
+        "C004"
+      ],
+      "independentResearch": [
+        "R9",
+        "R12",
+        "R13"
+      ],
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C016",
+      "area": "Defend header spacing",
+      "comment": "Hint and Try together are too close; screenshot shows cramped header spacing.",
+      "status": "Recorded; source/design research in progress; no implementation",
+      "researchDirection": "Compare shared header layout with a unified title, help and progress hierarchy; validate English/Korean and larger text.",
+      "relatedComments": [
+        "C006",
+        "C014"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "screenshots": [
+        "screenshots/C016-defend-header-spacing.jpeg"
+      ],
+      "independentResearch": [
+        "R9",
+        "R12"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C017",
+      "area": "Chart-supported beginner practice",
+      "comment": "Show the chart while answering first, then offer answering without it after multiple correct answers; current difficulty is too high.",
+      "status": "Recorded; source/design research in progress; no implementation",
+      "researchDirection": "Source confirms DefendGridView appears only after reveal. Propose visible chart in guided practice with optional hiding and permanent reopening; no public assisted/solo classification.",
+      "relatedComments": [
+        "C011",
+        "C013"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R1",
+        "R2"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C018",
+      "area": "Defend question variety",
+      "comment": "Most answers in the completed section were Fold; mix strong and weak hands.",
+      "status": "Recorded; source/design research in progress; no implementation",
+      "researchDirection": "Audit seeded selection and balance pedagogical Fold/Call/Re-raise examples without predictable answer order or changing saved question identities.",
+      "relatedComments": [
+        "C017"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R1"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C019",
+      "area": "Beginner curriculum order",
+      "comment": "Move Which cards turn it around earlier; learn winning hands and playing before percentages and math, which may disengage beginners.",
+      "status": "Recorded; source/design research in progress; no implementation",
+      "researchDirection": "Evaluate a cards-first learning path and prerequisites. Dropout concern is a user hypothesis, not measured retention evidence.",
+      "relatedComments": [
+        "C010",
+        "C012"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R1",
+        "R5"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C020",
+      "area": "One-tap answer input across lessons",
+      "comment": "Use two or three choices instead of manual numeric input in Which cards turn it around and all lessons; minimize touches.",
+      "status": "Recorded; source/design research in progress; no implementation",
+      "researchDirection": "Inventory numeric fields, sliders and steppers. Propose legal, distinct, varied distractors and one-tap selection while preserving grading and saved questions.",
+      "relatedComments": [
+        "C019"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R2"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C021",
+      "area": "Grouped river-card outcomes / easier comparison",
+      "comment": "User discovered that tapping a card already shows both final hands, so the missing-explanation concern is partly withdrawn. Improve organization by grouping equivalent card outcomes rather than requiring redundant taps through the same rank in different suits.",
+      "status": "User correction recorded; outcome-grouping research in progress; existing card comparison to preserve",
+      "researchDirection": "Group by genuinely equivalent outcome and learning explanation, not rank alone. Suit changes can create flushes or alter the opponent hand, winner or tie. Show representative comparison, group count and expandable individual cards; preserve access to suit-specific cases.",
+      "relatedComments": [
+        "C020",
+        "C002"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "originalComment": "Explain why the answer is right, for example cards make a straight or two pair and win; correct guesses also need an explanation so learners understand.",
+      "constraints": [
+        "Do not treat every same-rank card as equivalent",
+        "Keep individual card exploration available",
+        "Preserve existing final-hand comparison",
+        "Clear English/Korean group labels and accessible card counts",
+        "No native changes during active testing"
+      ],
+      "correction": "Prior blanket claim that reveals lack explanation is superseded; useful comparison already exists. Additional concise why text remains an option, not a new mandatory quiz.",
+      "independentResearch": [
+        "R1",
+        "R5"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C022",
+      "area": "Variation on repeated guides and lessons",
+      "comment": "Provide different hands and questions each time a user repeats any guide or lesson; consider a bigger stored question bank.",
+      "status": "Recorded; source/design research in progress; no implementation",
+      "researchDirection": "Audit current fixed examples, seeds and generators. Compare curated banks, constrained generation and hybrids; preserve resumed questions, historical grading and reproducible replay while avoiding recent repeats.",
+      "relatedComments": [
+        "C002",
+        "C018"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R1"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C023",
+      "area": "Free Play / help navigation labels",
+      "context": "Four-player Free Play",
+      "comment": "Hint, This Hand and Rules have unclear meaning; user cannot predict what each page shows. Improve phrasing and wording.",
+      "status": "Recorded; destination and bilingual copy audit in progress; no implementation",
+      "researchDirection": "Inspect actual content opened by each button and propose distinct purpose-specific English/Korean labels, supporting description or hierarchy if labels alone cannot clarify. Validate labels against actual actions and accessibility names.",
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R2",
+        "R3",
+        "R13"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C024",
+      "area": "Localized table player names / consistent seat layout",
+      "comment": "Use short English names in English games and Korean-spelled English names in Korean tables. Prefer consistent three-character Korean names and short English names to avoid name-related spacing/alignment problems. Examples: 토마스, 마이클, 알렉스, 클로이, 소라, 세라, 데이비드.",
+      "status": "Recorded; name-source and table-layout audit pending; no implementation",
+      "interpretation": "Use three Hangul syllable blocks for the Korean roster; examples 소라/세라 have two and 데이비드 has four, so choose a compliant curated pool rather than treating every example as mandatory.",
+      "researchDirection": "Localize displayed names while preserving stable player IDs/history; use compact roster and shared name-label geometry; validate rendered width rather than character count alone across player counts, iPhone mini, English/Korean and Dynamic Type.",
+      "candidateKoreanNames": [
+        "토마스",
+        "마이클",
+        "알렉스",
+        "클로이"
+      ],
+      "constraints": [
+        "Short names alone do not ensure equal rendered width",
+        "Avoid padding visible names with spaces",
+        "Keep accessible full names and distinguish seats",
+        "Do not rename saved identities or alter hand histories unintentionally"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R9",
+        "R12"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C025",
+      "area": "Quick Play / ten-hand session recap and complete hand review",
+      "comment": "After Quick Play (10 hands), show an overall casual recap and let the user go through all hands. Pair one general phrase with exact numbers, such as frequent calls/raises, chart matches, risks versus safe play, successful bluffs or luck. Serve casual and mathematically interested users.",
+      "status": "Recorded; retained-data and recap-metric audit pending; no implementation",
+      "requiredExperience": [
+        "End-of-session recap after ten hands",
+        "A plain-language summary paired with exact supporting counts",
+        "Review access to every hand in the session",
+        "Clear details for users who want more numerical information"
+      ],
+      "researchDirection": "Audit existing session completion, action logs, hand retention and replay. Define denominators and metrics using observed actions and applicable chart decisions. Treat bluff intent, luck and risk categories as proposals requiring defensible definitions, not conclusions inferred from wins alone.",
+      "constraints": [
+        "Distinguish hands played from decision opportunities and total actions",
+        "Chart comparison applies only to supported policy situations and is not universal optimality",
+        "Do not equate winning with a good decision or losing with a bad decision",
+        "Keep recap professional, encouraging and localized in English/Korean",
+        "Preserve all ten reviewable hands and interrupted-session integrity if storage changes are needed",
+        "No native changes during active testing"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R3"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C026",
+      "area": "Free Play / mid-game exit and new-game navigation",
+      "comment": "Need a button to quit during a game. Returning shows only Continue the free table and prevents starting another game; Change the Table appears only after finishing the hand. Explore clearer wording such as Start new game.",
+      "status": "Recorded; active-session navigation and persistence audit pending; no implementation",
+      "requiredExperience": [
+        "Leave the current game before finishing the hand",
+        "Start a new game without being trapped in the resume-only path",
+        "Clear wording distinguishing continuing, ending and starting a game"
+      ],
+      "candidateLabels": {
+        "english": [
+          "Continue game",
+          "End game",
+          "Start new game"
+        ],
+        "korean": [
+          "게임 이어하기",
+          "게임 끝내기",
+          "새 게임 시작"
+        ]
+      },
+      "researchDirection": "Inspect lobby resume controls, in-table exit, new-table availability and saved active-hand state. Compare a game menu with visible end/new-game actions against lobby resume/new-game choices. Clarify current progress consequences before replacing a session; retain settled history and avoid counting unfinished hands as completed.",
+      "constraints": [
+        "Returning to the menu and ending a game must have distinct consequences",
+        "Do not silently discard an active hand",
+        "Avoid redundant confirmations for simple navigation; any destructive replacement should explain its concrete consequence",
+        "English/Korean, mini screen, Dynamic Type and accessible navigation",
+        "No native changes during active testing"
+      ],
+      "relatedComments": [
+        "C008",
+        "C023",
+        "C025"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R2",
+        "R4",
+        "R13"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C027",
+      "area": "Progress and app-wide information hierarchy / text density",
+      "comment": "Progress is fine overall but has too much text and no diagrams or graphics, making it overwhelming. Add clearer sections/categories so the app feels less like a collection of text blocks.",
+      "status": "Recorded; hierarchy, data and visual-summary audit pending; no implementation",
+      "researchDirection": "Preserve useful progress content while grouping it into distinct categories and using simple meaningful visuals for supported completion/activity/trend data. Audit repeated text-card patterns throughout the app and distinguish essential explanation from optional detail.",
+      "candidateDirections": [
+        "A compact progress overview with lesson-completion visualization",
+        "Separate learning, practice activity and recent-history sections",
+        "Short summaries with expandable details",
+        "Clear visual hierarchy using spacing and typography rather than adding many boxed cards"
+      ],
+      "constraints": [
+        "Graphics must communicate actual data rather than imply unsupported improvement",
+        "Avoid pressure, public helped/solo categories and excessive rewards",
+        "Provide readable text equivalents and VoiceOver labels",
+        "Validate English/Korean, light/dark, mini and Dynamic Type",
+        "Preserve current professional tone and useful records",
+        "No native changes during active testing"
+      ],
+      "relatedComments": [
+        "C014",
+        "C025"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R1",
+        "R3",
+        "R9"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    },
+    {
+      "id": "C028",
+      "area": "Settings / compact preferences, sound and haptics",
+      "comment": "Language and appearance controls are too large. Make them compact and move them lower because they rarely change. Research other apps Settings flow, add separate sound on/off and haptic on/off settings, and investigate the menu more deeply.",
+      "status": "Recorded; repository audit in progress; initial official external examples gathered; no implementation",
+      "researchDirection": "Audit all settings sections and audio/haptic behavior. Compare compact native value rows/pickers with switches where binary. Explore grouped page order and independent sound/haptic preferences; inspect persisted preference behavior and migration needs.",
+      "requiredExperience": [
+        "Compact language and appearance controls lower in Settings",
+        "Separate sound effects on/off",
+        "Separate haptics on/off",
+        "Clear categories and efficient overall Settings navigation"
+      ],
+      "constraints": [
+        "Appearance may need System/Light/Dark rather than a binary toggle",
+        "Sound and haptic switches must control actual behavior across the app",
+        "Essential feedback remains visible when sound/haptics are off",
+        "English/Korean, mini, Dynamic Type and VoiceOver",
+        "No native changes during active testing"
+      ],
+      "relatedComments": [
+        "C027"
+      ],
+      "changeRequested": true,
+      "nativeChangesDuringTesting": false,
+      "independentResearch": [
+        "R2",
+        "R3",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
+        "R13"
+      ],
+      "sourceResearchFile": "research-final-source-audit.md",
+      "reportDisposition": "Include current evidence, proposal, reason, preservation and verification needs in final report"
+    }
+  ],
+  "reportStatus": "complete; local HTML browser-verified; native proposals not implemented",
+  "reportPath": "/Users/michaelju/Workspace/Projects/glass-table/.build/device-feedback-2026-10-07/index.html",
+  "postReportRevisions": [
+    {
+      "id": "R001",
+      "area": "Natural verdict language",
+      "request": "Correct answers should not show I win and You win as different values. Use one success confirmation; normalize semantically identical outcome values in app-addressed feedback while choices may use learner-perspective wording.",
+      "status": "HTML refinement in progress; no native changes"
+    },
+    {
+      "id": "R002",
+      "area": "Portrait position diagram alternatives",
+      "request": "Replace oval poker table in HTML proposal with clearer portrait-friendly eight-box loop and directional arrows. Explore two boxes per side, board-game structure, and center empty or pot; keep equal component geometry and English/Korean layout consistency.",
+      "status": "HTML refinement in progress; no native changes"
+    }
+  ]
+}

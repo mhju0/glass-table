@@ -1,0 +1,973 @@
+[
+  {
+    "buttons": [
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "drill-explain",
+        "label": "Explain this skill"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Learn"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Play"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Progress"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Settings"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "0"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "1"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "2"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "3"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "4"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "5"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "6"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "7"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "",
+        "label": "Next"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.left",
+        "label": "Back to explanation"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-level",
+        "label": "My level: New player"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Resume lesson"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-path",
+        "label": "All lessons, Four short tracks. Every lesson is open."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Practice one skill, Five questions on a topic you pick."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Review topics, 2 topics ready for review"
+      }
+    ],
+    "finishEnabled": false,
+    "finishExists": false,
+    "revealExists": false,
+    "seedCount": 15,
+    "state": "en-dark-step-0"
+  },
+  {
+    "buttons": [
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "drill-explain",
+        "label": "Explain this skill"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Learn"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Play"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Progress"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Settings"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "0"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "1"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "2"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "3"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "4"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "5"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "6"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "7"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "",
+        "label": "Next"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.left",
+        "label": "Back to explanation"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-level",
+        "label": "My level: New player"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Resume lesson"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-path",
+        "label": "All lessons, Four short tracks. Every lesson is open."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Practice one skill, Five questions on a topic you pick."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Review topics, 2 topics ready for review"
+      }
+    ],
+    "finishEnabled": false,
+    "finishExists": false,
+    "revealExists": false,
+    "seedCount": 15,
+    "state": "en-dark-step-1"
+  },
+  {
+    "buttons": [
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "drill-explain",
+        "label": "Explain this skill"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Learn"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Play"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Progress"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Settings"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "0"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "1"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "2"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "3"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "4"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "5"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "6"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "7"
+      },
+      {
+        "enabled": false,
+        "hittable": true,
+        "id": "",
+        "label": "Next"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.left",
+        "label": "Back to explanation"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "walkthrough-reveal",
+        "label": "Hidden result. Tap to check"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-level",
+        "label": "My level: New player"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Resume lesson"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-path",
+        "label": "All lessons, Four short tracks. Every lesson is open."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Practice one skill, Five questions on a topic you pick."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Review topics, 2 topics ready for review"
+      }
+    ],
+    "finishEnabled": false,
+    "finishExists": false,
+    "revealExists": true,
+    "seedCount": 15,
+    "state": "en-dark-step-2"
+  },
+  {
+    "buttons": [
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "drill-explain",
+        "label": "Explain this skill"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Learn"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Play"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Progress"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Settings"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "0"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "1"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "2"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "3"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "4"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "5"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "6"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "7"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "",
+        "label": "Next"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.left",
+        "label": "Back to explanation"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-level",
+        "label": "My level: New player"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Resume lesson"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-path",
+        "label": "All lessons, Four short tracks. Every lesson is open."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Practice one skill, Five questions on a topic you pick."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Review topics, 2 topics ready for review"
+      }
+    ],
+    "state": "en-dark-step-2-revealed"
+  },
+  {
+    "buttons": [
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "drill-explain",
+        "label": "Explain this skill"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Learn"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Play"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Progress"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Settings"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "0"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "1"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "2"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "3"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "4"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "5"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "6"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "7"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "",
+        "label": "I understand"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.left",
+        "label": "Back to explanation"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-level",
+        "label": "My level: New player"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Resume lesson"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-path",
+        "label": "All lessons, Four short tracks. Every lesson is open."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Practice one skill, Five questions on a topic you pick."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Review topics, 2 topics ready for review"
+      }
+    ],
+    "finishEnabled": true,
+    "finishExists": true,
+    "revealExists": false,
+    "seedCount": 15,
+    "state": "en-dark-step-3"
+  },
+  {
+    "actual": true,
+    "buttons": [
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "drill-explain",
+        "label": "Explain this skill"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Learn"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Play"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Progress"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Settings"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "0"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "1"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "2"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "3"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "4"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "5"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "6"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "7"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "explain-example",
+        "label": "Watch an example"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-level",
+        "label": "My level: New player"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Resume lesson"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-path",
+        "label": "All lessons, Four short tracks. Every lesson is open."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Practice one skill, Five questions on a topic you pick."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Review topics, 2 topics ready for review"
+      }
+    ],
+    "expected": "explain-example hittable",
+    "state": "en-dark-finished-explanation"
+  },
+  {
+    "buttons": [
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "drill-explain",
+        "label": "Explain this skill"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Learn"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Play"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Progress"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Settings"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "0"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "1"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "2"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "3"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "4"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "5"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "6"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "7"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "chevron.down",
+        "label": "Close"
+      },
+      {
+        "enabled": true,
+        "hittable": true,
+        "id": "explain-example",
+        "label": "Watch an example"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-level",
+        "label": "My level: New player"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Resume lesson"
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "learn-path",
+        "label": "All lessons, Four short tracks. Every lesson is open."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Practice one skill, Five questions on a topic you pick."
+      },
+      {
+        "enabled": true,
+        "hittable": false,
+        "id": "",
+        "label": "Review topics, 2 topics ready for review"
+      }
+    ],
+    "state": "en-dark-back-explanation"
+  }
+]

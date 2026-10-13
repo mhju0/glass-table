@@ -1,0 +1,76 @@
+{
+  "source_sha256": "b42b9e920c3f3c6416f7aa75ac233c4d1b292040a8f1a84ab651615b4e0aa232",
+  "generated_sha256": "c270e948a9ff3f2e7951f38311f05dfc93f5acb2ea4c4baf883c35ca9a6ec58d",
+  "sections": {
+    "source": 14,
+    "generated": 14,
+    "same_ids": true
+  },
+  "flows": {
+    "source": 42,
+    "generated": 42,
+    "same_ids": true
+  },
+  "cards": {
+    "source": 1000,
+    "generated": 1000,
+    "same_ids": true
+  },
+  "source_top_titles": [
+    "Free table crashes when you open ‘컴퓨터는 어떻게 고를까요?’ with 2 or 3 players",
+    "Range read: grade and explanation contradict each other",
+    "Graded play: the action sheet covers your own cards on later streets",
+    "Free table: the raise control starts under the floating tab bar",
+    "Pot counting: the answer buttons look active while they are locked",
+    "Scrolled content runs under the status bar and floating buttons with no material behind them",
+    "‘예시 보기’ inside the concept sheet has no close button",
+    "‘테이블 다시 만들기’ drops you on the Play home, not table setup",
+    "Hand review uses ‘반환’ without explaining it",
+    "Progress: a returning learner sees an empty ‘연습 변화’ card"
+  ],
+  "generated_claude_top_titles": [
+    "Free table crashes when you open ‘컴퓨터는 어떻게 고를까요?’ with 2 or 3 players",
+    "Range read: grade and explanation contradict each other",
+    "Graded play: the action sheet covers your own cards on later streets",
+    "Free table: the raise control starts under the floating tab bar",
+    "Pot counting: the answer buttons look active while they are locked",
+    "Scrolled content runs under the status bar and floating buttons with no material behind them",
+    "‘예시 보기’ inside the concept sheet has no close button",
+    "‘테이블 다시 만들기’ drops you on the Play home, not table setup",
+    "Hand review uses ‘반환’ without explaining it",
+    "Progress: a returning learner sees an empty ‘연습 변화’ card"
+  ],
+  "same_top_order": true,
+  "codex_findings": [
+    "Graded Position questions display the answer order before commitment",
+    "Range evidence is too small to compare individual hands",
+    "Calling ranges are mislabeled as top-strength ranges"
+  ],
+  "claude_top_assessments": 10,
+  "codex_card_notes": 50,
+  "codex_modal_notes": 26,
+  "original_review_badges_unlabeled": 0,
+  "image_file_count": {
+    "source": 1117,
+    "generated": 1117
+  },
+  "full_image_references": 1117,
+  "missing_full_images": [],
+  "missing_anchors": [],
+  "thumbs_same_sequence": true,
+  "heading_order": [
+    "Top findings",
+    "Codex findings",
+    "All flags",
+    "시작 안내 First-run guide"
+  ],
+  "javascript_syntax": {
+    "exit_code": 0,
+    "stderr": ""
+  },
+  "browser_verification": {
+    "status": "blocked",
+    "reason": "Browser Use rejected the file URL because the browser URL policy blocks this action; tool explicitly prohibited workarounds or alternate browser surfaces. Desktop/mobile visual and interaction checks were not performed."
+  },
+  "original_review_badge_count": 21
+}
