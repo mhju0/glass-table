@@ -12,6 +12,12 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   "a near miss is wrong". Mocks: https://claude.ai/artifact/9GBTnNb66MwufA7B19rG7e and
   https://claude.ai/artifact/8aPmc5HftjZcezcpN6TkYs. Items and limits:
   `.scratch/lesson-feedback-2026-10-13/map.md`.
+- "A hand together" is rebuilt on the Play table on branch `feat/guided-hand-on-table`
+  (not merged, not on a phone): one fixed two-player hand with the real action buttons,
+  a coach card (Now / Look at / Think), the coach's pick marked on a button, a dimmed
+  spotlight on the first steps, and a question before giving up. The owner chose "the
+  mix of B and A" from https://claude.ai/artifact/45hN7vNa15ru28nfsHovcR. Notes and
+  limits: `.scratch/guided-hand-2026-10-14/map.md`.
 - Only an exact answer counts as correct (owner, 2026-10-14). A near miss, including an
   EV-loss choice that gave up any value, is wrong for accuracy, the miss streak, the
   lesson result, Records and sound, and is scheduled as a hard review
@@ -132,6 +138,19 @@ Tests:
   fresh install on the iPhone 12 mini, welcome seen, no progress copied
   (`.build/device-install-b25/`).
 - Next: owner tries build 25 and decides whether clearing a lesson needs a pass mark.
+- Owner found "A hand together" stiff (wrapped button text, no freedom, question hard
+  to find) and chose the mix of mocks B and A. Rebuilt `GuidedHandView` on
+  `TableSurface` (new `spotlight` and `ringed`); the quiz, Previous, the "less help"
+  replay and the seeded alternate deals are gone. Unit tests (93) and the four guided-hand UI
+  tests pass (12 mini and iPhone 17 simulators); screens checked in both languages at
+  normal size and samples at AX5. A full 12 mini run was still going when this was
+  written: the only failures so far were the two Play table contrast audits (see Open
+  issues); both pass on iPhone 17 with the table change.
+- A full run of `a469449` on iPhone 17 had 203 passed, then one failure
+  (`FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable`, passed on a re-run),
+  before a second run on the same simulator spoiled the rest. Do not run two test
+  sessions on one simulator.
+- Next: owner looks at the rebuilt hand and says whether to merge and install it.
 
 ### 2026-10-13 — GRAC gameplay recording (separate session)
 
