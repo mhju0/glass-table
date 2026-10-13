@@ -426,10 +426,14 @@ private struct RestoredDrillContextView: View {
                     if let representative = group.cards.first {
                         let completed = ShowdownSpot(hero: spot.hero, villain: spot.villain, board: spot.board + [representative])
                         let result = gradeShowdown(answer: completed.winner, spot: completed, language: language)
-                        DisclosureGroup(result.heroName + language.text(" · \(group.cards.count)장", " · \(group.cards.count) cards")) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(result.heroName + language.text(" · \(group.cards.count)장", " · \(group.cards.count) cards"))
+                                .font(GT.semibold(16)).fixedSize(horizontal: false, vertical: true)
                             riverCards(group.cards, excluded: false)
                             Text(result.whyText).font(GT.body(14)).fixedSize(horizontal: false, vertical: true)
-                        }.foregroundStyle(GT.ink).padding(12).gtPanel()
+                        }
+                        .foregroundStyle(GT.ink).frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12).gtPanel()
                         Button(language.text("대표 카드로 비교", "Compare a representative")) { selectedRiver = representative }
                             .font(GT.semibold(14)).frame(minHeight: 44)
                     }
@@ -438,7 +442,7 @@ private struct RestoredDrillContextView: View {
                 if !spot.excluded.isEmpty {
                     Text(language.text("제외 · 무승부 또는 패배", "Excluded · ties or losses"))
                         .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-                    riverCards(spot.excluded, excluded: true)
+                    riverCards(spot.excluded.sorted(by: BeatScript.byRank), excluded: true)
                 }
                 if let selectedRiver { RiverExplainPanel(spot: spot, river: selectedRiver) }
             } else if concept == .rangeRead, let input,

@@ -76,6 +76,7 @@ public struct OutsOutcomeGroup: Equatable {
 public enum OutsOutcomeGroups {
     /// Rank multisets of the engine-selected best five retain every kicker and
     /// lower pair. Suits remain on candidate cards but do not break poker ties.
+    /// Groups come strongest hero hand first; cards within a group ace first.
     public static func make(hero: [Card], villain: [Card], board: [Card], candidates: [Card]) -> [OutsOutcomeGroup] {
         let known = hero + villain + board
         guard hero.count == 2, villain.count == 2, board.count == 4,
@@ -103,5 +104,15 @@ public enum OutsOutcomeGroups {
             }
         }
         return groups
+            .map { group in
+                OutsOutcomeGroup(cards: group.cards.sorted(by: BeatScript.byRank),
+                                 heroCategory: group.heroCategory, heroRanks: group.heroRanks,
+                                 villainCategory: group.villainCategory, villainRanks: group.villainRanks,
+                                 winner: group.winner)
+            }
+            .sorted { a, b in
+                a.heroCategory != b.heroCategory ? a.heroCategory > b.heroCategory
+                    : a.heroRanks.lexicographicallyPrecedes(b.heroRanks, by: >)
+            }
     }
 }

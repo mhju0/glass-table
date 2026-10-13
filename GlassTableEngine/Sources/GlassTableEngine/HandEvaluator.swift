@@ -182,6 +182,9 @@ func bestKeyOfAny(_ cards: [Card]) -> Int {
 /// Ties are impossible to observe here: two subsets scoring equal are the same hand by
 /// definition (e.g. two identical kickers cannot both be in one seven-card set), so
 /// returning the first maximum is deterministic and correct.
+/// The five come back in reading order: the made part first (quads, trips, pairs, the
+/// higher pair first), then kickers high to low. Straights run from the top card down,
+/// with the ace last in a wheel. Equal ranks keep the order they were passed in.
 /// Accepts 5–7 cards, so a hand can be named at the turn (2 + 4 = six cards) as well
 /// as at showdown. Teaching the street-by-street progression needs both.
 public func bestFiveCards(_ cards: [Card]) -> [Card] {
@@ -193,7 +196,19 @@ public func bestFiveCards(_ cards: [Card]) -> [Card] {
                         cards[combo[3]], cards[combo[4]])
         if key > best { best = key; bestIdx = combo }
     }
-    return bestIdx.map { cards[$0] }
+    let five = bestIdx.map { cards[$0] }
+    var count = [Int](repeating: 0, count: 15)
+    for card in five { count[card.rank] += 1 }
+    let ranks = Set(five.map(\.rank))
+    let isWheel = ranks == [14, 5, 4, 3, 2]
+    return five.enumerated().sorted { a, b in
+        let (x, y) = (a.element, b.element)
+        if count[x.rank] != count[y.rank] { return count[x.rank] > count[y.rank] }
+        if x.rank != y.rank {
+            return (isWheel && x.rank == 14 ? 1 : x.rank) > (isWheel && y.rank == 14 ? 1 : y.rank)
+        }
+        return a.offset < b.offset
+    }.map(\.element)
 }
 
 /// Summarize the best hand from 5–7 cards. `bestHand` requires exactly seven, which

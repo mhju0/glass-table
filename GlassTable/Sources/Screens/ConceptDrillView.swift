@@ -1578,7 +1578,9 @@ private struct CountDrill: View {
                                               "Winning river cards · \(spot.outCount) · Tap a card"))
                 .padding(.top, 12)
             ForEach(Array(OutsOutcomeGroups.make(hero: spot.hero, villain: spot.villain, board: spot.board, candidates: spot.outs).enumerated()), id: \.offset) { _, group in
-                DisclosureGroup(outsGroupTitle(group, spot: spot)) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(outsGroupTitle(group, spot: spot)).font(GT.semibold(16))
+                        .fixedSize(horizontal: false, vertical: true)
                     outsGrid(group.cards, dead: false)
                     if let representative = group.cards.first {
                         let completed = ShowdownSpot(hero: spot.hero, villain: spot.villain, board: spot.board + [representative])
@@ -1586,7 +1588,9 @@ private struct CountDrill: View {
                             .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                }.foregroundStyle(GT.ink).padding(12).gtPanel()
+                }
+                .foregroundStyle(GT.ink).frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12).gtPanel()
                 if let representative = group.cards.first {
                     Button(language.text("대표 카드로 비교", "Compare a representative")) { tappedOut = representative }
                         .font(GT.semibold(14)).frame(minHeight: 44)
@@ -1596,7 +1600,7 @@ private struct CountDrill: View {
                 SectionLabel(text: language.text("제외 · 무승부 또는 패배",
                                                  "Excluded · ties or losses"))
                     .padding(.top, 10)
-                outsGrid(spot.excluded, dead: true)
+                outsGrid(spot.excluded.sorted(by: BeatScript.byRank), dead: true)
             }
             if let tappedOut {
                 RiverExplainPanel(spot: spot, river: tappedOut).padding(.top, 10)

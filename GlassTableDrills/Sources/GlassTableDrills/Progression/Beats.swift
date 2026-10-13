@@ -192,8 +192,9 @@ public enum BeatScript {
         }
 
         beats.append(Beat("이기는 리버 카드", value: "\(s.outCount)장",
-                          detail: "남은 \(unseen)장 중 \(s.outCount)장이에요. 룰 오브 2로 약 "
-                                + "\(Int(s.improvementPct))%예요.",
+                          detail: "남은 \(unseen)장 중 \(s.outCount)장이에요. 한 장을 약 2%로 어림하면 "
+                                + "\(s.outCount) × 2 = 약 \(Int(s.improvementPct))%예요. "
+                                + "이 어림법을 룰 오브 2라고 해요.",
                           focus: .grid(s.outs.sorted(by: byRank))))
         return beats
     }
@@ -708,8 +709,9 @@ public enum BeatScript {
 
     // MARK: helpers
 
-    static func byRank(_ a: Card, _ b: Card) -> Bool {
-        a.rank == b.rank ? a.suit < b.suit : a.rank < b.rank
+    /// Ace first, down to the two; spades first within a rank.
+    public static func byRank(_ a: Card, _ b: Card) -> Bool {
+        a.rank == b.rank ? a.suit > b.suit : a.rank > b.rank
     }
 
     /// Defers to the shared table in CardDisplay so suit names cannot drift between

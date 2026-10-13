@@ -79,7 +79,19 @@ final class BeginnerQuestionChoicesTests: XCTestCase {
         let groups = OutsOutcomeGroups.make(hero: Card.parse("AsAd")!, villain: Card.parse("KsKd")!,
             board: Card.parse("2c4d7h9s")!, candidates: Card.parse("QcQhQs")!)
         XCTAssertEqual(groups.count, 1)
-        XCTAssertEqual(groups.first?.cards, Card.parse("QcQhQs")!)
+        XCTAssertEqual(groups.first?.cards, Card.parse("QsQhQc")!)
         XCTAssertEqual(groups.first?.winner, 0)
+    }
+
+    func testGroupsComeStrongestHandFirstWithCardsAceFirst() {
+        // Hero holds 9h8h on Th 7c 2h 2s: a jack or six makes a straight, a heart a flush.
+        let hero = Card.parse("9h8h")!, villain = Card.parse("AsKd")!, board = Card.parse("Th7c2h2s")!
+        let groups = OutsOutcomeGroups.make(hero: hero, villain: villain, board: board,
+            candidates: countOuts(hero: hero, villain: villain, board: board))
+        XCTAssertEqual(groups.map(\.heroCategory), groups.map(\.heroCategory).sorted(by: >))
+        XCTAssertGreaterThan(Set(groups.map(\.heroCategory)).count, 1)
+        for group in groups {
+            XCTAssertEqual(group.cards.map(\.rank), group.cards.map(\.rank).sorted(by: >))
+        }
     }
 }

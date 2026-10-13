@@ -66,9 +66,9 @@ struct ThreeRegionCardTable: View {
 
     var body: some View {
         let opponentRegion = region(opponentTitle == "상대 카드" ? language.text("상대 카드", "Opponent's cards") : opponentTitle,
-                                    cards: opponent)
+                                    cards: opponent.sorted(by: BeatScript.byRank))
         let heroRegion = region(heroTitle == "내 카드" ? language.text("내 카드", "My cards") : heroTitle,
-                                cards: hero)
+                                cards: hero.sorted(by: BeatScript.byRank))
         return VStack(spacing: 0) {
             if sideBySide && !typeSize.isAccessibilitySize {
                 HStack(alignment: .top, spacing: 12) { heroRegion; opponentRegion }
@@ -873,7 +873,8 @@ struct SecondaryCTAButton: View {
     var body: some View {
         Button(action: action) {
             Text(title).font(GT.semibold(GT.Typography.buttonSize)).foregroundStyle(GT.inkSecondary)
-                .frame(maxWidth: .infinity, minHeight: 50)
+                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, minHeight: 54)
                 .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                             style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)

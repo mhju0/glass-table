@@ -35,25 +35,43 @@ struct LessonCountChoices: View {
 
 struct CompactLessonCue: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let concept: Concept
     @State private var expanded = false
     var body: some View {
-        DisclosureGroup(isExpanded: $expanded) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(lessonCueSentence(concept, language: language))
-                    .font(GT.semibold(15)).foregroundStyle(GT.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(ConceptIntroduction.make(concept, language: language).how)
-                    .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(reduceMotion ? nil : GT.Motion.change) { expanded.toggle() }
+            } label: {
+                HStack(spacing: 10) {
+                    Label(language.text("푸는 방법", "How to work it out"), systemImage: "lightbulb")
+                        .font(GT.semibold(14))
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.down").font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(GT.inkSecondary)
+                        .rotationEffect(.degrees(expanded ? 180 : 0))
+                        .accessibilityHidden(true)
+                }
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .padding(.top, 8)
-        } label: {
-            Label(language.text("푸는 방법", "How to work it out"), systemImage: "lightbulb")
-                .font(GT.semibold(14)).frame(minHeight: 44)
+            .buttonStyle(GTPress())
+            .accessibilityValue(expanded ? language.text("펼침", "Expanded") : language.text("접힘", "Collapsed"))
+            if expanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(lessonCueSentence(concept, language: language))
+                        .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(ConceptIntroduction.make(concept, language: language).how)
+                        .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 4).padding(.bottom, GT.Space.card)
+            }
         }
         .foregroundStyle(GT.ink)
-        .padding(.horizontal, 14).gtPanel()
+        .padding(.horizontal, GT.Space.card).gtPanel()
         .accessibilityIdentifier("contextual-hint-cue")
     }
 }

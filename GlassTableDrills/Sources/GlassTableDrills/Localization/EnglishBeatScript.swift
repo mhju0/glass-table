@@ -78,7 +78,7 @@ enum EnglishBeatScript {
                               focus: .grid(outs)))
         }
         beats.append(Beat("Winning river cards", value: "\(s.outCount) cards",
-                          detail: "\(s.outCount) of \(unseen) unseen cards make you win. The rule of 2 gives about \(Int(s.improvementPct))% for one card to come.",
+                          detail: "\(s.outCount) of \(unseen) unseen cards make you win. Count each one as about 2%: \(s.outCount) × 2 = about \(Int(s.improvementPct))%. This shortcut is called the rule of 2.",
                           focus: .grid(outs)))
         return beats
     }

@@ -123,38 +123,40 @@ struct WalkthroughView: View {
 
     private var navigationActions: some View {
         ActionSheet {
-            if concept == .potMath, isCovered,
-               let value = beat.value, let correct = Int(value.filter(\.isNumber)) {
-                LessonCountChoices(values: BeginnerQuestionChoices.integers(answer: correct, bounds: 0...max(1326, correct + 10), seed: UInt64(index)),
-                                   suffix: language.text("칩", " chips")) { chosen in
-                    workedAnswer = chosen
-                    practiceRevealed = true
-                }.accessibilityIdentifier("walkthrough-pot-check")
-            }
-            if let workedAnswer, let value = beat.value, let correct = Int(value.filter(\.isNumber)), index == Self.practiceIndex(in: beats) {
-                Text(workedAnswer == correct ? language.text("맞아요. 계산을 이어갈 수 있어요.", "Correct. You followed the contributions.")
-                                            : language.text("기여액을 다시 더해 봐요.", "Add the contributions again."))
-                    .font(GT.body(14)).foregroundStyle(GT.ink)
-            }
-            let layout = dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(spacing: 12))
-                : AnyLayout(HStackLayout(spacing: 12))
-            layout {
-                SecondaryCTAButton(title: language.text("이전", "Previous"), action: previousStep)
-                    .disabled(positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)).accessibilityIdentifier("walkthrough-previous")
-                PrimaryCTAButton(title: isCovered && concept != .potMath
-                                 ? language.text("예시 확인", "Check example")
-                                 : isLast ? language.text("예시 마치기", "Finish example")
-                                          : language.text("다음", "Next")) {
-                    if isCovered, concept != .potMath {
-                        withAnimation(reduceMotion ? nil : GT.Motion.change) { practiceRevealed = true }
-                    } else if let step = positionTeachingStep {
-                        positionTeachingStep = step + 1 < orientation.count ? step + 1 : nil
-                    } else if isLast { onFinish() }
-                    else if onStep(index + 1) {
-                        withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 }
-                    }
-                }.disabled(isCovered && concept == .potMath).accessibilityIdentifier("walkthrough-next")
+            VStack(alignment: .leading, spacing: 12) {
+                if concept == .potMath, isCovered,
+                   let value = beat.value, let correct = Int(value.filter(\.isNumber)) {
+                    LessonCountChoices(values: BeginnerQuestionChoices.integers(answer: correct, bounds: 0...max(1326, correct + 10), seed: UInt64(index)),
+                                       suffix: language.text("칩", " chips")) { chosen in
+                        workedAnswer = chosen
+                        practiceRevealed = true
+                    }.accessibilityIdentifier("walkthrough-pot-check")
+                }
+                if let workedAnswer, let value = beat.value, let correct = Int(value.filter(\.isNumber)), index == Self.practiceIndex(in: beats) {
+                    Text(workedAnswer == correct ? language.text("맞아요. 계산을 이어갈 수 있어요.", "Correct. You followed the contributions.")
+                                                : language.text("기여액을 다시 더해 봐요.", "Add the contributions again."))
+                        .font(GT.body(14)).foregroundStyle(GT.ink)
+                }
+                let layout = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(spacing: 12))
+                    : AnyLayout(HStackLayout(spacing: 12))
+                layout {
+                    SecondaryCTAButton(title: language.text("이전", "Previous"), action: previousStep)
+                        .disabled(positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)).accessibilityIdentifier("walkthrough-previous")
+                    PrimaryCTAButton(title: isCovered && concept != .potMath
+                                     ? language.text("예시 확인", "Check example")
+                                     : isLast ? language.text("예시 마치기", "Finish example")
+                                              : language.text("다음", "Next")) {
+                        if isCovered, concept != .potMath {
+                            withAnimation(reduceMotion ? nil : GT.Motion.change) { practiceRevealed = true }
+                        } else if let step = positionTeachingStep {
+                            positionTeachingStep = step + 1 < orientation.count ? step + 1 : nil
+                        } else if isLast { onFinish() }
+                        else if onStep(index + 1) {
+                            withAnimation(reduceMotion ? nil : GT.Motion.change) { index += 1 }
+                        }
+                    }.disabled(isCovered && concept == .potMath).accessibilityIdentifier("walkthrough-next")
+                }
             }
         }
     }

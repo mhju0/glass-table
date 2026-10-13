@@ -40,4 +40,20 @@ final class BestFiveTests: XCTestCase {
                            evaluate7(seven))
         }
     }
+
+    /// The row reads in the order a player compares hands: the made part first, then
+    /// kickers high to low; straights from the top card down, the wheel's ace last.
+    func testBestFiveReadsMostImportantCardFirst() {
+        func ranks(_ text: String) -> [Int] { bestFiveCards(Card.parse(text)!).map(\.rank) }
+        XCTAssertEqual(ranks("Tc3hKd3sQh7c2d"), [3, 3, 13, 12, 10])      // pair, kickers
+        XCTAssertEqual(ranks("4c9hKd4s9sAc2d"), [9, 9, 4, 4, 14])        // two pair, higher first
+        XCTAssertEqual(ranks("7c2h7dKs7sAc3d"), [7, 7, 7, 14, 13])       // trips
+        XCTAssertEqual(ranks("Kc8h8d2sKs8cAd"), [8, 8, 8, 13, 13])       // full house
+        XCTAssertEqual(ranks("5cQhQdQsQc9cAd"), [12, 12, 12, 12, 14])    // quads
+        XCTAssertEqual(ranks("3dAd8dJd6d2cKs"), [14, 11, 8, 6, 3])       // flush
+        XCTAssertEqual(ranks("6c9hTd7s8cAc2d"), [10, 9, 8, 7, 6])        // straight
+        XCTAssertEqual(ranks("3cAh5d2s4cKcQd"), [5, 4, 3, 2, 14])        // wheel
+        XCTAssertEqual(ranks("2c9hJd5sAc7c3d"), [14, 11, 9, 7, 5])       // high card
+        XCTAssertEqual(ranks("5h9h6h8h7hAcAd"), [9, 8, 7, 6, 5])         // straight flush
+    }
 }
