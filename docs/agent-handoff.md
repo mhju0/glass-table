@@ -1,205 +1,64 @@
 # Agent handoff
 
-## Through 2026-09-30 — condensed 2026-10-02
+## Through 2026-10-03 — early delivery summary, condensed 2026-10-06
 
-Full detail: [the 10-01 archive](handoff-archive/2026-10-01-before-direction-a.md), which retains the earlier archive links and all historical entries.
+Full entries and earlier archive links: [early delivery summary](handoff-archive/2026-10-06-early-delivery-summary.md).
 
-- Shipped through 09-30: combined beginner release, four tabs, first-run guide and
-  Hold'em basics; lessons/reveals, accessibility/Bold Text, sheets/spacing;
-  policy/Range Read/locked-choice/Position fixes; full-screen free table replay/help.
-- Open human/release checks: physical VoiceOver, minimum iOS 17, novice comprehension,
-  signed Store/distribution validation, screenshots, age rating/territories,
-  very-large-history save latency, and system permission/notification/share/review
-  flows remain unverified. Enrolment, counsel and submission remain owner work;
-  support/privacy pages are now queued after Direction A.
-- Runtime gaps: iOS 17–18 attached sheets compile but were not observed; the iOS 27
-  watchdog fix removed UIKit window reads from ActionSheet.body and needs the
-  affected phone checked after install. The known AX walkthrough failure on one
-  iPhone 16e simulator was not investigated; CI passed on its device. Live Bold Text
-  changes reach views that redraw; reopening makes them consistent without resetting
-  a hand. Shared table dimensions remain a readability tradeoff.
-- Copy/audit checks: KO.wordJoined does not cover literal Text or Button/Label titles;
-  recheck the reported Position intro leaks before calling them resolved. EV-loss
-  range-grid labels remain about 6 pt; backup export/import is unverified. Empty
-  practice-change content was a fixture artifact. Scrolled-audit screen-wide findings
-  remain unexplained. The uncommitted crawler's Play steps predate the full-screen
-  free table; preserve tools/uxaudit/, UXAuditCrawl.swift and .scratch/uxaudit-codex/.
-- Device reset backup: .build/device-backups/20260924-before-reset/; restore by copying
-  its files back. Do not reset phone progress otherwise. Archive ignored evidence
-  before removing worktrees; proposal evidence is .build/archive/glass-table-proposal-uisweep.
-  .scratch/pot-calculation-redesign/ remains intentionally untracked and unrelated.
+- Early delivery: beginner navigation/lessons/free-table help and Direction A steps 0–8; historical commits, matrices and failed attempts remain in the archive. Delivery spec governs; no single clean full Direction A UI run claimed. Owner approved AX title wrapping and 0.765 pt corner exception.
+- Support PR10 merged as 8e808ca, bilingual Pages support/privacy observed live; signed 1.0(14) installed in place with identical progress bytes. Evidence: docs/verification/2026-10-02-free-table-direction-a.md, support-publication.md, iphone-install.md and docs/reports/2026-10-02-direction-a-delivery.html.
+- Open verification: physical VoiceOver/haptics, minimum iOS17/older runtimes and novice comprehension; signed Store validation/metadata/rating/territories; huge-history save latency; system permission/notification/share/review flows; backup export/import; seat/card readability and attached sheets on iOS17–18.
+- Runtime/copy gaps preserved: iOS27 watchdog affected-phone check, unexplained iPhone16e AX walkthrough failure, live Bold Text redraw behavior, literal-text KO.wordJoined/Position intro checks, tiny EV-loss grid labels, unexplained scrolled-audit frames, queued serial-cache cancellation and unseeded PotMath question identity. No product cold-launch fix claimed. Outs/Math level2 and fast table deferred; retained 베팅 strings documented in step8. Later entries govern any subsequently resolved issue.
+- Preserve untracked crawler/tools/.scratch and unrelated pot-calculation work. Device backup: .build/device-backups/20260924-before-reset/; no phone reset. Archive ignored evidence before deleting worktrees (proposal sweep archive kept).
+- GRAC actual Release1.0(14) video f3bb670,404s at docs/grac-submission/2026-10-03/; format/size/simulator acceptance and statutory Annex2(8) radio remain unresolved. No upload/payment/submission; enrolment/counsel/submission remain owner work.
 
-## 2026-10-01 — Direction A steps 0–4, condensed 2026-10-04
+## 2026-10-03–04 — Friendly/casual build 15, condensed 2026-10-06
 
-Full entries: [early checkpoints](handoff-archive/2026-10-01-direction-a-early-checkpoints.md)
-and [steps 2–4](handoff-archive/2026-10-02-direction-a-steps-2-to-4.md).
+Full entries: [friendly/casual checkpoints](handoff-archive/2026-10-06-friendly-casual-checkpoints.md).
 
-- feat/free-table-direction-a from 33e5384: step 0 6dc95b6, step 1 spacing 22bb963,
-  step 2 a52b094 (paper hero, clockwise seats, fixed cards), step 3 dd348cb (three
-  fixed slots, replay prices, stable dock), step 4 3f6b61b (gold commit, presets,
-  press/hold, AX amount scrolling). The delivery spec supersedes exploration pages.
-  Owner approved wrapping AX titles and native corners with a 0.765 pt exception
-  (spec §13). Measurements and failed attempts: .build/direction-a/step2…step4/report.md.
-- Still open: physical haptics, VoiceOver and older runtimes unverified; seat heights
-  and physical readability remain a tradeoff; no product cold-launch fix claimed;
-  Outs/Math level 2 and fast table deferred.
+- D46 sets casual mainstream learning. Local feat/friendly-casual was not pushed.
+  Four tracks plus Go deeper; plain titles lead, optional poker terms remain.
+  Levels reuse placement.selfReport and alter suggestions/help, not grading.
+- Free table: no empty seats, 40 chips and 10 hands, casual opponents isolated from
+  seeded archetypes, shared beginner-chart review/hint and bluff callouts. Hint
+  earns no FSRS credit. River missed draws now count as nothing in PracticeHandCoach.
+- Session format 2 saves three questions; first guided answer is helped. A perfect
+  unaided run still establishes proficiency. Format 1 loads; hidden lesson records
+  persist. lessonTrend is optional, range-checked ±9, no schema bump; suggestions
+  can adapt without marking lessons done. Preserve these persistence boundaries.
+- Simple questions change asking only; store re-grades saved inputs. Hidden estimate
+  intervals stay in reveal bytes but interval:nil avoids calibration credit.
+  Plain seat/action terms and Go deeper explanations added. Position AX uses a
+  sentence; answers/terms show action order. TodayView remains unused historical code.
+- Release guard fixed via presentationTable; pre-fix clean suite Drills385+50/app69+38/UI140 in friendly-ui2.xcresult, earlier limits in archive. Signed1.0(15) installed in place on iPhone12mini, byte-identical progress; locked phone was not observed.
+- Unresolved: physical haptics/VoiceOver/older runtimes and novice comprehension;
+  remaining free raise 2BB presets and graded range/equity jargon. See later phone
+  crawl entry for subsequent observation, not an assumption that these closed.
+- Preserve untracked crawler/tools. Saved English simulator setting breaks crawl;
+  run.sh clears it. Name individual methods (class-only filter ran zero tests).
+  No final single-pass crawler run; Learn passed before recorder changes and was
+  not rerun. Range opposite-grade retry is a crawler limitation; share closes by swipe.
+  Owner decision to commit crawler remains open.
 
-## 2026-10-02 — Direction A steps 5–8, support pages, phone install, condensed 2026-10-03
+## 2026-10-05 to 2026-10-13 — builds 15 to 22 and audit follow-ups, condensed 2026-10-13
 
-Full entries: [steps 5–8, support and phone archive](handoff-archive/2026-10-03-direction-a-steps-5-to-8-support-phone.md).
+Full entries: [build 15 to audit follow-ups](handoff-archive/2026-10-13-build-15-to-audit-followups.md).
 
-- Steps 5–8 committed locally (step 5 is 5513364), never pushed: flipping dock back
-  (Math / This hand / Rules), supervised public replay with chip and card motion,
-  SwiftUI sensory feedback, app-wide inset/radius/font corrections, then the full
-  verification pass. All 134 tracked UI methods have a passing outcome with failure
-  history kept, not one green full run. Evidence: .build/direction-a/step5…step7/
-  report.md and docs/verification/2026-10-02-free-table-direction-a.md.
-- Support: MJ Apps Support / mj.apps.support@gmail.com in Settings, bilingual policy,
-  docs/support.html; PR 10 merged to main as 8e808ca, Pages live at
-  https://mhju0.github.io/glass-table/support.html and privacy-policy.html.
-  See docs/verification/2026-10-02-support-publication.md.
-- Signed Release 1.0(14) installed in place on the owner's iPhone 12 mini; progress
-  bytes identical before and after. Ledger: docs/verification/2026-10-02-iphone-install.md.
-  Delivery report: docs/reports/2026-10-02-direction-a-delivery.html.
-- Still open: physical haptics, VoiceOver and older-runtime checks on a real phone;
-  no dedicated queued-cancellation unit for the serial cache; unseeded PotMath
-  generated-question identity not established; no product cold-launch fix claimed;
-  Math outs level 2 and fast table deferred; 14 retained 베팅 strings listed in the
-  step 8 report.
+- Delivered: build 15 crawl and proposal reports; native refinement and calm encouragement (build 16); device feedback from the iPhone 13 mini (28 comments) through build 18; beginner completion (build 19); experience-first opening (build 20); numerical audit and N01–N07 corrections; build 21; green brand welcome (build 22). Build history: `docs/build-history.md`.
+- Phones: iPhone 12 mini has a fresh signed 1.0 (22); iPhone 13 mini has build 18. Every reinstall starts with fresh data and no phone progress is copied (AGENTS.md).
+- Workspace: sibling worktrees archived at `.archive/2026-10-11-workspace-cleanup/` (`docs/workspace-cleanup.md`); develop only in this folder.
+- Audit follow-ups (2026-10-11 to 13): every item decided by the owner and implemented on `feat/audit-followups`, pushed to `origin`. Decisions and evidence: `.scratch/audit-followups-2026-10-11/map.md` and `issues/`. Report: https://claude.ai/artifact/JUwpSsMWHvXqjEsmLeHADQ; example wording: https://claude.ai/artifact/Xd6qk866FFQJCbz9h5J9sH. Owner read all 18 written examples and kept `bb` in examples 8, 15 and 18.
+- One corner radius: `GT.Radius.control` (10) for seats, felt, bottom panel and controls. Nothing in the app's own shapes follows the display curve; the owner asked for that explicitly (`89a55c3`). Pills, playing cards and `GT.Radius.panel` cards unchanged.
+- Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the iOS 27 beta). Before a UI run after a rebuild, `xcrun simctl uninstall <device> com.michaelju.glasstable.GlassTableUITests.xctrunner`, or the simulator can run an old test bundle.
 
-## 2026-10-03 — GRAC gameplay video, condensed
+Open, carried forward:
 
-- Owner approved XCTest interaction; real Release 1.0(14) at f3bb670 recorded in an
-  isolated simulator, no debug fixtures or product changes. Final local MP4:
-  docs/grac-submission/2026-10-03/GlassTable_GRAC_1.0_14.mp4 (404 s, 1206x2622,
-  H.264, no audio) with Korean optional descriptions and a scene timeline. Tooling
-  is under .build/grac-video-2026-10-03.
-- Open: site format/size and simulator acceptance unconfirmed; no upload, payment
-  or submission done; the first statutory compliance radio (whether an offline App
-  Store app falls under decree Annex 2(8)) is unresolved.
-
-## 2026-10-03 — Friendly/casual redesign: built on feat/friendly-casual (not pushed)
-
-- Goal changed from "become a pro" to casual, mainstream, heavily guided (D46 in
-  docs/decisions.md; CONTEXT.md and the product brief carry it). Proposal with
-  before/after mockups: https://claude.ai/artifact/QnD5ia4AoS8wj44R2eznkA. Owner
-  approved every recommendation and delegated all seven decisions.
-- Free table: no empty seat at 2–3 players, quick game default (40 chips AND 10
-  hands; simulation showed stack size alone cannot give five minutes), casual
-  "Just for fun" opponents (Mina/Joon/Sora; `.casual` is left out of
-  `Archetype.allCases` so seeded drills do not change), full-screen step-by-step
-  hand review with beginner-chart verdicts and bluff callouts, "Hint" tab with an
-  opt-in "What would the beginner chart do?" (same rules as the review; no FSRS
-  credit). The dock back was kept rather than a new sheet so the pill stays one word.
-- Learning structure: four tracks plus "Go deeper" (LearningTrack.swift), poker-term
-  tags, a heads-up and never a lock when skipping ahead, "try the lesson before"
-  after missing more than half, illustrated skill cards, milestone card names the
-  track. Hidden lessons keep their records but are not offered.
-- Lesson shape, session format 2: three saved questions; after the guided question
-  the first is marked helped (`helpOrdinal = 0`), so it is practice, not a grade.
-  "Proficient" still needs a perfect unaided run, so it comes on a second visit.
-  Format-1 sessions still load; the validator accepts formats 1...2. Track
-  challenges mix only their own track's skills.
-- Levels: the level IS `placement.selfReport` (no new type). Set by the first-launch
-  check or by the "My level" chip on Learn, which writes a skipped placement. It
-  moves only the suggestion (`Curriculum.suggestedLesson` starts at the check result
-  or the level's first lesson, then returns to earlier ones), the default help, and
-  which words lead. New optional `lessonTrend` in progression.json (no schema bump,
-  old files read nil, range-checked ±9): two rough lessons in a row put the hint
-  back on question one even on a revisit; three clean ones offer "Skip ahead with a
-  quick challenge", and a passed track challenge drops that track from suggestions
-  without marking its lessons done. "Plays sometimes" answers question one alone.
-- "Use poker terms" (Settings, `glassTable.pokerTerms` in UserDefaults, unset means
-  the level decides): swaps which of plain title / term leads in lesson rows and
-  skill cards, and shows seat codes instead of early/middle/late/blinds.
-- Simpler questions below "Plays sometimes" (`\.simpleQuestions`). Decision: graders,
-  generators and saved input types are untouched, because the store re-grades saved
-  answers on load; only the asking changed. Position groups seats and marks "You" /
-  A / B (codes appear in the reveal); opening hands show always / play late / fold
-  from `RFIChart.group` with the chart behind "See the full chart", same for
-  defend (the hand's own verdict card stays visible); estimates hide the 90% range
-  but still save the default-width one, because the store rejects an estimate
-  without it, so those answers count in the Records calibration figure; range read asks
-  strong / decent / anything first, then the existing fine controls; action read
-  asks in words in steps of ten ("Often · 7 in 10"), which keeps every truth within
-  the on-target band of some choice; pot odds leads with "1 in 4" and says chips.
-  `GT_DEMO_LEVEL` shows a level's screens without writing a placement.
-- Verified first pass: Drills 384 + 49, app units 67, full UI run 131 of 139, then the eight
-  failures fixed and rerun green (not one green full run). GT_TEST_PATH_CURRENT_NODE
-  now leaves the target track's challenge uncleared so the lesson is still suggested.
-- Screens inspected after the fixes: Korean light and English dark, large and AX5,
-  for Learn, starting check, All lessons, Settings, table setup, summary, milestone,
-  first launch and the nine drill frames (.uisweep/20261003-203051-H0x60G,
-  -203847-LtopIw, -204807-gZSj62). The Position seat strip (group names, "You")
-  stays about 10 pt at AX5; the question sentence carries the seat in words.
-- Second pass, same day: drill headers use plain names until poker terms are on
-  (자리와 순서 / 이길 확률 / 먼저 올리기 / 상대 패 읽기 / 행동 읽기 / 올린 상대에 맞서기;
-  English "Facing a raise"). Drills-package explanations and range-read / action-read
-  lines now lead with `Position.plainName` and keep the term beside it ("빅 블라인드
-  3개(3bb)", "다시 올리고(3벳)") for every level, per the glossary's bilingual-first
-  rule. Hidden-range estimates no longer write a calibration record: the reveal
-  bytes keep the range (the store needs it), the `interval:` argument is nil.
-  At accessibility sizes the Position strip becomes a sentence
-  (`position-seat-sentence`) before the answer; after the answer, and with poker
-  terms on, it is still the capped one-row strip.
-  Verified on that code: Drills 385 + 49, and one clean full run of 69 app units
-  and 139 UI tests (.build/friendly-ui.xcresult).
-- Hand-review fix: a draw that missed by the river now counts as nothing in
-  `PracticeHandCoach` (review, hint and the bluff callout share it); before, the
-  river step still advised "call a draw when cheap" and called a busted-draw bet
-  real. Failing test first; Drills 385 + 50, app units 69 and
-  FreeTableBackFlowTests pass after it. The full UI suite was not rerun for this.
-- Open: real-phone check of all of the above (see the 10-04 entry for what closed).
-
-## 2026-10-04 — Friendly/casual leftovers, build 15 on the phone (not pushed)
-
-- Today: nothing to translate. `TodayView` is never created and the "today" demo
-  tab opens Learn (RootView.swift). The file is unused old code, left in place.
-- "Go deeper" lessons below "Plays sometimes": plain headers (가능한 두 장 조합 /
-  핸드 줄임 표기 / 콜의 평균 손익), questions say "두 장 조합(콤보)" and "평균 몇 bb…
-  (EV)", the EV drill says "내가 이길 확률" and explains 1bb. Graders untouched.
-- Table text: `TableEvent.text(in:plain:)` (default unchanged, so saved history is the
-  same) names the seat in words and says "3bb로 먼저 올림" / "다시 올림(3벳)"; the graded
-  table uses it until poker terms are on. Free table says 스몰/빅 블라인드 +N and
-  "빅 블라인드 N개". Still codes: the free-table raise presets ("2BB"), and the graded
-  table's "레인지 160콤보" and "필요 에퀴티" lines.
-- Position at accessibility sizes: the seat sentence now also shows the action
-  order after the answer and with poker terms on (UI test added; it was written
-  after the change, so it was not seen failing first).
-- Release build was broken on this branch: FreeTableView used the DEBUG-only
-  `demoTable` outside its guard. Now `presentationTable`. Debug behaviour is the same.
-- Verified: Drills 385 + 50; one clean full run of 69 + 38 app units and 140 UI tests
-  (.build/friendly-ui2.xcresult), taken before the one-line Release fix and the
-  build bump. Signed Release 1.0 (15) installed in place on the iPhone 12 mini;
-  progression.json byte-identical before and after (.build/friendly-casual/iphone-install).
-  The phone was locked, so the app was not launched or looked at on it.
-- UXAuditCrawl.swift and tools/uxaudit/report.py (still untracked, the owner has not
-  said to commit them) now follow the new app: level question at first launch, the
-  starting check from Settings, the full-screen free table by identifier, five
-  tracks instead of nine units, "완료" on the summary. A saved English setting on a
-  simulator makes the whole crawl miss; tools/uxaudit/run.sh clears it, a bare
-  xcodebuild does not. `-only-testing:…/UXAuditCrawl` alone ran zero tests here;
-  name the methods.
-- Crawler result (sim, Korean, normal text): every flow now runs to the end —
-  test01, 03, 04, 05, 06 and test10–14 pass on the final code or on a run after
-  which only other flows' code changed; test02Learn passed once, before the later
-  recorder edits, and was not rerun. No full single-pass run of all flows on the
-  final file. Only remaining notes: range-read questions (u4-rangeRead-b,
-  u4-boss-b) where the second attempt cannot produce the opposite grade — a
-  crawler limit, not an app fault. Settings share sheet is still closed by swipe.
-- Next: owner looks at build 15 on the phone; decide whether to commit the crawler.
-
-## 2026-10-05 — Clean phone install, full crawl report for build 15
-
-- Owner asked for a clean start: app removed and build 15 reinstalled on the
-  iPhone 12 mini, progress gone on purpose. All Mac-side progress copies deleted
-  at the owner's request; do not pull progress off the phone unless asked.
-- Full crawler pass on three iPhone 12 mini simulators (two created for this:
-  "GT audit mini B/C"), one run, 11 tests, 0 failures, 51 flows / 931 screenshots.
-  Report: `.build/uxaudit-report-b15/index.html` (built without the stale
-  `tools/uxaudit/notes.json`). Korean, light, default text only.
-- Unverified candidates from the report's automatic flags: short tap heights on
-  ‘설명 접기’ (24pt), ‘안내 건너뛰기’ (17pt), ‘계산 보기’ (26pt), ‘전체 차트 보기’
-  (28pt), ‘크게 보고 핸드 찾기’ (17pt); unlabelled buttons on free-table setup.
-  These are accessibility frames, not proven hit areas.
-- Next: owner scrolls the report and marks what to fix; crawler still uncommitted.
+- Human and runtime checks never done: real novice comprehension, physical VoiceOver and haptics, minimum iOS 17 runtime, AX5 full scroll reachability on every route, distribution.
+- Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity against the 0.5/2bb thresholds is not bounded; two latent weighted/continuation risks (`docs/audits/2026-10-11-numerical/`).
+- Build 15 crawl candidates never verified: short tap heights on ‘설명 접기’, ‘안내 건너뛰기’, ‘계산 보기’, ‘전체 차트 보기’, ‘크게 보고 핸드 찾기’; unlabelled buttons on free-table setup. Free-table review once paired 33% with "four wins in ten"; not re-checked.
+- Proposed, not approved or made: README drift fix (four tracks vs nine units, question counts), topic-led summary, recent-topic Records, post-commit best-five explanation; versioned integrity plan for archive/format/session-ending persistence.
+- From the 2026-10-11 audit fix pass, not confirmed closed: free-table dock/seat layout at 2–3 players. Check `map.md` before reopening.
+- `AccessibilityAuditTests/testPlayTable` failed overnight on 2026-10-13 on iPhone 12 mini (including on pre-corner code) and passed there the next afternoon; unexplained. On iPhone 17 it failed until `89a55c3` and passed 4 of 4 after.
+- Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17), `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes`.
+- Seen, not changed: at AX5 in English the "Decision help" pill is clipped in the raise header; the Korean AX5 raise title is cut inside its scroll box. iOS 27 beta only: Settings language switch does not re-render the screen.
+- Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`.
+- Last full UI suite (both phones, 238 tests, 11 skipped, 1 failed: the contrast audit) ran at `9a1822f`. Later commits `7e9ac4b`, `89a55c3` were checked with unit tests and targeted UI tests only.
