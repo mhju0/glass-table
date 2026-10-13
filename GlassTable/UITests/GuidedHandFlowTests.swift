@@ -19,49 +19,34 @@ final class GuidedHandFlowTests: XCTestCase {
             XCTAssertTrue(button.isHittable)
             button.tap()
         }
-        func page(_ value: Int) {
-            XCTAssertTrue(app.staticTexts["guided-hand-page-\(value)"].waitForExistence(timeout: 5))
+        func stage(_ name: String) {
+            XCTAssertTrue(app.staticTexts["guided-hand-stage-\(name)"].waitForExistence(timeout: 5), name)
         }
         tap("learn-guided-hand")
-        page(0)
-        tap("guided-hand-next")
-        page(1)
-        // A wrong answer: both choices stay exactly where they were, the pick and the
-        // right answer are marked in words, and the verdict names the miss.
-        let wrongChoice = app.buttons["guided-hand-choice-2"], rightChoice = app.buttons["guided-hand-choice-1"]
-        XCTAssertFalse(app.buttons["guided-hand-next"].isEnabled)
-        let framesBefore = [wrongChoice.frame, rightChoice.frame]
-        tap("guided-hand-choice-2")
-        let feedback = app.staticTexts["guided-hand-feedback"]
-        XCTAssertTrue(feedback.waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["lesson-answer-verdict"].label, korean ? "아쉬워요" : "Not quite")
-        XCTAssertEqual(wrongChoice.value as? String, korean ? "선택한 답, 오답" : "Your answer, incorrect")
-        XCTAssertEqual(rightChoice.value as? String, korean ? "정답" : "Correct answer")
-        if !ax { XCTAssertEqual([wrongChoice.frame, rightChoice.frame], framesBefore) }
-        let wrongFeedback = feedback.label
-        tap("guided-hand-next")
-        tap("guided-hand-previous")
-        XCTAssertEqual(feedback.label, wrongFeedback)
-        tap("guided-hand-next")
-        for (pageIndex, answer) in [(2,0),(3,2),(4,0),(5,0)] {
-            page(pageIndex)
-            tap("guided-hand-choice-\(answer)")
-            tap("guided-hand-next")
-        }
-        page(6)
-        tap("guided-hand-less-help")
-        page(0)
-        tap("guided-hand-next")
-        for (pageIndex, answer) in [(1,1),(2,0),(3,2),(4,0),(5,1)] {
-            page(pageIndex)
-            tap("guided-hand-choice-\(answer)")
-            tap("guided-hand-next")
-        }
-        page(6)
+        stage("seats"); tap("guided-hand-next")
+        stage("blinds"); tap("guided-hand-next")
+        stage("preflop")
+        // Giving up asks first and can be taken back.
+        tap("guided-hand-fold")
+        XCTAssertTrue(app.staticTexts["guided-hand-fold-question"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["guided-hand-call"].exists)
+        tap("guided-hand-fold-cancel")
+        tap("guided-hand-call")
+        stage("flop")
+        XCTAssertFalse(app.buttons["guided-hand-fold"].exists, "Nothing to match, so giving up is not offered.")
+        tap("guided-hand-raise")
+        stage("turn"); tap("guided-hand-call")
+        stage("river"); tap("guided-hand-check")
+        stage("showdown"); tap("guided-hand-next")
+        stage("summary")
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = korean ? "guided-hand-ko-ax5-review" : "guided-hand-en-review"
         screenshot.lifetime = .keepAlways
         add(screenshot)
+        tap("guided-hand-replay")
+        stage("seats"); tap("guided-hand-next"); tap("guided-hand-next")
+        tap("guided-hand-fold"); tap("guided-hand-fold-confirm")
+        stage("summary")
         tap("guided-hand-play")
         XCTAssertTrue(app.tabBars.buttons[korean ? "플레이" : "Play"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.tabBars.buttons[korean ? "플레이" : "Play"].isSelected)
@@ -176,7 +161,7 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
         add(attachment)
         tap(app.buttons[chooseHand ? "guided-hand-invitation-start" : "guided-hand-invitation-continue"])
         if chooseHand {
-            XCTAssertTrue(app.staticTexts["guided-hand-page-0"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.staticTexts["guided-hand-stage-seats"].waitForExistence(timeout: 10))
             tap(app.buttons["guided-hand-close"])
             XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 10))
         } else {

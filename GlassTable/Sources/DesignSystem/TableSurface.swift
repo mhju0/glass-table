@@ -39,6 +39,9 @@ struct TableCenter {
     var potSpoken: String?
 }
 
+/// A part of the table a guide can point at.
+enum TableSpot: Hashable { case seat(String), chips, board, pot }
+
 /// The one table used wherever seats and actions matter: pot counting and Play.
 ///
 /// Geometry is fixed so it reads as one object in every mode: a 3pt rail at a 32pt
@@ -65,9 +68,24 @@ struct TableSurface: View {
     var freeBoard: [String] = []
     /// The free table lets the felt take the height above its dock, with a larger board.
     var fillsHeight = false
+    /// A guided spotlight: every part not named here is dimmed. `nil` dims nothing.
+    var spotlight: Set<TableSpot>?
+    /// Parts drawn with a gold outline, to say "look here" without dimming the rest.
+    var ringed: Set<TableSpot> = []
     private var boardHeight: CGFloat { fillsHeight ? 46 : TableCard.height }
     @State private var freeAnchors: [FreeTableFlight.Anchor: CGPoint] = [:]
     private var reduceMotion: Bool { freeReduceMotion ?? systemReduceMotion }
+
+    private func dim(_ spot: TableSpot) -> Double {
+        spotlight.map { $0.contains(spot) ? 1 : 0.28 } ?? 1
+    }
+
+    @ViewBuilder private func ring(_ spot: TableSpot) -> some View {
+        if ringed.contains(spot) {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(GT.tableSeatActive, lineWidth: 2).padding(-6)
+        }
+    }
 
     static let radius: CGFloat = GT.Radius.control
     static let rail: CGFloat = 3
@@ -125,7 +143,9 @@ struct TableSurface: View {
             ForEach(seats) { seat in
                 VStack(spacing: 4) {
                     seatView(seat, place: nil)
-                    if let committed = seat.committed, committed > 0 { committedLabel(committed) }
+                    if let committed = seat.committed, committed > 0 {
+                        committedLabel(committed).opacity(dim(.chips))
+                    }
                 }
             }
             centerGroup.frame(maxWidth: .infinity).padding(.vertical, 8)
@@ -255,10 +275,12 @@ struct TableSurface: View {
             shape.strokeBorder(seat.isActive ? GT.tableSeatActive
                 : seat.isHero ? Color(hex: 0xE5DCC8) : GT.tableSeatLine, lineWidth: 2)
         }
+        .opacity(dim(.seat(seat.id)))
         .overlay(alignment: place == .bottomLeading || place == .bottomTrailing ? .top : .bottom) {
             if !typeSize.isAccessibilitySize, let committed = seat.committed, committed > 0 {
                 committedLabel(committed)
                 .offset(y: place == .bottomLeading || place == .bottomTrailing ? -20 : 20)
+                .opacity(dim(.chips))
                 .accessibilityHidden(true)
             }
         }
@@ -423,6 +445,8 @@ struct TableSurface: View {
                     }
                 }
                 .frame(height: boardHeight)
+                .overlay { ring(.board) }
+                .opacity(dim(.board))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(center.board.isEmpty
                     ? language.text("아직 공용 카드가 없어요", "No shared cards yet")
@@ -440,6 +464,8 @@ struct TableSurface: View {
                     .contentTransition(.numericText())
             }
             .background { anchorProbe(.pot) }
+            .overlay { ring(.pot) }
+            .opacity(dim(.pot))
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(center.potSpoken
                 ?? center.potTotal.map { language.text("팟 \($0)", "Pot, \($0)") }
