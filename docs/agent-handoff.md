@@ -7,7 +7,11 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 ## Current state (2026-10-13)
 
-- `main` is the only branch, local and on `origin`, and both hold all work through the
+- Branch `feat/hand-rank-list` (pushed, not merged, not on a phone): the hand rank page
+  shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles (owner chose
+  mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy). Next: owner decides on
+  merging to `main` and a build 24 install.
+- `main` is the only other branch, local and on `origin`, and both hold all work through the
   audit follow-ups (owner approved that one push of `main` on 2026-10-13; the standing
   rule is still to work on a feature branch and not push `main` unasked). Old branches
   were deleted; their history is in `main` or in the bundle under `.archive/`.
