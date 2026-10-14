@@ -986,7 +986,9 @@ struct FreeTableView: View {
             PrimaryCTAButton(title: gameOver ? language.text("새 게임", "New game")
                                              : language.text("다음 핸드", "Next hand"), action: onNext)
                 .accessibilityIdentifier(gameOver ? "free-new-game" : "free-next-hand")
-            HStack(spacing: 8) {
+            let layout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+            layout {
                 SecondaryCTAButton(title: language.text("핸드 돌아보기", "Review this hand"), action: onReview)
                     .accessibilityIdentifier("free-review")
                 if !gameOver {
