@@ -46,12 +46,35 @@ public struct ConceptRecord: Codable, Equatable, Sendable {
 /// Per-node completion. Unlock state is *derived* from the curriculum plus these
 /// flags rather than stored, so there is no second source of truth to drift.
 public struct NodeRecord: Codable, Equatable, Sendable {
+    /// Passed: the pass mark was reached once (`PassMark`). Lessons cleared before the
+    /// pass mark existed keep the flag; it is never taken back.
     public var cleared: Bool
     public var clearedAt: Date?
+    /// Finished sessions, passed or not.
     public var attempts: Int
+    /// The best finished session. Absent in files saved before the pass mark.
+    public var best: LessonScore?
 
-    public init(cleared: Bool = false, clearedAt: Date? = nil, attempts: Int = 0) {
+    public init(cleared: Bool = false, clearedAt: Date? = nil, attempts: Int = 0,
+                best: LessonScore? = nil) {
         self.cleared = cleared; self.clearedAt = clearedAt; self.attempts = attempts
+        self.best = best
+    }
+
+    /// Keeps the higher share of right answers; a tie keeps the earlier score.
+    public mutating func recordScore(_ score: LessonScore) {
+        guard let best else { self.best = score; return }
+        if score.right * best.questions > best.right * score.questions { self.best = score }
+    }
+}
+
+/// Questions answered alone and exactly right, out of every question in a session.
+public struct LessonScore: Codable, Equatable, Sendable {
+    public var right: Int
+    public var questions: Int
+
+    public init(right: Int, questions: Int) {
+        self.right = right; self.questions = questions
     }
 }
 

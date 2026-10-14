@@ -871,3 +871,27 @@ The owner approved all recommendations and delegated the seven open decisions:
 
 Layout rule adopted with (a): items sharing a row align on centre when one is a
 control and on first baseline when both are text.
+
+### D47 · A lesson is passed at a pass mark, not on its last answer
+**Status: ACTIVE — approved by the owner 2026-10-14.**
+
+A lesson used to clear once every question was answered, right or wrong. The owner
+asked for a pass mark and took all four recommendations from
+[the mock](https://claude.ai/artifact/DyrNHkBBp9sUnUAUBQjdwr):
+
+1. **Mark.** Two in three of a session's questions, rounded up, answered alone and
+   exactly right: 2 of 3 for a lesson, 4 of 6 for a challenge (`PassMark`). An answer
+   given with the hint never counts as right.
+2. **Not passed.** The result screen offers "Try again with new cards", "Read the
+   explanation again", "Go on to the next lesson anyway" and Done. The easier-lesson
+   suggestion still appears when more than half were wrong.
+3. **Old clears.** A lesson cleared under the old rule stays cleared, and a clear is
+   never taken back by a later run.
+4. **Path.** A lesson tried but not passed shows "Not passed · best R/Q" and no check.
+   The best score is an optional `NodeRecord.best`, so older files read unchanged.
+
+Every answer still counts in Records, accuracy and reviews; proficiency still needs a
+perfect lesson; every lesson stays open; Records says "passed" for "completed". This
+amends the completion-led summary of D08
+(`specs/2026-10-06-approved-native-ux-delivery.md`): the result now shows a score and
+which question had the hint, because the pass mark depends on both.

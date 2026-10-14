@@ -111,8 +111,8 @@ struct PathView: View {
                 Spacer(minLength: 8)
                 Text("\(cleared)/\(track.lessons.count)")
                     .font(GT.semibold(13).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
-                    .accessibilityLabel(language.text("\(track.lessons.count)개 중 \(cleared)개 완료",
-                                                      "\(cleared) of \(track.lessons.count) completed"))
+                    .accessibilityLabel(language.text("\(track.lessons.count)개 중 \(cleared)개 통과",
+                                                      "\(cleared) of \(track.lessons.count) passed"))
             }
             Text(track.id.blurb(in: language)).font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -157,6 +157,11 @@ struct PathView: View {
                 let tag = termsLead ? $0.tag : language.text("용어: \($0.tag)", "Term: \($0.tag)")
                 return startsTrack ? language.text("여기서 시작 · \(tag)", "Start here · \(tag)") : tag
             }
+        // Tried but under the pass mark: no check, and the best run so far.
+        let notPassed = status == .cleared ? nil : model.state.nodes[node.id]?.best.map {
+            language.text("통과 전 · 최고 \($0.right)/\($0.questions)",
+                          "Not passed · best \($0.right)/\($0.questions)")
+        }
         return Button {
             if status != .cleared, !Curriculum.unfinishedGroundwork(for: node, in: model.state).isEmpty {
                 early = node
@@ -171,6 +176,9 @@ struct PathView: View {
                         .foregroundStyle(GT.onFelt)
                     if let tag {
                         Text(tag).font(GT.semibold(12)).foregroundStyle(GT.mint)
+                    }
+                    if let notPassed {
+                        Text(notPassed).font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                     }
                     Text(learningNodeDescription(node, language: language))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
@@ -192,6 +200,7 @@ struct PathView: View {
         .buttonStyle(GTPress())
         .id(node.id)
         .accessibilityLabel("\(title), \(tag.map { $0 + ", " } ?? "")\(statusLabel(status))"
+                            + (notPassed.map { ", \($0)" } ?? "")
                             + (practiceLabel(node).map { ", \($0)" } ?? ""))
         .accessibilityIdentifier("lesson-\(node.id)")
     }
@@ -218,7 +227,7 @@ struct PathView: View {
 
     private func statusLabel(_ status: NodeStatus) -> String {
         switch status {
-        case .cleared: return language.text("완료", "Completed")
+        case .cleared: return language.text("통과", "Passed")
         case .available: return language.text("추천 순서", "Suggested next")
         case .locked: return language.text("언제든 시작", "Available anytime")
         }

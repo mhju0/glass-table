@@ -253,6 +253,8 @@ public struct ProgressionStore {
 
     private static func validate(_ record: NodeRecord) -> Bool {
         validCount(record.attempts) && validDate(record.clearedAt)
+            && record.best.map { validCount($0.right) && $0.questions > 0
+                && $0.right <= $0.questions && $0.questions <= 100 } ?? true
     }
 
     private static func validate(_ record: StreakRecord) -> Bool {

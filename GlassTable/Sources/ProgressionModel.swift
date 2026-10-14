@@ -266,7 +266,7 @@ final class ProgressionModel {
         }
     }
 
-    /// Marks a fully answered node cleared, then evaluates each concept against only
+    /// Records a fully answered node's result (cleared at the pass mark), then evaluates each concept against only
     /// its own current-session evidence. Missing or extra evidence changes nothing.
     @discardableResult
     func completeNode(_ node: CurriculumNode, scheduled: [Concept],
@@ -275,11 +275,8 @@ final class ProgressionModel {
               SessionEvidence.validates(evidence, scheduled: scheduled)
         else { return false }
         return commit { candidate in
-        var record = candidate.nodes[node.id] ?? NodeRecord()
-        record.attempts += 1
-        record.cleared = true
-        if record.clearedAt == nil { record.clearedAt = now }
-        candidate.nodes[node.id] = record
+        Self.recordNodeResult(&candidate, node: node, right: evidence.values.reduce(0) { $0 + $1.spotOn },
+                              questions: scheduled.count, now: now)
 
         let viaBoss: Bool
         if case .boss = node.kind { viaBoss = true } else { viaBoss = false }
@@ -771,11 +768,9 @@ final class ProgressionModel {
                 }
                 if Curriculum.isValidSession(scheduled, for: node, format: session.formatVersion),
                    SessionEvidence.validates(evidence, scheduled: scheduled) {
-                    var nodeRecord = candidate.nodes[node.id] ?? NodeRecord()
-                    nodeRecord.attempts += 1
-                    nodeRecord.cleared = true
-                    if nodeRecord.clearedAt == nil { nodeRecord.clearedAt = now }
-                    candidate.nodes[node.id] = nodeRecord
+                    Self.recordNodeResult(&candidate, node: node,
+                        right: answers.filter { !$0.isAssisted && $0.countedBand == .spotOn }.count,
+                        questions: answers.count, now: now)
                     let viaBoss: Bool
                     if case .boss = node.kind { viaBoss = true } else { viaBoss = false }
                     for (gradedConcept, result) in evidence where result.attempted > 0 {
@@ -787,6 +782,20 @@ final class ProgressionModel {
                 }
             }
         }
+    }
+
+    /// A finished session counts as an attempt and may set a new best score. Only
+    /// reaching the pass mark clears the node, and a clear is never taken back.
+    private static func recordNodeResult(_ state: inout ProgressState, node: CurriculumNode,
+                                         right: Int, questions: Int, now: Date) {
+        var record = state.nodes[node.id] ?? NodeRecord()
+        record.attempts += 1
+        record.recordScore(LessonScore(right: right, questions: questions))
+        if PassMark.passes(right: right, questions: questions) {
+            record.cleared = true
+            if record.clearedAt == nil { record.clearedAt = now }
+        }
+        state.nodes[node.id] = record
     }
 
     @discardableResult
@@ -1073,6 +1082,8 @@ final class ProgressionModel {
                    "u2-potOdds"] {
             s.nodes[id] = NodeRecord(cleared: true, clearedAt: now, attempts: 1)
         }
+        // Tried once and under the pass mark, so the path shows its best score.
+        s.nodes["u2-equitySense"] = NodeRecord(attempts: 1, best: LessonScore(right: 1, questions: 3))
 
         // Deliberately overconfident: tight intervals that mostly miss, which is the
         // state the calibration copy is written for.

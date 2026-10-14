@@ -794,7 +794,7 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.record(for: .position).tier, .mastered)
     }
 
-    func testCompletedAllWrongLessonClearsWithoutClaimingProficiency() throws {
+    func testCompletedAllWrongLessonIsNotPassedAndClaimsNoProficiency() throws {
         let model = ProgressionModel(store: store)
         let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
         let scheduled = Curriculum.sessionConcepts(for: node)
@@ -803,8 +803,29 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertTrue(model.completeNode(node, scheduled: scheduled,
                                          evidence: [.showdown: SessionEvidence(
                                             attempted: scheduled.count, spotOn: 0)]))
-        XCTAssertEqual(model.status(of: node), .cleared)
+        XCTAssertEqual(model.status(of: node), .available)
+        XCTAssertEqual(model.state.nodes[node.id]?.best, LessonScore(right: 0, questions: 3))
         XCTAssertEqual(model.record(for: .showdown).tier, .attempted)
+    }
+
+    func testAChallengePassesWithFourOfSixRight() throws {
+        let model = ProgressionModel(store: store)
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        let scheduled = Curriculum.sessionConcepts(for: boss, seed: 2)
+        XCTAssertEqual(scheduled.count, 6)
+        func evidence(right: Int) -> [Concept: SessionEvidence] {
+            var result: [Concept: SessionEvidence] = [:]
+            for (index, concept) in scheduled.enumerated() {
+                result[concept, default: SessionEvidence()].record(spotOn: index < right)
+            }
+            return result
+        }
+        XCTAssertTrue(model.completeNode(boss, scheduled: scheduled, evidence: evidence(right: 3)))
+        XCTAssertNotEqual(model.status(of: boss), .cleared)
+        XCTAssertTrue(model.completeNode(boss, scheduled: scheduled, evidence: evidence(right: 4)))
+        XCTAssertEqual(model.status(of: boss), .cleared)
+        XCTAssertEqual(model.state.nodes[boss.id]?.attempts, 2)
+        XCTAssertEqual(model.state.nodes[boss.id]?.best, LessonScore(right: 4, questions: 6))
     }
 
     func testIncompleteEvidenceCannotClearNode() throws {
@@ -1080,7 +1101,7 @@ final class ProgressionModelTests: XCTestCase {
     /// Plays one whole lesson with the walkthrough skipped. `miss` answers every
     /// question off target; otherwise each answer is the correct one.
     private func playLesson(_ model: ProgressionModel, _ nodeID: String, miss: Bool,
-                            tag: String) throws {
+                            missing: Set<Int> = [], tag: String) throws {
         let epoch = model.epoch
         let node = try XCTUnwrap(Curriculum.node(id: nodeID))
         XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: epoch))
@@ -1091,7 +1112,7 @@ final class ProgressionModelTests: XCTestCase {
         }
         for ordinal in 0..<session.scheduledConcepts.count {
             var (input, reveal, band) = try showdownAnswer(seed: 5, index: ordinal + 2)
-            if miss {
+            if miss || missing.contains(ordinal) {
                 let spot = ShowdownSpotGenerator.spot(baseSeed: 5, index: ordinal + 2)
                 let wrong = try XCTUnwrap((0...2).first { gradeShowdown(answer: $0, spot: spot).band != .spotOn })
                 band = gradeShowdown(answer: wrong, spot: spot).band
@@ -1173,6 +1194,51 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertNil(model.state.activeNodeSession?.helpOrdinal)
     }
 
+    // MARK: - pass mark (owner, 2026-10-14)
+
+    func testOneRightOfThreeLeavesTheLessonOpenWithItsBestScore() throws {
+        let model = ProgressionModel(store: store)
+        try playLesson(model, "u1-showdown", miss: false, missing: [1, 2], tag: "a")
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertEqual(model.status(of: node), .available)
+        XCTAssertEqual(model.nextNode?.id, "u1-showdown", "Today keeps suggesting it")
+        XCTAssertEqual(model.state.nodes[node.id]?.attempts, 1)
+        XCTAssertNil(model.state.nodes[node.id]?.clearedAt)
+        XCTAssertEqual(model.state.nodes[node.id]?.best, LessonScore(right: 1, questions: 3))
+        XCTAssertEqual(model.record(for: .showdown).total, 3, "Every answer still counts")
+        XCTAssertEqual(ProgressionModel(store: store).state, model.state)
+    }
+
+    func testTwoRightOfThreePassesTheLesson() throws {
+        let model = ProgressionModel(store: store)
+        try playLesson(model, "u1-showdown", miss: false, missing: [2], tag: "a")
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertEqual(model.status(of: node), .cleared)
+        XCTAssertNotNil(model.state.nodes[node.id]?.clearedAt)
+        XCTAssertEqual(model.state.nodes[node.id]?.best, LessonScore(right: 2, questions: 3))
+    }
+
+    func testFailingALaterRunKeepsTheEarlierPassAndBestScore() throws {
+        let model = ProgressionModel(store: store)
+        try playLesson(model, "u1-showdown", miss: false, missing: [2], tag: "a")
+        try playLesson(model, "u1-showdown", miss: true, tag: "b")
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertEqual(model.status(of: node), .cleared)
+        XCTAssertEqual(model.state.nodes[node.id]?.attempts, 2)
+        XCTAssertEqual(model.state.nodes[node.id]?.best, LessonScore(right: 2, questions: 3))
+    }
+
+    func testALessonClearedBeforeThePassMarkStaysCleared() throws {
+        var initial = ProgressState()
+        initial.nodes["u1-showdown"] = NodeRecord(cleared: true, clearedAt: Date(), attempts: 1)
+        try store.save(initial)
+        let model = ProgressionModel(store: store)
+        try playLesson(model, "u1-showdown", miss: true, tag: "a")
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertEqual(model.status(of: node), .cleared)
+        XCTAssertEqual(model.state.nodes[node.id]?.best, LessonScore(right: 0, questions: 3))
+    }
+
     func testBasicsLessonLeadsOnlyForANewPlayer() {
         let model = ProgressionModel(store: store)
         XCTAssertTrue(model.shouldSuggestBasicsLesson)
@@ -1182,7 +1248,7 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.nextNode?.id, "u1-position")
     }
 
-    func testLessonAnsweredOnlyWithHelpClearsWithoutWritingARecord() throws {
+    func testLessonAnsweredOnlyWithHelpIsNotPassedAndWritesNoRecord() throws {
         let model = ProgressionModel(store: store)
         let epoch = model.epoch
         let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
@@ -1200,7 +1266,7 @@ final class ProgressionModelTests: XCTestCase {
             XCTAssertTrue(model.nextNodeQuestion(sessionID: id, afterOrdinal: ordinal,
                                                  expectedEpoch: epoch))
         }
-        XCTAssertEqual(model.status(of: node), .cleared)
+        XCTAssertEqual(model.status(of: node), .available, "Help never counts as right")
         XCTAssertNil(model.state.concepts[Concept.showdown.rawValue])
         XCTAssertEqual(model.seedCount(for: .showdown), count)
     }

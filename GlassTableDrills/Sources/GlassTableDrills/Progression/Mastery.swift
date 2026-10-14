@@ -76,6 +76,17 @@ public enum Mastery {
     }
 }
 
+/// Owner, 2026-10-14: a lesson or challenge is passed with two in three of its
+/// questions, rounded up, answered alone and exactly right. An answer given with help
+/// never counts as right. Only passing clears a lesson.
+public enum PassMark {
+    public static func required(questions: Int) -> Int { (2 * questions + 2) / 3 }
+
+    public static func passes(right: Int, questions: Int) -> Bool {
+        questions > 0 && right >= required(questions: questions)
+    }
+}
+
 /// Ephemeral, per-concept evidence from one node session. This deliberately stays
 /// outside `ProgressState`, preserving the schema-1 file format and old records.
 public struct SessionEvidence: Equatable, Sendable {

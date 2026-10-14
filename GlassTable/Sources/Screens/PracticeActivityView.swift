@@ -9,16 +9,16 @@ struct PracticeActivityView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: GT.Space.related) {
-            Text(language.text("마친 레슨", "Completed lessons"))
+            Text(language.text("통과한 레슨", "Passed lessons"))
                 .font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
             Text("\(overview.mainCourseCompletedLessons) / \(overview.mainCourseLessonCount)")
                 .font(GT.title(30).monospacedDigit()).foregroundStyle(GT.ink)
-                .accessibilityLabel(language.text("기본 레슨 \(overview.mainCourseLessonCount)개 중 \(overview.mainCourseCompletedLessons)개 완료",
-                                                  "\(overview.mainCourseCompletedLessons) of \(overview.mainCourseLessonCount) main lessons completed"))
+                .accessibilityLabel(language.text("기본 레슨 \(overview.mainCourseLessonCount)개 중 \(overview.mainCourseCompletedLessons)개 통과",
+                                                  "\(overview.mainCourseCompletedLessons) of \(overview.mainCourseLessonCount) main lessons passed"))
                 .accessibilityIdentifier("records-completion")
             if overview.deeperCompletedLessons > 0 {
-                Text(language.text("더 깊이 배우기 \(overview.deeperCompletedLessons)/\(overview.deeperLessonCount)개 완료",
-                                   "Deeper lessons: \(overview.deeperCompletedLessons)/\(overview.deeperLessonCount) completed"))
+                Text(language.text("더 깊이 배우기 \(overview.deeperCompletedLessons)/\(overview.deeperLessonCount)개 통과",
+                                   "Deeper lessons: \(overview.deeperCompletedLessons)/\(overview.deeperLessonCount) passed"))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
             }
             Text(overview.distinctRecentDayCount == 0 && overview.recentTopics.isEmpty
@@ -41,8 +41,8 @@ struct PracticeActivityView: View {
                           : language.text("이어서 배우기", "Continue learning"), action: onContinue)
                 .accessibilityIdentifier("records-continue")
             DisclosureGroup(language.text("기록은 어떻게 세나요?", "What counts as practice?")) {
-                Text(language.text("레슨, 한 가지 연습, 복습에서 답을 제출한 날짜를 세요. 예시 보기와 자유 대전은 포함하지 않아요. 레슨 완료와 실력은 다른 기록이에요.",
-                                   "A submitted answer in a lesson, one-skill practice or review records the date. Worked examples and the free table are excluded. Finishing a lesson is separate from proficiency."))
+                Text(language.text("레슨, 한 가지 연습, 복습에서 답을 제출한 날짜를 세요. 예시 보기와 자유 대전은 포함하지 않아요. 레슨 통과와 실력은 다른 기록이에요.",
+                                   "A submitted answer in a lesson, one-skill practice or review records the date. Worked examples and the free table are excluded. Passing a lesson is separate from proficiency."))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 8)

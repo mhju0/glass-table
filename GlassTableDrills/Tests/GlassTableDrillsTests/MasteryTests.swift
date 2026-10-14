@@ -197,4 +197,28 @@ final class MasteryTests: XCTestCase {
         XCTAssertEqual(after.review, before.review)
         XCTAssertTrue(state.answers.isEmpty)
     }
+
+    // MARK: - pass mark
+
+    func testPassMarkIsTwoInThreeRoundedUp() {
+        XCTAssertEqual(PassMark.required(questions: 3), 2)
+        XCTAssertEqual(PassMark.required(questions: 5), 4)
+        XCTAssertEqual(PassMark.required(questions: 6), 4)
+        XCTAssertEqual(PassMark.required(questions: 7), 5)
+        XCTAssertFalse(PassMark.passes(right: 1, questions: 3))
+        XCTAssertTrue(PassMark.passes(right: 2, questions: 3))
+        XCTAssertFalse(PassMark.passes(right: 3, questions: 6))
+        XCTAssertTrue(PassMark.passes(right: 4, questions: 6))
+        XCTAssertFalse(PassMark.passes(right: 0, questions: 0))
+    }
+
+    func testBestScoreKeepsTheHigherShareOfRightAnswers() {
+        var record = NodeRecord()
+        record.recordScore(LessonScore(right: 1, questions: 3))
+        XCTAssertEqual(record.best, LessonScore(right: 1, questions: 3))
+        record.recordScore(LessonScore(right: 0, questions: 3))
+        XCTAssertEqual(record.best, LessonScore(right: 1, questions: 3))
+        record.recordScore(LessonScore(right: 2, questions: 3))
+        XCTAssertEqual(record.best, LessonScore(right: 2, questions: 3))
+    }
 }

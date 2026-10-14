@@ -66,6 +66,7 @@ struct NodeSessionView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.dynamicTypeSize) private var typeSize
     let node: CurriculumNode
     /// Leaves this lesson for another one, for the easier-lesson suggestion.
     var onOpenLesson: ((CurriculumNode) -> Void)? = nil
@@ -84,6 +85,7 @@ struct NodeSessionView: View {
     @State private var createdSessionID: String?
     @State private var pendingDraftTask: Task<Void, Never>?
     @State private var pendingDraft: PendingDraftWrite?
+    @State private var explaining = false
 
     private var questionReadyAt: TimeInterval? {
         get { timing.startedAt }
@@ -145,41 +147,17 @@ struct NodeSessionView: View {
                 restore(savedSession)
                 return
             }
-            let totals = Curriculum.concepts(of: node).map { model.seedCount(for: $0) }
-            let seed = NodeSessionSeed.make(nodeID: node.id, conceptTotals: totals)
-            guard model.beginNodeSession(node, seed: seed,
-                                         expectedEpoch: sessionEpoch ?? model.epoch),
-                  let savedSession else { return }
-            createdSessionID = savedSession.id
-            if savedSession.phase == .question {
-                eligibleQuestionKey = "\(savedSession.id):\(savedSession.ordinal)"
-            }
-            restore(savedSession)
-            // First exposure to the concept this node teaches opens with the
-            // walkthrough. A node the user has already met goes straight to drilling,
-            // and 천천히 stays available from 기록 either way (spec §5.1).
-            guard let taught = Curriculum.taughtConcept(of: node) else { return }
-            var seen = model.record(for: taught).total > 0
+            guard beginSession() else { return }
             #if DEBUG
-            // A GT_DEMO_NODE capture wants the *drill*; the sweep reaches the teaching
-            // stages through GT_DEMO_BEAT instead. Without this every `drill-…` entry
-            // for a concept the demo state has not studied silently screenshotted the
-            // walkthrough under a drill's name — which is how drill-rfi, drill-notation
-            // and drill-callfold went unlooked-at.
             let env = ProcessInfo.processInfo.environment
-            if env["GT_DEMO_NODE"] != nil, env["GT_DEMO_BEAT"] == nil { seen = true }
-            #endif
-            if seen && savedSession.phase == .show {
-                _ = model.advanceNodeTeaching(sessionID: savedSession.id,
-                    skip: true, expectedEpoch: sessionEpoch ?? model.epoch)
-                if let savedSession = self.savedSession { restore(savedSession) }
-            }
-            #if DEBUG
             if env["GT_DEMO_STAGE"] == "together" { stage = .together }
             if env["GT_DEMO_SESSION_COMPLETE"] != nil {
                 for (concept, items) in Dictionary(grouping: sessionConcepts, by: { $0 }) {
                     evidence[concept] = SessionEvidence(attempted: items.count, spotOn: items.count)
                 }
+                let marks = questionMarks
+                helped = marks.filter { $0 == .helped }.count
+                missed = marks.filter { $0 == .wrong }.count
                 finished = true
             }
             #endif
@@ -245,6 +223,42 @@ struct NodeSessionView: View {
             }
         }
         .padding(20)
+    }
+
+    /// Starts a new session of this node. The seed follows the learner's answer counts,
+    /// so a run after an earlier one deals different cards.
+    @discardableResult
+    private func beginSession() -> Bool {
+        let totals = Curriculum.concepts(of: node).map { model.seedCount(for: $0) }
+        let seed = NodeSessionSeed.make(nodeID: node.id, conceptTotals: totals)
+        guard model.beginNodeSession(node, seed: seed,
+                                     expectedEpoch: sessionEpoch ?? model.epoch),
+              let savedSession else { return false }
+        createdSessionID = savedSession.id
+        if savedSession.phase == .question {
+            eligibleQuestionKey = "\(savedSession.id):\(savedSession.ordinal)"
+        }
+        restore(savedSession)
+        // First exposure to the concept this node teaches opens with the
+        // walkthrough. A node the user has already met goes straight to drilling,
+        // and 천천히 stays available from 기록 either way (spec §5.1).
+        guard let taught = Curriculum.taughtConcept(of: node) else { return true }
+        var seen = model.record(for: taught).total > 0
+        #if DEBUG
+        // A GT_DEMO_NODE capture wants the *drill*; the sweep reaches the teaching
+        // stages through GT_DEMO_BEAT instead. Without this every `drill-…` entry
+        // for a concept the demo state has not studied silently screenshotted the
+        // walkthrough under a drill's name — which is how drill-rfi, drill-notation
+        // and drill-callfold went unlooked-at.
+        let env = ProcessInfo.processInfo.environment
+        if env["GT_DEMO_NODE"] != nil, env["GT_DEMO_BEAT"] == nil { seen = true }
+        #endif
+        if seen && savedSession.phase == .show {
+            _ = model.advanceNodeTeaching(sessionID: savedSession.id,
+                skip: true, expectedEpoch: sessionEpoch ?? model.epoch)
+            if let savedSession = self.savedSession { restore(savedSession) }
+        }
+        return true
     }
 
     private func restore(_ session: NodeSessionSnapshot) {
@@ -432,21 +446,36 @@ struct NodeSessionView: View {
     }
 
     private var summary: some View {
-        ScrollView {
+        let marks = questionMarks
+        let right = marks.filter { $0 == .right }.count
+        let passed = PassMark.passes(right: right, questions: itemCount)
+        // A clear is never taken back, so a cleared node that missed the mark this
+        // time was passed on an earlier run.
+        let passedBefore = !passed && model.state.nodes[node.id]?.cleared == true
+        return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                Text(language.text("연습을 마쳤어요", "Practice complete"))
+                Text(summaryTitle(passed: passed, passedBefore: passedBefore))
                     .font(GT.title(24)).foregroundStyle(GT.onFelt)
                 Text(learningNodeTitle(node, language: language))
                     .font(GT.title(20)).foregroundStyle(GT.onFelt)
-                Text(summaryDetail)
+                Text(summaryDetail(right: right, passed: passed, passedBefore: passedBefore))
                     .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(Array(marks.enumerated()), id: \.offset) { ordinal, mark in
+                        markRow(mark, ordinal: ordinal)
+                    }
+                }
+                Text(language.text("푼 답은 기록과 복습에 그대로 남아요.",
+                                   "Your answers still count in Records and reviews."))
+                    .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 let milestones = self.milestones
                 if let first = milestones.first {
                     MilestoneShareSection(milestone: first, date: milestoneDate)
                         .padding(.vertical, 4)
                 }
-                if missed * 2 > itemCount - helped, let onOpenLesson,
+                if missed * 2 > itemCount - helped, onOpenLesson != nil,
                    let easier = Curriculum.easierLesson(than: node) {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(language.text("이번 레슨이 어려웠다면 앞 레슨을 먼저 해 봐도 좋아요. 이 레슨은 언제든 다시 열 수 있어요.",
@@ -455,16 +484,12 @@ struct NodeSessionView: View {
                             .fixedSize(horizontal: false, vertical: true)
                         SecondaryCTAButton(title: language.text("‘\(learningNodeTitle(easier, language: language))’ 해 보기",
                                                                 "Try “\(learningNodeTitle(easier, language: language))”")) {
-                            if let savedSession {
-                                _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
-                                    expectedEpoch: sessionEpoch ?? model.epoch)
-                            }
-                            onOpenLesson(easier)
+                            leaveSummary(for: easier)
                         }
                         .accessibilityIdentifier("summary-easier")
                     }
                 }
-                if model.state.offersSkipAhead, let onOpenLesson,
+                if model.state.offersSkipAhead, onOpenLesson != nil,
                    let challenge = Curriculum.skipAheadChallenge(after: node, in: model.state) {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(language.text("세 레슨을 연달아 깔끔하게 풀었어요. 이 트랙이 쉽다면 섞어 풀기 한 번으로 건너뛸 수 있어요.",
@@ -473,37 +498,143 @@ struct NodeSessionView: View {
                             .fixedSize(horizontal: false, vertical: true)
                         SecondaryCTAButton(title: language.text("짧은 도전으로 건너뛰기",
                                                                 "Skip ahead with a quick challenge")) {
-                            if let savedSession {
-                                _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
-                                    expectedEpoch: sessionEpoch ?? model.epoch)
-                            }
-                            onOpenLesson(challenge)
+                            leaveSummary(for: challenge)
                         }
                         .accessibilityIdentifier("summary-skip-ahead")
                     }
                 }
-                // Finishing used to end on "Done" alone and send the learner back to find
-                // their own way. The next lesson is one tap from here.
-                if let onOpenLesson, let next = model.nextNode, next.id != node.id {
-                    FeltCTAButton(title: language.text("다음 레슨: \(learningNodeTitle(next, language: language))",
-                                                       "Next lesson: \(learningNodeTitle(next, language: language))")) {
-                        if let savedSession {
-                            _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
-                                expectedEpoch: sessionEpoch ?? model.epoch)
+                if passed {
+                    // Finishing used to end on "Done" alone and send the learner back to
+                    // find their own way. The next lesson is one tap from here.
+                    if onOpenLesson != nil, let next = model.nextNode, next.id != node.id {
+                        FeltCTAButton(title: language.text("다음 레슨: \(learningNodeTitle(next, language: language))",
+                                                           "Next lesson: \(learningNodeTitle(next, language: language))")) {
+                            leaveSummary(for: next)
                         }
-                        onOpenLesson(next)
+                        .accessibilityIdentifier("summary-next-lesson")
+                        SecondaryCTAButton(title: language.text("완료", "Done"), action: finishSummary)
+                            .accessibilityIdentifier("summary-done")
+                    } else {
+                        FeltCTAButton(title: language.text("완료", "Done"), action: finishSummary)
                     }
-                    .accessibilityIdentifier("summary-next-lesson")
+                } else {
+                    FeltCTAButton(title: language.text("다른 카드로 다시 하기", "Try again with new cards"),
+                                  action: retry)
+                        .accessibilityIdentifier("summary-retry")
+                    if Curriculum.taughtConcept(of: node) != nil {
+                        SecondaryCTAButton(title: language.text("설명 다시 보기", "Read the explanation again")) {
+                            explaining = true
+                        }
+                        .accessibilityIdentifier("summary-explain")
+                    }
+                    if onOpenLesson != nil,
+                       let next = Curriculum.suggestedLesson(in: model.state, skipping: node) {
+                        SecondaryCTAButton(title: language.text("그래도 다음 레슨으로",
+                                                                "Go on to the next lesson anyway")) {
+                            leaveSummary(for: next)
+                        }
+                        .accessibilityIdentifier("summary-go-on")
+                    }
                     SecondaryCTAButton(title: language.text("완료", "Done"), action: finishSummary)
                         .accessibilityIdentifier("summary-done")
-                } else {
-                    FeltCTAButton(title: language.text("완료", "Done"), action: finishSummary)
                 }
             }
             .gtContentEdge()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .sheet(isPresented: $explaining) {
+            if let taught = Curriculum.taughtConcept(of: node) {
+                ConceptExplainView(concept: taught) { explaining = false }
+            }
+        }
+    }
+
+    /// How one question of the finished session went.
+    private enum QuestionMark { case helped, right, wrong }
+
+    /// In question order. Only an answer given alone and exactly right counts as right.
+    private var questionMarks: [QuestionMark] {
+        #if DEBUG
+        // GT_DEMO_SESSION_MARKS spells a demo result, one letter per question:
+        // h with the hint, r right, w wrong. A plain demo session is all right.
+        let env = ProcessInfo.processInfo.environment
+        if let demo = env["GT_DEMO_SESSION_MARKS"] {
+            return demo.map { $0 == "h" ? .helped : $0 == "r" ? .right : .wrong }
+        }
+        if env["GT_DEMO_SESSION_COMPLETE"] != nil {
+            return Array(repeating: .right, count: itemCount)
+        }
+        #endif
+        return (savedSession?.answers ?? []).map {
+            $0.answer.isAssisted ? .helped : $0.answer.countedBand == .spotOn ? .right : .wrong
+        }
+    }
+
+    private func markRow(_ mark: QuestionMark, ordinal: Int) -> some View {
+        let (symbol, label, ink): (String, String, Color) = switch mark {
+        case .right: ("checkmark.circle.fill", language.text("맞힘", "Right"), GTBand.spotOnInk)
+        case .wrong: ("xmark.circle.fill", language.text("틀림", "Wrong"), GTBand.offInk)
+        case .helped: ("questionmark.circle.fill", language.text("힌트와 함께", "With the hint"),
+                       GT.onFeltSecondary)
+        }
+        let question = Text(language.text("문제 \(ordinal + 1)", "Question \(ordinal + 1)"))
+            .font(GT.body(15)).foregroundStyle(GT.onFelt)
+        let result = Text(label).font(GT.title(15)).foregroundStyle(ink)
+        return HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Image(systemName: symbol).foregroundStyle(ink).accessibilityHidden(true)
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 2) { question; result }
+            } else {
+                question
+                Spacer(minLength: 8)
+                result
+            }
+        }
+        .padding(.horizontal, 12).padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // Unbordered, since a border marks a control. The green needs this lighter
+        // fill to keep 4.5:1; on the felt panel tint it measured 4.46.
+        .background(GT.glass, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("summary-mark-\(ordinal)")
+    }
+
+    private func summaryTitle(passed: Bool, passedBefore: Bool) -> String {
+        if passed {
+            if case .boss = node.kind { return language.text("도전 통과", "Challenge passed") }
+            return language.text("레슨 통과", "Lesson passed")
+        }
+        return passedBefore ? language.text("이번에는 통과하지 못했어요", "Not passed this time")
+            : language.text("아직 통과 전이에요", "Not passed yet")
+    }
+
+    private func summaryDetail(right: Int, passed: Bool, passedBefore: Bool) -> String {
+        let score = language.text("\(itemCount)문제 중 \(right)문제를 맞혔어요.",
+                                  "You got \(right) of \(itemCount) right.")
+        if passed { return score }
+        let required = PassMark.required(questions: itemCount)
+        let need = language.text(" 통과하려면 \(required)문제가 필요해요.", " You need \(required) to pass.")
+        let earlier = passedBefore
+            ? language.text(" 앞서 통과한 기록은 그대로예요.", " Your earlier pass still stands.") : ""
+        return score + need + earlier
+    }
+
+    /// Leaves the finished session for another lesson or challenge.
+    private func leaveSummary(for other: CurriculumNode) {
+        if let savedSession {
+            _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
+                expectedEpoch: sessionEpoch ?? model.epoch)
+        }
+        onOpenLesson?(other)
+    }
+
+    /// Runs this node again with new cards. Every answer just given is already saved.
+    private func retry() {
+        guard let savedSession,
+              model.dismissFinishedNodeSession(sessionID: savedSession.id,
+                  expectedEpoch: sessionEpoch ?? model.epoch) else { return }
+        beginSession()
     }
 
     private func finishSummary() {
@@ -534,11 +665,6 @@ struct NodeSessionView: View {
 
     private var milestoneDate: Date {
         savedSession?.answers.map(\.answer.submittedAt).max() ?? Date()
-    }
-
-    private var summaryDetail: String {
-        language.text("\(itemCount)문제를 풀었어요. 다른 카드로 다시 해봐도 좋아요.",
-                      "You finished \(itemCount) questions. Try the same idea with different cards.")
     }
 
 }

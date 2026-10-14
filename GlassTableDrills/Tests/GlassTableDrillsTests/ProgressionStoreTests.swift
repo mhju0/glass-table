@@ -399,6 +399,14 @@ final class ProgressionStoreTests: XCTestCase {
             correct: 1, total: 1)
         cases.append(badReview)
 
+        var badScore = ProgressState()
+        badScore.nodes["u1-showdown"] = NodeRecord(best: LessonScore(right: 4, questions: 3))
+        cases.append(badScore)
+
+        var emptyScore = ProgressState()
+        emptyScore.nodes["u1-showdown"] = NodeRecord(best: LessonScore(right: 0, questions: 0))
+        cases.append(emptyScore)
+
         var badInterval = ProgressState()
         badInterval.answers = [AnswerRecord(concept: .equitySense, at: Date(), correct: true,
             interval: IntervalAnswer(point: 50, lo: 70, hi: 30, truth: 50))]
@@ -424,6 +432,7 @@ final class ProgressionStoreTests: XCTestCase {
             proficientAt: now, masteredAt: now)
         state.nodes["retired-node"] = NodeRecord(cleared: true, clearedAt: now,
                                                    attempts: 1_000_000)
+        state.nodes["u1-showdown"] = NodeRecord(attempts: 2, best: LessonScore(right: 1, questions: 3))
 
         let imported = try s.importData(JSONEncoder().encode(state))
 

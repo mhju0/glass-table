@@ -162,8 +162,8 @@ struct RecordsView: View {
                         .tint(GT.cta).accessibilityHidden(true)
                 }
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(language.text("\(trackTitle(track.id)), \(track.lessons.count)개 중 \(finished)개 완료",
-                                                  "\(trackTitle(track.id)), \(finished) of \(track.lessons.count) lessons completed"))
+                .accessibilityLabel(language.text("\(trackTitle(track.id)), \(track.lessons.count)개 중 \(finished)개 통과",
+                                                  "\(trackTitle(track.id)), \(finished) of \(track.lessons.count) lessons passed"))
             }
         }
         .gtInset(GT.Space.card).gtCard()

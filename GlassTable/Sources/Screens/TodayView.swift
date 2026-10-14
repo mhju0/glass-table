@@ -79,7 +79,7 @@ struct TodayView: View {
     /// no button ever played.
     private var subtitleLine: String {
         if !due.isEmpty { return "다시 풀어볼 문제 \(due.count)개가 있어요" }
-        if model.nextNode == nil { return "모든 레슨 완료 · 복습으로 감각을 유지해요" }
+        if model.nextNode == nil { return "모든 레슨 통과 · 복습으로 감각을 유지해요" }
         return model.state.nodes.isEmpty ? "첫 단계부터 시작해요" : "다음 단계를 이어가요"
     }
 

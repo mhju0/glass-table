@@ -217,6 +217,37 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["다음 문제"].exists)
     }
 
+    /// Owner, 2026-10-14: a run under the pass mark offers a retry, and the retry starts
+    /// a new run of the same lesson at its first question.
+    func testLessonUnderThePassMarkRetriesFromTheFirstQuestion() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
+        app.launchEnvironment = ["GT_DEMO_SEED": "1", "GT_DEMO_NODE": "u2-potOdds"]
+        app.launch()
+        for number in 1...3 {
+            XCTAssertTrue(app.staticTexts["\(number)/3"].waitForExistence(timeout: 10))
+            // On this seeded run the first choice is right, so the last one misses.
+            XCTAssertTrue(app.firstLessonChoice.waitForExistence(timeout: 5))
+            app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "lesson-choice-"))
+                .allElementsBoundByIndex.last?.tap()
+            let next = app.buttons["다음 문제"]
+            XCTAssertTrue(next.waitForExistence(timeout: 5))
+            next.tap()
+        }
+        // The demo state passed this lesson before, so a miss keeps that pass.
+        XCTAssertTrue(app.staticTexts["이번에는 통과하지 못했어요"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["summary-next-lesson"].exists)
+        let retry = app.buttons["summary-retry"]
+        XCTAssertTrue(retry.waitForExistence(timeout: 5))
+        for _ in 0..<6 where !retry.isHittable { app.swipeUp() }
+        retry.tap()
+        // After rough runs the first question can carry the hint and say so instead.
+        let firstQuestion = app.staticTexts.matching(NSPredicate(format: "label IN %@",
+                                                                 ["1/3", "힌트와 함께 한 번 더"])).firstMatch
+        XCTAssertTrue(firstQuestion.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["summary-retry"].exists)
+    }
+
     func testPotMathTableRequiresTheFullReplayThenRevealsOptionalArithmetic() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]

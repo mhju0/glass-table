@@ -54,10 +54,12 @@ public extension Curriculum {
 
     /// The next lesson to suggest: the first unfinished one from where the learner's
     /// level starts, then any left before it. A suggestion only. Every lesson stays open.
-    static func suggestedLesson(in state: ProgressState) -> CurriculumNode? {
+    /// `skipping` leaves one lesson out, for going on past a lesson not yet passed.
+    static func suggestedLesson(in state: ProgressState,
+                                skipping skipped: CurriculumNode? = nil) -> CurriculumNode? {
         let start = startIndex(in: state)
-        return trackLessons[start...].first { isOwed($0, in: state) }
-            ?? trackLessons[..<start].first { isOwed($0, in: state) }
+        let owed = { (lesson: CurriculumNode) in lesson != skipped && isOwed(lesson, in: state) }
+        return trackLessons[start...].first(where: owed) ?? trackLessons[..<start].first(where: owed)
     }
 
     /// Where the suggested order begins: the starting check's result, or the level's

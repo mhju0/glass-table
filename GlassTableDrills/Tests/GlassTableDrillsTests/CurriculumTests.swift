@@ -233,6 +233,16 @@ final class LearningTrackTests: XCTestCase {
         XCTAssertNil(Curriculum.suggestedLesson(in: state), "Go deeper and challenges are never suggested")
     }
 
+    func testGoingOnPastALessonSuggestsTheNextOneStillOwed() throws {
+        var state = ProgressState()
+        let outs = try XCTUnwrap(Curriculum.node(id: "u2-outs"))
+        state.nodes["u1-showdown"] = NodeRecord(cleared: true)
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u2-outs")
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: outs)?.id, "u1-potMath")
+        state.nodes["u1-potMath"] = NodeRecord(cleared: true)
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: outs)?.id, "u1-position")
+    }
+
     func testGroundworkAndEasierLessonPointBackAlongTheTracks() throws {
         var state = ProgressState()
         let rfi = try XCTUnwrap(Curriculum.node(id: "u3-rfi"))

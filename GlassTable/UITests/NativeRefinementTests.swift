@@ -50,7 +50,7 @@ final class NativeRefinementTests: XCTestCase {
         app.launch()
         let completion = app.staticTexts["records-completion"]
         XCTAssertTrue(completion.waitForExistence(timeout: 15))
-        XCTAssertEqual(completion.label, "10 of 10 main lessons completed")
+        XCTAssertEqual(completion.label, "10 of 10 main lessons passed")
         app.buttons["records-continue"].tap()
         XCTAssertTrue(app.tabBars.buttons["Learn"].isSelected)
     }
@@ -61,10 +61,30 @@ final class NativeRefinementTests: XCTestCase {
             app.launchEnvironment["GT_DEMO_NODE"] = "u1-showdown"
             app.launchEnvironment["GT_DEMO_SESSION_COMPLETE"] = "1"
             app.launch()
-            XCTAssertTrue(app.staticTexts[code == "ko" ? "연습을 마쳤어요" : "Practice complete"].waitForExistence(timeout: 15))
+            XCTAssertTrue(app.staticTexts[code == "ko" ? "레슨 통과" : "Lesson passed"].waitForExistence(timeout: 15))
             XCTAssertTrue(app.staticTexts[code == "ko" ? "누가 이길까요?" : "Who wins?"].exists)
             XCTAssertFalse(app.descendants(matching: .any)["summary-helped"].exists)
             XCTAssertFalse(app.staticTexts["All answers were on target"].exists)
+            app.terminate()
+        }
+    }
+
+    /// Owner, 2026-10-14: under the pass mark the lesson offers a retry with new cards,
+    /// the explanation and a way on, never the plain next-lesson button.
+    func testLessonUnderThePassMarkOffersARetryAndAWayOn() {
+        for code in ["ko", "en"] {
+            let app = application(code)
+            app.launchEnvironment["GT_DEMO_NODE"] = "u2-outs"
+            app.launchEnvironment["GT_DEMO_SESSION_COMPLETE"] = "1"
+            app.launchEnvironment["GT_DEMO_SESSION_MARKS"] = "rww"
+            app.launch()
+            XCTAssertTrue(app.staticTexts[code == "ko" ? "아직 통과 전이에요" : "Not passed yet"].waitForExistence(timeout: 15))
+            XCTAssertTrue(app.staticTexts[code == "ko" ? "3문제 중 1문제를 맞혔어요. 통과하려면 2문제가 필요해요."
+                                                       : "You got 1 of 3 right. You need 2 to pass."].exists)
+            for id in ["summary-retry", "summary-explain", "summary-go-on", "summary-done"] {
+                XCTAssertTrue(app.buttons[id].exists, id)
+            }
+            XCTAssertFalse(app.buttons["summary-next-lesson"].exists)
             app.terminate()
         }
     }
