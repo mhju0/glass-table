@@ -17,13 +17,13 @@ final class LessonLearningUITests: XCTestCase {
     }
 
     func testSeatIdentityAndNormalLabelLinesAreLanguageIndependent() {
-        XCTAssertEqual(Position.allCases.map(LessonSeatLoop.number), Array(1...8))
-        XCTAssertEqual(LessonSeatLoop.number(.btn), 6)
-        XCTAssertEqual(LessonSeatLoop.number(.sb), 7)
-        XCTAssertEqual(LessonSeatLoop.number(.bb), 8)
+        XCTAssertEqual(Position.allCases.map(\.seatNumber), Array(1...8))
+        XCTAssertEqual(Position.btn.seatNumber, 6)
+        XCTAssertEqual(Position.sb.seatNumber, 7)
+        XCTAssertEqual(Position.bb.seatNumber, 8)
         for seat in Position.allCases {
-            let korean = LessonSeatLoop.name(seat, language: .korean).components(separatedBy: "\n")
-            let english = LessonSeatLoop.name(seat, language: .english).components(separatedBy: "\n")
+            let korean = seat.seatName(in: .korean).components(separatedBy: "\n")
+            let english = seat.seatName(in: .english).components(separatedBy: "\n")
             XCTAssertEqual(korean.count, english.count)
             XCTAssertTrue(korean.allSatisfy { !$0.isEmpty })
             XCTAssertTrue(english.allSatisfy { !$0.isEmpty })

@@ -54,7 +54,7 @@ struct FreeTableHandCoachView: View {
     }
 
     private func move(_ delta: Int) {
-        withAnimation(.easeOut(duration: reduceMotion ? 0 : 0.2)) { page += delta }
+        withAnimation(reduceMotion ? nil : GT.Motion.fade) { page += delta }
     }
 
     // MARK: One decision

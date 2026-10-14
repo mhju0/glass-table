@@ -14,6 +14,15 @@ public enum PracticeTableError: Error, Equatable {
     case handStillRunning, handFinished, wrongSeat, illegalAction, duplicateHandID, invalidState, gameOver
 }
 
+public enum PracticeRaiseBlock: Equatable, Sendable {
+    /// Calling already takes every chip the seat has.
+    case noChipsBeyondCall
+    /// No other seat has chips left to answer a wager.
+    case noOpponentCanAnswer
+    /// Only a short all-in has raised since the seat last acted, so raising is not reopened.
+    case shortAllInDidNotReopen
+}
+
 public enum PracticeStreet: String, Codable, Sendable { case preflop, flop, turn, river, finished }
 
 public struct PracticeSeat: Codable, Equatable, Sendable {
@@ -211,6 +220,14 @@ public struct PracticeTableState: Codable, Equatable, Sendable {
             }
         }
         return result
+    }
+
+    /// Why the seat to act may not raise, or nil when it may.
+    public var raiseBlock: PracticeRaiseBlock? {
+        guard let seat = currentSeat, street != .finished else { return nil }
+        if seats[seat].stack <= max(0, currentBet - seats[seat].streetCommitted) { return .noChipsBeyondCall }
+        if !(0..<seatCount).contains(where: { $0 != seat && mayAct($0) }) { return .noOpponentCanAnswer }
+        return canRaise(seat) ? nil : .shortAllInDidNotReopen
     }
 
     /// A duplicate command is a no-op, including after a hand has settled.

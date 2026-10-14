@@ -112,3 +112,27 @@ public func gradePosition(answer: Int, spot: PositionSpot,
     return PositionReveal(band: answer == correct ? .spotOn : .off,
                           answer: answer, correct: correct, whyText: why)
 }
+
+extension Position {
+    /// The seat's number, counted from the first to act before the flop.
+    public var seatNumber: Int { (Self.allCases.firstIndex(of: self) ?? 0) + 1 }
+
+    /// The beginner's name for the seat, broken over two lines where it is long.
+    public func seatName(in language: LearningLanguage) -> String {
+        switch self {
+        case .utg: language.text("첫\n자리", "First\nseat")
+        case .utg1: language.text("두 번째\n자리", "Second\nseat")
+        case .lj: language.text("세 번째\n자리", "Third\nseat")
+        case .hj: language.text("네 번째\n자리", "Fourth\nseat")
+        case .co: language.text("딜러 앞\n자리", "Before\ndealer")
+        case .btn: language.text("딜러", "Dealer")
+        case .sb: language.text("작은\n블라인드", "Small\nblind")
+        case .bb: language.text("큰\n블라인드", "Big\nblind")
+        }
+    }
+
+    /// Number and name on one line, e.g. "3 · Third seat".
+    public func seatLabel(in language: LearningLanguage) -> String {
+        "\(seatNumber) · " + seatName(in: language).replacingOccurrences(of: "\n", with: " ")
+    }
+}

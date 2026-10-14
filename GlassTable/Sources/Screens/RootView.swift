@@ -9,26 +9,13 @@ struct RootView: View {
     @State private var model = ProgressionModel()
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @State private var tab: Tab = .learn
-    @State private var openNode: CurriculumNode?
     @State private var showFreePlay = false
     @State private var showReview = false
     @State private var showPath = false
     @State private var showPlacement = false
-    @State private var showBasics = false
-    @State private var showGuidedHand = false
-    @State private var suggestGuidedHand = false
-    @State private var suggestAfterBasics = false
-    @State private var handAfterSuggestion = false
-    @State private var lessonAfterSuggestion = false
-    @State private var playAfterGuidedHand = false
-    @State private var showOpening = false
-    @State private var basicsAfterOpening = false
-    @State private var nodeAfterOpening: CurriculumNode?
+    @State private var journey = BeginnerJourney()
     @State private var pendingOpeningFinishEpoch: UUID?
     @State private var pendingOpeningFinishResumed = false
-    /// Set when the basics lesson ends with "start the next lesson"; the node opens
-    /// once the lesson's cover has finished dismissing.
-    @State private var nodeAfterBasics: CurriculumNode?
     @State private var homeIndicatorInset: CGFloat = 0
     @AppStorage(PokerTerms.storageKey) private var termsChoice: Bool?
 
@@ -102,23 +89,43 @@ struct RootView: View {
               model.state.firstLessonCompleted == true,
               model.state.pendingFirstLesson == nil else { return }
         pendingOpeningFinishEpoch = nil
-        if pendingOpeningFinishResumed {
-            if model.state.basicsLessonCompleted == true { nodeAfterOpening = model.nextNode }
-            else { basicsAfterOpening = true }
-            showOpening = false
-        } else if model.state.basicsLessonCompleted == true { openNode = model.nextNode }
-        else { showBasics = true }
+        let next: BeginnerJourney.Step? = model.state.basicsLessonCompleted == true
+            ? model.nextNode.map { .lesson($0) } : .basics
+        if pendingOpeningFinishResumed { journey.close(then: next) }
+        else if let next { journey.present(next) }
+    }
+
+    /// A cover or sheet shown while the journey presents a matching step. A system
+    /// dismissal (a swipe) closes the step without opening anything after it.
+    private func showing(_ matches: @escaping (BeginnerJourney.Step) -> Bool) -> Binding<Bool> {
+        Binding(get: { journey.presented.map(matches) ?? false },
+                set: { if !$0, let shown = journey.presented, matches(shown) { journey.close(ifShowing: shown) } })
+    }
+
+    private var shownLesson: Binding<CurriculumNode?> {
+        Binding(get: { if case let .lesson(node)? = journey.presented { node } else { nil } },
+                set: { if $0 == nil, case let .lesson(node)? = journey.presented { journey.close(ifShowing: .lesson(node)) } })
+    }
+
+    /// An item binding keeps the sheet's content stable while it slides away.
+    private var shownInvitation: Binding<GuidedHandOffer?> {
+        Binding(get: { if case let .invitation(node)? = journey.presented { GuidedHandOffer(lessonAfter: node) } else { nil } },
+                set: { if $0 == nil, case let .invitation(node)? = journey.presented { journey.close(ifShowing: .invitation(lessonAfter: node)) } })
+    }
+
+    private func afterDismiss() {
+        if journey.didDismiss() == .play { tab = .play }
     }
 
     private var tabs: some View {
         TabView(selection: $tab) {
             NavigationStack {
-                LearnView(onOpenNode: { openNode = $0 },
+                LearnView(onOpenNode: { journey.present(.lesson($0)) },
                           onOpenReview: { showReview = true },
                           onOpenPractice: { showFreePlay = true },
-                          onOpenBasics: { showBasics = true },
-                          onOpenGuidedHand: { showGuidedHand = true },
-                          onResumeOpening: { showOpening = true })
+                          onOpenBasics: { journey.present(.basics) },
+                          onOpenGuidedHand: { journey.present(.guidedHand) },
+                          onResumeOpening: { journey.present(.opening) })
                     .modifier(ProgressSaveNotice())
                     .toolbar(.hidden, for: .navigationBar)
             }
@@ -151,67 +158,36 @@ struct RootView: View {
         }
         // Activities take the whole screen and leave only through their Close control;
         // each session saves its place, so closing never loses an answer.
-        .fullScreenCover(isPresented: $showOpening, onDismiss: {
-            if basicsAfterOpening {
-                basicsAfterOpening = false
-                showBasics = true
-            } else if let node = nodeAfterOpening {
-                nodeAfterOpening = nil
-                openNode = node
-            }
-        }) {
+        .fullScreenCover(isPresented: showing { $0 == .opening }, onDismiss: afterDismiss) {
             FirstLessonView(context: .resume, onFinish: { finishOpening(resumed: true) }, onSkip: {
-                if model.state.openingDismissed == true || model.dismissFirstLesson(expectedEpoch: model.epoch) { showOpening = false }
+                if model.state.openingDismissed == true || model.dismissFirstLesson(expectedEpoch: model.epoch) { journey.close(ifShowing: .opening) }
             })
         }
-        .fullScreenCover(item: $openNode) { node in
+        .fullScreenCover(item: shownLesson, onDismiss: afterDismiss) { node in
             NavigationStack {
-                NodeSessionView(node: node, onOpenLesson: { openNode = $0 }).modifier(ProgressSaveNotice())
+                NodeSessionView(node: node, onOpenLesson: { journey.present(.lesson($0)) }).modifier(ProgressSaveNotice())
             }.environment(model)
         }
-        .fullScreenCover(isPresented: $showBasics, onDismiss: {
-            if suggestAfterBasics {
-                suggestAfterBasics = false
-                suggestGuidedHand = true
-            } else if let node = nodeAfterBasics {
-                nodeAfterBasics = nil
-                openNode = node
-            }
-        }) {
-            HoldemBasicsView(onClose: { showBasics = false },
+        .fullScreenCover(isPresented: showing { $0 == .basics }, onDismiss: afterDismiss) {
+            HoldemBasicsView(onClose: { journey.close(ifShowing: .basics) },
                              onFinish: { startNext in
                                  model.completeBasicsLesson()
-                                 nodeAfterBasics = startNext ? model.nextNode : nil
-                                 suggestAfterBasics = true
-                                 showBasics = false
+                                 journey.close(then: .invitation(lessonAfter: startNext ? model.nextNode : nil))
                              })
                 .modifier(ProgressSaveNotice())
                 .environment(model)
         }
-        .sheet(isPresented: $suggestGuidedHand, onDismiss: {
-            // Only an explicit choice moves on; swiping the sheet away just closes it.
-            let node = lessonAfterSuggestion ? nodeAfterBasics : nil
-            nodeAfterBasics = nil
-            lessonAfterSuggestion = false
-            if handAfterSuggestion {
-                handAfterSuggestion = false
-                showGuidedHand = true
-            } else if let node { openNode = node }
-        }) {
-            GuidedHandInvitationView(continuesLessons: nodeAfterBasics != nil, onHand: {
-                handAfterSuggestion = true
-                suggestGuidedHand = false
+        // Only an explicit choice moves on; swiping the sheet away just closes it.
+        .sheet(item: shownInvitation, onDismiss: afterDismiss) { offer in
+            GuidedHandInvitationView(continuesLessons: offer.lessonAfter != nil, onHand: {
+                journey.close(then: .guidedHand)
             }, onContinue: {
-                lessonAfterSuggestion = true
-                suggestGuidedHand = false
+                journey.close(then: offer.lessonAfter.map { .lesson($0) })
             })
         }
-        .fullScreenCover(isPresented: $showGuidedHand, onDismiss: {
-            if playAfterGuidedHand { playAfterGuidedHand = false; tab = .play }
-        }) {
-            GuidedHandView(onClose: { showGuidedHand = false }, onPlay: {
-                playAfterGuidedHand = true
-                showGuidedHand = false
+        .fullScreenCover(isPresented: showing { $0 == .guidedHand }, onDismiss: afterDismiss) {
+            GuidedHandView(onClose: { journey.close(ifShowing: .guidedHand) }, onPlay: {
+                journey.close(then: .play)
             })
         }
         .fullScreenCover(isPresented: $showFreePlay) {
@@ -228,9 +204,9 @@ struct RootView: View {
         }
         .sheet(isPresented: $showPath) {
             NavigationStack {
-                PathView(onOpenNode: { showPath = false; openNode = $0 },
+                PathView(onOpenNode: { showPath = false; journey.present(.lesson($0)) },
                          onOpenFreePlay: { showPath = false; showFreePlay = true },
-                         onOpenBasics: { showPath = false; showBasics = true })
+                         onOpenBasics: { showPath = false; journey.present(.basics) })
                     .gtChrome(leading: { ChromeButton.close { showPath = false } })
                     .gtSheetSurface()
             }
@@ -254,7 +230,7 @@ struct RootView: View {
             }
             if env["GT_DEMO_TABLE"] != nil { tab = .play }
             if env["GT_DEMO_REPLAY"] != nil { tab = .progress }
-            if let id = env["GT_DEMO_NODE"] { openNode = Curriculum.node(id: id) }
+            if let id = env["GT_DEMO_NODE"], let node = Curriculum.node(id: id) { journey.present(.lesson(node)) }
             if env["GT_DEMO_FREEPLAY"] != nil { showFreePlay = true }
             if let raw = env["GT_DEMO_CONCEPT"], let concept = Concept(rawValue: raw) {
                 if model.state.activeRound == nil {
@@ -271,15 +247,17 @@ struct RootView: View {
             if env["GT_DEMO_SETTINGS"] != nil { tab = .settings }
             if env["GT_DEMO_TAB"] == "path" { showPath = true }
             if env["GT_DEMO_PLACEMENT"] != nil { showPlacement = true }
-            if env["GT_DEMO_BASICS"] != nil { showBasics = true }
-            if env["GT_DEMO_GUIDED_HAND"] != nil { showGuidedHand = true }
-            if env["GT_DEMO_GUIDED_INVITATION"] != nil {
-                nodeAfterBasics = model.nextNode
-                suggestGuidedHand = true
-            }
+            if env["GT_DEMO_BASICS"] != nil { journey.present(.basics) }
+            if env["GT_DEMO_GUIDED_HAND"] != nil { journey.present(.guidedHand) }
+            if env["GT_DEMO_GUIDED_INVITATION"] != nil { journey.present(.invitation(lessonAfter: model.nextNode)) }
             #endif
         }
     }
+}
+
+private struct GuidedHandOffer: Identifiable {
+    let lessonAfter: CurriculumNode?
+    var id: String { lessonAfter?.id ?? "" }
 }
 
 private struct GuidedHandInvitationView: View {

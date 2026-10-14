@@ -29,10 +29,10 @@ struct RestoredDrillView: View {
         let stored = try? JSONDecoder().decode(DrillStoredReveal.self, from: answer.reveal)
         let input = try? JSONDecoder().decode(DrillSubmittedInput.self, from: answer.input)
         let detail = input.flatMap { input in
-            RestoredDrillDescription.make(concept: concept, seed: seed, index: index,
-                                          input: input, stored: stored, language: language,
-                                          // Stored wire ranges do not record whether confidence was solicited.
-                                          namesRange: false)
+            ConceptReveal(concept: concept, seed: seed, index: index, input: input,
+                          openerEquityPct: stored?.interval?.truth, language: language,
+                          // Stored wire ranges do not record whether confidence was solicited.
+                          namesRange: false)
         }
         let band = GradeBand(rawValue: answer.band) ?? .off
         // The EV loss verdict shows a small loss as close, as its live reveal does.
@@ -64,7 +64,7 @@ struct RestoredDrillView: View {
     }
 
     @ViewBuilder
-    private func explanation(detail: RestoredDrillDescription?, input: DrillSubmittedInput?, band: GradeBand) -> some View {
+    private func explanation(detail: ConceptReveal?, input: DrillSubmittedInput?, band: GradeBand) -> some View {
         if concept == .evLoss, case let .boolean(calls)? = input {
             RestoredEVLossResult(seed: seed, index: index, calls: calls)
         } else if concept == .potMath {
@@ -94,7 +94,7 @@ struct RestoredDrillView: View {
 
     /// The same verdict row as the live reveal of each drill.
     @ViewBuilder
-    private func verdict(band: GradeBand, detail: RestoredDrillDescription?,
+    private func verdict(band: GradeBand, detail: ConceptReveal?,
                          input: DrillSubmittedInput?) -> some View {
         let mine = detail?.mine ?? language.text("답변 저장됨", "Answer saved")
         let correct = detail?.correct ?? language.text("결과 저장됨", "Result saved")
@@ -202,157 +202,6 @@ private struct RestoredEVLossResult: View {
             Text("\(bbText(value))bb").font(GT.title(14).monospacedDigit()).foregroundStyle(GT.ink)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-struct RestoredDrillDescription {
-    let mine: String
-    let correct: String
-    let why: String
-
-    static func make(concept: Concept, seed: UInt64, index: Int,
-                     input: DrillSubmittedInput, stored: DrillStoredReveal?,
-                     language: LearningLanguage, namesRange: Bool = false) -> Self? {
-        switch (concept, input) {
-        case let (.showdown, .integer(value)):
-            let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
-            let result = gradeShowdown(answer: value, spot: spot, language: language)
-            guard (0..<3).contains(value), (0..<3).contains(result.winner) else { return nil }
-            return Self(mine: HandOutcomeCopy.answer(value, in: language),
-                        correct: HandOutcomeCopy.answer(result.winner, in: language), why: result.whyText)
-        case let (.potMath, .integer(value)):
-            let result = gradePotMath(answer: value,
-                spot: PotMathSpotGenerator.spot(baseSeed: seed, index: index), language: language)
-            let unit = language.text("칩", " chips")
-            return Self(mine: "\(value)\(unit)", correct: "\(result.correct)\(unit)",
-                        why: result.whyText)
-        case let (.position, .integer(value)):
-            let spot = PositionSpotGenerator.spot(baseSeed: seed, index: index)
-            let result = gradePosition(answer: value, spot: spot, language: language)
-            func label(_ value: Int) -> String {
-                switch spot.question {
-                case .behind: return language.text("\(value)명", "\(value) players")
-                case let .whichIsLater(a, b): return RestoredLessonEvidence.positionLabel(value == 0 ? a : b, language: language)
-                }
-            }
-            return Self(mine: label(value), correct: label(result.correct), why: result.whyText)
-        case let (.outs, .integer(value)):
-            let spot = OutsSpotGenerator.spot(baseSeed: seed, index: index)
-            let result = gradeOuts(estimate: value, spot: spot, language: language)
-            let unit = language.text("장", " cards")
-            return Self(mine: "\(value)\(unit)", correct: "\(spot.outCount)\(unit)",
-                        why: result.whyText)
-        case let (.combos, .integer(value)):
-            let spot = BlockerSpotGenerator.spot(baseSeed: seed, index: index)
-            let result = gradeBlocker(estimate: value, spot: spot, language: language)
-            let unit = language.text("개", " combos")
-            return Self(mine: "\(value)\(unit)", correct: "\(result.count)\(unit)",
-                        why: result.whyText)
-        case let (.potOdds, .integer(value)), let (.mdf, .integer(value)):
-            let spot = BetSpotGenerator.spot(baseSeed: seed, index: index)
-            let result = concept == .mdf
-                ? gradeMDF(estimatePct: value, spot: spot, language: language)
-                : gradePotOdds(estimatePct: value, spot: spot, language: language)
-            return Self(mine: "\(value)%", correct: "\(pctText(result.correctPct))%",
-                        why: result.whyText)
-        case let (.callFold, .boolean(value)):
-            let result = gradeCallFold(userCalls: value,
-                spot: CallFoldSpotGenerator.spot(baseSeed: seed, index: index), language: language)
-            return Self(mine: value ? language.text("콜", "Call") : language.text("폴드", "Fold"),
-                        correct: result.correctIsCall ? language.text("콜", "Call")
-                            : language.text("폴드", "Fold"), why: result.whyText)
-        case let (.rangeNotation, .integer(value)):
-            let result = gradeRangeNotation(estimate: value,
-                spot: RangeNotationSpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            let unit = language.text(" 콤보", " combos")
-            return Self(mine: "\(value)\(unit)", correct: "\(result.count)\(unit)",
-                        why: result.whyText)
-        case let (.rfi, .boolean(value)):
-            let result = gradeRFI(userOpens: value,
-                spot: RFISpotGenerator.spot(baseSeed: seed, index: index), language: language)
-            return Self(mine: value ? language.text("오픈", "Raise") : language.text("폴드", "Fold"),
-                        correct: result.correctOpens ? language.text("오픈", "Raise")
-                            : language.text("폴드", "Fold"), why: result.whyText)
-        case let (.rangeRead, .range(width, tendencies)):
-            let selected = Set(tendencies.compactMap(RangeTendency.init(rawValue:)))
-            let result = gradeRangeRead(
-                estimate: RangeEstimate(width: width, tendencies: selected),
-                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            return Self(mine: "\(pctText(result.guess.percent))%",
-                        correct: "\(pctText(result.truth.percent))%",
-                        why: result.whyText)
-        case let (.rangeRead, .rangeBand(width, excludedTop, tendencies)):
-            let selected = Set(tendencies.compactMap(RangeTendency.init(rawValue:)))
-            let result = gradeRangeRead(
-                estimate: RangeEstimate(width: width, tendencies: selected, excludedTop: excludedTop),
-                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            return Self(mine: "\(pctText(result.guess.percent))%",
-                        correct: "\(pctText(result.truth.percent))%",
-                        why: result.whyText)
-        case let (.evLoss, .boolean(value)):
-            let result = gradeEVLoss(userCalls: value,
-                spot: EVLossSpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            let bestCalls = result.grade.best.ev > 0
-            return Self(mine: value ? language.text("콜", "Call") : language.text("폴드", "Fold"),
-                        correct: bestCalls ? language.text("콜", "Call") : language.text("폴드", "Fold"),
-                        why: result.whyText)
-        case let (.defend, .action(raw)):
-            guard let selected = DefendAction(rawValue: raw) else { return nil }
-            let result = gradeDefend(chosen: selected,
-                spot: DefendSpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            func label(_ action: DefendAction) -> String {
-                switch action {
-                case .fold: return language.text("폴드", "Fold")
-                case .call: return language.text("콜", "Call")
-                case .threeBet: return language.text("3벳", "Re-raise")
-                }
-            }
-            return Self(mine: label(selected), correct: label(result.correct),
-                        why: result.whyText)
-        case let (.equitySense, .interval(point, lo, hi)):
-            let result = gradeEquitySense(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: EquitySenseSpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            return interval(result, unit: "%", language: language, namesRange: namesRange)
-        case let (.evCall, .interval(point, lo, hi)):
-            let result = gradeEVCall(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: EVCallSpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            return interval(result, unit: "bb", language: language, namesRange: namesRange)
-        case let (.hitFrequency, .interval(point, lo, hi)):
-            let result = gradeHitFrequency(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: HitFrequencySpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            return interval(result, unit: "%", language: language, namesRange: namesRange)
-        case let (.rangeAdvantage, .interval(point, lo, hi)):
-            guard let truth = stored?.interval?.truth else { return nil }
-            let result = gradeRangeAdvantage(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index),
-                openerEquityPct: truth, language: language)
-            return interval(result, unit: "%", language: language, namesRange: namesRange)
-        case let (.actionRead, .interval(point, lo, hi)):
-            let result = gradeActionRead(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: ActionReadSpotGenerator.spot(baseSeed: seed, index: index),
-                language: language)
-            return interval(result, unit: "%", language: language, namesRange: namesRange)
-        default: return nil
-        }
-    }
-
-    private static func interval(_ result: EstimateReveal, unit: String,
-                                 language: LearningLanguage, namesRange: Bool) -> Self {
-        Self(mine: "\(pctText(result.estimate.point))\(unit)",
-             correct: "\(pctText(result.correct))\(unit)",
-             // A learner who was never asked for a range is not told how it did.
-             why: !namesRange ? result.whyText : result.whyText + language.text(
-                result.intervalHit ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요.",
-                result.intervalHit ? " The answer was inside your 90% range."
-                                   : " The answer was outside your 90% range."))
     }
 }
 
@@ -503,8 +352,8 @@ private struct RestoredDrillContextView: View {
             switch spot.question {
             case let .behind(seat, preflop):
                 LessonSeatLoop(active: seat, markers: [seat: language.text("나", "You")], postflop: !preflop)
-                Text(language.text("\(RestoredLessonEvidence.positionLabel(seat, language: language)) · \(preflop ? "플롭 전" : "플롭 이후")",
-                                   "\(RestoredLessonEvidence.positionLabel(seat, language: language)) · \(preflop ? "before" : "after") the flop"))
+                Text(language.text("\(seat.seatLabel(in: language)) · \(preflop ? "플롭 전" : "플롭 이후")",
+                                   "\(seat.seatLabel(in: language)) · \(preflop ? "before" : "after") the flop"))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
             case let .whichIsLater(a, b):
                 LessonSeatLoop(markers: [a: "A", b: "B"])
@@ -620,9 +469,6 @@ private struct RestoredDrillContextView: View {
 
 /// Semantic evidence shared by restored rendering and replay tests.
 enum RestoredLessonEvidence {
-    static func positionLabel(_ position: Position, language: LearningLanguage) -> String {
-        "\(LessonSeatLoop.number(position)) · " + LessonSeatLoop.name(position, language: language).replacingOccurrences(of: "\n", with: " ")
-    }
     static func rangeReveal(seed: UInt64, index: Int, input: DrillSubmittedInput,
                             language: LearningLanguage) -> RangeReadReveal? {
         let estimate: RangeEstimate

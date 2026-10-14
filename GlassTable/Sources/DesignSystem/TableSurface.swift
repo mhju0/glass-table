@@ -291,7 +291,7 @@ struct TableSurface: View {
                     y: proxy.frame(in: .named(TableSurfaceSpace.name)).midY)])
             }
         }
-        .animation(.easeInOut(duration: 0.15), value: seat.status)
+        .animation(GT.Motion.fade, value: seat.status)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(spokenLabel(seat))
         .accessibilityIdentifier(seat.id)
@@ -439,7 +439,7 @@ struct TableSurface: View {
                     } else {
                     ForEach(center.board, id: \.self) {
                         TableCard(card: $0)
-                            .transition(.asymmetric(insertion: .scale(scale: 0.6).combined(with: .opacity),
+                            .transition(.asymmetric(insertion: .scale(scale: 0.92).combined(with: .opacity),
                                                     removal: .opacity))
                     }
                     }

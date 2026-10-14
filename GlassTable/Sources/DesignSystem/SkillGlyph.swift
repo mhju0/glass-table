@@ -16,7 +16,7 @@ struct SkillGlyph: View {
             .accessibilityHidden(true)
             .onAppear {
                 if reduceMotion { settled = true }
-                else { withAnimation(.easeOut(duration: 0.45).delay(0.15)) { settled = true } }
+                else { withAnimation(GT.Motion.fade) { settled = true } }
             }
     }
 
@@ -98,7 +98,7 @@ struct SkillGlyph: View {
     }
 
     private func accent(_ view: some View) -> some View {
-        view.opacity(settled ? 1 : 0).scaleEffect(settled ? 1 : 0.6)
+        view.opacity(settled ? 1 : 0).scaleEffect(settled ? 1 : 0.9)
     }
 
     private func card(_ label: String, highlighted: Bool = false) -> some View {

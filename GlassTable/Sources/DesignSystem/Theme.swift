@@ -68,6 +68,10 @@ enum GT {
     enum Motion {
         static let press = Animation.interactiveSpring(response: 0.22, dampingFraction: 0.9)
         static let change = Animation.interactiveSpring(response: 0.34, dampingFraction: 0.9)
+        /// Fades and entrances: strong ease-out.
+        static let fade = Animation.timingCurve(0.23, 1, 0.32, 1, duration: 0.2)
+        /// A chip or card travelling across the table: strong ease-in-out.
+        static let move = Animation.timingCurve(0.77, 0, 0.175, 1, duration: 0.22)
     }
 
     enum Typography {

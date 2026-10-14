@@ -424,17 +424,10 @@ final class ProgressionModel {
     @discardableResult
     func saveRoundDraft(roundID: String, ordinal: Int, input: SavedDrillDraftInput,
                         expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch, let round = state.activeRound,
-              round.id == roundID, round.ordinal == ordinal, round.phase == .question,
-              let concept = Concept(rawValue: round.concept), input.isValid(for: concept)
-        else { return false }
-        let draft = SavedDrillDraft(ordinal: ordinal, concept: concept.rawValue, input: input)
-        if round.draft == draft { return true }
-        return commit { $0.activeRound?.draft = draft }
+        saveGradedDraft(\.activeRound, id: roundID, ordinal: ordinal, input: input,
+                        expectedEpoch: expectedEpoch)
     }
 
-    /// One disk transaction holds the grade, FSRS state, daily count and reveal.
-    /// Repeating the same command cannot count the answer twice.
     @discardableResult
     func commitRoundAnswer(roundID: String, attemptID: String, ordinal: Int,
                            band: GradeBand, language: String, assisted: Bool,
@@ -442,60 +435,21 @@ final class ProgressionModel {
                            eligibleSeconds: Double? = nil, interval: IntervalAnswer? = nil,
                            evLoss: Double? = nil, now: Date = Date(),
                            expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch,
-              let round = state.activeRound, round.id == roundID,
-              ["ko", "en"].contains(language), !attemptID.isEmpty,
-              !input.isEmpty, !reveal.isEmpty,
-              eligibleSeconds.map({ $0.isFinite && $0 >= 0 }) ?? true,
-              evLoss.map({ $0.isFinite && $0 >= 0 }) ?? true
-        else { return false }
-        if round.answers.contains(where: { $0.attemptID == attemptID }) { return true }
-        guard round.phase == .question, round.introPhase == nil,
-              round.ordinal == ordinal,
-              let concept = Concept(rawValue: round.concept),
-              round.formatVersion == formatVersion else { return false }
-        let assisted = assisted || round.helpOrdinal == ordinal
-        return commit { candidate in
-            if assisted {
-                ReviewQueue.recordAssistedPractice(&candidate, concept: concept, now: now)
-            } else {
-                ReviewQueue.recordReview(&candidate, concept: concept,
-                                         rating: .forBand(band), interval: interval,
-                                         now: now, scheduler: scheduler, evLoss: evLoss)
-            }
-            let key = DailyPracticeKey(day: DayKey(now), concept: concept.rawValue,
-                                       mode: "single-skill", formatVersion: formatVersion,
-                                       language: language, assisted: assisted)
-            let seconds = !assisted && band == .spotOn
-                && (evLoss == nil || evLoss == 0) ? eligibleSeconds : nil
-            candidate.recordDetailedAttempt(PracticeEvidence(
-                attemptID: attemptID, key: key, at: now, band: band,
-                eligibleCorrectSeconds: seconds, decisionLossBB: evLoss))
-            candidate.activeRound?.answers.append(RoundAnswer(
-                attemptID: attemptID, ordinal: ordinal, band: band,
-                submittedAt: now, input: input, reveal: reveal, assisted: assisted))
-            candidate.activeRound?.phase = .reveal
-            candidate.activeRound?.draft = nil
-        }
+        guard ["ko", "en"].contains(language),
+              evLoss.map({ $0.isFinite && $0 >= 0 }) ?? true else { return false }
+        return commitGradedAnswer(
+            \.activeRound, id: roundID, attemptID: attemptID, ordinal: ordinal, band: band,
+            mode: "single-skill", language: language, assisted: assisted, input: input,
+            reveal: reveal, eligibleSeconds: eligibleSeconds, interval: interval,
+            evLoss: evLoss, now: now, expectedEpoch: expectedEpoch,
+            fits: { $0.introPhase == nil && $0.formatVersion == formatVersion })
     }
 
     @discardableResult
     func nextRoundQuestion(roundID: String, afterOrdinal: Int,
                            expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch, let round = state.activeRound,
-              round.id == roundID else { return false }
-        if round.ordinal > afterOrdinal || round.phase == .finished { return true }
-        guard round.ordinal == afterOrdinal, round.phase == .reveal else { return false }
-        return commit { candidate in
-            if afterOrdinal + 1 == round.questionCount {
-                candidate.activeRound?.phase = .finished
-            } else {
-                candidate.activeRound?.ordinal += 1
-                candidate.activeRound?.phase = .question
-            }
-            candidate.activeRound?.draft = nil
-            candidate.activeRound?.helpOrdinal = nil
-        }
+        nextGradedQuestion(\.activeRound, id: roundID, afterOrdinal: afterOrdinal,
+                           expectedEpoch: expectedEpoch)
     }
 
     @discardableResult
@@ -521,14 +475,8 @@ final class ProgressionModel {
     @discardableResult
     func saveReviewDraft(sessionID: String, ordinal: Int, input: SavedDrillDraftInput,
                          expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch, let session = state.activeReviewSession,
-              session.id == sessionID, session.ordinal == ordinal,
-              session.phase == .question,
-              let concept = Concept(rawValue: session.scheduledConcepts[ordinal]),
-              input.isValid(for: concept) else { return false }
-        let draft = SavedDrillDraft(ordinal: ordinal, concept: concept.rawValue, input: input)
-        if session.draft == draft { return true }
-        return commit { $0.activeReviewSession?.draft = draft }
+        saveGradedDraft(\.activeReviewSession, id: sessionID, ordinal: ordinal, input: input,
+                        expectedEpoch: expectedEpoch)
     }
 
     @discardableResult
@@ -538,58 +486,19 @@ final class ProgressionModel {
                             interval: IntervalAnswer? = nil,
                             evLoss: Double? = nil, eligibleSeconds: Double? = nil,
                             now: Date = Date(), expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch, let session = state.activeReviewSession,
-              session.id == sessionID, !attemptID.isEmpty,
-              !input.isEmpty, !reveal.isEmpty,
-              eligibleSeconds.map({ $0.isFinite && $0 >= 0 }) ?? true else { return false }
-        if session.answers.contains(where: { $0.answer.attemptID == attemptID }) { return true }
-        guard session.phase == .question, session.ordinal == ordinal,
-              let concept = Concept(rawValue: session.scheduledConcepts[ordinal])
-        else { return false }
         // Help leaves the concept unscheduled, so it stays due and returns later.
-        let assisted = assisted || session.helpOrdinal == ordinal
-        return commit { candidate in
-            if assisted {
-                ReviewQueue.recordAssistedPractice(&candidate, concept: concept, now: now)
-            } else {
-                ReviewQueue.recordReview(&candidate, concept: concept, rating: .forBand(band),
-                                         interval: interval, now: now, scheduler: scheduler,
-                                         evLoss: evLoss)
-            }
-            let key = DailyPracticeKey(day: DayKey(now), concept: concept.rawValue,
-                mode: "review", formatVersion: session.formatVersion,
-                language: language.rawValue, assisted: assisted)
-            candidate.recordDetailedAttempt(PracticeEvidence(
-                attemptID: attemptID, key: key, at: now, band: band,
-                eligibleCorrectSeconds: !assisted && band == .spotOn
-                    && (evLoss == nil || evLoss == 0) ? eligibleSeconds : nil,
-                decisionLossBB: evLoss))
-            candidate.activeReviewSession?.answers.append(NodeGradedAnswer(
-                concept: concept.rawValue, answer: RoundAnswer(attemptID: attemptID,
-                    ordinal: ordinal, band: band, submittedAt: now,
-                    input: input, reveal: reveal, assisted: assisted)))
-            candidate.activeReviewSession?.phase = .reveal
-            candidate.activeReviewSession?.draft = nil
-        }
+        commitGradedAnswer(
+            \.activeReviewSession, id: sessionID, attemptID: attemptID, ordinal: ordinal,
+            band: band, mode: "review", language: language.rawValue, assisted: assisted,
+            input: input, reveal: reveal, eligibleSeconds: eligibleSeconds, interval: interval,
+            evLoss: evLoss, now: now, expectedEpoch: expectedEpoch)
     }
 
     @discardableResult
     func nextReviewQuestion(sessionID: String, afterOrdinal: Int,
                             expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch, let session = state.activeReviewSession,
-              session.id == sessionID else { return false }
-        if session.ordinal > afterOrdinal || session.phase == .finished { return true }
-        guard session.ordinal == afterOrdinal, session.phase == .reveal else { return false }
-        return commit { candidate in
-            if afterOrdinal + 1 == session.scheduledConcepts.count {
-                candidate.activeReviewSession?.phase = .finished
-            } else {
-                candidate.activeReviewSession?.ordinal += 1
-                candidate.activeReviewSession?.phase = .question
-            }
-            candidate.activeReviewSession?.draft = nil
-            candidate.activeReviewSession?.helpOrdinal = nil
-        }
+        nextGradedQuestion(\.activeReviewSession, id: sessionID, afterOrdinal: afterOrdinal,
+                           expectedEpoch: expectedEpoch)
     }
 
     @discardableResult
@@ -635,14 +544,8 @@ final class ProgressionModel {
     @discardableResult
     func saveNodeDraft(sessionID: String, ordinal: Int, input: SavedDrillDraftInput,
                        expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch, let session = state.activeNodeSession,
-              session.id == sessionID, session.ordinal == ordinal,
-              session.phase == .question,
-              let concept = Concept(rawValue: session.scheduledConcepts[ordinal]),
-              input.isValid(for: concept) else { return false }
-        let draft = SavedDrillDraft(ordinal: ordinal, concept: concept.rawValue, input: input)
-        if session.draft == draft { return true }
-        return commit { $0.activeNodeSession?.draft = draft }
+        saveGradedDraft(\.activeNodeSession, id: sessionID, ordinal: ordinal, input: input,
+                        expectedEpoch: expectedEpoch)
     }
 
     @discardableResult
@@ -720,39 +623,15 @@ final class ProgressionModel {
                           eligibleSeconds: Double? = nil,
                           interval: IntervalAnswer? = nil, evLoss: Double? = nil,
                           now: Date = Date(), expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch,
-              let session = state.activeNodeSession, session.id == sessionID,
-              !attemptID.isEmpty, !input.isEmpty, !reveal.isEmpty,
-              eligibleSeconds.map({ $0.isFinite && $0 >= 0 }) ?? true else { return false }
-        if session.answers.contains(where: { $0.answer.attemptID == attemptID }) { return true }
-        guard session.phase == .question, session.ordinal == ordinal,
-              let concept = Concept(rawValue: session.scheduledConcepts[ordinal]),
-              let node = Curriculum.node(id: session.nodeID) else { return false }
-        let assisted = assisted || session.helpOrdinal == ordinal
-        return commit { candidate in
-            if assisted {
-                ReviewQueue.recordAssistedPractice(&candidate, concept: concept, now: now)
-            } else {
-                ReviewQueue.recordReview(&candidate, concept: concept,
-                    rating: .forBand(band), interval: interval, now: now,
-                    scheduler: scheduler, evLoss: evLoss)
-            }
-            let key = DailyPracticeKey(day: DayKey(now), concept: concept.rawValue,
-                mode: "path", formatVersion: session.formatVersion,
-                language: language.rawValue, assisted: assisted)
-            candidate.recordDetailedAttempt(PracticeEvidence(
-                attemptID: attemptID, key: key, at: now, band: band,
-                eligibleCorrectSeconds: !assisted && band == .spotOn
-                    && (evLoss == nil || evLoss == 0)
-                    ? eligibleSeconds : nil, decisionLossBB: evLoss))
-            let answer = RoundAnswer(attemptID: attemptID, ordinal: ordinal,
-                band: band, submittedAt: now, input: input, reveal: reveal,
-                assisted: assisted)
-            candidate.activeNodeSession?.answers.append(
-                NodeGradedAnswer(concept: concept.rawValue, answer: answer))
-            candidate.activeNodeSession?.phase = .reveal
-            candidate.activeNodeSession?.draft = nil
-            if ordinal + 1 == session.scheduledConcepts.count {
+        commitGradedAnswer(
+            \.activeNodeSession, id: sessionID, attemptID: attemptID, ordinal: ordinal,
+            band: band, mode: "path", language: language.rawValue, assisted: assisted,
+            input: input, reveal: reveal, eligibleSeconds: eligibleSeconds, interval: interval,
+            evLoss: evLoss, now: now, expectedEpoch: expectedEpoch,
+            fits: { Curriculum.node(id: $0.nodeID) != nil }
+        ) { candidate, session in
+            if ordinal + 1 == session.scheduledConcepts.count,
+               let node = Curriculum.node(id: session.nodeID) {
                 let answers = candidate.activeNodeSession?.answers.map(\.answer) ?? []
                 candidate.recordLessonResult(
                     questions: answers.count,
@@ -801,20 +680,8 @@ final class ProgressionModel {
     @discardableResult
     func nextNodeQuestion(sessionID: String, afterOrdinal: Int,
                           expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch, let session = state.activeNodeSession,
-              session.id == sessionID else { return false }
-        if session.ordinal > afterOrdinal || session.phase == .finished { return true }
-        guard session.ordinal == afterOrdinal, session.phase == .reveal else { return false }
-        return commit { candidate in
-            if afterOrdinal + 1 == session.scheduledConcepts.count {
-                candidate.activeNodeSession?.phase = .finished
-            } else {
-                candidate.activeNodeSession?.ordinal += 1
-                candidate.activeNodeSession?.phase = .question
-            }
-            candidate.activeNodeSession?.draft = nil
-            candidate.activeNodeSession?.helpOrdinal = nil
-        }
+        nextGradedQuestion(\.activeNodeSession, id: sessionID, afterOrdinal: afterOrdinal,
+                           expectedEpoch: expectedEpoch)
     }
 
     @discardableResult
@@ -1010,6 +877,59 @@ final class ProgressionModel {
         throw CocoaError(.fileWriteUnknown)
     }
     #endif
+
+    private func saveGradedDraft<Session: GradedSession>(
+        _ path: WritableKeyPath<ProgressState, Session?>, id: String, ordinal: Int,
+        input: SavedDrillDraftInput, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, let session = state[keyPath: path], session.id == id,
+              let draft = session.draft(for: ordinal, input: input) else { return false }
+        if session.draft == draft { return true }
+        return commit { $0[keyPath: path]?.draft = draft }
+    }
+
+    /// One disk transaction holds the grade, FSRS state, daily count and reveal.
+    /// Repeating the same command cannot count the answer twice. `fits` adds checks
+    /// for one kind of session; `then` runs inside the same transaction.
+    private func commitGradedAnswer<Session: GradedSession>(
+        _ path: WritableKeyPath<ProgressState, Session?>, id: String, attemptID: String,
+        ordinal: Int, band: GradeBand, mode: String, language: String, assisted: Bool,
+        input: Data, reveal: Data, eligibleSeconds: Double?, interval: IntervalAnswer?,
+        evLoss: Double?, now: Date, expectedEpoch: UUID,
+        fits: (Session) -> Bool = { _ in true },
+        then: (inout ProgressState, Session) -> Void = { _, _ in }) -> Bool {
+        guard expectedEpoch == epoch, let session = state[keyPath: path], session.id == id,
+              !attemptID.isEmpty, !input.isEmpty, !reveal.isEmpty,
+              eligibleSeconds.map({ $0.isFinite && $0 >= 0 }) ?? true else { return false }
+        switch session.acceptsAnswer(attemptID: attemptID, ordinal: ordinal) {
+        case .alreadyApplied: return true
+        case .refused: return false
+        case .apply: break
+        }
+        guard fits(session), let concept = session.concept(at: ordinal) else { return false }
+        let assisted = session.isAssisted(assisted, ordinal: ordinal)
+        return commit { candidate in
+            candidate.recordGradedAnswer(
+                concept: concept, band: band, mode: mode, formatVersion: session.formatVersion,
+                language: language, assisted: assisted, attemptID: attemptID, interval: interval,
+                evLoss: evLoss, eligibleSeconds: eligibleSeconds, now: now, scheduler: scheduler)
+            candidate[keyPath: path]?.reveal(RoundAnswer(
+                attemptID: attemptID, ordinal: ordinal, band: band, submittedAt: now,
+                input: input, reveal: reveal, assisted: assisted), concept: concept)
+            then(&candidate, session)
+        }
+    }
+
+    private func nextGradedQuestion<Session: GradedSession>(
+        _ path: WritableKeyPath<ProgressState, Session?>, id: String, afterOrdinal: Int,
+        expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, let session = state[keyPath: path],
+              session.id == id else { return false }
+        switch session.acceptsNext(afterOrdinal: afterOrdinal) {
+        case .alreadyApplied: return true
+        case .refused: return false
+        case .apply: return commit { $0[keyPath: path]?.moveOn() }
+        }
+    }
 
     @discardableResult
     private func commit(_ mutate: (inout ProgressState) -> Void) -> Bool {
