@@ -27,6 +27,7 @@ class ShardCoverageTests(unittest.TestCase):
 
     def execution(self, manifest, argument_fixture="parameterized"):
         targets = manifest["targets"]
+        allowed_skips = ci.allowed_skip_reasons(manifest)
         bundles = []
         for target in [ci.UNIT_TARGET, ci.UI_TARGET]:
             groups = []
@@ -43,13 +44,13 @@ class ShardCoverageTests(unittest.TestCase):
                             if "nodeIdentifierURL" in argument:
                                 suffix = argument["nodeIdentifierURL"].split("?args=", 1)[1]
                                 argument["nodeIdentifierURL"] = node["nodeIdentifierURL"] + "?args=" + suffix
-                    if name == ci.CRAWL_CLASS:
-                        node.update(result="Skipped", children=[{"nodeType": "Skip Message", "name": ci.CRAWL_SKIP_REASON}])
+                    if identifier in allowed_skips:
+                        node.update(result="Skipped", children=[{"nodeType": "Skip Message", "name": allowed_skips[identifier]}])
                     children.append(node)
                 groups.append({"nodeType": "Test Suite", "name": name, "children": children})
             bundles.append({"nodeType": "Unit test bundle" if target == ci.UNIT_TARGET else "UI test bundle", "name": target, "children": groups})
         records = sum(len(group["children"]) for bundle in bundles for group in bundle["children"])
-        skips = 11 if ci.CRAWL_CLASS in manifest["assignedClasses"] else 0
+        skips = sum(method in allowed_skips for name in manifest["assignedClasses"] for method in targets[ci.UI_TARGET][name])
         tests = {"devices": [{"modelName": "iPhone 16 Pro", "osVersion": "18.5", "deviceId": "fixture-device"}], "testPlanConfigurations": [{"configurationId": "1"}], "testNodes": [{"nodeType": "Test Plan", "name": "GlassTable", "children": bundles}]}
         summary = {"result": "Passed", "failedTests": 0, "expectedFailures": 0, "totalTestCount": records, "passedTests": records-skips, "skippedTests": skips}
         return tests, summary
@@ -249,6 +250,65 @@ class ShardCoverageTests(unittest.TestCase):
         self.assertEqual("Skipped", self.nodes["skip"]["result"])
         self.assertEqual([ci.CRAWL_SKIP_REASON], [child["name"] for child in self.nodes["skip"]["children"]])
 
+    def test_authentic_failure_message_skip_nodes_reconcile(self):
+        # Unmodified nodes from run 38601208079 at 77147cb, artifact IDs
+        # 11916149226 (attached sheet) and 11916339061 (crawler).
+        nodes = ci.read_json(FIXTURES / "xcode-26.3-skip-nodes.json")
+        for fixture in nodes.values():
+            method = f"{ci.UI_TARGET}/{fixture['nodeIdentifier']}"
+            index = next(i for i, classes in enumerate(self.manifest()["assignments"])
+                         if fixture["nodeIdentifier"].split("/")[0] in classes)
+            manifest = self.manifest(index)
+            tests, summary = self.execution(manifest)
+            for group in tests["testNodes"][0]["children"][1]["children"]:
+                for i, node in enumerate(group["children"]):
+                    if node["nodeIdentifier"] == fixture["nodeIdentifier"]:
+                        group["children"][i] = copy.deepcopy(fixture)
+            report = ci.reconcile(manifest, tests, summary, LOG, "success")
+            self.assertEqual([ci.allowed_skip_reasons(manifest)[method]], report["uiResults"][method]["skipMessages"])
+
+    def test_skip_messages_require_exact_parent_reason_and_single_evidence(self):
+        fixture = ci.read_json(FIXTURES / "xcode-26.3-skip-nodes.json")["attached_sheet"]
+        index = next(i for i, classes in enumerate(self.manifest()["assignments"]) if "LearningFlowTests" in classes)
+        for change in ["missing", "wrong", "duplicate", "generic-failure", "passed-parent", "cross-method", "unknown-kind"]:
+            with self.subTest(change=change):
+                manifest = self.manifest(index)
+                tests, summary = self.execution(manifest)
+                group = next(g for g in tests["testNodes"][0]["children"][1]["children"] if g["name"] == "LearningFlowTests")
+                node = next(n for n in group["children"] if n["nodeIdentifier"] == fixture["nodeIdentifier"])
+                node.update(copy.deepcopy(fixture))
+                if change == "missing": node["children"] = []
+                if change == "wrong": node["children"][0]["name"] = ci.CRAWL_SKIP_REASON
+                if change == "duplicate": node["children"] *= 2
+                if change == "generic-failure": node["children"][0]["name"] = "Assertion failed"
+                if change == "passed-parent": node["result"] = "Passed"
+                if change == "cross-method": node["nodeIdentifier"] = "LearningFlowTests/testUnrelated()"
+                if change == "unknown-kind": node["children"][0]["nodeType"] = "Message"
+                with self.assertRaises(ValueError): ci.reconcile(manifest, tests, summary, LOG, "success")
+
+    def test_attached_sheet_skip_is_exact_method_and_pre26_only(self):
+        manifest = self.manifest()
+        self.assertEqual(ci.ATTACHED_SHEET_SKIP_REASON, ci.allowed_skip_reasons(manifest)[ci.ATTACHED_SHEET_METHOD])
+        for runtime in ["26", "26.0", "26.5", "27.0"]:
+            manifest["runtime"] = runtime
+            self.assertNotIn(ci.ATTACHED_SHEET_METHOD, ci.allowed_skip_reasons(manifest))
+        manifest["runtime"] = "25.9"
+        self.assertIn(ci.ATTACHED_SHEET_METHOD, ci.allowed_skip_reasons(manifest))
+
+    def test_aggregate_rejects_missing_or_wrong_conditional_skip(self):
+        for change in ["passed", "wrong-reason"]:
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.reports(root)
+                for path in root.glob("*/report.json"):
+                    report = ci.read_json(path)
+                    if ci.ATTACHED_SHEET_METHOD in report["uiResults"]:
+                        record = report["uiResults"][ci.ATTACHED_SHEET_METHOD]
+                        if change == "passed": record["result"] = "Passed"
+                        else: record["skipMessages"] = [ci.CRAWL_SKIP_REASON]
+                        ci.write_json(path, report)
+                with self.assertRaises(ValueError): ci.aggregate(root, "success", SHA)
+
     def reports(self, root, argument_fixture="parameterized"):
         for index in range(3):
             folder = root / f"shard-{index}"
@@ -290,7 +350,7 @@ class ShardCoverageTests(unittest.TestCase):
             root = Path(directory)
             self.reports(root)
             result = ci.aggregate(root, "success", SHA)
-            self.assertEqual((241, 230, 11), (result["uiMethods"], result["uiPassed"], result["uiSkipped"]))
+            self.assertEqual((241, 229, 12), (result["uiMethods"], result["uiPassed"], result["uiSkipped"]))
             for status in ["failure", "cancelled", "skipped", ""]:
                 with self.assertRaises(ValueError): ci.aggregate(root, status, SHA)
             (root / "shard-2" / "report.json").unlink()

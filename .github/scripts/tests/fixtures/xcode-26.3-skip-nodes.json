@@ -1,0 +1,32 @@
+{
+  "attached_sheet": {
+    "children": [
+      {
+        "name": "Test skipped - Pre-26 sheets stay attached",
+        "nodeType": "Failure Message"
+      }
+    ],
+    "duration": "0.27s",
+    "durationInSeconds": 0.2747229337692261,
+    "name": "testAnswerSheetLeavesNoDeadBandUnderTheLastChoice()",
+    "nodeIdentifier": "LearningFlowTests/testAnswerSheetLeavesNoDeadBandUnderTheLastChoice()",
+    "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableUITests/LearningFlowTests/testAnswerSheetLeavesNoDeadBandUnderTheLastChoice",
+    "nodeType": "Test Case",
+    "result": "Skipped"
+  },
+  "crawler": {
+    "children": [
+      {
+        "name": "Test skipped - UX audit crawl runs only with GT_AUDIT_OUT",
+        "nodeType": "Failure Message"
+      }
+    ],
+    "duration": "0.25s",
+    "durationInSeconds": 0.2483910322189331,
+    "name": "test01FirstRun()",
+    "nodeIdentifier": "UXAuditCrawl/test01FirstRun()",
+    "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableUITests/UXAuditCrawl/test01FirstRun",
+    "nodeType": "Test Case",
+    "result": "Skipped"
+  }
+}

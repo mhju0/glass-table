@@ -14,6 +14,18 @@ UNIT_TARGET = "GlassTableTests"
 SHARD_COUNT = 3
 CRAWL_CLASS = "UXAuditCrawl"
 CRAWL_SKIP_REASON = "Test skipped - UX audit crawl runs only with GT_AUDIT_OUT"
+ATTACHED_SHEET_METHOD = f"{UI_TARGET}/LearningFlowTests/testAnswerSheetLeavesNoDeadBandUnderTheLastChoice()"
+ATTACHED_SHEET_SKIP_REASON = "Test skipped - Pre-26 sheets stay attached"
+
+
+def allowed_skip_reasons(manifest):
+    targets = manifest["targets"][UI_TARGET]
+    reasons = {method: CRAWL_SKIP_REASON for method in targets[CRAWL_CLASS]}
+    methods = {method for values in targets.values() for method in values}
+    runtime = tuple(int(part) for part in manifest["runtime"].split("."))
+    if runtime < (26,) and ATTACHED_SHEET_METHOD in methods:
+        reasons[ATTACHED_SHEET_METHOD] = ATTACHED_SHEET_SKIP_REASON
+    return reasons
 
 
 def require(condition, message):
@@ -192,7 +204,16 @@ def outcomes(document):
             require(method not in records, "Duplicate executed test method")
             status = node.get("result")
             require(status in {"Passed", "Skipped"}, f"Unsuccessful test: {method}: {status}")
-            skips = [child.get("name") for child in node.get("children", []) if child.get("nodeType") == "Skip Message"]
+            skips = []
+            for child in node.get("children", []):
+                if child.get("nodeType") == "Skip Message":
+                    require(status == "Skipped", "Skip reason attached to a passed test")
+                    skips.append(child.get("name"))
+                elif child.get("nodeType") == "Failure Message":
+                    message = child.get("name")
+                    require(status == "Skipped" and isinstance(message, str) and message.startswith("Test skipped - "),
+                            "Failure message is not an explicit skip reason on a skipped test")
+                    skips.append(message)
             records[method] = {"result": status, "skipMessages": skips}
         if kind == "Arguments":
             require(method is not None, "Argument result lacks its parent method")
@@ -216,11 +237,12 @@ def reconcile(manifest, tests, summary, log, app_outcome):
     expected_units = {method for methods in targets[UNIT_TARGET].values() for method in methods}
     expected_ui = {method for name in manifest["assignedClasses"] for method in targets[UI_TARGET][name]}
     require(set(records) == expected_units | expected_ui, "Executed methods do not equal complete unit target plus assigned UI classes")
-    expected_skips = set(targets[UI_TARGET][CRAWL_CLASS]) & expected_ui
+    allowed_skips = allowed_skip_reasons(manifest)
+    expected_skips = set(allowed_skips) & expected_ui
     actual_skips = {method for method, record in records.items() if record["result"] == "Skipped"}
-    require(actual_skips == expected_skips, "Unexpected or missing crawler skips")
+    require(actual_skips == expected_skips, "Unexpected or missing policy skips")
     for method in expected_skips:
-        require(records[method]["skipMessages"] == [CRAWL_SKIP_REASON], "Crawler skip reason differs from its opt-in policy")
+        require(records[method]["skipMessages"] == [allowed_skips[method]], "Skip reason differs from its exact method/runtime policy")
     require(summary.get("totalTestCount") == len(records) and summary.get("passedTests") == len(records) - len(actual_skips) and summary.get("skippedTests") == len(actual_skips), "Summary count differs from executed methods")
     parameterized = {method for method in expected_units if ":" in method.rsplit("/", 1)[1]}
     require(parameterized == {row["parentMethod"] for row in arguments}, "Parameterized unit method is missing argument case results")
@@ -275,8 +297,9 @@ def aggregate(reports_dir, job_status, sha):
     require(set(actual) == expected, "Aggregate UI coverage is incomplete")
     require(all(record["result"] == "Passed" for record in reports[0]["unitResults"].values()), "Unsuccessful aggregate unit result")
     skipped = {method for method, record in actual.items() if record["result"] == "Skipped"}
-    require(skipped == set(first["targets"][UI_TARGET][CRAWL_CLASS]), "Aggregate skip policy mismatch")
-    require(all(actual[method]["skipMessages"] == [CRAWL_SKIP_REASON] for method in skipped), "Aggregate crawler skip reason mismatch")
+    allowed_skips = allowed_skip_reasons(first)
+    require(skipped == set(allowed_skips), "Aggregate skip policy mismatch")
+    require(all(actual[method]["skipMessages"] == [allowed_skips[method]] for method in skipped), "Aggregate method/runtime skip reason mismatch")
     require(all(record["result"] in {"Passed", "Skipped"} for record in actual.values()), "Unsuccessful aggregate UI result")
     return {"sha": sha, "uiMethods": len(actual), "uiPassed": len(actual) - len(skipped), "uiSkipped": len(skipped), "unitMethodsPerShard": len(reports[0]["unitResults"]), "unitFrameworkCounts": reports[0]["unitFrameworkCounts"], "unitArgumentCasesPerShard": len(reports[0]["argumentCases"]), "uiDigest": first["uiDigest"]}
 
