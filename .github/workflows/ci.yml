@@ -35,7 +35,7 @@ jobs:
       - name: Drills package tests
         run: swift test --package-path GlassTableDrills
       # Testing builds the app as well; a separate Debug build repeats that work.
-      # The UI flow suite runs nightly in ui-tests.yml; this gate stays near 15 minutes.
+      # The UI flow suite runs nightly in ui-tests.yml; this gate takes about 22 minutes.
       - name: Build app and run unit tests
         run: |
           set -o pipefail

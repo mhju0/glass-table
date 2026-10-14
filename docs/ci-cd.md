@@ -4,7 +4,7 @@ Four GitHub Actions workflows, all on `macos-15` runners (free minutes, since th
 
 | Workflow | Runs on | What it checks | Time |
 | --- | --- | --- | --- |
-| `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, Release launch smoke test, device Release build checked by `tools/verify_release.py` | about 15 min |
+| `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, Release launch smoke test, device Release build checked by `tools/verify_release.py` | about 22 min |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
 | `ui-tests.yml` | nightly 03:00 KST, by hand | the full UI flow suite, split across three parallel shards | up to 2 h |
 | `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
