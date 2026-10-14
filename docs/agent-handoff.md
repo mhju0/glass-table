@@ -161,6 +161,11 @@ Tests:
   (`.build/device-install-b26/`).
 - Next: owner tries build 26 and says whether to push `main`; the pass-mark question
   for clearing a lesson is still open.
+- Owner on build 26: the guide repeated both answers after a miss (removed, `aaaae26`,
+  branch `feat/guide-clickable-controls`, 52 guide and learning UI tests passed on the
+  12 mini simulator) and tappable text must look tappable everywhere. Mocks and the
+  app-wide rule options are in `.scratch/clickable-controls-2026-10-14/map.md`; the
+  owner has not chosen a rule yet.
 
 ### 2026-10-13 — GRAC gameplay recording (separate session)
 
