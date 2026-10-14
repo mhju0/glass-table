@@ -11,6 +11,12 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 - Build 27 is in `main` (pushed with the owner's approval, 2026-10-14) and on the iPhone
   12 mini. It adds the clickable-controls look and the lesson pass mark to build 26.
+- Branch `fix/build27-feedback` (not merged, not installed) holds the owner's build 27
+  notes: the "Who wins?" worked example opens with every card face up, then my hand,
+  the opponent's hand and the winner (4 steps; the turn-then-river replay is gone);
+  Hold'em basics hides the lone Previous before the answer; the "A hand together"
+  invitation has 10pt corners, an outline, one fill and more room above the title; and
+  swiping that invitation away no longer starts the next lesson.
 - Lesson pass mark (owner, 2026-10-14, D47): a lesson or challenge is passed with two in
   three questions, rounded up, answered alone and exactly right (`PassMark`); only that
   clears it, and a clear is never taken back. Not passed: retry with new cards, the
@@ -113,6 +119,23 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-14 (Claude · build 27 feedback)
+
+- Owner on build 27: the "Who wins?" example starting on the turn was confusing; the
+  lone "이전" on the basics check page looked stray; the invitation sheet's corners and
+  tight top did not match the app. Also: after basics, closing the invitation still
+  opened a lesson. Cause: the sheet's `onDismiss` treated a swipe-down like "Continue
+  lessons"; now only the button continues. The turn-first order came from `acc6f17`
+  ("teaches the reading"), before the beginner direction.
+- On `fix/build27-feedback`. Drills 427 XCTest + 75 Swift Testing pass (two turn/river
+  tests replaced by one face-up test). New UI test
+  `testKoreanSwipingTheInvitationAwayStaysOnLearn` failed on the old code and passes now;
+  invitation, learning, first-lesson, accessibility flow, presentation and welcome UI
+  classes pass on two 12 mini simulators. Screens checked in Korean dark and English
+  light at normal and AX5. The sweep's showdown frames are now beats 0, 1, 3, plus a
+  `guided-invitation` entry.
+- Next: owner reviews the screenshots and decides on merge and install.
+
 ### 2026-10-14 (Claude · lesson pass mark, build 27)
 
 - Owner took all four pass-mark picks (D47) and approved merge, push and install. Built
@@ -151,33 +174,6 @@ Tests:
 ### 2026-10-13 (Codex · GRAC submission archive)
 
 - Preserved owner submission screenshot and receipt TG-OM-26-01177 (접수대기), refund terms, working form answers, version-22 video/timestamps, PDFs, IPA and upload ZIP. Re-fetched Notion and confirmed completed 10/13 checkbox. Archive CRC and file hashes checked; no rating approval, payment receipt, reviewer install or final portal field export claimed. Next: GRAC response and installation support if requested.
-
-### 2026-10-13 (Claude)
-
-- Finished the audit follow-ups with the owner one by one: written example on every
-  explanation page (`fcc1a78`), raise panel alignment (`c66a8d8`), hand-ranking
-  question, shorter English, "Help / History / Guide" tabs, one-line turn facts at
-  accessibility sizes (`7e9ac4b`), dock buttons no longer follow the display curve
-  (`89a55c3`), store screenshots retaken (`9a1822f`, `4c191a6`).
-- Full UI suite on iPhone 12 mini and iPhone 17 at `9a1822f`: 238 tests, 11 skipped,
-  1 failed (the contrast audit). Final full run at `e3ef792`: iPhone 17 238 tests, 11
-  skipped, 0 failed; iPhone 12 mini 1 failed (the contrast audit, see Open issues).
-- Reorganized this file and the handoff rules in `AGENTS.md`; the archive is frozen.
-- Build 23 (`dd7637b`): signed Release, build 22 uninstalled first, fresh install on
-  the physical iPhone 12 mini, Korean first-run welcome seen and left unadvanced, no
-  progress copied. Evidence in `.build/device-install-b23/`.
-- Repository tidy-up at the owner's request: committed the October audits, reports,
-  research, issue records and the UX crawler; ignored the GRAC packages; merged to
-  `main`, pushed it, deleted the other branches.
-- Hand rank page rebuilt (`170e2f0`), merged and pushed to `main` with the owner's
-  approval; build 24 fresh installed on the iPhone 12 mini, welcome seen, no progress
-  copied (`.build/device-install-b24/`).
-- Lesson feedback from build 24 on `feat/lesson-feedback-clarity`: best five and hole
-  cards strongest first, open river-card groups, rule of 2 explained, hint padding, then
-  F2 and S1, then 1A, 1C, 2A, 3A (all owner's picks). Unit tests and the guided hand,
-  restored-answer and accessibility-audit UI tests pass on iPhone 17; the full suite on
-  the final commit was started and its result not read. On `a3a4d16` a partial 12 mini
-  run failed `AccessibilityAuditTests/testPlayTable` and `testPlayTableScrolled`.
 
 ### 2026-10-14 (Claude)
 
