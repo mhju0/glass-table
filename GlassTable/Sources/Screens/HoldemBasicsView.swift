@@ -265,11 +265,9 @@ struct HoldemBasicsView: View {
             PrimaryCTAButton(title: language.text("확인 문제 풀기", "Try a quick check")) { page = .check }
                 .accessibilityIdentifier("basics.next")
         case .check:
+            // Previous never stands alone; it returns beside the next step once answered.
             if let answer { verdict(correct: answer == winningCheck.id) }
-            else {
-                checkChoices
-                GTStepRow(previous: { page = .ladder }, previousID: "basics.previous") {}
-            }
+            else { checkChoices }
         }
     }
 

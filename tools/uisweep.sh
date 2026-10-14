@@ -99,6 +99,7 @@ SCREENS=(
   "basics:GT_DEMO_BASICS=ladder"
   "basics-check:GT_DEMO_BASICS=check"
   "basics-check-wrong:GT_DEMO_BASICS=check-wrong"
+  "guided-invitation:GT_DEMO_GUIDED_INVITATION=1"
   "today-empty:GT_DEMO_TAB=today"
   "path-empty:GT_DEMO_TAB=path"
   "records-empty:GT_DEMO_TAB=records"
@@ -160,9 +161,9 @@ SCREENS=(
   # 18 lands close, 60 lands badly wrong — both bands need looking at.
   "drill-rangeread-close:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead GT_DEMO_REVEAL=18"
   "drill-rangeread-off:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead GT_DEMO_REVEAL=60"
+  "teach-showdown-b0:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=0"
   "teach-showdown-b1:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=1"
   "teach-showdown-b3:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=3"
-  "teach-showdown-b5:GT_DEMO_NODE=u1-showdown GT_DEMO_BEAT=5"
   "teach-combos-define:GT_DEMO_NODE=u1-combos GT_DEMO_BEAT=0"
   "teach-outs-grid:GT_DEMO_NODE=u2-outs GT_DEMO_BEAT=4"
   "teach-rfi-grid:GT_DEMO_NODE=u3-rfi GT_DEMO_BEAT=3"
