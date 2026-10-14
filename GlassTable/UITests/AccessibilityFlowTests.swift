@@ -35,6 +35,10 @@ final class AccessibilityFlowTests: XCTestCase {
             app.launch()
             let header = app.staticTexts[title]
             XCTAssertTrue(header.waitForExistence(timeout: 15))
+            XCTAssertEqual(app.staticTexts.matching(NSPredicate(format: "label == %@", title)).count, 1,
+                           "The hand-count title must remain one accessible StaticText")
+            XCTAssertTrue(app.buttons[code == "ko" ? "닫기" : "Close"].firstMatch.isHittable)
+            XCTAssertTrue(app.buttons["free-game-menu"].isHittable)
             heights.append(header.frame.height)
             XCTAssertGreaterThanOrEqual(header.frame.minX, app.frame.minX)
             XCTAssertLessThanOrEqual(header.frame.maxX, app.frame.maxX)
