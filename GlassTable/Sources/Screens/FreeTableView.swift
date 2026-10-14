@@ -558,37 +558,10 @@ struct FreeTableView: View {
         if table.amountToCall >= table.seats[0].stack {
             return language.text("남은 칩 전부로 콜해요", "Calling puts you all in")
         }
-        if !table.legalActions.contains(where: { if case .raise = $0 { true } else { false } }),
-           table.seats[0].stack > table.amountToCall, publicShortAllIn(table) {
+        if table.raiseBlock == .shortAllInDidNotReopen {
             return language.text("올인이 작아서 다시 올릴 수 없어요", "Their all-in was short, so no re-raise")
         }
         return nil
-    }
-
-    private func publicShortAllIn(_ table: PracticeTableState) -> Bool {
-        let frame = table.frame(after: shownCount(table))
-        guard frame.stacks.indices.contains(where: { $0 != 0 && !frame.folded[$0] && frame.stacks[$0] > 0 })
-        else { return false }
-        var committed = Array(repeating: 0, count: table.seatCount)
-        var currentBet = frame.street == .preflop ? 2 : 0
-        var fullRaise = 2
-        var heroFacing: Int?
-        var shortAfterHero = false
-        for event in table.events where event.street == frame.street {
-            committed[event.seat] += event.chips
-            if event.label == "raise" || event.label == "bet" {
-                let increment = committed[event.seat] - currentBet
-                if increment >= fullRaise {
-                    fullRaise = increment
-                    shortAfterHero = false
-                } else if event.seat != 0, heroFacing != nil, frame.stacks[event.seat] == 0 {
-                    shortAfterHero = true
-                }
-                currentBet = committed[event.seat]
-            }
-            if event.seat == 0, event.action != nil { heroFacing = currentBet }
-        }
-        return shortAfterHero && heroFacing.map { currentBet - $0 < fullRaise } == true
     }
 
     private func statusRow(_ table: PracticeTableState) -> some View {
@@ -670,15 +643,14 @@ struct FreeTableView: View {
             reason = language.text("현재 차례에 선택할 수 없어요", "Unavailable on this turn")
         }
         let raiseReason: String
-        if !enabled || model.saveError != nil {
-            raiseReason = reason
-        } else if frame.stacks[0] <= owed {
+        switch enabled && model.saveError == nil ? table.raiseBlock : nil {
+        case .noChipsBeyondCall:
             raiseReason = language.text("콜 뒤에 더 낼 칩이 없어요", "You have no chips beyond the call")
-        } else if !frame.stacks.indices.contains(where: { $0 != 0 && !frame.folded[$0] && frame.stacks[$0] > 0 }) {
+        case .noOpponentCanAnswer:
             raiseReason = language.text("추가 벳을 받을 상대 칩이 없어요", "No opponent has chips to answer another wager")
-        } else if publicShortAllIn(table) {
+        case .shortAllInDidNotReopen:
             raiseReason = language.text("작은 올인으로 레이즈가 다시 열리지 않았어요", "The short all-in did not reopen raising")
-        } else {
+        case nil:
             raiseReason = reason
         }
         let canAct = enabled && model.saveError == nil
