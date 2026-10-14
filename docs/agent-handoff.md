@@ -48,20 +48,21 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Hand rank page shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles
   (owner chose mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy); in `main`
   and in build 24.
-- `main` holds all work and matches `origin/main` (owner asked to push and sync,
-  2026-10-14). The standing rule is still to work on a feature branch and not push `main`
+- `main` holds all of this session's work and matches `origin/main`. The standing rule is still to work on a feature branch and not push `main`
   unasked. Merged feature branches were deleted locally and on `origin` (2026-10-14).
   `fix/ci-drills-typecheck-20261014`, `fix/a11y-playtable-20261014` and
   `diagnostic/a11y-playtable-20261014` belong to a separate session (worktrees in
   `/private/tmp/`) and are not merged.
-- Unmerged, not pushed, not installed (2026-10-14): `fix/animation-polish-20261014`
-  (audit plans in `plans/`, motion tokens `GT.Motion.fade`/`.move`, near-full-size
-  board cards, skill-glyph accent) from `main`; and a stack of architecture refactors,
-  each branch on the one before: `refactor/practice-raise-block-20261014`
-  (`PracticeRaiseBlock`) → `refactor/beginner-journey-20261014` (`BeginnerJourney`
-  owns RootView's cover order) → `refactor/concept-reveal-20261014` (`ConceptReveal`,
-  seat labels on `Position`) → `refactor/graded-session-20261014` (`GradedSession`
-  shares draft/answer/next rules for rounds, reviews and lessons; no schema change).
+- Build 29 (owner asked to push `main` and install, 2026-10-15) is in `main`, pushed,
+  and on the iPhone 12 mini. Over build 28 it adds animation polish (audit plans in
+  `plans/`, motion tokens `GT.Motion.fade`/`.move`, near-full-size board cards, the
+  skill-glyph accent) and four refactors that move rules into Drills:
+  `PracticeRaiseBlock`, `BeginnerJourney` (RootView's cover order), `ConceptReveal`
+  (reveal text, seat labels on `Position`) and `GradedSession` (draft/answer/next for
+  rounds, reviews and lessons; no schema change).
+- Lesson review for the owner (2026-10-15): https://claude.ai/artifact/1BH6g7owTwjnEjKmDfBHX1
+  — every lesson in order, why, goals, and a never-played reading. Its findings are
+  under Open issues; nothing was changed in the app for them.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -92,6 +93,21 @@ Never verified with people or hardware:
 - (old) Store validation, metadata, rating, territories; system permission,
   notification, share and review flows; backup export/import; huge-history save latency.
 - GRAC: owner submitted 1.0(22), now awaiting processing, any corrections, rating and RCN. Reviewer installation is unverified: development IPA permits only two registered devices; TestFlight upload/invite not performed. Confirm delivery with GRAC if needed. Video/simulator acceptance and statutory Annex 2(8) final selection remain unverified; working answers are not a final portal export.
+
+Lesson path (from the 2026-10-15 lesson review; not yet raised as work with the owner):
+- Defend lesson cannot be passed in beginner mode: `DefendDrill` marks help on appear
+  (`ConceptDrillView.swift:2975`), lesson help sets `helpOrdinal`, so all three answers
+  are assisted and score 0/3 under D47. Static reading; not reproduced on a device.
+- Call or fold, the decision price-and-chance builds to, has no lesson; it is only in
+  the optional u2 challenge. Outs sits second in the suggested order with no recorded
+  reason (`c31a5c7`). Rules pages (pot, blinds, flow) are optional though lessons 2–4
+  use those words; the in-app glossary lacks showdown, pot, blinds, position, actions,
+  streets; Chen score and dealer button are never explained.
+- Outs and pot-odds beginner choices can be 1 apart while only exact answers count.
+- Starting check (D46 item 3) is reachable only by a DEBUG hook; Settings has no entry.
+- Guided hand and restored drill use 플롭; glossary requires 플랍.
+- Copy: equity how-line asks for "a plausible range", range-read how-line says "count
+  the combinations"; neither matches the beginner question.
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
@@ -125,9 +141,25 @@ Tests:
   full suite.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
   `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes`.
-- Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`.
+- Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-15 (Claude · build 29, lesson review)
+
+- Owner asked to push `main`, install, and keep only `main`. Main fast-forwarded to the
+  refactor stack and the animation commits were replayed on top (no conflicts), build
+  number 29. On the combined source: Drills 427 + 95, app 97 unit, 128 UI tests on two
+  12 mini simulators (Play table, raise, motion, guided hand, invitation, graded and
+  learning flows, beginner release, restored presentation, welcome), no failures.
+  Build 28 uninstalled, fresh install of 1.0 (29), welcome seen, no progress copied
+  (`.build/device-install-b29/`).
+- Branch cleanup: this session's branches and its animation worktree were removed. The
+  other session's a11y/CI diagnostic branches and `/private/tmp` worktrees were left:
+  a Codex session was still using them (live `gh run watch`, fresh edits).
+- Owner asked for a review of every lesson from a never-played view; published above.
+  The defend finding was checked by reading the code myself.
+- Next: owner tries build 29, reads the lesson review, and decides what to fix.
 
 ### 2026-10-14 (Claude · animation fixes and architecture refactors)
 
@@ -148,7 +180,7 @@ Tests:
   No full suite and no screenshot sweep; no layout changed except the animations.
 - Left: PlayView's setup↔table loop was not moved; worktree
   `.claude/worktrees/agent-ab78e6dade09f5213` still exists.
-- Next: owner reviews the branches and decides on merge and install.
+- Next: owner reviews the branches and decides on merge and install (done 2026-10-15).
 
 ### 2026-10-14 (Claude · build 27 feedback)
 
@@ -204,7 +236,3 @@ Tests:
   UI classes plus the unit tests, with no failures. Screens checked in both languages at
   normal and AX5.
 - Next: owner looks at the branch and decides on merge and install.
-
-### 2026-10-13 (Codex · GRAC submission archive)
-
-- Preserved owner submission screenshot and receipt TG-OM-26-01177 (접수대기), refund terms, working form answers, version-22 video/timestamps, PDFs, IPA and upload ZIP. Re-fetched Notion and confirmed completed 10/13 checkbox. Archive CRC and file hashes checked; no rating approval, payment receipt, reviewer install or final portal field export claimed. Next: GRAC response and installation support if requested.
