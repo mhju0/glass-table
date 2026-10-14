@@ -11,8 +11,8 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 - Build 27 is in `main` (pushed with the owner's approval, 2026-10-14) and on the iPhone
   12 mini. It adds the clickable-controls look and the lesson pass mark to build 26.
-- Branch `fix/build27-feedback` (not merged, not installed) holds the owner's build 27
-  notes: the "Who wins?" worked example opens with every card face up, then my hand,
+- Build 28 (owner approved merge and install, 2026-10-14) is in local `main` (not pushed)
+  and on the iPhone 12 mini. It holds the owner's build 27 notes: the "Who wins?" worked example opens with every card face up, then my hand,
   the opponent's hand and the winner (4 steps; the turn-then-river replay is gone);
   Hold'em basics hides the lone Previous before the answer; the "A hand together"
   invitation has 10pt corners, an outline, one fill and more room above the title; and
@@ -48,10 +48,10 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Hand rank page shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles
   (owner chose mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy); in `main`
   and in build 24.
-- `main` holds all work and matches `origin/main` (owner approved the merge and push on
-  2026-10-14; the standing rule is still to work on a feature branch and not push `main`
-  unasked). `feat/guided-hand-on-table`, `feat/guide-clickable-controls` and
-  `feat/lesson-pass-mark` are merged and also on `origin`.
+- `main` holds all work and is ahead of `origin/main` by the build 28 commits
+  (`fix/build27-feedback`, merged, local only). The standing rule is to work on a feature
+  branch and not push `main` unasked. `feat/guided-hand-on-table`,
+  `feat/guide-clickable-controls` and `feat/lesson-pass-mark` are merged and on `origin`.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -60,7 +60,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - One corner radius, 10, for cards, panels, seats, felt and controls (`GT.Radius.panel`
   and `.control`; owner chose "everything 10" on 2026-10-13). Nothing in the app's own
   shapes may follow the display curve. Pills and playing cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (27), fresh install; iPhone 13 mini has build
+- Phones: iPhone 12 mini has signed 1.0 (28), fresh install; iPhone 13 mini has build
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
@@ -134,7 +134,10 @@ Tests:
   classes pass on two 12 mini simulators. Screens checked in Korean dark and English
   light at normal and AX5. The sweep's showdown frames are now beats 0, 1, 3, plus a
   `guided-invitation` entry.
-- Next: owner reviews the screenshots and decides on merge and install.
+- Owner approved merge and install. `main` fast-forwarded to the branch locally; neither
+  is pushed. Build 28: build 27 uninstalled, fresh install on the iPhone 12 mini,
+  welcome seen, no progress copied (`.build/device-install-b28/`).
+- Next: owner tries build 28 and says whether to push `main`.
 
 ### 2026-10-14 (Claude · lesson pass mark, build 27)
 
