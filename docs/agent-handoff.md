@@ -62,10 +62,10 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   and in build 24.
 - `main` holds all work and matches `origin/main` (owner asked to push and sync,
   2026-10-14). The standing rule is still to work on a feature branch and not push `main`
-  unasked. `feat/guided-hand-on-table`, `feat/guide-clickable-controls`,
-  `feat/lesson-pass-mark` and `fix/build27-feedback` are merged and on `origin`.
-  `fix/ci-drills-typecheck-20261014` (`7d53a10`, not from these sessions) is on `origin`
-  and not merged.
+  unasked. Merged feature branches were deleted locally and on `origin` (2026-10-14).
+  `fix/ci-drills-typecheck-20261014`, `fix/a11y-playtable-20261014` and
+  `diagnostic/a11y-playtable-20261014` belong to a separate session (worktrees in
+  `/private/tmp/`) and are not merged.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
