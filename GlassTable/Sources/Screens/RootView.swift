@@ -19,6 +19,7 @@ struct RootView: View {
     @State private var suggestGuidedHand = false
     @State private var suggestAfterBasics = false
     @State private var handAfterSuggestion = false
+    @State private var lessonAfterSuggestion = false
     @State private var playAfterGuidedHand = false
     @State private var showOpening = false
     @State private var basicsAfterOpening = false
@@ -188,19 +189,22 @@ struct RootView: View {
                 .environment(model)
         }
         .sheet(isPresented: $suggestGuidedHand, onDismiss: {
+            // Only an explicit choice moves on; swiping the sheet away just closes it.
+            let node = lessonAfterSuggestion ? nodeAfterBasics : nil
+            nodeAfterBasics = nil
+            lessonAfterSuggestion = false
             if handAfterSuggestion {
                 handAfterSuggestion = false
-                nodeAfterBasics = nil
                 showGuidedHand = true
-            } else if let node = nodeAfterBasics {
-                nodeAfterBasics = nil
-                openNode = node
-            }
+            } else if let node { openNode = node }
         }) {
             GuidedHandInvitationView(continuesLessons: nodeAfterBasics != nil, onHand: {
                 handAfterSuggestion = true
                 suggestGuidedHand = false
-            }, onContinue: { suggestGuidedHand = false })
+            }, onContinue: {
+                lessonAfterSuggestion = true
+                suggestGuidedHand = false
+            })
         }
         .fullScreenCover(isPresented: $showGuidedHand, onDismiss: {
             if playAfterGuidedHand { playAfterGuidedHand = false; tab = .play }
