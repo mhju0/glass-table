@@ -7,6 +7,10 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 ## Current state (2026-10-14)
 
+- CI compatibility fix: the quick-game chip-conservation assertion now computes typed
+  totals before `#expect`, avoiding the Xcode 26.3 macro type-check timeout. All CI
+  gates remain enabled. Hosted validation is pending on the fix PR.
+
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
 - Build 27 is in `main` (pushed with the owner's approval, 2026-10-14) and on the iPhone
@@ -113,6 +117,15 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-14 (Codex · CI compiler compatibility)
+
+- CI runs `38540449340` and `38424560532` fail on the same quick-game `#expect`
+  expression under Xcode 26.3. Split its sums into `Int` locals without changing
+  the chip-conservation assertion or product code. Local Xcode 27 baseline and
+  fixed Drills suites pass (428 XCTest and 75 Swift Testing tests).
+- Used an isolated worktree; the active checkout and its guided-hand test edits
+  were preserved. Next: hosted PR and main CI validation on Xcode 26.3.
+
 ### 2026-10-14 (Claude · lesson pass mark, build 27)
 
 - Owner took all four pass-mark picks (D47) and approved merge, push and install. Built
@@ -178,43 +191,3 @@ Tests:
   restored-answer and accessibility-audit UI tests pass on iPhone 17; the full suite on
   the final commit was started and its result not read. On `a3a4d16` a partial 12 mini
   run failed `AccessibilityAuditTests/testPlayTable` and `testPlayTableScrolled`.
-
-### 2026-10-14 (Claude)
-
-- Owner: a near miss is wrong; only correct answers count. Applied to accuracy, miss
-  streak, review rating, lesson result, Records ("exact N%") and sound (`a31472e`).
-  Drills 425 + 75, app 91 unit tests and 57 UI tests (records, graded and learning
-  flows, restored answers, smoke) passed on the 12 mini simulator. The full suite was
-  not run on this commit; a full run of the previous commit on iPhone 17 was still
-  going, no failures in the first 158 tests.
-- Merged to `main` and pushed with the owner's approval. Build 25: build 24 uninstalled,
-  fresh install on the iPhone 12 mini, welcome seen, no progress copied
-  (`.build/device-install-b25/`).
-- Next: owner tries build 25 and decides whether clearing a lesson needs a pass mark.
-- Owner found "A hand together" stiff (wrapped button text, no freedom, question hard
-  to find) and chose the mix of mocks B and A. Rebuilt `GuidedHandView` on
-  `TableSurface` (new `spotlight` and `ringed`); the quiz, Previous, the "less help"
-  replay and the seeded alternate deals are gone. Unit tests (93) and the four guided-hand UI
-  tests pass (12 mini and iPhone 17 simulators); screens checked in both languages at
-  normal size and samples at AX5. Full 12 mini run on `aafc0b5`: 317 passed, 3
-  failed, none in the guided hand: the two Play table contrast audits (both pass on
-  iPhone 17 with the table change) and the Play result scroll test below.
-- A full run of `a469449` on iPhone 17 had 203 passed, then one failure
-  (`FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable`, passed on a re-run),
-  before a second run on the same simulator spoiled the rest. Do not run two test
-  sessions on one simulator.
-- Owner approved merge and install, and asked for the Play result scroll failure to be
-  looked at. Cause: `456b9ca` made secondary buttons taller, so at AX5 on the 12 mini
-  "Start new game" was 2pt taller than the result panel. Fixed by stacking the two
-  result buttons at accessibility sizes (`f4d1fe9`); the open issue is resolved. 93 unit
-  and 90 UI tests passed on the 12 mini simulator, no full run on the final source.
-- Build 26: `main` fast-forwarded locally (not pushed), build 25 uninstalled, fresh
-  install on the iPhone 12 mini, welcome seen, no progress copied
-  (`.build/device-install-b26/`).
-- Next: owner tries build 26 and says whether to push `main`; the pass-mark question
-  for clearing a lesson is still open.
-- Owner on build 26: the guide repeated both answers after a miss (removed, `aaaae26`,
-  branch `feat/guide-clickable-controls`, 52 guide and learning UI tests passed on the
-  12 mini simulator) and tappable text must look tappable everywhere. Mocks and the
-  app-wide rule options are in `.scratch/clickable-controls-2026-10-14/map.md`; the
-  owner has not chosen a rule yet.
