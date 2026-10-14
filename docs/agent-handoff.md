@@ -5,7 +5,7 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
-## Current state (2026-10-14)
+## Current state (2026-10-15)
 
 - Local CI repair is prepared on `fix/ci-drills-typecheck-20261014`, not pushed or
   merged. It preserves owner build 28, fixes the two Xcode 26.3 expression limits,
@@ -129,7 +129,7 @@ Tests:
 
 ## Recent sessions
 
-### 2026-10-14 (Codex · CI repairs, local integration)
+### 2026-10-15 (Codex · CI repairs, local integration)
 
 - Five owner-notification runs share the quick-game `#expect` compile timeout.
   Split its integer sums and the walkthrough header calculations without changing
@@ -144,6 +144,10 @@ Tests:
   persistence and both language choices. Cleaned test-only `90c05bf` is integrated
   locally; this does not prove the original activation flake's cause or that waiting
   fixed it. Normal unit→UI validation is still required.
+- Local checks on the integrated source: screenshot tool 20 and CI helper 23 tests
+  pass; Drills 427 XCTest plus 75 Swift Testing pass; Engine Release 96 XCTest pass.
+  Workflow YAML/shell syntax passes. These are local Xcode 27 checks, not final CI
+  or native verification. Raw logs: `/tmp/glass-table-ci-evidence-20261014/`.
 - Integrated only remote main `9664c0a` handoff cleanup. The owner's architecture
   branch `d2e1092` remains unmerged and untouched. No diagnostic workflows or proposed
   renderer changes are integrated. Next: accepted Play repair, frozen final review,
