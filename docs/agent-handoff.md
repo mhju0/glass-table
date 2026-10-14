@@ -7,7 +7,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 ## Current state (2026-10-15)
 
-- Local CI repair is prepared on `fix/ci-drills-typecheck-20261014`, not pushed or
+- CI repair is published in PR #11 on `fix/ci-drills-typecheck-20261014`, not
   merged. It preserves owner build 29, fixes the two Xcode 26.3 expression limits,
   preserves the owner's fast unit push/PR gate and puts complete learner-flow checks
   in a nightly/manual reusable workflow. The existing CI manual dispatch can request
@@ -15,11 +15,18 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   independent serial runners with compiled inventory/result reconciliation and all
   retained Release gates. Nightly jobs allow 130 minutes and app testing stays at 110.
   No TestFlight workflow, tag or upload is included.
-- The cleaned Settings harness is prepared; the instrumented two-case diagnostic
-  passed on Xcode 26.3 / iOS 18.5, but the cleaned normal unit→UI path is unverified.
-  Named Play caption/header fixes and their two growth regressions are integrated
-  locally, but final native acceptance and the full 143-unit/243-UI CI run remain
-  pending. Nothing is pushed or merged.
+- Fast CI `38614960025` passed at reviewed validator source `7ca3492`, including
+  Release launch and bundle checks. Full run `38601208079` at `77147cb` completed
+  all 243 UI methods: 229 passed, 12 documented skips, two failed. Every runner
+  passed 143 unit methods and 18 reported argument rows. Cleaned Settings persistence
+  and strict Play audits passed. Both failures query Menu hittability at normal text
+  size before reaching title-growth checks; recordings show Menu onscreen but contain
+  no accessibility hierarchy. A reviewed, test-only bounded readiness/open-and-dismiss
+  correction passed both languages locally through L/AX1/AX5, with all original growth
+  assertions retained. Reviewed whole-class scheduling now uses authenticated measured
+  durations while preserving every compiled test. A fresh full hosted run must exercise
+  both changes before acceptance or merge. The original failed run is preserved;
+  archive recovery is unused.
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -205,6 +212,19 @@ Tests:
   merge remain pending; a local build or diagnostic pass does not establish these.
   Prepared workflow YAML, 18 shell blocks and 23 CI-helper tests pass. The integrated
   generic simulator build passed on local Xcode 27 without booting a simulator.
+- Subsequent hosted evidence: `38601208079` completed the complete compiled UI union
+  with two genuine Menu-hittability assertions and 12 exact skips; all units passed.
+  Corrected `7ca3492` recognizes authentic Xcode 26.3 skip nodes and the exact pre-iOS26
+  sheet guard, accepts authentic shards 0/1 and rejects failing shard 2. The sheet
+  assertion separately passed on iOS 26.5. Published fast CI `38614960025` passed.
+  Failed-method videos and independent coverage/timing evidence are retained under
+  `/tmp/glass-table-38601208079-readonly-packet-20261015/`. One class consumed 62 minutes;
+  count balancing left its shard at 107m45. Accepted test-only `6029d63` passed KO/EN
+  locally with actual Menu opening/dismissal at L/AX1/AX5; title heights grow from
+  27.667 at AX1 to 150.667 (EN) / 100.333 (KO) at AX5. Accepted scheduling `35430fd`
+  preserves whole classes and 143-unit/243-UI coverage; measured class-time estimates
+  are 62m27/57m54/57m41, excluding overhead and understating early-failed cases.
+  Thirty helper tests pass. Fresh pinned full validation and merge are still required.
 
 ### 2026-10-15 (Claude · build 29, lesson review)
 
