@@ -1,6 +1,6 @@
 # 002 — Skill glyph accent settles quickly
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 9664c0a
 - **Severity**: LOW
 - **Category**: Easing & duration
