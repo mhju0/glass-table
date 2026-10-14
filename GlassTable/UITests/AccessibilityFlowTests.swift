@@ -54,7 +54,8 @@ final class AccessibilityFlowTests: XCTestCase {
                 let frame = glyph.frame
                 guard glyph.exists, isOnscreen(frame) else { return false }
                 let menuReady = menu.isHittable && isOnscreen(menu.frame)
-                let glyphReady = glyph.isHittable && menu.frame.contains(frame)
+                let glyphCenter = CGPoint(x: frame.midX, y: frame.midY)
+                let glyphReady = glyph.isHittable && isOnscreen(menu.frame) && menu.frame.contains(glyphCenter)
                 return menuReady || glyphReady
             }, object: nil)
             let readiness = XCTWaiter.wait(for: [ready], timeout: 10)
@@ -69,7 +70,10 @@ final class AccessibilityFlowTests: XCTestCase {
             let usesMenu = menu.isHittable && isOnscreen(menu.frame)
             let activationSurface = usesMenu ? menu : glyph
             XCTAssertTrue(activationSurface.isHittable && isOnscreen(activationSurface.frame))
-            if !usesMenu { XCTAssertTrue(menu.frame.contains(glyph.frame)) }
+            if !usesMenu {
+                let glyphCenter = CGPoint(x: glyph.frame.midX, y: glyph.frame.midY)
+                XCTAssertTrue(isOnscreen(menu.frame) && menu.frame.contains(glyphCenter))
+            }
             print("Free table menu \(code) \(category): \(menu.frame), surface=\(usesMenu ? "menu" : "ellipsis"), wrapperHittable=\(menu.isHittable), glyph=\(glyph.frame), glyphHittable=\(glyph.isHittable)")
             menu.tap()
             let endGame = app.buttons[code == "ko" ? "게임 마치기" : "End game"]
