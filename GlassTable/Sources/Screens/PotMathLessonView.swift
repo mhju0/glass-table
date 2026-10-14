@@ -60,7 +60,7 @@ struct PotMathReplayView: View {
             }
             let seatID = steps[next].actor.rawValue
             movingChip = (seatID, false)
-            withAnimation(.timingCurve(0.77, 0, 0.175, 1, duration: 0.22)) {
+            withAnimation(GT.Motion.move) {
                 movingChip = (seatID, true)
             }
         }

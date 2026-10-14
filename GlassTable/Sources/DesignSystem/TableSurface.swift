@@ -291,7 +291,7 @@ struct TableSurface: View {
                     y: proxy.frame(in: .named(TableSurfaceSpace.name)).midY)])
             }
         }
-        .animation(.easeInOut(duration: 0.15), value: seat.status)
+        .animation(GT.Motion.fade, value: seat.status)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(spokenLabel(seat))
         .accessibilityIdentifier(seat.id)

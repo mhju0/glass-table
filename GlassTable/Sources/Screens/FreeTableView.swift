@@ -443,7 +443,7 @@ struct FreeTableView: View {
                     .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 16)))
             }
         }
-        .animation(.easeOut(duration: reduceMotion ? 0.15 : 0.22), value: showHelp)
+        .animation(GT.Motion.fade, value: showHelp)
     }
 
     // Reachable structures share the live presentation views; sizing never reads future cards.

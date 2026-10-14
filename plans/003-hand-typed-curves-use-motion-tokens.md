@@ -1,6 +1,6 @@
 # 003 — Hand-typed curves use GT.Motion tokens
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 9664c0a
 - **Severity**: LOW
 - **Category**: Cohesion & tokens
