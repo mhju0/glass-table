@@ -221,7 +221,9 @@ struct RecordsView: View {
                         Image(systemName: "chevron.up.chevron.down")
                     }
                     .foregroundStyle(GT.ink)
+                    .padding(.horizontal, 14)
                     .frame(minHeight: 44)
+                    .background { GTControlBackground() }
                 }
                 .accessibilityLabel(language.text("연습 주제: \(conceptName(concept))", "Practice topic: \(conceptName(concept))"))
 

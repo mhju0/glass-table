@@ -340,17 +340,14 @@ struct StoreRecoveryView: View {
             if let source = model.recoveryFileURL {
                 ShareLink(item: source) {
                     Label(language.text("원본 파일 내보내기", "Export original file"), systemImage: "square.and.arrow.up")
-                        .font(GT.semibold(13))
-                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .gtOutlinedLabel(fills: true)
                 }
-                .foregroundStyle(GT.onFelt)
             }
             Button(language.text("새로 시작하기", "Start again")) {
                 do { try model.resetProgress() }
                 catch { fileFailure = .reset }
             }
-                .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
-                .frame(maxWidth: .infinity, minHeight: 44)
+                .buttonStyle(GTOutlinedAction(fills: true))
                 .disabled(isReadingImport)
             Spacer()
         }

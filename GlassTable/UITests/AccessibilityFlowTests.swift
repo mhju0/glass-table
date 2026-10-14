@@ -521,11 +521,18 @@ final class AccessibilityFlowTests: XCTestCase {
                                          in app: XCUIApplication,
                                          maximumSwipes: Int = 12) -> Bool {
         for _ in 0...maximumSwipes {
+            guard element.exists, element.frame.minY < bottom(of: obstruction, in: app) else {
+                app.swipeUp()
+                continue
+            }
             let frame = element.frame
             if frame.minY >= app.frame.minY, frame.maxY <= bottom(of: obstruction, in: app) {
                 return true
             }
-            app.swipeUp()
+            // Partly in view: a short drag, so it is not flung past the top.
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6))
+            start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -120)),
+                        withVelocity: .slow, thenHoldForDuration: 0.3)
         }
         let frame = element.frame
         return frame.minY >= app.frame.minY && frame.maxY <= bottom(of: obstruction, in: app)

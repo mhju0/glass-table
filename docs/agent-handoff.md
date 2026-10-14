@@ -9,6 +9,13 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 - Build 26 is in local `main` (not pushed) and on the iPhone 12 mini; it adds the rebuilt
   "A hand together" and the Play result button fix to build 25.
+- Branch `feat/guide-clickable-controls` (pushed, not merged, not installed): tappable
+  things look tappable (owner, 2026-10-14). Rule 1: the top-left control always leaves
+  the screen, and Previous sits beside the bottom action (`GTStepRow`). Look 2: every ✕,
+  ‹, ••• and text action is an outlined rounded square with a grey border
+  (`GTControlBackground`, `ChromeGlyph`, `GTOutlinedAction`). Gold stays for main buttons
+  and things that need attention. Content under a top bar starts about 15pt lower.
+  List and mocks: `.scratch/clickable-controls-2026-10-14/map.md`.
 - Build 25 held the owner's build 24 lesson feedback
   (direct fixes, answer marking F2, white answer cards S1, picks 1A, 1C, 2A, 3A) and
   "a near miss is wrong". Mocks: https://claude.ai/artifact/9GBTnNb66MwufA7B19rG7e and
@@ -78,6 +85,10 @@ Product and numbers:
 - At AX5 in English the "Decision help" pill is clipped in the raise header; the
   Korean AX5 raise title is cut inside its scroll box.
 - iOS 27 beta only: Settings language switch does not re-render the screen.
+- Clickable controls (not yet raised with the owner): the Play top-bar title stops
+  growing at the first accessibility size, so the AX dock keeps its height. The walkthrough,
+  hand review and learning guide keep equal-width Previous/Next; the guide and Hold'em
+  basics use the 36/64 `GTStepRow`.
 - Proposed, never approved: README drift fix (four tracks vs nine units, question
   counts), topic-led summary, recent-topic Records, post-commit best-five explanation,
   versioned integrity plan for archive/format/session-ending persistence.
@@ -99,6 +110,23 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`.
 
 ## Recent sessions
+
+### 2026-10-14 (Claude · clickable controls)
+
+- Owner chose Rule 1 and then Look 2 with the grey outline (mocks
+  https://claude.ai/artifact/Tb5PRceX4YUUPoTJwAffKr and
+  https://claude.ai/artifact/BdUFji5QcrzLN9K16YKDJY). Built on
+  `feat/guide-clickable-controls`, not merged or installed. The guide and Hold'em basics
+  lost their top-left Previous; the lesson's leftover 8pt top padding was dropped.
+- To keep the AX dock tests passing, the Play top-bar title stops growing at the first
+  accessibility size. The shared AX test helper `scrollUntilFullyVisible` now ends with
+  short drags, because one swipe threw the hero cards past the top.
+- 12 mini simulators: unit tests and every UI class ran across three builds. Only the
+  two known contrast audits failed. Two other failures were fixed and passed on the final
+  build: the hero test (helper) and the lesson-title gap. The final build itself ran 16
+  UI classes plus the unit tests, with no failures. Screens checked in both languages at
+  normal and AX5.
+- Next: owner looks at the branch and decides on merge and install.
 
 ### 2026-10-13 (Claude)
 

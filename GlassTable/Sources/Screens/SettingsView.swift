@@ -380,9 +380,9 @@ struct SettingsView: View {
                     .font(GT.body(12)).foregroundStyle(GT.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
                 if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
-                    Link(language.text("설정 열기", "Open Settings"), destination: url)
-                        .font(GT.semibold(14)).foregroundStyle(GT.green)
-                        .frame(minHeight: 44)
+                    Link(destination: url) {
+                        Text(language.text("설정 열기", "Open Settings")).gtOutlinedLabel()
+                    }
                 }
             }
         }

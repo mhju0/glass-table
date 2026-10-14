@@ -438,7 +438,7 @@ private struct RestoredDrillContextView: View {
                         .foregroundStyle(GT.ink).frame(maxWidth: .infinity, alignment: .leading)
                         .padding(12).gtCard()
                         Button(language.text("대표 카드로 비교", "Compare a representative")) { selectedRiver = representative }
-                            .font(GT.semibold(14)).frame(minHeight: 44)
+                            .buttonStyle(GTOutlinedAction())
                     }
                 }
 

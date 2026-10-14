@@ -363,28 +363,13 @@ struct FirstLessonView: View {
     }
 
     private var headerAction: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-            : AnyLayout(HStackLayout(spacing: 8))
-        return layout {
-            if !history.isEmpty {
-                Button(action: previous) {
-                    Label(language.text("이전", "Previous"), systemImage: "chevron.left")
-                        .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(minHeight: 44)
-                }.buttonStyle(GTPress()).accessibilityIdentifier("firstLesson.previous")
-            }
-            Button(action: stop) {
-                Text(context == .firstRun ? copy(.skip) : copy(.close))
-                    .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(minWidth: 44, minHeight: 44)
-            }
-                .buttonStyle(GTPress())
-                .accessibilityIdentifier(context == .firstRun
-                                         ? "firstLesson.skip" : "firstLesson.close")
-        }
+        ChromeTextButton(title: context == .firstRun ? copy(.skip) : copy(.close), action: stop)
+            .accessibilityIdentifier(context == .firstRun ? "firstLesson.skip" : "firstLesson.close")
+    }
+
+    private func withPrevious(@ViewBuilder _ action: () -> some View) -> some View {
+        GTStepRow(previous: history.isEmpty ? nil : previous, previousID: "firstLesson.previous",
+                  action: action)
     }
 
     /// Optional table rules have their own count, separate from the warm-up.
@@ -452,8 +437,10 @@ struct FirstLessonView: View {
         case .flow: nextButton { transition(to: .bestFive) }
         case .bestFive: nextButton { transition(to: .wrapUp) }
         case .wrapUp:
-            PrimaryCTAButton(title: finishTitle, action: finish)
-                .accessibilityIdentifier("firstLesson.finish")
+            withPrevious {
+                PrimaryCTAButton(title: finishTitle, action: finish)
+                    .accessibilityIdentifier("firstLesson.finish")
+            }
         case .example: handChoices(exampleSpot)
         case .transfer: handChoices(transferSpot)
         case .exampleAnswer: nextComparisonButton(isTransfer: false)
@@ -875,8 +862,10 @@ struct FirstLessonView: View {
     }
 
     private func nextButton(_ action: @escaping () -> Void) -> some View {
-        PrimaryCTAButton(title: language.text("다음", "Next"), action: action)
-            .accessibilityIdentifier("firstLesson.next")
+        withPrevious {
+            PrimaryCTAButton(title: language.text("다음", "Next"), action: action)
+                .accessibilityIdentifier("firstLesson.next")
+        }
     }
 
     private var comparisonRule: FirstLesson.Rule {
@@ -977,10 +966,12 @@ struct FirstLessonView: View {
         VStack(spacing: 10) {
             handButton(title: copy(.heroCards), cards: spot.hero, answer: 0, spot: spot)
             handButton(title: copy(.villainCards), cards: spot.villain, answer: 1, spot: spot)
-            SecondaryCTAButton(title: language.text("먼저 설명해 주세요", "Show me first")) {
-                let result = answerStepForCurrentQuestion
-                transition(to: result, response: .demonstrated)
-            }.accessibilityIdentifier("firstLesson.help")
+            withPrevious {
+                SecondaryCTAButton(title: language.text("먼저 설명해 주세요", "Show me first")) {
+                    let result = answerStepForCurrentQuestion
+                    transition(to: result, response: .demonstrated)
+                }.accessibilityIdentifier("firstLesson.help")
+            }
         }
     }
 
@@ -1158,18 +1149,20 @@ struct FirstLessonView: View {
 
     @ViewBuilder
     private func nextComparisonButton(isTransfer: Bool) -> some View {
-        if isTransfer {
-            PrimaryCTAButton(title: language.text("다음", "Next")) {
-                if case .comparisonAnswer(let i) = step {
-                    transition(to: i < comparisons.count - 1 ? .comparison(i + 1) : .actions)
-                } else { transition(to: .comparison(0)) }
+        withPrevious {
+            if isTransfer {
+                PrimaryCTAButton(title: language.text("다음", "Next")) {
+                    if case .comparisonAnswer(let i) = step {
+                        transition(to: i < comparisons.count - 1 ? .comparison(i + 1) : .actions)
+                    } else { transition(to: .comparison(0)) }
+                }
+                .accessibilityIdentifier("firstLesson.next")
+            } else {
+                PrimaryCTAButton(title: language.text("다음 비교", "Next comparison")) {
+                    transition(to: .transfer)
+                }
+                .accessibilityIdentifier("firstLesson.next")
             }
-            .accessibilityIdentifier("firstLesson.next")
-        } else {
-            PrimaryCTAButton(title: language.text("다음 비교", "Next comparison")) {
-                transition(to: .transfer)
-            }
-            .accessibilityIdentifier("firstLesson.next")
         }
     }
 

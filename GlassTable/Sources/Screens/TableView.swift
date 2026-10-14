@@ -408,18 +408,18 @@ struct TableView: View {
 
     private var references: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
-            : AnyLayout(HStackLayout(spacing: 16))
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            : AnyLayout(HStackLayout(spacing: 8))
         return layout {
             Button { showChart = true } label: {
                 Label(language.text("차트", "Chart"), systemImage: "square.grid.3x3")
-                    .font(GT.semibold(15)).frame(minHeight: 44)
             }
+            .buttonStyle(GTOutlinedAction())
             .accessibilityIdentifier("table-chart")
             Button { showPolicyReference = true } label: {
                 Label(language.text("상대 규칙", "Opponent rules"), systemImage: "info.circle")
-                    .font(GT.semibold(15)).frame(minHeight: 44)
             }
+            .buttonStyle(GTOutlinedAction())
             .accessibilityIdentifier("table-policy")
         }
         .foregroundStyle(GT.inkSecondary)
@@ -479,9 +479,7 @@ struct TableView: View {
                 HStack {
                     Button { choosingBetSize = false } label: {
                         Label(language.text("뒤로", "Back"), systemImage: "chevron.left")
-                            .font(GT.semibold(14)).foregroundStyle(GT.ink)
-                            .frame(minHeight: 44)
-                    }.buttonStyle(GTPress(pressedScale: 0.97))
+                    }.buttonStyle(GTOutlinedAction())
                         .accessibilityIdentifier("table-size-back")
                     Spacer(minLength: 0)
                     Text(language.text("벳 크기", "Bet size")).font(GT.title(18)).foregroundStyle(GT.ink)
@@ -703,11 +701,8 @@ struct TableView: View {
             .accessibilityIdentifier("table-review-decisions")
             PrimaryCTAButton(title: language.text("다음 핸드", "Next hand")) { start(vs: villainPick) }
                 .accessibilityIdentifier("table-next-hand")
-            Button { hand2Picker() } label: {
-                Text(language.text("상대 바꾸기", "Change opponent"))
-                    .font(GT.semibold(15)).foregroundStyle(GT.inkSecondary)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-            }.buttonStyle(GTPress())
+            Button(language.text("상대 바꾸기", "Change opponent")) { hand2Picker() }
+                .buttonStyle(GTOutlinedAction(fills: true))
         }
     }
 

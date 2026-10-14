@@ -247,8 +247,10 @@ struct FreeTableView: View {
         .gtChrome(leading: {
             HStack(alignment: typeSize.isAccessibilitySize ? .top : .center, spacing: 10) {
                 ChromeButton.close(onClose)
+                // Capped like the guide's header: at the largest sizes the dock needs the height.
                 Text(title(table)).font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             }
         }, trailing: {
             Menu {
@@ -258,7 +260,7 @@ struct FreeTableView: View {
                     Button(language.text("게임 돌아보기", "Game review")) { showGameReview = true }
                 }
             } label: {
-                Image(systemName: "ellipsis").frame(width: 44, height: 44)
+                ChromeGlyph(symbol: "ellipsis")
             }
             .accessibilityLabel(language.text("게임 메뉴", "Game menu"))
             .accessibilityIdentifier("free-game-menu")
@@ -487,8 +489,7 @@ struct FreeTableView: View {
 
     private func skipLink(enabled: Bool, action: @escaping () -> Void) -> some View {
         Button(language.text("결과로 넘기기", "Skip to result"), action: action)
-            .font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
-            .frame(minHeight: 44).accessibilityIdentifier("free-skip-result")
+            .buttonStyle(GTOutlinedAction()).accessibilityIdentifier("free-skip-result")
             .disabled(!enabled)
     }
 
@@ -795,10 +796,9 @@ struct FreeTableView: View {
 
     private func raiseBack(onCancel: @escaping () -> Void) -> some View {
         Button(action: onCancel) {
-            Image(systemName: "chevron.left").font(GT.semibold(18))
-                .frame(width: 44, height: 44, alignment: .leading).contentShape(Rectangle())
+            ChromeGlyph(symbol: "chevron.left")
         }
-        .foregroundStyle(GT.ink).buttonStyle(GTPress())
+        .buttonStyle(GTPress())
         .accessibilityLabel(language.text("금액 선택 닫기", "Back to actions"))
         .accessibilityIdentifier("free-raise-cancel")
     }
@@ -944,7 +944,7 @@ struct FreeTableView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("free-game-over")
                 Button(language.text("전체 게임 돌아보기", "Review the whole game")) { showGameReview = true }
-                    .buttonStyle(GTPress()).frame(minHeight: 44)
+                    .buttonStyle(GTOutlinedAction())
                     .accessibilityIdentifier("free-review-game")
             } else if table.seats.contains(where: { $0.stack == 0 }) {
                 Text(language.text("칩이 없는 자리는 다음 핸드 전에 \(table.startingStack)칩을 새로 받아요.",
@@ -1466,16 +1466,16 @@ private struct FreeTableBackHeader: View {
     }
     private var close: some View {
         Button(action: onClose) {
-            if typeSize.isAccessibilitySize {
-                Image(uiImage: FreeTableCloseSymbol.image).resizable().scaledToFit()
-                    .frame(width: closeSymbolSize, height: closeSymbolSize, alignment: .leading)
-                    .frame(minWidth: 44, minHeight: 44, alignment: .topLeading)
-            } else {
-                Image(uiImage: FreeTableCloseSymbol.image).resizable().scaledToFit()
-                    .frame(width: closeSymbolSize, height: closeSymbolSize, alignment: .trailing)
-                    .frame(width: 44, height: 44, alignment: .trailing)
-            }
+            let tile = max(ChromeGlyph.tile, closeSymbolSize + 22)
+            Image(uiImage: FreeTableCloseSymbol.image).resizable().scaledToFit()
+                .frame(width: closeSymbolSize, height: closeSymbolSize)
+                .frame(width: tile, height: tile)
+                .background { GTControlBackground() }
+                .frame(minWidth: 44, minHeight: 44,
+                       alignment: typeSize.isAccessibilitySize ? .topLeading : .trailing)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(GTPress())
             .foregroundStyle(GT.ink).accessibilityLabel(language.text("테이블로 돌아가기", "Back to table"))
             .accessibilityIdentifier("free-table-back-close")
     }

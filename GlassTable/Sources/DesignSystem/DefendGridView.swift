@@ -84,9 +84,8 @@ struct DefendGridView: View {
             .aspectRatio(1, contentMode: .fit)
             Button { showExplorer = true } label: {
                 Label(language.text("크게 보고 핸드 찾기", "Enlarge and explore hands"), systemImage: "plus.magnifyingglass")
-                    .font(GT.semibold(14)).frame(maxWidth: .infinity, minHeight: 48)
             }
-            .buttonStyle(GTPress())
+            .buttonStyle(GTOutlinedAction(fills: true))
     }
 
     private func selectedHandSummary(_ hand: HandClass) -> some View {
@@ -197,7 +196,7 @@ private struct DefendChartExplorer: View {
                         Button(language.text("현재 패로 돌아가기", "Return to my hand")) {
                             selected = ownHand
                             proxy.scrollTo(ownHand.description, anchor: .center)
-                        }.frame(minHeight: 44)
+                        }.buttonStyle(GTOutlinedAction())
                     }
                     ScrollView([.horizontal, .vertical]) {
                         VStack(spacing: 4) {

@@ -480,53 +480,98 @@ private struct GTContentEdge: ViewModifier {
     }
 }
 
+/// The outlined tile small controls sit on: the secondary button's fill and border, so a
+/// control reads as one before it is tapped. Gold stays with the main action.
+struct GTControlBackground: View {
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+        shape.fill(GT.surface).overlay(shape.strokeBorder(GT.border, lineWidth: 1))
+    }
+}
+
+/// A small text action on the outlined tile: 40pt drawn, 44pt tappable. For actions that
+/// were once bare text, so they read as controls before they are tapped.
+struct GTOutlinedAction: ButtonStyle {
+    /// Stretches the tile across the row.
+    var fills = false
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed && isEnabled
+        configuration.label.gtOutlinedLabel(fills: fills)
+            .scaleEffect(pressed && !reduceMotion ? 0.98 : 1)
+            .opacity(pressed ? 0.78 : isEnabled ? 1 : 0.5)
+            .animation(reduceMotion ? nil : GT.Motion.press, value: pressed)
+    }
+}
+
+extension View {
+    /// The outlined tile for a label the system draws itself, such as a `Link`.
+    func gtOutlinedLabel(fills: Bool = false) -> some View {
+        font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 14).padding(.vertical, 8)
+            .frame(maxWidth: fills ? .infinity : nil, minHeight: ChromeGlyph.tile)
+            .background { GTControlBackground() }
+            .frame(minHeight: ChromeGlyph.tile + 2 * ChromeGlyph.reach)
+            .contentShape(Rectangle())
+    }
+}
+
+/// A top-bar glyph on its tile: 40pt drawn, 44pt tappable, the tile's outer edge on the
+/// content edge. Also the label of a top-bar `Menu`.
+struct ChromeGlyph: View {
+    @Environment(\.chromeEdge) private var edge
+    let symbol: String
+
+    /// The drawn tile, and how far the tap target reaches past it on each side.
+    static let tile: CGFloat = 40
+    static let reach: CGFloat = 2
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundStyle(GT.onFelt)
+            .frame(width: Self.tile, height: Self.tile)
+            .background { GTControlBackground() }
+            .frame(width: Self.tile + 2 * Self.reach, height: Self.tile + 2 * Self.reach)
+            .contentShape(Rectangle())
+            // The target reaches past the content edge; the tile stays on it.
+            .padding(edge == .leading ? .leading : .trailing, -Self.reach)
+    }
+}
+
 /// The one top-bar control, drawn by us rather than by the system.
 ///
 /// Under iOS 26 a toolbar item is handed a Liquid Glass capsule whose material samples
 /// whatever sits behind it. On a sheet that is the *outgoing* screen, so the button
-/// visibly changes shade while the sheet settles, and the ring around it reads as a
-/// floating bubble rather than a control. A bare glyph has no material to resolve.
+/// visibly changes shade while the sheet settles. Our tile is a flat fill with no
+/// material to resolve.
 ///
-/// Back steps within a flow; Close leaves the presented activity.
+/// The leading control leaves the screen: Close dismisses it, Back returns to the screen
+/// that pushed it. Stepping back inside a flow is a Previous button beside Next.
 struct ChromeButton: View {
     @Environment(\.learningLanguage) private var language
-    @Environment(\.chromeEdge) private var edge
     let symbol: String
-    /// Never rendered — the arrow is the label. Spoken by VoiceOver, which cannot see it.
+    /// Never rendered — the glyph is the label. Spoken by VoiceOver, which cannot see it.
     let spoken: String
     let action: () -> Void
-
-    /// The glyph's distance from the tap target's outer edge, and from its top.
-    static let glyphInset: CGFloat = 12
-    static let glyphTop: CGFloat = 18.5
-    /// Empty space an SF Symbol's image keeps beside its ink.
-    private static let bearing: CGFloat = 2
 
     /// Dismisses the sheet. It rose from the bottom; it leaves the same way.
     static func close(_ action: @escaping () -> Void) -> ChromeButton {
         ChromeButton(symbol: "xmark", spoken: "닫기", action: action)
     }
 
-    /// One level back, staying inside the sheet.
+    /// Back to the screen that pushed this one.
     static func back(_ spoken: String, _ action: @escaping () -> Void) -> ChromeButton {
         ChromeButton(symbol: "chevron.left", spoken: spoken, action: action)
     }
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(GT.onFelt)
-                .padding(.horizontal, Self.glyphInset - Self.bearing)
-                // 44pt target, with the glyph at its outer edge so it lines up with the
-                // text below instead of floating 13pt inside it.
-                .frame(minWidth: 44, minHeight: 44, alignment: edge == .leading ? .leading : .trailing)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(GTPress())
-        // The target reaches past the content edge; the glyph stays on it.
-        .padding(edge == .leading ? .leading : .trailing, -Self.glyphInset)
-        .accessibilityLabel(spoken == "닫기" ? language.text("닫기", "Close") : spoken)
+        Button(action: action) { ChromeGlyph(symbol: symbol) }
+            .buttonStyle(GTPress())
+            .accessibilityLabel(spoken == "닫기" ? language.text("닫기", "Close") : spoken)
     }
 }
 
@@ -536,32 +581,30 @@ struct ChromeTextButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(title, action: action)
-            .font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
+        Button(title, action: action).buttonStyle(GTOutlinedAction())
     }
 }
 
-/// The top bar: its glyphs sit as far from the top as from the side, and the content
-/// starts just under them rather than under a 44pt system bar.
+/// The top bar: its tiles sit on the content edge, and the content starts a short gap
+/// under them.
 struct GTChromeBar<Leading: View, Trailing: View>: View {
     @Environment(\.gtSurface) private var surface
     let leading: Leading
     let trailing: Trailing
 
-    /// How far the 44pt targets hang below the bar into the content under it.
-    static var overhang: CGFloat { 9 }
+    /// Space between a tile and the content under it.
+    static var gap: CGFloat { 8 }
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 8) {
             leading.environment(\.chromeEdge, .leading)
             Spacer(minLength: 0)
             trailing.environment(\.chromeEdge, .trailing)
         }
         .padding(.horizontal, surface.inset)
-        .padding(.top, max(surface.inset - ChromeButton.glyphTop, 0))
-        .padding(.bottom, -Self.overhang)
+        // A page's bar sits under the status bar; a sheet has only its own top edge.
+        .padding(.top, surface == .page ? 0 : 10)
+        .padding(.bottom, Self.gap - ChromeGlyph.reach)
     }
 }
 
@@ -893,6 +936,60 @@ struct SecondaryCTAButton: View {
                     .strokeBorder(GT.border, lineWidth: 1))
         }
         .buttonStyle(GTPress())
+    }
+}
+
+/// Previous beside a flow's bottom action, in the same place on every step: a narrow
+/// grey button, then the action. Stacked at accessibility sizes.
+struct GTStepRow<Action: View>: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.learningLanguage) private var language
+    /// Nil on a flow's first step, where the action takes the whole row.
+    let previous: (() -> Void)?
+    let previousID: String
+    @ViewBuilder let action: Action
+
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 12))
+            : AnyLayout(StepSplit(hasPrevious: previous != nil))
+        layout {
+            if let previous {
+                SecondaryCTAButton(title: language.text("이전", "Previous"), action: previous)
+                    .accessibilityIdentifier(previousID)
+            }
+            action
+        }
+    }
+}
+
+private struct StepSplit: Layout {
+    let hasPrevious: Bool
+    private let spacing: CGFloat = 12
+    private let share: CGFloat = 0.36
+
+    private func widths(_ total: CGFloat, count: Int) -> [CGFloat] {
+        guard hasPrevious else { return Array(repeating: total, count: count) }
+        let narrow = ((total - spacing) * share).rounded()
+        return [narrow] + Array(repeating: total - spacing - narrow, count: max(count - 1, 0))
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let total = proposal.width ?? 320
+        let heights = zip(subviews, widths(total, count: subviews.count)).map {
+            $0.sizeThatFits(ProposedViewSize(width: $1, height: nil)).height
+        }
+        return CGSize(width: total, height: heights.max() ?? 0)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews,
+                       cache: inout ()) {
+        var x = bounds.minX
+        for (view, width) in zip(subviews, widths(bounds.width, count: subviews.count)) {
+            view.place(at: CGPoint(x: x, y: bounds.minY), anchor: .topLeading,
+                       proposal: ProposedViewSize(width: width, height: bounds.height))
+            x += width + spacing
+        }
     }
 }
 

@@ -114,18 +114,8 @@ struct HoldemBasicsView: View {
     // MARK: Header
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 12) {
-            if page == .check {
-                Button { page = .ladder } label: {
-                    Image(systemName: "chevron.left").font(GT.semibold(18))
-                        .frame(minWidth: 44, minHeight: 44)
-                }
-                .accessibilityLabel(language.text("이전 안내", "Previous guide"))
-                .accessibilityIdentifier("basics.previous")
-            }
-            headerTitle.frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .foregroundStyle(GT.onFelt)
+        headerTitle.frame(maxWidth: .infinity, alignment: .leading)
+            .foregroundStyle(GT.onFelt)
         .padding(.horizontal, GT.Space.edge).padding(.bottom, 10)
     }
 
@@ -276,7 +266,10 @@ struct HoldemBasicsView: View {
                 .accessibilityIdentifier("basics.next")
         case .check:
             if let answer { verdict(correct: answer == winningCheck.id) }
-            else { checkChoices }
+            else {
+                checkChoices
+                GTStepRow(previous: { page = .ladder }, previousID: "basics.previous") {}
+            }
         }
     }
 
@@ -325,11 +318,13 @@ struct HoldemBasicsView: View {
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            PrimaryCTAButton(title: startsCourse ? language.text("다음 레슨 시작", "Start the next lesson")
-                                                 : language.text("마치기", "Done")) {
-                onFinish(startsCourse)
+            GTStepRow(previous: { page = .ladder }, previousID: "basics.previous") {
+                PrimaryCTAButton(title: startsCourse ? language.text("다음 레슨 시작", "Start the next lesson")
+                                                     : language.text("마치기", "Done")) {
+                    onFinish(startsCourse)
+                }
+                .accessibilityIdentifier("basics.finish")
             }
-            .accessibilityIdentifier("basics.finish")
             if !correct {
                 // A miss gets a fresh pair of hands, since this one is already explained.
                 SecondaryCTAButton(title: language.text("다른 문제로 다시 풀기", "Try another one")) {

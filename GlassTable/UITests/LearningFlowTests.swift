@@ -382,11 +382,11 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(title.waitForExistence(timeout: 15))
         let close = app.buttons["닫기"].firstMatch
         XCTAssertTrue(close.exists)
-        // The 44 pt target reaches 12 pt past the edge the glyph and the title share.
-        XCTAssertEqual(title.frame.minX - close.frame.minX, 12, accuracy: 2,
-                       "The chevron glyph lines up with the title's left edge")
-        XCTAssertLessThan(title.frame.minY - close.frame.minY, 44,
-                          "The title starts inside the close target's 44 pt, not under a separate bar")
+        // The 44 pt target reaches 2 pt past the edge the 40 pt tile and the title share.
+        XCTAssertEqual(title.frame.minX - close.frame.minX, 2, accuracy: 1,
+                       "The close tile lines up with the title's left edge")
+        XCTAssertEqual(title.frame.minY - close.frame.maxY, 6, accuracy: 3,
+                       "The title starts a short gap under the close tile, clear of it")
     }
 
     func testPotMathKeepsItsInstructionAndHeightAtTheLastAction() {

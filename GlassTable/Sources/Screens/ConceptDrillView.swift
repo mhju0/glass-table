@@ -396,9 +396,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                                 HStack(alignment: .top, spacing: 16) {
                                     if explainConcept != nil {
                                         Button { explaining = true } label: {
-                                            Image(systemName: "info.circle")
-                                                .font(GT.title(18)).foregroundStyle(GT.onFeltSecondary)
-                                                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                                            ChromeGlyph(symbol: "info.circle")
                                         }
                                         .buttonStyle(GTPress())
                                         .accessibilityLabel(language.text("개념 설명", "Explain this skill"))
@@ -432,7 +430,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                             if let hintConcept { CompactLessonCue(concept: hintConcept) }
                             content()
                             Color.clear.frame(height: 1).id(Self.contentEnd)
-                        }.padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 24)
+                        }.padding(.horizontal, 18).padding(.bottom, 24)
                     }
                     .accessibilityIdentifier("drill-content-scroll")
                     .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -488,11 +486,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
     @ViewBuilder private var headerControls: some View {
         if explainConcept != nil {
             Button { explaining = true } label: {
-                Image(systemName: "info.circle")
-                    .font(GT.title(18))
-                    .foregroundStyle(GT.onFeltSecondary)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
+                ChromeGlyph(symbol: "info.circle")
             }
             .buttonStyle(GTPress())
             // The 44 pt target overhangs the row, so the row is as tall as the title
@@ -1590,7 +1584,7 @@ private struct CountDrill: View {
                 .padding(12).gtCard()
                 if let representative = group.cards.first {
                     Button(language.text("대표 카드로 비교", "Compare a representative")) { tappedOut = representative }
-                        .font(GT.semibold(14)).frame(minHeight: 44)
+                        .buttonStyle(GTOutlinedAction())
                 }
             }
             if !spot.excluded.isEmpty {
@@ -3008,7 +3002,7 @@ private struct DefendDrill: View {
                                          chartPractice.chartVisible && (guidedChart || help?.isUsed == true) ? "Hide chart" : "Show chart")) {
                         if guidedChart || help?.isUsed == true { chartPractice.chartVisible.toggle() }
                         else if help?.mark() == true { chartPractice.chartVisible = true }
-                    }.font(GT.semibold(14)).frame(minHeight: 44).accessibilityIdentifier("defend-practice-chart-toggle")
+                    }.buttonStyle(GTOutlinedAction()).accessibilityIdentifier("defend-practice-chart-toggle")
                     if chartPractice.chartVisible, guidedChart || help?.isUsed == true {
                         DefendGridView(opener: spot.opener, highlight: nil).frame(maxWidth: 320)
                     }
@@ -3081,7 +3075,7 @@ private struct DefendDrill: View {
             Button(language.text("차트 계속 보기", "Keep the chart open")) {
                 chartPractice.invitationDismissed = true
             }
-            .font(GT.semibold(14)).frame(minHeight: 44)
+            .buttonStyle(GTOutlinedAction())
             .accessibilityIdentifier("defend-chart-keep-open")
         }.padding(14).gtPanel()
             .accessibilityElement(children: .contain)

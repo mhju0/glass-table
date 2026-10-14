@@ -255,8 +255,8 @@ struct LessonSeatLoop: View {
             }
             Button { terms.toggle() } label: {
                 Text(language.text(terms ? "용어 접기" : "포커 용어 보기", terms ? "Hide terms" : "Show poker terms"))
-                    .font(GT.semibold(13)).frame(minHeight: 44).contentShape(Rectangle())
             }
+                .buttonStyle(GTOutlinedAction())
                 .accessibilityIdentifier("position-terms-toggle")
         }
         .accessibilityElement(children: .contain)
