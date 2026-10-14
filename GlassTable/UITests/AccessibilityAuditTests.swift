@@ -34,7 +34,8 @@ final class AccessibilityAuditTests: XCTestCase {
             XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 15), .completed)
         }
         for _ in 0..<swipes { app.swipeUp() }
-        let fadeTop = app.tabBars.firstMatch.exists
+        let fullscreenTable = app.descendants(matching: .any)["practice-table"].exists
+        let fadeTop = !fullscreenTable && app.tabBars.firstMatch.exists
             ? app.tabBars.firstMatch.frame.minY - Self.scrollFadeHeight : .infinity
         // After a swipe on Play the audit reports screen-wide findings with no element on some
         // runs: dark-on-cream labels failing contrast locally, Dynamic Type on CI's iOS 26.2.
