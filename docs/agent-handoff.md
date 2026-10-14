@@ -7,17 +7,13 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 ## Current state (2026-10-14)
 
-- CI compatibility fix: the quick-game chip-conservation assertion now computes typed
-  totals before `#expect`, avoiding the Xcode 26.3 macro type-check timeout. All CI
-  gates remain enabled. The hosted Drills gate passes; its next stage exposed a
-  second Xcode 26.3 timeout in the walkthrough header. Header calculations are now
-  explicit typed locals, preserving text, layout and accessibility. Full hosted
-  validation is pending on PR #11. The first full attempt hit the 45-minute job
-  limit and lost its redirected app log; CI now streams app output and preserves
-  an explicit result bundle. Static inventory grew from 71 to 240 UI test methods
-  since the October 2 green run; budget is now 120 minutes overall / 110 for the
-  unchanged app test set, leaving time for Release checks and evidence upload.
-
+- Local CI repair is prepared on `fix/ci-drills-typecheck-20261014`, not pushed or
+  merged. It preserves owner build 28, fixes the two Xcode 26.3 expression limits,
+  distributes complete UI classes across three independent serial runners and
+  reconciles their compiled inventories/results. All normal gates remain enabled.
+- The cleaned Settings harness is prepared; the instrumented two-case diagnostic
+  passed on Xcode 26.3 / iOS 18.5, but the cleaned normal unit→UI path is unverified.
+  The Play accessibility repair, final native checks, full CI and merge remain pending.
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -133,23 +129,25 @@ Tests:
 
 ## Recent sessions
 
-### 2026-10-14 (Codex · CI compiler compatibility)
+### 2026-10-14 (Codex · CI repairs, local integration)
 
-- CI runs `38540449340` and `38424560532` fail on the same quick-game `#expect`
-  expression under Xcode 26.3. Split its sums into `Int` locals without changing
-  the chip-conservation assertion or product code. Local Xcode 27 baseline and
-  fixed Drills suites pass (428 XCTest and 75 Swift Testing tests).
-- The next hosted stage exposed the same compiler limit in `WalkthroughView.header`;
-  extracted typed calculations without changing its view tree or arithmetic order.
-  Local Engine release: 96 tests pass.
-- Full hosted run `38543736593` hit the 45-minute job limit with no app log
-  artifact. Keep all gates; stream app output, retain an explicit xcresult on
-  failure/cancellation and allow upload time after an app-step timeout. The new
-  streamed run compiled all targets; the UI method inventory is 240 vs 71 at the
-  last green source, so raise the unchanged suite budget to 120/110 minutes.
-  Full current tests are not yet verified.
-- Used an isolated worktree; the active checkout and its guided-hand test edits
-  were preserved. Next: hosted PR and main CI validation on Xcode 26.3.
+- Five owner-notification runs share the quick-game `#expect` compile timeout.
+  Split its integer sums and the walkthrough header calculations without changing
+  assertions, arithmetic order, displayed text or accessibility labels.
+- Full run `38550187331` hit the 110-minute app limit: 98 XCTest and 46 Swift Testing
+  app tests passed; 96 UI tests passed and the Play audit failed contrast/Dynamic
+  Type before timeout. Retained xcresult is incomplete; raw log preserves the batch.
+- Accepted CI commits `83475d4`, `c2704f4`, `9c07d40` now distribute complete classes
+  across three serial runners and reconcile method/argument inventories and only
+  the existing opt-in crawler skips. No tests are removed from the normal gate.
+- Settings diagnostic `38583124780` passed 2/2, including single-tap changes, relaunch
+  persistence and both language choices. Cleaned test-only `90c05bf` is integrated
+  locally; this does not prove the original activation flake's cause or that waiting
+  fixed it. Normal unit→UI validation is still required.
+- Integrated only remote main `9664c0a` handoff cleanup. The owner's architecture
+  branch `d2e1092` remains unmerged and untouched. No diagnostic workflows or proposed
+  renderer changes are integrated. Next: accepted Play repair, frozen final review,
+  native/full CI validation, then root delivery decision.
 
 
 ### 2026-10-14 (Claude · build 27 feedback)
