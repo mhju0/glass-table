@@ -35,6 +35,9 @@ final class FirstLessonFeedbackFlowTests: XCTestCase {
         tap(app.buttons["firstLesson.choice.\(loser)"])
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         let initialVerdict = verdict.label
+        let repeated = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label BEGINSWITH %@", english ? "Review this one" : "다시 살펴볼까요?")).firstMatch
+        XCTAssertFalse(repeated.exists, "The cards already mark the answer; the guide does not repeat both choices.")
         tap(next)
         tap(app.buttons["firstLesson.previous"])
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))

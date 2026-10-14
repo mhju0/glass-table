@@ -1135,9 +1135,6 @@ struct FirstLessonView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("firstLesson.verdict")
-            if !correct && !usedHelp {
-                VerdictRow(band: band, mine: outcome(answer ?? -1), correct: outcome(spot.winner))
-            }
             comparisonReason(spot)
                 .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                 .lineSpacing(GT.Typography.explanationLineSpacing)
