@@ -24,6 +24,10 @@ Branch `feat/guide-clickable-controls`.
    https://claude.ai/artifact/Tb5PRceX4YUUPoTJwAffKr. Outlined circle, outlined rounded
    square (recommended), soft filled square, felt-green tile, chip. No app code changes
    until a look is picked.
+   **Owner chose Look 2** and asked whether Look 5's gold border on that shape is too much.
+5. Look 2 with gold borders (A: Look 5's double ring, B: one gold line, C: grey outline
+   with a gold hairline inside): https://claude.ai/artifact/BdUFji5QcrzLN9K16YKDJY. Recommended:
+   plain Look 2, or B if gold is wanted.
 
 ## Inventory (code read 2026-10-14)
 
