@@ -16,6 +16,7 @@ CRAWL_CLASS = "UXAuditCrawl"
 CRAWL_SKIP_REASON = "Test skipped - UX audit crawl runs only with GT_AUDIT_OUT"
 ATTACHED_SHEET_METHOD = f"{UI_TARGET}/LearningFlowTests/testAnswerSheetLeavesNoDeadBandUnderTheLastChoice()"
 ATTACHED_SHEET_SKIP_REASON = "Test skipped - Pre-26 sheets stay attached"
+TIMING_FILE = Path(__file__).with_name("ui-class-timings.json")
 
 
 def allowed_skip_reasons(manifest):
@@ -120,13 +121,36 @@ def check_test_spec(products):
     return {"file": paths[0].name, "targets": sorted(targets), "persistedFilters": [], "sha256": hashlib.sha256(paths[0].read_bytes()).hexdigest()}
 
 
-def partition(classes):
+def class_weights(classes, timing=None):
+    timing = read_json(TIMING_FILE) if timing is None else timing
+    require(timing.get("schemaVersion") == 1, "Unknown timing profile schema")
+    fallback = timing["fallbackMillisecondsPerMethod"]
+    require(type(fallback) is int and fallback > 0, "Invalid unknown-method timing fallback")
+    weights = {}
+    for name, methods in classes.items():
+        observed = timing["classes"].get(name)
+        if observed is None:
+            weights[name] = len(methods) * fallback
+        else:
+            milliseconds = observed["milliseconds"]
+            require(type(milliseconds) is int and milliseconds >= 0, "Invalid observed class duration")
+            known = observed["methods"]
+            require(known == sorted(set(known)) and known, "Invalid observed method inventory")
+            require(all(method.startswith(f"{UI_TARGET}/{name}/") for method in known), "Timing method belongs to another class")
+            # Retain the whole observed duration when methods disappear; charge new
+            # methods at the slowest observed individual method's duration.
+            weights[name] = max(1, milliseconds) + len(set(methods) - set(known)) * fallback
+    return weights
+
+
+def partition(classes, timing=None):
+    weights = class_weights(classes, timing)
     shards = [[] for _ in range(SHARD_COUNT)]
     loads = [0] * SHARD_COUNT
-    for name in sorted(classes, key=lambda name: (-len(classes[name]), name)):
+    for name in sorted(classes, key=lambda name: (-weights[name], name)):
         index = min(range(SHARD_COUNT), key=lambda index: (loads[index], index))
         shards[index].append(name)
-        loads[index] += len(classes[name])
+        loads[index] += weights[name]
     require(all(shards), "Every shard must contain whole UI classes")
     require(sorted(name for shard in shards for name in shard) == sorted(classes), "Unassigned or duplicate shard classes")
     return [sorted(shard) for shard in shards]
@@ -144,6 +168,7 @@ def make_manifest(document, shard, sha, xcode, runtime, model):
         "shardIndex": shard, "shardCount": SHARD_COUNT, "targets": targets,
         "uiDigest": digest(targets[UI_TARGET]), "unitDigest": digest(targets[UNIT_TARGET]),
         "assignments": assignments, "assignedClasses": assignments[shard],
+        "timingDigest": digest(read_json(TIMING_FILE)),
     }
 
 
@@ -162,6 +187,7 @@ def validate_manifest(manifest):
             require(all(method.startswith(f"{target}/{name}/") and method.count("/") == 2 and method.endswith(")") for method in methods), "Unexpected manifest method identifier")
     require(len(targets[UI_TARGET].get(CRAWL_CLASS, [])) == 11, "Missing documented crawler methods")
     require(manifest["uiDigest"] == digest(targets[UI_TARGET]) and manifest["unitDigest"] == digest(targets[UNIT_TARGET]), "Manifest digest mismatch")
+    require(manifest.get("timingDigest") == digest(read_json(TIMING_FILE)), "Manifest timing profile differs")
     assignments = partition(targets[UI_TARGET])
     require(manifest["assignments"] == assignments and manifest["assignedClasses"] == assignments[index], "Manifest assignment mismatch")
 
@@ -275,7 +301,7 @@ def aggregate(reports_dir, job_status, sha):
     require(set(manifests) == set(range(SHARD_COUNT)), "Missing shard index")
     first = manifests[0]
     for index in range(1, SHARD_COUNT):
-        for key in ["sha", "xcode", "runtime", "model", "targets", "uiDigest", "unitDigest", "assignments"]:
+        for key in ["sha", "xcode", "runtime", "model", "targets", "uiDigest", "unitDigest", "assignments", "timingDigest"]:
             require(manifests[index][key] == first[key], f"Shard {key} differs")
         for key in ["unitResults", "argumentCases", "unitFrameworkCounts"]:
             require(reports[index][key] == reports[0][key], f"Shard {key} differs")

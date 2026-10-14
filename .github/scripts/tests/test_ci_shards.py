@@ -59,7 +59,7 @@ class ShardCoverageTests(unittest.TestCase):
         manifest = self.manifest()
         ui = manifest["targets"][ci.UI_TARGET]
         self.assertEqual(30, len(ui))
-        self.assertEqual([80, 80, 81], [sum(len(ui[name]) for name in shard) for shard in manifest["assignments"]])
+        self.assertEqual(241, sum(len(ui[name]) for shard in manifest["assignments"] for name in shard))
         self.assertEqual(144, sum(map(len, manifest["targets"][ci.UNIT_TARGET].values())))
         self.assertEqual(set(ui), {name for shard in manifest["assignments"] for name in shard})
 
@@ -71,6 +71,42 @@ class ShardCoverageTests(unittest.TestCase):
             for group in target["children"]:
                 group["children"].reverse()
         self.assertEqual(original, self.manifest())
+
+    def test_measured_durations_isolate_heavy_class_and_balance_runtime(self):
+        timing = ci.read_json(ci.TIMING_FILE)
+        classes = {name: entry["methods"] for name, entry in timing["classes"].items()}
+        assignments = ci.partition(classes)
+        weights = ci.class_weights(classes)
+        heavy = "BilingualConsistencyB20Tests"
+        self.assertEqual([heavy], next(shard for shard in assignments if heavy in shard))
+        loads = [sum(weights[name] for name in shard) for shard in assignments]
+        lower_bound = max(max(weights.values()), sum(weights.values()) / ci.SHARD_COUNT)
+        self.assertLessEqual(max(loads), lower_bound * 1.03)
+        self.assertEqual(243, sum(len(classes[name]) for shard in assignments for name in shard))
+
+    def test_new_classes_and_methods_keep_complete_disjoint_conservative_assignment(self):
+        timing = ci.read_json(ci.TIMING_FILE)
+        classes = {name: list(entry["methods"]) for name, entry in timing["classes"].items()}
+        classes["NewFlowTests"] = [f"{ci.UI_TARGET}/NewFlowTests/testNew{i}()" for i in range(3)]
+        name = "AccessibilityAuditTests"
+        old_weight = ci.class_weights(classes)[name]
+        classes[name].append(f"{ci.UI_TARGET}/{name}/testNew()")
+        weights = ci.class_weights(classes)
+        fallback = timing["fallbackMillisecondsPerMethod"]
+        self.assertGreaterEqual(weights[name], old_weight + fallback)
+        self.assertGreaterEqual(weights["NewFlowTests"], 3 * fallback)
+        assignments = ci.partition(classes)
+        flattened = [name for shard in assignments for name in shard]
+        self.assertEqual(set(classes), set(flattened))
+        self.assertEqual(len(classes), len(flattened))
+        reordered = {name: list(reversed(methods)) for name, methods in reversed(list(classes.items()))}
+        self.assertEqual(assignments, ci.partition(reordered))
+
+    def test_manifest_rejects_changed_timing_profile_digest(self):
+        manifest = self.manifest()
+        manifest["timingDigest"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "timing profile"):
+            ci.validate_manifest(manifest)
 
     def target_enumeration(self, target):
         document = copy.deepcopy(self.enumeration)

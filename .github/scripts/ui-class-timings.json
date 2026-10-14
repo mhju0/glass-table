@@ -1,0 +1,524 @@
+{
+  "classes": {
+    "AccessibilityAuditTests": {
+      "methods": [
+        "GlassTableUITests/AccessibilityAuditTests/testLessonQuestion()",
+        "GlassTableUITests/AccessibilityAuditTests/testLessonSummaryWithMilestone()",
+        "GlassTableUITests/AccessibilityAuditTests/testPlayTable()",
+        "GlassTableUITests/AccessibilityAuditTests/testPlayTableScrolled()",
+        "GlassTableUITests/AccessibilityAuditTests/testSettings()",
+        "GlassTableUITests/AccessibilityAuditTests/testSettingsScrolled()"
+      ],
+      "milliseconds": 73591,
+      "outcomes": {
+        "Passed": 6
+      }
+    },
+    "AccessibilityFlowTests": {
+      "methods": [
+        "GlassTableUITests/AccessibilityFlowTests/testCountKeypadCanOpenAndCollapseAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testDefendRevealExposesSelectedEvidenceAndChartRowsAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testEVRevealLeadsWithRangeEvidenceAndLossEquationAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testEquityAnswerCanBeSubmittedAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFirstLessonReachesCourseAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableEN2SeatsStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableEN3SeatsStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableEN4SeatsStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableENTitleKeepsGrowingThroughAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableKO2SeatsStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableKO3SeatsStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableKO4SeatsStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableKOTitleKeepsGrowingThroughAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testFreeTableStatusToneKeepsSeatHeightAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testGuidedHintFloatsWithoutMovingTheQuestionAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testPolicyReferenceCaveatsRemainReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testReminderAndMilestoneShareStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testShowdownWalkthroughAdvancesAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testStartingPointCheckIsReachableInBothLanguagesAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testTableFoldReachesSummaryAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testTableGradeVerdictAndContinueStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testTableHeroCardsCanBeFullyExposedOnScreenAtAccessibilityXXXL()",
+        "GlassTableUITests/AccessibilityFlowTests/testTableSetupPlayerCountStacksAndStaysReachableAtAccessibilityXXXL()"
+      ],
+      "milliseconds": 454647,
+      "outcomes": {
+        "Failed": 2,
+        "Passed": 21
+      }
+    },
+    "AppearanceFlowTests": {
+      "methods": [
+        "GlassTableUITests/AppearanceFlowTests/testAllAppearanceChoicesRemainReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/AppearanceFlowTests/testAppearanceSelectionPersistsAcrossRelaunchAndReturnsToSystem()"
+      ],
+      "milliseconds": 64030,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    "BasicsGuidedHandInvitationTests": {
+      "methods": [
+        "GlassTableUITests/BasicsGuidedHandInvitationTests/testEnglishFirstRunBasicsOffersHandAndContinuesLessons()",
+        "GlassTableUITests/BasicsGuidedHandInvitationTests/testKoreanFirstRunBasicsOffersReachableHandAX5()",
+        "GlassTableUITests/BasicsGuidedHandInvitationTests/testKoreanSwipingTheInvitationAwayStaysOnLearn()"
+      ],
+      "milliseconds": 210468,
+      "outcomes": {
+        "Passed": 3
+      }
+    },
+    "BeginnerReleaseTests": {
+      "methods": [
+        "GlassTableUITests/BeginnerReleaseTests/testCallFoldFixtureOpensThatConceptNotAMixedCheckpoint()",
+        "GlassTableUITests/BeginnerReleaseTests/testChartExplorerReachesOwnHandAtLargestTextSize()",
+        "GlassTableUITests/BeginnerReleaseTests/testCommittedAdvancedLessonResumesTheSameAnswer()",
+        "GlassTableUITests/BeginnerReleaseTests/testEquityCardsFitAboveAnswerSheetOnCompactPhone()",
+        "GlassTableUITests/BeginnerReleaseTests/testFirstTableExplainsItselfOnceAndDoesNotRepeat()",
+        "GlassTableUITests/BeginnerReleaseTests/testFourTabsWithoutExperienceQuestion()",
+        "GlassTableUITests/BeginnerReleaseTests/testGradedRevealSheetIsTintedByItsVerdict()",
+        "GlassTableUITests/BeginnerReleaseTests/testLanguageSwitchInSettingsKeepsTheSavedLesson()",
+        "GlassTableUITests/BeginnerReleaseTests/testLearnOffersLessonsWithoutAnExperienceQuestion()",
+        "GlassTableUITests/BeginnerReleaseTests/testLearningPathAndHeadsUpExerciseKeepBackNavigation()",
+        "GlassTableUITests/BeginnerReleaseTests/testOpeningGuideResumesWithoutMandatoryPlacement()",
+        "GlassTableUITests/BeginnerReleaseTests/testPlayGradeNamesTheChoiceAndItsReferenceBelowTheHand()",
+        "GlassTableUITests/BeginnerReleaseTests/testPlayHomeOffersTwoModesAboveTheTabBar()",
+        "GlassTableUITests/BeginnerReleaseTests/testPokerTermsSwitchPutsTheTermFirst()",
+        "GlassTableUITests/BeginnerReleaseTests/testPracticeHandSettlesAndNextHandSurvivesRelaunch()",
+        "GlassTableUITests/BeginnerReleaseTests/testPracticeTableHidesOpponentCardsAndShowsThePot()",
+        "GlassTableUITests/BeginnerReleaseTests/testQuestionDraftSurvivesRelaunchWithoutAnAnswer()",
+        "GlassTableUITests/BeginnerReleaseTests/testQuickGameIsTheDefaultAndEndsAfterTenHands()",
+        "GlassTableUITests/BeginnerReleaseTests/testSettingsKOLastRowAndOtherTabsStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/BeginnerReleaseTests/testSettingsLastRowAndOtherTabsStayReachableAtAccessibilityXXXL()",
+        "GlassTableUITests/BeginnerReleaseTests/testSettingsListsProblemGamblingHelplines()",
+        "GlassTableUITests/BeginnerReleaseTests/testTableHabitsShowAProgressLineAndKeepTheEvidenceOneTapDown()",
+        "GlassTableUITests/BeginnerReleaseTests/testTableSetupGivesEachComputerItsOwnStyle()",
+        "GlassTableUITests/BeginnerReleaseTests/testTwoPlayerTableSeatsOneComputer()"
+      ],
+      "milliseconds": 638817,
+      "outcomes": {
+        "Passed": 24
+      }
+    },
+    "BilingualConsistencyB20Tests": {
+      "methods": [
+        "GlassTableUITests/BilingualConsistencyB20Tests/testAX5DarkCaptureMatrix()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testAX5LightCaptureMatrix()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testBrandAppearanceTransitionB22AllModes()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testBrandLightAppearanceTrialB22()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testEnglishDarkAX5BottomActionsAndHelpReturn()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testEnglishLightAX5BottomActionsAndHelpReturn()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testEnglishLightAX5FreeHelpReturn()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testExplanationAutomaticallyVisibleAllModes()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testKoreanDarkAX5BottomActionsAndHelpReturn()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testKoreanLightAX5BottomActionsAndHelpReturn()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testLegacyWelcomeB22RespectsSelectedLightAppearance()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testNormalDarkCaptureMatrixAndPairedRootHeadings()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testNormalLightCaptureMatrixAndPairedRootHeadings()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testOpeningB22AllModes()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testRemainingComparisonsB22AllModes()",
+        "GlassTableUITests/BilingualConsistencyB20Tests/testTeachPairSupplementaryCopyAllModes()"
+      ],
+      "milliseconds": 3746803,
+      "outcomes": {
+        "Passed": 16
+      }
+    },
+    "BottomPanelB22Tests": {
+      "methods": [
+        "GlassTableUITests/BottomPanelB22Tests/testEnglishDarkHint()",
+        "GlassTableUITests/BottomPanelB22Tests/testEnglishDarkLargeHint()",
+        "GlassTableUITests/BottomPanelB22Tests/testEnglishLightHint()",
+        "GlassTableUITests/BottomPanelB22Tests/testEnglishLightLargeHint()",
+        "GlassTableUITests/BottomPanelB22Tests/testKoreanDarkHint()",
+        "GlassTableUITests/BottomPanelB22Tests/testKoreanDarkLargeHint()",
+        "GlassTableUITests/BottomPanelB22Tests/testKoreanLightHint()",
+        "GlassTableUITests/BottomPanelB22Tests/testKoreanLightLargeHint()"
+      ],
+      "milliseconds": 107293,
+      "outcomes": {
+        "Passed": 8
+      }
+    },
+    "ChartFirstUseFlowTests": {
+      "methods": [
+        "GlassTableUITests/ChartFirstUseFlowTests/testDirectBeginnerChartDefinesActionsBeforeCommit()",
+        "GlassTableUITests/ChartFirstUseFlowTests/testEquityQuestionIncludesShareOfTies()",
+        "GlassTableUITests/ChartFirstUseFlowTests/testGradedChartStartsExpandedAndRemembersCollapseOnReopen()",
+        "GlassTableUITests/ChartFirstUseFlowTests/testKeepingChartDismissesInvitationWithoutFolding()",
+        "GlassTableUITests/ChartFirstUseFlowTests/testOptionalInvitationFoldsChartAndKeepsReopeningAvailable()",
+        "GlassTableUITests/ChartFirstUseFlowTests/testThreeCorrectCommitsOfferOneOptionalInvitation()"
+      ],
+      "milliseconds": 210267,
+      "outcomes": {
+        "Passed": 6
+      }
+    },
+    "DeviceFeedbackBoundsTests": {
+      "methods": [
+        "GlassTableUITests/DeviceFeedbackBoundsTests/testEnglishAXDefendChoicesStayWithinScreen()",
+        "GlassTableUITests/DeviceFeedbackBoundsTests/testKoreanAXDefendChoicesStayWithinScreen()"
+      ],
+      "milliseconds": 48334,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    "DeviceFeedbackLessonTests": {
+      "methods": [
+        "GlassTableUITests/DeviceFeedbackLessonTests/testEnglishLightPositionExampleFinishes()",
+        "GlassTableUITests/DeviceFeedbackLessonTests/testKoreanDarkPositionExampleFinishesAX5()"
+      ],
+      "milliseconds": 164944,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    "DeviceFeedbackSettingsTests": {
+      "methods": [
+        "GlassTableUITests/DeviceFeedbackSettingsTests/testEnglishLightFeedbackPreferencesPersist()",
+        "GlassTableUITests/DeviceFeedbackSettingsTests/testKoreanDarkFeedbackPreferencesPersistAX5()"
+      ],
+      "milliseconds": 149183,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    "FinalPresentationVerificationTests": {
+      "methods": [
+        "GlassTableUITests/FinalPresentationVerificationTests/testRangeReadENAXBottomAndComparisonReachable()",
+        "GlassTableUITests/FinalPresentationVerificationTests/testRangeReadENLargeBottomAndComparisonReachable()",
+        "GlassTableUITests/FinalPresentationVerificationTests/testRangeReadKOAXBottomAndComparisonReachable()",
+        "GlassTableUITests/FinalPresentationVerificationTests/testRangeReadKOLargeBottomAndComparisonReachable()",
+        "GlassTableUITests/FinalPresentationVerificationTests/testSuggestedBasicsCTAOpensCourseInBothLanguagesAtAX5()"
+      ],
+      "milliseconds": 421035,
+      "outcomes": {
+        "Passed": 5
+      }
+    },
+    "FirstLessonFeedbackFlowTests": {
+      "methods": [
+        "GlassTableUITests/FirstLessonFeedbackFlowTests/testEnglishGuideCompletesFiveRequiredComparisons()",
+        "GlassTableUITests/FirstLessonFeedbackFlowTests/testKoreanGuideCompletesFiveRequiredComparisonsAX5()"
+      ],
+      "milliseconds": 118405,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    "FreeDockFlowTests": {
+      "methods": [
+        "GlassTableUITests/FreeDockFlowTests/testAXENDockSlotsAndBarsRemainReachable()",
+        "GlassTableUITests/FreeDockFlowTests/testAXKODockSlotsAndBarsRemainReachable()",
+        "GlassTableUITests/FreeDockFlowTests/testCheckingKeepsDisabledFoldSlot()",
+        "GlassTableUITests/FreeDockFlowTests/testFixedSlotsCancelPressAndPreserveHeightThroughRaiseAndFold()",
+        "GlassTableUITests/FreeDockFlowTests/testMathPillOpensExistingPreflopPanel()",
+        "GlassTableUITests/FreeDockFlowTests/testNormalSlotWidthsAndCentersStayFixedForCallAndAllIn()",
+        "GlassTableUITests/FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes()"
+      ],
+      "milliseconds": 295968,
+      "outcomes": {
+        "Passed": 7
+      }
+    },
+    "FreeRaiseFlowTests": {
+      "methods": [
+        "GlassTableUITests/FreeRaiseFlowTests/testFacingRaiseKeepsFiveAndDuplicatePresets()",
+        "GlassTableUITests/FreeRaiseFlowTests/testOneChipTapHoldLimitsCancelAndOddCommit()",
+        "GlassTableUITests/FreeRaiseFlowTests/testRaiseAXENFifthPresetAndCommitReachable()",
+        "GlassTableUITests/FreeRaiseFlowTests/testRaiseAXKOFifthPresetAndCommitReachable()",
+        "GlassTableUITests/FreeRaiseFlowTests/testRaiseAXPanFromAdjustmentCancelsStepAndScrolls()",
+        "GlassTableUITests/FreeRaiseFlowTests/testShortStackKeepsIllegalPresetsDimmed()"
+      ],
+      "milliseconds": 148457,
+      "outcomes": {
+        "Passed": 6
+      }
+    },
+    "FreeTableBackFlowTests": {
+      "methods": [
+        "GlassTableUITests/FreeTableBackFlowTests/testAXENCreamSeatGuideReadable()",
+        "GlassTableUITests/FreeTableBackFlowTests/testAXENExpandedPolicyEndReachable()",
+        "GlassTableUITests/FreeTableBackFlowTests/testAXENMathRulesReachable()",
+        "GlassTableUITests/FreeTableBackFlowTests/testAXKOCreamSeatGuideReadable()",
+        "GlassTableUITests/FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable()",
+        "GlassTableUITests/FreeTableBackFlowTests/testAXKOMathRulesReachable()",
+        "GlassTableUITests/FreeTableBackFlowTests/testChartSuggestionStaysHiddenUntilTheLearnerAsks()",
+        "GlassTableUITests/FreeTableBackFlowTests/testFlopMathShowsMadeHandWithoutCrash()",
+        "GlassTableUITests/FreeTableBackFlowTests/testManualCardRevealDoesNotAddReviewEquity()",
+        "GlassTableUITests/FreeTableBackFlowTests/testMathFlipRulesAndAllFacesKeepHeight()",
+        "GlassTableUITests/FreeTableBackFlowTests/testPreflopEquityWorkKeepsTabsResponsiveOnLeaveAndReopen()",
+        "GlassTableUITests/FreeTableBackFlowTests/testReviewThisHandWalksThroughEveryDecisionThenTheShowdown()",
+        "GlassTableUITests/FreeTableBackFlowTests/testSettledReviewChanceAndResponsiveTabs()"
+      ],
+      "milliseconds": 872031,
+      "outcomes": {
+        "Passed": 13
+      }
+    },
+    "FreeTableMotionFlowTests": {
+      "methods": [
+        "GlassTableUITests/FreeTableMotionFlowTests/testAXDealtControlsAndMathReachableAcrossSeatsAndLanguages()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testAXNamedPotsAndAggregateTotalFullyReadableAfterTableScroll()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testAXRefundFlightHasRealSeatDestination()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testBackgroundDuringAwardsAndNextHandRefill()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testBackgroundDuringChipFlightResumesWithoutReset()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testInitialDealAndPublicMath()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testMathKeepsCompletedCallPriceDuringAllInFlight()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testNextHandFromShowdownKeepsOldPilesSwept()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testNormalShowdownAndFoldOnlyPrivacy()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testReduceMotionCompletesSameMoney()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testRunoutRefundSidePotsAndOddSplit()",
+        "GlassTableUITests/FreeTableMotionFlowTests/testYourTurnFeedbackDoesNotRepeatAfterBackground()"
+      ],
+      "milliseconds": 428342,
+      "outcomes": {
+        "Passed": 12
+      }
+    },
+    "GradedDockFlowTests": {
+      "methods": [
+        "GlassTableUITests/GradedDockFlowTests/testAXENSizingChoiceFullyReachable()",
+        "GlassTableUITests/GradedDockFlowTests/testAXKOSizingChoiceFullyReachable()",
+        "GlassTableUITests/GradedDockFlowTests/testCheckedToPreservesEverySizeAndGrading()",
+        "GlassTableUITests/GradedDockFlowTests/testPreflopThreeSlotsCommitExactChartChoice()"
+      ],
+      "milliseconds": 58603,
+      "outcomes": {
+        "Passed": 4
+      }
+    },
+    "GradedLearningFlowTests": {
+      "methods": [
+        "GlassTableUITests/GradedLearningFlowTests/testAXPostflopChartIsExplicitlyAStartingHandReference()",
+        "GlassTableUITests/GradedLearningFlowTests/testChartBeforeCommitDoesNotRevealOwnHandRecommendation()",
+        "GlassTableUITests/GradedLearningFlowTests/testHandEndingFoldGetsFeedbackBeforeSummaryAndChartEvidenceAfterCommit()",
+        "GlassTableUITests/GradedLearningFlowTests/testNormalFeedbackAndSummaryKeepBothHandsFullyVisible()",
+        "GlassTableUITests/GradedLearningFlowTests/testNormalPreflopFooterHugsControlsAndBothHandsFit()"
+      ],
+      "milliseconds": 65203,
+      "outcomes": {
+        "Passed": 5
+      }
+    },
+    "GuidedHandFlowTests": {
+      "methods": [
+        "GlassTableUITests/GuidedHandFlowTests/testEnglishLearnBridgeWrongAnswerBackReplayAndPlay()",
+        "GlassTableUITests/GuidedHandFlowTests/testKoreanLearnBridgeAX5()"
+      ],
+      "milliseconds": 180201,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    "LearningFlowTests": {
+      "methods": [
+        "GlassTableUITests/LearningFlowTests/testActivitiesOpenFullScreenAndCloseOnlyFromClose()",
+        "GlassTableUITests/LearningFlowTests/testAnswerSheetLeavesNoDeadBandUnderTheLastChoice()",
+        "GlassTableUITests/LearningFlowTests/testCountDrillRequiresAnIntentionalNumberIncludingZero()",
+        "GlassTableUITests/LearningFlowTests/testDefendRevealShowsTheSelectedHandBeforeTheFullChart()",
+        "GlassTableUITests/LearningFlowTests/testDueReviewIsFiniteAndMovesBetweenConcepts()",
+        "GlassTableUITests/LearningFlowTests/testEVDecisionSurvivesRelaunchBeforeNext()",
+        "GlassTableUITests/LearningFlowTests/testExactAnswerSurvivesRelaunchBeforeNext()",
+        "GlassTableUITests/LearningFlowTests/testFirstLessonCanBeOpenedAndClosedFromSettings()",
+        "GlassTableUITests/LearningFlowTests/testFirstLessonMarksAWrongPickAndTheRightAnswer()",
+        "GlassTableUITests/LearningFlowTests/testFirstLessonTeachesThenTransfersBeforeOpeningTheCourse()",
+        "GlassTableUITests/LearningFlowTests/testGradedQuestionReopensTheExplanationWithItsExample()",
+        "GlassTableUITests/LearningFlowTests/testGuideRequiresRetrievalBeforeExplanation()",
+        "GlassTableUITests/LearningFlowTests/testGuidedAnswerDoesNotCreateAssessedProgress()",
+        "GlassTableUITests/LearningFlowTests/testHeadsUpExerciseKeepsPublishedPolicyAndChartGrading()",
+        "GlassTableUITests/LearningFlowTests/testIndependentLessonReachesSummaryAfterThreeAnswers()",
+        "GlassTableUITests/LearningFlowTests/testInterruptedFirstLessonResumesWithoutRecordingAnAnswer()",
+        "GlassTableUITests/LearningFlowTests/testIntervalAnswerSurvivesRelaunchBeforeNext()",
+        "GlassTableUITests/LearningFlowTests/testLanguageSwitchKeepsTheWorkedExampleStep()",
+        "GlassTableUITests/LearningFlowTests/testLearnSuggestsBasicsUntilFinishedAndClosingKeepsIt()",
+        "GlassTableUITests/LearningFlowTests/testLessonHelpOpensInPlaceFromOneControl()",
+        "GlassTableUITests/LearningFlowTests/testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge()",
+        "GlassTableUITests/LearningFlowTests/testLessonUnderThePassMarkRetriesFromTheFirstQuestion()",
+        "GlassTableUITests/LearningFlowTests/testNextDoesNotDoubleRecordAndNextQuestionStillCounts()",
+        "GlassTableUITests/LearningFlowTests/testOpponentDetailShowsItsPokerTermsWithoutADisclosure()",
+        "GlassTableUITests/LearningFlowTests/testOutsHeroCardsAreFullyVisibleBeforeOpeningNumberEntry()",
+        "GlassTableUITests/LearningFlowTests/testPathOpensAtRequestedLateCurrentNode()",
+        "GlassTableUITests/LearningFlowTests/testPositionSeatsStayListedThroughTheAnswerAtTheLargestText()",
+        "GlassTableUITests/LearningFlowTests/testPotMathAX5CanReachChoiceRevealAndNextAction()",
+        "GlassTableUITests/LearningFlowTests/testPotMathChoiceCommitsExactlyOnceBeforeNext()",
+        "GlassTableUITests/LearningFlowTests/testPotMathChoicesSitInTheBottomSheet()",
+        "GlassTableUITests/LearningFlowTests/testPotMathFirstEntryExplainsWhyHowAndBlindRoles()",
+        "GlassTableUITests/LearningFlowTests/testPotMathKeepsItsInstructionAndHeightAtTheLastAction()",
+        "GlassTableUITests/LearningFlowTests/testPotMathTableRequiresTheFullReplayThenRevealsOptionalArithmetic()",
+        "GlassTableUITests/LearningFlowTests/testPotTotalsHelpAsksFirstAndMarksTheAnswer()",
+        "GlassTableUITests/LearningFlowTests/testSkippingFirstLessonDoesNotShowItAgain()"
+      ],
+      "milliseconds": 643779,
+      "outcomes": {
+        "Passed": 34,
+        "Skipped": 1
+      }
+    },
+    "NativeRefinementTests": {
+      "methods": [
+        "GlassTableUITests/NativeRefinementTests/testDetailedRecordsDoNotCategorizeHelpUse()",
+        "GlassTableUITests/NativeRefinementTests/testFinishedHandHelpOffersReviewWithoutAnObsoletePrice()",
+        "GlassTableUITests/NativeRefinementTests/testFourthDateUsesTheSameDateCellAndWaitsForTodaysRecordedAnswer()",
+        "GlassTableUITests/NativeRefinementTests/testLargeTextActionRowsAreReadableAndReachableInBothLanguages()",
+        "GlassTableUITests/NativeRefinementTests/testLessonSummaryNamesTheTopicWithoutPublicHelpCounts()",
+        "GlassTableUITests/NativeRefinementTests/testLessonUnderThePassMarkOffersARetryAndAWayOn()",
+        "GlassTableUITests/NativeRefinementTests/testRecordedDatesIncludeWrongAndHelpedAnswersButExcludeHelpOnlyAndFutureDates()",
+        "GlassTableUITests/NativeRefinementTests/testRecordsContinuationOpensLearnAndFullCompletionHasTheRealDenominator()",
+        "GlassTableUITests/NativeRefinementTests/testRecordsContinueClearsTheTabBarAtLargeTextInBothLanguages()"
+      ],
+      "milliseconds": 161029,
+      "outcomes": {
+        "Passed": 9
+      }
+    },
+    "NumericalRecordsFlowTests": {
+      "methods": [
+        "GlassTableUITests/NumericalRecordsFlowTests/testEnglishDarkRecords()",
+        "GlassTableUITests/NumericalRecordsFlowTests/testEnglishLightRecords()",
+        "GlassTableUITests/NumericalRecordsFlowTests/testKoreanDarkRecords()",
+        "GlassTableUITests/NumericalRecordsFlowTests/testKoreanLightRecords()"
+      ],
+      "milliseconds": 64305,
+      "outcomes": {
+        "Passed": 4
+      }
+    },
+    "NumericalRevealFlowTests": {
+      "methods": [
+        "GlassTableUITests/NumericalRevealFlowTests/testEnglishDarkReveals()",
+        "GlassTableUITests/NumericalRevealFlowTests/testEnglishLightReveals()",
+        "GlassTableUITests/NumericalRevealFlowTests/testKoreanDarkReveals()",
+        "GlassTableUITests/NumericalRevealFlowTests/testKoreanLightReveals()"
+      ],
+      "milliseconds": 82743,
+      "outcomes": {
+        "Passed": 4
+      }
+    },
+    "QuickPlayArchiveFlowTests": {
+      "methods": [
+        "GlassTableUITests/QuickPlayArchiveFlowTests/testEnglishAXArchiveAllTenHandsAndCoachControls()",
+        "GlassTableUITests/QuickPlayArchiveFlowTests/testEnglishArchiveAllTenHandsAndCoachControls()",
+        "GlassTableUITests/QuickPlayArchiveFlowTests/testKoreanAXArchiveAllTenHandsAndCoachControls()",
+        "GlassTableUITests/QuickPlayArchiveFlowTests/testKoreanArchiveAllTenHandsAndCoachControls()"
+      ],
+      "milliseconds": 164793,
+      "outcomes": {
+        "Passed": 4
+      }
+    },
+    "ReleaseSmokeTests": {
+      "methods": [
+        "GlassTableUITests/ReleaseSmokeTests/testLaunchAndOpenStudyGuideWithoutDemoHooks()",
+        "GlassTableUITests/ReleaseSmokeTests/testResponsiveLaunchMeasurement()"
+      ],
+      "milliseconds": 30773,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    "RestoredLessonParityFlowTests": {
+      "methods": [
+        "GlassTableUITests/RestoredLessonParityFlowTests/testKoreanAXPositionDirectAndResumedUseNumberedLoop()",
+        "GlassTableUITests/RestoredLessonParityFlowTests/testKoreanAXRangeDirectAndResumedKeepComparisonEvidence()",
+        "GlassTableUITests/RestoredLessonParityFlowTests/testPositionDirectAndResumedUseNumberedLoop()",
+        "GlassTableUITests/RestoredLessonParityFlowTests/testRangeDirectAndResumedKeepComparisonEvidence()"
+      ],
+      "milliseconds": 84025,
+      "outcomes": {
+        "Passed": 4
+      }
+    },
+    "RestoredPresentationTests": {
+      "methods": [
+        "GlassTableUITests/RestoredPresentationTests/testENAXSavedPanels()",
+        "GlassTableUITests/RestoredPresentationTests/testENNormalSavedPanels()",
+        "GlassTableUITests/RestoredPresentationTests/testKOAXSavedPanels()",
+        "GlassTableUITests/RestoredPresentationTests/testKONormalSavedPanels()"
+      ],
+      "milliseconds": 385629,
+      "outcomes": {
+        "Passed": 4
+      }
+    },
+    "UXAuditCrawl": {
+      "methods": [
+        "GlassTableUITests/UXAuditCrawl/test01FirstRun()",
+        "GlassTableUITests/UXAuditCrawl/test02Learn()",
+        "GlassTableUITests/UXAuditCrawl/test03PlayFree()",
+        "GlassTableUITests/UXAuditCrawl/test04PlayGraded()",
+        "GlassTableUITests/UXAuditCrawl/test05ProgressAndSettings()",
+        "GlassTableUITests/UXAuditCrawl/test06PlayCrash()",
+        "GlassTableUITests/UXAuditCrawl/test10Unit1()",
+        "GlassTableUITests/UXAuditCrawl/test11Unit2()",
+        "GlassTableUITests/UXAuditCrawl/test12Unit3()",
+        "GlassTableUITests/UXAuditCrawl/test13Unit4()",
+        "GlassTableUITests/UXAuditCrawl/test14Unit5()"
+      ],
+      "milliseconds": 1562,
+      "outcomes": {
+        "Skipped": 11
+      }
+    },
+    "WelcomeFirstFlowTests": {
+      "methods": [
+        "GlassTableUITests/WelcomeFirstFlowTests/testBrandSkipDoesNotCompleteGuide()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testBrandSkipResumePreservesBackToPairTeaching()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testComparisonsContinueWithoutExperienceQuestionOrMidpointStop()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testCorrectAnswerExplainsRealCards()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testEnglishDefaultStartsWithTeachingNotPlacement()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testFailedAnswerRetryRestoresRevealAndBack()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testFailedChoiceReplacingHelpRetryKeepsCommittedChoice()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testFailedDismissalRetryReachesLearnWithResume()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testFailedFirstRunCompletionRetryOpensPromisedBasics()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testFailedResumedCompletionRetryOpensPromisedBasics()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testKoreanAX5DefaultStartsWithTeachingNotPlacement()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testLegacyWelcomeCheckpointAndPreferenceResumeDirectlyWithoutBrandOrQuestion()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testPairTeachingStopResumePreservesBackToPairTeaching()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testReplayKeepsPendingGuideAndHasNoPreferenceWrite()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testSkipRelaunchAndResumeKeepsGuideUnfinished()",
+        "GlassTableUITests/WelcomeFirstFlowTests/testWrongAnswerAndBackSurviveInterruption()"
+      ],
+      "milliseconds": 606855,
+      "outcomes": {
+        "Passed": 16
+      }
+    }
+  },
+  "fallbackMillisecondsPerMethod": 526235,
+  "provenance": {
+    "artifacts": {
+      "0": {
+        "artifactId": 11916149226,
+        "artifactZipSha256": "d4ac69fa40397b42d9ddd0df948f6243bdf070cc1333587844ad9f598e4f05a5",
+        "manifestSha256": "b1b4660c39ed37177385bb09489dbe37c77fc300b8d731d61fc6aa55badd06a2",
+        "resultTreeSha256": "b9e1b0a417adca708a8f4223a8cb7f2fc35ef31b9dd9f09dce9a29e5030a61cb"
+      },
+      "1": {
+        "artifactId": 11916339061,
+        "artifactZipSha256": "c26cc047f2eebd609663ec6e5e93229182d56a85d11b69a11c115d6439dd67e2",
+        "manifestSha256": "d4ddea6c28f92821aa4b0f91884d73d1240bd4404fc57a05f57e0861f98a1fba",
+        "resultTreeSha256": "11b603907652617a8dd3e7406f7010e6a5b92b2b0a33cb687556a7d7855766fb"
+      },
+      "2": {
+        "artifactId": 11919578110,
+        "artifactZipSha256": "dd2660fcd99d49190bc09751d7ad1198e047f457bbddbd9a21a8f0bdb60f806c",
+        "manifestSha256": "397c0d750557450a6c66df8f6fcb4bd1b99b09d7561f9505e897ca728c59f2a2",
+        "resultTreeSha256": "1ff10b224973b94279ba7e91f8b650db56ff69b469b77e6874e1cedac8a1d98e"
+      }
+    },
+    "githubRunId": 38601208079,
+    "model": "iPhone 16 Pro",
+    "notes": "Observed method durations exclude build/discovery/transition overhead; two title-growth methods failed early, so future successful durations may be longer. Scheduling estimates do not establish test acceptance.",
+    "originalRunConclusion": "failure",
+    "runAttempt": 1,
+    "runtime": "18.5",
+    "sourceSha": "77147cb1cada6c3e84745673a82570d52b1af272",
+    "timingMetric": "Sum of authentic xcresult Test Case durationInSeconds for every UI method in each whole class; includes Passed, Skipped and Failed methods unchanged. Excludes build/discovery/framework/transition overhead; not class/job wall-clock duration. Failed growth methods abort early, so these class sums may underestimate successful future runs. Single observed run, no repeatability or future guarantee.",
+    "toolchain": "Xcode 26.3\nBuild version 17C529",
+    "uiDigest": "d06bd688ef378cc086aa336e11abb8fac1361ba5fc4ac7a356149a193993ff11",
+    "unitDigest": "03387b7463d11ac5e4e0652b75376dfba9a55deba1bfaa533d1a85a8a6bd16cf"
+  },
+  "schemaVersion": 1
+}
