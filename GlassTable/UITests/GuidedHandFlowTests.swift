@@ -125,8 +125,12 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
     func testEnglishFirstRunBasicsOffersHandAndContinuesLessons() { exercise(korean: false, ax: false, chooseHand: false) }
     func testKoreanFirstRunBasicsOffersReachableHandAX5() { exercise(korean: true, ax: true, chooseHand: true) }
+    /// Swiping the invitation away chooses neither option, so no lesson may open.
+    func testKoreanSwipingTheInvitationAwayStaysOnLearn() {
+        exercise(korean: true, ax: false, chooseHand: false, swipeAway: true)
+    }
 
-    private func exercise(korean: Bool, ax: Bool, chooseHand: Bool) {
+    private func exercise(korean: Bool, ax: Bool, chooseHand: Bool, swipeAway: Bool = false) {
         let app = XCUIApplication()
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "1", "GT_TEST_FIRST_PLACEMENT": "0"]
         app.launchArguments = ["-glassTable.language", korean ? "korean" : "english",
@@ -159,6 +163,17 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
         attachment.name = korean ? "post-basics-invitation-ko-ax5" : "post-basics-invitation-en-normal"
         attachment.lifetime = .keepAlways
         add(attachment)
+        if swipeAway {
+            let title = app.staticTexts["guided-hand-invitation"]
+            title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                .press(forDuration: 0.05,
+                       thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
+            XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 10))
+            XCTAssertFalse(app.descendants(matching: .any)["walkthrough-step-0"].waitForExistence(timeout: 4),
+                           "Closing the invitation without choosing must not start a lesson.")
+            XCTAssertFalse(app.staticTexts["guided-hand-invitation"].exists)
+            return
+        }
         tap(app.buttons[chooseHand ? "guided-hand-invitation-start" : "guided-hand-invitation-continue"])
         if chooseHand {
             XCTAssertTrue(app.staticTexts["guided-hand-stage-seats"].waitForExistence(timeout: 10))

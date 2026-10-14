@@ -115,25 +115,20 @@ final class BeatsTests: XCTestCase {
         XCTAssertTrue(text(beats).contains("플레이어 A 콜 +10칩"))
     }
 
-    /// The showdown script replays the street progression: turn, both hands as they
-    /// stand, the river landing, both hands re-read, then the comparison.
-    func testShowdownScriptWalksTheTurnThenTheRiver() {
+    /// The showdown script opens on the finished hand, every card face up, then reads
+    /// my best five, the opponent's best five, and compares them. Nothing is hidden.
+    func testShowdownScriptStartsWithEveryCardFaceUp() {
         let spot = ShowdownSpot(hero: Card.parse("KhKs")!, villain: Card.parse("QhQs")!,
                                 board: Card.parse("2c7d9hJc4s")!)
         let beats = BeatScript.showdown(spot)
-        XCTAssertEqual(beats.count, 7)
-        XCTAssertEqual(beats.last?.caption, "내가 이겨요")
+        XCTAssertEqual(beats.map(\.caption), ["카드를 모두 공개했어요", "내 패", "상대 패", "내가 이겨요"])
+        for b in beats { XCTAssertTrue(b.hidden.isEmpty, b.caption) }
+        XCTAssertEqual(beats[1].value, "K 원 페어")
+        XCTAssertEqual(beats[2].value, "Q 원 페어")
 
-        let river = Card("4s")!
-        // The river is face-down for every beat before it lands, and never after.
-        for b in beats.prefix(3) { XCTAssertEqual(b.hidden, [river], b.caption) }
-        for b in beats.dropFirst(3) { XCTAssertTrue(b.hidden.isEmpty, b.caption) }
-        XCTAssertEqual(beats[3].caption, "리버")
-        XCTAssertTrue(text(beats[3]).contains("4♠"), text(beats[3]))
-
-        let all = text(beats)
-        XCTAssertTrue(all.contains("K 원 페어"))
-        XCTAssertTrue(all.contains("Q 원 페어"))
+        let english = BeatScript.showdown(spot, language: .english)
+        XCTAssertEqual(english.map(\.caption), ["All cards are face up", "Your hand", "Opponent's hand", "You win"])
+        for b in english { XCTAssertTrue(b.hidden.isEmpty, b.caption) }
     }
 
     /// Highlights are the five cards that actually play — never all seven. This is the
@@ -162,21 +157,6 @@ final class BeatsTests: XCTestCase {
                       "A board-only highlight would misteach this hole-card tie")
         XCTAssertTrue(text(holeCardConclusion).contains("패의 세기가 같아서"))
         XCTAssertFalse(text(holeCardConclusion).contains("공용 카드 다섯 장이"))
-    }
-
-    /// A hand that changes on the river must say so, and one that does not must not.
-    func testRiverRereadNamesTheChangeOnlyWhenThereIsOne() {
-        // Board 2-7-9-J then 4: neither pocket pair improves, so both are unchanged.
-        let steady = BeatScript.showdown(
-            ShowdownSpot(hero: Card.parse("KhKs")!, villain: Card.parse("QhQs")!,
-                         board: Card.parse("2c7d9hJc4s")!))
-        XCTAssertTrue(text(steady[4]).contains("그대로"), text(steady[4]))
-
-        // Hero turns a set on the river, so the re-read must announce the change.
-        let changed = BeatScript.showdown(
-            ShowdownSpot(hero: Card.parse("KhKs")!, villain: Card.parse("QhQs")!,
-                         board: Card.parse("2c7d9hJcKd")!))
-        XCTAssertTrue(text(changed[4]).contains("에서 바뀌었어요"), text(changed[4]))
     }
 
     func testPositionScriptListsTheSeatsThatActBehind() {

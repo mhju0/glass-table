@@ -18,10 +18,17 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   since the October 2 green run; budget is now 120 minutes overall / 110 for the
   unchanged app test set, leaving time for Release checks and evidence upload.
 
+
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
 - Build 27 is in `main` (pushed with the owner's approval, 2026-10-14) and on the iPhone
   12 mini. It adds the clickable-controls look and the lesson pass mark to build 26.
+- Build 28 (owner approved merge and install, 2026-10-14) is in `main`, pushed, and on
+  the iPhone 12 mini. It holds the owner's build 27 notes: the "Who wins?" worked example opens with every card face up, then my hand,
+  the opponent's hand and the winner (4 steps; the turn-then-river replay is gone);
+  Hold'em basics hides the lone Previous before the answer; the "A hand together"
+  invitation has 10pt corners, an outline, one fill and more room above the title; and
+  swiping that invitation away no longer starts the next lesson.
 - Lesson pass mark (owner, 2026-10-14, D47): a lesson or challenge is passed with two in
   three questions, rounded up, answered alone and exactly right (`PassMark`); only that
   clears it, and a clear is never taken back. Not passed: retry with new cards, the
@@ -53,10 +60,12 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Hand rank page shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles
   (owner chose mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy); in `main`
   and in build 24.
-- `main` holds all work and matches `origin/main` (owner approved the merge and push on
-  2026-10-14; the standing rule is still to work on a feature branch and not push `main`
-  unasked). `feat/guided-hand-on-table`, `feat/guide-clickable-controls` and
-  `feat/lesson-pass-mark` are merged and also on `origin`.
+- `main` holds all work and matches `origin/main` (owner asked to push and sync,
+  2026-10-14). The standing rule is still to work on a feature branch and not push `main`
+  unasked. `feat/guided-hand-on-table`, `feat/guide-clickable-controls`,
+  `feat/lesson-pass-mark` and `fix/build27-feedback` are merged and on `origin`.
+  `fix/ci-drills-typecheck-20261014` (`7d53a10`, not from these sessions) is on `origin`
+  and not merged.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -65,7 +74,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - One corner radius, 10, for cards, panels, seats, felt and controls (`GT.Radius.panel`
   and `.control`; owner chose "everything 10" on 2026-10-13). Nothing in the app's own
   shapes may follow the display curve. Pills and playing cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (27), fresh install; iPhone 13 mini has build
+- Phones: iPhone 12 mini has signed 1.0 (28), fresh install; iPhone 13 mini has build
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
@@ -142,6 +151,27 @@ Tests:
 - Used an isolated worktree; the active checkout and its guided-hand test edits
   were preserved. Next: hosted PR and main CI validation on Xcode 26.3.
 
+
+### 2026-10-14 (Claude · build 27 feedback)
+
+- Owner on build 27: the "Who wins?" example starting on the turn was confusing; the
+  lone "이전" on the basics check page looked stray; the invitation sheet's corners and
+  tight top did not match the app. Also: after basics, closing the invitation still
+  opened a lesson. Cause: the sheet's `onDismiss` treated a swipe-down like "Continue
+  lessons"; now only the button continues. The turn-first order came from `acc6f17`
+  ("teaches the reading"), before the beginner direction.
+- On `fix/build27-feedback`. Drills 427 XCTest + 75 Swift Testing pass (two turn/river
+  tests replaced by one face-up test). New UI test
+  `testKoreanSwipingTheInvitationAwayStaysOnLearn` failed on the old code and passes now;
+  invitation, learning, first-lesson, accessibility flow, presentation and welcome UI
+  classes pass on two 12 mini simulators. Screens checked in Korean dark and English
+  light at normal and AX5. The sweep's showdown frames are now beats 0, 1, 3, plus a
+  `guided-invitation` entry.
+- Owner approved merge and install, then asked to push `main` and sync; both pushed.
+  Build 28: build 27 uninstalled, fresh install on the iPhone 12 mini,
+  welcome seen, no progress copied (`.build/device-install-b28/`).
+- Next: owner tries build 28.
+
 ### 2026-10-14 (Claude · lesson pass mark, build 27)
 
 - Owner took all four pass-mark picks (D47) and approved merge, push and install. Built
@@ -180,30 +210,3 @@ Tests:
 ### 2026-10-13 (Codex · GRAC submission archive)
 
 - Preserved owner submission screenshot and receipt TG-OM-26-01177 (접수대기), refund terms, working form answers, version-22 video/timestamps, PDFs, IPA and upload ZIP. Re-fetched Notion and confirmed completed 10/13 checkbox. Archive CRC and file hashes checked; no rating approval, payment receipt, reviewer install or final portal field export claimed. Next: GRAC response and installation support if requested.
-
-### 2026-10-13 (Claude)
-
-- Finished the audit follow-ups with the owner one by one: written example on every
-  explanation page (`fcc1a78`), raise panel alignment (`c66a8d8`), hand-ranking
-  question, shorter English, "Help / History / Guide" tabs, one-line turn facts at
-  accessibility sizes (`7e9ac4b`), dock buttons no longer follow the display curve
-  (`89a55c3`), store screenshots retaken (`9a1822f`, `4c191a6`).
-- Full UI suite on iPhone 12 mini and iPhone 17 at `9a1822f`: 238 tests, 11 skipped,
-  1 failed (the contrast audit). Final full run at `e3ef792`: iPhone 17 238 tests, 11
-  skipped, 0 failed; iPhone 12 mini 1 failed (the contrast audit, see Open issues).
-- Reorganized this file and the handoff rules in `AGENTS.md`; the archive is frozen.
-- Build 23 (`dd7637b`): signed Release, build 22 uninstalled first, fresh install on
-  the physical iPhone 12 mini, Korean first-run welcome seen and left unadvanced, no
-  progress copied. Evidence in `.build/device-install-b23/`.
-- Repository tidy-up at the owner's request: committed the October audits, reports,
-  research, issue records and the UX crawler; ignored the GRAC packages; merged to
-  `main`, pushed it, deleted the other branches.
-- Hand rank page rebuilt (`170e2f0`), merged and pushed to `main` with the owner's
-  approval; build 24 fresh installed on the iPhone 12 mini, welcome seen, no progress
-  copied (`.build/device-install-b24/`).
-- Lesson feedback from build 24 on `feat/lesson-feedback-clarity`: best five and hole
-  cards strongest first, open river-card groups, rule of 2 explained, hint padding, then
-  F2 and S1, then 1A, 1C, 2A, 3A (all owner's picks). Unit tests and the guided hand,
-  restored-answer and accessibility-audit UI tests pass on iPhone 17; the full suite on
-  the final commit was started and its result not read. On `a3a4d16` a partial 12 mini
-  run failed `AccessibilityAuditTests/testPlayTable` and `testPlayTableScrolled`.

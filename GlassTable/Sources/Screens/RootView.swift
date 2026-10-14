@@ -19,6 +19,7 @@ struct RootView: View {
     @State private var suggestGuidedHand = false
     @State private var suggestAfterBasics = false
     @State private var handAfterSuggestion = false
+    @State private var lessonAfterSuggestion = false
     @State private var playAfterGuidedHand = false
     @State private var showOpening = false
     @State private var basicsAfterOpening = false
@@ -188,19 +189,22 @@ struct RootView: View {
                 .environment(model)
         }
         .sheet(isPresented: $suggestGuidedHand, onDismiss: {
+            // Only an explicit choice moves on; swiping the sheet away just closes it.
+            let node = lessonAfterSuggestion ? nodeAfterBasics : nil
+            nodeAfterBasics = nil
+            lessonAfterSuggestion = false
             if handAfterSuggestion {
                 handAfterSuggestion = false
-                nodeAfterBasics = nil
                 showGuidedHand = true
-            } else if let node = nodeAfterBasics {
-                nodeAfterBasics = nil
-                openNode = node
-            }
+            } else if let node { openNode = node }
         }) {
             GuidedHandInvitationView(continuesLessons: nodeAfterBasics != nil, onHand: {
                 handAfterSuggestion = true
                 suggestGuidedHand = false
-            }, onContinue: { suggestGuidedHand = false })
+            }, onContinue: {
+                lessonAfterSuggestion = true
+                suggestGuidedHand = false
+            })
         }
         .fullScreenCover(isPresented: $showGuidedHand, onDismiss: {
             if playAfterGuidedHand { playAfterGuidedHand = false; tab = .play }
@@ -294,12 +298,29 @@ private struct GuidedHandInvitationView: View {
                                    "Optional: follow a hand from blinds to showdown together, or continue your lessons."))
                     .font(GT.body(17)).fixedSize(horizontal: false, vertical: true)
                 if textSize.isAccessibilitySize { actions }
-            }.padding(20)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(GT.Space.sheet)
+            // Clear the grabber, so the title does not crowd the top edge.
+            .padding(.top, GT.Space.sheet)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if !textSize.isAccessibilitySize { actions.padding(20).background(GT.surface) }
+            // Inset by the outline's width so the fill never paints over the side border.
+            if !textSize.isAccessibilitySize {
+                actions.padding(GT.Space.sheet).background { GT.glass.padding(.horizontal, 1) }
+            }
         }
         .presentationDetents(textSize.isAccessibilitySize ? [.large] : [.medium, .large])
+        // The same 10pt corners and outline as the app's own panels, one fill throughout.
+        .presentationCornerRadius(GT.Radius.panel)
+        .presentationBackground {
+            RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
+                .fill(GT.glass)
+                .overlay {
+                    RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
+                        .strokeBorder(GT.border, lineWidth: 1)
+                }
+        }
         .gtSheetSurface()
     }
     private var actions: some View {

@@ -5,30 +5,17 @@ import GlassTableEngine
 /// BeatScript so existing sessions keep their familiar wording.
 enum EnglishBeatScript {
     static func showdown(_ s: ShowdownSpot) -> [Beat] {
-        let turn = Array(s.board.prefix(4))
-        let river = Array(s.board.suffix(1))
-        let myTurn = DrillTerms.hand(bestHandOfAny(s.hero + turn), in: .english)
-        let theirTurn = DrillTerms.hand(bestHandOfAny(s.villain + turn), in: .english)
         let myFinal = DrillTerms.hand(s.heroBest, in: .english)
         let theirFinal = DrillTerms.hand(s.villainBest, in: .english)
         let myFive = bestFiveCards(s.hero + s.board)
         let theirFive = bestFiveCards(s.villain + s.board)
         let verdict = gradeShowdown(answer: s.winner, spot: s, language: .english)
         return [
-            Beat("After the turn", detail: "Four shared cards are out. One river card remains.",
-                 focus: .table, hidden: river),
-            Beat("Your hand now", value: myTurn, focus: .table,
-                 highlight: bestFiveCards(s.hero + turn), hidden: river),
-            Beat("Opponent's hand now", value: theirTurn, focus: .table,
-                 highlight: bestFiveCards(s.villain + turn), hidden: river),
-            Beat("The river arrives", value: river[0].display,
-                 detail: "Read both best five-card hands again.", focus: .table, highlight: river),
-            Beat("Your final hand", value: myFinal,
-                 detail: myTurn == myFinal ? "Its name stays the same." : "It changed from \(myTurn).",
-                 focus: .table, highlight: myFive),
-            Beat("Opponent's final hand", value: theirFinal,
-                 detail: theirTurn == theirFinal ? "Its name stays the same." : "It changed from \(theirTurn).",
-                 focus: .table, highlight: theirFive),
+            Beat("All cards are face up",
+                 detail: "Five shared cards and two each. The best five of seven wins.",
+                 focus: .table),
+            Beat("Your hand", value: myFinal, focus: .table, highlight: myFive),
+            Beat("Opponent's hand", value: theirFinal, focus: .table, highlight: theirFive),
             Beat(s.winner == 0 ? "You win" : s.winner == 1 ? "Opponent wins" : "Tie",
                  detail: verdict.whyText, focus: .table,
                  highlight: s.winner == 0 ? myFive : s.winner == 1 ? theirFive : []),

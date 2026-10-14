@@ -76,46 +76,23 @@ public enum BeatScript {
 
     // MARK: 쇼다운
 
-    /// Replays the hand as it was actually played: the turn, both hands as they stand,
-    /// then the river lands and both are re-read before they are compared. A finished
-    /// board shown all at once teaches the answer; this teaches the reading.
+    /// Opens on the finished hand with every card face up, then reads each player's
+    /// best five before comparing them. A beginner learns one read at a time; replaying
+    /// the turn first asked them to read two boards before they had read one.
     public static func showdown(_ s: ShowdownSpot, language: LearningLanguage = .korean) -> [Beat] {
         if language == .english { return EnglishBeatScript.showdown(s) }
-        let turn = Array(s.board.prefix(4))
-        let river = Array(s.board.suffix(1))
-
-        let heroTurn = bestFiveCards(s.hero + turn)
-        let villainTurn = bestFiveCards(s.villain + turn)
         let heroRiver = bestFiveCards(s.hero + s.board)
         let villainRiver = bestFiveCards(s.villain + s.board)
-        let heroTurnName = handName(bestHandOfAny(s.hero + turn))
-        let villainTurnName = handName(bestHandOfAny(s.villain + turn))
         let heroName = handName(s.heroBest)
         let villainName = handName(s.villainBest)
 
         var beats = [
-            Beat("턴까지 왔어요", detail: "보드 4장. 리버 한 장이 남았어요.",
-                 focus: .table, hidden: river),
-            Beat("지금 내 패", value: heroTurnName,
-                 focus: .table, highlight: heroTurn, hidden: river),
-            Beat("지금 상대 패", value: villainTurnName,
-                 focus: .table, highlight: villainTurn, hidden: river),
-            // The river lands here — nothing is highlighted, so the eye goes to the
-            // one card that just changed.
-            Beat("리버", value: river[0].display, detail: "두 사람 다 다시 읽어야 해요.",
-                 focus: .table, highlight: river),
+            Beat("카드를 모두 공개했어요",
+                 detail: "공용 카드 5장과 각자 2장. 7장 중 가장 좋은 5장으로 겨뤄요.",
+                 focus: .table),
+            Beat("내 패", value: heroName, focus: .table, highlight: heroRiver),
+            Beat("상대 패", value: villainName, focus: .table, highlight: villainRiver),
         ]
-
-        beats.append(Beat("다시 읽은 내 패", value: heroName,
-                          detail: heroTurnName == heroName
-                              ? "그대로예요."
-                              : "\(heroTurnName)에서 바뀌었어요.",
-                          focus: .table, highlight: heroRiver))
-        beats.append(Beat("다시 읽은 상대 패", value: villainName,
-                          detail: villainTurnName == villainName
-                              ? "그대로예요."
-                              : "\(villainTurnName)에서 바뀌었어요.",
-                          focus: .table, highlight: villainRiver))
 
         // Shares `showdownWhy` with the reveal, so both get the same particle
         // agreement and the same kicker sentence when the two hands share a name.
