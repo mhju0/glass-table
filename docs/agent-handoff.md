@@ -9,13 +9,17 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 - Local CI repair is prepared on `fix/ci-drills-typecheck-20261014`, not pushed or
   merged. It preserves owner build 29, fixes the two Xcode 26.3 expression limits,
-  distributes complete UI classes across three independent serial runners and
-  reconciles their compiled inventories/results. All normal gates remain enabled.
-  Each job now allows 130 minutes; the app step stays at 110, leaving room for setup,
-  retained Release checks and evidence upload.
+  preserves the owner's fast unit push/PR gate and puts complete learner-flow checks
+  in a nightly/manual reusable workflow. The existing CI manual dispatch can request
+  `full_ui=true` before the new workflow reaches main. Complete UI classes use three
+  independent serial runners with compiled inventory/result reconciliation and all
+  retained Release gates. Nightly jobs allow 130 minutes and app testing stays at 110.
+  No TestFlight workflow, tag or upload is included.
 - The cleaned Settings harness is prepared; the instrumented two-case diagnostic
   passed on Xcode 26.3 / iOS 18.5, but the cleaned normal unit→UI path is unverified.
-  The Play accessibility repair, final native checks, full CI and merge remain pending.
+  Named Play caption/header fixes and their two growth regressions are integrated
+  locally, but final native acceptance and the full 143-unit/243-UI CI run remain
+  pending. Nothing is pushed or merged.
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -188,8 +192,19 @@ Tests:
   the generic iOS Simulator build passed with local Xcode 27, without booting a simulator.
   YAML and all ten shell blocks parse; reviewed CI/Settings files match their accepted
   commits exactly. Unchanged Engine was not rerun. No renderer or diagnostic workflow
-  is integrated. Next: accepted
-  Play repair, frozen final review, native and full three-shard unit→UI validation.
+  is integrated in the rollback source `42f0e8c`.
+- Prepared compatibility with the owner's separate lean-pipeline branch: preserve
+  its fast unit/Release gate, move the unchanged reviewed strict three-shard jobs to
+  nightly/manual `ui-tests.yml`, and expose an opt-in reusable call from CI manual
+  dispatch. CI and UI concurrency groups differ. No owner branch, index, TestFlight
+  workflow or release setup was changed. Compiler fixes match the owner's commit.
+- Integrated source-only `ef19661`, `64c895c`, `a690749`, `4303e3e` by source hunks;
+  build 29 raise-block/journey/motion changes remain. Static source inventory is
+  97 XCTest plus 46 Swift Testing app methods and 243 UI methods. Final native/render
+  acceptance, exact frozen review, manual full three-shard unit→UI validation and
+  merge remain pending; a local build or diagnostic pass does not establish these.
+  Prepared workflow YAML, 18 shell blocks and 23 CI-helper tests pass. The integrated
+  generic simulator build passed on local Xcode 27 without booting a simulator.
 
 ### 2026-10-15 (Claude · build 29, lesson review)
 
