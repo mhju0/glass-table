@@ -12,7 +12,9 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   gates remain enabled. The hosted Drills gate passes; its next stage exposed a
   second Xcode 26.3 timeout in the walkthrough header. Header calculations are now
   explicit typed locals, preserving text, layout and accessibility. Full hosted
-  validation is pending on PR #11.
+  validation is pending on PR #11. The first full attempt hit the 45-minute job
+  limit and lost its redirected app log; CI now streams app output and preserves
+  an explicit result bundle, with a 40-minute app-step limit to leave upload time.
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -129,6 +131,9 @@ Tests:
 - The next hosted stage exposed the same compiler limit in `WalkthroughView.header`;
   extracted typed calculations without changing its view tree or arithmetic order.
   Local Engine release: 96 tests pass.
+- Full hosted run `38543736593` hit the 45-minute job limit with no app log
+  artifact. Keep all gates; stream app output, retain an explicit xcresult on
+  failure/cancellation and allow upload time after an app-step timeout.
 - Used an isolated worktree; the active checkout and its guided-hand test edits
   were preserved. Next: hosted PR and main CI validation on Xcode 26.3.
 
