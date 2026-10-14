@@ -11,8 +11,8 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 - Build 27 is in `main` (pushed with the owner's approval, 2026-10-14) and on the iPhone
   12 mini. It adds the clickable-controls look and the lesson pass mark to build 26.
-- Build 28 (owner approved merge and install, 2026-10-14) is in local `main` (not pushed)
-  and on the iPhone 12 mini. It holds the owner's build 27 notes: the "Who wins?" worked example opens with every card face up, then my hand,
+- Build 28 (owner approved merge and install, 2026-10-14) is in `main`, pushed, and on
+  the iPhone 12 mini. It holds the owner's build 27 notes: the "Who wins?" worked example opens with every card face up, then my hand,
   the opponent's hand and the winner (4 steps; the turn-then-river replay is gone);
   Hold'em basics hides the lone Previous before the answer; the "A hand together"
   invitation has 10pt corners, an outline, one fill and more room above the title; and
@@ -48,10 +48,12 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Hand rank page shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles
   (owner chose mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy); in `main`
   and in build 24.
-- `main` holds all work and is ahead of `origin/main` by the build 28 commits
-  (`fix/build27-feedback`, merged, local only). The standing rule is to work on a feature
-  branch and not push `main` unasked. `feat/guided-hand-on-table`,
-  `feat/guide-clickable-controls` and `feat/lesson-pass-mark` are merged and on `origin`.
+- `main` holds all work and matches `origin/main` (owner asked to push and sync,
+  2026-10-14). The standing rule is still to work on a feature branch and not push `main`
+  unasked. `feat/guided-hand-on-table`, `feat/guide-clickable-controls`,
+  `feat/lesson-pass-mark` and `fix/build27-feedback` are merged and on `origin`.
+  `fix/ci-drills-typecheck-20261014` (`7d53a10`, not from these sessions) is on `origin`
+  and not merged.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -134,10 +136,10 @@ Tests:
   classes pass on two 12 mini simulators. Screens checked in Korean dark and English
   light at normal and AX5. The sweep's showdown frames are now beats 0, 1, 3, plus a
   `guided-invitation` entry.
-- Owner approved merge and install. `main` fast-forwarded to the branch locally; neither
-  is pushed. Build 28: build 27 uninstalled, fresh install on the iPhone 12 mini,
+- Owner approved merge and install, then asked to push `main` and sync; both pushed.
+  Build 28: build 27 uninstalled, fresh install on the iPhone 12 mini,
   welcome seen, no progress copied (`.build/device-install-b28/`).
-- Next: owner tries build 28 and says whether to push `main`.
+- Next: owner tries build 28.
 
 ### 2026-10-14 (Claude · lesson pass mark, build 27)
 
