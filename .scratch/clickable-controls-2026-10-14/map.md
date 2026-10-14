@@ -17,6 +17,13 @@ Branch `feat/guide-clickable-controls`.
    https://claude.ai/artifact/Q3MRVVVd7Qc4noGgkmzhx2. Rule 1: top-left always leaves,
    Previous beside Next (recommended). Rule 2: option C in the guide, ✕ and ‹ side by
    side elsewhere. Rule 3: left steps back, every exit moves right.
+   **Owner chose Rule 1** and asked for more looks for ✕ and ‹: the mock's arrow was a
+   text glyph and sat off-centre in its circle.
+4. Five looks for ✕, ‹, ••• and Skip under Rule 1 (glyphs drawn as centred shapes, 40pt
+   button, left edge on the 18pt content edge):
+   https://claude.ai/artifact/Tb5PRceX4YUUPoTJwAffKr. Outlined circle, outlined rounded
+   square (recommended), soft filled square, felt-green tile, chip. No app code changes
+   until a look is picked.
 
 ## Inventory (code read 2026-10-14)
 
