@@ -21,12 +21,24 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   passed 143 unit methods and 18 reported argument rows. Cleaned Settings persistence
   and strict Play audits passed. Both failures query Menu hittability at normal text
   size before reaching title-growth checks; recordings show Menu onscreen but contain
-  no accessibility hierarchy. A reviewed, test-only bounded readiness/open-and-dismiss
-  correction passed both languages locally through L/AX1/AX5, with all original growth
-  assertions retained. Reviewed whole-class scheduling now uses authenticated measured
-  durations while preserving every compiled test. A fresh full hosted run must exercise
-  both changes before acceptance or merge. The original failed run is preserved;
-  archive recovery is unused.
+  no accessibility hierarchy. Fresh full run `38621113015` passed shard 0, failed
+  shard 1 during simulator discovery before tests, and reproduced both Menu failures
+  on shard 2 despite bounded waiting. Its failure hierarchy and controlled diagnostic
+  `38635209522` show the identified Menu is enabled but reports non-hittable on
+  iOS 18.5 while its scoped ellipsis is hittable; the same Menu tap opens both expected
+  actions with either header renderer. iOS 26.5 reports the inverse hit surfaces.
+  Reviewed test-only `fbaa853` checks these observed surfaces without an OS branch,
+  then preserves semantic Menu activation, popup dismissal and every growth assertion.
+  Both languages passed locally through L/AX1/AX5. Focused iOS 18.5 run `38639369053`
+  passed all units and both L/AX1 activation checks, then exposed an AX5 wrapper/glyph
+  rectangle mismatch with identical centers. Reviewed `ef17bce` uses center association
+  instead of full containment while retaining actual hittability, full onscreen bounds
+  and semantic activation. Local six-category checks and focused iOS 18.5 run
+  `38641103004` pass: all 143 unit methods and 18 reported argument rows, then both
+  original growth methods with all six Menu activation/dismissal and growth checks.
+  Complete normal validation and merge remain required.
+  Reviewed whole-class scheduling uses authenticated measured durations while preserving
+  every compiled test. Failed runs are preserved; archive recovery is unused.
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -225,6 +237,23 @@ Tests:
   preserves whole classes and 143-unit/243-UI coverage; measured class-time estimates
   are 62m27/57m54/57m41, excluding overhead and understating early-failed cases.
   Thirty helper tests pass. Fresh pinned full validation and merge are still required.
+- Follow-up full run `38621113015` rejected a discovery bootstrap failure and two
+  real Menu assertions. Controlled diagnostic `38635209522` passed all 143 units
+  before two header comparisons: both renderers report the same outer/glyph hit flags,
+  and semantic Menu activation succeeds. Reviewed `fbaa853` accepts only the unique
+  labelled enabled Menu's genuine hittable onscreen surface, or its unique hittable
+  onscreen contained ellipsis; neither qualifies means failure. Local KO/EN growth
+  methods pass all six categories with unchanged geometry checks. Separate manual-only
+  diagnostic `1060c10` changes only CI and selects all units plus those two original
+  methods on Xcode 26.3/iOS 18.5; run `38639369053` passed all units and L/AX1 activation
+  but failed AX5 because the genuinely hittable glyph extends one rendered pixel past
+  the virtual wrapper at each vertical edge. Their centers match. Reviewed `ef17bce`
+  replaces full containment with center association, retaining full onscreen bounds,
+  actual hittability and all activation/growth checks; local six-category checks pass.
+  Focused `38641103004` verifies all 143 units and 18 reported rows before both original
+  growth methods, all six categories, actual Menu activation/dismissal and AX5 growth.
+  No diagnostic workflow or product probe is included in PR #11. Next: complete normal
+  three-shard validation, exact review, integration and main CI verification.
 
 ### 2026-10-15 (Claude · build 29, lesson review)
 
