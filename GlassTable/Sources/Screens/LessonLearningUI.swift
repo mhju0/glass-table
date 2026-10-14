@@ -206,26 +206,13 @@ struct LessonSeatLoop: View {
     @State private var terms = false
     private let places: [[Position?]] = [[nil, .utg, .utg1, nil], [.bb, nil, nil, .lj],
                                         [.sb, nil, nil, .hj], [nil, .btn, .co, nil]]
-    static func number(_ position: Position) -> Int { (Position.allCases.firstIndex(of: position) ?? 0) + 1 }
-    static func name(_ position: Position, language: LearningLanguage) -> String {
-        switch position {
-        case .utg: language.text("첫\n자리", "First\nseat")
-        case .utg1: language.text("두 번째\n자리", "Second\nseat")
-        case .lj: language.text("세 번째\n자리", "Third\nseat")
-        case .hj: language.text("네 번째\n자리", "Fourth\nseat")
-        case .co: language.text("딜러 앞\n자리", "Before\ndealer")
-        case .btn: language.text("딜러", "Dealer")
-        case .sb: language.text("작은\n블라인드", "Small\nblind")
-        case .bb: language.text("큰\n블라인드", "Big\nblind")
-        }
-    }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if textSize.isAccessibilitySize {
                 ForEach(Position.allCases, id: \.self) { position in
                     HStack {
-                        Text("\(Self.number(position))").font(GT.title(20)).frame(minWidth: 28)
-                        Text(Self.name(position, language: language).replacingOccurrences(of: "\n", with: " "))
+                        Text("\(position.seatNumber)").font(GT.title(20)).frame(minWidth: 28)
+                        Text(position.seatName(in: language).replacingOccurrences(of: "\n", with: " "))
                         if let marker = markers[position] { Text(marker).bold() }
                     }.font(GT.body(17)).foregroundStyle(active == position ? GT.cta : GT.ink)
                 }
@@ -245,7 +232,7 @@ struct LessonSeatLoop: View {
                     VStack(spacing: 6) {
                         Text(language.text(postflop ? "플롭 이후" : "플롭 전", postflop ? "After flop" : "Before flop"))
                             .font(GT.semibold(13))
-                        if let active { Text("\(Self.number(active))").font(GT.title(26)) }
+                        if let active { Text("\(active.seatNumber)").font(GT.title(26)) }
                     }.foregroundStyle(GT.ink).allowsHitTesting(false)
                 }
             }
@@ -265,10 +252,10 @@ struct LessonSeatLoop: View {
     private func seat(_ position: Position) -> some View {
         VStack(spacing: 3) {
             HStack(spacing: 4) {
-                Text("\(Self.number(position))")
+                Text("\(position.seatNumber)")
                 if let marker = markers[position] { Text(marker) }
             }.font(GT.semibold(17))
-            Text(Self.name(position, language: language)).font(GT.semibold(12))
+            Text(position.seatName(in: language)).font(GT.semibold(12))
                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             if terms { Text(position.rawValue).font(GT.body(10)) }
         }
@@ -276,7 +263,7 @@ struct LessonSeatLoop: View {
         .foregroundStyle(active == position ? GT.onCTA : GT.ink)
         .background(active == position ? GT.cta : GT.surface, in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(GT.borderStrong, lineWidth: 1))
-        .accessibilityLabel("\(Self.number(position)), " + Self.name(position, language: language).replacingOccurrences(of: "\n", with: " ")
+        .accessibilityLabel("\(position.seatNumber), " + position.seatName(in: language).replacingOccurrences(of: "\n", with: " ")
                             + (markers[position].map { ", \($0)" } ?? ""))
     }
     private var directionOverlay: some View {

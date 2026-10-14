@@ -165,16 +165,6 @@ extension GradeBand {
 ///   3. **text** — 정확 / 근접 / 빗나감, plus the gap named (`2 차이`)
 ///   4. **color** — additive only, never load-bearing.
 /// Numbers stay near-black (14.9:1 on the tint) because the band inks only reach ~5:1.
-enum HandOutcomeCopy {
-    static func answer(_ winner: Int, in language: LearningLanguage) -> String {
-        switch winner {
-        case 0: language.text("이겼어요", "You win")
-        case 1: language.text("상대가 이겼어요", "Opponent wins")
-        default: language.text("무승부", "Tie")
-        }
-    }
-}
-
 struct VerdictRow: View {
     @Environment(\.learningLanguage) private var language
     let band: GradeBand

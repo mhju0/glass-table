@@ -49,12 +49,12 @@ struct WalkthroughView: View {
                          Beat(language.text("차례 전에 칩을 내요", "Post before taking turns"),
                               detail: language.text("작은 블라인드는 1칩, 큰 블라인드는 2칩을 먼저 내요. 미리 내는 것과 차례에 행동하는 것은 달라요.", "The small blind posts 1 chip and the big blind 2. Posting is different from taking a turn."))]
             for position in Position.preflopOrder {
-                let number = LessonSeatLoop.number(position)
+                let number = position.seatNumber
                 beats.append(Beat(language.text("플롭 전 · 자리 \(number)", "Before flop · Seat \(number)"),
                                   detail: language.text("큰 블라인드 다음인 1번부터 시계 방향으로 행동해요. 이번은 \(number)번 차례예요.", "Start at seat 1 after the big blind and move clockwise. Seat \(number) acts now.")))
             }
             for position in Position.postflopOrder {
-                let number = LessonSeatLoop.number(position)
+                let number = position.seatNumber
                 beats.append(Beat(language.text("플롭 이후 · 자리 \(number)", "After flop · Seat \(number)"),
                                   detail: language.text("딜러 왼쪽부터 참여 중인 자리가 행동해요. 모두 참여 중이면 7번부터 시작해요. 지금은 \(number)번 차례예요. 폴드한 자리는 건너뛰어요.", "Begin left of the dealer among active seats. With all eight active, start at seat 7. Seat \(number) acts now. Skip folded seats.")))
             }
@@ -66,7 +66,7 @@ struct WalkthroughView: View {
         guard concept == .position else { return original }
         func plain(_ text: String) -> String {
             Position.allCases.sorted { $0.rawValue.count > $1.rawValue.count }.reduce(text) { text, position in
-                text.replacingOccurrences(of: position.rawValue, with: language.text("자리 \(LessonSeatLoop.number(position))", "Seat \(LessonSeatLoop.number(position))"))
+                text.replacingOccurrences(of: position.rawValue, with: language.text("자리 \(position.seatNumber)", "Seat \(position.seatNumber)"))
             }
         }
         return Beat(plain(original.caption), value: original.value.map(plain), detail: original.detail.map(plain), focus: original.focus)

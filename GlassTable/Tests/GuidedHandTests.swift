@@ -108,8 +108,8 @@ final class GuidedHandTests: XCTestCase {
                 for choice in [0, 1] {
                     let input = DrillSubmittedInput.integer(choice)
                     let resumed = try JSONDecoder().decode(DrillSubmittedInput.self, from: JSONEncoder().encode(input))
-                    let description = try XCTUnwrap(RestoredDrillDescription.make(concept: .position, seed: seed, index: 0, input: resumed, stored: nil, language: language))
-                    XCTAssertEqual(description.mine, RestoredLessonEvidence.positionLabel(choice == 0 ? a : b, language: language))
+                    let description = try XCTUnwrap(ConceptReveal(concept: .position, seed: seed, index: 0, input: resumed, language: language))
+                    XCTAssertEqual(description.mine, (choice == 0 ? a : b).seatLabel(in: language))
                     XCTAssertFalse(description.mine.contains((choice == 0 ? a : b).rawValue))
                 }
             }

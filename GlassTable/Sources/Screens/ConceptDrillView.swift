@@ -525,34 +525,31 @@ private struct RevealSheet: View {
     @State private var showingWorkedExample = false
     @State private var workedExampleSeed: UInt64 = 0
     let band: GradeBand
-    let mine: String
-    let correct: String
-    let why: String
     var interval: IntervalAnswer? = nil
     var evLoss: Double? = nil
     var correctTitle: String? = nil
     let submittedInput: DrillSubmittedInput
     let onNext: () -> Void
 
-    private var localized: RestoredDrillDescription? {
+    /// Rebuilt from the spot, so the words follow the language and describe what was graded.
+    private var reveal: ConceptReveal? {
         guard let replayContext else { return nil }
-        let stored = DrillStoredReveal(DrillOutcome(band: band, interval: interval,
-                                                    evLoss: evLoss, submittedInput: submittedInput))
-        return RestoredDrillDescription.make(concept: replayContext.concept,
-            seed: replayContext.seed, index: replayContext.index, input: submittedInput,
-            stored: stored, language: language, namesRange: !simple)
+        return ConceptReveal(concept: replayContext.concept, seed: replayContext.seed,
+                             index: replayContext.index, input: submittedInput,
+                             openerEquityPct: interval?.truth, language: language, namesRange: !simple)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            VerdictRow(band: band, mine: localized?.mine ?? mine,
-                       correct: localized?.correct ?? correct,
+            VerdictRow(band: band, mine: reveal?.mine ?? language.text("답변 저장됨", "Answer saved"),
+                       correct: reveal?.correct ?? language.text("결과 저장됨", "Result saved"),
                        title: replayContext.flatMap {
                             practiceFeedbackTitle($0.concept, band: band, language: language)
                        },
                        correctTitle: correctTitle)
             if !collapsed {
-                Text(localized?.why ?? why)
+                Text(reveal?.why ?? language.text("답은 저장됐어요. 다음 문제로 이어가세요.",
+                                                  "Your answer was saved. Continue to the next question."))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .gtInset(GT.Space.card, firstText: .body(16))
@@ -763,9 +760,6 @@ private struct ShowdownDrill: View {
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: HandOutcomeCopy.answer(reveal.answer, in: language),
-                            correct: HandOutcomeCopy.answer(reveal.winner, in: language),
-                            why: reveal.whyText,
                             submittedInput: .integer(reveal.answer)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil
@@ -1029,9 +1023,8 @@ private struct PotMathRevealSheet: View {
 
     private var localizedWhy: String {
         guard let replayContext else { return reveal.whyText }
-        return RestoredDrillDescription.make(concept: replayContext.concept,
-            seed: replayContext.seed, index: replayContext.index, input: submittedInput,
-            stored: nil, language: language)?.why ?? reveal.whyText
+        return ConceptReveal(concept: replayContext.concept, seed: replayContext.seed,
+            index: replayContext.index, input: submittedInput, language: language)?.why ?? reveal.whyText
     }
 
     var body: some View {
@@ -1108,8 +1101,7 @@ private struct PositionDrill: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
             if let reveal {
-                RevealSheet(band: reveal.band, mine: answerLabel(reveal.answer),
-                            correct: answerLabel(reveal.correct), why: reveal.whyText,
+                RevealSheet(band: reveal.band,
                             submittedInput: .integer(reveal.answer)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil
@@ -1271,14 +1263,6 @@ private struct PositionDrill: View {
         }
     }
 
-    private func answerLabel(_ n: Int) -> String {
-        switch spot.question {
-        case .behind: return language.text("\(n)명", "\(n) players")
-        case let .whichIsLater(a, b):
-            let position = n == 0 ? a : b
-            return termsLead ? position.rawValue : "\(LessonSeatLoop.number(position)) · " + LessonSeatLoop.name(position, language: language).replacingOccurrences(of: "\n", with: " ")
-        }
-    }
 }
 
 // MARK: - 에퀴티 감각
@@ -1316,10 +1300,7 @@ private struct EquitySenseDrill: View {
             }
         } sheet: {
             if let reveal {
-                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
-                            correct: "\(pctText(reveal.correct))%",
-                            why: reveal.whyText + (simple ? "" : reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                RevealSheet(band: reveal.band,
                             interval: reveal.intervalAnswer,
                             submittedInput: .interval(point: reveal.estimate.point,
                                                       lo: reveal.estimate.lo,
@@ -1411,9 +1392,6 @@ private struct EVCallDrill: View {
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: "\(pctText(reveal.estimate.point))bb",
-                            correct: "\(pctText(reveal.correct))bb",
-                            why: reveal.whyText,
                             interval: reveal.intervalAnswer,
                             submittedInput: .interval(point: reveal.estimate.point,
                                                       lo: reveal.estimate.lo,
@@ -1471,7 +1449,7 @@ private struct CountDrill: View {
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var countEntry = ""
-    @State private var result: (band: GradeBand, mine: String, correct: String, why: String)?
+    @State private var result: GradeBand?
     @State private var tappedOut: Card?
 
     /// Generated per use rather than held in a computed property, and never both at
@@ -1497,10 +1475,9 @@ private struct CountDrill: View {
             }
         } sheet: {
             if let result {
-                RevealSheet(band: result.band, mine: result.mine,
-                            correct: result.correct, why: result.why,
+                RevealSheet(band: result,
                             submittedInput: .integer(Int(countEntry) ?? 0)) {
-                    onAnswer(DrillOutcome(band: result.band, interval: nil))
+                    onAnswer(DrillOutcome(band: result, interval: nil))
                     self.result = nil; countEntry = ""; tappedOut = nil
                 }
             } else {
@@ -1543,11 +1520,11 @@ private struct CountDrill: View {
         case .outs:
             let spot = makeOutsSpot()
             let r = gradeOuts(estimate: value, spot: spot, language: language)
-            result = (r.band, "\(value)장", "\(spot.outCount)장", r.whyText)
+            result = r.band
         case .combos:
             let spot = makeComboSpot()
             let r = gradeBlocker(estimate: value, spot: spot, language: language)
-            result = (r.band, "\(value)개", "\(spot.count)개", r.whyText)
+            result = r.band
         }
     }
 
@@ -1684,10 +1661,6 @@ private struct PercentDrill: View {
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: simple && !isMDF
-                                ? "\(oddsWords(reveal.answerPct, language: language)) (\(reveal.answerPct)%)"
-                                : "\(reveal.answerPct)%",
-                            correct: "\(pctText(reveal.correctPct))%", why: reveal.whyText,
                             submittedInput: .integer(reveal.answerPct)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil; value = 30
@@ -1766,9 +1739,6 @@ private struct CallFoldDrill: View {
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: reveal.userCalls ? "콜" : "폴드",
-                            correct: reveal.correctIsCall ? "콜" : "폴드",
-                            why: reveal.whyText,
                             submittedInput: .boolean(reveal.userCalls)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil
@@ -1838,8 +1808,7 @@ private struct RangeNotationDrill: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
             if let reveal {
-                RevealSheet(band: reveal.band, mine: "\(reveal.estimate) 콤보",
-                            correct: "\(reveal.count) 콤보", why: reveal.whyText,
+                RevealSheet(band: reveal.band,
                             submittedInput: .integer(reveal.estimate)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil; countEntry = ""
@@ -1919,9 +1888,6 @@ private struct RFIDrill: View {
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: reveal.userOpens ? "오픈" : "폴드",
-                            correct: reveal.correctOpens ? "오픈" : "폴드",
-                            why: reveal.whyText,
                             submittedInput: .boolean(reveal.userOpens)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil
@@ -2102,9 +2068,6 @@ private struct RangeReadDrill: View {
         } sheet: {
             if let reveal {
                 RevealSheet(band: reveal.band,
-                            mine: "\(pctText(reveal.guess.percent))%",
-                            correct: "\(pctText(reveal.truth.percent))%",
-                            why: reveal.whyText,
                             submittedInput: submitted) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil; width = 20; tendencies = []; excludedTop = 0
@@ -2412,10 +2375,7 @@ private struct HitFrequencyDrill: View {
             }
         } sheet: {
             if let reveal {
-                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
-                            correct: "\(pctText(reveal.correct))%",
-                            why: reveal.whyText + (simple ? "" : reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                RevealSheet(band: reveal.band,
                             interval: reveal.intervalAnswer,
                             submittedInput: .interval(point: reveal.estimate.point,
                                                       lo: reveal.estimate.lo,
@@ -2549,10 +2509,7 @@ private struct RangeAdvantageDrill: View {
             }
         } sheet: {
             if let reveal {
-                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
-                            correct: "\(pctText(reveal.correct))%",
-                            why: reveal.whyText + (simple ? "" : reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                RevealSheet(band: reveal.band,
                             interval: reveal.intervalAnswer,
                             correctTitle: language.text("오프너 승률", "Raiser's win rate"),
                             submittedInput: .interval(point: reveal.estimate.point,
@@ -2630,9 +2587,8 @@ private struct EVLossRevealSheet: View {
 
     private var localizedWhy: String {
         guard let replayContext else { return reveal.whyText }
-        return RestoredDrillDescription.make(concept: replayContext.concept,
-            seed: replayContext.seed, index: replayContext.index, input: submittedInput,
-            stored: nil, language: language)?.why ?? reveal.whyText
+        return ConceptReveal(concept: replayContext.concept, seed: replayContext.seed,
+            index: replayContext.index, input: submittedInput, language: language)?.why ?? reveal.whyText
     }
 
     private func action(_ calls: Bool) -> String {
@@ -2906,10 +2862,7 @@ private struct ActionReadDrill: View {
             }
         } sheet: {
             if let reveal {
-                RevealSheet(band: reveal.band, mine: "\(Int(reveal.estimate.point))%",
-                            correct: "\(pctText(reveal.correct))%",
-                            why: reveal.whyText + (simple ? "" : reveal.intervalHit
-                                 ? " 구간 안에 들어왔어요." : " 구간을 벗어났어요."),
+                RevealSheet(band: reveal.band,
                             interval: reveal.intervalAnswer,
                             submittedInput: .interval(point: reveal.estimate.point,
                                                       lo: reveal.estimate.lo,
@@ -3056,8 +3009,8 @@ private struct DefendDrill: View {
 
     private var seatName: String {
         if termsLead && !simple { return spot.opener.rawValue }
-        let number = LessonSeatLoop.number(spot.opener)
-        let name = LessonSeatLoop.name(spot.opener, language: language)
+        let number = spot.opener.seatNumber
+        let name = spot.opener.seatName(in: language)
             .replacingOccurrences(of: "\n", with: " ")
         return language.text("\(number)번 자리 · \(name)", "Seat \(number) · \(name)")
     }
@@ -3119,9 +3072,8 @@ private struct DefendRevealSheet: View {
 
     private var localizedWhy: String {
         guard let replayContext else { return reveal.whyText }
-        return RestoredDrillDescription.make(concept: replayContext.concept,
-            seed: replayContext.seed, index: replayContext.index, input: submittedInput,
-            stored: nil, language: language)?.why ?? reveal.whyText
+        return ConceptReveal(concept: replayContext.concept, seed: replayContext.seed,
+            index: replayContext.index, input: submittedInput, language: language)?.why ?? reveal.whyText
     }
 
     var body: some View {
