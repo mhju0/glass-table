@@ -61,8 +61,10 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 Owner decision:
 - A lesson is marked cleared once every question is answered, right or wrong
-  (`ProgressionModel.commitNodeAnswer`). The owner said only correct answers should
-  count toward clearing; no pass mark is chosen, so the rule is unchanged.
+  (`ProgressionModel.commitNodeAnswer`). Owner, 2026-10-14: clearing should need a pass
+  mark. Proposal: 2 of 3 right on your own, 4 of 6 for challenges, old clears kept. Mock:
+  https://claude.ai/artifact/DyrNHkBBp9sUnUAUBQjdwr. Waiting on the owner's four choices;
+  the code is unchanged.
 
 Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
