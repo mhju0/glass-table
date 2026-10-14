@@ -14,7 +14,9 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   explicit typed locals, preserving text, layout and accessibility. Full hosted
   validation is pending on PR #11. The first full attempt hit the 45-minute job
   limit and lost its redirected app log; CI now streams app output and preserves
-  an explicit result bundle, with a 40-minute app-step limit to leave upload time.
+  an explicit result bundle. Static inventory grew from 71 to 240 UI test methods
+  since the October 2 green run; budget is now 120 minutes overall / 110 for the
+  unchanged app test set, leaving time for Release checks and evidence upload.
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -133,7 +135,10 @@ Tests:
   Local Engine release: 96 tests pass.
 - Full hosted run `38543736593` hit the 45-minute job limit with no app log
   artifact. Keep all gates; stream app output, retain an explicit xcresult on
-  failure/cancellation and allow upload time after an app-step timeout.
+  failure/cancellation and allow upload time after an app-step timeout. The new
+  streamed run compiled all targets; the UI method inventory is 240 vs 71 at the
+  last green source, so raise the unchanged suite budget to 120/110 minutes.
+  Full current tests are not yet verified.
 - Used an isolated worktree; the active checkout and its guided-hand test edits
   were preserved. Next: hosted PR and main CI validation on Xcode 26.3.
 
