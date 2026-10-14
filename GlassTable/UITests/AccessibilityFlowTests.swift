@@ -18,6 +18,39 @@ final class AccessibilityFlowTests: XCTestCase {
     func testFreeTableEN3SeatsStayReachableAtAccessibilityXXXL() { verifyFreeTableSeats(code: "en", players: 3) }
     func testFreeTableEN4SeatsStayReachableAtAccessibilityXXXL() { verifyFreeTableSeats(code: "en", players: 4) }
 
+    func testFreeTableKOTitleKeepsGrowingThroughAccessibilityXXXL() { verifyFreeTableTitleGrowth(code: "ko") }
+    func testFreeTableENTitleKeepsGrowingThroughAccessibilityXXXL() { verifyFreeTableTitleGrowth(code: "en") }
+
+    private func verifyFreeTableTitleGrowth(code: String) {
+        let setting = code == "ko" ? "korean" : "english"
+        let title = code == "ko" ? "네 명 · 1번째 핸드" : "Four players · Hand 1"
+        var heights: [CGFloat] = []
+        for category in ["UICTContentSizeCategoryL", "UICTContentSizeCategoryAccessibilityM",
+                         "UICTContentSizeCategoryAccessibilityXXXL"] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-AppleLanguages", "(\(code))", "-glassTable.language", setting,
+                                   "-UIPreferredContentSizeCategoryName", category]
+            app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_TAB": "play",
+                "GT_DEMO_PRACTICE": "1", "GT_DEMO_PLAYERS": "4"]
+            app.launch()
+            let header = app.staticTexts[title]
+            XCTAssertTrue(header.waitForExistence(timeout: 15))
+            heights.append(header.frame.height)
+            XCTAssertGreaterThanOrEqual(header.frame.minX, app.frame.minX)
+            XCTAssertLessThanOrEqual(header.frame.maxX, app.frame.maxX)
+            XCTAssertLessThan(header.frame.maxY, app.descendants(matching: .any)["free-dock"].frame.minY,
+                              "The title must leave room for the action dock")
+            let capture = XCTAttachment(screenshot: app.screenshot())
+            capture.name = "free-table-title-\(code)-\(category)"
+            capture.lifetime = .keepAlways
+            add(capture)
+            print("Free table title \(code) \(category): \(header.frame)")
+            app.terminate()
+        }
+        XCTAssertGreaterThan(heights[2], heights[1] + 1,
+                             "The ordinary hand-count title must keep growing from AX1 to AX5")
+    }
+
     private func verifyFreeTableSeats(code: String, players: Int) {
         let setting = code == "ko" ? "korean" : "english"
         let app = XCUIApplication()

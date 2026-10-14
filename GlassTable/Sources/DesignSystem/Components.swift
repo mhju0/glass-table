@@ -1135,7 +1135,7 @@ struct GTActionButton: View {
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             if let secondaryTitle {
-                                Text(secondaryTitle).font(GT.body(12)).foregroundStyle(GT.inkSecondary)
+                                Text(secondaryTitle).font(GT.body(12)).foregroundStyle(GT.ink)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
@@ -1145,14 +1145,14 @@ struct GTActionButton: View {
                     ZStack {
                         VStack(spacing: 3) {
                             Text(title).font(secondaryTitle == nil ? GT.semibold(12) : GT.title(15))
-                                .foregroundStyle(price.isEmpty ? GT.ink : GT.inkSecondary)
+                                .foregroundStyle(GT.ink)
                                 .fixedSize(horizontal: false, vertical: true)
                             if !price.isEmpty {
                                 Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             if let secondaryTitle {
-                                Text(secondaryTitle).font(GT.body(12)).foregroundStyle(GT.inkSecondary)
+                                Text(secondaryTitle).font(GT.body(12)).foregroundStyle(GT.ink)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }

@@ -40,12 +40,29 @@ final class AccessibilityAuditTests: XCTestCase {
         // runs: dark-on-cream labels failing contrast locally, Dynamic Type on CI's iOS 26.2.
         // Scrolled screens skip those two checks; the unscrolled audits keep them.
         let scrolledChecks = XCUIAccessibilityAuditType.all.subtracting([.contrast, .dynamicType])
+        let hierarchy = app.debugDescription
+        let hierarchyAttachment = XCTAttachment(string: hierarchy)
+        hierarchyAttachment.name = "AUDIT \(name) settled hierarchy"
+        hierarchyAttachment.lifetime = .keepAlways
+        add(hierarchyAttachment)
+        let screenshotAttachment = XCTAttachment(screenshot: app.screenshot())
+        screenshotAttachment.name = "AUDIT \(name) settled screenshot"
+        screenshotAttachment.lifetime = .keepAlways
+        add(screenshotAttachment)
+        print("AUDIT \(name) | settled hierarchy\n\(hierarchy)")
         try app.performAccessibilityAudit(for: swipes == 0 ? .all : scrolledChecks) { issue in
+            let element = issue.element.map {
+                "type=\($0.elementType.rawValue) label='\($0.label)' id='\($0.identifier)' frame=\($0.frame)"
+            } ?? "no element"
+            let detail = "AUDIT \(name) | \(issue.auditType) | \(issue.compactDescription) | \(element)\n\(issue.detailedDescription)"
+            print(detail)
+            let attachment = XCTAttachment(string: detail)
+            attachment.name = "AUDIT \(name) \(issue.auditType) issue"
+            attachment.lifetime = .keepAlways
+            self.add(attachment)
             if issue.auditType == .contrast, let frame = issue.element?.frame, frame.maxY > fadeTop {
                 return true
             }
-            let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' id=\($0.identifier)" } ?? "-"
-            print("AUDIT \(name) | \(issue.auditType) | \(issue.compactDescription) | \(element)")
             return false
         }
         app.terminate()
