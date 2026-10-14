@@ -54,10 +54,28 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
             -destination "platform=iOS Simulator,id=$CI_TEST_SIMULATOR" \
+            -derivedDataPath .build/ci-app CODE_SIGNING_ALLOWED=NO build-for-testing 2>&1 | tee app-build.log
+          python3 .github/scripts/ci_shards.py check-test-spec \
+            --products .build/ci-app/Build/Products --output .build/ci-shard/test-spec-before.json
+          xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+            -destination "platform=iOS Simulator,id=$CI_TEST_SIMULATOR" \
             -derivedDataPath .build/ci-app -parallel-testing-enabled NO \
-            -enumerate-tests -test-enumeration-format json -test-enumeration-style hierarchical \
-            -test-enumeration-output-path .build/ci-shard/enumeration.json \
-            CODE_SIGNING_ALLOWED=NO test 2>&1 | tee enumeration.log
+            -only-testing:GlassTableTests -enumerate-tests \
+            -test-enumeration-format json -test-enumeration-style hierarchical \
+            -test-enumeration-output-path .build/ci-shard/unit-enumeration.json \
+            CODE_SIGNING_ALLOWED=NO test-without-building 2>&1 | tee unit-enumeration.log
+          xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+            -destination "platform=iOS Simulator,id=$CI_TEST_SIMULATOR" \
+            -derivedDataPath .build/ci-app -parallel-testing-enabled NO \
+            -only-testing:GlassTableUITests -enumerate-tests \
+            -test-enumeration-format json -test-enumeration-style hierarchical \
+            -test-enumeration-output-path .build/ci-shard/ui-enumeration.json \
+            CODE_SIGNING_ALLOWED=NO test-without-building 2>&1 | tee ui-enumeration.log
+          python3 .github/scripts/ci_shards.py merge-enumerations \
+            --unit .build/ci-shard/unit-enumeration.json --ui .build/ci-shard/ui-enumeration.json \
+            --output .build/ci-shard/enumeration.json
+          python3 .github/scripts/ci_shards.py check-test-spec \
+            --products .build/ci-app/Build/Products --output .build/ci-shard/test-spec-after.json
           python3 .github/scripts/ci_shards.py assign \
             --enumeration .build/ci-shard/enumeration.json --shard ${{ matrix.shard }} \
             --sha "$GITHUB_SHA" --xcode-version-file .build/ci-shard/xcode-version.txt \
@@ -109,7 +127,10 @@ jobs:
           name: validation-logs-shard-${{ matrix.shard }}
           include-hidden-files: true
           path: |
-            enumeration.log
+            app-build.log
+            unit-enumeration.log
+            ui-enumeration.log
+            .build/ci-app/Logs/Test
             app-tests.log
             .build/ci-app-tests.xcresult
             release-build.log

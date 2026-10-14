@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import plistlib
 import re
 import sys
 
@@ -32,7 +33,8 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
-def discovery(document):
+def discovery(document, expected_targets=None):
+    expected_targets = {UI_TARGET, UNIT_TARGET} if expected_targets is None else set(expected_targets)
     require(set(document) == {"errors", "values"} and document["errors"] == [], "Enumeration errors or unexpected root schema")
     require(len(document["values"]) == 1, "Expected one enumerated test plan")
     plan = document["values"][0]
@@ -40,7 +42,7 @@ def discovery(document):
     targets = {}
     for target in plan.get("children", []):
         name = target.get("name")
-        require(target.get("kind") == "target" and name in {UI_TARGET, UNIT_TARGET}, "Unexpected test target")
+        require(target.get("kind") == "target" and name in expected_targets, "Unexpected test target")
         require(name not in targets, "Duplicate test target")
         classes = {}
         for group in target.get("children", []):
@@ -56,9 +58,46 @@ def discovery(document):
             classes[class_name] = sorted(methods)
         require(classes, "Empty test target")
         targets[name] = dict(sorted(classes.items()))
-    require(set(targets) == {UI_TARGET, UNIT_TARGET}, "Both complete unit and UI targets must be enumerated")
-    require(len(targets[UI_TARGET].get(CRAWL_CLASS, [])) == 11, "Expected the eleven opt-in crawler methods")
+    require(set(targets) == expected_targets, "Complete expected targets must be enumerated")
+    if UI_TARGET in expected_targets:
+        require(len(targets[UI_TARGET].get(CRAWL_CLASS, [])) == 11, "Expected the eleven opt-in crawler methods")
     return targets
+
+
+def merge_enumerations(unit, ui):
+    discovery(unit, {UNIT_TARGET})
+    discovery(ui, {UI_TARGET})
+    document = {"errors": [], "values": [{"kind": "plan", "name": "GlassTable", "children": [
+        unit["values"][0]["children"][0], ui["values"][0]["children"][0],
+    ]}]}
+    discovery(document)
+    return document
+
+
+def check_test_spec(products):
+    paths = sorted(Path(products).glob("*.xctestrun"))
+    require(len(paths) == 1, "Expected one built test specification")
+    document = plistlib.loads(paths[0].read_bytes())
+    if "TestConfigurations" in document:
+        configurations = document["TestConfigurations"]
+        require(len(configurations) == 1 and configurations[0].get("IsEnabled", True), "Expected one enabled test specification configuration")
+    targets = set()
+
+    def walk(value):
+        if isinstance(value, dict):
+            if value.get("BlueprintName") in {UNIT_TARGET, UI_TARGET}:
+                require(value["BlueprintName"] not in targets, "Duplicate test specification target")
+                targets.add(value["BlueprintName"])
+            for key, child in value.items():
+                require(key not in {"OnlyTestIdentifiers", "SkipTestIdentifiers"} or not child, "A discovery filter persisted in the built test specification")
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(document)
+    require(targets == {UNIT_TARGET, UI_TARGET}, "Built test specification lacks complete unit and UI targets")
+    return {"file": paths[0].name, "targets": sorted(targets), "persistedFilters": [], "sha256": hashlib.sha256(paths[0].read_bytes()).hexdigest()}
 
 
 def partition(classes):
@@ -220,6 +259,12 @@ def aggregate(reports_dir, job_status, sha):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
+    merge = sub.add_parser("merge-enumerations")
+    for name in ["unit", "ui", "output"]:
+        merge.add_argument(f"--{name}", required=True)
+    spec = sub.add_parser("check-test-spec")
+    for name in ["products", "output"]:
+        spec.add_argument(f"--{name}", required=True)
     assign = sub.add_parser("assign")
     for name in ["enumeration", "sha", "xcode-version-file", "runtime", "model", "manifest", "skip-file"]:
         assign.add_argument(f"--{name}", required=True)
@@ -231,7 +276,11 @@ def main():
     for name in ["reports-dir", "job-status", "sha", "output"]:
         combine.add_argument(f"--{name}", required=True)
     args = parser.parse_args()
-    if args.command == "assign":
+    if args.command == "merge-enumerations":
+        write_json(args.output, merge_enumerations(read_json(args.unit), read_json(args.ui)))
+    elif args.command == "check-test-spec":
+        write_json(args.output, check_test_spec(args.products))
+    elif args.command == "assign":
         manifest = make_manifest(read_json(args.enumeration), args.shard, args.sha, Path(args.xcode_version_file).read_text().strip(), args.runtime, args.model)
         write_json(args.manifest, manifest)
         skipped = sorted(set(manifest["targets"][UI_TARGET]) - set(manifest["assignedClasses"]))

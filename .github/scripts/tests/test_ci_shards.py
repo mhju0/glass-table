@@ -1,6 +1,7 @@
 import copy
 import json
 from pathlib import Path
+import plistlib
 import sys
 import tempfile
 import unittest
@@ -68,6 +69,47 @@ class ShardCoverageTests(unittest.TestCase):
             for group in target["children"]:
                 group["children"].reverse()
         self.assertEqual(original, self.manifest())
+
+    def target_enumeration(self, target):
+        document = copy.deepcopy(self.enumeration)
+        document["values"][0]["children"] = [node for node in document["values"][0]["children"] if node["name"] == target]
+        return document
+
+    def test_sequential_target_discoveries_merge_complete_authoritative_inventories(self):
+        merged = ci.merge_enumerations(self.target_enumeration(ci.UNIT_TARGET), self.target_enumeration(ci.UI_TARGET))
+        self.assertEqual(ci.discovery(self.enumeration), ci.discovery(merged))
+
+    def test_merge_rejects_empty_unit_output_even_when_xcode_reports_no_errors(self):
+        for mutation in ["empty", "errors", "wrong-target", "duplicate-target", "unexpected-target"]:
+            with self.subTest(mutation=mutation):
+                unit = self.target_enumeration(ci.UNIT_TARGET)
+                if mutation == "empty": unit["values"][0]["children"][0]["children"] = []
+                if mutation == "errors": unit["errors"] = ["Early unexpected exit: Lost connection to testmanagerd"]
+                if mutation == "wrong-target": unit = self.target_enumeration(ci.UI_TARGET)
+                if mutation == "duplicate-target": unit["values"][0]["children"].append(copy.deepcopy(unit["values"][0]["children"][0]))
+                if mutation == "unexpected-target": unit["values"][0]["children"][0]["name"] = "UnknownTests"
+                with self.assertRaises(ValueError): ci.merge_enumerations(unit, self.target_enumeration(ci.UI_TARGET))
+
+    def test_test_spec_rejects_persisted_filters_and_disabled_configuration_or_missing_targets(self):
+        for mutation in ["clean", "only", "skip", "disabled", "missing"]:
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
+                spec = {target: {"BlueprintName": target} for target in [ci.UNIT_TARGET, ci.UI_TARGET]}
+                if mutation == "only": spec[ci.UNIT_TARGET]["OnlyTestIdentifiers"] = ["AppFeedbackTests"]
+                if mutation == "skip": spec[ci.UI_TARGET]["SkipTestIdentifiers"] = ["UXAuditCrawl"]
+                if mutation == "disabled": spec = {"TestConfigurations": [{"Name": "Test Scheme Action", "IsEnabled": False, "TestTargets": list(spec.values())}]}
+                if mutation == "missing": del spec[ci.UNIT_TARGET]
+                Path(directory, "GlassTable.xctestrun").write_bytes(plistlib.dumps(spec))
+                if mutation == "clean": self.assertEqual([ci.UNIT_TARGET, ci.UI_TARGET], ci.check_test_spec(directory)["targets"])
+                else:
+                    with self.assertRaises(ValueError): ci.check_test_spec(directory)
+
+    def test_documented_configuration_test_spec_structure_is_supported(self):
+        with tempfile.TemporaryDirectory() as directory:
+            spec = {"TestConfigurations": [{"Name": "Test Scheme Action", "IsEnabled": True, "TestTargets": [
+                {"BlueprintName": ci.UNIT_TARGET}, {"BlueprintName": ci.UI_TARGET},
+            ]}]}
+            Path(directory, "GlassTable.xctestrun").write_bytes(plistlib.dumps(spec))
+            self.assertEqual([ci.UNIT_TARGET, ci.UI_TARGET], ci.check_test_spec(directory)["targets"])
 
     def test_discovery_rejects_errors_missing_target_and_unknown_ui_schema(self):
         for mutation in ["errors", "missing", "unknown", "empty", "duplicate-class", "duplicate-method"]:
