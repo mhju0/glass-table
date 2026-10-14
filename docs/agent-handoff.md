@@ -7,6 +7,8 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 ## Current state (2026-10-14)
 
+- GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
+
 - Build 26 is in local `main` (not pushed) and on the iPhone 12 mini; it adds the rebuilt
   "A hand together" and the Play result button fix to build 25.
 - Branch `feat/guide-clickable-controls` (pushed, not merged, not installed): tappable
@@ -74,8 +76,7 @@ Never verified with people or hardware:
   AX5 full scroll reachability on every route.
 - (old) Store validation, metadata, rating, territories; system permission,
   notification, share and review flows; backup export/import; huge-history save latency.
-- (old) GRAC: video format/size/simulator acceptance and the statutory Annex 2(8)
-  radio; enrolment, counsel and submission are owner work.
+- GRAC: owner submitted 1.0(22), now awaiting processing, any corrections, rating and RCN. Reviewer installation is unverified: development IPA permits only two registered devices; TestFlight upload/invite not performed. Confirm delivery with GRAC if needed. Video/simulator acceptance and statutory Annex 2(8) final selection remain unverified; working answers are not a final portal export.
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
@@ -129,6 +130,10 @@ Tests:
   UI classes plus the unit tests, with no failures. Screens checked in both languages at
   normal and AX5.
 - Next: owner looks at the branch and decides on merge and install.
+
+### 2026-10-13 (Codex · GRAC submission archive)
+
+- Preserved owner submission screenshot and receipt TG-OM-26-01177 (접수대기), refund terms, working form answers, version-22 video/timestamps, PDFs, IPA and upload ZIP. Re-fetched Notion and confirmed completed 10/13 checkbox. Archive CRC and file hashes checked; no rating approval, payment receipt, reviewer install or final portal field export claimed. Next: GRAC response and installation support if requested.
 
 ### 2026-10-13 (Claude)
 
