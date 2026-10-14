@@ -188,12 +188,19 @@ struct WalkthroughView: View {
     }
 
     private var header: some View {
-        VStack(spacing: 8) {
+        let step: Int = (positionTeachingStep ?? index) + 1
+        let stepCount: Int = positionTeachingStep == nil ? beats.count : orientation.count
+        let progressStep: Double = Double(step)
+        let progressCount: Double = Double(stepCount)
+        let stepLabel: String = language.text("\(stepCount)단계 중 \(step)단계", "Step \(step) of \(stepCount)")
+        let purposeLabel: String = index == 0 ? purpose.map { ". " + $0 } ?? "" : ""
+        let accessibilityLabel: String = title + ", " + stepLabel + purposeLabel
+        return VStack(spacing: 8) {
             HStack {
                 Text("\(title) · \(language.text("따라 배우기", "Worked example"))").font(GT.semibold(14))
                     .foregroundStyle(GT.onFeltSecondary)
                 Spacer()
-                Text(positionTeachingStep.map { "\($0 + 1)/\(orientation.count)" } ?? "\(index + 1)/\(beats.count)")
+                Text("\(step)/\(stepCount)")
                     .font(GT.semibold(14).monospacedDigit())
                     .foregroundStyle(GT.onFeltSecondary)
             }
@@ -201,7 +208,7 @@ struct WalkthroughView: View {
                 ZStack(alignment: .leading) {
                     Capsule().fill(GT.hairlineFelt).frame(height: 2)
                     Capsule().fill(GT.onFelt)
-                        .frame(width: geo.size.width * Double((positionTeachingStep ?? index) + 1) / Double(positionTeachingStep == nil ? beats.count : orientation.count),
+                        .frame(width: geo.size.width * progressStep / progressCount,
                                height: 2)
                 }
             }
@@ -218,9 +225,7 @@ struct WalkthroughView: View {
         }
         .padding(.horizontal, 18).padding(.top, 4)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(title + ", " + language.text("\(positionTeachingStep == nil ? beats.count : orientation.count)단계 중 \((positionTeachingStep ?? index) + 1)단계",
-                                           "Step \((positionTeachingStep ?? index) + 1) of \(positionTeachingStep == nil ? beats.count : orientation.count)")
-                            + (index == 0 ? purpose.map { ". " + $0 } ?? "" : ""))
+        .accessibilityLabel(accessibilityLabel)
         .accessibilityIdentifier("walkthrough-step-\(index)")
     }
 

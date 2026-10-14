@@ -29,7 +29,9 @@ private func finishHand(_ table: inout PracticeTableState, tag: String) throws {
     }
     #expect(table.isGameOver)
     #expect(throws: PracticeTableError.gameOver) { try table.nextHand(handID: "one-too-many") }
-    #expect(table.seats.map(\.stack).reduce(0, +) == 160 + table.refills.reduce(0, +))
+    let remainingChips: Int = table.seats.map(\.stack).reduce(0, +)
+    let refilledChips: Int = table.refills.reduce(0, +)
+    #expect(remainingChips == 160 + refilledChips)
 }
 
 @Test func quickGameRefillsABustedComputerToTheQuickStackAndEndsWhenTheLearnerBusts() throws {
