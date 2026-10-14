@@ -15,6 +15,8 @@ struct GTActionCaption: View {
 
     let text: String
     var weight: Weight = .body
+    var baseSize: CGFloat = 12
+    var ink: Color = GT.ink
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.displayScale) private var displayScale
     @Environment(\.colorScheme) private var colorScheme
@@ -32,15 +34,15 @@ struct GTActionCaption: View {
     }
 
     private var font: UIFont {
-        let base = UIFont(name: weight.fontName(bold: bold), size: 12)
-            ?? UIFont.systemFont(ofSize: 12, weight: weight == .semibold || bold ? .semibold : .regular)
+        let base = UIFont(name: weight.fontName(bold: bold), size: baseSize)
+            ?? UIFont.systemFont(ofSize: baseSize, weight: weight == .semibold || bold ? .semibold : .regular)
         return UIFontMetrics(forTextStyle: .body).scaledFont(for: base, compatibleWith: traits)
     }
 
     var body: some View {
         let currentFont = font
         NativeActionCaption(text: text, font: currentFont,
-                            ink: UIColor(GT.ink).resolvedColor(with: traits),
+                            ink: UIColor(ink).resolvedColor(with: traits),
                             locale: locale.identifier, direction: direction)
             .alignmentGuide(.firstTextBaseline) { _ in
                 let lineHeight = ceil(currentFont.lineHeight * displayScale) / displayScale
