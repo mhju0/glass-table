@@ -54,6 +54,14 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   `fix/ci-drills-typecheck-20261014`, `fix/a11y-playtable-20261014` and
   `diagnostic/a11y-playtable-20261014` belong to a separate session (worktrees in
   `/private/tmp/`) and are not merged.
+- Unmerged, not pushed, not installed (2026-10-14): `fix/animation-polish-20261014`
+  (audit plans in `plans/`, motion tokens `GT.Motion.fade`/`.move`, near-full-size
+  board cards, skill-glyph accent) from `main`; and a stack of architecture refactors,
+  each branch on the one before: `refactor/practice-raise-block-20261014`
+  (`PracticeRaiseBlock`) → `refactor/beginner-journey-20261014` (`BeginnerJourney`
+  owns RootView's cover order) → `refactor/concept-reveal-20261014` (`ConceptReveal`,
+  seat labels on `Position`) → `refactor/graded-session-20261014` (`GradedSession`
+  shares draft/answer/next rules for rounds, reviews and lessons; no schema change).
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -121,6 +129,27 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-14 (Claude · animation fixes and architecture refactors)
+
+- Owner asked for all three animation audit fixes, then every Strong candidate of the
+  architecture review. Animation plans were executed by a subagent in a worktree and
+  reviewed; four refactors each move a rule from app views or the model into Drills,
+  with Drills tests. Branches are listed under Current state; none is merged.
+- Behaviour kept: the raise reasons were checked against the old view logic on 400
+  random hands; the reveal text against the old builder in 95,360 cases (temporary
+  test, not kept). The live drill's fallback reveal strings were never shown and are
+  gone. A corrupt out-of-range review or lesson ordinal now returns false instead of
+  crashing.
+- Tests: Drills 427 XCTest + 95 Swift Testing; app 97 unit. UI on 12 mini simulators,
+  no failures: guided hand, invitation, welcome, beginner release, restored parity
+  (journey); restored presentation, numerical reveal, bilingual B20, learning (reveal);
+  graded learning/dock, learning, device-feedback lesson, numerical records (graded);
+  free raise and dock (raise); guided-hand flow, invitation, free dock (animation).
+  No full suite and no screenshot sweep; no layout changed except the animations.
+- Left: PlayView's setup↔table loop was not moved; worktree
+  `.claude/worktrees/agent-ab78e6dade09f5213` still exists.
+- Next: owner reviews the branches and decides on merge and install.
+
 ### 2026-10-14 (Claude · build 27 feedback)
 
 - Owner on build 27: the "Who wins?" example starting on the turn was confusing; the
@@ -179,43 +208,3 @@ Tests:
 ### 2026-10-13 (Codex · GRAC submission archive)
 
 - Preserved owner submission screenshot and receipt TG-OM-26-01177 (접수대기), refund terms, working form answers, version-22 video/timestamps, PDFs, IPA and upload ZIP. Re-fetched Notion and confirmed completed 10/13 checkbox. Archive CRC and file hashes checked; no rating approval, payment receipt, reviewer install or final portal field export claimed. Next: GRAC response and installation support if requested.
-
-### 2026-10-14 (Claude)
-
-- Owner: a near miss is wrong; only correct answers count. Applied to accuracy, miss
-  streak, review rating, lesson result, Records ("exact N%") and sound (`a31472e`).
-  Drills 425 + 75, app 91 unit tests and 57 UI tests (records, graded and learning
-  flows, restored answers, smoke) passed on the 12 mini simulator. The full suite was
-  not run on this commit; a full run of the previous commit on iPhone 17 was still
-  going, no failures in the first 158 tests.
-- Merged to `main` and pushed with the owner's approval. Build 25: build 24 uninstalled,
-  fresh install on the iPhone 12 mini, welcome seen, no progress copied
-  (`.build/device-install-b25/`).
-- Next: owner tries build 25 and decides whether clearing a lesson needs a pass mark.
-- Owner found "A hand together" stiff (wrapped button text, no freedom, question hard
-  to find) and chose the mix of mocks B and A. Rebuilt `GuidedHandView` on
-  `TableSurface` (new `spotlight` and `ringed`); the quiz, Previous, the "less help"
-  replay and the seeded alternate deals are gone. Unit tests (93) and the four guided-hand UI
-  tests pass (12 mini and iPhone 17 simulators); screens checked in both languages at
-  normal size and samples at AX5. Full 12 mini run on `aafc0b5`: 317 passed, 3
-  failed, none in the guided hand: the two Play table contrast audits (both pass on
-  iPhone 17 with the table change) and the Play result scroll test below.
-- A full run of `a469449` on iPhone 17 had 203 passed, then one failure
-  (`FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable`, passed on a re-run),
-  before a second run on the same simulator spoiled the rest. Do not run two test
-  sessions on one simulator.
-- Owner approved merge and install, and asked for the Play result scroll failure to be
-  looked at. Cause: `456b9ca` made secondary buttons taller, so at AX5 on the 12 mini
-  "Start new game" was 2pt taller than the result panel. Fixed by stacking the two
-  result buttons at accessibility sizes (`f4d1fe9`); the open issue is resolved. 93 unit
-  and 90 UI tests passed on the 12 mini simulator, no full run on the final source.
-- Build 26: `main` fast-forwarded locally (not pushed), build 25 uninstalled, fresh
-  install on the iPhone 12 mini, welcome seen, no progress copied
-  (`.build/device-install-b26/`).
-- Next: owner tries build 26 and says whether to push `main`; the pass-mark question
-  for clearing a lesson is still open.
-- Owner on build 26: the guide repeated both answers after a miss (removed, `aaaae26`,
-  branch `feat/guide-clickable-controls`, 52 guide and learning UI tests passed on the
-  12 mini simulator) and tappable text must look tappable everywhere. Mocks and the
-  app-wide rule options are in `.scratch/clickable-controls-2026-10-14/map.md`; the
-  owner has not chosen a rule yet.
