@@ -38,7 +38,46 @@ final class AccessibilityFlowTests: XCTestCase {
             XCTAssertEqual(app.staticTexts.matching(NSPredicate(format: "label == %@", title)).count, 1,
                            "The hand-count title must remain one accessible StaticText")
             XCTAssertTrue(app.buttons[code == "ko" ? "닫기" : "Close"].firstMatch.isHittable)
-            XCTAssertTrue(app.buttons["free-game-menu"].isHittable)
+            let menu = app.buttons["free-game-menu"]
+            let ready = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"),
+                object: menu)
+            let readiness = XCTWaiter.wait(for: [ready], timeout: 10)
+            if readiness != .completed { captureMenuFailure(app, code: code, category: category) }
+            XCTAssertEqual(readiness, .completed, "The same Menu Button must become ready")
+            XCTAssertTrue(menu.exists && menu.isEnabled && menu.isHittable)
+            print("Free table menu \(code) \(category): \(menu.frame)")
+            menu.tap()
+            let endGame = app.buttons[code == "ko" ? "게임 마치기" : "End game"]
+            let newGame = app.buttons[code == "ko" ? "새 게임 시작" : "Start new game"]
+            let popup = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                endGame.exists && newGame.exists
+            }, object: nil)
+            let opened = XCTWaiter.wait(for: [popup], timeout: 5)
+            if opened != .completed { captureMenuFailure(app, code: code, category: category) }
+            XCTAssertEqual(opened, .completed, "Both expected game menu actions must appear")
+            let popupCapture = XCTAttachment(screenshot: app.screenshot())
+            popupCapture.name = "free-table-menu-open-\(code)-\(category)"
+            popupCapture.lifetime = .keepAlways
+            add(popupCapture)
+            print("Free table popup \(code) \(category): end=\(endGame.frame), new=\(newGame.frame)")
+            let viewport = app.frame
+            let dismissal = CGPoint(x: viewport.minX + 2, y: viewport.midY)
+            let popupBounds = endGame.frame.union(newGame.frame).insetBy(dx: -10, dy: -10)
+            let safeDismissal = viewport.contains(dismissal) && !popupBounds.contains(dismissal)
+                && !menu.frame.contains(dismissal)
+            if !safeDismissal { captureMenuFailure(app, code: code, category: category) }
+            XCTAssertTrue(safeDismissal, "Dismiss outside the popup on the noninteractive screen margin")
+            print("Free table menu dismissal \(code) \(category): \(dismissal), popup=\(popupBounds)")
+            app.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: dismissal.x - viewport.minX, dy: dismissal.y - viewport.minY)).tap()
+            let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                !endGame.exists && !newGame.exists && header.exists
+            }, object: nil)
+            let restored = XCTWaiter.wait(for: [dismissed], timeout: 5)
+            if restored != .completed { captureMenuFailure(app, code: code, category: category) }
+            XCTAssertEqual(restored, .completed, "Dismiss without ending or restarting the hand")
+            XCTAssertTrue(header.exists)
             heights.append(header.frame.height)
             XCTAssertGreaterThanOrEqual(header.frame.minX, app.frame.minX)
             XCTAssertLessThanOrEqual(header.frame.maxX, app.frame.maxX)
@@ -53,6 +92,26 @@ final class AccessibilityFlowTests: XCTestCase {
         }
         XCTAssertGreaterThan(heights[2], heights[1] + 1,
                              "The ordinary hand-count title must keep growing from AX1 to AX5")
+    }
+
+    private func captureMenuFailure(_ app: XCUIApplication, code: String, category: String) {
+        let menu = app.buttons["free-game-menu"]
+        print("Free table menu failure \(code) \(category): exists=\(menu.exists)")
+        if menu.exists {
+            print("Menu enabled=\(menu.isEnabled), hittable=\(menu.isHittable), frame=\(menu.frame)")
+        }
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "free-table-menu-failure-hierarchy-\(code)-\(category)"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        let matches = XCTAttachment(string: app.buttons.matching(identifier: "free-game-menu").debugDescription)
+        matches.name = "free-table-menu-failure-matches-\(code)-\(category)"
+        matches.lifetime = .keepAlways
+        add(matches)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "free-table-menu-failure-\(code)-\(category)"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
     }
 
     private func verifyFreeTableSeats(code: String, players: Int) {
