@@ -1126,8 +1126,10 @@ struct GTActionButton: View {
                 if freeTablePresentation && typeSize.isAccessibilitySize {
                     VStack(spacing: 8) {
                         HStack(alignment: .firstTextBaseline, spacing: 12) {
-                            Text(title).font(secondaryTitle == nil ? GT.semibold(12) : GT.title(15))
-                                .foregroundStyle(GT.ink)
+                            Group {
+                                if secondaryTitle == nil { GTActionCaption(text: title, weight: .semibold) }
+                                else { Text(title).font(GT.title(15)).foregroundStyle(GT.ink) }
+                            }
                                 .fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: 0)
                             if !price.isEmpty {
@@ -1135,7 +1137,7 @@ struct GTActionButton: View {
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             if let secondaryTitle {
-                                Text(secondaryTitle).font(GT.body(12)).foregroundStyle(GT.ink)
+                                GTActionCaption(text: secondaryTitle)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
@@ -1144,15 +1146,17 @@ struct GTActionButton: View {
                 } else if freeTablePresentation {
                     ZStack {
                         VStack(spacing: 3) {
-                            Text(title).font(secondaryTitle == nil ? GT.semibold(12) : GT.title(15))
-                                .foregroundStyle(GT.ink)
+                            Group {
+                                if secondaryTitle == nil { GTActionCaption(text: title, weight: .semibold) }
+                                else { Text(title).font(GT.title(15)).foregroundStyle(GT.ink) }
+                            }
                                 .fixedSize(horizontal: false, vertical: true)
                             if !price.isEmpty {
                                 Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             if let secondaryTitle {
-                                Text(secondaryTitle).font(GT.body(12)).foregroundStyle(GT.ink)
+                                GTActionCaption(text: secondaryTitle)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
