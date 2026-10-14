@@ -9,7 +9,10 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 - CI compatibility fix: the quick-game chip-conservation assertion now computes typed
   totals before `#expect`, avoiding the Xcode 26.3 macro type-check timeout. All CI
-  gates remain enabled. Hosted validation is pending on the fix PR.
+  gates remain enabled. The hosted Drills gate passes; its next stage exposed a
+  second Xcode 26.3 timeout in the walkthrough header. Header calculations are now
+  explicit typed locals, preserving text, layout and accessibility. Full hosted
+  validation is pending on PR #11.
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -123,6 +126,9 @@ Tests:
   expression under Xcode 26.3. Split its sums into `Int` locals without changing
   the chip-conservation assertion or product code. Local Xcode 27 baseline and
   fixed Drills suites pass (428 XCTest and 75 Swift Testing tests).
+- The next hosted stage exposed the same compiler limit in `WalkthroughView.header`;
+  extracted typed calculations without changing its view tree or arithmetic order.
+  Local Engine release: 96 tests pass.
 - Used an isolated worktree; the active checkout and its guided-hand test edits
   were preserved. Next: hosted PR and main CI validation on Xcode 26.3.
 
