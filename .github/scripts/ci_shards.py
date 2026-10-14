@@ -65,10 +65,18 @@ def discovery(document, expected_targets=None):
 
 
 def merge_enumerations(unit, ui):
-    discovery(unit, {UNIT_TARGET})
-    discovery(ui, {UI_TARGET})
+    inventories = []
+    selected = []
+    for document, requested in [(unit, UNIT_TARGET), (ui, UI_TARGET)]:
+        require(len(document.get("values", [])) == 1, "Expected one enumerated test plan")
+        targets = {target.get("name") for target in document["values"][0].get("children", [])}
+        require(targets in [{requested}, {UNIT_TARGET, UI_TARGET}], "Enumeration must contain the requested target or both complete targets")
+        inventories.append(discovery(document, targets))
+        selected.append(next(target for target in document["values"][0]["children"] if target["name"] == requested))
+    for target in inventories[0].keys() & inventories[1].keys():
+        require(inventories[0][target] == inventories[1][target], f"Sequential enumerated {target} inventories differ")
     document = {"errors": [], "values": [{"kind": "plan", "name": "GlassTable", "children": [
-        unit["values"][0]["children"][0], ui["values"][0]["children"][0],
+        *selected,
     ]}]}
     discovery(document)
     return document
@@ -146,12 +154,28 @@ def validate_manifest(manifest):
     require(manifest["assignments"] == assignments and manifest["assignedClasses"] == assignments[index], "Manifest assignment mismatch")
 
 
+def argument_rows(arguments):
+    counts, urls = {}, set()
+    for row in arguments:
+        method, name, url = row["parentMethod"], row["name"], row["identifierURL"]
+        require(isinstance(method, str) and isinstance(name, str) and name, "Unexpected argument description or parent method")
+        require(row["result"] == "Passed", f"Unsuccessful parameterized case: {method}: {name}")
+        if url is not None:
+            require(isinstance(url, str) and "?args=" in url and url not in urls, "Unexpected or duplicate parameterized case URL")
+            urls.add(url)
+        key = (method, name, url)
+        counts[key] = counts.get(key, 0) + 1
+    return [{"parentMethod": method, "name": name, "identifierURL": url, "result": "Passed", "occurrence": occurrence}
+            for (method, name, url), count in sorted(counts.items(), key=lambda item: (item[0][0], item[0][1], item[0][2] or ""))
+            for occurrence in range(1, count + 1)]
+
+
 def outcomes(document):
     require(set(document) == {"devices", "testNodes", "testPlanConfigurations"}, "Unexpected result tree schema")
     require(len(document["devices"]) == 1 and len(document["testPlanConfigurations"]) == 1, "Expected one serial device and test configuration")
     device = document["devices"][0]
     require(device.get("modelName") == "iPhone 16 Pro" and device.get("osVersion") == "18.5", "Result device differs from pinned runtime")
-    records, arguments = {}, {}
+    records, arguments = {}, []
     bundles = set()
 
     def walk(node, target=None, method=None):
@@ -171,10 +195,8 @@ def outcomes(document):
             skips = [child.get("name") for child in node.get("children", []) if child.get("nodeType") == "Skip Message"]
             records[method] = {"result": status, "skipMessages": skips}
         if kind == "Arguments":
-            identifier = node.get("nodeIdentifierURL", "")
-            require(method is not None and "?args=" in identifier and identifier not in arguments, "Unexpected or duplicate parameterized case")
-            require(node.get("result") == "Passed", f"Unsuccessful parameterized case: {identifier}")
-            arguments[identifier] = method
+            require(method is not None, "Argument result lacks its parent method")
+            arguments.append({"parentMethod": method, "name": node.get("name"), "identifierURL": node.get("nodeIdentifierURL"), "result": node.get("result")})
         for child in node.get("children", []):
             walk(child, target, method)
 
@@ -182,7 +204,7 @@ def outcomes(document):
         require(node.get("nodeType") == "Test Plan" and node.get("name") == "GlassTable", "Unexpected result test plan")
         walk(node)
     require(bundles == {UI_TARGET, UNIT_TARGET}, "Both unit and UI execution results are required")
-    return records, arguments, device
+    return records, argument_rows(arguments), device
 
 
 def reconcile(manifest, tests, summary, log, app_outcome):
@@ -201,7 +223,7 @@ def reconcile(manifest, tests, summary, log, app_outcome):
         require(records[method]["skipMessages"] == [CRAWL_SKIP_REASON], "Crawler skip reason differs from its opt-in policy")
     require(summary.get("totalTestCount") == len(records) and summary.get("passedTests") == len(records) - len(actual_skips) and summary.get("skippedTests") == len(actual_skips), "Summary count differs from executed methods")
     parameterized = {method for method in expected_units if ":" in method.rsplit("/", 1)[1]}
-    require(parameterized == set(arguments.values()), "Parameterized unit method is missing argument case results")
+    require(parameterized == {row["parentMethod"] for row in arguments}, "Parameterized unit method is missing argument case results")
     xctest = re.findall(r"Test Suite 'GlassTableTests\.xctest' passed[^\n]*\n\s*Executed (\d+) tests, with 0 failures", log)
     swift = re.findall(r"Test run with (\d+) tests in \d+ suites passed", log)
     require(len(xctest) == 1 and len(swift) == 1, "Both unit framework completion markers are required")
@@ -209,7 +231,7 @@ def reconcile(manifest, tests, summary, log, app_outcome):
     return {
         "shardIndex": manifest["shardIndex"], "sha": manifest["sha"], "uiDigest": manifest["uiDigest"],
         "unitDigest": manifest["unitDigest"], "uiResults": {key: records[key] for key in sorted(expected_ui)},
-        "unitResults": {key: records[key] for key in sorted(expected_units)}, "argumentCases": dict(sorted(arguments.items())),
+        "unitResults": {key: records[key] for key in sorted(expected_units)}, "argumentCases": arguments,
         "unitFrameworkCounts": {"XCTest": int(xctest[0]), "SwiftTesting": int(swift[0])}, "device": device,
     }
 
@@ -245,7 +267,10 @@ def aggregate(reports_dir, job_status, sha):
         require(set(report["unitResults"]) == units, "Aggregate unit coverage is incomplete")
         require(sum(report["unitFrameworkCounts"].values()) == len(units) and set(report["unitFrameworkCounts"]) == {"XCTest", "SwiftTesting"}, "Aggregate unit framework counts differ")
         parameterized = {method for method in units if ":" in method.rsplit("/", 1)[1]}
-        require(set(report["argumentCases"].values()) == parameterized and all("?args=" in identifier for identifier in report["argumentCases"]), "Aggregate parameterized coverage is incomplete")
+        arguments = report["argumentCases"]
+        require(all(set(row) == {"parentMethod", "name", "identifierURL", "result", "occurrence"} for row in arguments), "Unexpected aggregate argument row schema")
+        require(arguments == argument_rows(arguments), "Aggregate argument occurrences are inconsistent")
+        require({row["parentMethod"] for row in arguments} == parameterized, "Aggregate parameterized coverage is incomplete")
     expected = {method for methods in first["targets"][UI_TARGET].values() for method in methods}
     require(set(actual) == expected, "Aggregate UI coverage is incomplete")
     require(all(record["result"] == "Passed" for record in reports[0]["unitResults"].values()), "Unsuccessful aggregate unit result")

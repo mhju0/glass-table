@@ -1,0 +1,1851 @@
+{
+  "errors": [],
+  "values": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEVLossChoiceThatLostValueNeverShowsAsRight()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPlayTableHoleCardsReadHighCardFirst()"
+                }
+              ],
+              "kind": "class",
+              "name": "AnswerPresentationTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEverySoundEffectHasPlayableBundledPCM()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPreferencesControlActualFeedbackPolicy()"
+                }
+              ],
+              "kind": "class",
+              "name": "AppFeedbackTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "adaptivePageChangesWhilePokerTableStaysFixed()"
+                },
+                {
+                  "kind": "test",
+                  "name": "appearancePreferenceRoundTripsWithoutProgressState()"
+                },
+                {
+                  "kind": "test",
+                  "name": "componentEdgesMeetNonTextContrast(style:)"
+                },
+                {
+                  "kind": "test",
+                  "name": "defendChartLabelsUseOpaqueContrastSafeBands(style:)"
+                },
+                {
+                  "kind": "test",
+                  "name": "fixedPokerObjectPairsMeetContrastInEitherAppearance()"
+                },
+                {
+                  "kind": "test",
+                  "name": "semanticTextPairsMeetNormalTextContrast(style:)"
+                }
+              ],
+              "kind": "class",
+              "name": "AppearanceTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "preflopPriceRetainsPublicBigBlindFloor()"
+                },
+                {
+                  "kind": "test",
+                  "name": "replayChoicesIgnoreUnshownActions()"
+                }
+              ],
+              "kind": "class",
+              "name": "FreeDockPresentationTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "IllegalPresetsStayUnclamped()"
+                },
+                {
+                  "kind": "test",
+                  "name": "facingRaiseRetainsDuplicateTargetsAndOddAmounts()"
+                },
+                {
+                  "kind": "test",
+                  "name": "postflopUsesRoundedPotFractionsAndIncrementalStackCost()"
+                },
+                {
+                  "kind": "test",
+                  "name": "unraisedPreflopKeepsEveryBigBlindPreset()"
+                }
+              ],
+              "kind": "class",
+              "name": "FreeRaisePresentationTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "FoldedOpponentDoesNotQualifyForEquity()"
+                },
+                {
+                  "kind": "test",
+                  "name": "allInOpponentStillCountsAsLiveAtCallDecision()"
+                },
+                {
+                  "kind": "test",
+                  "name": "automaticHeadsUpShowdownUsesDecisionStreetOnly()"
+                },
+                {
+                  "kind": "test",
+                  "name": "closeSymbolKeepsOpaqueBoundsAndTemplateRendering()"
+                },
+                {
+                  "kind": "test",
+                  "name": "equityCacheRemainsBoundedAcrossDistinctRequests()"
+                },
+                {
+                  "kind": "test",
+                  "name": "equityCacheReturnsExactTieFraction()"
+                },
+                {
+                  "kind": "test",
+                  "name": "gameRecapHandlesTiedActionsAndNoDecisions()"
+                },
+                {
+                  "kind": "test",
+                  "name": "gameRecapUsesSavedActionCountsAndExactDenominator()"
+                },
+                {
+                  "kind": "test",
+                  "name": "liveHandHasNoReviewChanceRows()"
+                },
+                {
+                  "kind": "test",
+                  "name": "mathDotsChooseNearestProbabilityAndHideBeyondSix()"
+                },
+                {
+                  "kind": "test",
+                  "name": "multiwayAndRepeatedStreetDecisionsUseDistinctPublicSnapshots()"
+                },
+                {
+                  "kind": "test",
+                  "name": "opponentWagerCopyStatesStreetAndHeldCategoryWithoutIntentLabels()"
+                }
+              ],
+              "kind": "class",
+              "name": "FreeTableDecisionReviewTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "activeSidePotAmountDoesNotIncludeOtherPots()"
+                },
+                {
+                  "kind": "test",
+                  "name": "cardsArrivingAreSeparateFromPublicFacesAndHistory()"
+                },
+                {
+                  "kind": "test",
+                  "name": "changingSpeedAdvancesTheSameCursorWithoutReplayingCues()"
+                },
+                {
+                  "kind": "test",
+                  "name": "configuredOverlapsAndReduceMotion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "cursorResumeConsumesEachCueOnceAndPlanExtensionKeepsPrefix()"
+                },
+                {
+                  "kind": "test",
+                  "name": "dealerUsesSpecifiedSpringAndPausedCursor()"
+                },
+                {
+                  "kind": "test",
+                  "name": "everyIntermediateFrameConservesMoneyAndFinalMatchesModel(kind:)"
+                },
+                {
+                  "kind": "test",
+                  "name": "foldOnlyOpponentNeverExposedIncludingNextHandClear()"
+                },
+                {
+                  "kind": "test",
+                  "name": "nextHandRefillAddsOnlyAuthoritativeNewSupply()"
+                },
+                {
+                  "kind": "test",
+                  "name": "pausedPhaseRemapsReduceMotionWithoutLosingPublicWorkOrMoney(work:)"
+                },
+                {
+                  "kind": "test",
+                  "name": "runoutFacesKeepSixHundredSpacingAcrossStreetBoundaries()"
+                },
+                {
+                  "kind": "test",
+                  "name": "soleFundedSeatOwingCallBlocksEarlyRunout()"
+                },
+                {
+                  "kind": "test",
+                  "name": "togglingMotionPreservesClearBlindAndRevealSubphasesInBothDirections(wasReduced:)"
+                }
+              ],
+              "kind": "class",
+              "name": "FreeTableReplayTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testCoachLineCostsAndPot()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testDealIsLegalAndTheLearnerHoldsTheBetterHand()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEveryLineReachesShowdownAndConservesChips()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testGivingUpAsksFirstAndThenEndsTheHand()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRestoredPositionLabelsUseSameNumberedPlainSeats()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRestoredRangeEvidenceEqualsLiveForLegacyAndBandAnswers()"
+                }
+              ],
+              "kind": "class",
+              "name": "GuidedHandTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testFrequencyTextRoundsOneInNToTwoSignificantFigures()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testGuideHandIsAPairOfKingsThatLeavesTwoSharedCardsOut()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLadderExamplesAreTheHandsTheyName()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLadderRunsStrongestFirstAndCoversEveryCategory()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRarerHandsRankHigherExceptHighCard()"
+                }
+              ],
+              "kind": "class",
+              "name": "HoldemBasicsContentTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEVChoicesRetainAnOnTargetPointWithoutOrderingTheAnswer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPositionAndPotOrientationPreserveSavedBeatIndices()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSeatIdentityAndNormalLabelLinesAreLanguageIndependent()"
+                }
+              ],
+              "kind": "class",
+              "name": "LessonLearningUITests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAUnitBossThatIsNotATrackChallengeIsNotAMilestone()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFirstPassOfATrackChallengeIsAMilestoneButARerunIsNot()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testMasteryReachedInThisSessionCountsOnceAndOlderMasteryDoesNot()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOrdinaryLessonClearIsNotAMilestone()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRatingAsksOncePerVersionOnlyAfterAMilestoneAndNeverInUITests()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testReminderRepeatsDailyAtTheChosenTimeInEitherLanguage()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTrackMilestoneNamesTheTrackAndItsSkills()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testUnfinishedOrUnansweredSessionHasNoMilestone()"
+                }
+              ],
+              "kind": "class",
+              "name": "MilestoneTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testFractionsStayTruthfulAndDefineTieShares()"
+                }
+              ],
+              "kind": "class",
+              "name": "PracticePriceCopyTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAChallengePassesWithFourOfSixRight()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testALearnerWhoPlaysSometimesAnswersTheFirstQuestionAlone()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testALessonClearedBeforeThePassMarkStaysCleared()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAnEstimateSavedWithoutACalibrationRecordSurvivesAReload()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAttemptLedgerRequiresCommitAndRejectsDuplicateCommitAndAdvance()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testBasicsLessonIsSuggestedUntilFinishedAndWritesOnlyItsMarker()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testBasicsLessonLeadsOnlyForANewPlayer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCommittedFinalAnswerPersistsBeforeNodeCompletion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCompleteWalkthroughPersistsOnlyMissReset()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCompletedAllWrongLessonIsNotPassedAndClaimsNoProficiency()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCompletingFirstLessonPersistsOnlyItsMarker()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testDemoStateRoundTripsThroughTheProductionStore()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testDueAnswerPersistsStreakCreditWithTheAnswer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedAnswerSaveCanBeExportedAndRetriedWithoutLosingAnswers()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedFirstLessonCompletionKeepsSavedProgressAndCanRetry()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedImportLeavesDisplayedProgressUnchanged()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedInitialSaveIsVisibleAndCanBeRetried()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedRecoveryKeepsRecoveryScreenAndOriginalBytes()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedResetKeepsDisplayedAndSavedProgress()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedRoundWriteBlocksLaterAnswersUntilRetry()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailingALaterRunKeepsTheEarlierPassAndBestScore()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFilePickerCancellationIsNotPresentedAsFailure()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFirstVisitLessonIsThreeQuestionsAndTheFirstIsSavedAsHelped()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFreshProgressPresentsFirstLesson()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFutureStoreRequiresRecoveryAndRetainsItsBytes()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testHistoricalOpeningMarkerSuppressesGuideWithoutFabricatingSnapshot()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testHistoricalProgressSkipsFirstLessonWithoutRewritingIt()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testImportedHistoricalProgressSkipsFirstLesson()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testIncompleteEvidenceCannotClearNode()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testInterruptedBossAnswerChangesRestartSeedAndShuffledPrefix()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testInvalidImportDoesNotChangeRecoveryStateOrBytes()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testInvalidOpeningStorePreservesRecoveryBytesAndImportDoesNotReplaceHistory()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLearnerWithAClearedLessonIsNotSentBackToBasics()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLegacyMigratedTotalsSkipFirstLesson()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLegacyOpeningContinuesWithoutReplacingCardsResponsesOrPlacement()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLessonAnsweredOnlyWithHelpIsNotPassedAndWritesNoRecord()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLessonWithHelpClearsButDoesNotReachProficient()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testMixedBossPromotesOnlyTheSpotOnConcept()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOneRightOfThreeLeavesTheLessonOpenWithItsBestScore()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningAllowsRevisitedChoiceButRejectsChangedSeedDroppedResponsesAndStaleEpoch()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningDismissalFailureRetriesWithoutClaimingCompletion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningFailedRevealSaveAndDismissalKeepDiskUnchangedUntilRetry()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningRejectsActionTrapWithoutReplacingSavedSnapshotOrHistory()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningRevealResumeAndFullFinish()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningSaveCannotReplaceItsComparisonVersion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningStopAndReloadPreserveSeedResponsesWithoutCompletionOrGrades()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOrdinaryWritesCannotOverwriteAnUnreadableStore()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPreparedImportCannotReplaceAnUnsavedAnswerWithSamePublishedRevision()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPreparedImportDoesNotChangeMemoryWhenReplacementWriteFails()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testProgressFileReaderReadsSmallFileOffTheViewCallback()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testProgressFileReaderRejectsOversizedFile()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testResetInvalidatesOldRoundAndPlacementNeverAwardsProgress()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testReviewCommitResumeAndNextAreAtomicAndIdempotent()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testReviewHelpLeavesTheConceptDue()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRoundCommitAndNextAreDurableAndIdempotent()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRoundHelpIsPracticeWithoutAccuracyScheduleOrTiming()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRoundIntroAndDraftResumeWithoutGrading()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSeedsMoveAfterHelpSoRestartingDealsANewSpot()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSemanticallyInvalidImportLeavesHealthyProgressAndBytesUnchanged()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSkippingTheWalkthroughLeavesEveryQuestionUnaided()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testStartingHandsChallengePracticesPositionBeforeAwardingMastery()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSuccessfulImportUpdatesBothMemoryAndDisk()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSuccessfulRecoveryPreservesOriginalAndSurvivesRelaunch()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTwoRightOfThreePassesTheLesson()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTwoRoughLessonsBringTheHintBackUntilALessonGoesBetter()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testUnreadableStoreExposesOriginalFileForRecoveryExport()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testUnreadableStoreStillRequiresRecoveryBeforeFirstLesson()"
+                }
+              ],
+              "kind": "class",
+              "name": "ProgressionModelTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testReadyCannotResetTheClockOrUseAnotherQuestionKey()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRestoredQuestionAndLateReadyNeverEarnTime()"
+                }
+              ],
+              "kind": "class",
+              "name": "QuestionTimingTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "importAndResetArchivePreserveReplacementRecoveryAndRejectStaleEnd()"
+                },
+                {
+                  "kind": "test",
+                  "name": "legacySettledLeaveAndFailedEndRetryRetainArchive()"
+                },
+                {
+                  "kind": "test",
+                  "name": "legacySettledNextCapturesBeforeAdvancingAndLiveEndRetainsIt()"
+                },
+                {
+                  "kind": "test",
+                  "name": "settlementSaveFailureLeavesDisplayedStateAndRetrySavesOneSnapshot()"
+                },
+                {
+                  "kind": "test",
+                  "name": "tenHandsPersistThroughResumeThenEndAndNewSameSeedGame()"
+                }
+              ],
+              "kind": "class",
+              "name": "QuickPlayModelTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEstimateRevealLeavesTheRangeOutWhenItWasNotAsked()"
+                }
+              ],
+              "kind": "class",
+              "name": "RestoredDrillDescriptionTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "inactiveGenerationCannotFlushOnResume()"
+                },
+                {
+                  "kind": "test",
+                  "name": "staggeredCardRequestsShareTheSameWindow()"
+                },
+                {
+                  "kind": "test",
+                  "name": "strongerVariantWinsAndDelayedActualEmissionControlsNextDeadline()"
+                },
+                {
+                  "kind": "test",
+                  "name": "windowRetainsHighestPriorityAndDoesNotEmitEarly()"
+                }
+              ],
+              "kind": "class",
+              "name": "TableFeedbackTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEveryConceptExampleHasAStepToReveal()"
+                }
+              ],
+              "kind": "class",
+              "name": "WalkthroughPracticeTests"
+            }
+          ],
+          "kind": "target",
+          "name": "GlassTableTests"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testLessonQuestion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLessonSummaryWithMilestone()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPlayTable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPlayTableScrolled()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSettings()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSettingsScrolled()"
+                }
+              ],
+              "kind": "class",
+              "name": "AccessibilityAuditTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testCountKeypadCanOpenAndCollapseAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testDefendRevealExposesSelectedEvidenceAndChartRowsAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEVRevealLeadsWithRangeEvidenceAndLossEquationAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEquityAnswerCanBeSubmittedAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFirstLessonReachesCourseAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFreeTableEN2SeatsStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFreeTableEN3SeatsStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFreeTableEN4SeatsStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFreeTableKO2SeatsStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFreeTableKO3SeatsStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFreeTableKO4SeatsStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFreeTableStatusToneKeepsSeatHeightAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testGuidedHintFloatsWithoutMovingTheQuestionAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPolicyReferenceCaveatsRemainReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testReminderAndMilestoneShareStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testShowdownWalkthroughAdvancesAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testStartingPointCheckIsReachableInBothLanguagesAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTableFoldReachesSummaryAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTableGradeVerdictAndContinueStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTableHeroCardsCanBeFullyExposedOnScreenAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTableSetupPlayerCountStacksAndStaysReachableAtAccessibilityXXXL()"
+                }
+              ],
+              "kind": "class",
+              "name": "AccessibilityFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAllAppearanceChoicesRemainReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAppearanceSelectionPersistsAcrossRelaunchAndReturnsToSystem()"
+                }
+              ],
+              "kind": "class",
+              "name": "AppearanceFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishFirstRunBasicsOffersHandAndContinuesLessons()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanFirstRunBasicsOffersReachableHandAX5()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanSwipingTheInvitationAwayStaysOnLearn()"
+                }
+              ],
+              "kind": "class",
+              "name": "BasicsGuidedHandInvitationTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testCallFoldFixtureOpensThatConceptNotAMixedCheckpoint()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testChartExplorerReachesOwnHandAtLargestTextSize()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCommittedAdvancedLessonResumesTheSameAnswer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEquityCardsFitAboveAnswerSheetOnCompactPhone()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFirstTableExplainsItselfOnceAndDoesNotRepeat()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFourTabsWithoutExperienceQuestion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testGradedRevealSheetIsTintedByItsVerdict()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLanguageSwitchInSettingsKeepsTheSavedLesson()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLearnOffersLessonsWithoutAnExperienceQuestion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLearningPathAndHeadsUpExerciseKeepBackNavigation()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningGuideResumesWithoutMandatoryPlacement()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPlayGradeNamesTheChoiceAndItsReferenceBelowTheHand()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPlayHomeOffersTwoModesAboveTheTabBar()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPokerTermsSwitchPutsTheTermFirst()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPracticeHandSettlesAndNextHandSurvivesRelaunch()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPracticeTableHidesOpponentCardsAndShowsThePot()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testQuestionDraftSurvivesRelaunchWithoutAnAnswer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testQuickGameIsTheDefaultAndEndsAfterTenHands()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSettingsKOLastRowAndOtherTabsStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSettingsLastRowAndOtherTabsStayReachableAtAccessibilityXXXL()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSettingsListsProblemGamblingHelplines()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTableHabitsShowAProgressLineAndKeepTheEvidenceOneTapDown()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTableSetupGivesEachComputerItsOwnStyle()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTwoPlayerTableSeatsOneComputer()"
+                }
+              ],
+              "kind": "class",
+              "name": "BeginnerReleaseTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAX5DarkCaptureMatrix()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAX5LightCaptureMatrix()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testBrandAppearanceTransitionB22AllModes()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testBrandLightAppearanceTrialB22()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishDarkAX5BottomActionsAndHelpReturn()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishLightAX5BottomActionsAndHelpReturn()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishLightAX5FreeHelpReturn()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testExplanationAutomaticallyVisibleAllModes()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanDarkAX5BottomActionsAndHelpReturn()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanLightAX5BottomActionsAndHelpReturn()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLegacyWelcomeB22RespectsSelectedLightAppearance()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testNormalDarkCaptureMatrixAndPairedRootHeadings()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testNormalLightCaptureMatrixAndPairedRootHeadings()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpeningB22AllModes()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRemainingComparisonsB22AllModes()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testTeachPairSupplementaryCopyAllModes()"
+                }
+              ],
+              "kind": "class",
+              "name": "BilingualConsistencyB20Tests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishDarkHint()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishDarkLargeHint()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishLightHint()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishLightLargeHint()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanDarkHint()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanDarkLargeHint()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanLightHint()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanLightLargeHint()"
+                }
+              ],
+              "kind": "class",
+              "name": "BottomPanelB22Tests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testDirectBeginnerChartDefinesActionsBeforeCommit()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEquityQuestionIncludesShareOfTies()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testGradedChartStartsExpandedAndRemembersCollapseOnReopen()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKeepingChartDismissesInvitationWithoutFolding()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOptionalInvitationFoldsChartAndKeepsReopeningAvailable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testThreeCorrectCommitsOfferOneOptionalInvitation()"
+                }
+              ],
+              "kind": "class",
+              "name": "ChartFirstUseFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishAXDefendChoicesStayWithinScreen()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanAXDefendChoicesStayWithinScreen()"
+                }
+              ],
+              "kind": "class",
+              "name": "DeviceFeedbackBoundsTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishLightPositionExampleFinishes()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanDarkPositionExampleFinishesAX5()"
+                }
+              ],
+              "kind": "class",
+              "name": "DeviceFeedbackLessonTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishLightFeedbackPreferencesPersist()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanDarkFeedbackPreferencesPersistAX5()"
+                }
+              ],
+              "kind": "class",
+              "name": "DeviceFeedbackSettingsTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testRangeReadENAXBottomAndComparisonReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRangeReadENLargeBottomAndComparisonReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRangeReadKOAXBottomAndComparisonReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRangeReadKOLargeBottomAndComparisonReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSuggestedBasicsCTAOpensCourseInBothLanguagesAtAX5()"
+                }
+              ],
+              "kind": "class",
+              "name": "FinalPresentationVerificationTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishGuideCompletesFiveRequiredComparisons()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanGuideCompletesFiveRequiredComparisonsAX5()"
+                }
+              ],
+              "kind": "class",
+              "name": "FirstLessonFeedbackFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAXENDockSlotsAndBarsRemainReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXKODockSlotsAndBarsRemainReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCheckingKeepsDisabledFoldSlot()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFixedSlotsCancelPressAndPreserveHeightThroughRaiseAndFold()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testMathPillOpensExistingPreflopPanel()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testNormalSlotWidthsAndCentersStayFixedForCallAndAllIn()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes()"
+                }
+              ],
+              "kind": "class",
+              "name": "FreeDockFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testFacingRaiseKeepsFiveAndDuplicatePresets()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOneChipTapHoldLimitsCancelAndOddCommit()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRaiseAXENFifthPresetAndCommitReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRaiseAXKOFifthPresetAndCommitReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRaiseAXPanFromAdjustmentCancelsStepAndScrolls()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testShortStackKeepsIllegalPresetsDimmed()"
+                }
+              ],
+              "kind": "class",
+              "name": "FreeRaiseFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAXENCreamSeatGuideReadable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXENExpandedPolicyEndReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXENMathRulesReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXKOCreamSeatGuideReadable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXKOExpandedPolicyEndReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXKOMathRulesReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testChartSuggestionStaysHiddenUntilTheLearnerAsks()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFlopMathShowsMadeHandWithoutCrash()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testManualCardRevealDoesNotAddReviewEquity()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testMathFlipRulesAndAllFacesKeepHeight()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPreflopEquityWorkKeepsTabsResponsiveOnLeaveAndReopen()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testReviewThisHandWalksThroughEveryDecisionThenTheShowdown()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSettledReviewChanceAndResponsiveTabs()"
+                }
+              ],
+              "kind": "class",
+              "name": "FreeTableBackFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAXDealtControlsAndMathReachableAcrossSeatsAndLanguages()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXNamedPotsAndAggregateTotalFullyReadableAfterTableScroll()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXRefundFlightHasRealSeatDestination()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testBackgroundDuringAwardsAndNextHandRefill()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testBackgroundDuringChipFlightResumesWithoutReset()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testInitialDealAndPublicMath()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testMathKeepsCompletedCallPriceDuringAllInFlight()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testNextHandFromShowdownKeepsOldPilesSwept()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testNormalShowdownAndFoldOnlyPrivacy()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testReduceMotionCompletesSameMoney()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRunoutRefundSidePotsAndOddSplit()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testYourTurnFeedbackDoesNotRepeatAfterBackground()"
+                }
+              ],
+              "kind": "class",
+              "name": "FreeTableMotionFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAXENSizingChoiceFullyReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAXKOSizingChoiceFullyReachable()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCheckedToPreservesEverySizeAndGrading()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPreflopThreeSlotsCommitExactChartChoice()"
+                }
+              ],
+              "kind": "class",
+              "name": "GradedDockFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testAXPostflopChartIsExplicitlyAStartingHandReference()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testChartBeforeCommitDoesNotRevealOwnHandRecommendation()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testHandEndingFoldGetsFeedbackBeforeSummaryAndChartEvidenceAfterCommit()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testNormalFeedbackAndSummaryKeepBothHandsFullyVisible()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testNormalPreflopFooterHugsControlsAndBothHandsFit()"
+                }
+              ],
+              "kind": "class",
+              "name": "GradedLearningFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishLearnBridgeWrongAnswerBackReplayAndPlay()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanLearnBridgeAX5()"
+                }
+              ],
+              "kind": "class",
+              "name": "GuidedHandFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testActivitiesOpenFullScreenAndCloseOnlyFromClose()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testAnswerSheetLeavesNoDeadBandUnderTheLastChoice()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCountDrillRequiresAnIntentionalNumberIncludingZero()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testDefendRevealShowsTheSelectedHandBeforeTheFullChart()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testDueReviewIsFiniteAndMovesBetweenConcepts()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEVDecisionSurvivesRelaunchBeforeNext()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testExactAnswerSurvivesRelaunchBeforeNext()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFirstLessonCanBeOpenedAndClosedFromSettings()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFirstLessonMarksAWrongPickAndTheRightAnswer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFirstLessonTeachesThenTransfersBeforeOpeningTheCourse()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testGradedQuestionReopensTheExplanationWithItsExample()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testGuideRequiresRetrievalBeforeExplanation()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testGuidedAnswerDoesNotCreateAssessedProgress()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testHeadsUpExerciseKeepsPublishedPolicyAndChartGrading()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testIndependentLessonReachesSummaryAfterThreeAnswers()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testInterruptedFirstLessonResumesWithoutRecordingAnAnswer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testIntervalAnswerSurvivesRelaunchBeforeNext()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLanguageSwitchKeepsTheWorkedExampleStep()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLearnSuggestsBasicsUntilFinishedAndClosingKeepsIt()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLessonHelpOpensInPlaceFromOneControl()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLessonUnderThePassMarkRetriesFromTheFirstQuestion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testNextDoesNotDoubleRecordAndNextQuestionStillCounts()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOpponentDetailShowsItsPokerTermsWithoutADisclosure()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testOutsHeroCardsAreFullyVisibleBeforeOpeningNumberEntry()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPathOpensAtRequestedLateCurrentNode()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPositionSeatsStayListedThroughTheAnswerAtTheLargestText()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPotMathAX5CanReachChoiceRevealAndNextAction()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPotMathChoiceCommitsExactlyOnceBeforeNext()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPotMathChoicesSitInTheBottomSheet()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPotMathFirstEntryExplainsWhyHowAndBlindRoles()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPotMathKeepsItsInstructionAndHeightAtTheLastAction()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPotMathTableRequiresTheFullReplayThenRevealsOptionalArithmetic()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPotTotalsHelpAsksFirstAndMarksTheAnswer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSkippingFirstLessonDoesNotShowItAgain()"
+                }
+              ],
+              "kind": "class",
+              "name": "LearningFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testDetailedRecordsDoNotCategorizeHelpUse()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFinishedHandHelpOffersReviewWithoutAnObsoletePrice()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFourthDateUsesTheSameDateCellAndWaitsForTodaysRecordedAnswer()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLargeTextActionRowsAreReadableAndReachableInBothLanguages()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLessonSummaryNamesTheTopicWithoutPublicHelpCounts()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLessonUnderThePassMarkOffersARetryAndAWayOn()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRecordedDatesIncludeWrongAndHelpedAnswersButExcludeHelpOnlyAndFutureDates()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRecordsContinuationOpensLearnAndFullCompletionHasTheRealDenominator()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRecordsContinueClearsTheTabBarAtLargeTextInBothLanguages()"
+                }
+              ],
+              "kind": "class",
+              "name": "NativeRefinementTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishDarkRecords()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishLightRecords()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanDarkRecords()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanLightRecords()"
+                }
+              ],
+              "kind": "class",
+              "name": "NumericalRecordsFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishDarkReveals()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishLightReveals()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanDarkReveals()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanLightReveals()"
+                }
+              ],
+              "kind": "class",
+              "name": "NumericalRevealFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testEnglishAXArchiveAllTenHandsAndCoachControls()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishArchiveAllTenHandsAndCoachControls()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanAXArchiveAllTenHandsAndCoachControls()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanArchiveAllTenHandsAndCoachControls()"
+                }
+              ],
+              "kind": "class",
+              "name": "QuickPlayArchiveFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testLaunchAndOpenStudyGuideWithoutDemoHooks()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testResponsiveLaunchMeasurement()"
+                }
+              ],
+              "kind": "class",
+              "name": "ReleaseSmokeTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testKoreanAXPositionDirectAndResumedUseNumberedLoop()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanAXRangeDirectAndResumedKeepComparisonEvidence()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPositionDirectAndResumedUseNumberedLoop()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testRangeDirectAndResumedKeepComparisonEvidence()"
+                }
+              ],
+              "kind": "class",
+              "name": "RestoredLessonParityFlowTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testENAXSavedPanels()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testENNormalSavedPanels()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKOAXSavedPanels()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKONormalSavedPanels()"
+                }
+              ],
+              "kind": "class",
+              "name": "RestoredPresentationTests"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "test01FirstRun()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test02Learn()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test03PlayFree()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test04PlayGraded()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test05ProgressAndSettings()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test06PlayCrash()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test10Unit1()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test11Unit2()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test12Unit3()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test13Unit4()"
+                },
+                {
+                  "kind": "test",
+                  "name": "test14Unit5()"
+                }
+              ],
+              "kind": "class",
+              "name": "UXAuditCrawl"
+            },
+            {
+              "children": [
+                {
+                  "kind": "test",
+                  "name": "testBrandSkipDoesNotCompleteGuide()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testBrandSkipResumePreservesBackToPairTeaching()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testComparisonsContinueWithoutExperienceQuestionOrMidpointStop()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testCorrectAnswerExplainsRealCards()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testEnglishDefaultStartsWithTeachingNotPlacement()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedAnswerRetryRestoresRevealAndBack()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedChoiceReplacingHelpRetryKeepsCommittedChoice()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedDismissalRetryReachesLearnWithResume()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedFirstRunCompletionRetryOpensPromisedBasics()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testFailedResumedCompletionRetryOpensPromisedBasics()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testKoreanAX5DefaultStartsWithTeachingNotPlacement()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testLegacyWelcomeCheckpointAndPreferenceResumeDirectlyWithoutBrandOrQuestion()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testPairTeachingStopResumePreservesBackToPairTeaching()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testReplayKeepsPendingGuideAndHasNoPreferenceWrite()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testSkipRelaunchAndResumeKeepsGuideUnfinished()"
+                },
+                {
+                  "kind": "test",
+                  "name": "testWrongAnswerAndBackSurviveInterruption()"
+                }
+              ],
+              "kind": "class",
+              "name": "WelcomeFirstFlowTests"
+            }
+          ],
+          "kind": "target",
+          "name": "GlassTableUITests"
+        }
+      ],
+      "kind": "plan",
+      "name": "GlassTable"
+    }
+  ]
+}

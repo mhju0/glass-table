@@ -58,5 +58,28 @@
     "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableUITests/UXAuditCrawl/test01FirstRun",
     "nodeType": "Test Case",
     "result": "Skipped"
+  },
+  "parameterized_xcode_26_3": {
+    "children": [
+      {
+        "duration": "0s",
+        "durationInSeconds": 0,
+        "name": "UIUserInterfaceStyle(rawValue: 1)",
+        "nodeType": "Arguments",
+        "result": "Passed"
+      },
+      {
+        "duration": "0s",
+        "durationInSeconds": 0,
+        "name": "UIUserInterfaceStyle(rawValue: 2)",
+        "nodeType": "Arguments",
+        "result": "Passed"
+      }
+    ],
+    "name": "semanticTextPairsMeetNormalTextContrast(style:)",
+    "nodeIdentifier": "AppearanceTests/semanticTextPairsMeetNormalTextContrast(style:)",
+    "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableTests/AppearanceTests/semanticTextPairsMeetNormalTextContrast(style:)",
+    "nodeType": "Test Case",
+    "result": "Passed"
   }
 }

@@ -25,7 +25,7 @@ class ShardCoverageTests(unittest.TestCase):
     def manifest(self, index=0):
         return ci.make_manifest(self.enumeration, index, SHA, XCODE, "18.5", "iPhone 16 Pro")
 
-    def execution(self, manifest):
+    def execution(self, manifest, argument_fixture="parameterized"):
         targets = manifest["targets"]
         bundles = []
         for target in [ci.UNIT_TARGET, ci.UI_TARGET]:
@@ -36,12 +36,13 @@ class ShardCoverageTests(unittest.TestCase):
                 for identifier in methods:
                     method = identifier.rsplit("/", 1)[1]
                     parameterized = ":" in method
-                    node = copy.deepcopy(self.nodes["parameterized" if parameterized else "plain" if target == ci.UNIT_TARGET else "ui"])
+                    node = copy.deepcopy(self.nodes[argument_fixture if parameterized else "plain" if target == ci.UNIT_TARGET else "ui"])
                     node.update(name=method, nodeIdentifier=f"{name}/{method}", nodeIdentifierURL=f"test://com.apple.xcode/GlassTable/{identifier}", result="Passed")
                     if parameterized:
                         for argument in node["children"]:
-                            suffix = argument["nodeIdentifierURL"].split("?args=", 1)[1]
-                            argument["nodeIdentifierURL"] = node["nodeIdentifierURL"] + "?args=" + suffix
+                            if "nodeIdentifierURL" in argument:
+                                suffix = argument["nodeIdentifierURL"].split("?args=", 1)[1]
+                                argument["nodeIdentifierURL"] = node["nodeIdentifierURL"] + "?args=" + suffix
                     if name == ci.CRAWL_CLASS:
                         node.update(result="Skipped", children=[{"nodeType": "Skip Message", "name": ci.CRAWL_SKIP_REASON}])
                     children.append(node)
@@ -78,6 +79,31 @@ class ShardCoverageTests(unittest.TestCase):
     def test_sequential_target_discoveries_merge_complete_authoritative_inventories(self):
         merged = ci.merge_enumerations(self.target_enumeration(ci.UNIT_TARGET), self.target_enumeration(ci.UI_TARGET))
         self.assertEqual(ci.discovery(self.enumeration), ci.discovery(merged))
+
+    def test_xcode_26_3_both_target_outputs_merge_after_complete_validation(self):
+        unit = ci.read_json(FIXTURES / "xcode-26.3-unit-enumeration.json")
+        ui = ci.read_json(FIXTURES / "xcode-26.3-ui-enumeration.json")
+        self.assertEqual(ci.discovery(self.enumeration), ci.discovery(ci.merge_enumerations(unit, ui)))
+        for operation in ["mismatch-unit", "mismatch-ui", "empty-unit", "empty-ui", "errors", "duplicate", "unknown"]:
+            with self.subTest(operation=operation):
+                changed = copy.deepcopy(ui)
+                target_name = ci.UNIT_TARGET if operation.endswith("unit") else ci.UI_TARGET
+                target = next(target for target in changed["values"][0]["children"] if target["name"] == target_name)
+                if operation.startswith("mismatch"): target["children"][0]["children"].pop()
+                if operation.startswith("empty"): target["children"] = []
+                if operation == "errors": changed["errors"] = ["Discovery failed"]
+                if operation == "duplicate": changed["values"][0]["children"].append(copy.deepcopy(target))
+                if operation == "unknown": target["name"] = "UnknownTests"
+                with self.assertRaises(ValueError): ci.merge_enumerations(unit, changed)
+
+    def test_merge_checks_overlapping_targets_for_mixed_output_shapes(self):
+        full = copy.deepcopy(self.enumeration)
+        unit = self.target_enumeration(ci.UNIT_TARGET)
+        ui = self.target_enumeration(ci.UI_TARGET)
+        self.assertEqual(ci.discovery(full), ci.discovery(ci.merge_enumerations(unit, full)))
+        self.assertEqual(ci.discovery(full), ci.discovery(ci.merge_enumerations(full, ui)))
+        unit["values"][0]["children"][0]["children"][0]["children"].pop()
+        with self.assertRaisesRegex(ValueError, "inventories differ"): ci.merge_enumerations(unit, full)
 
     def test_merge_rejects_empty_unit_output_even_when_xcode_reports_no_errors(self):
         for mutation in ["empty", "errors", "wrong-target", "duplicate-target", "unexpected-target"]:
@@ -140,6 +166,30 @@ class ShardCoverageTests(unittest.TestCase):
             self.assertEqual(144, len(report["unitResults"]))
             self.assertEqual(12, len(report["argumentCases"]))
 
+    def test_xcode_26_3_arguments_without_urls_preserve_descriptions_and_occurrences(self):
+        manifest = self.manifest()
+        tests, summary = self.execution(manifest, "parameterized_xcode_26_3")
+        cases = next(group for group in tests["testNodes"][0]["children"][0]["children"] if group["name"] == "AppearanceTests")["children"]
+        case = next(case for case in cases if ":" in case["name"])
+        case["children"].append(copy.deepcopy(case["children"][0]))
+        report = ci.reconcile(manifest, tests, summary, LOG, "success")
+        self.assertEqual(13, len(report["argumentCases"]))
+        self.assertTrue(all(row["identifierURL"] is None for row in report["argumentCases"]))
+        duplicates = [row for row in report["argumentCases"] if row["parentMethod"].endswith(case["nodeIdentifier"]) and row["name"] == case["children"][0]["name"]]
+        self.assertEqual([1, 2], [row["occurrence"] for row in duplicates])
+        case["children"].reverse()
+        self.assertEqual(report, ci.reconcile(manifest, tests, summary, LOG, "success"))
+
+    def test_argument_rows_support_mixed_observed_formats_and_reject_duplicate_urls(self):
+        rows = []
+        for fixture in ["parameterized", "parameterized_xcode_26_3"]:
+            case = self.nodes[fixture]
+            for child in case["children"]:
+                rows.append({"parentMethod": f"{ci.UNIT_TARGET}/{case['nodeIdentifier']}", "name": child["name"], "identifierURL": child.get("nodeIdentifierURL"), "result": child["result"]})
+        self.assertEqual(4, len(ci.argument_rows(rows)))
+        rows.append(copy.deepcopy(rows[0]))
+        with self.assertRaisesRegex(ValueError, "duplicate.*URL"): ci.argument_rows(rows)
+
     def test_missing_unit_or_ui_method_and_duplicate_execution_are_rejected(self):
         for target in [ci.UNIT_TARGET, ci.UI_TARGET]:
             for operation in ["missing", "duplicate"]:
@@ -162,6 +212,18 @@ class ShardCoverageTests(unittest.TestCase):
                 if operation == "failed": case["children"][0]["result"] = "Failed"
                 if operation == "missing": case["children"] = []
                 if operation == "duplicate": case["children"].append(copy.deepcopy(case["children"][0]))
+                with self.assertRaises(ValueError): ci.reconcile(manifest, tests, summary, LOG, "success")
+
+    def test_url_free_argument_rows_still_reject_failed_missing_or_unnamed_results(self):
+        for operation in ["failed", "missing", "unnamed"]:
+            with self.subTest(operation=operation):
+                manifest = self.manifest()
+                tests, summary = self.execution(manifest, "parameterized_xcode_26_3")
+                cases = next(group for group in tests["testNodes"][0]["children"][0]["children"] if group["name"] == "AppearanceTests")["children"]
+                case = next(case for case in cases if ":" in case["name"])
+                if operation == "failed": case["children"][0]["result"] = "Failed"
+                if operation == "missing": case["children"] = []
+                if operation == "unnamed": case["children"][0]["name"] = ""
                 with self.assertRaises(ValueError): ci.reconcile(manifest, tests, summary, LOG, "success")
 
     def test_unknown_skips_and_changed_crawler_reason_are_rejected(self):
@@ -187,14 +249,41 @@ class ShardCoverageTests(unittest.TestCase):
         self.assertEqual("Skipped", self.nodes["skip"]["result"])
         self.assertEqual([ci.CRAWL_SKIP_REASON], [child["name"] for child in self.nodes["skip"]["children"]])
 
-    def reports(self, root):
+    def reports(self, root, argument_fixture="parameterized"):
         for index in range(3):
             folder = root / f"shard-{index}"
             folder.mkdir()
             manifest = self.manifest(index)
-            tests, summary = self.execution(manifest)
+            tests, summary = self.execution(manifest, argument_fixture)
             ci.write_json(folder / "manifest.json", manifest)
             ci.write_json(folder / "report.json", ci.reconcile(manifest, tests, summary, LOG, "success"))
+
+    def test_aggregate_xcode_26_3_argument_rows_require_identical_descriptions_and_occurrences(self):
+        for operation in ["unchanged", "changed", "missing", "occurrence", "failed"]:
+            with self.subTest(operation=operation), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.reports(root, "parameterized_xcode_26_3")
+                path = root / "shard-2" / "report.json"
+                report = ci.read_json(path)
+                rows = report["argumentCases"]
+                if operation == "changed": rows[0]["name"] = "changed argument"
+                if operation == "missing": rows.pop(0)
+                if operation == "occurrence": rows[0]["occurrence"] = 2
+                if operation == "failed": rows[0]["result"] = "Failed"
+                ci.write_json(path, report)
+                if operation == "unchanged": self.assertEqual(12, ci.aggregate(root, "success", SHA)["unitArgumentCasesPerShard"])
+                else:
+                    with self.assertRaises(ValueError): ci.aggregate(root, "success", SHA)
+
+    def test_aggregate_rejects_invalid_occurrence_even_when_all_reports_agree(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.reports(root, "parameterized_xcode_26_3")
+            for path in root.glob("*/report.json"):
+                report = ci.read_json(path)
+                report["argumentCases"][0]["occurrence"] = 2
+                ci.write_json(path, report)
+            with self.assertRaisesRegex(ValueError, "occurrences"): ci.aggregate(root, "success", SHA)
 
     def test_aggregate_requires_complete_disjoint_union_and_all_required_jobs(self):
         with tempfile.TemporaryDirectory() as directory:
