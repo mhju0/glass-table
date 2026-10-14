@@ -11,6 +11,8 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   merged. It preserves owner build 28, fixes the two Xcode 26.3 expression limits,
   distributes complete UI classes across three independent serial runners and
   reconciles their compiled inventories/results. All normal gates remain enabled.
+  Each job now allows 130 minutes; the app step stays at 110, leaving room for setup,
+  retained Release checks and evidence upload.
 - The cleaned Settings harness is prepared; the instrumented two-case diagnostic
   passed on Xcode 26.3 / iOS 18.5, but the cleaned normal unit→UI path is unverified.
   The Play accessibility repair, final native checks, full CI and merge remain pending.
@@ -144,6 +146,12 @@ Tests:
   persistence and both language choices. Cleaned test-only `90c05bf` is integrated
   locally; this does not prove the original activation flake's cause or that waiting
   fixed it. Normal unit→UI validation is still required.
+- Scoped protocol `38581110047` at reviewed source `afe4042` completed successfully,
+  including strict result reconciliation, Release launch and device contents checks.
+  It does not establish the full three-shard/native candidate; artifact counts and
+  detailed durations await readback. Measured setup was about 3 minutes and retained
+  post-app Release/device work exceeded 11, so accepted `2c6bcca` raises only the job
+  budget from 120 to 130 minutes; app testing remains capped at 110.
 - Local checks on the integrated source: screenshot tool 20 and CI helper 23 tests
   pass; Drills 427 XCTest plus 75 Swift Testing pass; Engine Release 96 XCTest pass.
   Workflow YAML/shell syntax passes. These are local Xcode 27 checks, not final CI
