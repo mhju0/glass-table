@@ -7,13 +7,14 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 ## Current state (2026-10-14)
 
-- Build 25 is in `main` and on the iPhone 12 mini: the owner's build 24 lesson feedback
+- Build 26 is in local `main` (not pushed) and on the iPhone 12 mini; it adds the rebuilt
+  "A hand together" and the Play result button fix to build 25.
+- Build 25 held the owner's build 24 lesson feedback
   (direct fixes, answer marking F2, white answer cards S1, picks 1A, 1C, 2A, 3A) and
   "a near miss is wrong". Mocks: https://claude.ai/artifact/9GBTnNb66MwufA7B19rG7e and
   https://claude.ai/artifact/8aPmc5HftjZcezcpN6TkYs. Items and limits:
   `.scratch/lesson-feedback-2026-10-13/map.md`.
-- "A hand together" is rebuilt on the Play table on branch `feat/guided-hand-on-table`
-  (not merged, not on a phone): one fixed two-player hand with the real action buttons,
+- "A hand together" is rebuilt on the Play table (`aafc0b5`, in build 26): one fixed two-player hand with the real action buttons,
   a coach card (Now / Look at / Think), the coach's pick marked on a button, a dimmed
   spotlight on the first steps, and a question before giving up. The owner chose "the
   mix of B and A" from https://claude.ai/artifact/45hN7vNa15ru28nfsHovcR. Notes and
@@ -38,7 +39,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - One corner radius, 10, for cards, panels, seats, felt and controls (`GT.Radius.panel`
   and `.control`; owner chose "everything 10" on 2026-10-13). Nothing in the app's own
   shapes may follow the display curve. Pills and playing cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (25), fresh install; iPhone 13 mini has build
+- Phones: iPhone 12 mini has signed 1.0 (26), fresh install; iPhone 13 mini has build
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
@@ -91,10 +92,6 @@ Tests:
   that afternoon, failed again in the final run and 4/4 right after, same code. The
   audited hand is fixed (seed 97) and simulator appearance/text size match iPhone 17,
   where it passes. Unexplained; measured text contrast is at least 5.2:1.
-- `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes` fails
-  on the iPhone 12 mini simulator on `main` (build 25) as well as on the guided-hand
-  branch, three runs: the result text sits 1.5pt above its scroll area (line 160). It
-  passed on iPhone 17 at `a469449`. Not investigated; first seen 2026-10-14.
 - Build 24 had only the unit tests and three hand-rank UI tests on iPhone 17, not the
   full suite.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
@@ -154,7 +151,16 @@ Tests:
   (`FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable`, passed on a re-run),
   before a second run on the same simulator spoiled the rest. Do not run two test
   sessions on one simulator.
-- Next: owner looks at the rebuilt hand and says whether to merge and install it.
+- Owner approved merge and install, and asked for the Play result scroll failure to be
+  looked at. Cause: `456b9ca` made secondary buttons taller, so at AX5 on the 12 mini
+  "Start new game" was 2pt taller than the result panel. Fixed by stacking the two
+  result buttons at accessibility sizes (`f4d1fe9`); the open issue is resolved. 93 unit
+  and 90 UI tests passed on the 12 mini simulator, no full run on the final source.
+- Build 26: `main` fast-forwarded locally (not pushed), build 25 uninstalled, fresh
+  install on the iPhone 12 mini, welcome seen, no progress copied
+  (`.build/device-install-b26/`).
+- Next: owner tries build 26 and says whether to push `main`; the pass-mark question
+  for clearing a lesson is still open.
 
 ### 2026-10-13 — GRAC gameplay recording (separate session)
 
