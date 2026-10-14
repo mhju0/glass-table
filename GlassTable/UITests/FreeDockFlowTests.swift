@@ -219,6 +219,8 @@ final class FreeDockFlowTests: XCTestCase {
             let middle = app.buttons["free-call"].exists ? app.buttons["free-call"] : app.buttons["free-check"]
             let slots = [app.buttons["free-fold"], middle, app.buttons["free-raise"]]
             for slot in slots {
+                XCTAssertLessThanOrEqual(slot.frame.height, scroll.frame.height,
+                                         "A complete action slot must fit inside the dock viewport")
                 var visible = false
                 for _ in 0..<8 {
                     let viewport = scroll.frame
@@ -227,9 +229,29 @@ final class FreeDockFlowTests: XCTestCase {
                         visible = true
                         break
                     }
-                    scroll.swipeUp()
+                    let travelLimit = min(80, viewport.height / 2 - 8)
+                    let delta = frame.minY < viewport.minY
+                        ? -min(travelLimit, max(24, viewport.minY - frame.minY + 8))
+                        : min(travelLimit, max(24, frame.maxY - viewport.maxY + 8))
+                    print("Free dock AX drag \(code) \(phase) \(slot.identifier): slot=\(frame), viewport=\(viewport), delta=\(delta)")
+                    let start = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                    start.press(forDuration: 0.05,
+                                thenDragTo: start.withOffset(CGVector(dx: 0, dy: -delta)),
+                                withVelocity: .slow, thenHoldForDuration: 0.5)
+                    RunLoop.current.run(until: Date().addingTimeInterval(0.5))
                 }
                 XCTAssertTrue(visible, "\(code) \(phase) \(slot.identifier): \(slot.frame), viewport \(scroll.frame)")
+                print("Free dock AX reachable \(code) \(phase) \(slot.identifier): slot=\(slot.frame), viewport=\(scroll.frame)")
+                if phase == "all-in-call", slot.identifier == "free-fold" {
+                    let capture = XCTAttachment(screenshot: app.screenshot())
+                    capture.name = "AX-dock-\(code)-\(phase)-fold-fully-visible"
+                    capture.lifetime = .keepAlways
+                    add(capture)
+                    let hierarchy = XCTAttachment(string: app.debugDescription)
+                    hierarchy.name = "AX-dock-\(code)-\(phase)-fold-hierarchy"
+                    hierarchy.lifetime = .keepAlways
+                    add(hierarchy)
+                }
             }
             print("Free dock AX \(code) \(phase): slots=\(slots.map(\.frame)), viewport=\(scroll.frame)")
             let capture = XCTAttachment(screenshot: app.screenshot())
