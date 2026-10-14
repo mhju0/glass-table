@@ -1,0 +1,70 @@
+# The full UI flow suite, too slow for every push. Runs nightly and on demand.
+# Test classes are split across three shards by test count, so a new class needs
+# no workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT.
+name: UI tests
+on:
+  schedule:
+    - cron: '0 18 * * *'   # 18:00 UTC = 03:00 KST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-tests:
+    runs-on: macos-15
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select newest Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          xcodebuild -version
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Pick this shard's test classes
+        run: |
+          python3 - "${{ matrix.shard }}" > only-testing.txt <<'EOF'
+          import pathlib, re, sys
+          shard = int(sys.argv[1])
+          classes = []
+          for path in sorted(pathlib.Path('GlassTable/UITests').glob('*.swift')):
+              text = path.read_text()
+              for name in re.findall(r'^(?:final )?class (\w+)\s*:\s*XCTestCase', text, re.M):
+                  classes.append((len(re.findall(r'func test\w*\(', text)), name))
+          loads = [0, 0, 0]
+          picked = [[], [], []]
+          for count, name in sorted(classes, reverse=True):
+              i = loads.index(min(loads))
+              loads[i] += count
+              picked[i].append(name)
+          for name in sorted(picked[shard]):
+              print(f'-only-testing:GlassTableUITests/{name}')
+          EOF
+          cat only-testing.txt
+      - name: Run UI tests
+        run: |
+          test_simulator=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; print(next(d["udid"] for devices in json.load(sys.stdin)["devices"].values() for d in devices if d["name"].startswith("iPhone")))')
+          xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+            -destination "platform=iOS Simulator,id=$test_simulator" \
+            $(cat only-testing.txt) -resultBundlePath ui-tests.xcresult \
+            CODE_SIGNING_ALLOWED=NO test > ui-tests.log 2>&1 || { tail -200 ui-tests.log; exit 1; }
+          tail -30 ui-tests.log
+      - name: Retain failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-tests-shard-${{ matrix.shard }}
+          path: |
+            ui-tests.log
+            ui-tests.xcresult
