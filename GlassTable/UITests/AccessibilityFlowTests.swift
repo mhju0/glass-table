@@ -38,15 +38,39 @@ final class AccessibilityFlowTests: XCTestCase {
             XCTAssertEqual(app.staticTexts.matching(NSPredicate(format: "label == %@", title)).count, 1,
                            "The hand-count title must remain one accessible StaticText")
             XCTAssertTrue(app.buttons[code == "ko" ? "닫기" : "Close"].firstMatch.isHittable)
+            let menus = app.buttons.matching(identifier: "free-game-menu")
             let menu = app.buttons["free-game-menu"]
-            let ready = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"),
-                object: menu)
+            let glyphs = menu.images.matching(identifier: "ellipsis")
+            let menuLabel = code == "ko" ? "게임 메뉴" : "Game menu"
+            // The virtual Menu Button and its glyph expose different hit targets across runtimes.
+            // Check the actual scoped surface, then prove the same semantic Menu opens.
+            func isOnscreen(_ frame: CGRect) -> Bool {
+                frame.width > 0 && frame.height > 0 && app.frame.contains(frame)
+            }
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                guard menus.count == 1, menu.exists, menu.label == menuLabel, menu.isEnabled,
+                      glyphs.count == 1 else { return false }
+                let glyph = glyphs.element
+                let frame = glyph.frame
+                guard glyph.exists, isOnscreen(frame) else { return false }
+                let menuReady = menu.isHittable && isOnscreen(menu.frame)
+                let glyphReady = glyph.isHittable && menu.frame.contains(frame)
+                return menuReady || glyphReady
+            }, object: nil)
             let readiness = XCTWaiter.wait(for: [ready], timeout: 10)
             if readiness != .completed { captureMenuFailure(app, code: code, category: category) }
-            XCTAssertEqual(readiness, .completed, "The same Menu Button must become ready")
-            XCTAssertTrue(menu.exists && menu.isEnabled && menu.isHittable)
-            print("Free table menu \(code) \(category): \(menu.frame)")
+            XCTAssertEqual(readiness, .completed, "The identified Menu and scoped ellipsis must become ready")
+            XCTAssertEqual(menus.count, 1)
+            XCTAssertEqual(menu.label, menuLabel)
+            XCTAssertTrue(menu.exists && menu.isEnabled)
+            XCTAssertEqual(glyphs.count, 1)
+            let glyph = glyphs.element
+            XCTAssertTrue(glyph.exists && isOnscreen(glyph.frame))
+            let usesMenu = menu.isHittable && isOnscreen(menu.frame)
+            let activationSurface = usesMenu ? menu : glyph
+            XCTAssertTrue(activationSurface.isHittable && isOnscreen(activationSurface.frame))
+            if !usesMenu { XCTAssertTrue(menu.frame.contains(glyph.frame)) }
+            print("Free table menu \(code) \(category): \(menu.frame), surface=\(usesMenu ? "menu" : "ellipsis"), wrapperHittable=\(menu.isHittable), glyph=\(glyph.frame), glyphHittable=\(glyph.isHittable)")
             menu.tap()
             let endGame = app.buttons[code == "ko" ? "게임 마치기" : "End game"]
             let newGame = app.buttons[code == "ko" ? "새 게임 시작" : "Start new game"]
@@ -95,10 +119,17 @@ final class AccessibilityFlowTests: XCTestCase {
     }
 
     private func captureMenuFailure(_ app: XCUIApplication, code: String, category: String) {
-        let menu = app.buttons["free-game-menu"]
-        print("Free table menu failure \(code) \(category): exists=\(menu.exists)")
-        if menu.exists {
-            print("Menu enabled=\(menu.isEnabled), hittable=\(menu.isHittable), frame=\(menu.frame)")
+        let menus = app.buttons.matching(identifier: "free-game-menu")
+        print("Free table menu failure \(code) \(category): count=\(menus.count)")
+        if menus.count == 1 {
+            let menu = app.buttons["free-game-menu"]
+            print("Menu label=\(menu.label), enabled=\(menu.isEnabled), hittable=\(menu.isHittable), frame=\(menu.frame)")
+            let glyphs = menu.images.matching(identifier: "ellipsis")
+            print("Scoped ellipsis count=\(glyphs.count)")
+            if glyphs.count == 1 {
+                let glyph = glyphs.element
+                print("Ellipsis exists=\(glyph.exists), hittable=\(glyph.isHittable), frame=\(glyph.frame)")
+            }
         }
         let hierarchy = XCTAttachment(string: app.debugDescription)
         hierarchy.name = "free-table-menu-failure-hierarchy-\(code)-\(category)"
