@@ -439,7 +439,7 @@ struct TableSurface: View {
                     } else {
                     ForEach(center.board, id: \.self) {
                         TableCard(card: $0)
-                            .transition(.asymmetric(insertion: .scale(scale: 0.6).combined(with: .opacity),
+                            .transition(.asymmetric(insertion: .scale(scale: 0.92).combined(with: .opacity),
                                                     removal: .opacity))
                     }
                     }

@@ -1,6 +1,6 @@
 # 001 — Board cards enter near full size
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 9664c0a
 - **Severity**: MEDIUM
 - **Category**: Physicality & origin
