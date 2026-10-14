@@ -172,8 +172,9 @@ Tests:
   fixed it. Normal unit→UI validation is still required.
 - Scoped protocol `38581110047` at reviewed source `afe4042` completed successfully,
   including strict result reconciliation, Release launch and device contents checks.
-  It does not establish the full three-shard/native candidate; artifact counts and
-  detailed durations await readback. Measured setup was about 3 minutes and retained
+  Artifacts verify 144 unit methods and six UI tests passed, with 18 reported argument
+  rows passed. This scoped run does not establish the full three-shard/native candidate.
+  Measured setup was about 3 minutes and retained
   post-app Release/device work exceeded 11, so accepted `2c6bcca` raises only the job
   budget from 120 to 130 minutes; app testing remains capped at 110.
 - Before the build 29 merge, local checks: screenshot tool 20 and CI helper 23 tests
@@ -183,8 +184,11 @@ Tests:
 - Integrated authoritative remote main `467864a` (build 29, architecture and animation
   work) locally. Only the handoff conflicted; source hunks merged. All latest owner
   open issues and build 29 metadata are preserved. Owner checkout/staged compiler
-  edits were untouched. New-base Drills/build checks are pending; unchanged Engine
-  was not rerun. No renderer or diagnostic workflow is integrated. Next: accepted
+  edits were untouched. New-base Drills passed 427 XCTest plus 95 Swift Testing tests;
+  the generic iOS Simulator build passed with local Xcode 27, without booting a simulator.
+  YAML and all ten shell blocks parse; reviewed CI/Settings files match their accepted
+  commits exactly. Unchanged Engine was not rerun. No renderer or diagnostic workflow
+  is integrated. Next: accepted
   Play repair, frozen final review, native and full three-shard unit→UI validation.
 
 ### 2026-10-15 (Claude · build 29, lesson review)
