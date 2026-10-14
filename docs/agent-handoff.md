@@ -9,9 +9,15 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
-- Build 26 is in local `main` (not pushed) and on the iPhone 12 mini; it adds the rebuilt
-  "A hand together" and the Play result button fix to build 25.
-- Branch `feat/guide-clickable-controls` (pushed, not merged, not installed): tappable
+- Build 27 is in `main` (pushed with the owner's approval, 2026-10-14) and on the iPhone
+  12 mini. It adds the clickable-controls look and the lesson pass mark to build 26.
+- Lesson pass mark (owner, 2026-10-14, D47): a lesson or challenge is passed with two in
+  three questions, rounded up, answered alone and exactly right (`PassMark`); only that
+  clears it, and a clear is never taken back. Not passed: retry with new cards, the
+  explanation, go on anyway, Done; the path shows "Not passed · best R/Q"
+  (`NodeRecord.best`, optional, no schema bump). Records says "passed". The result screen
+  now shows the score and which question had the hint, which amends D08.
+- Clickable controls (in build 27): tappable
   things look tappable (owner, 2026-10-14). Rule 1: the top-left control always leaves
   the screen, and Previous sits beside the bottom action (`GTStepRow`). Look 2: every ✕,
   ‹, ••• and text action is an outlined rounded square with a grey border
@@ -36,10 +42,10 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Hand rank page shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles
   (owner chose mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy); in `main`
   and in build 24.
-- `main` is the only branch, local and on `origin`, and both hold all work through the
-  audit follow-ups (owner approved that one push of `main` on 2026-10-13; the standing
-  rule is still to work on a feature branch and not push `main` unasked). Old branches
-  were deleted; their history is in `main` or in the bundle under `.archive/`.
+- `main` holds all work and matches `origin/main` (owner approved the merge and push on
+  2026-10-14; the standing rule is still to work on a feature branch and not push `main`
+  unasked). `feat/guided-hand-on-table`, `feat/guide-clickable-controls` and
+  `feat/lesson-pass-mark` are merged and also on `origin`.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -48,7 +54,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - One corner radius, 10, for cards, panels, seats, felt and controls (`GT.Radius.panel`
   and `.control`; owner chose "everything 10" on 2026-10-13). Nothing in the app's own
   shapes may follow the display curve. Pills and playing cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (26), fresh install; iPhone 13 mini has build
+- Phones: iPhone 12 mini has signed 1.0 (27), fresh install; iPhone 13 mini has build
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
@@ -60,13 +66,6 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   before a UI run, or the simulator can run an old test bundle.
 
 ## Open issues
-
-Owner decision:
-- A lesson is marked cleared once every question is answered, right or wrong
-  (`ProgressionModel.commitNodeAnswer`). Owner, 2026-10-14: clearing should need a pass
-  mark. Proposal: 2 of 3 right on your own, 4 of 6 for challenges, old clears kept. Mock:
-  https://claude.ai/artifact/DyrNHkBBp9sUnUAUBQjdwr. Waiting on the owner's four choices;
-  the code is unchanged.
 
 Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
@@ -113,6 +112,24 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`.
 
 ## Recent sessions
+
+### 2026-10-14 (Claude · lesson pass mark, build 27)
+
+- Owner took all four pass-mark picks (D47) and approved merge, push and install. Built
+  `PassMark`, `NodeRecord.best`, the passed / not-passed result screen with per-question
+  marks and retry, the path's "Not passed · best R/Q" and "passed" in Records (`bb852ee`).
+  Two tests were renamed on purpose: an all-wrong or help-only lesson no longer clears.
+  The mark rows use the light `GT.glass` fill: on the felt panel tint the green measured
+  4.46:1 and failed the summary contrast audit.
+- Tests: Drills 428, app 98 unit; full UI suite on two 12 mini simulators, 228 tests,
+  3 failed: the summary audit (fixed, passed on the rebuild) and the two known Play table
+  audits. The new retry and not-passed UI tests pass. Screens checked in Korean dark and
+  English light at normal and AX5.
+- Merged by fast-forward to `main` (`10744ab`) and pushed with the branches. Build 27:
+  build 26 uninstalled, fresh install on the iPhone 12 mini, welcome seen, no progress
+  copied (`.build/device-install-b27/`). The GRAC handoff notes from the other session
+  were committed separately (`46f29ab`), so receipt TG-OM-26-01177 is now in the public repo.
+- Next: owner tries build 27.
 
 ### 2026-10-14 (Claude · clickable controls)
 
@@ -201,10 +218,3 @@ Tests:
   12 mini simulator) and tappable text must look tappable everywhere. Mocks and the
   app-wide rule options are in `.scratch/clickable-controls-2026-10-14/map.md`; the
   owner has not chosen a rule yet.
-
-### 2026-10-13 — GRAC gameplay recording (separate session)
-
-- Recorded normal Release 1.0(22) UI on a dedicated fresh simulator from frozen source `4c191a690bcda0ef5d495b9730cd6a82ce2137d5`; 146 production files fingerprint `823347f2325216749d791086ee3491cf1aef499fa6ea768be769d743ae744ca6`. Production source showed no drift after capture. No demo injection or direct progress edits.
-- Final video: `docs/grac-submission/2026-10-13/GlassTable_GRAC_1.0_22_2026-10-13.mp4`; identical copy in `/Users/michaelju/Downloads/GlassTable_GRAC_1.0_22_2026-10-13.mp4`. 31:01, H264, 1206×2622, 149,169,691 bytes, silent. SHA256 `4ad06ce8fea6d74acd71a4878b1c115440fb58879fd5eb24dd435b375b75c2a1`.
-- Real footage covers Korean teaching and quizzes, quick 40-chip game ending at hand 3 on depletion, long 100-chip table with normal actions/payouts and visible free 100-chip replenishment at 14:26, four graded teaching hands, Records, responsible-use guidance and native version. Whole-game recap is not evidenced or claimed.
-- Exact paste rows: `docs/grac-submission/2026-10-13/section-3.6.md`; provenance/timeline: `video-timeline.json`; checks and limits: `media-report.md`. Final complete VFR-aware decode exited 0 with no diagnostics; representative final frames independently accepted by root. Dedicated simulator shut down, prior three booted simulators preserved, no owned recorder/test processes remain. No upload, form submission, or commit.
