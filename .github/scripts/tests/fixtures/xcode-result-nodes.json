@@ -1,0 +1,62 @@
+{
+  "plain": {
+    "duration": "0.0073s",
+    "durationInSeconds": 0.0073299407958984375,
+    "name": "testLadderExamplesAreTheHandsTheyName()",
+    "nodeIdentifier": "HoldemBasicsContentTests/testLadderExamplesAreTheHandsTheyName()",
+    "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableTests/HoldemBasicsContentTests/testLadderExamplesAreTheHandsTheyName",
+    "nodeType": "Test Case",
+    "result": "Passed"
+  },
+  "parameterized": {
+    "children": [
+      {
+        "duration": "0.00019s",
+        "durationInSeconds": 0.00019407272338867188,
+        "name": "UIUserInterfaceStyle(rawValue: 1)",
+        "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableTests/AppearanceTests/semanticTextPairsMeetNormalTextContrast(style:)?args=6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+        "nodeType": "Arguments",
+        "result": "Passed"
+      },
+      {
+        "duration": "0.000083s",
+        "durationInSeconds": 8.320808410644531e-05,
+        "name": "UIUserInterfaceStyle(rawValue: 2)",
+        "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableTests/AppearanceTests/semanticTextPairsMeetNormalTextContrast(style:)?args=d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+        "nodeType": "Arguments",
+        "result": "Passed"
+      }
+    ],
+    "duration": "0.00014s",
+    "durationInSeconds": 0.0001386404037475586,
+    "name": "semanticTextPairsMeetNormalTextContrast(style:)",
+    "nodeIdentifier": "AppearanceTests/semanticTextPairsMeetNormalTextContrast(style:)",
+    "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableTests/AppearanceTests/semanticTextPairsMeetNormalTextContrast(style:)",
+    "nodeType": "Test Case",
+    "result": "Passed"
+  },
+  "ui": {
+    "duration": "41s",
+    "durationInSeconds": 41.47949707508087,
+    "name": "testAXENDockSlotsAndBarsRemainReachable()",
+    "nodeIdentifier": "FreeDockFlowTests/testAXENDockSlotsAndBarsRemainReachable()",
+    "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableUITests/FreeDockFlowTests/testAXENDockSlotsAndBarsRemainReachable",
+    "nodeType": "Test Case",
+    "result": "Passed"
+  },
+  "skip": {
+    "children": [
+      {
+        "name": "Test skipped - UX audit crawl runs only with GT_AUDIT_OUT",
+        "nodeType": "Skip Message"
+      }
+    ],
+    "duration": "0.59s",
+    "durationInSeconds": 0.5856360197067261,
+    "name": "test01FirstRun()",
+    "nodeIdentifier": "UXAuditCrawl/test01FirstRun()",
+    "nodeIdentifierURL": "test://com.apple.xcode/GlassTable/GlassTableUITests/UXAuditCrawl/test01FirstRun",
+    "nodeType": "Test Case",
+    "result": "Skipped"
+  }
+}

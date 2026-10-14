@@ -9,44 +9,84 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  app-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
     runs-on: macos-15
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
-      # The app compiles against iOS 26 API (sharedBackgroundVisibility in the nav
-      # chrome), and #available guards runtime, not compile — the runner's default
-      # Xcode builds with an older SDK and fails on the symbol. Pick the newest
-      # installed Xcode and say which, so the next SDK mismatch is one log line away.
-      - name: Select newest Xcode
+        with:
+          ref: ${{ github.sha }}
+      # Pin the compiler and runtime so all three compiled inventories agree.
+      - name: Select Xcode 26.3 and iPhone 16 Pro iOS 18.5
         run: |
-          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
-          xcodebuild -version
+          sudo xcode-select -s /Applications/Xcode_26.3.app
+          mkdir -p .build/ci-shard
+          xcodebuild -version | tee .build/ci-shard/xcode-version.txt
+          xcrun simctl list devices available -j > .build/ci-shard/simulators.json
+          python3 - <<'PYSELECT' >> "$GITHUB_ENV"
+          import json
+          with open(".build/ci-shard/simulators.json") as source:
+              data = json.load(source)
+          simulator = next(device["udid"] for runtime, devices in data["devices"].items()
+                           if runtime.endswith("iOS-18-5") for device in devices
+                           if device["name"] == "iPhone 16 Pro")
+          print(f"CI_TEST_SIMULATOR={simulator}")
+          PYSELECT
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
         run: xcodegen generate
       - name: Screenshot tool failure-path tests
-        run: python3 -m unittest discover -s tools/tests
+        run: |
+          python3 -m unittest discover -s tools/tests
+          python3 -m unittest discover -s .github/scripts/tests
       - name: Drills package tests
         run: swift test --package-path GlassTableDrills
-      # Testing builds the app as well; a separate Debug build repeats that work.
       - name: Build app and run unit and learner-flow tests
+        id: app-tests
         timeout-minutes: 110
         run: |
           set -o pipefail
-          test_simulator=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; print(next(d["udid"] for devices in json.load(sys.stdin)["devices"].values() for d in devices if d["name"].startswith("iPhone")))')
-          mkdir -p .build
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
-            -destination "platform=iOS Simulator,id=$test_simulator" \
-            -resultBundlePath .build/ci-app-tests.xcresult \
-            CODE_SIGNING_ALLOWED=NO test 2>&1 | tee app-tests.log
+            -destination "platform=iOS Simulator,id=$CI_TEST_SIMULATOR" \
+            -derivedDataPath .build/ci-app -parallel-testing-enabled NO \
+            -enumerate-tests -test-enumeration-format json -test-enumeration-style hierarchical \
+            -test-enumeration-output-path .build/ci-shard/enumeration.json \
+            CODE_SIGNING_ALLOWED=NO test 2>&1 | tee enumeration.log
+          python3 .github/scripts/ci_shards.py assign \
+            --enumeration .build/ci-shard/enumeration.json --shard ${{ matrix.shard }} \
+            --sha "$GITHUB_SHA" --xcode-version-file .build/ci-shard/xcode-version.txt \
+            --runtime 18.5 --model 'iPhone 16 Pro' \
+            --manifest .build/ci-shard/manifest.json --skip-file .build/ci-shard/skip-classes.txt
+          skip_args=()
+          while IFS= read -r identifier; do
+            skip_args+=("-skip-testing:$identifier")
+          done < .build/ci-shard/skip-classes.txt
+          xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+            -destination "platform=iOS Simulator,id=$CI_TEST_SIMULATOR" \
+            -derivedDataPath .build/ci-app -parallel-testing-enabled NO \
+            -resultBundlePath .build/ci-app-tests.xcresult "${skip_args[@]}" \
+            CODE_SIGNING_ALLOWED=NO test-without-building 2>&1 | tee app-tests.log
+      - name: Reconcile compiled discovery and executed test results
+        if: always()
+        run: |
+          xcrun xcresulttool get test-results summary --path .build/ci-app-tests.xcresult > .build/ci-shard/test-summary.json
+          xcrun xcresulttool get test-results tests --path .build/ci-app-tests.xcresult > .build/ci-shard/test-results.json
+          python3 .github/scripts/ci_shards.py report \
+            --manifest .build/ci-shard/manifest.json --tests .build/ci-shard/test-results.json \
+            --summary .build/ci-shard/test-summary.json --log app-tests.log \
+            --app-outcome '${{ steps.app-tests.outcome }}' --output .build/ci-shard/report.json
       - name: Exercise Release launch without demo hooks
         run: |
-          test_simulator=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; print(next(d["udid"] for devices in json.load(sys.stdin)["devices"].values() for d in devices if d["name"].startswith("iPhone")))')
           xcodebuild -project GlassTable.xcodeproj -scheme GlassTableReleaseSmoke \
-            -configuration Release -destination "platform=iOS Simulator,id=$test_simulator" \
-            -derivedDataPath .build/ci-release-smoke -only-testing:GlassTableUITests/ReleaseSmokeTests \
+            -configuration Release -destination "platform=iOS Simulator,id=$CI_TEST_SIMULATOR" \
+            -derivedDataPath .build/ci-release-smoke -parallel-testing-enabled NO \
+            -only-testing:GlassTableUITests/ReleaseSmokeTests \
             ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO test > release-smoke.log 2>&1 || { tail -100 release-smoke.log; exit 1; }
           tail -30 release-smoke.log
       - name: Build device Release and verify distributable contents
@@ -55,14 +95,47 @@ jobs:
             -configuration Release -destination 'generic/platform=iOS' \
             -derivedDataPath .build/ci-release CODE_SIGNING_ALLOWED=NO build > release-build.log 2>&1 || { tail -100 release-build.log; exit 1; }
           python3 tools/verify_release.py .build/ci-release/Build/Products/Release-iphoneos/GlassTable.app
+      - name: Retain shard coverage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shard-manifest-${{ matrix.shard }}
+          include-hidden-files: true
+          path: .build/ci-shard/
       - name: Retain failure evidence
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: validation-logs
+          name: validation-logs-shard-${{ matrix.shard }}
           include-hidden-files: true
           path: |
+            enumeration.log
             app-tests.log
             .build/ci-app-tests.xcresult
             release-build.log
             release-smoke.log
+
+  build-and-test:
+    if: always()
+    needs: app-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: shard-manifest-*
+          path: .build/shard-reports
+      - name: Verify complete three-shard coverage
+        run: |
+          python3 .github/scripts/ci_shards.py aggregate \
+            --reports-dir .build/shard-reports --job-status '${{ needs.app-tests.result }}' \
+            --sha "$GITHUB_SHA" --output .build/coverage-summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-summary
+          include-hidden-files: true
+          path: .build/coverage-summary.json
