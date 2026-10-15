@@ -65,6 +65,11 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Merged to `main` with the owner's approval (2026-10-15): `ci/lean-pipeline-20261015`
   (PR #12) and `fix/ux-lesson-gaps-20261015` (lesson review gaps and most of the
   screenshot UX audit, `.scratch/screenshot-ux-audit-2026-10-15/report.html`).
+- Owner decisions on the lesson review and UX audit (owner liked every suggestion in
+  https://claude.ai/artifact/6gcHb6SVBTLnkBmhog7TvY, 2026-10-15) are on
+  `feat/owner-decisions-20261015`: chart guide opens only the first time, a
+  hand-specific chart reason (`DefendChart.reason`), a verdict-first table review with
+  "Details", and a call-or-fold lesson `u2-callFold` before the price challenge.
 - CI/CD (owner chose "simpler CI, I take over" and "TestFlight on tag"): `ci.yml` gates
   pushes/PRs on unit tests plus the Release smoke and bundle checks; `ui-tests.yml` runs
   the UI suite nightly in three shards; `release.yml` uploads a `v<version>-<build>` tag
@@ -106,20 +111,12 @@ Never verified with people or hardware:
 - GRAC: owner submitted 1.0(22), now awaiting processing, any corrections, rating and RCN. Reviewer installation is unverified: development IPA permits only two registered devices; TestFlight upload/invite not performed. Confirm delivery with GRAC if needed. Video/simulator acceptance and statutory Annex 2(8) final selection remain unverified; working answers are not a final portal export.
 
 Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
-- Call or fold, the decision price-and-chance builds to, has no lesson; it is only in
-  the optional u2 challenge. Outs sits second in the suggested order with no recorded
+- Outs sits second in the suggested order with no recorded
   reason (`c31a5c7`). Rules pages (pot, blinds, flow) stay optional; the glossary now
   defines those words. Chen score is never explained.
-- Outs beginner choices can be 1 apart while only exact answers count (left: exact
-  counting is the skill). Pot-odds/MDF choices were fixed on `fix/ux-lesson-gaps-20261015`.
-- Starting check (D46 item 3) is reachable only by a DEBUG hook; Settings has no entry
-  (removed on purpose in `7549a32`).
-
-Screenshot UX audit (`.scratch/screenshot-ux-audit-2026-10-15/report.html`), left for
-the owner on `fix/ux-lesson-gaps-20261015`:
-- #29 fold the graded-table guide by default (conflicts with the remembered-collapse
-  test and its decision); #52 hand-specific chart reason wording; #34/#41 visible rank
-  headers on the compact grid; taste items (container weight, gutters, palette).
+- Kept on purpose (owner, 2026-10-15): outs beginner choices can be 1 apart because
+  exact counting is the skill; the starting check stays out of Settings (`7549a32`);
+  audit #34/#41 compact-grid rank headers stay as they are.
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
@@ -166,6 +163,26 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-15 (Claude · owner decisions)
+
+- Owner approved every suggestion in the before/after artifact and merging PR #13
+  (done once its gate passed). Branch `feat/owner-decisions-20261015`.
+- Chart guide: `ChartGuideMemory` (per-store UserDefaults) opens "How to read the chart"
+  only on the first chart. Chart reason: the preflop takeaway states the opener's
+  range, the call and re-raise slices, and where this hand ranks by Chen combos.
+- Review panel: verdict and takeaway first, then one row of outlined tiles (Details,
+  chart, policy; outlined, not the mock's gold links, per the clickable-controls rule);
+  prices and basis sit behind Details.
+- Call-or-fold lesson: new node `u2-callFold` (after `u2-evCall`, before `u2-boss`) on
+  the price track. Its questions show both shares (`callFoldLessonNumbers`); the
+  challenge does not. The boss keeps `own: .callFold` so saved challenge sessions stay
+  valid, so call-or-fold is the one concept taught twice. Challenge rows on the path now
+  read "Mixed practice". No schema change; the new lesson shows as not started.
+- Kept: outs choices, starting check, compact-grid headers (#34/#41).
+- `docs/ci-cd.md` records the first nightly UI run: shard 1 failed only
+  `testPlayTable`, a pre-existing failure on `main`.
+- Next: owner reviews the branch, then merge and install.
 
 ### 2026-10-15 (Codex · revised screenshot UX report)
 
@@ -224,24 +241,3 @@ Tests:
 - Owner asked for a review of every lesson from a never-played view; published above.
   The defend finding was checked by reading the code myself.
 - Next: owner tries build 29, reads the lesson review, and decides what to fix.
-
-### 2026-10-14 (Claude · animation fixes and architecture refactors)
-
-- Owner asked for all three animation audit fixes, then every Strong candidate of the
-  architecture review. Animation plans were executed by a subagent in a worktree and
-  reviewed; four refactors each move a rule from app views or the model into Drills,
-  with Drills tests. Branches are listed under Current state; none is merged.
-- Behaviour kept: the raise reasons were checked against the old view logic on 400
-  random hands; the reveal text against the old builder in 95,360 cases (temporary
-  test, not kept). The live drill's fallback reveal strings were never shown and are
-  gone. A corrupt out-of-range review or lesson ordinal now returns false instead of
-  crashing.
-- Tests: Drills 427 XCTest + 95 Swift Testing; app 97 unit. UI on 12 mini simulators,
-  no failures: guided hand, invitation, welcome, beginner release, restored parity
-  (journey); restored presentation, numerical reveal, bilingual B20, learning (reveal);
-  graded learning/dock, learning, device-feedback lesson, numerical records (graded);
-  free raise and dock (raise); guided-hand flow, invitation, free dock (animation).
-  No full suite and no screenshot sweep; no layout changed except the animations.
-- Left: PlayView's setup↔table loop was not moved; worktree
-  `.claude/worktrees/agent-ab78e6dade09f5213` still exists.
-- Next: owner reviews the branches and decides on merge and install (done 2026-10-15).
