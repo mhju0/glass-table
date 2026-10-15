@@ -35,6 +35,49 @@ public enum DefendChart {
             .subtracting(threeBetRange(vsOpenFrom: seat))
     }
 
+    /// The share of all combos ranked at or above `hand` by Chen — the order the bands
+    /// are cut from, so it places the hand against each band's edge.
+    public static func strengthPercent(of hand: HandClass) -> Double {
+        var running = 0
+        for h in Chen.ranked {
+            running += h.comboCount
+            if h == hand { break }
+        }
+        return Double(running) / Double(HandClass.totalCombos) * 100
+    }
+
+    /// The opener's rule in the chart's own numbers, then where this hand sits in it.
+    public static func reason(for hand: HandClass, vsOpenFrom seat: Position,
+                              language: LearningLanguage) -> String {
+        let open = openPercent(of: seat)
+        let rank = Int(strengthPercent(of: hand).rounded())
+        let action = action(for: hand, vsOpenFrom: seat)
+        let koAction = switch action {
+        case .fold: "폴드"
+        case .call: "콜"
+        case .threeBet: "다시 올리기"
+        }
+        let enAction = switch action {
+        case .fold: "a fold"
+        case .call: "a call"
+        case .threeBet: "a raise again"
+        }
+        return language.text(
+            "\(seat.plainName(in: language)): 상위 \(pctText(open))%로 먼저 올려요. "
+            + "그 폭의 상위 \(pctText(open * threeBetShare))%는 다시 올리고, "
+            + "\(pctText(open * defendShare))%까지는 콜이에요. "
+            + "\(KO.topic(hand.description)) 강한 순서로 상위 \(rank)%쯤이라 \(KO.copula(koAction))",
+            "\(seat.plainName(in: language)) raises first with the top \(pctText(open))% of hands. "
+            + "Raise again with the top \(pctText(open * threeBetShare))%; call up to \(pctText(open * defendShare))%. "
+            + "\(hand.description) ranks near the top \(rank)% by strength, so it is \(enAction).")
+    }
+
+    static func action(for hand: HandClass, vsOpenFrom seat: Position) -> DefendAction {
+        if threeBetRange(vsOpenFrom: seat).weight(hand) > 0 { return .threeBet }
+        if callRange(vsOpenFrom: seat).weight(hand) > 0 { return .call }
+        return .fold
+    }
+
     /// Total by construction: 3벳 band, else 콜 band, else fold.
     public static func action(for hand: [Card], vsOpenFrom seat: Position) -> DefendAction {
         if threeBetRange(vsOpenFrom: seat).contains(hand) { return .threeBet }

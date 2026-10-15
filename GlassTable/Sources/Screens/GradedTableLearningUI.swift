@@ -1,9 +1,14 @@
 import GlassTableDrills
+import GlassTableEngine
 
 enum GradedTableLearning {
-    static func takeaway(_ turn: TableView.TurnRecord, language: LearningLanguage) -> String {
+    static func takeaway(_ turn: TableView.TurnRecord, hand: TableHand?, language: LearningLanguage) -> String {
         switch turn.verdict {
         case let .chart(verdict):
+            // The opener's rule and this hand's place in it, as the defend lesson shows.
+            if let hand, let handClass = HandClass(hand.hero) {
+                return DefendChart.reason(for: handClass, vsOpenFrom: hand.villainSeat, language: language)
+            }
             switch verdict.chart {
             case .fold:
                 return language.text("이 시작 패는 차트에서 내려놓는 쪽에 속해요.",
