@@ -140,7 +140,7 @@ correct result neutrally and offers the actual calculation on demand. This does
 not remove explanations or the requirement that grading be inspectable.
 
 The table/tray hybrid is currently a local mock under
-`.scratch/pot-calculation-redesign/hybrid.html`, pending visual critique. This
+`docs/records/2026-09-22-pot-calculation-redesign.md`, pending visual critique. This
 direction does not establish app-wide introductions or native delivery.
 
 ### Pot replay simplification, approved 2026-09-23
@@ -164,7 +164,7 @@ slate/blue and paper/pine with semantic surface, text, action and feedback roles
 Chip totals remain neutral; green no longer fills the entire recommended screen.
 Charcoal/amber is the agent recommendation, not an approved app-wide replacement.
 Research and measured contrast are in
-`.scratch/pot-calculation-redesign/palette-research.md`. Native styling is unchanged.
+`docs/records/2026-09-22-pot-calculation-redesign.md`. Native styling is unchanged.
 
 ### Native pot lesson and adaptive appearance, delivered 2026-09-23
 
@@ -205,8 +205,8 @@ layout below the unchanged question/table, with optional calculation steps.
 Every mode needs a skippable, reopenable visual worked example with everyday
 language and definitions at first use. In Play, show hidden cards, folds and the
 central pot visually while preserving actual information boundaries.
-The [approved spec](.scratch/consistent-learning-table/spec.md) and
-[teaching plan](.scratch/consistent-learning-table/teaching-plan.md) record the
+The [approved spec](docs/records/2026-09-23-consistent-learning-table.md) and
+[teaching plan](docs/records/2026-09-23-consistent-learning-table.md) record the
 decisions, scope, evidence requirements and implementation limits.
 
 ### Bilingual line parity, owner rule 2026-09-24
@@ -230,4 +230,4 @@ same in Korean and English; switching language must not change its layout.
   (owner confirmed 2026-09-24; fitting every size would shorten default copy).
 - Fit copy by measuring the rendered text, not by counting characters. The
   prototype's `audit-lines.cjs` shows the method; for native, the Vision OCR
-  audit in `.scratch/consistent-learning-table/native-audit/` is the check.
+  audit in `tools/line-parity/` is the check.

@@ -2,7 +2,8 @@
 
 iOS app that teaches No-Limit Hold'em in ranges and EV. Start with `CONTEXT.md`.
 Design docs live in `docs/`: `product-brief.md`, `decisions.md`, `open-questions.md`,
-`risks.md`, and delivery specs under `docs/specs/`. M1-era `docs/plans/` are historical.
+`risks.md`, and delivery specs under `docs/specs/`. Finished reports, audits and scratch
+work are kept only as short text records in `docs/records/` (see its README).
 
 Requires macOS, Xcode 26+ (even though deployment targets iOS 17), and XcodeGen
 (`brew install xcodegen`). Run from the repository root:
@@ -57,7 +58,7 @@ regressions and verification limits.
 
 ### Issue tracker
 
-Issues and specs live as local markdown files under `.scratch/<feature-slug>/`. See `docs/agents/issue-tracker.md`.
+Issues and specs live as local markdown files under `.scratch/<feature-slug>/` while the work is open. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
@@ -69,8 +70,8 @@ Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/do
 
 ## Agent handoff
 
-- At session start, read `docs/agent-handoff.md`. Do not read `docs/handoff-archive/`
-  or `docs/PROJECT_HANDOFF.md` unless tracing one specific past decision.
+- At session start, read `docs/agent-handoff.md`. Read `docs/records/` only when tracing
+  one specific past decision.
 - Before ending a session where you made decisions, changed architecture, or left work unfinished:
   rewrite "Current state" so it is true now; add new open issues and remove resolved
   ones; add one short dated entry under "Recent sessions" (what changed, decisions and

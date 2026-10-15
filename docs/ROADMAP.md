@@ -3,7 +3,7 @@
 > Rewritten 2026-09-25 from the owner's answers on the
 > [release research page](https://claude.ai/artifact/5uBT6CLXkUkruLoYyxUgjN).
 > The previous roadmap (2026-09-04, NOW section dated 09-05) is archived at
-> [`handoff-archive/2026-09-25-roadmap-before-release-plan.md`](handoff-archive/2026-09-25-roadmap-before-release-plan.md).
+> [`docs/records/2026-09-04-session-history.md`](records/2026-09-04-session-history.md).
 > Why each choice was made: [`decision-history.md`](decision-history.md).
 
 Goal: get 1.0 onto the App Store in Korea and the US **as soon as possible**. "Done" beats
@@ -119,7 +119,7 @@ Each item gets a short spec or issue under `.scratch/` before it is built.
   for a specific unanswered question, such as which lesson people quit on. It must
   land together with its privacy work: the "offline, no analytics" rule in
   `AGENTS.md`, the privacy policy, the App Privacy answers and anything told to GRAC.
-  Research and options: [`research/2026-10-05-analytics-and-launch-services.md`](research/2026-10-05-analytics-and-launch-services.md).
+  Research and options: [`docs/records/2026-10-05-analytics-and-launch-services.md`](records/2026-10-05-analytics-and-launch-services.md).
 - **Later:** home-screen widget (needs an App Group, i.e. a `progression.json`
   location migration), optional sounds, `KO.wordJoined` coverage for `Text`
   literals and button titles.

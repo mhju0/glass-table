@@ -17,8 +17,7 @@ build-device-release/
 
 # Local tool caches and compiled probe output
 .playwright-mcp/
-/.scratch/numerical-audit-2026-10-11/
-/.scratch/consistent-learning-table/native-audit/.build-ocr-lines
+/tools/line-parity/.build-ocr-lines
 
 # Rating-board submission packages (videos, forms); kept locally only
 /docs/grac-submission/

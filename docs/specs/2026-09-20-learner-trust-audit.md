@@ -121,17 +121,17 @@ temporary logs/results below are local evidence, not required runtime files.
 
 ### Retained visual evidence
 
-Final six-screen refresh: [normal](../evidence/2026-09-20-learner-trust/large/)
-and [AX5](../evidence/2026-09-20-learner-trust/ax5/) `table-policy`,
+Final six-screen refresh: [normal](../records/2026-09-20-learner-trust-evidence.md)
+and [AX5](../records/2026-09-20-learner-trust-evidence.md) `table-policy`,
 `drill-defend-reveal`, and `drill-evloss-fold` PNGs are from `4a49997`.
 The AX initial frames intentionally require scrolling; the interaction tests
 exercise the later explanations and controls.
 
-- [AX table cards fully above the tab bar](../evidence/2026-09-20-learner-trust/ax5/table-hole-cards.png)
-- [Normal outs cards above collapsed entry](../evidence/2026-09-20-learner-trust/large/outs-hole-cards.png)
-- [AX keypad expanded](../evidence/2026-09-20-learner-trust/ax5/count-keypad-expanded.png)
-  and [collapsed after Done](../evidence/2026-09-20-learner-trust/ax5/count-entry-collapsed.png)
-- [Final AX EV equation and horizontal action label](../evidence/2026-09-20-learner-trust/ax5/ev-loss-equation.png)
+- [AX table cards fully above the tab bar](../records/2026-09-20-learner-trust-evidence.md)
+- [Normal outs cards above collapsed entry](../records/2026-09-20-learner-trust-evidence.md)
+- [AX keypad expanded](../records/2026-09-20-learner-trust-evidence.md)
+  and [collapsed after Done](../records/2026-09-20-learner-trust-evidence.md)
+- [Final AX EV equation and horizontal action label](../records/2026-09-20-learner-trust-evidence.md)
 
 The first four interaction captures come from the green `2ddc8f3` full suite;
 those screens did not change afterward. The final equation is from `4a49997`.
