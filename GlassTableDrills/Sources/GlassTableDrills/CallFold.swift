@@ -55,6 +55,13 @@ public struct CallFoldReveal: Equatable {
     public let whyText: String
 }
 
+/// The two numbers the call-or-fold lesson shows before the answer. Comparing them is
+/// the skill; estimating the share is the equity lesson's job.
+public func callFoldLessonNumbers(spot: CallFoldSpot, language: LearningLanguage) -> String {
+    language.text("끝까지 갔을 때 내 몫 \(pctText(spot.equityPct))% · 콜에 필요한 몫 \(pctText(spot.requiredPct))%",
+                  "Your share if it goes to the end \(pctText(spot.equityPct))% · The call needs \(pctText(spot.requiredPct))%")
+}
+
 /// Binary grade: 정확 or 빗나감 — no 근접 band for a two-way decision.
 public func gradeCallFold(userCalls: Bool, spot: CallFoldSpot,
                           language: LearningLanguage = .korean) -> CallFoldReveal {

@@ -149,7 +149,7 @@ public struct ConceptIntroduction: Sendable {
         case .evCall:
             copy = ("이 콜의 평균 손익", "What is this call worth?", "한 번의 결과보다 같은 결정을 반복했을 때의 평균을 봐요.", "Look beyond one result to the average over repeated decisions.", "이길 때 얻는 금액과 질 때 잃는 금액을 각각의 확률로 따져요.", "Weigh what you win and lose by the chance of each outcome.")
         case .callFold:
-            copy = ("콜할까요, 포기할까요?", "Call or fold?", "좋은 카드라도 가격이 너무 높을 수 있어요.", "Even a promising hand can cost too much to continue.", "이길 가능성과 콜에 필요한 승률을 비교해요.", "Compare your chance of winning with the break-even chance for the call.")
+            copy = ("이 가격에 콜할까요?", "Call at this price?", "좋은 카드라도 가격이 너무 높을 수 있어요.", "Even a promising hand can cost too much to continue.", "이길 가능성과 콜에 필요한 승률을 비교해요.", "Compare your chance of winning with the break-even chance for the call.")
         case .rangeNotation:
             copy = ("짧은 핸드 표기 읽기", "Read hand shorthand", "짧은 표기 하나가 여러 시작 카드를 뜻해요.", "One short label can describe many starting hands.", "같은 숫자, 같은 무늬, 다른 무늬를 구분하고 조합 수를 세요.", "Separate pairs, same-suit hands and different-suit hands, then count combinations.")
         case .rfi:

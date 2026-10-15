@@ -337,10 +337,16 @@ struct DefendChartPrimer: View {
 }
 
 private struct LessonGuidedChartKey: EnvironmentKey { static let defaultValue = false }
+private struct LessonCallFoldNumbersKey: EnvironmentKey { static let defaultValue = false }
 extension EnvironmentValues {
     var lessonGuidedChart: Bool {
         get { self[LessonGuidedChartKey.self] }
         set { self[LessonGuidedChartKey.self] = newValue }
+    }
+    /// The call-or-fold lesson states both shares; the challenge leaves them to the learner.
+    var lessonCallFoldNumbers: Bool {
+        get { self[LessonCallFoldNumbersKey.self] }
+        set { self[LessonCallFoldNumbersKey.self] = newValue }
     }
 }
 

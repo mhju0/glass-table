@@ -154,6 +154,7 @@ SCREENS=(
   "drill-ev:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-evCall"
   "teach-evcall-zero:GT_DEMO_NODE=u2-evCall GT_DEMO_BEAT=0"
   "drill-callfold:GT_DEMO_CONCEPT=callFold"
+  "lesson-callfold:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-callFold"
   "drill-notation:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-notation"
   "drill-rfi:GT_DEMO_SEED=1 GT_DEMO_NODE=u3-rfi"
   "drill-rangeread:GT_DEMO_SEED=1 GT_DEMO_NODE=u4-rangeRead"

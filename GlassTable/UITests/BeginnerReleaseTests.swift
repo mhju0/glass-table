@@ -666,6 +666,35 @@ final class BeginnerReleaseTests: XCTestCase {
         )).firstMatch.exists)
     }
 
+    func testCallFoldLessonStatesBothSharesButPracticeDoesNot() {
+        let lesson = app()
+        lesson.launchEnvironment["GT_DEMO_NODE"] = "u2-callFold"
+        lesson.launch()
+        let numbers = lesson.staticTexts["callfold-lesson-numbers"]
+        XCTAssertTrue(numbers.waitForExistence(timeout: 15))
+        XCTAssertTrue(numbers.label.hasPrefix("Your share if it goes to the end "), numbers.label)
+        XCTAssertTrue(lesson.staticTexts["Call or fold?"].exists)
+        lesson.terminate()
+
+        let practice = app()
+        practice.launchEnvironment["GT_DEMO_CONCEPT"] = "callFold"
+        practice.launch()
+        XCTAssertTrue(practice.staticTexts["Call or fold?"].waitForExistence(timeout: 15))
+        XCTAssertFalse(practice.staticTexts["callfold-lesson-numbers"].exists)
+    }
+
+    func testPriceTrackTeachesCallFoldBeforeItsMixedChallenge() {
+        let app = app()
+        app.launchEnvironment["GT_DEMO_TAB"] = "path"
+        app.launch()
+        let lesson = app.buttons["lesson-u2-callFold"]
+        let challenge = app.buttons["lesson-u2-boss"]
+        XCTAssertTrue(lesson.waitForExistence(timeout: 15))
+        XCTAssertTrue(lesson.label.hasPrefix("Call at this price?"), lesson.label)
+        XCTAssertTrue(challenge.label.hasPrefix("Mixed practice"), challenge.label)
+        XCTAssertLessThan(lesson.frame.maxY, challenge.frame.minY + 1)
+    }
+
     func testEquityCardsFitAboveAnswerSheetOnCompactPhone() {
         let app = app()
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
