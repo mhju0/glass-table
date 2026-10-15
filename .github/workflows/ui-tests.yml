@@ -1,8 +1,11 @@
 # The full UI flow suite, too slow for every push. Runs nightly and on demand.
 # Test classes are split across three shards by test count, so a new class needs
-# no workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT.
+# no workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT. A push that
+# changes this file runs it too, so a workflow edit is proven before it merges.
 name: UI tests
 on:
+  push:
+    paths: ['.github/workflows/ui-tests.yml']
   schedule:
     - cron: '0 18 * * *'   # 18:00 UTC = 03:00 KST
   workflow_dispatch:
