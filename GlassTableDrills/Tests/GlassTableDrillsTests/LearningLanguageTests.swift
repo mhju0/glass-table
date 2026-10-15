@@ -64,6 +64,18 @@ struct LearningLanguageTests {
         ]
     }
 
+    @Test func handClassPlainNameUsesCardFaceRanksAndParticles() {
+        let t8o = HandClass(high: 10, low: 8, suited: false)!
+        let a9s = HandClass(high: 14, low: 9, suited: true)!
+        let tens = HandClass(high: 10, low: 10, suited: false)!
+        #expect(t8o.plainName(in: .korean) == "10과 8 · 서로 다른 무늬")
+        #expect(t8o.plainName(in: .english) == "10 and 8, different suits")
+        #expect(a9s.plainName(in: .korean) == "A와 9 · 같은 무늬")
+        #expect(a9s.plainName(in: .english) == "A and 9, same suit")
+        #expect(tens.plainName(in: .korean) == "10 두 장")
+        #expect(tens.plainName(in: .english) == "10-10 pair")
+    }
+
     @Test func everyConceptHasEnglishWorkedExample() {
         let seed: UInt64 = 19
         let bet = BetSpotGenerator.spot(baseSeed: seed, index: 0)

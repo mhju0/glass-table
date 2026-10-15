@@ -95,8 +95,8 @@ struct TableView: View {
                             .fixedSize(horizontal: false, vertical: true)
                         DisclosureGroup(isExpanded: $chartGuideExpanded) {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(language.text("A는 에이스, K는 킹, Q는 퀸, J는 잭이에요. 숫자는 카드 숫자 그대로예요.",
-                                                   "A is ace, K is king, Q is queen and J is jack. Numbers are the card ranks."))
+                                Text(language.text("A는 에이스, K는 킹, Q는 퀸, J는 잭, T는 10이에요. 나머지 숫자는 그대로예요.",
+                                                   "A is ace, K king, Q queen, J jack, and T is 10. Other numbers are as printed."))
                                 LessonPairedText(korean: ["가로·세로는 각각 카드 숫자예요.", "두 숫자가 만나는 칸이 시작 패예요."],
                                                  english: ["Rows and columns show ranks.", "Their crossing shows two cards."])
                                 Text(language.text("AA부터 22까지 대각선은 같은 숫자 두 장인 페어예요. 대각선 위의 s는 같은 무늬, 아래의 o는 다른 무늬예요.",
@@ -379,7 +379,8 @@ struct TableView: View {
         let layout = compact ? AnyLayout(HStackLayout(spacing: 12)) : AnyLayout(VStackLayout(spacing: 8))
         return VStack(spacing: compact ? 4 : 8) {
             layout {
-            Text(hand.villain.beginnerTitle(in: language))
+            Text(language.text("상대 · \(hand.villain.beginnerTitle(in: language))",
+                               "Opponent · \(hand.villain.beginnerTitle(in: language))"))
                 .font(GT.title(18)).foregroundStyle(GT.onTable)
                 .fixedSize(horizontal: false, vertical: true)
             if compact { Spacer(minLength: 0) }
@@ -438,8 +439,12 @@ struct TableView: View {
     }
 
     private func boardRow(_ hand: TableHand, compact: Bool = false) -> some View {
-        HStack(spacing: 8) {
-            ForEach(0..<5, id: \.self) { i in
+        // Once the hand is over, cards that were never dealt get no slot; a back
+        // there would read as a hidden card, like the free table avoids.
+        let over: Bool
+        if case .over = hand.phase { over = true } else { over = false }
+        return HStack(spacing: 8) {
+            ForEach(0..<(over ? hand.board.count : 5), id: \.self) { i in
                 if i < hand.board.count {
                     PlayingCardView(card: hand.board[i], size: compact ? 46 : PlayingCardView.canonicalSize)
                 } else {
@@ -566,6 +571,10 @@ struct TableView: View {
     /// Feedback belongs to the committed choice, including the hand-ending decision.
     private func turnReveal(_ turn: TurnRecord) -> some View {
         VStack(alignment: .leading, spacing: 12) {
+            // A preflop call deals the flop first, so name the street being graded.
+            Text(language.text("방금 한 선택 · \(TableEvent.streetName(turn.street, in: language))",
+                               "Your last choice · \(TableEvent.streetName(turn.street, in: language))"))
+                .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
             verdictRow(turn)
             Text(GradedTableLearning.takeaway(turn, language: language))
                 .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
@@ -599,7 +608,9 @@ struct TableView: View {
         case let .chart(verdict):
             title = verdict.matched ? language.text("차트와 일치해요", "Matches the chart")
                                     : language.text("차트와 달라요", "Different from the chart")
-            reference = language.text("차트: ", "Chart: ") + chartAction(verdict.chart)
+            let opener = hand?.villainSeat.plainName(in: language) ?? ""
+            reference = language.text("차트 · 상대 \(opener) 먼저 올림: ", "Chart · vs \(opener) raise: ")
+                + chartAction(verdict.chart)
         }
         return VStack(alignment: .leading, spacing: 6) {
             Text(title).font(GT.title(20)).foregroundStyle(turn.band.ink)
@@ -631,7 +642,7 @@ struct TableView: View {
                 priceRow(tag: language.text("모델 선택", "Model choice"), action: best.label(in: language),
                          amount: "\(bbText(best.ev))bb", ink: GTBand.spotOnInk)
                 Divider().overlay(GT.border)
-                priceRow(tag: language.text("선택한 답", "Your choice"), action: turn.label(in: language),
+                priceRow(tag: language.text("선택한 행동", "Your choice"), action: turn.label(in: language),
                          amount: "\(bbText(best.ev - loss))bb", ink: turn.band.ink)
                 Text(language.text("모델 선택과 선택한 행동의 평균값 차이: \(bbText(loss))bb",
                                    "Difference in average value: \(bbText(loss))bb"))
@@ -664,7 +675,9 @@ struct TableView: View {
 
     private func actPreflop(_ choice: TableHand.HeroChoice, _ current: TableHand) {
         guard var h = hand, let v = h.preflopVerdict(for: choice) else { return }
-        decisions.append(TurnRecord(street: 0, choice: choice, amount: nil,
+        var toCall: Double?
+        if choice == .call, case let .hero(.open(b)) = h.phase { toCall = b }
+        decisions.append(TurnRecord(street: 0, choice: choice, amount: toCall,
                                     fraction: nil, verdict: .chart(v)))
         h.play(choice)
         hand = h
@@ -703,6 +716,7 @@ struct TableView: View {
                 .accessibilityIdentifier("table-next-hand")
             Button(language.text("상대 바꾸기", "Change opponent")) { hand2Picker() }
                 .buttonStyle(GTOutlinedAction(fills: true))
+                .accessibilityIdentifier("table-change-opponent")
         }
     }
 

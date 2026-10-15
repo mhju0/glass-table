@@ -352,7 +352,7 @@ private struct RestoredDrillContextView: View {
             switch spot.question {
             case let .behind(seat, preflop):
                 LessonSeatLoop(active: seat, markers: [seat: language.text("나", "You")], postflop: !preflop)
-                Text(language.text("\(seat.seatLabel(in: language)) · \(preflop ? "플롭 전" : "플롭 이후")",
+                Text(language.text("\(seat.seatLabel(in: language)) · \(preflop ? "플랍 전" : "플랍 이후")",
                                    "\(seat.seatLabel(in: language)) · \(preflop ? "before" : "after") the flop"))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
             case let .whichIsLater(a, b):

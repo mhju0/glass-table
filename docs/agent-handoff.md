@@ -5,7 +5,7 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
-## Current state (2026-10-14)
+## Current state (2026-10-15)
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -62,7 +62,12 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   rounds, reviews and lessons; no schema change).
 - Lesson review for the owner (2026-10-15): https://claude.ai/artifact/1BH6g7owTwjnEjKmDfBHX1
   — every lesson in order, why, goals, and a never-played reading. Its findings are
-  under Open issues; nothing was changed in the app for them.
+  under Open issues.
+- `fix/ux-lesson-gaps-20261015` (from `main` 467864a, pushed, not merged) fixes the
+  lesson review's code gaps and most of the screenshot UX audit
+  (`.scratch/screenshot-ux-audit-2026-10-15/report.html`); see the session entry.
+- `ci/lean-pipeline-20261015` (lean CI and TestFlight on tag) is pushed and not merged;
+  both branches edit this file, so expect a small conflict here when the second merges.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -94,20 +99,21 @@ Never verified with people or hardware:
   notification, share and review flows; backup export/import; huge-history save latency.
 - GRAC: owner submitted 1.0(22), now awaiting processing, any corrections, rating and RCN. Reviewer installation is unverified: development IPA permits only two registered devices; TestFlight upload/invite not performed. Confirm delivery with GRAC if needed. Video/simulator acceptance and statutory Annex 2(8) final selection remain unverified; working answers are not a final portal export.
 
-Lesson path (from the 2026-10-15 lesson review; not yet raised as work with the owner):
-- Defend lesson cannot be passed in beginner mode: `DefendDrill` marks help on appear
-  (`ConceptDrillView.swift:2975`), lesson help sets `helpOrdinal`, so all three answers
-  are assisted and score 0/3 under D47. Static reading; not reproduced on a device.
+Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 - Call or fold, the decision price-and-chance builds to, has no lesson; it is only in
   the optional u2 challenge. Outs sits second in the suggested order with no recorded
-  reason (`c31a5c7`). Rules pages (pot, blinds, flow) are optional though lessons 2–4
-  use those words; the in-app glossary lacks showdown, pot, blinds, position, actions,
-  streets; Chen score and dealer button are never explained.
-- Outs and pot-odds beginner choices can be 1 apart while only exact answers count.
-- Starting check (D46 item 3) is reachable only by a DEBUG hook; Settings has no entry.
-- Guided hand and restored drill use 플롭; glossary requires 플랍.
-- Copy: equity how-line asks for "a plausible range", range-read how-line says "count
-  the combinations"; neither matches the beginner question.
+  reason (`c31a5c7`). Rules pages (pot, blinds, flow) stay optional; the glossary now
+  defines those words. Chen score is never explained.
+- Outs beginner choices can be 1 apart while only exact answers count (left: exact
+  counting is the skill). Pot-odds/MDF choices were fixed on `fix/ux-lesson-gaps-20261015`.
+- Starting check (D46 item 3) is reachable only by a DEBUG hook; Settings has no entry
+  (removed on purpose in `7549a32`).
+
+Screenshot UX audit (`.scratch/screenshot-ux-audit-2026-10-15/report.html`), left for
+the owner on `fix/ux-lesson-gaps-20261015`:
+- #29 fold the graded-table guide by default (conflicts with the remembered-collapse
+  test and its decision); #52 hand-specific chart reason wording; #34/#41 visible rank
+  headers on the compact grid; taste items (container weight, gutters, palette).
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
@@ -137,6 +143,8 @@ Tests:
   that afternoon, failed again in the final run and 4/4 right after, same code. The
   audited hand is fixed (seed 97) and simulator appearance/text size match iPhone 17,
   where it passes. Unexplained; measured text contrast is at least 5.2:1.
+  On 2026-10-15 both failed on unchanged `main` 467864a on the 12 mini simulator too
+  (Dynamic Type partial, potentially inaccessible text).
 - Build 24 had only the unit tests and three hand-rank UI tests on iPhone 17, not the
   full suite.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
@@ -144,6 +152,28 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-15 (Claude · lesson and UX audit gaps)
+
+- Owner asked to fix the gaps in the lesson review and the screenshot UX audit, after
+  re-auditing the latter. Branch `fix/ux-lesson-gaps-20261015`, two commits.
+- Lesson grading: a lesson's defend question now starts with the chart folded
+  (`chartStartsFolded`), so it can be answered alone under D47; opening the chart still
+  marks help. Pot-odds/MDF beginner choices now sit at least 15 points apart
+  (`BeginnerQuestionChoices.shares`), so only one grades right. Both had failing tests
+  first (UI test and Drills test).
+- Copy and screens: 플롭 → 플랍; glossary adds pot, blinds, dealer button, position,
+  actions, streets and showdown; equity and range-read how-lines match their questions;
+  the table review names the street it grades, the call price and the chart scope; a
+  finished hand shows only dealt cards; setup has a back button, "me + N computers",
+  and plainer length and style copy; the chart marks your own hand apart from the one
+  being inspected, explains T, and shows the plain hand name.
+- Verified: Drills tests, 85 UI tests on two 12 mini simulators, and a uisweep of 11
+  changed screens at large and AX5. The two play-table audit failures also fail on
+  unchanged `main`.
+- Left for the owner: see Open issues (audit #29/#52/#34/#41, call-or-fold lesson,
+  starting check, outs choices).
+- Next: owner reviews and approves merging both branches.
 
 ### 2026-10-15 (Claude · build 29, lesson review)
 
@@ -219,20 +249,3 @@ Tests:
   copied (`.build/device-install-b27/`). The GRAC handoff notes from the other session
   were committed separately (`46f29ab`), so receipt TG-OM-26-01177 is now in the public repo.
 - Next: owner tries build 27.
-
-### 2026-10-14 (Claude · clickable controls)
-
-- Owner chose Rule 1 and then Look 2 with the grey outline (mocks
-  https://claude.ai/artifact/Tb5PRceX4YUUPoTJwAffKr and
-  https://claude.ai/artifact/BdUFji5QcrzLN9K16YKDJY). Built on
-  `feat/guide-clickable-controls`, not merged or installed. The guide and Hold'em basics
-  lost their top-left Previous; the lesson's leftover 8pt top padding was dropped.
-- To keep the AX dock tests passing, the Play top-bar title stops growing at the first
-  accessibility size. The shared AX test helper `scrollUntilFullyVisible` now ends with
-  short drags, because one swipe threw the hero cards past the top.
-- 12 mini simulators: unit tests and every UI class ran across three builds. Only the
-  two known contrast audits failed. Two other failures were fixed and passed on the final
-  build: the hero test (helper) and the lesson-title gap. The final build itself ran 16
-  UI classes plus the unit tests, with no failures. Screens checked in both languages at
-  normal and AX5.
-- Next: owner looks at the branch and decides on merge and install.

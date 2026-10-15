@@ -34,6 +34,7 @@ struct DefendGridView: View {
         VStack(alignment: .leading, spacing: 8) {
             if let highlight {
                 selectedHandSummary(highlight)
+                explorerButton
             }
             if folded {
                 DisclosureGroup(language.text("전체 차트 보기", "See the full chart")) {
@@ -82,10 +83,15 @@ struct DefendGridView: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
-            Button { showExplorer = true } label: {
-                Label(language.text("크게 보고 핸드 찾기", "Enlarge and explore hands"), systemImage: "plus.magnifyingglass")
-            }
-            .buttonStyle(GTOutlinedAction(fills: true))
+            // With a summary, the button sits under it instead, next to the answer.
+            if highlight == nil { explorerButton }
+    }
+
+    private var explorerButton: some View {
+        Button { showExplorer = true } label: {
+            Label(language.text("크게 보고 핸드 찾기", "Enlarge and explore hands"), systemImage: "plus.magnifyingglass")
+        }
+        .buttonStyle(GTOutlinedAction(fills: true))
     }
 
     private func selectedHandSummary(_ hand: HandClass) -> some View {
@@ -110,6 +116,9 @@ struct DefendGridView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(language.text("현재 패 \(hand.description) · \(verdict.rawValue)", "Your hand \(hand.description) · \(verdict.englishTitle)"))
                     .font(GT.title(15)).foregroundStyle(GT.ink)
+                Text(hand.plainName(in: language))
+                    .font(GT.body(13)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(language.text("테두리로 표시한 칸이 현재 패예요", "The outlined cell is your hand"))
                     .font(GT.body(11)).foregroundStyle(GT.inkSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -119,7 +128,7 @@ struct DefendGridView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(language.text("현재 패 \(hand.description), 디펜드 차트 판정 \(verdict.rawValue)", "Your hand \(hand.description), chart action \(verdict.englishTitle)"))
+        .accessibilityLabel(language.text("현재 패 \(hand.description), \(hand.plainName(in: language)), 디펜드 차트 판정 \(verdict.rawValue)", "Your hand \(hand.description), \(hand.plainName(in: language)), chart action \(verdict.englishTitle)"))
         .accessibilityIdentifier("defend-selected-evidence")
     }
 
@@ -185,16 +194,20 @@ private struct DefendChartExplorer: View {
             ScrollViewReader { proxy in
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("핸드 차트", "Hand chart")).font(GT.title(24))
-                    Text(language.text("s는 같은 무늬, o는 다른 무늬예요. AA처럼 같은 글자는 페어예요.", "s means same suit; o means different suits. Repeated ranks, like AA, are pairs."))
+                    Text(KO.wordJoined(language.text("상대가 \(opener.plainName(in: language))에서 먼저 올렸을 때",
+                                                     "When \(opener.plainName(in: language)) raises first")))
+                        .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    Text(language.text("s는 같은 무늬, o는 다른 무늬예요. AA처럼 같은 글자는 페어예요. T는 10이에요.", "s means same suit; o means different suits. Repeated ranks, like AA, are pairs. T is 10."))
                         .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                     if let hand = selected ?? ownHand {
                         let verdict = action(hand)
-                        Text("\(hand.description) · \(language.text(verdict.rawValue, verdict.englishTitle))")
+                        let label = hand == ownHand ? language.text("내 패", "My hand") : language.text("살펴보는 패", "Looking at")
+                        Text("\(label) \(hand.description) · \(language.text(verdict.rawValue, verdict.englishTitle))")
                             .font(GT.title(19)).accessibilityIdentifier("chart-explorer-selection")
                     }
-                    if let ownHand {
-                        Button(language.text("현재 패로 돌아가기", "Return to my hand")) {
-                            selected = ownHand
+                    if let ownHand, let selected, selected != ownHand {
+                        Button(language.text("내 패로 돌아가기", "Back to my hand")) {
+                            self.selected = ownHand
                             proxy.scrollTo(ownHand.description, anchor: .center)
                         }.buttonStyle(GTOutlinedAction())
                     }
@@ -205,27 +218,40 @@ private struct DefendChartExplorer: View {
                                     ForEach(RangeGrid.ranks, id: \.self) { col in
                                         let hand = RangeGrid.classAt(row: row, col: col)
                                         let verdict = action(hand)
+                                        let isOwn = hand == ownHand
+                                        let isInspected = hand == (selected ?? ownHand)
                                         Button { selected = hand } label: {
                                             VStack(spacing: 4) {
                                                 Text(hand.description).font(GT.semibold(15))
                                                 Text(language.text(verdict.rawValue, verdict.englishTitle))
                                                     .font(GT.body(11))
+                                                if isOwn {
+                                                    Text(language.text("내 패", "My hand"))
+                                                        .font(GT.semibold(10))
+                                                        .lineLimit(1).minimumScaleFactor(0.7)
+                                                }
                                             }
                                             .frame(width: typeSize.isAccessibilitySize ? 150 : 78)
                                             .frame(minHeight: typeSize.isAccessibilitySize ? 140 : 60)
                                             .foregroundStyle(verdict == .fold ? GT.ink : GT.onCTA)
                                             .background(DefendGridView.bandFill(verdict), in: RoundedRectangle(cornerRadius: 8))
                                             .overlay {
-                                                if hand == (selected ?? ownHand) {
+                                                // Solid marks the cell being read; dashed keeps the
+                                                // learner's own hand findable while another is inspected.
+                                                if isInspected {
                                                     RoundedRectangle(cornerRadius: 8).strokeBorder(GT.ink, lineWidth: 3)
+                                                } else if isOwn {
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .strokeBorder(GT.ink, style: StrokeStyle(lineWidth: 2, dash: [5, 3]))
                                                 }
                                             }
                                         }
                                         .buttonStyle(.plain)
                                         .id(hand.description)
                                         .accessibilityIdentifier("chart-cell-\(hand.description)")
-                                        .accessibilityLabel("\(hand.description), \(language.text(verdict.rawValue, verdict.englishTitle))")
-                                        .accessibilityAddTraits(hand == (selected ?? ownHand) ? .isSelected : [])
+                                        .accessibilityLabel((isOwn ? language.text("내 패, ", "Your hand, ") : "")
+                                                            + "\(hand.description), \(language.text(verdict.rawValue, verdict.englishTitle))")
+                                        .accessibilityAddTraits(isInspected ? .isSelected : [])
                                     }
                                 }
                             }

@@ -116,6 +116,25 @@ final class GradedLearningFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["table-chart"].exists)
     }
 
+    func testPreflopCallFeedbackNamesItsStreetPriceAndOpener() {
+        let app = launch()
+        app.buttons["table-passive"].tap()
+        let verdict = app.descendants(matching: .any)["table-verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Your last choice · Before the flop"].exists)
+        XCTAssertTrue(verdict.label.contains("Your choice: Call 3bb"), verdict.label)
+        XCTAssertTrue(verdict.label.contains("Chart · vs "), verdict.label)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Opponent · ")).firstMatch.exists)
+    }
+
+    func testFinishedHandOffersChangeOpponentById() {
+        let app = launch()
+        app.buttons["table-fold"].tap()
+        app.buttons["table-continue"].tap()
+        XCTAssertTrue(app.buttons["table-next-hand"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["table-change-opponent"].exists)
+    }
+
     func testAXPostflopChartIsExplicitlyAStartingHandReference() {
         let app = launch(ax: true, postflop: true)
         let chart = app.buttons["table-chart"]

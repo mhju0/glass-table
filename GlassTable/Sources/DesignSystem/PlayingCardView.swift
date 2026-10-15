@@ -27,7 +27,7 @@ struct PlayingCardView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(faceDown
-                            ? language.text("아직 나오지 않은 카드", "Face-down card")
+                            ? language.text("공개되지 않은 카드", "Face-down card")
                             : "\(card.spoken(in: language))\(dead ? language.text(", 제외", ", excluded") : "")")
     }
 

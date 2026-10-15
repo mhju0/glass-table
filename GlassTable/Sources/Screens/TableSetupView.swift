@@ -25,8 +25,8 @@ struct TableSetupView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(language.text("테이블 만들기", "Set up the table")).font(GT.title(28))
-                        Text(language.text("인원과 컴퓨터별 스타일을 골라요. 스타일은 난이도가 아니라 카드를 고르는 습관이에요.",
-                                           "Pick the players and each computer's style. A style is a habit, not a difficulty level."))
+                        Text(language.text("인원과 컴퓨터마다 스타일을 골라요. 스타일은 실력이 아니라 들어오고 올리는 습관이에요.",
+                                           "Pick the players and each computer's style. A style is how often it plays and raises, not a skill level."))
                             .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                             .lineSpacing(GT.Typography.bodyLineSpacing)
                     }
@@ -48,6 +48,11 @@ struct TableSetupView: View {
                         }
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("player-count")
+                        Text(language.text("나 + 컴퓨터 \(players - 1)명",
+                                           players == 2 ? "You + 1 computer" : "You + \(players - 1) computers"))
+                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("player-count-detail")
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         Text(language.text("게임 길이", "Game length")).font(GT.semibold(15))
@@ -64,10 +69,10 @@ struct TableSetupView: View {
                                 .accessibilityIdentifier("game-length-long")
                         }
                         Text(quick
-                             ? language.text("각자 \(Self.quickStack)칩 · \(Self.quickHands)핸드 뒤에 끝나요 · 블라인드 1·2칩",
-                                             "\(Self.quickStack) chips each · ends after \(Self.quickHands) hands · blinds 1 and 2")
-                             : language.text("각자 100칩 · 끝이 없어요 · 블라인드 1·2칩",
-                                             "100 chips each · no ending · blinds 1 and 2"))
+                             ? language.text("각자 \(Self.quickStack)칩 · \(Self.quickHands)핸드가 끝나거나 내 칩이 떨어지면 끝나요 · 블라인드 1칩/2칩",
+                                             "\(Self.quickStack) chips each · ends after \(Self.quickHands) hands or when you run out · blinds 1 and 2 chips")
+                             : language.text("각자 100칩 · 끝없이 계속해요 · 블라인드 1칩/2칩",
+                                             "100 chips each · plays on · blinds 1 and 2 chips"))
                             .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("game-length-detail")
@@ -77,13 +82,13 @@ struct TableSetupView: View {
                     }
                     Button { showGuide = true } label: {
                         TapCardLabel(title: language.text("스타일 자세히 보기", "About the styles"),
-                                     detail: language.text("다섯 스타일의 습관을 비교해요.",
-                                                           "Compare the habits of all five styles."))
+                                     detail: language.text("기본 스타일과 다섯 스타일의 습관을 비교해요.",
+                                                           "Compare the habits of the default style and the five others."))
                     }
                     .buttonStyle(GTPress())
                     .accessibilityIdentifier("style-guide")
                 }
-                .padding(18)
+                .gtContentEdge()
             }
             PrimaryCTAButton(title: language.text("이 테이블로 시작", "Start this table")) { start() }
                 .accessibilityIdentifier("table-start")
@@ -92,6 +97,7 @@ struct TableSetupView: View {
         }
         .background(FeltBackground())
         .toolbar(.hidden, for: .tabBar)
+        .gtChrome(leading: { ChromeButton.back(language.text("플레이로", "Back to Play")) { dismiss() } })
         .sheet(isPresented: $showGuide) { StyleGuideView { showGuide = false } }
         .alert(language.text("테이블을 시작하지 못했어요", "Couldn't start the table"), isPresented: $failure) {
             Button(language.text("확인", "OK"), role: .cancel) {}
@@ -120,11 +126,14 @@ struct TableSetupView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Menu {
-                Picker(language.text("\(FreeTableWords.seatName(seat + 1, language: language)) 스타일",
-                                     "\(FreeTableWords.seatName(seat + 1, language: language))'s style"),
-                       selection: $styles[seat]) {
-                    ForEach([.casual] + Archetype.allCases, id: \.self) { style in
-                        Text(style.beginnerTitle(in: language)).tag(style)
+                // The open menu names the seat it edits: an inline picker shows no title.
+                let title = language.text("\(FreeTableWords.seatName(seat + 1, language: language)) 스타일",
+                                          "\(FreeTableWords.seatName(seat + 1, language: language))'s style")
+                Section(title) {
+                    Picker(title, selection: $styles[seat]) {
+                        ForEach([.casual] + Archetype.allCases, id: \.self) { style in
+                            Text(style.beginnerTitle(in: language)).tag(style)
+                        }
                     }
                 }
             } label: {
@@ -172,9 +181,24 @@ private struct StyleGuideView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("스타일 자세히 보기", "About the styles")).font(GT.title(28))
-                    Text(language.text("실력 순서는 아니에요. 카드를 고르는 습관이 달라요.",
-                                       "These aren't difficulty levels. Each picks hands differently."))
+                    Text(language.text("실력 순서는 아니에요. 들어오는 패와 올리는 습관이 달라요.",
+                                       "These aren't skill levels. Each differs in which hands it plays and how often it raises."))
                         .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    // The default style has no published chart, so it has no detail page.
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(language.text("재미로 (기본)", "Just for fun (default)"))
+                            .font(GT.title(18)).foregroundStyle(GT.ink)
+                        Text(language.text("편하게 자주 들어오고, 가끔 블러프해요. 판마다 조금씩 달라서 정해진 표는 없어요.",
+                                           "Plays for fun: joins often and sometimes bluffs. It varies hand to hand, so it has no fixed chart."))
+                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                            .lineSpacing(GT.Typography.bodyLineSpacing)
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .gtInset(GT.Space.card, firstText: .title(18))
+                    .gtPanel()
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("opponent-casual")
                     ForEach(Archetype.allCases, id: \.self) { style in
                         NavigationLink {
                             OpponentDetailView(opponent: style, pushed: true,
