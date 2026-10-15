@@ -92,3 +92,26 @@ This index is newly consolidated. Earlier records remain intact; missing install
 - Source `f4d1fe9` plus the build bump: "A hand together" rebuilt as one real two-player hand on the Play table with a coach card (Now / Look at / Think), the coach's pick marked, a spotlight on the first steps and a question before giving up (owner chose the mix of mocks B and A). The Play result buttons stack at accessibility sizes, which fixes the last button being 2pt taller than its panel on the 12 mini since build 24.
 - Verification, iPhone 12 mini iOS 26.5 simulator: full suite on `aafc0b5` 317 passed, 3 failed (two Play table contrast audits, known; the result scroll test, fixed in `f4d1fe9`). On `f4d1fe9`: 93 unit tests and 90 UI tests (Play dock, raise, motion, help, graded dock, accessibility flows, native refinement, beginner release, guided hand) passed, 0 failed. No full-suite run on the final source.
 - Signed Release 1.0 (26), build 25 uninstalled first, then freshly installed on the physical iPhone 12 mini. Installed metadata and normal launch verified; green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.build/device-install-b26/`. Binary SHA256 `32c242ba5ed20aab9ea1576ec7278e5adc99d9ab3e0ffcded9cee78fe031af42`.
+
+## Build 27 — clickable controls and the lesson pass mark, 2026-10-14
+
+- Source `10744ab`: tappable things look tappable (outlined ✕, ‹, ••• and text actions; Previous beside the bottom action) and a lesson or challenge passes with two in three questions answered alone and exactly right.
+- Verification: Drills 428, 98 app unit tests and the full UI suite on two iPhone 12 mini simulators (228 tests), per the handoff of `82d82a7`.
+- Signed Release 1.0 (27), fresh install on the physical iPhone 12 mini; first-run welcome seen. Evidence: `.build/device-install-b27/` (`build.log`, `welcome.png`). No binary SHA256 was recorded.
+
+## Build 28 — build 27 feedback, 2026-10-14
+
+- Source `170fba1`: the "Who wins?" worked example opens with every card face up, Hold'em basics hides the lone Previous before the answer, a reworked "A hand together" invitation, and swiping it away no longer starts the next lesson.
+- Build 27 uninstalled, fresh install on the physical iPhone 12 mini, per the handoff of `9eaac48`. No evidence files or binary SHA256 kept.
+
+## Build 29 — animation polish and Drills refactors, 2026-10-15
+
+- Source `5de390c`: motion tokens and animation fixes, near-full-size board cards, and rules moved into Drills (`PracticeRaiseBlock`, `BeginnerJourney`, `ConceptReveal`, `GradedSession`; no schema change).
+- Verification: Drills 427 XCTest + 95 Swift Testing, 97 app unit tests and 128 UI tests on two simulators, per the handoff of `467864a`.
+- Build 28 uninstalled, fresh install of 1.0 (29) on the physical iPhone 12 mini; welcome seen, no progress copied. No evidence files or binary SHA256 kept.
+
+## Build 30 — owner decisions, 2026-10-15
+
+- Source `5c040c1`, merged to `main` as `0d8708c` (PR #14, same tree): the chart guide opens only the first time, a hand-specific chart reason, a verdict-first table review with Details, and a call-or-fold lesson `u2-callFold` before the price challenge.
+- Verification: Drills 432 XCTest + 96 Swift Testing, 97 app unit tests and 78 UI tests (graded, chart first use, beginner release, learning flows) on a simulator; `ci.yml` passed on GitHub.
+- Signed Release 1.0 (30), build 29 uninstalled first, then freshly installed on the physical iPhone 12 mini. Green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.archive/2026-10-15-owner-decisions-cleanup/owner-decisions/device-install-b30/`. Binary SHA256 `dc33b61bebe63a9bfe1344c1725cbe00b370fdab38de0eb889fa5ced56fb51a7`.
