@@ -50,9 +50,8 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   and in build 24.
 - `main` holds all of this session's work and matches `origin/main`. The standing rule is still to work on a feature branch and not push `main`
   unasked. Merged feature branches were deleted locally and on `origin` (2026-10-14).
-  `fix/ci-drills-typecheck-20261014`, `fix/a11y-playtable-20261014` and
-  `diagnostic/a11y-playtable-20261014` belong to a separate session (worktrees in
-  `/private/tmp/`) and are not merged.
+  The Codex `fix/*-2026101[45]` and `diagnostic/*` branches are kept for reference and
+  not merged; their worktrees are gone (see the cleanup line below).
 - Build 29 (owner asked to push `main` and install, 2026-10-15) is in `main`, pushed,
   and on the iPhone 12 mini. Over build 28 it adds animation polish (audit plans in
   `plans/`, motion tokens `GT.Motion.fade`/`.move`, near-full-size board cards, the
@@ -63,11 +62,18 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Lesson review for the owner (2026-10-15): https://claude.ai/artifact/1BH6g7owTwjnEjKmDfBHX1
   — every lesson in order, why, goals, and a never-played reading. Its findings are
   under Open issues.
-- `fix/ux-lesson-gaps-20261015` (from `main` 467864a, pushed, not merged) fixes the
-  lesson review's code gaps and most of the screenshot UX audit
-  (`.scratch/screenshot-ux-audit-2026-10-15/report.html`); see the session entry.
-- `ci/lean-pipeline-20261015` (lean CI and TestFlight on tag) is pushed and not merged;
-  both branches edit this file, so expect a small conflict here when the second merges.
+- Merged to `main` with the owner's approval (2026-10-15): `ci/lean-pipeline-20261015`
+  (PR #12) and `fix/ux-lesson-gaps-20261015` (lesson review gaps and most of the
+  screenshot UX audit, `.scratch/screenshot-ux-audit-2026-10-15/report.html`).
+- CI/CD (owner chose "simpler CI, I take over" and "TestFlight on tag"): `ci.yml` gates
+  pushes/PRs on unit tests plus the Release smoke and bundle checks; `ui-tests.yml` runs
+  the UI suite nightly in three shards; `release.yml` uploads a `v<version>-<build>` tag
+  on `main` to TestFlight. Setup steps: `docs/ci-cd.md`. The App Store Connect API key
+  is not ready yet (owner, 2026-10-15), so no secrets are set and no tag has shipped.
+- Worktree cleanup (owner, 2026-10-15): all 25 `/private/tmp/glass-table-*` worktrees
+  were removed; their branches remain. Uncommitted changes, untracked files and
+  `.build` evidence (no caches) are in `.archive/2026-10-15-worktree-cleanup/`, with the
+  Codex session's uncommitted handoff edit. No Codex process was running in this repo.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -136,6 +142,14 @@ Product and numbers:
   failure; live Bold Text redraw; tiny EV-loss grid labels; unseeded PotMath question
   identity; free raise 2BB presets and graded range/equity jargon.
 
+CI/CD:
+- `release.yml` has never run: it needs the paid Apple Developer membership, an App Store
+  Connect app record and the four secrets in `docs/ci-cd.md`. Whether an App Manager
+  API key is enough for cloud signing is unknown; the doc says Admin.
+- `ui-tests.yml` can only be started by hand once it is on `main`. The full UI suite has
+  not passed on a GitHub runner; the Codex diagnostic runs (2026-10-14/15) failed
+  accessibility audits there.
+
 Tests:
 - `AccessibilityAuditTests/testPlayTable` (and `testPlayTableScrolled` once, 2026-10-13
   night) (contrast, no element named) on the iPhone 12
@@ -152,6 +166,13 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-15 (Codex · revised screenshot UX report)
+
+- Owner requested a thorough critique, then supplied eleven more screenshots after
+  clicking and scrolling. Rebuilt the report from all fifteen images: 69 prioritized
+  findings. Recommendations only; no app change or simulator verification. (Recorded
+  from Codex's uncommitted edit, archived in `.archive/2026-10-15-worktree-cleanup/`.)
 
 ### 2026-10-15 (Claude · lesson and UX audit gaps)
 
@@ -173,7 +194,20 @@ Tests:
   unchanged `main`.
 - Left for the owner: see Open issues (audit #29/#52/#34/#41, call-or-fold lesson,
   starting check, outs choices).
-- Next: owner reviews and approves merging both branches.
+- Owner approved merging both branches; done via PR #12 and the fix branch PR.
+- Next: owner decides the items left open; before/after mocks were published.
+
+### 2026-10-15 (Claude · lean CI and TestFlight)
+
+- Owner asked for proper CI/CD and chose a lean pipeline over the Codex 3×130-minute
+  shard work. Ported Codex's two Xcode 26.3 type-check splits (`WalkthroughView`
+  header, `PracticeTableQuickGameTests`) without its handoff edits; main CI had failed on
+  them. Push CI now runs unit tests only; the UI suite moved to a nightly workflow;
+  tags ship to TestFlight.
+- Verification: Drills tests and the app build pass locally; CI run 38591907357 passed on
+  the branch in 22 minutes (unit tests 5, Release smoke 12, device Release build 3).
+- Next: owner merges the branch, stops the Codex CI session, then does the one-time
+  TestFlight setup in `docs/ci-cd.md` and pushes the first tag.
 
 ### 2026-10-15 (Claude · build 29, lesson review)
 
@@ -211,41 +245,3 @@ Tests:
 - Left: PlayView's setup↔table loop was not moved; worktree
   `.claude/worktrees/agent-ab78e6dade09f5213` still exists.
 - Next: owner reviews the branches and decides on merge and install (done 2026-10-15).
-
-### 2026-10-14 (Claude · build 27 feedback)
-
-- Owner on build 27: the "Who wins?" example starting on the turn was confusing; the
-  lone "이전" on the basics check page looked stray; the invitation sheet's corners and
-  tight top did not match the app. Also: after basics, closing the invitation still
-  opened a lesson. Cause: the sheet's `onDismiss` treated a swipe-down like "Continue
-  lessons"; now only the button continues. The turn-first order came from `acc6f17`
-  ("teaches the reading"), before the beginner direction.
-- On `fix/build27-feedback`. Drills 427 XCTest + 75 Swift Testing pass (two turn/river
-  tests replaced by one face-up test). New UI test
-  `testKoreanSwipingTheInvitationAwayStaysOnLearn` failed on the old code and passes now;
-  invitation, learning, first-lesson, accessibility flow, presentation and welcome UI
-  classes pass on two 12 mini simulators. Screens checked in Korean dark and English
-  light at normal and AX5. The sweep's showdown frames are now beats 0, 1, 3, plus a
-  `guided-invitation` entry.
-- Owner approved merge and install, then asked to push `main` and sync; both pushed.
-  Build 28: build 27 uninstalled, fresh install on the iPhone 12 mini,
-  welcome seen, no progress copied (`.build/device-install-b28/`).
-- Next: owner tries build 28.
-
-### 2026-10-14 (Claude · lesson pass mark, build 27)
-
-- Owner took all four pass-mark picks (D47) and approved merge, push and install. Built
-  `PassMark`, `NodeRecord.best`, the passed / not-passed result screen with per-question
-  marks and retry, the path's "Not passed · best R/Q" and "passed" in Records (`bb852ee`).
-  Two tests were renamed on purpose: an all-wrong or help-only lesson no longer clears.
-  The mark rows use the light `GT.glass` fill: on the felt panel tint the green measured
-  4.46:1 and failed the summary contrast audit.
-- Tests: Drills 428, app 98 unit; full UI suite on two 12 mini simulators, 228 tests,
-  3 failed: the summary audit (fixed, passed on the rebuild) and the two known Play table
-  audits. The new retry and not-passed UI tests pass. Screens checked in Korean dark and
-  English light at normal and AX5.
-- Merged by fast-forward to `main` (`10744ab`) and pushed with the branches. Build 27:
-  build 26 uninstalled, fresh install on the iPhone 12 mini, welcome seen, no progress
-  copied (`.build/device-install-b27/`). The GRAC handoff notes from the other session
-  were committed separately (`46f29ab`), so receipt TG-OM-26-01177 is now in the public repo.
-- Next: owner tries build 27.
