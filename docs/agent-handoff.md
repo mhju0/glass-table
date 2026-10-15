@@ -88,7 +88,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - One corner radius, 10, for cards, panels, seats, felt and controls (`GT.Radius.panel`
   and `.control`; owner chose "everything 10" on 2026-10-13). Nothing in the app's own
   shapes may follow the display curve. Pills and playing cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (28), fresh install; iPhone 13 mini has build
+- Phones: iPhone 12 mini has signed 1.0 (30), fresh install; iPhone 13 mini has build
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
@@ -185,6 +185,11 @@ Tests:
   `testPlayTable`, a pre-existing failure on `main`.
 - Owner asked to merge and install: PR #14 merged, build 30 installed on the iPhone 12
   mini after an uninstall (fresh data).
+- Cleanup (owner, 2026-10-15): removed the `owner-decisions` and `ux-lesson-gaps`
+  worktrees and the three merged branches (local and `origin`); their install and
+  screenshot evidence is in `.archive/2026-10-15-owner-decisions-cleanup/`. Builds
+  27–30 added to `docs/build-history.md`. Draft PR #11 left open: it still holds
+  Play and free-table accessibility fixes not in `main`.
 - Next: owner tries build 30.
 
 ### 2026-10-15 (Codex · revised screenshot UX report)
