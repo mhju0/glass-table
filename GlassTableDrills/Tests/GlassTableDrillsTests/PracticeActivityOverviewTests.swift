@@ -128,7 +128,7 @@ struct PracticeActivityOverviewTests {
         let result = PracticeActivityOverview(state: state, now: date("2026-10-06T12:00:00+09:00"),
                                               calendar: calendar())
         #expect(result.mainCourseCompletedLessons == 1)
-        #expect(result.mainCourseLessonCount == 10)
+        #expect(result.mainCourseLessonCount == 11)
         #expect(result.deeperCompletedLessons == 1)
         #expect(result.deeperLessonCount == 3)
         #expect(state.nodes["u1-showdown"]?.clearedAt == nil)

@@ -40,4 +40,15 @@ final class CallFoldTests: XCTestCase {
         XCTAssertEqual(gradeCallFold(userCalls: false, spot: s).whyText,
                        "무승부 몫을 포함한 팟 지분 20% vs 필요 25% → 폴드")
     }
+
+    /// The lesson states both numbers before the answer, so the beginner practises the
+    /// comparison itself. It names the share, never the choice.
+    func testLessonNumbersStateBothSharesButNotTheChoice() {
+        let s = CallFoldSpot(hero: Card.parse("AhKh")!, villain: Card.parse("QsQd")!,
+                             board: Card.parse("Qh7h2s3c")!, pot: 10, bet: 5, equityPct: 30)
+        XCTAssertEqual(callFoldLessonNumbers(spot: s, language: .korean),
+                       "끝까지 갔을 때 내 몫 30% · 콜에 필요한 몫 25%")
+        XCTAssertEqual(callFoldLessonNumbers(spot: s, language: .english),
+                       "Your share if it goes to the end 30% · The call needs 25%")
+    }
 }

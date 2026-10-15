@@ -135,4 +135,23 @@ final class DefendChartTests: XCTestCase {
         hand.play(.call)
         XCTAssertNil(hand.preflopVerdict(for: .fold))
     }
+
+    // The table review explains this hand, not only its group (audit #52).
+
+    func testStrengthPercentCountsCombosRankedAtOrAboveTheHand() {
+        let seventySix = HandClass(high: 7, low: 6, suited: false)!
+        XCTAssertEqual(DefendChart.strengthPercent(of: seventySix), 42.4, accuracy: 0.1)
+        let aces = HandClass(high: 14, low: 14, suited: false)!
+        XCTAssertEqual(DefendChart.strengthPercent(of: aces), 6.0 / 1326 * 100, accuracy: 0.01)
+    }
+
+    func testReasonStatesTheOpenersRuleAndWhereTheHandSits() {
+        let seventySix = HandClass(high: 7, low: 6, suited: false)!
+        XCTAssertEqual(DefendChart.reason(for: seventySix, vsOpenFrom: .utg, language: .korean),
+                       "앞자리 (UTG): 상위 15%로 먼저 올려요. 그 폭의 상위 4.5%는 다시 올리고, "
+                       + "\(pctText(15 * DefendChart.defendShare))%까지는 콜이에요. 76o는 강한 순서로 상위 42%쯤이라 폴드예요.")
+        XCTAssertEqual(DefendChart.reason(for: seventySix, vsOpenFrom: .utg, language: .english),
+                       "Early seat (UTG) raises first with the top 15% of hands. Raise again with the top 4.5%; "
+                       + "call up to \(pctText(15 * DefendChart.defendShare))%. 76o ranks near the top 42% by strength, so it is a fold.")
+    }
 }

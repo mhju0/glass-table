@@ -153,4 +153,37 @@ final class GradedLearningFlowTests: XCTestCase {
         next.tap()
         XCTAssertTrue(app.buttons["table-policy"].exists)
     }
+
+    func testChartGuideOpensOnlyTheFirstTime() {
+        let app = launch()
+        let guideText = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "The diagonal from AA to 22")).firstMatch
+        app.buttons["table-chart"].tap()
+        XCTAssertTrue(guideText.waitForExistence(timeout: 5), "The first chart opens with its reading guide")
+        app.buttons["Close"].tap()
+        app.buttons["table-chart"].tap()
+        XCTAssertTrue(app.buttons["table-chart-reading-guide"].waitForExistence(timeout: 5))
+        XCTAssertFalse(guideText.exists, "A later chart starts with the guide folded")
+    }
+
+    func testPreflopReviewExplainsTheOpenersRuleForThisHand() {
+        let app = launch()
+        app.buttons["table-fold"].tap()
+        let takeaway = app.staticTexts["table-takeaway"]
+        XCTAssertTrue(takeaway.waitForExistence(timeout: 5))
+        XCTAssertTrue(takeaway.label.contains("raises first with the top"), takeaway.label)
+        XCTAssertTrue(takeaway.label.contains("by strength"), takeaway.label)
+    }
+
+    func testReviewLeadsWithTheVerdictBeforeItsReferences() {
+        let app = launch()
+        app.buttons["table-fold"].tap()
+        let verdict = app.descendants(matching: .any)["table-verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        let chart = app.buttons["table-chart"]
+        let details = app.buttons["table-decision-details"]
+        XCTAssertTrue(chart.exists)
+        XCTAssertTrue(details.exists)
+        XCTAssertLessThanOrEqual(verdict.frame.maxY, chart.frame.minY, "The verdict comes before the references")
+        XCTAssertLessThanOrEqual(app.staticTexts["table-takeaway"].frame.maxY, details.frame.minY)
+    }
 }

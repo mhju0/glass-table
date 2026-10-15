@@ -17,10 +17,9 @@ public struct LearningTrack: Equatable, Identifiable, Sendable {
 
     public var isOptional: Bool { id == .deeper }
 
-    /// Skills to practise one at a time. Call-or-fold has no lesson of its own; it is
-    /// the decision the price-and-chance lessons build up to.
+    /// Skills to practise one at a time.
     public var concepts: [Concept] {
-        lessons.compactMap(Curriculum.taughtConcept) + (id == .priceAndChance ? [.callFold] : [])
+        lessons.compactMap(Curriculum.taughtConcept)
     }
 }
 
@@ -30,7 +29,7 @@ public extension Curriculum {
     static let tracks: [LearningTrack] = [
         track(.basics, ["u1-showdown", "u1-potMath"], challenge: "u1-boss"),
         track(.startingHands, ["u1-position", "u3-rfi", "u8-defend"], challenge: "u3-boss"),
-        track(.priceAndChance, ["u2-outs", "u2-equitySense", "u2-potOdds"], challenge: "u2-boss"),
+        track(.priceAndChance, ["u2-outs", "u2-equitySense", "u2-potOdds", "u2-callFold"], challenge: "u2-boss"),
         track(.readingOpponents, ["u4-rangeRead", "u7-actionRead"], challenge: "u4-boss"),
         track(.deeper, ["u1-combos", "u3-notation", "u2-evCall"], challenge: nil),
     ]

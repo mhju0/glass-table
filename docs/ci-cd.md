@@ -6,13 +6,17 @@ Four GitHub Actions workflows, all on `macos-15` runners (free minutes, since th
 | --- | --- | --- | --- |
 | `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, Release launch smoke test, device Release build checked by `tools/verify_release.py` | about 22 min |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
-| `ui-tests.yml` | nightly 03:00 KST, by hand | the full UI flow suite, split across three parallel shards | up to 2 h |
+| `ui-tests.yml` | nightly 03:00 KST, by hand | the full UI flow suite, split across three parallel shards | 50–95 min per shard |
 | `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
 
 `ci.yml` is the gate that has to pass before merging. The UI suite is too slow for every
 push, so it runs nightly. Its shards split test classes by test count, so a new UI test
 class runs without editing the workflow. To run the UI suite on a branch before merging:
 Actions → UI tests → Run workflow → pick the branch.
+
+First full run (2026-10-15, run 38664206149): shards 2 and 3 passed in about 51 and
+54 min; shard 1 took about 94 min and failed only `AccessibilityAuditTests/testPlayTable`
+(contrast, partial Dynamic Type), which fails the same way on `main` before CI existed.
 
 ## One-time setup for TestFlight
 

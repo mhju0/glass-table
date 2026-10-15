@@ -129,6 +129,7 @@ struct NodeSessionView: View {
             else { current }
         }
         .background(FeltBackground())
+        .environment(\.lessonCallFoldNumbers, node.kind == .drill(.callFold))
         .gtChrome(leading: { ChromeButton.close { dismiss() } }, trailing: {
             if stage == .show, !finished, !sessionConcepts.isEmpty {
                 ChromeTextButton(title: WalkthroughView.skipTitle(language)) {

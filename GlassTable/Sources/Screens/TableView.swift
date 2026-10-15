@@ -15,6 +15,7 @@ struct TableView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hand: TableHand?
     @State private var options: [GradedOption]?
     @State private var choosingBetSize = false
@@ -67,7 +68,9 @@ struct TableView: View {
         }
     }
     @State private var showChart = false
+    // Open the first time the chart is ever opened; folded after that (audit #29).
     @State private var chartGuideExpanded = true
+    @State private var showDecisionDetails = false
     @State private var showPolicyReference = false
 
     var body: some View {
@@ -166,7 +169,7 @@ struct TableView: View {
                 // the sweep can also photograph the action buttons mid-hand.
                 if steps > 0, case .hero = h.phase { lastTurn = decisions.last }
                 if env["GT_DEMO_TABLE_CONTINUE"] != nil { lastTurn = nil }
-                if env["GT_DEMO_TABLE_CHART"] != nil { showChart = true }
+                if env["GT_DEMO_TABLE_CHART"] != nil { openChart() }
                 if env["GT_DEMO_TABLE_POLICY"] != nil { showPolicyReference = true }
                 prepareOptions(for: h)
                 if env["GT_DEMO_TABLE_SIZES"] != nil,
@@ -407,12 +410,32 @@ struct TableView: View {
         .padding(.vertical, compact ? 2 : 6)
     }
 
-    private var references: some View {
+    private func openChart() {
+        chartGuideExpanded = !ChartGuideMemory.seen
+        ChartGuideMemory.seen = true
+        showChart = true
+    }
+
+    private var references: some View { referenceRow(details: false) }
+
+    private func referenceRow(details: Bool) -> some View {
         let layout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
             : AnyLayout(HStackLayout(spacing: 8))
         return layout {
-            Button { showChart = true } label: {
+            if details {
+                Button {
+                    withAnimation(reduceMotion ? nil : GT.Motion.change) { showDecisionDetails.toggle() }
+                } label: {
+                    Label(language.text("판정 자세히", "Details"),
+                          systemImage: showDecisionDetails ? "chevron.up" : "chevron.down")
+                }
+                .buttonStyle(GTOutlinedAction())
+                .accessibilityValue(showDecisionDetails ? language.text("펼침", "Expanded")
+                                                        : language.text("접힘", "Collapsed"))
+                .accessibilityIdentifier("table-decision-details")
+            }
+            Button { openChart() } label: {
                 Label(language.text("차트", "Chart"), systemImage: "square.grid.3x3")
             }
             .buttonStyle(GTOutlinedAction())
@@ -460,7 +483,8 @@ struct TableView: View {
 
     @ViewBuilder
     private func sheet(_ hand: TableHand) -> some View {
-        references
+        // After a commit the verdict leads; the references follow its reason.
+        if lastTurn == nil { references }
         if let lastTurn {
             turnReveal(lastTurn)
         } else if case let .over(outcome) = hand.phase {
@@ -576,22 +600,22 @@ struct TableView: View {
                                "Your last choice · \(TableEvent.streetName(turn.street, in: language))"))
                 .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
             verdictRow(turn)
-            Text(GradedTableLearning.takeaway(turn, language: language))
+            Text(GradedTableLearning.takeaway(turn, hand: hand, language: language))
                 .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("table-takeaway")
-            DisclosureGroup(language.text("판정 자세히", "Decision details")) {
+            referenceRow(details: true)
+            if showDecisionDetails {
                 VStack(alignment: .leading, spacing: 8) {
                     evPrices(turn)
                     Text(GradedTableLearning.basis(turn, language: language))
                         .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
-                }.padding(.top, 8)
+                }
             }
-            .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
-            .accessibilityIdentifier("table-decision-details")
             PrimaryCTAButton(title: language.text("계속", "Continue")) {
                 lastTurn = nil
+                showDecisionDetails = false
                 if let hand { prepareOptions(for: hand) }
             }
             .accessibilityIdentifier("table-continue")
@@ -703,7 +727,7 @@ struct TableView: View {
                         Text(TableEvent.streetName(turn.street, in: language))
                             .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
                         verdictRow(turn)
-                        Text(GradedTableLearning.takeaway(turn, language: language))
+                        Text(GradedTableLearning.takeaway(turn, hand: hand, language: language))
                             .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         evPrices(turn)
@@ -834,5 +858,22 @@ private extension GradedOption {
         case .check, .call: return .passive
         case .raise, .bet:  return .aggressive
         }
+    }
+}
+
+/// Whether the chart's reading guide has been shown once; per test store in DEBUG.
+private enum ChartGuideMemory {
+    private static var key: String {
+        #if DEBUG
+        let suffix = ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"] ?? "shared"
+        #else
+        let suffix = "shared"
+        #endif
+        return "table.chartGuideSeen.v1.\(suffix)"
+    }
+
+    static var seen: Bool {
+        get { UserDefaults.standard.bool(forKey: key) }
+        set { UserDefaults.standard.set(newValue, forKey: key) }
     }
 }

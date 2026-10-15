@@ -146,8 +146,11 @@ struct PathView: View {
 
     private func nodeRow(_ node: CurriculumNode, challenge: Bool = false) -> some View {
         let status = status(of: node)
-        let names = Curriculum.taughtConcept(of: node).map { skillNames($0, language: language, termsLead: termsLead) }
-        let title = names?.lead ?? learningNodeTitle(node, language: language)
+        // A challenge mixes its track's skills, so it never reads as one of its lessons.
+        let names = challenge ? nil
+            : Curriculum.taughtConcept(of: node).map { skillNames($0, language: language, termsLead: termsLead) }
+        let title = names?.lead ?? learningNodeTitle(node, language: language, asChallenge: challenge)
+        let practice = challenge ? nil : practiceLabel(node)
         // Each track can be started on its own, so its first lesson says so until done.
         let startsTrack = status != .cleared
             && Curriculum.tracks.contains { !$0.isOptional && $0.lessons.first == node }
@@ -180,13 +183,13 @@ struct PathView: View {
                     if let notPassed {
                         Text(notPassed).font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                     }
-                    Text(learningNodeDescription(node, language: language))
+                    Text(learningNodeDescription(node, language: language, asChallenge: challenge))
                         .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 4)
-                if let label = practiceLabel(node) {
+                if let label = practice {
                     Text(label).font(GT.semibold(11)).foregroundStyle(GT.onFeltSecondary)
                         .multilineTextAlignment(.trailing)
                 }
@@ -201,7 +204,7 @@ struct PathView: View {
         .id(node.id)
         .accessibilityLabel("\(title), \(tag.map { $0 + ", " } ?? "")\(statusLabel(status))"
                             + (notPassed.map { ", \($0)" } ?? "")
-                            + (practiceLabel(node).map { ", \($0)" } ?? ""))
+                            + (practice.map { ", \($0)" } ?? ""))
         .accessibilityIdentifier("lesson-\(node.id)")
     }
 

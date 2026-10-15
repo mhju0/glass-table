@@ -90,12 +90,16 @@ final class CurriculumTests: XCTestCase {
         XCTAssertNil(Curriculum.node(id: "nope"))
     }
 
-    /// Every concept is introduced exactly once, including callFold at its boss and
-    /// MDF in the final unit. Existing node identifiers and order remain unchanged.
+    /// Every concept is introduced exactly once, including MDF in the final unit.
+    /// Call-or-fold is the one repeat: its lesson teaches it, and unit 2's boss keeps it
+    /// as its own so challenge sessions saved before the lesson existed stay valid.
+    /// Existing node identifiers and order remain unchanged.
     func testEveryConceptIsTaughtExactlyOnce() {
         let taught = Curriculum.allNodes.compactMap(Curriculum.taughtConcept)
         XCTAssertEqual(Set(taught), Set(Concept.allCases))
-        XCTAssertEqual(taught.count, Set(taught).count, "no concept is introduced twice")
+        XCTAssertEqual(taught.filter { $0 != .callFold }.count, Set(taught).count - 1,
+                       "no other concept is introduced twice")
+        XCTAssertEqual(taught.filter { $0 == .callFold }.count, 2)
         XCTAssertEqual(Curriculum.node(id: "u9-mdf")?.kind, .drill(.mdf))
         XCTAssertEqual(Curriculum.allNodes.dropLast(2).last?.id, "u8-boss")
     }
@@ -203,11 +207,11 @@ final class LearningTrackTests: XCTestCase {
 
     func testTracksRegroupExistingLessonsAndLeaveTheNineUnitsAlone() {
         XCTAssertEqual(Curriculum.units.count, 9)
-        XCTAssertEqual(Curriculum.allNodes.count, 26)
+        XCTAssertEqual(Curriculum.allNodes.count, 27)
         XCTAssertEqual(Curriculum.tracks.map(\.id), LearningTrack.ID.allCases)
         XCTAssertEqual(Curriculum.trackLessons.map(\.id),
                        ["u1-showdown", "u2-outs", "u1-potMath", "u1-position", "u3-rfi", "u8-defend",
-                        "u2-equitySense", "u2-potOdds", "u4-rangeRead", "u7-actionRead"])
+                        "u2-equitySense", "u2-potOdds", "u2-callFold", "u4-rangeRead", "u7-actionRead"])
         let offered = Curriculum.tracks.flatMap { $0.lessons + [$0.challenge].compactMap { $0 } }
         XCTAssertEqual(Set(offered.map(\.id)).count, offered.count, "No lesson sits on two tracks")
         let taught = Set(offered.compactMap(Curriculum.taughtConcept))
@@ -256,10 +260,23 @@ final class LearningTrackTests: XCTestCase {
         // A challenge leans on its own track; a deeper topic leans on all four.
         let challenge = try XCTUnwrap(Curriculum.node(id: "u2-boss"))
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: challenge, in: state).map(\.id),
-                       ["u2-outs", "u2-equitySense", "u2-potOdds"])
-        XCTAssertEqual(Curriculum.easierLesson(than: challenge)?.id, "u2-potOdds")
+                       ["u2-outs", "u2-equitySense", "u2-potOdds", "u2-callFold"])
+        XCTAssertEqual(Curriculum.easierLesson(than: challenge)?.id, "u2-callFold")
         let combos = try XCTUnwrap(Curriculum.node(id: "u1-combos"))
-        XCTAssertEqual(Curriculum.unfinishedGroundwork(for: combos, in: state).count, 8)
+        XCTAssertEqual(Curriculum.unfinishedGroundwork(for: combos, in: state).count, 9)
         XCTAssertEqual(Curriculum.easierLesson(than: combos)?.id, "u7-actionRead")
+    }
+
+    /// Call-or-fold gets a lesson of its own before the price track's challenge, so a
+    /// beginner first meets the decision with help rather than under challenge rules.
+    func testCallOrFoldHasItsOwnLessonBeforeThePriceChallenge() throws {
+        let lesson = try XCTUnwrap(Curriculum.node(id: "u2-callFold"))
+        XCTAssertEqual(lesson.kind, .drill(.callFold))
+        let track = try XCTUnwrap(Curriculum.tracks.first { $0.id == .priceAndChance })
+        XCTAssertEqual(track.lessons.map(\.id), ["u2-outs", "u2-equitySense", "u2-potOdds", "u2-callFold"])
+        XCTAssertEqual(track.challenge?.id, "u2-boss")
+        let ids = Curriculum.allNodes.map(\.id)
+        XCTAssertEqual(ids.firstIndex(of: "u2-callFold").map { $0 + 1 }, ids.firstIndex(of: "u2-boss"))
+        XCTAssertEqual(Curriculum.sessionConcepts(for: lesson), [.callFold, .callFold, .callFold])
     }
 }

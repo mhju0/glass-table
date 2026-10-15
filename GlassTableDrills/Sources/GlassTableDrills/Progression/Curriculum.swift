@@ -57,6 +57,9 @@ public enum Curriculum {
             CurriculumNode(id: "u2-outs", kind: .drill(.outs), title: "아웃"),
             CurriculumNode(id: "u2-equitySense", kind: .drill(.equitySense), title: "에퀴티 감각"),
             CurriculumNode(id: "u2-evCall", kind: .drill(.evCall), title: "EV 계산"),
+            // The decision the unit builds toward, first met as a lesson with help. The
+            // boss keeps call-or-fold as its own so its saved sessions stay valid.
+            CurriculumNode(id: "u2-callFold", kind: .drill(.callFold), title: "콜/폴드 판단"),
             // Reaches back into unit 1 (콤보 · 포지션) as spec §4.1 requires, and is
             // the node 첫 핸드's authored hand becomes.
             CurriculumNode(id: "u2-boss",

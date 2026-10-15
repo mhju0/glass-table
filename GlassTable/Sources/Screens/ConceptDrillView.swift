@@ -1717,6 +1717,7 @@ private struct PercentDrill: View {
 private struct CallFoldDrill: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.simpleQuestions) private var simple
+    @Environment(\.lessonCallFoldNumbers) private var lessonNumbers
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: CallFoldReveal?
@@ -1736,6 +1737,12 @@ private struct CallFoldDrill: View {
                 Text(language.text("팟 \(spot.pot)\(unit) · 상대 벳 \(spot.bet)\(unit)",
                                    "Pot \(spot.pot)\(unit) · Opponent bets \(spot.bet)\(unit)"))
                     .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
+                if lessonNumbers {
+                    Text(callFoldLessonNumbers(spot: spot, language: language))
+                        .font(GT.semibold(15)).foregroundStyle(GT.mint)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("callfold-lesson-numbers")
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {

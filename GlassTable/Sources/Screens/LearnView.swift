@@ -132,15 +132,16 @@ struct LearnView: View {
 }
 
 func learningNodeTitle(_ node: CurriculumNode, language: LearningLanguage,
-                       termsLead: Bool = false) -> String {
-    if let concept = Curriculum.taughtConcept(of: node) {
+                       termsLead: Bool = false, asChallenge: Bool = false) -> String {
+    if !asChallenge, let concept = Curriculum.taughtConcept(of: node) {
         return skillNames(concept, language: language, termsLead: termsLead).lead
     }
     return language.text("섞어서 확인하기", "Mixed practice")
 }
 
-func learningNodeDescription(_ node: CurriculumNode, language: LearningLanguage) -> String {
-    if let concept = Curriculum.taughtConcept(of: node) {
+func learningNodeDescription(_ node: CurriculumNode, language: LearningLanguage,
+                             asChallenge: Bool = false) -> String {
+    if !asChallenge, let concept = Curriculum.taughtConcept(of: node) {
         return ConceptIntroduction.make(concept, language: language).why
     }
     return language.text("여러 주제를 새로운 상황에서 함께 써 봐요.", "Use several skills in a new spot.")
