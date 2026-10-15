@@ -29,6 +29,23 @@ final class BeginnerQuestionChoicesTests: XCTestCase {
         }
     }
 
+    func testShareChoicesOfferExactlyOneAnswerThatGradesRight() {
+        // Pot odds and MDF accept 2.5 points either side, so a choice 1 or 2 away
+        // would be a second right answer.
+        for seed in UInt64(0)..<200 {
+            for index in 0..<10 {
+                let spot = BetSpotGenerator.spot(baseSeed: seed, index: index)
+                let odds = BeginnerQuestionChoices.shares(answer: spot.requiredPct, seed: seed &+ UInt64(index))
+                XCTAssertEqual(odds.count, 3)
+                XCTAssertEqual(odds.filter { gradePotOdds(estimatePct: $0, spot: spot).band == .spotOn }.count, 1,
+                               "pot odds \(spot) \(odds)")
+                let mdf = BeginnerQuestionChoices.shares(answer: spot.mdfPct, seed: seed &+ UInt64(index))
+                XCTAssertEqual(mdf.filter { gradeMDF(estimatePct: $0, spot: spot).band == .spotOn }.count, 1,
+                               "MDF \(spot) \(mdf)")
+            }
+        }
+    }
+
     func testRangeChoicesIncludeAnAttainableOnTargetAnswer() {
         for archetype in Archetype.allCases {
             for seat in RFIChart.seats {

@@ -46,6 +46,7 @@ struct ConceptDrillView: View {
          initialDraft: SavedDrillDraftInput? = nil,
          help: DrillHelp? = nil,
          showsContextualHint: Bool = false,
+         chartStartsFolded: Bool = false,
          onDraft: @escaping (SavedDrillDraftInput) -> Void = { _ in },
          onQuestionReady: @escaping () -> Void = {},
          onCommit: @escaping (DrillOutcome) -> Bool = { _ in true },
@@ -62,6 +63,7 @@ struct ConceptDrillView: View {
         self.onAnswer = onAnswer
         self.help = help
         self.showsContextualHint = showsContextualHint
+        _defendChartPractice = State(initialValue: DefendChartPracticeState(chartVisible: !chartStartsFolded))
     }
 
     var body: some View {
@@ -1678,9 +1680,9 @@ private struct PercentDrill: View {
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     if simple {
-                        LessonCountChoices(values: BeginnerQuestionChoices.integers(
-                            answer: Int((isMDF ? spot.mdfPct : spot.requiredPct).rounded()),
-                            bounds: 0...100, seed: seed &+ UInt64(index)), suffix: "%") { choice in
+                        LessonCountChoices(values: BeginnerQuestionChoices.shares(
+                            answer: isMDF ? spot.mdfPct : spot.requiredPct,
+                            seed: seed &+ UInt64(index)), suffix: "%") { choice in
                             value = choice
                             reveal = isMDF ? gradeMDF(estimatePct: choice, spot: spot, language: language)
                                            : gradePotOdds(estimatePct: choice, spot: spot, language: language)
@@ -2972,7 +2974,9 @@ private struct DefendDrill: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .onAppear {
-                if simple, !guidedChart, help?.isUsed != true { _ = help?.mark() }
+                // A beginner sees the chart unasked, and seeing it is help; a folded
+                // chart leaves the answer the learner's own.
+                if simple, !guidedChart, chartPractice.chartVisible, help?.isUsed != true { _ = help?.mark() }
                 #if DEBUG
                 // GT_DEMO_REVEAL=<0|1|2> answers 폴드/콜/3벳 — the chart is the payload
                 // and synthetic taps never reach Simulator content.

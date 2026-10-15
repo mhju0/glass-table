@@ -22,6 +22,12 @@ public enum BeginnerQuestionChoices {
         return values.shuffled(using: &rng)
     }
 
+    /// Choices for a price share (pot odds, MDF): the rounded answer and two that are
+    /// at least 15 points off, beyond the 2.5-point spot-on band, so only one is right.
+    public static func shares(answer: Double, seed: UInt64) -> [Int] {
+        percentages(answer: answer, seed: seed).map { Int($0) }
+    }
+
     public static func percentages(answer: Double, seed: UInt64, count: Int = 3) -> [Double] {
         let truth = min(100, max(0, Int(answer.rounded())))
         var rng = SplitMix64(seed: seed)
