@@ -4,7 +4,7 @@ Date: 2026-09-23. Status: implemented, independently reviewed, tested, and
 installed for owner testing as **1.0 (4)**. Not an App Store release.
 
 This closes the approved native implementation behind the
-[beginner release spec](../../.scratch/beginner-learning-release/spec.md).
+[beginner release spec](../records/2026-09-23-beginner-learning-release.md).
 The earlier browser mock is design evidence, not native verification.
 The [learner-trust audit](2026-09-20-learner-trust-audit.md) and
 [pot/appearance delivery](2026-09-23-pot-appearance.md) retain their original scope.
@@ -223,4 +223,4 @@ limit, not permission to trim old records automatically.
 No GitHub push, external publishing, hosted privacy-policy change or App Store
 submission occurred in this task. Current-facing docs, tickets and README assets
 are updated at delivery; historical handoff text is preserved in
-`docs/handoff-archive/2026-09-23-before-combined-release.md`.
+`docs/records/2026-09-04-session-history.md`.

@@ -81,7 +81,7 @@ Each mode is the same loop pointed at a different skill, and each targets a spec
 
 Build order: **Math Drills → Range Read → Table.** Each is independently shippable, and each de-risks the next.
 
-- **Milestone 1 — Math Drills** (see `milestone-1.md`). Ships as a complete, free study app. Proves the Swift pipeline, the correctness-verified equity core, the decide→grade loop, and the Korean rating path — all at minimum risk, before any betting-table UI exists.
+- **Milestone 1 — Math Drills** (see `docs/records/2026-07-21-m1-plans.md`). Ships as a complete, free study app. Proves the Swift pipeline, the correctness-verified equity core, the decide→grade loop, and the Korean rating path — all at minimum risk, before any betting-table UI exists.
 - **Milestone 2 — Range Read.** Adds the archetype range data + the 13×13 grid + betting-action playback. The strongest differentiator; needs no post-flop bot brain.
 - **Milestone 3 — Table.** Needs everything above plus the post-flop bot. The long pole; sequenced last on purpose.
 

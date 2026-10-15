@@ -124,7 +124,7 @@ Read across the entries, a few preferences keep coming back:
 - **Replaces:** the "free forever / no money" and "separate onboarding" founding positions
   (the latter already replaced 2026-09-24).
 - **Evidence:** [`ROADMAP.md`](ROADMAP.md) (rewritten); the old roadmap is in
-  `handoff-archive/2026-09-25-roadmap-before-release-plan.md`.
+  `docs/records/2026-09-04-session-history.md`.
 
 ## 2026-09-25 — Autonomous session (owner away, delegated authority)
 
@@ -145,7 +145,7 @@ pasted text and the standing rule is never to push to main without asking.
   in poker apps. Fewer opponents make each decision easier to follow for a
   beginner. No change to the saved-data format was needed, and existing
   four-seat tables deal exactly as before (pinned by a test).
-- **Evidence:** `.scratch/first-run-and-play/issues/05-player-count.md`;
+- **Evidence:** `docs/records/2026-09-24-first-run-and-play.md`;
   `GlassTableDrills/Tests/GlassTableDrillsTests/PracticeTableSeatCountTests.swift`.
 
 ### Every tappable thing looks tappable (app-wide audit)
@@ -159,7 +159,7 @@ pasted text and the standing rule is never to push to main without asking.
   system alerts and dialogs, Settings' grouped rows, and the quiet 새로 시작하기
   on the data-recovery screen. A reset there is a last resort, so it should not
   look inviting.
-- **Evidence:** `.scratch/first-run-and-play/issues/03-bottom-choice-audit.md`.
+- **Evidence:** `docs/records/2026-09-24-first-run-and-play.md`.
 
 ### Pot-counting answers move to the bottom sheet
 - **Decided by:** agent, applying the owner's "bottom choices on every question
@@ -182,7 +182,7 @@ pasted text and the standing rule is never to push to main without asking.
   glossary allows in Latin.
 - **Also fixed:** at the largest text size, the ✓/✗ badge in the first lesson
   covered the card title. At accessibility sizes it now sits above the title.
-- **Evidence:** `.scratch/consistent-learning-table/native-audit/match.py`
+- **Evidence:** `tools/line-parity/match.py`
   run on local KO/EN screenshot sweeps (`.uisweep/20260925-*`, not committed).
 
 ---
@@ -207,7 +207,7 @@ pasted text and the standing rule is never to push to main without asking.
     until the first finished lesson, then becomes an ordinary row at the bottom.
   - *Tap rule:* app-wide. Anything tappable is a filled button or a bordered card
     with a chevron.
-- **Evidence:** `.scratch/first-run-and-play/spec.md`, issues 04 and 06.
+- **Evidence:** `docs/records/2026-09-24-first-run-and-play.md`, issues 04 and 06.
 
 ## 2026-09-25 — First-run guide and graded feedback (owner chose on the research page)
 
@@ -221,7 +221,7 @@ pasted text and the standing rule is never to push to main without asking.
   - *Layout:* answer choices at the bottom on every question screen.
   - *Welcome:* two screens (welcome, then how it works), then 워밍업 1/2 and 2/2.
   - *Words:* "시작 안내 · 워밍업 1/2", "안내 건너뛰기".
-- **Evidence:** `.scratch/first-run-and-play/spec.md`, issues 01 and 02; commits
+- **Evidence:** `docs/records/2026-09-24-first-run-and-play.md`, issues 01 and 02; commits
   `4aac931`, `ff691fe`.
 
 ## 2026-09-24 — Start the phone fresh
@@ -237,7 +237,7 @@ pasted text and the standing rule is never to push to main without asking.
 - **Why:** switching language should not change the screen's layout, and a lone
   "요." on its own line looks careless.
 - **Evidence:** `DESIGN.md` → "Bilingual line parity"; the OCR audit in
-  `.scratch/consistent-learning-table/native-audit/`.
+  `tools/line-parity/`.
 
 ## 2026-09-24 — Refined table look
 - **Decided by:** owner, comparing Current and Refined in the prototype. **What:**
@@ -252,7 +252,7 @@ pasted text and the standing rule is never to push to main without asking.
   activities, one wide green table shared across modes, tap-paced replays, pot
   totals hidden until the answer, assisted practice kept separate from unaided
   accuracy, and a skippable, reopenable visual first-use explanation for every mode.
-- **Evidence:** `.scratch/consistent-learning-table/spec.md`.
+- **Evidence:** `docs/records/2026-09-23-consistent-learning-table.md`.
 
 ## 2026-09-23 — Settings becomes the fourth tab
 - **Decided by:** owner. **What:** Learn / Play / Progress / Settings in the bottom

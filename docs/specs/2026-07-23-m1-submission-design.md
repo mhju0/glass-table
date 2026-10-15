@@ -1,6 +1,6 @@
 # M1 sub-project 4 — App Store + GRAC submission (design)
 
-Approved 2026-07-23. The last M1 step (`docs/milestone-1.md` "Rough shape" #6):
+Approved 2026-07-23. The last M1 step (`docs/records/2026-07-21-m1-plans.md` "Rough shape" #6):
 ship v1.0 (1) to the App Store, worldwide, with the Korean rating landing on the
 self-rating track. Fully manual pipeline (Xcode Organizer, App Store Connect web
 UI) — the versioned artifact is the *content* (metadata, questionnaire answers,
@@ -49,7 +49,7 @@ recorded in `docs/submission.md` so later milestones re-answer consistently.
 submitting**, record the outcome, and switch to the GRAC direct-review fallback
 (~10–15 business days, fee, gameplay video) as a separate follow-up — that
 path is documented in `risks.md` and is a valid M1 exit ("either outcome
-validates the compliance path", `milestone-1.md` §3).
+validates the compliance path", `docs/records/2026-07-21-m1-plans.md` §3).
 
 ## 5. Privacy
 

@@ -14,6 +14,12 @@ Issues and specs (you may know a spec as a PRD) for this repo live as markdown f
 
 Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).
 
+## When the work is finished
+
+Write one short record in `docs/records/` (format in its README), repoint any links to
+the folder, and delete `.scratch/<feature-slug>/`. Screenshots, HTML mocks and reports
+are not committed; the record says in a line what each one showed.
+
 ## When a skill says "fetch the relevant ticket"
 
 Read the file at the referenced path. The user will normally pass the path or the issue number directly.

@@ -3,7 +3,7 @@
 Read this at session start. It has three parts: the current state (rewritten, not
 appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
-and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
+and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-15)
 
@@ -29,17 +29,17 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   ‹, ••• and text action is an outlined rounded square with a grey border
   (`GTControlBackground`, `ChromeGlyph`, `GTOutlinedAction`). Gold stays for main buttons
   and things that need attention. Content under a top bar starts about 15pt lower.
-  List and mocks: `.scratch/clickable-controls-2026-10-14/map.md`.
+  List and mocks: `docs/records/2026-10-14-clickable-controls.md`.
 - Build 25 held the owner's build 24 lesson feedback
   (direct fixes, answer marking F2, white answer cards S1, picks 1A, 1C, 2A, 3A) and
   "a near miss is wrong". Mocks: https://claude.ai/artifact/9GBTnNb66MwufA7B19rG7e and
   https://claude.ai/artifact/8aPmc5HftjZcezcpN6TkYs. Items and limits:
-  `.scratch/lesson-feedback-2026-10-13/map.md`.
+  `docs/records/2026-10-13-lesson-feedback.md`.
 - "A hand together" is rebuilt on the Play table (`aafc0b5`, in build 26): one fixed two-player hand with the real action buttons,
   a coach card (Now / Look at / Think), the coach's pick marked on a button, a dimmed
   spotlight on the first steps, and a question before giving up. The owner chose "the
   mix of B and A" from https://claude.ai/artifact/45hN7vNa15ru28nfsHovcR. Notes and
-  limits: `.scratch/guided-hand-2026-10-14/map.md`.
+  limits: `docs/records/2026-10-14-guided-hand-on-table.md`.
 - Only an exact answer counts as correct (owner, 2026-10-14). A near miss, including an
   EV-loss choice that gave up any value, is wrong for accuracy, the miss streak, the
   lesson result, Records and sound, and is scheduled as a hard review
@@ -50,11 +50,11 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   and in build 24.
 - `main` holds all of this session's work and matches `origin/main`. The standing rule is still to work on a feature branch and not push `main`
   unasked. Merged feature branches were deleted locally and on `origin` (2026-10-14).
-  The Codex `fix/*-2026101[45]` and `diagnostic/*` branches are kept for reference and
-  not merged; their worktrees are gone (see the cleanup line below).
+  The Codex `fix/*`, `diagnostic/*` and `rollback/*` branches and PR #11 were closed and
+  deleted on 2026-10-15 (`docs/records/2026-10-14-codex-ci-repair.md`).
 - Build 29 (owner asked to push `main` and install, 2026-10-15) is in `main`, pushed,
   and on the iPhone 12 mini. Over build 28 it adds animation polish (audit plans in
-  `plans/`, motion tokens `GT.Motion.fade`/`.move`, near-full-size board cards, the
+  `docs/records/2026-10-14-animation-plans.md`, motion tokens `GT.Motion.fade`/`.move`, near-full-size board cards, the
   skill-glyph accent) and four refactors that move rules into Drills:
   `PracticeRaiseBlock`, `BeginnerJourney` (RootView's cover order), `ConceptReveal`
   (reveal text, seat labels on `Position`) and `GradedSession` (draft/answer/next for
@@ -64,7 +64,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   under Open issues.
 - Merged to `main` with the owner's approval (2026-10-15): `ci/lean-pipeline-20261015`
   (PR #12) and `fix/ux-lesson-gaps-20261015` (lesson review gaps and most of the
-  screenshot UX audit, `.scratch/screenshot-ux-audit-2026-10-15/report.html`).
+  screenshot UX audit, `docs/records/2026-10-15-screenshot-ux-audit.md`).
 - Owner decisions on the lesson review and UX audit (owner liked every suggestion in
   https://claude.ai/artifact/6gcHb6SVBTLnkBmhog7TvY, 2026-10-15) are on
   `feat/owner-decisions-20261015`: chart guide opens only the first time, a
@@ -76,13 +76,14 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   the UI suite nightly in three shards; `release.yml` uploads a `v<version>-<build>` tag
   on `main` to TestFlight. Setup steps: `docs/ci-cd.md`. The App Store Connect API key
   is not ready yet (owner, 2026-10-15), so no secrets are set and no tag has shipped.
-- Worktree cleanup (owner, 2026-10-15): all 25 `/private/tmp/glass-table-*` worktrees
-  were removed; their branches remain. Uncommitted changes, untracked files and
-  `.build` evidence (no caches) are in `.archive/2026-10-15-worktree-cleanup/`, with the
-  Codex session's uncommitted handoff edit. No Codex process was running in this repo.
-- Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
-  caches, compiled probe output. Nothing else is untracked.
-- Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
+- Records cleanup (owner, 2026-10-15): every finished report, audit, research note,
+  scratch folder, plan and old handoff is now one short text record in `docs/records/`
+  (index in its README); originals are in git at `f5c5e22`. Local `.build/`, `.archive/`
+  and old build folders were deleted (about 24 GB). The line-parity OCR check moved to
+  `tools/line-parity/`.
+- Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), package
+  build caches, the generated Xcode project. Nothing else is untracked.
+- Decisions and evidence for the follow-ups: `docs/records/2026-10-11-audit-followups.md`.
   Report: https://claude.ai/artifact/JUwpSsMWHvXqjEsmLeHADQ. Example wording the owner
   read and accepted (bb kept in examples 8, 15, 18): https://claude.ai/artifact/Xd6qk866FFQJCbz9h5J9sH.
 - One corner radius, 10, for cards, panels, seats, felt and controls (`GT.Radius.panel`
@@ -92,8 +93,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
-- Old sibling worktrees are archived at `.archive/2026-10-11-workspace-cleanup/`
-  (`docs/workspace-cleanup.md`). Work only in this folder.
+- Work only in this folder; there are no other worktrees.
 - Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the
   iOS 27 beta). After a rebuild, run
   `xcrun simctl uninstall <device> com.michaelju.glasstable.GlassTableUITests.xctrunner`
@@ -121,7 +121,7 @@ Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
-  against the 0.5/2bb thresholds is not bounded (`docs/audits/2026-10-11-numerical/`).
+  against the 0.5/2bb thresholds is not bounded (`docs/records/2026-10-11-numerical-audit.md`).
 - Build 15 crawl candidates never verified: short tap heights on ‘설명 접기’,
   ‘안내 건너뛰기’, ‘계산 보기’, ‘전체 차트 보기’, ‘크게 보고 핸드 찾기’; unlabelled buttons
   on free-table setup. Free-table review once paired 33% with "four wins in ten".
@@ -145,18 +145,14 @@ CI/CD:
   Connect app record and the four secrets in `docs/ci-cd.md`. Whether an App Manager
   API key is enough for cloud signing is unknown; the doc says Admin.
 - `ui-tests.yml` can only be started by hand once it is on `main`. The full UI suite has
-  not passed on a GitHub runner; the Codex diagnostic runs (2026-10-14/15) failed
-  accessibility audits there.
+  not passed on a GitHub runner (see `docs/records/2026-10-14-codex-ci-repair.md`).
 
 Tests:
-- `AccessibilityAuditTests/testPlayTable` (and `testPlayTableScrolled` once, 2026-10-13
-  night) (contrast, no element named) on the iPhone 12
-  mini simulator: failed overnight on 2026-10-13 including on older code, passed 4/4
-  that afternoon, failed again in the final run and 4/4 right after, same code. The
-  audited hand is fixed (seed 97) and simulator appearance/text size match iPhone 17,
-  where it passes. Unexplained; measured text contrast is at least 5.2:1.
-  On 2026-10-15 both failed on unchanged `main` 467864a on the 12 mini simulator too
-  (Dynamic Type partial, potentially inaccessible text).
+- `AccessibilityAuditTests/testPlayTable` fails on `main`: 0/3 on iPhone 17 iOS 26.5 on
+  2026-10-15 (contrast and partial Dynamic Type on the free-table title), also on the
+  12 mini. The fixes carried from PR #11 to `fix/a11y-play-captions-20261015` make it
+  pass 3/3; that PR awaits the owner (it changes the dock caption colour to `GT.ink`
+  and draws captions with a UIKit label).
 - Build 24 had only the unit tests and three hand-rank UI tests on iPhone 17, not the
   full suite.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
@@ -164,6 +160,22 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-15 (Claude · records cleanup and PR #11)
+
+- Owner asked to turn every report, audit and scratch folder into compact text, keep
+  less in the repo and locally, and deal with PR #11 by Claude's judgment.
+- 627 tracked originals (HTML reports, screenshots, ledgers, mocks, `.scratch/`,
+  `plans/`, old handoffs) became 31 records in `docs/records/` with an index; links
+  repointed. Rule added to AGENTS.md and `docs/agents/issue-tracker.md`: finished work
+  becomes one record, originals are not kept. Local `.build/`, `.archive/`, old build
+  folders and the untracked UX report were deleted after `2026-10-15-local-archives.md`
+  captured them (about 24 GB). `docs/grac-submission/` kept: it is the filed GRAC record.
+- PR #11 closed: its CI design lost to the lean CI, and its timeout fixes were already in
+  `main`. Its three accessibility fixes and four UI test commits moved to
+  `fix/a11y-play-captions-20261015` (testPlayTable 0/3 → 3/3 on iPhone 17). Codex's
+  experiment branches deleted; their SHAs are in the record.
+- Next: owner looks at the caption PR and tries build 30.
 
 ### 2026-10-15 (Claude · owner decisions)
 
@@ -187,7 +199,7 @@ Tests:
   mini after an uninstall (fresh data).
 - Cleanup (owner, 2026-10-15): removed the `owner-decisions` and `ux-lesson-gaps`
   worktrees and the three merged branches (local and `origin`); their install and
-  screenshot evidence is in `.archive/2026-10-15-owner-decisions-cleanup/`. Builds
+  screenshot evidence is summarized in `docs/records/2026-10-15-local-archives.md`. Builds
   27–30 added to `docs/build-history.md`. Draft PR #11 left open: it still holds
   Play and free-table accessibility fixes not in `main`.
 - Next: owner tries build 30.
@@ -197,7 +209,7 @@ Tests:
 - Owner requested a thorough critique, then supplied eleven more screenshots after
   clicking and scrolling. Rebuilt the report from all fifteen images: 69 prioritized
   findings. Recommendations only; no app change or simulator verification. (Recorded
-  from Codex's uncommitted edit, archived in `.archive/2026-10-15-worktree-cleanup/`.)
+  from Codex's uncommitted edit, archived locally, since deleted.)
 
 ### 2026-10-15 (Claude · lesson and UX audit gaps)
 
@@ -233,19 +245,3 @@ Tests:
   the branch in 22 minutes (unit tests 5, Release smoke 12, device Release build 3).
 - Next: owner merges the branch, stops the Codex CI session, then does the one-time
   TestFlight setup in `docs/ci-cd.md` and pushes the first tag.
-
-### 2026-10-15 (Claude · build 29, lesson review)
-
-- Owner asked to push `main`, install, and keep only `main`. Main fast-forwarded to the
-  refactor stack and the animation commits were replayed on top (no conflicts), build
-  number 29. On the combined source: Drills 427 + 95, app 97 unit, 128 UI tests on two
-  12 mini simulators (Play table, raise, motion, guided hand, invitation, graded and
-  learning flows, beginner release, restored presentation, welcome), no failures.
-  Build 28 uninstalled, fresh install of 1.0 (29), welcome seen, no progress copied
-  (`.build/device-install-b29/`).
-- Branch cleanup: this session's branches and its animation worktree were removed. The
-  other session's a11y/CI diagnostic branches and `/private/tmp` worktrees were left:
-  a Codex session was still using them (live `gh run watch`, fresh edits).
-- Owner asked for a review of every lesson from a never-played view; published above.
-  The defend finding was checked by reading the code myself.
-- Next: owner tries build 29, reads the lesson review, and decides what to fix.

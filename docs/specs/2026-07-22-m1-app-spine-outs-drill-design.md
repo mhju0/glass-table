@@ -2,7 +2,7 @@
 
 > **Status:** Approved design, ready for implementation planning.
 > **Date:** 2026-07-22
-> **Sub-project 1 of 4** in the Math Drills app (after the engine core, `docs/plans/2026-07-21-m1-engine-core.md`). Later sub-projects: (2) the other four drills, (3) polish — full Korean glossary + progress/stats screen + app icon + study-tool visual tone, (4) App Store + GRAC submission.
+> **Sub-project 1 of 4** in the Math Drills app (after the engine core, `docs/records/2026-07-21-m1-plans.md`). Later sub-projects: (2) the other four drills, (3) polish — full Korean glossary + progress/stats screen + app icon + study-tool visual tone, (4) App Store + GRAC submission.
 
 ## Goal
 

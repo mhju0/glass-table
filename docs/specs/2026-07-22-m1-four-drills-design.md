@@ -98,4 +98,4 @@ Progress semantics unchanged: streak counts consecutive non-빗나감, accuracy 
 
 ## 6. Out of scope (committed roadmap, not dropped)
 
-Sub-project 3 — **committed by Michael 2026-07-22**: Korean glossary polish, stats screen, app icon, study-tool visual tone. Sub-project 4: App Store + GRAC submission. Deferred beyond M1: difficulty tiers, richer why-copy, SwiftData. Tracked in `docs/milestone-1.md` ("Rough shape") and agent memory.
+Sub-project 3 — **committed by Michael 2026-07-22**: Korean glossary polish, stats screen, app icon, study-tool visual tone. Sub-project 4: App Store + GRAC submission. Deferred beyond M1: difficulty tiers, richer why-copy, SwiftData. Tracked in `docs/records/2026-07-21-m1-plans.md` ("Rough shape") and agent memory.

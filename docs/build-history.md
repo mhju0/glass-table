@@ -9,18 +9,18 @@ Reconciled October 10, 2026 from repository records. Entries distinguish plans, 
 |3|September 23|Pot replay, beginner pot explanation and appearance|Signed build installed in place; progress preserved|[Record](../docs/specs/2026-09-23-pot-appearance.md)|
 |4|September 23|Combined beginner release: lessons, placement and four-seat Play|Installed; metadata/process and progress verified|[Record](../docs/specs/2026-09-23-beginner-native-release.md)|
 |5|September 23|Settings as fourth tab, language settings and AX fixes|Installed in place; progress preserved|[Record](../docs/specs/2026-09-23-settings-navigation.md)|
-|6|September 24|Delivery checkpoint bb87591 + build bump d3982dc|Install recorded; detailed raw evidence subsequently lost|[Record](../docs/handoff-archive/2026-09-25-before-autonomous-session.md)|
-|7|September 24|Full-screen lessons and shared table surface|Installed in place; preserved progress|[Record](../docs/handoff-archive/2026-09-25-before-autonomous-session.md)|
-|8|September 24|Exact-combo explanation before counting|Fresh install recorded at 07f9a1e; historical backup existed|[Record](../docs/handoff-archive/2026-09-25-before-autonomous-session.md)|
-|9|September 25|Welcome/warm-up, Play modes and bottom answers checkpoint|Git build bump for intended install; outcome not located|[Record](../docs/handoff-archive/2026-09-28-before-spacing-rules.md)|
-|10|September 26|Help, large-text headers and practice layout checkpoint|Git build bump for intended install; outcome not located|[Record](../docs/handoff-archive/2026-09-28-before-spacing-rules.md)|
-|11|September 26|UI refinement checkpoint; detailed delta not enumerated|Device install recorded; progress preserved|[Record](../docs/handoff-archive/2026-09-28-before-spacing-rules.md)|
-|12|September 26|Contrast changes and CI type-check fix, PR7 merged|Install requested; result not located|[Record](../docs/handoff-archive/2026-09-28-before-spacing-rules.md)|
-|13|September 27|Question retained through reveals, foldable feedback|Branch/build checkpoint; phone install not located|[Record](../docs/handoff-archive/2026-10-01-before-direction-a.md)|
-|14|October 2|Free Table Direction A; support/privacy delivery|Installed in place; preserved progress; observed Learn|[Record](../docs/verification/2026-10-02-iphone-install.md)|
-|15|October 4–5|Casual direction, coaching and beginner tracks|In-place then owner-requested fresh reinstall; historical crawl evidence|[Record](../docs/handoff-archive/2026-10-06-friendly-casual-checkpoints.md)|
-|16|October 6–7|Native spacing, feedback, encouragement and Records|Fresh12mini install; subsequent13mini owner feedback28 comments|[Record](../docs/verification/2026-10-06-native-refinement.md)|
-|17|October 7|Welcome-first isolated candidate|Not a confirmed phone installation|[Record](../.scratch/device-feedback-2026-10-07/README.md)|
+|6|September 24|Delivery checkpoint bb87591 + build bump d3982dc|Install recorded; detailed raw evidence subsequently lost|[Record](records/2026-09-04-session-history.md)|
+|7|September 24|Full-screen lessons and shared table surface|Installed in place; preserved progress|[Record](records/2026-09-04-session-history.md)|
+|8|September 24|Exact-combo explanation before counting|Fresh install recorded at 07f9a1e; historical backup existed|[Record](records/2026-09-04-session-history.md)|
+|9|September 25|Welcome/warm-up, Play modes and bottom answers checkpoint|Git build bump for intended install; outcome not located|[Record](records/2026-09-04-session-history.md)|
+|10|September 26|Help, large-text headers and practice layout checkpoint|Git build bump for intended install; outcome not located|[Record](records/2026-09-04-session-history.md)|
+|11|September 26|UI refinement checkpoint; detailed delta not enumerated|Device install recorded; progress preserved|[Record](records/2026-09-04-session-history.md)|
+|12|September 26|Contrast changes and CI type-check fix, PR7 merged|Install requested; result not located|[Record](records/2026-09-04-session-history.md)|
+|13|September 27|Question retained through reveals, foldable feedback|Branch/build checkpoint; phone install not located|[Record](records/2026-09-04-session-history.md)|
+|14|October 2|Free Table Direction A; support/privacy delivery|Installed in place; preserved progress; observed Learn|[Record](records/2026-10-02-verification-reports.md)|
+|15|October 4–5|Casual direction, coaching and beginner tracks|In-place then owner-requested fresh reinstall; historical crawl evidence|[Record](records/2026-09-04-session-history.md)|
+|16|October 6–7|Native spacing, feedback, encouragement and Records|Fresh12mini install; subsequent13mini owner feedback28 comments|[Record](records/2026-10-02-verification-reports.md)|
+|17|October 7|Welcome-first isolated candidate|Not a confirmed phone installation|[Record](records/2026-10-07-device-feedback-build16.md)|
 |18|October 8|28feedback changes plus graded1v1 revamp|Fresh install12mini/13mini; metadata/launch verified, screen not observed|[Record](../docs/specs/2026-10-07-graded-table-learning.md)|
 |19|October 10|Five intro comparisons, chart invitation, guided hand, restore and copy parity|Fresh12mini install; version19 and Korean welcome physically verified|[Record](../docs/specs/2026-10-10-complete-beginner-ux.md)|
 
@@ -28,11 +28,11 @@ Reconciled October 10, 2026 from repository records. Entries distinguish plans, 
 
 ## Feedback → change trace
 
-- Build16 owner session: all28 comments at `.scratch/device-feedback-2026-10-07/feedback.json`; report `.build/device-feedback-2026-10-07/index.html`. Subsequent clarification on voice, portrait seat loop, bottom actions and language line groups is retained in delivery specs.
-- Build18 reconciliation: `docs/audits/2026-10-08-implementation-reconciliation/ledger.json` separates18 source-implemented comments from10 partial ones at that time; not a current completion verdict.
+- Build16 owner session: all28 comments at `docs/records/2026-10-07-device-feedback-build16.md`; report `.build/device-feedback-2026-10-07/index.html`. Subsequent clarification on voice, portrait seat loop, bottom actions and language line groups is retained in delivery specs.
+- Build18 reconciliation: `docs/records/2026-10-08-implementation-reconciliation.md` separates18 source-implemented comments from10 partial ones at that time; not a current completion verdict.
 - Build 19 gap completion: `docs/specs/2026-10-10-complete-beginner-ux.md`, native gallery `.build/native-ux-b19/index.html`, signed-build/test evidence in sibling completion worktree. Installation evidence `.build/device-install-b19/` confirms current 1.0 (19) and Korean first-run welcome.
-- Build 19 new feedback: `.scratch/first-five-minutes/feedback.md` records abrupt familiarity transition, engaging-first-five-minutes request, progress/copy/buttons/color/motion exploration and traceability. `docs/reports/2026-10-10-first-five-minutes/index.html` explores proposals; no build 20/native change is made in this research turn.
-- Build 19 proposal approval and app-wide exploration: owner approved the opening proposals, then requested consistency research without building. `.scratch/whole-app-consistency/feedback.md` records WAC01–06; `docs/reports/2026-10-10-whole-app-consistency/index.html` compares their impact on lessons, practice, Free Play, Progress, Settings, tone and shared components. This is research/HTML work, not a new app version.
+- Build 19 new feedback: `docs/records/2026-10-10-first-five-minutes.md` records abrupt familiarity transition, engaging-first-five-minutes request, progress/copy/buttons/color/motion exploration and traceability. `docs/records/2026-10-10-first-five-minutes.md` explores proposals; no build 20/native change is made in this research turn.
+- Build 19 proposal approval and app-wide exploration: owner approved the opening proposals, then requested consistency research without building. `docs/records/2026-10-10-whole-app-consistency.md` records WAC01–06; `docs/records/2026-10-10-whole-app-consistency.md` compares their impact on lessons, practice, Free Play, Progress, Settings, tone and shared components. This is research/HTML work, not a new app version.
 
 ## Next build record format
 
@@ -69,7 +69,7 @@ This index is newly consolidated. Earlier records remain intact; missing install
 
 ## Build 23 — audit follow-ups, 2026-10-13
 
-- Source `dd7637b` on `feat/audit-followups`: written example on every explanation page, raise panel alignment, sharper hand-ranking question, shorter English texts and Help / History / Guide tabs, one-line turn facts at accessibility sizes, and one fixed corner radius (dock buttons no longer follow the display curve). Decisions: `.scratch/audit-followups-2026-10-11/map.md`.
+- Source `dd7637b` on `feat/audit-followups`: written example on every explanation page, raise panel alignment, sharper hand-ranking question, shorter English texts and Help / History / Guide tabs, one-line turn facts at accessibility sizes, and one fixed corner radius (dock buttons no longer follow the display curve). Decisions: `docs/records/2026-10-11-audit-followups.md`.
 - Verification at `e3ef792` (later commits are docs and the build number): iPhone 17 iOS 26.5 simulator 238 tests, 11 skipped, 0 failed. iPhone 12 mini simulator 238 tests, 11 skipped, 1 failed: `AccessibilityAuditTests/testPlayTable` reports a contrast finding with no element; it passes on iPhone 17 and passed 4/4 on the mini the day before on the same screen. Unexplained.
 - Signed Release 1.0 (23), build 22 uninstalled first, then freshly installed on the physical iPhone 12 mini. Installed metadata and normal launch verified; green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.build/device-install-b23/` (`welcome.png`, devicectl JSON). Binary SHA256 `ffa14d74f7561a22c1e33e89d0d34a4cacffe2a7c863e1c13c605d61f503c645`.
 - Remaining: novice comprehension, physical VoiceOver and minimum-iOS17 runtime. No App Store release claim.

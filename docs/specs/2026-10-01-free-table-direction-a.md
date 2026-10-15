@@ -16,8 +16,8 @@ either, stop and ask.
   paced replay, haptics and landscape"), not pushed. Several things that commit added
   are reversed by this spec: the full-screen table, landscape, and the ⓘ guide button.
 - Untracked and **not part of this work**: `tools/uxaudit/`,
-  `GlassTable/UITests/UXAuditCrawl.swift`, `.scratch/uxaudit-codex/`,
-  `.scratch/consistent-learning-table/native-audit/.build-ocr-lines`. Don't edit,
+  `GlassTable/UITests/UXAuditCrawl.swift`, `docs/records/2026-09-30-uxaudit-codex-review.md`,
+  `tools/line-parity/.build-ocr-lines`. Don't edit,
   stage or delete them.
 - `docs/agent-handoff.md` has uncommitted appended entries describing this design
   work. Commit it together with this spec in step 0.

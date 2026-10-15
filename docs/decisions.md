@@ -215,7 +215,7 @@ forever; fully free, on-device, no backend; audience is 20s–30s Korean home-ga
   path nodes and 자유 연습 entries.
 - **Current state:** the *strategy* was correct and paid off (engine, pipeline, CI and
   submission prep all exist because of it). The *artifact* no longer exists as such.
-- **Evidence:** `docs/milestone-1.md` status banner; commit `7daef48`.
+- **Evidence:** `docs/records/2026-07-21-m1-plans.md` status banner; commit `7daef48`.
 
 ### D12 · Curriculum order: fundamentals → ranges → exploitation, gated but skippable `[was §8]`
 **Status: SUPERSEDED** first by the 2026-08-03 linear course described below,
@@ -339,7 +339,7 @@ then by D45's open nine-unit path on 2026-09-23.
 - **Replaced (`055eeb7`, `a32b03f`, 2026-07-24):** a 4×4 equity-heatmap range grid with the
   four suits on the pair diagonal in card colours, then softened to follow the heatmap
   falloff rather than solid white.
-- **Current state:** the heatmap icon ships. `docs/plans/2026-07-23-m1-submission.md`
+- **Current state:** the heatmap icon ships. `docs/records/2026-07-21-m1-plans.md`
   Task 10 still tells a reader to verify the old percent-on-disc icon — stale text in a
   historical document.
 
@@ -353,7 +353,7 @@ then by D45's open nine-unit path on 2026-09-23.
   order the hand asks them, guess-before-explanation throughout. Every number in it is
   *computed*, not typed. It wrote nothing to the progress store, because "a 🔥 handed out
   for free is a lie."
-  **The research behind it is worth keeping** (`.scratch/onboarding-first-hand/spec.md`):
+  **The research behind it is worth keeping** (`docs/records/2026-07-25-onboarding-first-hand.md`):
   the pretesting effect (Richland, Kornell & Kao 2009 — subjects quizzed *before* reading,
   who mostly answered wrong, outperformed subjects given extra study time across all five
   experiments); Duolingo's revealed preference in demoting pre-lesson prose and moving the
@@ -402,7 +402,7 @@ then by D45's open nine-unit path on 2026-09-23.
 - **Why:** the app should earn its submission by being used, not by being finished.
 - **Current state:** never resumed. Not enrolled. No release. Zero GitHub issues have ever
   been filed, so the intended feedback loop produced no visible artifacts.
-- **Evidence:** `docs/plans/2026-07-23-m1-submission.md:6-9`; `gh issue list` empty.
+- **Evidence:** `docs/records/2026-07-21-m1-plans.md`; `gh issue list` empty.
 
 ---
 
