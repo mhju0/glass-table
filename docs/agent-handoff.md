@@ -50,9 +50,8 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   and in build 24.
 - `main` holds all of this session's work and matches `origin/main`. The standing rule is still to work on a feature branch and not push `main`
   unasked. Merged feature branches were deleted locally and on `origin` (2026-10-14).
-  `fix/ci-drills-typecheck-20261014`, `fix/a11y-playtable-20261014` and
-  `diagnostic/a11y-playtable-20261014` belong to a separate session (worktrees in
-  `/private/tmp/`) and are not merged.
+  The Codex `fix/*-2026101[45]` and `diagnostic/*` branches are kept for reference and
+  not merged; their worktrees are gone (see the cleanup line below).
 - Build 29 (owner asked to push `main` and install, 2026-10-15) is in `main`, pushed,
   and on the iPhone 12 mini. Over build 28 it adds animation polish (audit plans in
   `plans/`, motion tokens `GT.Motion.fade`/`.move`, near-full-size board cards, the
@@ -62,13 +61,19 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   rounds, reviews and lessons; no schema change).
 - Lesson review for the owner (2026-10-15): https://claude.ai/artifact/1BH6g7owTwjnEjKmDfBHX1
   — every lesson in order, why, goals, and a never-played reading. Its findings are
-  under Open issues; nothing was changed in the app for them.
-- CI/CD (owner chose "simpler CI, I take over" and "TestFlight on tag", 2026-10-15) is on
-  `ci/lean-pipeline-20261015`, pushed, not merged: `ci.yml` gates pushes/PRs on unit
-  tests plus the Release smoke and bundle checks; `ui-tests.yml` runs the UI suite
-  nightly in three shards; `release.yml` uploads a `v<version>-<build>` tag on `main` to
-  TestFlight. Setup steps: `docs/ci-cd.md`. The Codex CI branches
-  (`fix/ci-*-20261014`, `diagnostic/*`) are kept for reference, not merged.
+  under Open issues.
+- Merged to `main` with the owner's approval (2026-10-15): `ci/lean-pipeline-20261015`
+  (PR #12) and `fix/ux-lesson-gaps-20261015` (lesson review gaps and most of the
+  screenshot UX audit, `.scratch/screenshot-ux-audit-2026-10-15/report.html`).
+- CI/CD (owner chose "simpler CI, I take over" and "TestFlight on tag"): `ci.yml` gates
+  pushes/PRs on unit tests plus the Release smoke and bundle checks; `ui-tests.yml` runs
+  the UI suite nightly in three shards; `release.yml` uploads a `v<version>-<build>` tag
+  on `main` to TestFlight. Setup steps: `docs/ci-cd.md`. The App Store Connect API key
+  is not ready yet (owner, 2026-10-15), so no secrets are set and no tag has shipped.
+- Worktree cleanup (owner, 2026-10-15): all 25 `/private/tmp/glass-table-*` worktrees
+  were removed; their branches remain. Uncommitted changes, untracked files and
+  `.build` evidence (no caches) are in `.archive/2026-10-15-worktree-cleanup/`, with the
+  Codex session's uncommitted handoff edit. No Codex process was running in this repo.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -100,20 +105,21 @@ Never verified with people or hardware:
   notification, share and review flows; backup export/import; huge-history save latency.
 - GRAC: owner submitted 1.0(22), now awaiting processing, any corrections, rating and RCN. Reviewer installation is unverified: development IPA permits only two registered devices; TestFlight upload/invite not performed. Confirm delivery with GRAC if needed. Video/simulator acceptance and statutory Annex 2(8) final selection remain unverified; working answers are not a final portal export.
 
-Lesson path (from the 2026-10-15 lesson review; not yet raised as work with the owner):
-- Defend lesson cannot be passed in beginner mode: `DefendDrill` marks help on appear
-  (`ConceptDrillView.swift:2975`), lesson help sets `helpOrdinal`, so all three answers
-  are assisted and score 0/3 under D47. Static reading; not reproduced on a device.
+Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 - Call or fold, the decision price-and-chance builds to, has no lesson; it is only in
   the optional u2 challenge. Outs sits second in the suggested order with no recorded
-  reason (`c31a5c7`). Rules pages (pot, blinds, flow) are optional though lessons 2–4
-  use those words; the in-app glossary lacks showdown, pot, blinds, position, actions,
-  streets; Chen score and dealer button are never explained.
-- Outs and pot-odds beginner choices can be 1 apart while only exact answers count.
-- Starting check (D46 item 3) is reachable only by a DEBUG hook; Settings has no entry.
-- Guided hand and restored drill use 플롭; glossary requires 플랍.
-- Copy: equity how-line asks for "a plausible range", range-read how-line says "count
-  the combinations"; neither matches the beginner question.
+  reason (`c31a5c7`). Rules pages (pot, blinds, flow) stay optional; the glossary now
+  defines those words. Chen score is never explained.
+- Outs beginner choices can be 1 apart while only exact answers count (left: exact
+  counting is the skill). Pot-odds/MDF choices were fixed on `fix/ux-lesson-gaps-20261015`.
+- Starting check (D46 item 3) is reachable only by a DEBUG hook; Settings has no entry
+  (removed on purpose in `7549a32`).
+
+Screenshot UX audit (`.scratch/screenshot-ux-audit-2026-10-15/report.html`), left for
+the owner on `fix/ux-lesson-gaps-20261015`:
+- #29 fold the graded-table guide by default (conflicts with the remembered-collapse
+  test and its decision); #52 hand-specific chart reason wording; #34/#41 visible rank
+  headers on the compact grid; taste items (container weight, gutters, palette).
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
@@ -151,6 +157,8 @@ Tests:
   that afternoon, failed again in the final run and 4/4 right after, same code. The
   audited hand is fixed (seed 97) and simulator appearance/text size match iPhone 17,
   where it passes. Unexplained; measured text contrast is at least 5.2:1.
+  On 2026-10-15 both failed on unchanged `main` 467864a on the 12 mini simulator too
+  (Dynamic Type partial, potentially inaccessible text).
 - Build 24 had only the unit tests and three hand-rank UI tests on iPhone 17, not the
   full suite.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
@@ -158,6 +166,36 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-15 (Codex · revised screenshot UX report)
+
+- Owner requested a thorough critique, then supplied eleven more screenshots after
+  clicking and scrolling. Rebuilt the report from all fifteen images: 69 prioritized
+  findings. Recommendations only; no app change or simulator verification. (Recorded
+  from Codex's uncommitted edit, archived in `.archive/2026-10-15-worktree-cleanup/`.)
+
+### 2026-10-15 (Claude · lesson and UX audit gaps)
+
+- Owner asked to fix the gaps in the lesson review and the screenshot UX audit, after
+  re-auditing the latter. Branch `fix/ux-lesson-gaps-20261015`, two commits.
+- Lesson grading: a lesson's defend question now starts with the chart folded
+  (`chartStartsFolded`), so it can be answered alone under D47; opening the chart still
+  marks help. Pot-odds/MDF beginner choices now sit at least 15 points apart
+  (`BeginnerQuestionChoices.shares`), so only one grades right. Both had failing tests
+  first (UI test and Drills test).
+- Copy and screens: 플롭 → 플랍; glossary adds pot, blinds, dealer button, position,
+  actions, streets and showdown; equity and range-read how-lines match their questions;
+  the table review names the street it grades, the call price and the chart scope; a
+  finished hand shows only dealt cards; setup has a back button, "me + N computers",
+  and plainer length and style copy; the chart marks your own hand apart from the one
+  being inspected, explains T, and shows the plain hand name.
+- Verified: Drills tests, 85 UI tests on two 12 mini simulators, and a uisweep of 11
+  changed screens at large and AX5. The two play-table audit failures also fail on
+  unchanged `main`.
+- Left for the owner: see Open issues (audit #29/#52/#34/#41, call-or-fold lesson,
+  starting check, outs choices).
+- Owner approved merging both branches; done via PR #12 and the fix branch PR.
+- Next: owner decides the items left open; before/after mocks were published.
 
 ### 2026-10-15 (Claude · lean CI and TestFlight)
 
@@ -207,41 +245,3 @@ Tests:
 - Left: PlayView's setup↔table loop was not moved; worktree
   `.claude/worktrees/agent-ab78e6dade09f5213` still exists.
 - Next: owner reviews the branches and decides on merge and install (done 2026-10-15).
-
-### 2026-10-14 (Claude · build 27 feedback)
-
-- Owner on build 27: the "Who wins?" example starting on the turn was confusing; the
-  lone "이전" on the basics check page looked stray; the invitation sheet's corners and
-  tight top did not match the app. Also: after basics, closing the invitation still
-  opened a lesson. Cause: the sheet's `onDismiss` treated a swipe-down like "Continue
-  lessons"; now only the button continues. The turn-first order came from `acc6f17`
-  ("teaches the reading"), before the beginner direction.
-- On `fix/build27-feedback`. Drills 427 XCTest + 75 Swift Testing pass (two turn/river
-  tests replaced by one face-up test). New UI test
-  `testKoreanSwipingTheInvitationAwayStaysOnLearn` failed on the old code and passes now;
-  invitation, learning, first-lesson, accessibility flow, presentation and welcome UI
-  classes pass on two 12 mini simulators. Screens checked in Korean dark and English
-  light at normal and AX5. The sweep's showdown frames are now beats 0, 1, 3, plus a
-  `guided-invitation` entry.
-- Owner approved merge and install, then asked to push `main` and sync; both pushed.
-  Build 28: build 27 uninstalled, fresh install on the iPhone 12 mini,
-  welcome seen, no progress copied (`.build/device-install-b28/`).
-- Next: owner tries build 28.
-
-### 2026-10-14 (Claude · lesson pass mark, build 27)
-
-- Owner took all four pass-mark picks (D47) and approved merge, push and install. Built
-  `PassMark`, `NodeRecord.best`, the passed / not-passed result screen with per-question
-  marks and retry, the path's "Not passed · best R/Q" and "passed" in Records (`bb852ee`).
-  Two tests were renamed on purpose: an all-wrong or help-only lesson no longer clears.
-  The mark rows use the light `GT.glass` fill: on the felt panel tint the green measured
-  4.46:1 and failed the summary contrast audit.
-- Tests: Drills 428, app 98 unit; full UI suite on two 12 mini simulators, 228 tests,
-  3 failed: the summary audit (fixed, passed on the rebuild) and the two known Play table
-  audits. The new retry and not-passed UI tests pass. Screens checked in Korean dark and
-  English light at normal and AX5.
-- Merged by fast-forward to `main` (`10744ab`) and pushed with the branches. Build 27:
-  build 26 uninstalled, fresh install on the iPhone 12 mini, welcome seen, no progress
-  copied (`.build/device-install-b27/`). The GRAC handoff notes from the other session
-  were committed separately (`46f29ab`), so receipt TG-OM-26-01177 is now in the public repo.
-- Next: owner tries build 27.

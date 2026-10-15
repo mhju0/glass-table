@@ -50,12 +50,12 @@ struct WalkthroughView: View {
                               detail: language.text("작은 블라인드는 1칩, 큰 블라인드는 2칩을 먼저 내요. 미리 내는 것과 차례에 행동하는 것은 달라요.", "The small blind posts 1 chip and the big blind 2. Posting is different from taking a turn."))]
             for position in Position.preflopOrder {
                 let number = position.seatNumber
-                beats.append(Beat(language.text("플롭 전 · 자리 \(number)", "Before flop · Seat \(number)"),
+                beats.append(Beat(language.text("플랍 전 · 자리 \(number)", "Before flop · Seat \(number)"),
                                   detail: language.text("큰 블라인드 다음인 1번부터 시계 방향으로 행동해요. 이번은 \(number)번 차례예요.", "Start at seat 1 after the big blind and move clockwise. Seat \(number) acts now.")))
             }
             for position in Position.postflopOrder {
                 let number = position.seatNumber
-                beats.append(Beat(language.text("플롭 이후 · 자리 \(number)", "After flop · Seat \(number)"),
+                beats.append(Beat(language.text("플랍 이후 · 자리 \(number)", "After flop · Seat \(number)"),
                                   detail: language.text("딜러 왼쪽부터 참여 중인 자리가 행동해요. 모두 참여 중이면 7번부터 시작해요. 지금은 \(number)번 차례예요. 폴드한 자리는 건너뛰어요.", "Begin left of the dealer among active seats. With all eight active, start at seat 7. Seat \(number) acts now. Skip folded seats.")))
             }
             return beats

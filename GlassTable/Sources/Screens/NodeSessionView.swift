@@ -386,6 +386,8 @@ struct NodeSessionView: View {
                          restoredAnswer: restoredAnswer,
                          initialDraft: savedSession?.draft?.input,
                          help: help,
+                         // A lesson passes only on answers given alone (D47).
+                         chartStartsFolded: true,
                          onDraft: { input in
             guard let savedSession else { return }
             pendingDraftTask?.cancel()

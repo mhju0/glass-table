@@ -122,6 +122,23 @@ final class ChartFirstUseFlowTests: XCTestCase {
         }
     }
 
+    func testBeginnerLessonQuestionStartsWithChartFoldedSoItCanBeAnsweredAlone() {
+        // An open chart marks the question as helped, and a lesson passes only on
+        // answers given alone (D47), so the chart must wait for the learner to ask.
+        let app = XCUIApplication()
+        app.launchArguments = ["-glassTable.language", "english", "-appAppearance", "dark",
+                               "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
+                                 "GT_DEMO_LEVEL": "newToPoker", "GT_DEMO_NODE": "u8-defend"]
+        app.launch()
+        let toggle = app.buttons["defend-practice-chart-toggle"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 15))
+        XCTAssertEqual(toggle.label, "Show chart")
+        reach(toggle, app: app)
+        toggle.tap()
+        XCTAssertEqual(toggle.label, "Hide chart")
+    }
+
     func testGradedChartStartsExpandedAndRemembersCollapseOnReopen() {
         let app = launch()
         let chart = app.buttons["table-chart"]

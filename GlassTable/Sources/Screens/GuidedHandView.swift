@@ -244,8 +244,8 @@ struct GuidedHandView: View {
         switch hand.stage {
         case .seats: language.text("두 사람이 한 판을 해요", "Two players, one hand")
         case .blinds: language.text("블라인드", "The blinds")
-        case .preflop: language.text("플롭 전", "Before the flop")
-        case .flop: language.text("플롭 · 세 장", "Flop · three cards")
+        case .preflop: language.text("플랍 전", "Before the flop")
+        case .flop: language.text("플랍 · 세 장", "Flop · three cards")
         case .turn: language.text("턴 · 한 장 더", "Turn · one more card")
         case .river: language.text("리버 · 마지막 한 장", "River · the final card")
         case .showdown: language.text("쇼다운 · 카드 공개", "Showdown · cards shown")
@@ -337,7 +337,7 @@ struct GuidedHandView: View {
                     (think, language.text("A-K는 좋은 시작 패예요. 1칩으로 공용 카드 세 장을 볼 수 있어요.",
                                           "A-K is a strong start. One chip lets you see three shared cards."))]
         case .flop:
-            return [(now, language.text("공용 카드 세 장(플롭)이 나왔어요. \(KO.topic(name)) 체크했어요. 팟은 \(pot)칩.",
+            return [(now, language.text("공용 카드 세 장(플랍)이 나왔어요. \(KO.topic(name)) 체크했어요. 팟은 \(pot)칩.",
                                         "Three shared cards came out: the flop. \(name) checked. The pot is \(pot).")),
                     (look, language.text("공용 카드의 A와 내 A. 에이스 원페어가 됐어요.",
                                          "The A on the table and your A. You have a pair of aces.")),
@@ -386,8 +386,8 @@ struct GuidedHandView: View {
 
     private func streetName(_ stage: GuidedHandState.Stage) -> String {
         switch stage {
-        case .preflop: language.text("플롭 전", "Pre-flop")
-        case .flop: language.text("플롭", "Flop")
+        case .preflop: language.text("플랍 전", "Pre-flop")
+        case .flop: language.text("플랍", "Flop")
         case .turn: language.text("턴", "Turn")
         default: language.text("리버", "River")
         }

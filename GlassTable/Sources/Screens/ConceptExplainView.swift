@@ -110,7 +110,7 @@ struct ConceptExplainView: View {
                 "Suppose the opponent can hold AK and one king is among the shared cards. AK is then 4 × 3 = 12 combos, not 16.")
         case .hitFrequency:
             return language.text(
-                "상대 레인지가 AK와 QJ뿐이고 플롭이 K♠ 7♦ 2♣라면, AK 12콤보는 페어를 만들었고 QJ 16콤보는 못 만들었어요. 12 ÷ 28 = 약 43%예요.",
+                "상대 레인지가 AK와 QJ뿐이고 플랍이 K♠ 7♦ 2♣라면, AK 12콤보는 페어를 만들었고 QJ 16콤보는 못 만들었어요. 12 ÷ 28 = 약 43%예요.",
                 "Suppose the range is only AK and QJ and the flop is K♠ 7♦ 2♣. The 12 AK combos made a pair and the 16 QJ combos did not, so 12 ÷ 28 is about 43%.")
         case .rangeAdvantage:
             return language.text(

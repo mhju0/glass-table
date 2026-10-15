@@ -230,7 +230,7 @@ struct LessonSeatLoop: View {
                 .overlay { if showsOrder { directionOverlay } }
                 .overlay {
                     VStack(spacing: 6) {
-                        Text(language.text(postflop ? "플롭 이후" : "플롭 전", postflop ? "After flop" : "Before flop"))
+                        Text(language.text(postflop ? "플랍 이후" : "플랍 전", postflop ? "After flop" : "Before flop"))
                             .font(GT.semibold(13))
                         if let active { Text("\(active.seatNumber)").font(GT.title(26)) }
                     }.foregroundStyle(GT.ink).allowsHitTesting(false)

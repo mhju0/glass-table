@@ -158,7 +158,14 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Play"].tap()
         app.buttons["play-free"].tap()
-        XCTAssertTrue(app.staticTexts["Set up the table"].waitForExistence(timeout: 5))
+        let title = app.staticTexts["Set up the table"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        // The app's own Back control, with the title starting clear below it.
+        let back = app.buttons["Back to Play"]
+        XCTAssertTrue(back.exists)
+        XCTAssertFalse(app.navigationBars.firstMatch.exists, "The system bar's glass back button is gone")
+        XCTAssertGreaterThanOrEqual(title.frame.minY, back.frame.maxY - 1)
+        XCTAssertEqual(app.staticTexts["player-count-detail"].label, "You + 3 computers")
         let seats = (1...3).map { app.buttons["seat-style-\($0)"] }
         XCTAssertTrue(seats.allSatisfy(\.exists))
         XCTAssertEqual(seats.map(\.label), ["Tom's style, Just for fun", "Mike's style, Just for fun",
@@ -171,6 +178,10 @@ final class BeginnerReleaseTests: XCTestCase {
         app.buttons["style-guide"].tap()
         let cautious = app.buttons["opponent-nit"]
         XCTAssertTrue(cautious.waitForExistence(timeout: 5))
+        let casual = app.descendants(matching: .any)["opponent-casual"]
+        XCTAssertTrue(casual.exists, "The guide lists the default style the seat menu offers")
+        XCTAssertTrue(casual.label.contains("Just for fun (default)"), casual.label)
+        XCTAssertLessThan(casual.frame.minY, cautious.frame.minY)
         cautious.tap()
         XCTAssertTrue(app.staticTexts["Starting habits"].waitForExistence(timeout: 5))
         app.buttons["Close"].firstMatch.tap()
@@ -210,6 +221,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.buttons["seat-style-3"].waitForExistence(timeout: 5))
         app.buttons["2 players"].tap()
         XCTAssertTrue(app.buttons["player-count-2"].isSelected)
+        XCTAssertEqual(app.staticTexts["player-count-detail"].label, "You + 1 computer")
         XCTAssertFalse(app.buttons["player-count-4"].isSelected)
         XCTAssertTrue(app.buttons["seat-style-1"].exists)
         XCTAssertFalse(app.buttons["seat-style-2"].exists)
@@ -391,7 +403,7 @@ final class BeginnerReleaseTests: XCTestCase {
         let verdict = app.descendants(matching: .any)["table-verdict"].firstMatch
         XCTAssertTrue(verdict.waitForExistence(timeout: 15))
         XCTAssertTrue(verdict.label.contains("Your choice:"), verdict.label)
-        XCTAssertTrue(verdict.label.contains("Model choice:") || verdict.label.contains("Chart:"),
+        XCTAssertTrue(verdict.label.contains("Model choice:") || verdict.label.contains("Chart · vs "),
                       verdict.label)
         XCTAssertTrue(app.descendants(matching: .any)["table-takeaway"].firstMatch.exists)
         XCTAssertTrue(app.descendants(matching: .any)["table-decision-details"].firstMatch.exists)
@@ -425,8 +437,15 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(own.frame.height, 44)
         XCTAssertGreaterThanOrEqual(own.frame.width, 44)
         own.tap()
-        XCTAssertTrue(app.staticTexts["chart-explorer-selection"].label.contains("76o"))
-        app.buttons["Return to my hand"].tap()
+        let selection = app.staticTexts["chart-explorer-selection"]
+        XCTAssertTrue(selection.label.contains("My hand 76o"))
+        let back = app.buttons["Back to my hand"]
+        XCTAssertFalse(back.exists, "The return button appears only while another hand is inspected")
+        app.buttons["chart-cell-77"].tap()
+        XCTAssertTrue(selection.label.contains("Looking at 77"))
+        XCTAssertTrue(own.label.hasPrefix("Your hand"))
+        back.tap()
+        XCTAssertTrue(selection.label.contains("My hand 76o"))
         XCTAssertTrue(own.isHittable)
         let capture = XCTAttachment(screenshot: app.screenshot())
         capture.name = "chart-explorer-english-ax5"; capture.lifetime = .keepAlways
@@ -467,10 +486,10 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(app.buttons["game-length-quick"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["game-length-quick"].isSelected)
         XCTAssertEqual(app.staticTexts["game-length-detail"].label,
-                       "40 chips each · ends after 10 hands · blinds 1 and 2")
+                       "40 chips each · ends after 10 hands or when you run out · blinds 1 and 2 chips")
         app.buttons["game-length-long"].tap()
         XCTAssertEqual(app.staticTexts["game-length-detail"].label,
-                       "100 chips each · no ending · blinds 1 and 2")
+                       "100 chips each · plays on · blinds 1 and 2 chips")
         app.buttons["game-length-quick"].tap()
         app.buttons["2 players"].tap()
         app.buttons["table-start"].tap()

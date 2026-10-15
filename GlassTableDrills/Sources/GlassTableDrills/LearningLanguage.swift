@@ -1,4 +1,5 @@
 import Foundation
+import GlassTableEngine
 
 public enum LearningLanguage: String, Codable, CaseIterable, Sendable {
     case korean = "ko"
@@ -83,6 +84,22 @@ public extension Position {
     }
 }
 
+public extension HandClass {
+    /// The class in everyday words, with ranks as printed on card faces (10, not T),
+    /// so "T8o" reads as the two cards the learner is actually holding.
+    func plainName(in language: LearningLanguage) -> String {
+        let hi = Self.faceRank(high), lo = Self.faceRank(low)
+        if isPair { return language.text("\(hi) 두 장", "\(hi)-\(hi) pair") }
+        return suited
+            ? language.text("\(KO.and(hi)) \(lo) · 같은 무늬", "\(hi) and \(lo), same suit")
+            : language.text("\(KO.and(hi)) \(lo) · 서로 다른 무늬", "\(hi) and \(lo), different suits")
+    }
+
+    private static func faceRank(_ rank: Int) -> String {
+        rank == 10 ? "10" : rankChars[rank - 2]
+    }
+}
+
 public extension Archetype {
     func beginnerTitle(in language: LearningLanguage) -> String {
         switch self {
@@ -128,7 +145,7 @@ public struct ConceptIntroduction: Sendable {
         case .outs:
             copy = ("이기는 리버 카드는 몇 장일까요?", "Which river cards win?", "더 좋아지는 카드가 모두 이기는 카드는 아니에요.", "Not every card that improves your hand makes it win.", "마지막 공용 카드 중 상대를 이기게 만드는 카드만 세요.", "Count only unseen final cards that make your hand beat the opponent.")
         case .equitySense:
-            copy = ("끝까지 가면 이길 가능성", "Chances at the final reveal", "카드가 더 나와도 유리한지 가늠해 봐요.", "Estimate how often your cards will hold up.", "승률을 예상하고, 답이 들어갈 만한 범위도 골라요. 무승부는 몫을 나눠요.", "Estimate your chance and a plausible range. Ties count as a share of the pot.")
+            copy = ("끝까지 가면 이길 가능성", "Chances at the final reveal", "카드가 더 나와도 유리한지 가늠해 봐요.", "Estimate how often your cards will hold up.", "끝까지 갔을 때 내가 이길 가능성을 예상해요. 무승부는 몫을 나눠요.", "Estimate how often you win if the hand goes to the end. Ties count as a share of the pot.")
         case .evCall:
             copy = ("이 콜의 평균 손익", "What is this call worth?", "한 번의 결과보다 같은 결정을 반복했을 때의 평균을 봐요.", "Look beyond one result to the average over repeated decisions.", "이길 때 얻는 금액과 질 때 잃는 금액을 각각의 확률로 따져요.", "Weigh what you win and lose by the chance of each outcome.")
         case .callFold:
@@ -138,7 +155,7 @@ public struct ConceptIntroduction: Sendable {
         case .rfi:
             copy = ("먼저 들어갈까요?", "Should I enter first?", "뒤에 남은 사람이 많으면 더 신중히 골라요.", "With more players still to act, you need to be more selective.", "자리와 카드를 공개된 연습 차트에서 찾아요.", "Find your position and cards in the published practice chart.")
         case .rangeRead:
-            copy = ("상대의 가능한 카드", "What could they hold?", "상대에게 한 가지 패만 있다고 생각하지 않아요.", "Think about several possible hands, not just one guess.", "보이는 카드와 조건에 맞는 조합이 얼마나 남는지 살펴봐요.", "Count the combinations that fit the visible cards and the stated condition.")
+            copy = ("상대의 가능한 카드", "What could they hold?", "상대에게 한 가지 패만 있다고 생각하지 않아요.", "Think about several possible hands, not just one guess.", "상대의 행동과 습관에 맞는 패 범위가 얼마나 넓은지 골라요.", "Pick how wide a range of hands fits the opponent's actions and habits.")
         case .hitFrequency:
             copy = ("공용 카드와 잘 맞을까요?", "How many hands connect?", "같은 보드라도 시작 카드에 따라 연결되는 정도가 달라요.", "The same board connects differently with different starting hands.", "가능한 핸드 중 같은 숫자 두 장 이상을 만든 비율을 예상해요.", "Estimate the share of possible hands that made at least a pair.")
         case .rangeAdvantage:

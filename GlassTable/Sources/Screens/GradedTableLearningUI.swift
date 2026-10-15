@@ -27,8 +27,8 @@ enum GradedTableLearning {
             return language.text("앱의 공개된 디펜드 차트와 비교했어요. 칩 손실을 계산한 점수는 아니에요. bb는 빅 블라인드 한 개만큼의 칩이에요.",
                                  "Compared with the app's published defend chart, not an estimate of chips lost. bb is the chip amount of one big blind.")
         case .ev:
-            return language.text("현재 상대 레인지와 공개된 규칙으로 계산해요. 이후 베팅과 레이크는 제외하며, 플랍은 표본 추정이에요. bb는 빅 블라인드 한 개만큼의 칩이에요.",
-                                 "Uses the current possible opponent hands and published rules. Later bets and fees are excluded; the flop uses a sampled estimate. bb is the chip amount of one big blind.")
+            return language.text("현재 상대 레인지와 공개된 규칙으로 계산해요. 이후 베팅과 레이크는 제외하며, 플랍은 표본 추정이에요. 값은 지금부터 받을 칩에서 더 넣을 칩을 뺀 평균이에요. 이미 팟에 넣은 칩은 세지 않아서 폴드는 0bb예요. bb는 빅 블라인드 한 개만큼의 칩이에요.",
+                                 "Uses the current possible opponent hands and published rules. Later bets and fees are excluded; the flop uses a sampled estimate. Values average the chips you collect from here minus the chips you add from here. Chips already in the pot don't count, so folding is 0bb. bb is the chip amount of one big blind.")
         }
     }
 }
