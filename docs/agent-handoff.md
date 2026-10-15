@@ -5,7 +5,7 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 
-## Current state (2026-10-14)
+## Current state (2026-10-15)
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -63,6 +63,12 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
 - Lesson review for the owner (2026-10-15): https://claude.ai/artifact/1BH6g7owTwjnEjKmDfBHX1
   — every lesson in order, why, goals, and a never-played reading. Its findings are
   under Open issues; nothing was changed in the app for them.
+- CI/CD (owner chose "simpler CI, I take over" and "TestFlight on tag", 2026-10-15) is on
+  `ci/lean-pipeline-20261015`, pushed, not merged: `ci.yml` gates pushes/PRs on unit
+  tests plus the Release smoke and bundle checks; `ui-tests.yml` runs the UI suite
+  nightly in three shards; `release.yml` uploads a `v<version>-<build>` tag on `main` to
+  TestFlight. Setup steps: `docs/ci-cd.md`. The Codex CI branches
+  (`fix/ci-*-20261014`, `diagnostic/*`) are kept for reference, not merged.
 - Local only, ignored: `docs/grac-submission/` (videos, forms; public repo), tool
   caches, compiled probe output. Nothing else is untracked.
 - Decisions and evidence for the follow-ups: `.scratch/audit-followups-2026-10-11/map.md`.
@@ -130,6 +136,14 @@ Product and numbers:
   failure; live Bold Text redraw; tiny EV-loss grid labels; unseeded PotMath question
   identity; free raise 2BB presets and graded range/equity jargon.
 
+CI/CD:
+- `release.yml` has never run: it needs the paid Apple Developer membership, an App Store
+  Connect app record and the four secrets in `docs/ci-cd.md`. Whether an App Manager
+  API key is enough for cloud signing is unknown; the doc says Admin.
+- `ui-tests.yml` can only be started by hand once it is on `main`. The full UI suite has
+  not passed on a GitHub runner; the Codex diagnostic runs (2026-10-14/15) failed
+  accessibility audits there.
+
 Tests:
 - `AccessibilityAuditTests/testPlayTable` (and `testPlayTableScrolled` once, 2026-10-13
   night) (contrast, no element named) on the iPhone 12
@@ -144,6 +158,18 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-15 (Claude · lean CI and TestFlight)
+
+- Owner asked for proper CI/CD and chose a lean pipeline over the Codex 3×130-minute
+  shard work. Ported Codex's two Xcode 26.3 type-check splits (`WalkthroughView`
+  header, `PracticeTableQuickGameTests`) without its handoff edits; main CI had failed on
+  them. Push CI now runs unit tests only; the UI suite moved to a nightly workflow;
+  tags ship to TestFlight.
+- Verification: Drills tests and the app build pass locally; CI run 38591907357 passed on
+  the branch in 22 minutes (unit tests 5, Release smoke 12, device Release build 3).
+- Next: owner merges the branch, stops the Codex CI session, then does the one-time
+  TestFlight setup in `docs/ci-cd.md` and pushes the first tag.
 
 ### 2026-10-15 (Claude · build 29, lesson review)
 
@@ -219,20 +245,3 @@ Tests:
   copied (`.build/device-install-b27/`). The GRAC handoff notes from the other session
   were committed separately (`46f29ab`), so receipt TG-OM-26-01177 is now in the public repo.
 - Next: owner tries build 27.
-
-### 2026-10-14 (Claude · clickable controls)
-
-- Owner chose Rule 1 and then Look 2 with the grey outline (mocks
-  https://claude.ai/artifact/Tb5PRceX4YUUPoTJwAffKr and
-  https://claude.ai/artifact/BdUFji5QcrzLN9K16YKDJY). Built on
-  `feat/guide-clickable-controls`, not merged or installed. The guide and Hold'em basics
-  lost their top-left Previous; the lesson's leftover 8pt top padding was dropped.
-- To keep the AX dock tests passing, the Play top-bar title stops growing at the first
-  accessibility size. The shared AX test helper `scrollUntilFullyVisible` now ends with
-  short drags, because one swipe threw the hero cards past the top.
-- 12 mini simulators: unit tests and every UI class ran across three builds. Only the
-  two known contrast audits failed. Two other failures were fixed and passed on the final
-  build: the hero test (helper) and the lesson-title gap. The final build itself ran 16
-  UI classes plus the unit tests, with no failures. Screens checked in both languages at
-  normal and AX5.
-- Next: owner looks at the branch and decides on merge and install.
