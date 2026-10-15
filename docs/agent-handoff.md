@@ -70,6 +70,7 @@ and the frozen `docs/handoff-archive/`; neither needs reading for normal work.
   `feat/owner-decisions-20261015`: chart guide opens only the first time, a
   hand-specific chart reason (`DefendChart.reason`), a verdict-first table review with
   "Details", and a call-or-fold lesson `u2-callFold` before the price challenge.
+  Merged as PR #14 and installed as build 30 on the iPhone 12 mini (owner, 2026-10-15).
 - CI/CD (owner chose "simpler CI, I take over" and "TestFlight on tag"): `ci.yml` gates
   pushes/PRs on unit tests plus the Release smoke and bundle checks; `ui-tests.yml` runs
   the UI suite nightly in three shards; `release.yml` uploads a `v<version>-<build>` tag
@@ -182,7 +183,9 @@ Tests:
 - Kept: outs choices, starting check, compact-grid headers (#34/#41).
 - `docs/ci-cd.md` records the first nightly UI run: shard 1 failed only
   `testPlayTable`, a pre-existing failure on `main`.
-- Next: owner reviews the branch, then merge and install.
+- Owner asked to merge and install: PR #14 merged, build 30 installed on the iPhone 12
+  mini after an uninstall (fresh data).
+- Next: owner tries build 30.
 
 ### 2026-10-15 (Codex · revised screenshot UX report)
 
