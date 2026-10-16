@@ -129,7 +129,9 @@ Product and numbers:
 - Free-table dock/seat layout at 2–3 players: not confirmed closed; check `map.md`.
 - At AX5 in English the "Decision help" pill is clipped in the raise header; the
   Korean AX5 raise title is cut inside its scroll box.
-- iOS 27 beta only: Settings language switch does not re-render the screen.
+- iOS 27 (released, on the owner's phones): the Settings language switch left the app in
+  the old language until relaunch. Fixed on `fix/live-language-switch-20261016` (PR
+  open, not merged); close this once it is merged.
 - Clickable controls (not yet raised with the owner): the Play top-bar title stops
   growing at the first accessibility size, so the AX dock keeps its height. The walkthrough,
   hand review and learning guide keep equal-width Previous/Next; the guide and Hold'em
@@ -161,6 +163,17 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-17 (Claude · live language switch)
+
+- Cause, from logging on clones: on iOS 27 the App body re-ran with the new
+  `AppStorage` language, but the open WindowGroup kept its old environment, so RootView
+  never re-rendered; iOS 26.5 re-renders it. Fix: an `@Observable` `LanguageSettings`
+  owned by RootView as `@State` injects the language and locale, and Settings writes
+  through it (no `.id`, so progress and navigation survive). The toggle failure blamed on
+  bc53bdc was a flake: it also happened once on unfixed code.
+- DeviceFeedbackSettingsTests now assert the tab bar, Settings and Learn in both
+  directions without a relaunch. PR open; next: owner review, then merge.
 
 ### 2026-10-16 (Claude · exact flop equity)
 
@@ -225,26 +238,3 @@ Tests:
   clicking and scrolling. Rebuilt the report from all fifteen images: 69 prioritized
   findings. Recommendations only; no app change or simulator verification. (Recorded
   from Codex's uncommitted edit, archived locally, since deleted.)
-
-### 2026-10-15 (Claude · lesson and UX audit gaps)
-
-- Owner asked to fix the gaps in the lesson review and the screenshot UX audit, after
-  re-auditing the latter. Branch `fix/ux-lesson-gaps-20261015`, two commits.
-- Lesson grading: a lesson's defend question now starts with the chart folded
-  (`chartStartsFolded`), so it can be answered alone under D47; opening the chart still
-  marks help. Pot-odds/MDF beginner choices now sit at least 15 points apart
-  (`BeginnerQuestionChoices.shares`), so only one grades right. Both had failing tests
-  first (UI test and Drills test).
-- Copy and screens: 플롭 → 플랍; glossary adds pot, blinds, dealer button, position,
-  actions, streets and showdown; equity and range-read how-lines match their questions;
-  the table review names the street it grades, the call price and the chart scope; a
-  finished hand shows only dealt cards; setup has a back button, "me + N computers",
-  and plainer length and style copy; the chart marks your own hand apart from the one
-  being inspected, explains T, and shows the plain hand name.
-- Verified: Drills tests, 85 UI tests on two 12 mini simulators, and a uisweep of 11
-  changed screens at large and AX5. The two play-table audit failures also fail on
-  unchanged `main`.
-- Left for the owner: see Open issues (audit #29/#52/#34/#41, call-or-fold lesson,
-  starting check, outs choices).
-- Owner approved merging both branches; done via PR #12 and the fix branch PR.
-- Next: owner decides the items left open; before/after mocks were published.
