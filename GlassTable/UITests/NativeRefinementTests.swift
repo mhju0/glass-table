@@ -50,7 +50,7 @@ final class NativeRefinementTests: XCTestCase {
         app.launch()
         let completion = app.staticTexts["records-completion"]
         XCTAssertTrue(completion.waitForExistence(timeout: 15))
-        XCTAssertEqual(completion.label, "10 of 10 main lessons passed")
+        XCTAssertEqual(completion.label, "11 of 11 main lessons passed")
         app.buttons["records-continue"].tap()
         XCTAssertTrue(app.tabBars.buttons["Learn"].isSelected)
     }

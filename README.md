@@ -71,8 +71,8 @@ the same deterministic spot. The archetype policy and surviving range are data
 the learner can inspect inside the app instead of an undisclosed bot decision.
 
 Equity exercises enumerate the remaining boards exactly. The graded table uses
-exact heads-up enumeration on the turn and river, and fixed-seed Monte Carlo
-on the flop against each surviving range combination. That distinction and the
+exact heads-up enumeration on the flop, turn and river against each surviving
+range combination. That distinction and the
 checkdown assumption are part of the explanation, not a claim of optimal play.
 Frozen evaluator fixtures and deterministic tests guard the underlying math.
 

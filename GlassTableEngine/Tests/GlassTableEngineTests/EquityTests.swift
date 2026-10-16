@@ -38,6 +38,26 @@ final class EquityTests: XCTestCase {
         XCTAssertEqual(mc, 0.8236, accuracy: 0.006)
     }
 
+    /// The shared-hero enumeration must reproduce the per-combo one bit for bit on the
+    /// flop, turn and river.
+    func testExactEquitiesMatchPerComboEnumeration() {
+        var rng = SplitMix64(seed: 0xF10F)
+        for boardCount in [3, 4, 5] {
+            for _ in 0..<4 {
+                var deck = Deck.all
+                deck.shuffle(using: &rng)
+                let hero = Array(deck[0..<2]), board = Array(deck[2..<(2 + boardCount)])
+                let live = Array(deck[(2 + boardCount)...])
+                let combos = (0..<20).map { k in [live[2 * k], live[2 * k + 1]] }
+                let fast = exactEquitiesHeadsUp(hero: hero, villainCombos: combos, board: board)
+                let slow = combos.map {
+                    exactEquityHeadsUp(hero: hero, villain: $0, board: board).equity
+                }
+                XCTAssertEqual(fast, slow, "board \(board)")
+            }
+        }
+    }
+
     func testEquityVsRangeAveragesCombos() {
         // vs a two-hand range {KK, QQ}, hero AA equity is the mean of the two matchups.
         let hero = Card.parse("AsAh")!

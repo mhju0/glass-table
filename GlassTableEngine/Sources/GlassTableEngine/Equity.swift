@@ -50,6 +50,61 @@ public func exactEquityHeadsUp(hero: [Card], villain: [Card], board: [Card]) -> 
     return EquityResult(wins: wins, ties: ties, total: total)
 }
 
+/// Exact heads-up equity of `hero` against each combo in `villainCombos`: the same
+/// numbers as `exactEquityHeadsUp` per combo, in the same order. Hero's key for a
+/// completion does not depend on the villain, so each completion is scored for hero
+/// once and shared; a flop range costs 1,081 hero evaluations plus one villain pass
+/// per combo, instead of two evaluations per completion per combo.
+/// Combos must not share a card with `hero` or `board`.
+public func exactEquitiesHeadsUp(hero: [Card], villainCombos: [[Card]],
+                                 board: [Card]) -> [Double] {
+    precondition(hero.count == 2)
+    let need = 5 - board.count
+    precondition(need >= 0)
+    if need == 0 {
+        return villainCombos.map {
+            exactEquityHeadsUp(hero: hero, villain: $0, board: board).equity
+        }
+    }
+
+    @inline(__always) func bit(_ c: Card) -> UInt64 { 1 << UInt64(c.rank * 4 + c.suit) }
+    var known = 0 as UInt64
+    for c in hero + board { known |= bit(c) }
+    let remaining = Deck.all.filter { known & bit($0) == 0 }
+
+    // Every completion once: its cards (flat, `need` per completion), their mask, and
+    // hero's key.
+    var runoutCards: [Card] = [], runoutMasks: [UInt64] = [], heroKeys: [Int] = []
+    var seven = hero + board + [Card](repeating: hero[0], count: need)
+    let tail = 2 + board.count
+    forEachCombination(of: remaining, choose: need) { completion in
+        var mask = 0 as UInt64
+        for i in 0..<need {
+            seven[tail + i] = completion[i]
+            mask |= bit(completion[i])
+            runoutCards.append(completion[i])
+        }
+        runoutMasks.append(mask)
+        heroKeys.append(evaluate7(seven))
+    }
+
+    // Completions that use a villain card are skipped, which leaves exactly the set
+    // `exactEquityHeadsUp` enumerates for that combo.
+    return villainCombos.map { v in
+        precondition(v.count == 2)
+        seven[0] = v[0]; seven[1] = v[1]
+        let dead = bit(v[0]) | bit(v[1])
+        var wins = 0, ties = 0, total = 0
+        for r in heroKeys.indices where runoutMasks[r] & dead == 0 {
+            for i in 0..<need { seven[tail + i] = runoutCards[r * need + i] }
+            let h = heroKeys[r], vk = evaluate7(seven)
+            if h > vk { wins += 1 } else if h == vk { ties += 1 }
+            total += 1
+        }
+        return EquityResult(wins: wins, ties: ties, total: total).equity
+    }
+}
+
 /// Fixed-seed Monte Carlo equity: sample `iterations` random board completions.
 /// Deterministic for a given `seed` (partial Fisher–Yates over the remaining deck).
 public func monteCarloEquityHeadsUp(hero: [Card], villain: [Card], board: [Card],
