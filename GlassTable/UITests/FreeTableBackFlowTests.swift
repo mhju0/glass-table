@@ -330,7 +330,11 @@ final class FreeTableBackFlowTests: XCTestCase {
             let bottom = min(window.maxY - windowBottomInset, scroll.frame.maxY)
             if frame.minY >= top - 0.5 && frame.maxY <= bottom + 0.5 { return }
             print("reveal \(target.identifier): target=\(frame), viewport=\(top)...\(bottom)")
-            let startY = min(bottom - 50, window.maxY - 80)
+            var startY = min(bottom - 50, window.maxY - 80)
+            // A short slow drag that starts on a button can register as a tap on it.
+            if startY >= frame.minY && startY <= frame.maxY {
+                startY = frame.minY - 10 > top + 10 ? frame.minY - 10 : min(frame.maxY + 10, bottom - 10)
+            }
             let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: max(25, scroll.frame.minX + 5), dy: startY))
             let delta: CGFloat = frame.maxY > bottom
                 ? max(-120, min(-24, bottom - frame.maxY - 2))
