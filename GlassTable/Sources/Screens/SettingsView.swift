@@ -7,7 +7,7 @@ struct SettingsView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
-    @AppStorage(AppLanguage.storageKey) private var languagePreference = AppLanguage.system
+    @Environment(LanguageSettings.self) private var languageSettings
     @Environment(\.leadsWithTerms) private var leadsWithTerms
     @AppStorage(PokerTerms.storageKey) private var termsChoice: Bool?
     @AppStorage(AppFeedback.soundKey) private var soundOn = false
@@ -181,15 +181,15 @@ struct SettingsView: View {
                     Menu {
                         ForEach(AppLanguage.allCases) { option in
                             Button {
-                                languagePreference = option
+                                languageSettings.preference = option
                             } label: {
                                 Label(option == .system ? language.text("기기 설정", "System") : option.title,
-                                      systemImage: languagePreference == option ? "checkmark" : "")
+                                      systemImage: languageSettings.preference == option ? "checkmark" : "")
                             }.accessibilityIdentifier("language-\(option.rawValue)")
                         }
                     } label: {
                         preferenceRow(language.text("언어", "Language"),
-                                      languagePreference == .system ? language.text("기기 설정", "System") : languagePreference.title)
+                                      languageSettings.preference == .system ? language.text("기기 설정", "System") : languageSettings.preference.title)
                     }.accessibilityIdentifier("settings-language")
                     Divider()
                     Menu {
