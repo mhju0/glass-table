@@ -33,19 +33,36 @@ final class LearnerLevelTests: XCTestCase {
     }
 
     func testUpNextReturnsToEarlierLessonsOnceTheLaterOnesAreDone() {
-        let done = state(.playRegularly, cleared: ["u4-rangeRead", "u7-actionRead"])
+        let reads = state(.playRegularly, cleared: ["u4-rangeRead", "u7-actionRead"])
+        XCTAssertEqual(Curriculum.suggestedLesson(in: reads)?.id, "u2-outs")
+        let done = state(.playRegularly, cleared: ["u4-rangeRead", "u7-actionRead", "u2-boss"])
         XCTAssertEqual(Curriculum.suggestedLesson(in: done)?.id, "u1-showdown")
     }
 
     func testAPassedTrackChallengeSkipsThatTracksLessons() {
         let passed = state(.knowRules, cleared: ["u1-position", "u3-boss"])
-        XCTAssertEqual(Curriculum.suggestedLesson(in: passed)?.id, "u2-equitySense")
+        XCTAssertEqual(Curriculum.suggestedLesson(in: passed)?.id, "u4-rangeRead")
+    }
+
+    /// D48: the check's pot and price questions are math, which comes last, so missing
+    /// them starts the learner at the game rather than half-way down the path.
+    func testTheStartingCheckStartsAtTheGameAndOnlyAWrongShowdownGoesBack() {
+        let right = ["showdown": "pair", "pot": "include-blinds", "price": "compare-call-to-pot"]
+        XCTAssertEqual(PlacementGuide.recommendation(report: .knowRules, answers: [:]), .showdown)
+        XCTAssertEqual(PlacementGuide.recommendation(report: .knowRules, answers: right), .position)
+        XCTAssertEqual(PlacementGuide.recommendation(report: .playRegularly, answers: right), .rangeRead)
+        for missed in ["pot", "price"] {
+            var answers = right
+            answers[missed] = "unsure"
+            XCTAssertEqual(PlacementGuide.recommendation(report: .playRegularly, answers: answers), .position)
+            XCTAssertEqual(PlacementGuide.recommendation(report: .knowRules, answers: answers), .position)
+        }
     }
 
     func testLessonsBeforeTheLevelStartAreNotAskedForFirst() {
         let position = Curriculum.node(id: "u1-position")!
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: position, in: state(.newToPoker)).map(\.id),
-                       ["u1-showdown", "u2-outs", "u1-potMath"])
+                       ["u1-showdown"])
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: position, in: state(.knowRules)), [])
         let rfi = Curriculum.node(id: "u3-rfi")!
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state(.knowRules)).map(\.id),
@@ -84,11 +101,13 @@ final class LearnerLevelTests: XCTestCase {
     }
 
     func testSkipAheadChallengeIsTheTracksOwnWhileLessonsRemain() {
+        let rfi = Curriculum.node(id: "u3-rfi")!
+        XCTAssertEqual(Curriculum.skipAheadChallenge(after: rfi, in: state(.knowRules))?.id, "u3-boss")
+        XCTAssertNil(Curriculum.skipAheadChallenge(after: rfi,
+            in: state(.knowRules, cleared: ["u3-rfi", "u8-defend"])))
+        XCTAssertNil(Curriculum.skipAheadChallenge(after: rfi, in: state(.knowRules, cleared: ["u3-boss"])))
         let position = Curriculum.node(id: "u1-position")!
-        XCTAssertEqual(Curriculum.skipAheadChallenge(after: position, in: state(.knowRules))?.id, "u3-boss")
-        XCTAssertNil(Curriculum.skipAheadChallenge(after: position,
-            in: state(.knowRules, cleared: ["u1-position", "u3-rfi", "u8-defend"])))
-        XCTAssertNil(Curriculum.skipAheadChallenge(after: position, in: state(.knowRules, cleared: ["u3-boss"])))
+        XCTAssertEqual(Curriculum.skipAheadChallenge(after: position, in: state(.newToPoker))?.id, "u1-boss")
         XCTAssertNil(Curriculum.skipAheadChallenge(after: Curriculum.node(id: "u3-boss")!, in: state(.knowRules)))
     }
 

@@ -127,6 +127,21 @@ final class ProgressionStoreTests: XCTestCase {
         XCTAssertThrowsError(try store().importData(JSONEncoder().encode(session(format: 3, questions: 3))))
     }
 
+    /// D48 regrouped the tracks. A challenge left half-way under the old tracks must
+    /// still load, or the whole progress file would read as damaged.
+    func testChallengeDealtUnderTheOldTracksStillLoads() throws {
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        var state = ProgressState()
+        state.activeNodeSession = NodeSessionSnapshot(id: "node", nodeID: node.id, seed: 7,
+            scheduledConcepts: Curriculum.deal([.showdown, .potMath], for: node, seed: 7, format: 2)
+                .map(\.rawValue),
+            phase: .question, formatVersion: 2)
+        XCTAssertNoThrow(try store().importData(JSONEncoder().encode(state)))
+        state.activeNodeSession?.scheduledConcepts = Curriculum.deal([.showdown, .combos], for: node,
+                                                                     seed: 7, format: 2).map(\.rawValue)
+        XCTAssertThrowsError(try store().importData(JSONEncoder().encode(state)))
+    }
+
     func testImportRejectsUnknownRoundFormatAndInventedNodeSchedule() throws {
         let s = store()
         var unknownRound = ProgressState()

@@ -173,6 +173,21 @@ public enum Curriculum {
         return concepts(of: node)
     }
 
+    /// Format-2 challenge mixes as the tracks stood before D48 regrouped them. Only
+    /// read, never dealt: a challenge left half-way before that update still loads.
+    private static let preD48ChallengePools: [String: [Concept]] = [
+        "u1-boss": [.showdown, .potMath],
+        "u3-boss": [.position, .rfi, .defend],
+        "u2-boss": [.outs, .equitySense, .potOdds, .callFold],
+    ]
+
+    /// Every mix a saved session of this node may have been dealt from.
+    private static func savedSessionPools(of node: CurriculumNode, format: Int) -> [[Concept]] {
+        let pool = sessionPool(of: node, format: format)
+        guard format == 2, let old = preD48ChallengePools[node.id], old != pool else { return [pool] }
+        return [pool, old]
+    }
+
     /// Blocked repetitions for a lesson; at least six mixed questions for a
     /// boss, long enough to exercise every concept it certifies.
     /// The shape new lesson sessions are saved in. Format 1 asked five questions alone.
@@ -185,7 +200,11 @@ public enum Curriculum {
 
     public static func sessionConcepts(for node: CurriculumNode, seed: UInt64 = 0,
                                        format: Int = sessionFormat) -> [Concept] {
-        let pool = sessionPool(of: node, format: format)
+        deal(sessionPool(of: node, format: format), for: node, seed: seed, format: format)
+    }
+
+    /// The questions a session of this node deals from `pool`.
+    static func deal(_ pool: [Concept], for node: CurriculumNode, seed: UInt64, format: Int) -> [Concept] {
         switch node.kind {
         case .drill:
             return Array(repeating: pool[0], count: lessonQuestionCount(format: format))
@@ -202,19 +221,29 @@ public enum Curriculum {
         }
     }
 
+    /// Whether a saved session's questions are exactly what this node deals for the
+    /// seed, from its current mix or a mix it was dealt from before D48.
+    static func isSavedSchedule(_ scheduled: [Concept], for node: CurriculumNode,
+                                seed: UInt64, format: Int) -> Bool {
+        savedSessionPools(of: node, format: format).contains {
+            deal($0, for: node, seed: seed, format: format) == scheduled
+        }
+    }
+
     /// Checks the frozen bag's shape without reconstructing its seed or order.
     public static func isValidSession(_ scheduled: [Concept], for node: CurriculumNode,
                                       format: Int = sessionFormat) -> Bool {
-        let pool = sessionPool(of: node, format: format)
-        switch node.kind {
-        case .drill:
-            return scheduled == Array(repeating: pool[0], count: lessonQuestionCount(format: format))
-        case .boss:
-            guard scheduled.count == max(6, pool.count), Set(scheduled) == Set(pool) else {
-                return false
+        savedSessionPools(of: node, format: format).contains { pool in
+            switch node.kind {
+            case .drill:
+                return scheduled == Array(repeating: pool[0], count: lessonQuestionCount(format: format))
+            case .boss:
+                guard scheduled.count == max(6, pool.count), Set(scheduled) == Set(pool) else {
+                    return false
+                }
+                let counts = Dictionary(grouping: scheduled, by: { $0 }).values.map(\.count)
+                return (counts.max() ?? 0) - (counts.min() ?? 0) <= 1
             }
-            let counts = Dictionary(grouping: scheduled, by: { $0 }).values.map(\.count)
-            return (counts.max() ?? 0) - (counts.min() ?? 0) <= 1
         }
     }
 
