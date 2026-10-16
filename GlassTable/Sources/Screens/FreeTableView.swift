@@ -1853,6 +1853,7 @@ private struct FreeTablePolicyDetails: View {
                 Divider()
             }
             Text(language.text("공용 카드 전에는 Chen 점수 순으로 고른 핸드를 사용해요. 이후에는 공개된 족보별 행동 규칙을 따라, ‘재미로’ 스타일이 아니면 최소 금액으로 벳하거나 올려요. 자기 카드와 공개된 정보만 보고 골라요. 최적 전략이라는 뜻은 아니에요.", "Before shared cards, bots select hands ranked by Chen score. Afterward, they follow published hand-category rules and, unless they play just for fun, bet or raise the minimum. They see only their own cards and public information. This is not an optimal-strategy claim."))
+            GlossaryChip(term: "시작 패 점수 (Chen)").accessibilityIdentifier("free-policy-chen-glossary")
             Text(language.text("D는 딜러 버튼이에요. 버튼 다음 두 사람이 1칩과 2칩을 먼저 내요. 매 핸드 버튼이 이동해요.", "D is the dealer button. The next two players post 1 and 2 chips. The button moves after each hand."))
             Text(language.text("컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요.", "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."))
         }

@@ -77,7 +77,7 @@ final class MilestoneTests: XCTestCase {
     func testTrackMilestoneNamesTheTrackAndItsSkills() {
         let milestone = LearningMilestone.trackFinished(.startingHands)
         XCTAssertEqual(milestone.title(in: .english), LearningTrack.ID.startingHands.title(in: .english))
-        XCTAssertEqual(milestone.detail(in: .english), "Passed a mixed check of 3 skills.")
+        XCTAssertEqual(milestone.detail(in: .english), "Passed a mixed check of 2 skills.")
     }
 
     func testRatingAsksOncePerVersionOnlyAfterAMilestoneAndNeverInUITests() throws {

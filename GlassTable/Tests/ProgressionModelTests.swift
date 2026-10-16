@@ -769,7 +769,7 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(ProgressionModel(store: store).state, model.state)
     }
 
-    func testStartingHandsChallengePracticesPositionBeforeAwardingMastery() throws {
+    func testBasicsChallengePracticesPositionBeforeAwardingMastery() throws {
         let now = Date(timeIntervalSince1970: 1_785_000_000)
         var original = ProgressState()
         original.updateRecord(for: .position) {
@@ -778,11 +778,11 @@ final class ProgressionModelTests: XCTestCase {
         }
         try store.save(original)
         let model = ProgressionModel(store: store)
-        // The starting-hands challenge is the one that mixes position in.
-        let boss = try XCTUnwrap(Curriculum.node(id: "u3-boss"))
+        // The basics challenge is the one that mixes position in (D48).
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
         let concepts = Curriculum.sessionConcepts(for: boss, seed: 7)
         XCTAssertEqual(concepts.count, 6)
-        XCTAssertEqual(concepts.filter { $0 == .position }.count, 2)
+        XCTAssertEqual(concepts.filter { $0 == .position }.count, 3)
         var evidence: [Concept: SessionEvidence] = [:]
         for concept in concepts {
             model.record(concept: concept, band: .spotOn, now: now)
@@ -790,7 +790,7 @@ final class ProgressionModelTests: XCTestCase {
         }
         model.completeNode(boss, scheduled: concepts, evidence: evidence, now: now)
 
-        XCTAssertEqual(model.record(for: .position).total, 7)
+        XCTAssertEqual(model.record(for: .position).total, 8)
         XCTAssertEqual(model.record(for: .position).tier, .mastered)
     }
 

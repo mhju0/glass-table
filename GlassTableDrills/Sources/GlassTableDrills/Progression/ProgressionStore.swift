@@ -357,9 +357,9 @@ public struct ProgressionStore {
                 ?? Curriculum.concepts(of: node).first,
               (1...Curriculum.sessionFormat).contains(session.formatVersion),
               !session.scheduledConcepts.isEmpty,
-              session.scheduledConcepts == Curriculum.sessionConcepts(for: node, seed: session.seed,
-                                                                      format: session.formatVersion)
-                .map(\.rawValue),
+              Curriculum.isSavedSchedule(session.scheduledConcepts.compactMap(Concept.init(rawValue:)),
+                                         for: node, seed: session.seed, format: session.formatVersion),
+              session.scheduledConcepts.allSatisfy({ Concept(rawValue: $0) != nil }),
               session.answers.count <= session.scheduledConcepts.count,
               validTeaching(session.showBeatIndex, concept: taught,
                   seed: session.seed, verifyAnswers: verifyAnswers),

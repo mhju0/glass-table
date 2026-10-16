@@ -390,7 +390,7 @@ public enum BeatScript {
                        + "많을수록 좁게 열어요.",
                  focus: .table, highlight: s.hand),
             Beat("이 핸드의 점수", value: "\(pctTextScore(Chen.score(h)))점",
-                 detail: Chen.explain(h),
+                 detail: DrillTerms.chen(h, in: .korean),
                  focus: .table, highlight: s.hand),
             Beat("\(KO.subject(s.seat.rawValue)) 여는 범위", value: "상위 \(Int(pct))%",
                  detail: "점수 순으로 위에서 \(Int(pct))%까지예요.",
@@ -582,8 +582,8 @@ public enum BeatScript {
                        + "여는 범위 그대로.",
                  focus: .rangeGrid(s.range, highlight: nil)),
             Beat("이 성향의 규칙", value: "\(s.villain.beginnerTitle(in: .korean))의 플랍",
-                 detail: "실제 상대는 섞어서 쳐요. 이 표는 성향을 규칙으로 단순화한 거예요 "
-                       + "이 규칙을 이용하면 행동에서 남은 패를 거꾸로 읽을 수 있어요.",
+                 detail: "실제 상대는 섞어서 쳐요. 이 표는 성향을 규칙으로 단순화한 거예요. "
+                       + "드로우는 한 장만 더 오면 스트레이트나 플러시가 되는 패예요. 이 규칙을 이용하면 행동에서 남은 패를 거꾸로 읽을 수 있어요.",
                  focus: .actionList(ruleLines, lit: nil)),
             Beat("행동이 지우는 것", value: "\(acted.combos)콤보 남음",
                  detail: "\(KO.subject(s.action.rawValue)) 남기는 건 딱 이 버킷들이에요: "

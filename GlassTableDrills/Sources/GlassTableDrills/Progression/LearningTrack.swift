@@ -4,7 +4,8 @@
 /// nodes; they add no node and rename none, so saved progress is untouched.
 public struct LearningTrack: Equatable, Identifiable, Sendable {
     public enum ID: String, CaseIterable, Sendable {
-        case basics, startingHands, priceAndChance, readingOpponents
+        /// In path order (decision D48): the game first, the math last.
+        case basics, startingHands, readingOpponents, priceAndChance
         /// Useful once the four tracks feel easy. Never suggested, never required.
         case deeper
     }
@@ -24,13 +25,15 @@ public struct LearningTrack: Equatable, Identifiable, Sendable {
 }
 
 public extension Curriculum {
-    /// The path a new player is shown (decision D46). Lessons outside it stay in
-    /// `units` with their saved progress, but are not offered.
+    /// The path a new player is shown (decisions D46, D48). Lessons outside it stay in
+    /// `units` with their saved progress, but are not offered. Top to bottom is the
+    /// suggested order: how the game plays first, then the math.
     static let tracks: [LearningTrack] = [
-        track(.basics, ["u1-showdown", "u1-potMath"], challenge: "u1-boss"),
-        track(.startingHands, ["u1-position", "u3-rfi", "u8-defend"], challenge: "u3-boss"),
-        track(.priceAndChance, ["u2-outs", "u2-equitySense", "u2-potOdds", "u2-callFold"], challenge: "u2-boss"),
+        track(.basics, ["u1-showdown", "u1-position"], challenge: "u1-boss"),
+        track(.startingHands, ["u3-rfi", "u8-defend"], challenge: "u3-boss"),
         track(.readingOpponents, ["u4-rangeRead", "u7-actionRead"], challenge: "u4-boss"),
+        track(.priceAndChance, ["u2-outs", "u1-potMath", "u2-equitySense", "u2-potOdds", "u2-callFold"],
+              challenge: "u2-boss"),
         track(.deeper, ["u1-combos", "u3-notation", "u2-evCall"], challenge: nil),
     ]
 
@@ -38,14 +41,9 @@ public extension Curriculum {
         LearningTrack(id: id, lessons: lessons.map { node(id: $0)! }, challenge: challenge.map { node(id: $0)! })
     }
 
-    /// The four tracks' lessons in suggested order, without challenges or "Go deeper".
-    static let trackLessons: [CurriculumNode] = {
-        let lessons = tracks.filter { !$0.isOptional }.flatMap(\.lessons)
-        let outs = lessons.first { $0.id == "u2-outs" }!
-        var ordered = lessons.filter { $0 != outs }
-        ordered.insert(outs, at: 1)
-        return ordered
-    }()
+    /// The four tracks' lessons in suggested order, without challenges or "Go deeper":
+    /// exactly the order the path screen lists them.
+    static let trackLessons: [CurriculumNode] = tracks.filter { !$0.isOptional }.flatMap(\.lessons)
 
     static func track(containing node: CurriculumNode) -> LearningTrack? {
         tracks.first { $0.lessons.contains(node) || $0.challenge == node }

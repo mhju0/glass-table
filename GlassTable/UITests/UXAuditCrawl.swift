@@ -769,13 +769,12 @@ final class UXAuditCrawl: XCTestCase {
 
     /// The five tracks on the All lessons screen, in the order `Curriculum.tracks` lists them.
     private static let units: [String: (title: String, nodes: [(String, String)])] = [
-        "t1": ("1. 기본기", [("u1-showdown", "쇼다운"), ("u1-potMath", "팟 계산"), ("u1-boss", "선택 도전")]),
-        "t2": ("2. 시작 패", [("u1-position", "자리와 순서"), ("u3-rfi", "먼저 올리기"),
-                           ("u8-defend", "올린 상대에 맞서기"), ("u3-boss", "선택 도전")]),
-        "t3": ("3. 가격과 확률", [("u2-outs", "아웃"), ("u2-equitySense", "이길 확률"),
-                              ("u2-potOdds", "팟 오즈"), ("u2-boss", "선택 도전")]),
-        "t4": ("4. 상대 읽기", [("u4-rangeRead", "상대 패 읽기"), ("u7-actionRead", "행동 읽기"),
+        "t1": ("1. 기본기", [("u1-showdown", "쇼다운"), ("u1-position", "자리와 순서"), ("u1-boss", "선택 도전")]),
+        "t2": ("2. 시작 패", [("u3-rfi", "먼저 올리기"), ("u8-defend", "올린 상대에 맞서기"), ("u3-boss", "선택 도전")]),
+        "t3": ("3. 상대 읽기", [("u4-rangeRead", "상대 패 읽기"), ("u7-actionRead", "행동 읽기"),
                              ("u4-boss", "선택 도전")]),
+        "t4": ("4. 가격과 확률", [("u2-outs", "아웃"), ("u1-potMath", "팟 계산"), ("u2-equitySense", "이길 확률"),
+                              ("u2-potOdds", "팟 오즈"), ("u2-callFold", "콜/폴드"), ("u2-boss", "선택 도전")]),
         "t5": ("5. 더 깊이 (선택)", [("u1-combos", "가능한 두 장 조합"), ("u3-notation", "핸드 줄임 표기"),
                                  ("u2-evCall", "콜의 평균 손익")]),
     ]
