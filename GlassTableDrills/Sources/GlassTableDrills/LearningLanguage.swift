@@ -59,10 +59,10 @@ public extension LearningTrack.ID {
 
     func blurb(in language: LearningLanguage) -> String {
         switch self {
-        case .basics: language.text("누가 이기는지, 팟이 어떻게 커지는지.", "Who wins, and how the pot grows.")
-        case .startingHands: language.text("어떤 패로 들어갈지, 자리가 왜 중요한지.", "Which hands to play, and why your seat matters.")
-        case .priceAndChance: language.text("콜 가격과 이길 확률을 비교해요.", "Compare the price of a call with your chance to win.")
+        case .basics: language.text("누가 이기는지, 누가 먼저 행동하는지.", "Who wins, and who acts first.")
+        case .startingHands: language.text("먼저 들어갈 패와 레이즈를 받았을 때 할 일.", "Which hands to play first, and what to do when someone raises.")
         case .readingOpponents: language.text("상대 행동이 무엇을 말해 주는지.", "What an opponent's actions tell you.")
+        case .priceAndChance: language.text("아웃과 팟을 세고, 콜 가격과 이길 확률을 비교해요.", "Count outs and the pot, then compare a call's price with your chance to win.")
         case .deeper: language.text("네 트랙이 편해진 뒤에 봐도 충분해요.", "Worth a look once the four tracks feel easy.")
         }
     }

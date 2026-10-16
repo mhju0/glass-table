@@ -319,7 +319,7 @@ enum EnglishBeatScript {
                      detail: DrillTerms.board(s.texture, in: .english), focus: .table, highlight: s.board),
                 Beat("Before the action", value: "Top \(pctText(s.range.percent))%",
                      focus: .rangeGrid(s.range, highlight: nil)),
-                Beat("This opponent's flop rule", detail: "Each hand group has a stated action.",
+                Beat("This opponent's flop rule", detail: "Each hand group has a stated action. A draw is a hand one card away from a straight or flush.",
                      focus: .actionList(rules, lit: nil)),
                 Beat("Hands still possible", value: "\(acted.combos) combinations",
                      detail: s.actedBucketList(in: .english), focus: .buckets(bars)),

@@ -849,7 +849,7 @@ player's hand. Research and before/after for every change:
 [Glass Table Friendly Redesign](https://claude.ai/artifact/QnD5ia4AoS8wj44R2eznkA).
 The owner approved all recommendations and delegated the seven open decisions:
 
-1. **Topics.** Four tracks: The basics (basics, showdown, potMath) · Starting hands
+1. **Topics.** (Grouping and order amended by D48.) Four tracks: The basics (basics, showdown, potMath) · Starting hands
    (position, rfi, defend) · Price & chance (outs, equitySense, potOdds, callFold) ·
    Reading opponents (rangeRead, actionRead). Hide hitFrequency, rangeAdvantage,
    evLoss and mdf from the path. Move combos, rangeNotation and evCall to an optional
@@ -895,3 +895,32 @@ perfect lesson; every lesson stays open; Records says "passed" for "completed". 
 amends the completion-led summary of D08
 (`specs/2026-10-06-approved-native-ux-delivery.md`): the result now shows a score and
 which question had the hint, because the pass mark depends on both.
+
+### D48 · Lesson order: game first, math last
+**Status: ACTIVE — decided by the owner 2026-10-16. Amends D46 item 1 and replaces the
+C019 "outs second" special case.**
+
+Most learners take the lessons top to bottom, so the order should teach the game
+before the math and need no jumping. The path order is now the suggested order, one
+list with no special case:
+
+1. **The basics:** Who wins? (showdown) · Who acts first? (position). Challenge `u1-boss`.
+2. **Starting hands:** Enter first (rfi) · Opponent raised (defend). Challenge `u3-boss`.
+3. **Reading opponents:** What could they hold (rangeRead) · Hands behind an action
+   (actionRead). Challenge `u4-boss`.
+4. **Price and chance:** Which river cards win (outs) · Count the pot (potMath) ·
+   Chances at the final reveal (equitySense) · How often must I win (potOdds) · Call at
+   this price (callFold). Challenge `u2-boss`.
+5. **Go deeper (optional):** unchanged (combos, rangeNotation, evCall).
+
+Consequences:
+- Each challenge mixes only its own track's lessons. A challenge already dealt under
+  the old tracks keeps the mix it was dealt (`Curriculum.isSavedSchedule`), so a run
+  left half-way still loads; the format-1 `mixes` in `Curriculum.units` stay for
+  format-1 saves.
+- Saved progress is keyed by node id and unchanged; the suggestion lands on the first
+  lesson still owed in the new order.
+- The starting check's pot and price questions no longer move the start into the math
+  track: a wrong showdown answer starts at Who wins?, any other miss at Who acts
+  first?, and a regular player with every answer right at What could they hold.
+  "I know the rules" still starts at Who acts first?.

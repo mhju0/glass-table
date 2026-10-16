@@ -264,8 +264,9 @@ public enum PlacementGuide {
     public static func recommendation(report: PlacementSelfReport?,
                                       answers: [String: String]) -> Concept {
         if answers["showdown"] != "pair" { return .showdown }
-        if answers["pot"] != "include-blinds" { return .potMath }
-        if answers["price"] != "compare-call-to-pot" { return .potOdds }
+        // Pot and price are math, which the path teaches last (D48): missing either
+        // starts at the game rather than half-way down the path.
+        if answers["pot"] != "include-blinds" || answers["price"] != "compare-call-to-pot" { return .position }
         return report == .playRegularly ? .rangeRead : .position
     }
 }

@@ -34,6 +34,7 @@ languages. See [D45](decisions.md) and the
 | 블로커 | blocker | concept | bilingual |
 | 아웃 | out(s) | concept | bilingual (아웃 카운팅 · Outs) |
 | 콤보 | combo | concept | bilingual on first sight |
+| 시작 패 점수 (Chen) | starting-hand score (Chen) | concept | Chen-based chart score, not a chance of winning; "Chen" stays Latin |
 | 레인지 | range | concept | bilingual on first sight |
 | MDF | minimum defense frequency | acronym | Latin; long form 최소 방어 빈도 as subtitle |
 | EV / GTO | — | acronym | Latin only |

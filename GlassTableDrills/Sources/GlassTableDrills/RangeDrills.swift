@@ -123,7 +123,7 @@ public func gradeRFI(userOpens: Bool, spot: RFISpot,
                      language: LearningLanguage = .korean) -> RFIReveal {
     let h = spot.handClass
     let pct = RFIChart.openPercent[spot.seat] ?? 0
-    var why = "\(h.description) · \(Chen.explain(h))\n"
+    var why = "\(h.description) · \(DrillTerms.chen(h, in: .korean))\n"
         + "\(KO.topic(spot.seat.rawValue)) 상위 \(Int(pct))%를 열어요."
     if spot.opens {
         why += " \(KO.topic(h.description)) 그 안에 들어와요."

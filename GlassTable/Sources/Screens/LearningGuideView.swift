@@ -88,17 +88,15 @@ struct LearningGuideView: View {
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
                 if !dynamicTypeSize.isAccessibilitySize, lesson.question != nil, answer == nil { questionChoices }
-                FeltCTAButton(title: page == lessons.count - 1
-                              ? language.text("연습하러 가기", "Go to practice")
-                              : language.text("다음 이야기", "Next topic")) {
-                    if page == lessons.count - 1 { dismiss() }
-                    else { page += 1; answer = nil }
-                }
-                .disabled(lesson.question != nil && answer == nil)
-                if page > 0 {
-                    SecondaryCTAButton(title: language.text("이전 이야기", "Previous topic")) {
-                        page -= 1; answer = nil
+                GTStepRow(previous: page > 0 ? { page -= 1; answer = nil } : nil, previousID: "guide-previous") {
+                    FeltCTAButton(title: page == lessons.count - 1
+                                  ? language.text("연습하러 가기", "Go to practice")
+                                  : language.text("다음 이야기", "Next topic")) {
+                        if page == lessons.count - 1 { dismiss() }
+                        else { page += 1; answer = nil }
                     }
+                    .disabled(lesson.question != nil && answer == nil)
+                    .accessibilityIdentifier("guide-next")
                 }
             }
             .padding(.horizontal, GT.Space.sheet).padding(.vertical, 12).background(GT.felt)
@@ -168,7 +166,7 @@ private struct StudyNote {
                   explanation: "차트와 모델은 생각하는 법을 익히는 도구예요. 조건이 달라지면 최선의 결정도 달라질 수 있어요."),
         StudyNote(title: "더 깊이 공부하는 순서예요",
                   body: "기초를 익힌 뒤에는 한 번에 한 조건을 바꿔 보세요. 답을 보기 전에 달라질 방향을 예상하고, 이유를 설명한 뒤, 며칠 후 다시 풀어 보세요.",
-                  steps: ["기초와 가격", "포지션과 레인지", "보드와 행동", "EV 결정", "핸드 복기"],
+                  steps: ["기초와 포지션", "레인지와 행동", "가격과 확률", "EV 결정", "핸드 복기"],
                   example: "그다음 공부할 것: 스택 깊이, 벳 크기, 레이크, 여러 스트리트의 전략과 분산. 코스를 마쳐도 프로 실력이나 수익이 보장되지는 않아요.")
     ]
 
@@ -190,7 +188,7 @@ private struct StudyNote {
                   explanation: "The chart is a tool for learning to think. New conditions can change the best choice."),
         StudyNote(title: "What to study next",
                   body: "After the basics, change one condition at a time. Predict the change before the answer, explain why, and retry days later.",
-                  steps: ["Price", "Position and ranges", "Board and action", "EV", "Review"],
+                  steps: ["Basics and position", "Ranges and actions", "Price and chance", "EV", "Review"],
                   example: "Next: stack depth, bet sizes, fees, multi-round play and variance. The course does not promise expert skill or profit.")
     ]
 }
