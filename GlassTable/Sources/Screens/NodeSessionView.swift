@@ -4,26 +4,6 @@ import StoreKit
 import GlassTableEngine
 import GlassTableDrills
 
-struct SessionAttemptID: Hashable {
-    let concept: Concept
-    let seed: UInt64
-    let index: Int
-}
-
-struct SessionAttemptLedger {
-    private(set) var committed: Set<SessionAttemptID> = []
-    private(set) var advanced: Set<SessionAttemptID> = []
-
-    mutating func commit(_ id: SessionAttemptID) -> Bool {
-        committed.insert(id).inserted
-    }
-
-    mutating func advance(_ id: SessionAttemptID) -> Bool {
-        guard committed.contains(id) else { return false }
-        return advanced.insert(id).inserted
-    }
-}
-
 enum NodeSessionSeed {
     static func make(nodeID: String, conceptTotals: [Int]) -> UInt64 {
         var hash: UInt64 = 0xcbf2_9ce4_8422_2325
@@ -79,7 +59,6 @@ struct NodeSessionView: View {
     @State private var stage: Stage = .solo
     @State private var sessionSeed: UInt64?
     @State private var sessionConcepts: [Concept] = []
-    @State private var attemptLedger = SessionAttemptLedger()
     @State private var sessionEpoch: UUID?
     @State private var timing = QuestionTiming()
     @State private var createdSessionID: String?
@@ -700,7 +679,6 @@ struct FreePlayView: View {
     /// Progress-salted at pick time, the same fresh-spots rule as a node re-run
     /// (§4.2): a fixed seed replayed the identical question sequence every visit.
     @State private var seed: UInt64 = 0x5EED
-    @State private var attemptLedger = SessionAttemptLedger()
     @State private var sessionEpoch: UUID?
     @State private var introStage: NodeSessionView.Stage?
     @State private var timing = QuestionTiming()
@@ -1105,7 +1083,6 @@ struct ReviewSessionView: View {
     @State private var seed: UInt64 = 0
     @State private var initialized = false
     @State private var finished = false
-    @State private var attemptLedger = SessionAttemptLedger()
     @State private var sessionEpoch: UUID?
     @State private var timing = QuestionTiming()
     @State private var pendingDraftTask: Task<Void, Never>?

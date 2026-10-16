@@ -53,17 +53,13 @@ public struct Beat: Equatable, Sendable {
     /// Struck through **in place** rather than removed: seeing what was taken away,
     /// and why, is the lesson.
     public let struck: [Card]
-    /// Not dealt yet — rendered face-down. A card leaving this set between beats is
-    /// the river landing, which is what lets a walkthrough replay the actual street
-    /// progression instead of presenting a finished board as a fait accompli.
-    public let hidden: [Card]
 
     public init(_ caption: String, value: String? = nil, detail: String? = nil,
                 focus: BeatFocus = .none,
-                highlight: [Card] = [], struck: [Card] = [], hidden: [Card] = []) {
+                highlight: [Card] = [], struck: [Card] = []) {
         self.caption = caption; self.value = value; self.detail = detail
         self.focus = focus; self.highlight = highlight
-        self.struck = struck; self.hidden = hidden
+        self.struck = struck
     }
 }
 

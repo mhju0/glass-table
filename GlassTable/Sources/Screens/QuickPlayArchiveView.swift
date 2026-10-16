@@ -55,7 +55,9 @@ struct QuickPlayArchiveView: View {
             }
             metric(language.text("칩 변화", "Chip change"), "\(metrics.netChips >= 0 ? "+" : "")\(metrics.netChips)")
             metric(language.text("자발적으로 참여한 핸드 / 저장된 핸드", "Voluntary entries / saved hands"), "\(metrics.voluntaryEntries) / \(metrics.hands)")
-            metric(language.text("프리플랍에서 올린 핸드 / 참여한 핸드", "Preflop raises / entered hands"), "\(metrics.preflopRaises) / \(metrics.voluntaryEntries)")
+            metric(language.text("프리플랍에서 올린 핸드 / 참여한 핸드", "Preflop raises / entered hands"),
+                   EnteredHandsText.raisesAmongEntries(raises: metrics.preflopRaises, entries: metrics.voluntaryEntries,
+                                                       language: language))
             Text(language.text("각 행동 횟수 / 전체 선택 \(metrics.decisions)회", "Action counts / all \(metrics.decisions) decisions"))
                 .font(GT.semibold(15))
             Text(language.text("폴드 \(metrics.folds) · 체크 \(metrics.checks) · 콜 \(metrics.calls) · 벳 \(metrics.bets) · 레이즈 \(metrics.raises)",

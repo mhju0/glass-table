@@ -301,19 +301,6 @@ struct RiverExplainPanel: View {
     }
 }
 
-/// Leads a result the learner reached after opening calculation help. It counts as
-/// practice, so the verdict below it stays but no accuracy is claimed.
-struct SolvedWithHelpLabel: View {
-    @Environment(\.learningLanguage) private var language
-    var body: some View {
-        Label(language.text("풀이를 확인했어요", "Solution reviewed"),
-              systemImage: "hand.raised")
-            .font(GT.semibold(14))
-            .foregroundStyle(GT.inkSecondary)
-            .accessibilityIdentifier("solved-with-help")
-    }
-}
-
 /// "용어 · 팟 오즈" — opens the glossary from inside a reveal.
 /// Owns its own sheet state so a call site is one line.
 struct GlossaryChip: View {
@@ -750,13 +737,19 @@ struct ActionSheet<Content: View>: View {
         }
     }
 
+    /// How far the grabber's tap target reaches past its row, to a 44pt target.
+    private static var grabberReach: CGFloat { 10 }
+
     private var grabber: some View {
         Button { setCollapsed(!collapsed) } label: {
             Capsule().fill(GT.ink.opacity(0.30)).frame(width: 36, height: 4)
-                .frame(maxWidth: .infinity, minHeight: 24)
+                .frame(maxWidth: .infinity, minHeight: 24 + 2 * Self.grabberReach)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // The target reaches past the 24pt row on both sides; the row keeps its height.
+        .padding(.vertical, -Self.grabberReach)
+        .zIndex(1)
         .padding(.bottom, 3)
         .accessibilityLabel(collapsed ? language.text("설명 펼치기", "Show explanation")
                                       : language.text("설명 접기", "Hide explanation"))

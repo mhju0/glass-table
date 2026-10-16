@@ -35,6 +35,27 @@ public struct PracticeStyleReport: Equatable, Sendable {
     public let lastDay: String?
 }
 
+/// Preflop-raise counts among entered hands. With no entered hands "0/0" explains
+/// nothing, so that case is said in words.
+public enum EnteredHandsText {
+    /// The value beside "Preflop raises / entered hands", e.g. "3 / 7".
+    public static func raisesAmongEntries(raises: Int, entries: Int, language: LearningLanguage) -> String {
+        entries == 0 ? noEntries(language) : "\(raises) / \(entries)"
+    }
+
+    /// The style card's evidence line.
+    public static func entriesDetail(entries: Int, hands: Int, raises: Int, language: LearningLanguage) -> String {
+        let entered = language.text("자발적으로 참여 \(entries)/\(hands)", "Voluntary entries \(entries)/\(hands)")
+        let raised = entries == 0 ? noEntries(language)
+            : language.text("그중 시작 전 레이즈 \(raises)/\(entries)", "raises among entries \(raises)/\(entries)")
+        return "\(entered) · \(raised)"
+    }
+
+    private static func noEntries(_ language: LearningLanguage) -> String {
+        language.text("아직 참여한 핸드가 없어요", "No entered hands yet")
+    }
+}
+
 public enum PracticeStyleAnalysis {
     /// Product heuristic v1. The Wilson interval quantifies uncertainty; it does not
     /// establish that repeated play against fixed bots is independent evidence.

@@ -35,9 +35,14 @@ final class DeviceFeedbackSettingsTests: XCTestCase {
         picker.tap()
         app.buttons["language-english"].tap()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 5))
+        // The Settings body itself re-renders, not only the tab label.
+        XCTAssertTrue(app.staticTexts["Play & feedback"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["플레이와 피드백"].exists)
         picker.tap()
         app.buttons["language-korean"].tap()
         XCTAssertTrue(app.tabBars.buttons["설정"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["플레이와 피드백"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Play & feedback"].exists)
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.lifetime = .keepAlways
         attachment.name = "settings-\(code)-\(appearance)-\(ax ? "ax5" : "normal")"; add(attachment)
         app.terminate()

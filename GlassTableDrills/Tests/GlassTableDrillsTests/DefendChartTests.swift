@@ -148,10 +148,10 @@ final class DefendChartTests: XCTestCase {
     func testReasonStatesTheOpenersRuleAndWhereTheHandSits() {
         let seventySix = HandClass(high: 7, low: 6, suited: false)!
         XCTAssertEqual(DefendChart.reason(for: seventySix, vsOpenFrom: .utg, language: .korean),
-                       "앞자리 (UTG): 상위 15%로 먼저 올려요. 그 폭의 상위 4.5%는 다시 올리고, "
-                       + "\(pctText(15 * DefendChart.defendShare))%까지는 콜이에요. 76o는 강한 순서로 상위 42%쯤이라 폴드예요.")
+                       "앞자리 (UTG): 상위 약 15%로 먼저 올려요. 상위 4.8%는 다시 올리고, "
+                       + "11.5%까지는 콜이에요. 76o는 강한 순서로 상위 42%쯤이라 폴드예요.")
         XCTAssertEqual(DefendChart.reason(for: seventySix, vsOpenFrom: .utg, language: .english),
-                       "Early seat (UTG) raises first with the top 15% of hands. Raise again with the top 4.5%; "
-                       + "call up to \(pctText(15 * DefendChart.defendShare))%. 76o ranks near the top 42% by strength, so it is a fold.")
+                       "Early seat (UTG) raises first with about 15% of hands, strongest first. Raise again with the top 4.8%; "
+                       + "call up to 11.5%. 76o ranks near the top 42% by strength, so it is a fold.")
     }
 }

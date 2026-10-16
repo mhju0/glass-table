@@ -122,13 +122,11 @@ final class BeatsTests: XCTestCase {
                                 board: Card.parse("2c7d9hJc4s")!)
         let beats = BeatScript.showdown(spot)
         XCTAssertEqual(beats.map(\.caption), ["카드를 모두 공개했어요", "내 패", "상대 패", "내가 이겨요"])
-        for b in beats { XCTAssertTrue(b.hidden.isEmpty, b.caption) }
         XCTAssertEqual(beats[1].value, "K 원 페어")
         XCTAssertEqual(beats[2].value, "Q 원 페어")
 
         let english = BeatScript.showdown(spot, language: .english)
         XCTAssertEqual(english.map(\.caption), ["All cards are face up", "Your hand", "Opponent's hand", "You win"])
-        for b in english { XCTAssertTrue(b.hidden.isEmpty, b.caption) }
     }
 
     /// Highlights are the five cards that actually play — never all seven. This is the

@@ -363,8 +363,8 @@ struct RecordsView: View {
                     Text(language.text("최근 30일, 현재 컴퓨터 규칙 · 최대 200핸드 중 \(report.hands)핸드 · \(report.days)일",
                                        "Last 30 days, current bot rules · \(report.hands) of up to 200 recent hands · \(report.days) days"))
                     if report.hands > 0 {
-                        Text(language.text("자발적으로 참여 \(report.voluntaryEntries)/\(report.hands) · 그중 시작 전 레이즈 \(report.preflopRaises)/\(report.voluntaryEntries)",
-                                           "Voluntary entries \(report.voluntaryEntries)/\(report.hands) · raises among entries \(report.preflopRaises)/\(report.voluntaryEntries)"))
+                        Text(EnteredHandsText.entriesDetail(entries: report.voluntaryEntries, hands: report.hands,
+                                                            raises: report.preflopRaises, language: language))
                         if let participation = report.participationInterval {
                             Text(language.text(
                                 "참여 비율의 95% 추정 구간 \(Int((participation.lowerBound * 100).rounded()))–\(Int((participation.upperBound * 100).rounded()))%",

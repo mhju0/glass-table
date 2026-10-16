@@ -411,8 +411,8 @@ private struct RestoredDrillContextView: View {
             Text(spot.className).font(GT.title(18)).foregroundStyle(GT.onFelt)
         case .hitFrequency:
             let spot = HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
-            Text(language.text("\(spot.seat.rawValue) 오픈 · 상위 \(pctText(spot.range.percent))%",
-                               "\(spot.seat.rawValue) raises first · top \(pctText(spot.range.percent))%"))
+            Text(language.text("\(spot.seat.rawValue) 오픈 · 상위 약 \(pctText(RFIChart.openPercent[spot.seat] ?? 0))%",
+                               "\(spot.seat.rawValue) raises first · about \(pctText(RFIChart.openPercent[spot.seat] ?? 0))% of hands"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .rangeAdvantage:
             let spot = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
