@@ -170,7 +170,7 @@ final class GradedLearningFlowTests: XCTestCase {
         app.buttons["table-fold"].tap()
         let takeaway = app.staticTexts["table-takeaway"]
         XCTAssertTrue(takeaway.waitForExistence(timeout: 5))
-        XCTAssertTrue(takeaway.label.contains("raises first with the top"), takeaway.label)
+        XCTAssertTrue(takeaway.label.contains("raises first with about"), takeaway.label)
         XCTAssertTrue(takeaway.label.contains("by strength"), takeaway.label)
     }
 
