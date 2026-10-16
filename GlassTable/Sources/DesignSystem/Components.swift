@@ -750,13 +750,19 @@ struct ActionSheet<Content: View>: View {
         }
     }
 
+    /// How far the grabber's tap target reaches past its row, to a 44pt target.
+    private static var grabberReach: CGFloat { 10 }
+
     private var grabber: some View {
         Button { setCollapsed(!collapsed) } label: {
             Capsule().fill(GT.ink.opacity(0.30)).frame(width: 36, height: 4)
-                .frame(maxWidth: .infinity, minHeight: 24)
+                .frame(maxWidth: .infinity, minHeight: 24 + 2 * Self.grabberReach)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // The target reaches past the 24pt row on both sides; the row keeps its height.
+        .padding(.vertical, -Self.grabberReach)
+        .zIndex(1)
         .padding(.bottom, 3)
         .accessibilityLabel(collapsed ? language.text("설명 펼치기", "Show explanation")
                                       : language.text("설명 접기", "Hide explanation"))
