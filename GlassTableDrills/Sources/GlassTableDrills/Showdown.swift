@@ -112,26 +112,38 @@ func showdownBoardPlays(_ spot: ShowdownSpot) -> Bool {
 /// the sentence has to name.
 func showdownWhy(winner: String, loser: String, spot: ShowdownSpot, heroWon: Bool,
                  language: LearningLanguage = .korean) -> String {
-    let side = heroWon ? "내" : "상대"
-    let other = heroWon ? "상대" : "내"
+    showdownWhy(winner: winner, loser: loser,
+                winFive: bestFiveCards((heroWon ? spot.hero : spot.villain) + spot.board),
+                loseFive: bestFiveCards((heroWon ? spot.villain : spot.hero) + spot.board),
+                winnerSide: heroWon ? .learner : .opponent,
+                loserSide: heroWon ? .opponent : .learner, language: language)
+}
+
+func showdownWhy(winner: String, loser: String, winFive: [Card], loseFive: [Card],
+                 winnerSide: BestFiveOwner, loserSide: BestFiveOwner,
+                 language: LearningLanguage) -> String {
     guard winner == loser else {
         if language == .english {
-            return "\(heroWon ? "Your" : "The opponent's") \(winner) beats \(heroWon ? "the opponent's" : "your") \(loser)."
+            return "\(winnerSide.englishPossessive(capitalized: true)) \(winner) beats \(loserSide.englishPossessive(capitalized: false)) \(loser)."
         }
-        return "\(side) \(KO.subject(winner)) \(other) \(KO.object(loser)) 이겨요."
+        return "\(winnerSide.koreanPossessive) \(KO.subject(winner)) \(loserSide.koreanPossessive) \(KO.object(loser)) 이겨요."
     }
-    let winFive = bestFiveCards((heroWon ? spot.hero : spot.villain) + spot.board)
-    let loseFive = bestFiveCards((heroWon ? spot.villain : spot.hero) + spot.board)
-    // Highest-first, first differing rank is the one that broke the tie.
-    let w = winFive.map(\.rank).sorted(by: >), l = loseFive.map(\.rank).sorted(by: >)
-    if let i = w.indices.first(where: { $0 < l.count && w[$0] != l[$0] }) {
+    if let i = decidingIndex(winFive, loseFive) {
+        let w = rankLabel(winFive[i].rank), l = rankLabel(loseFive[i].rank)
         if language == .english {
-            return "Both have \(winner). The kicker decides it: \(heroWon ? "your" : "the opponent's") \(rankLabel(w[i])) beats \(heroWon ? "the opponent's" : "your") \(rankLabel(l[i]))."
+            return "Both have \(winner). The kicker decides it: \(winnerSide.englishPossessive(capitalized: false)) \(w) beats \(loserSide.englishPossessive(capitalized: false)) \(l)."
         }
         return "둘 다 \(KO.copula(winner)) 키커가 승부를 갈랐어요. "
-             + "\(side) \(rankLabel(w[i])), \(other) \(rankLabel(l[i]))라서 \(side) 쪽이 이겨요."
+             + "\(winnerSide.koreanPossessive) \(w), \(loserSide.koreanPossessive) \(l)\(KO.endsInConsonant(l) ? "이라서" : "라서") \(winnerSide.koreanSide) 쪽이 이겨요."
     }
     return language == .english ? "Both players have \(winner)." : "둘 다 \(KO.copula(winner))"
+}
+
+/// The first position where two best fives differ in rank. `bestFiveCards` lists
+/// cards in the order hands are compared (bigger groups first, then rank), so this is
+/// the rank that decided it; sorting high to low would pit a pair against a kicker.
+func decidingIndex(_ a: [Card], _ b: [Card]) -> Int? {
+    a.indices.first { $0 < b.count && a[$0].rank != b[$0].rank }
 }
 
 /// Rank as the app prints it on a card face ("10", "Q"), not the parse letter.
