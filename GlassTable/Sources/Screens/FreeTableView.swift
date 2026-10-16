@@ -737,9 +737,9 @@ struct FreeTableView: View {
                              onCancel: @escaping () -> Void, onMath: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             if typeSize.isAccessibilitySize {
-                HStack(alignment: .top) {
+                // Beside the back arrow a large one-line pill runs past the dock's edge.
+                VStack(alignment: .leading, spacing: 8) {
                     raiseBack(onCancel: onCancel)
-                    Spacer(minLength: 8)
                     mathPill(onMath: onMath)
                 }
                 raiseAmountTitle(sizing, amount: amount, besideControls: false)

@@ -121,6 +121,23 @@ final class FreeRaiseFlowTests: XCTestCase {
         XCTAssertEqual(amount.label, "Raise to 5", "The next tap works after scroll cancellation")
     }
 
+    func testRaiseAXENHelpPillStaysInsideTheDock() {
+        let app = app(code: "en", ax: true, phase: "raise-open")
+        let dock = app.otherElements["free-dock"]
+        let pill = app.buttons["free-table-help"]
+        let word = pill.staticTexts["Decision help"]
+        XCTAssertTrue(word.exists)
+        let right = min(dock.frame.maxX, app.windows.firstMatch.frame.maxX)
+        XCTAssertGreaterThanOrEqual(pill.frame.minX, dock.frame.minX - 0.5)
+        XCTAssertLessThanOrEqual(pill.frame.maxX, right + 0.5, "The help pill must not run off the dock: \(pill.frame), dock \(dock.frame)")
+        XCTAssertLessThanOrEqual(word.frame.maxX, right + 0.5)
+        XCTAssertLessThan(word.frame.height, 70, "Hint must stay one complete line")
+        // On narrower phones the pill beside the back arrow runs off the dock, so it has its own row.
+        XCTAssertGreaterThanOrEqual(pill.frame.minY, app.buttons["free-raise-cancel"].frame.maxY - 0.5,
+                                    "The help pill sits under the back button at AX sizes")
+        capture(app, name: "raise-AX-en-help-pill")
+    }
+
     func testRaiseAXKOFifthPresetAndCommitReachable() { verifyAX(code: "ko") }
     func testRaiseAXENFifthPresetAndCommitReachable() { verifyAX(code: "en") }
 
