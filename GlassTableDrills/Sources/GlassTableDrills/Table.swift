@@ -113,7 +113,6 @@ public struct TableHand: Equatable {
     /// Face-down until the hand ends; the bot never acts on hero's cards either.
     let villainCombo: [Card]
     let fullBoard: [Card]
-    let handSeed: UInt64
 
     // MARK: state
 
@@ -168,10 +167,9 @@ public struct TableHand: Equatable {
 
     /// Internal so tests can pin fixtures; the public entry is `TableDealer.deal`.
     init(villainSeat: Position, heroSeat: Position, villain: Archetype,
-         hero: [Card], villainCombo: [Card], fullBoard: [Card], handSeed: UInt64) {
+         hero: [Card], villainCombo: [Card], fullBoard: [Card]) {
         self.villainSeat = villainSeat; self.heroSeat = heroSeat; self.villain = villain
         self.hero = hero; self.villainCombo = villainCombo; self.fullBoard = fullBoard
-        self.handSeed = handSeed
 
         pot = TableHand.openSize + TableHand.deadBlinds
         heroStack = TableHand.stack
@@ -520,19 +518,11 @@ public struct GradedOption: Equatable {
 }
 
 public extension TableHand {
-    /// Hero's checkdown equity against each surviving combo (spec §3): exact on the
-    /// river and turn, fixed-seed Monte Carlo on the flop where exact enumeration is
-    /// a debug-build freeze. Deterministic per hand.
+    /// Hero's checkdown equity against each surviving combo (spec §3), exact on every
+    /// street: every turn and river on the flop, every river on the turn, one
+    /// comparison on the river. Deterministic per hand.
     func comboEquities() -> [Double] {
-        let visible = board
-        return villainCombos.enumerated().map { i, combo in
-            street >= 4
-                // River: one comparison. Turn: 44 rivers. Both exact and cheap.
-                ? exactEquityHeadsUp(hero: hero, villain: combo, board: visible).equity
-                : monteCarloEquityHeadsUp(
-                    hero: hero, villain: combo, board: visible, iterations: 200,
-                    seed: handSeed &+ UInt64(street) &* 0x9E37 &+ UInt64(i)).equity
-        }
+        exactEquitiesHeadsUp(hero: hero, villainCombos: villainCombos, board: board)
     }
 
     /// Every legal choice, priced against the narrowed range. The slow call — the UI
@@ -658,6 +648,6 @@ public enum TableDealer {
 
         return TableHand(villainSeat: vSeat, heroSeat: hSeat, villain: archetype,
                          hero: hero, villainCombo: combo,
-                         fullBoard: Array(deck[0..<5]), handSeed: rng.next())
+                         fullBoard: Array(deck[0..<5]))
     }
 }

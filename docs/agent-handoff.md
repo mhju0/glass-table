@@ -119,11 +119,12 @@ Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
   exact counting is the skill; the starting check stays out of Settings (`7549a32`);
   audit #34/#41 compact-grid rank headers stay as they are.
 - Hold'em basics' first check (five-card flush and straight examples) has no seven
-  cards, so it shows no best-five comparison (D49); deal it from seven cards? Owner.
+  cards, so it shows no best-five comparison (D50); deal it from seven cards? Owner.
 
 Product and numbers:
-- Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
-  against the 0.5/2bb thresholds is not bounded (`docs/records/2026-10-11-numerical-audit.md`).
+- Numerical audit N08–N12 and model qualifications
+  (`docs/records/2026-10-11-numerical-audit.md`). Graded-flop sampling is gone: the flop
+  is exact on `feat/exact-flop-equity-20261016` (D49), once merged.
 - Build 15 crawl candidates never verified: short tap heights on ‘설명 접기’,
   ‘안내 건너뛰기’, ‘계산 보기’, ‘전체 차트 보기’, ‘크게 보고 핸드 찾기’; unlabelled buttons
   on free-table setup. Free-table review once paired 33% with "four wins in ten".
@@ -163,9 +164,23 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-16 (Claude · exact flop equity)
+
+- Owner approved replacing the graded table's 200-sample flop equity with exact
+  enumeration (D49). Branch `feat/exact-flop-equity-20261016` from the local
+  integration commit `9bb6c66` (PRs #19-#21); PR opened, not merged.
+- `exactEquitiesHeadsUp` (Engine) scores hero once per runout and shares it across the
+  range; `TableHand.comboEquities()` uses it on every street. `handSeed` was removed.
+  Reveal basis copy (KO/EN) no longer calls the flop a sampled estimate.
+- Grading already ran off the main thread (`TableView.prepareOptions`); only the
+  DEBUG `GT_DEMO_TABLE_STEP` hook grades on main (about 0.4-0.6s for its flop).
+- Release per flop decision on an M1 Pro, 200 seeded decisions: p50 41ms, p95 159ms,
+  max 196ms. Debug: about 1-2.5s. Not yet timed on the iPhone 12 mini.
+- Next: owner reviews the PR; time a flop decision on the phone against D07's 200ms.
+
 ### 2026-10-16 (Claude · best five after answering)
 
-- Owner approved option A (D49). Branch `feat/best-five-comparison-20261016` from the
+- Owner approved option A (D50). Branch `feat/best-five-comparison-20261016` from the
   local integration commit `9bb6c66`; PR open, not merged.
 - `BestFivePair` (Drills) and `BestFiveComparison` (app) show each player's seven
   cards with the unused two dimmed, the hand name, a count line and a ringed deciding
@@ -226,26 +241,3 @@ Tests:
   clicking and scrolling. Rebuilt the report from all fifteen images: 69 prioritized
   findings. Recommendations only; no app change or simulator verification. (Recorded
   from Codex's uncommitted edit, archived locally, since deleted.)
-
-### 2026-10-15 (Claude · lesson and UX audit gaps)
-
-- Owner asked to fix the gaps in the lesson review and the screenshot UX audit, after
-  re-auditing the latter. Branch `fix/ux-lesson-gaps-20261015`, two commits.
-- Lesson grading: a lesson's defend question now starts with the chart folded
-  (`chartStartsFolded`), so it can be answered alone under D47; opening the chart still
-  marks help. Pot-odds/MDF beginner choices now sit at least 15 points apart
-  (`BeginnerQuestionChoices.shares`), so only one grades right. Both had failing tests
-  first (UI test and Drills test).
-- Copy and screens: 플롭 → 플랍; glossary adds pot, blinds, dealer button, position,
-  actions, streets and showdown; equity and range-read how-lines match their questions;
-  the table review names the street it grades, the call price and the chart scope; a
-  finished hand shows only dealt cards; setup has a back button, "me + N computers",
-  and plainer length and style copy; the chart marks your own hand apart from the one
-  being inspected, explains T, and shows the plain hand name.
-- Verified: Drills tests, 85 UI tests on two 12 mini simulators, and a uisweep of 11
-  changed screens at large and AX5. The two play-table audit failures also fail on
-  unchanged `main`.
-- Left for the owner: see Open issues (audit #29/#52/#34/#41, call-or-fold lesson,
-  starting check, outs choices).
-- Owner approved merging both branches; done via PR #12 and the fix branch PR.
-- Next: owner decides the items left open; before/after mocks were published.

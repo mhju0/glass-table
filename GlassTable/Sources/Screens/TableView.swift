@@ -788,9 +788,9 @@ struct TableView: View {
                                     verdict: .ev(loss: grade.loss, best: best)))
     }
 
-    /// The slow part, off the main thread on a copy (spec §3): exact on turn and
-    /// river, sampled on the flop — a second or two in a debug build, milliseconds
-    /// in release.
+    /// The slow part, off the main thread on a copy (spec §3): exact on every street.
+    /// A flop decision is the heaviest, a second or two in a debug build and tens to
+    /// low hundreds of milliseconds in release.
     private func prepareOptions(for hand: TableHand) {
         guard case .hero = hand.phase else { return }
         options = nil

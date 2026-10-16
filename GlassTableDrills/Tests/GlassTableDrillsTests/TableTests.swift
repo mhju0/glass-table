@@ -209,6 +209,42 @@ final class TableTests: XCTestCase {
         }
     }
 
+    /// The flop is priced like the turn and river: each combo's equity is the exact
+    /// enumeration over every turn and river, not a sampled estimate, so the graded
+    /// EV is the exact-enumeration EV.
+    func testFlopEquitiesAreExact() {
+        outer: for i in 0..<50 {
+            var hand = TableDealer.deal(baseSeed: 0xF10F, index: i)
+            while case let .hero(facing) = hand.phase {
+                if hand.street == 3 {
+                    let eq = hand.comboEquities()
+                    XCTAssertEqual(eq.count, hand.villainCombos.count)
+                    // A stride keeps the debug-build reference pass short; every
+                    // checked combo must match to the last bit.
+                    for k in stride(from: 0, to: eq.count, by: 7) {
+                        let exact = exactEquityHeadsUp(hero: hand.hero,
+                                                       villain: hand.villainCombos[k],
+                                                       board: hand.board).equity
+                        XCTAssertEqual(eq[k], exact, "combo \(k)")
+                    }
+                    let options = hand.gradedOptions()
+                    let mean = eq.reduce(0, +) / Double(eq.count)
+                    if case let .bet(b) = facing {
+                        let call = options.first { $0.choice == .call }!
+                        XCTAssertEqual(call.ev, callEV(equity: mean, toCall: b, pot: hand.pot),
+                                       accuracy: 1e-9)
+                    } else if case .checkedTo = facing {
+                        let check = options.first { $0.choice == .check }!
+                        XCTAssertEqual(check.ev, mean * hand.pot, accuracy: 1e-9)
+                    }
+                    break outer
+                }
+                hand.play(hand.choices().contains(.check) ? .check : .call)
+            }
+            if i == 49 { XCTFail("no flop decision in 50 hands") }
+        }
+    }
+
     /// Fixture with a single-combo range: every closed form checked by hand.
     /// Hero holds the nuts on a dry river (equity 1 vs the one combo).
     func testClosedFormsOnAKnownRiverNode() {
@@ -217,8 +253,7 @@ final class TableTests: XCTestCase {
         var hand = TableHand(villainSeat: .co, heroSeat: .btn, villain: .station,
                              hero: [c(14, 2), c(14, 1)],
                              villainCombo: [c(13, 2), c(13, 1)],
-                             fullBoard: [c(14, 3), c(13, 3), c(12, 1), c(7, 0), c(2, 2)],
-                             handSeed: 1)
+                             fullBoard: [c(14, 3), c(13, 3), c(12, 1), c(7, 0), c(2, 2)])
         // Play check/call to the river; the station rarely bets, so hero will be
         // checked to on most streets.
         while case .hero = hand.phase, hand.street < 5 {
@@ -258,8 +293,7 @@ final class TableTests: XCTestCase {
         var hand = TableHand(villainSeat: .co, heroSeat: .btn, villain: .tag,
                              hero: [c(14, 0), c(12, 0)],           // A♣Q♣ — air all the way
                              villainCombo: [c(8, 3), c(7, 3)],     // 8♠7♠
-                             fullBoard: [c(9, 2), c(6, 1), c(2, 0), c(13, 3), c(3, 1)],
-                             handSeed: 7)
+                             fullBoard: [c(9, 2), c(6, 1), c(2, 0), c(13, 3), c(3, 1)])
         // R5: the hand now opens at the preflop decision — call to reach the flop.
         hand.play(.call)
         // Flop and turn: the draw bets (policy), hero calls.

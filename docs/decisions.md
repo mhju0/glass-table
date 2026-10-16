@@ -925,7 +925,24 @@ Consequences:
   first?, and a regular player with every answer right at What could they hold.
   "I know the rules" still starts at Who acts first?.
 
-### D49 · Best five of seven, shown after the answer
+### D49 · The graded table's flop is exact, not sampled
+**Status: ACTIVE — approved by the owner 2026-10-16. Narrows D07 for the graded table.**
+
+The graded table priced each flop combo from 200 fixed-seed runouts. Measured over 2,000
+seeded hands (14,691 flop choices), that flipped 0.10% of choices between right and
+wrong, all near-ties (at most 0.17bb), with EV errors up to 3.19bb. The flop now
+enumerates every turn and river per surviving combo, like the turn and river already
+did (`exactEquitiesHeadsUp`, which scores hero once per runout and shares it across the
+range). Consequences:
+- The reveal no longer says the flop is a sampled estimate (KO and EN basis copy).
+- Grading still runs off the main thread when the decision appears, and the buttons
+  wait for it. Release time per flop decision on an M1 Pro, 200 seeded decisions:
+  p50 41ms, p95 159ms, max 196ms; D07's 200ms ceiling is not yet measured on a phone.
+  A debug build takes about 1–2.5s per flop decision.
+- `TableHand` no longer carries a sampling seed; a hand is still deterministic per
+  deal seed.
+
+### D50 · Best five of seven, shown after the answer
 **Status: ACTIVE — owner approved option A on 2026-10-16.**
 
 Two plain five-card rows did not show where each five came from. One shared view,
