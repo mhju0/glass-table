@@ -118,6 +118,8 @@ Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 - Kept on purpose (owner, 2026-10-15): outs beginner choices can be 1 apart because
   exact counting is the skill; the starting check stays out of Settings (`7549a32`);
   audit #34/#41 compact-grid rank headers stay as they are.
+- Hold'em basics' first check (five-card flush and straight examples) has no seven
+  cards, so it shows no best-five comparison (D49); deal it from seven cards? Owner.
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
@@ -134,7 +136,7 @@ Product and numbers:
   hand review and learning guide keep equal-width Previous/Next; the guide and Hold'em
   basics use the 36/64 `GTStepRow`.
 - Proposed, never approved: README drift fix (four tracks vs nine units, question
-  counts), topic-led summary, recent-topic Records, post-commit best-five explanation,
+  counts), topic-led summary, recent-topic Records,
   versioned integrity plan for archive/format/session-ending persistence.
 - (old) iOS 27 watchdog check on the affected phone; iPhone 16e AX walkthrough
   failure; live Bold Text redraw; tiny EV-loss grid labels; unseeded PotMath question
@@ -160,6 +162,20 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-16 (Claude · best five after answering)
+
+- Owner approved option A (D49). Branch `feat/best-five-comparison-20261016` from the
+  local integration commit `9bb6c66`; PR open, not merged.
+- `BestFivePair` (Drills) and `BestFiveComparison` (app) show each player's seven
+  cards with the unused two dimmed, the hand name, a count line and a ringed deciding
+  card, after the answer only: "Who wins?", its restored answer, the hand review's
+  ending and the Hold'em basics check (not its first, five-card example).
+- Fixed on the way: the kicker sentence compared ranks high-to-low instead of in
+  evaluation order, and wrote "6라서".
+- Debug hooks: `GT_DEMO_SHOWDOWN_SPOT` (every showdown spot), `GT_DEMO_BASICS_SEED`.
+- Next: owner reviews the PR screenshots and decides whether the first basics check
+  should also be dealt from seven cards.
 
 ### 2026-10-15 (Claude · records cleanup and PR #11)
 
@@ -233,15 +249,3 @@ Tests:
   starting check, outs choices).
 - Owner approved merging both branches; done via PR #12 and the fix branch PR.
 - Next: owner decides the items left open; before/after mocks were published.
-
-### 2026-10-15 (Claude · lean CI and TestFlight)
-
-- Owner asked for proper CI/CD and chose a lean pipeline over the Codex 3×130-minute
-  shard work. Ported Codex's two Xcode 26.3 type-check splits (`WalkthroughView`
-  header, `PracticeTableQuickGameTests`) without its handoff edits; main CI had failed on
-  them. Push CI now runs unit tests only; the UI suite moved to a nightly workflow;
-  tags ship to TestFlight.
-- Verification: Drills tests and the app build pass locally; CI run 38591907357 passed on
-  the branch in 22 minutes (unit tests 5, Release smoke 12, device Release build 3).
-- Next: owner merges the branch, stops the Codex CI session, then does the one-time
-  TestFlight setup in `docs/ci-cd.md` and pushes the first tag.
