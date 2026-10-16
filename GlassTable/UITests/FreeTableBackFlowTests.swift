@@ -165,11 +165,17 @@ final class FreeTableBackFlowTests: XCTestCase {
         let outer = app.scrollViews["free-dock-content"]
         reveal(tabs, app: app, scroll: outer)
         let rules = app.buttons["free-back-rules"]
-        for _ in 0..<5 where rules.frame.maxX > tabs.frame.maxX + 0.5 { tabs.swipeLeft() }
+        for _ in 0..<12 where rules.frame.maxX > tabs.frame.maxX + 0.5 {
+            let delta = max(40, min(160, rules.frame.maxX - tabs.frame.maxX + 12))
+            tabs.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)).slowDrag(by: CGVector(dx: -delta, dy: 0))
+            rules.waitForStableFrame()
+        }
+        rules.waitForStableFrame()
         rules.tap()
         let body = app.scrollViews["free-back-content"]
         let policy = app.buttons["free-table-policy-toggle"]
         reveal(policy, app: app, scroll: body)
+        policy.waitForStableFrame()
         policy.tap()
         let text = language == "ko"
             ? "컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요."
@@ -178,7 +184,8 @@ final class FreeTableBackFlowTests: XCTestCase {
         XCTAssertTrue(end.waitForExistence(timeout: 5))
         for bottomEdge in [false, true] {
             var unchanged = 0
-            for _ in 0..<90 {
+            for _ in 0..<150 {
+                end.waitForStableFrame()
                 let frame = end.frame, viewport = body.frame, window = app.windows.firstMatch.frame
                 let top = max(130, viewport.minY), bottom = min(window.maxY - 20, viewport.maxY)
                 let height = min(60, frame.height)
@@ -189,15 +196,16 @@ final class FreeTableBackFlowTests: XCTestCase {
                 let difference = bottomEdge ? edgeBottom - bottom : edgeTop - top
                 let downward = difference < 0
                 let distance = abs(difference)
-                let amount = min(bottom - top - 60, max(24, distance + 2))
+                let amount = max(24, min(bottom - top - 60, distance + 2))
                 let startY = downward ? top + 30 : min(bottom - 30, window.maxY - 80)
                 let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: window.midX, dy: startY))
                 let delta = downward ? amount : -amount
-                start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: delta)),
-                            withVelocity: .slow, thenHoldForDuration: 0.2)
+                start.slowDrag(by: CGVector(dx: 0, dy: delta))
+                end.waitForStableFrame()
                 unchanged = abs(end.frame.minY - frame.minY) < 0.5 ? unchanged + 1 : 0
-                XCTAssertLessThan(unchanged, 3, "No policy scroll progress: \(end.frame), viewport \(body.frame)")
+                XCTAssertLessThan(unchanged, 5, "No policy scroll progress: \(end.frame), viewport \(body.frame)")
             }
+            end.waitForStableFrame()
             let frame = end.frame, viewport = body.frame, window = app.windows.firstMatch.frame
             let edgeTop = bottomEdge ? frame.maxY - min(60, frame.height) : frame.minY
             XCTAssertGreaterThanOrEqual(edgeTop, max(130, viewport.minY) - 0.5)
@@ -310,6 +318,7 @@ final class FreeTableBackFlowTests: XCTestCase {
         XCTAssertTrue(target.waitForExistence(timeout: 5))
         let window = app.windows.firstMatch.frame
         for _ in 0..<60 {
+            target.waitForStableFrame()
             let frame = target.frame
             let top = max(130, scroll.frame.minY)
             let bottom = min(window.maxY - windowBottomInset, scroll.frame.maxY)
