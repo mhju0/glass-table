@@ -22,6 +22,33 @@ enum AppLanguage: String, CaseIterable, Identifiable {
     }
 }
 
+/// The saved language choice, owned once by `RootView`. Settings writes it here and
+/// the root injects the resolved language, so a switch re-renders every screen at once.
+/// The App used to inject it inside `WindowGroup`: on iOS 27 the App body re-runs with
+/// the new value, but the open window keeps the environment it was created with.
+@Observable
+@MainActor
+final class LanguageSettings {
+    private let defaults: UserDefaults
+    var preference: AppLanguage {
+        didSet { defaults.set(preference.rawValue, forKey: AppLanguage.storageKey) }
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        preference = defaults.string(forKey: AppLanguage.storageKey)
+            .flatMap(AppLanguage.init(rawValue:)) ?? .system
+    }
+
+    var resolved: LearningLanguage {
+        #if DEBUG
+        if let code = ProcessInfo.processInfo.environment["GT_DEMO_LANGUAGE"],
+           let selected = LearningLanguage(rawValue: code) { return selected }
+        #endif
+        return preference.resolved
+    }
+}
+
 private struct LearningLanguageKey: EnvironmentKey {
     static let defaultValue: LearningLanguage = .korean
 }
