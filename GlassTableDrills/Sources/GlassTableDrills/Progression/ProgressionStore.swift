@@ -44,10 +44,10 @@ public struct ProgressionStore {
             let source = try Self.decodeAndValidate(original)
             let state = Self.upgrade(source)
             if source.schemaVersion < ProgressState.currentSchemaVersion {
-                // Copy exact bytes before writing. If either step fails the original
-                // remains at its original location and load reports recovery.
-                let backup = url.deletingPathExtension()
-                    .appendingPathExtension("schema-1-\(UUID().uuidString).json")
+                // Copy exact bytes before writing, named by the version they hold. If
+                // either step fails the original stays in place and load reports recovery.
+                let backup = url.deletingPathExtension().appendingPathExtension(
+                    "schema-\(source.schemaVersion)-\(UUID().uuidString).json")
                 try FileManager.default.copyItem(at: url, to: backup)
                 try save(state)
             }
@@ -138,12 +138,16 @@ public struct ProgressionStore {
     }
 
     private static func upgrade(_ state: ProgressState) -> ProgressState {
-        guard state.schemaVersion == 1 else { return state }
+        guard state.schemaVersion < ProgressState.currentSchemaVersion else { return state }
         var upgraded = state
         upgraded.schemaVersion = ProgressState.currentSchemaVersion
-        // Existing correct includes accepted near answers. The old 500-answer ring
-        // cannot reconstruct the full daily history, so tracking begins now.
-        upgraded.detailedTrackingStartedAt = Date()
+        if state.schemaVersion == 1 {
+            // Existing correct includes accepted near answers. The old 500-answer ring
+            // cannot reconstruct the full daily history, so tracking begins now.
+            upgraded.detailedTrackingStartedAt = Date()
+        }
+        // 2 → 3 changes no data: the bump makes builds that know only schema 2 refuse
+        // the file instead of dropping keys they cannot decode (ADR 0001).
         return upgraded
     }
 
