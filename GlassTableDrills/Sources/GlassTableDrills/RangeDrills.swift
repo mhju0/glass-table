@@ -124,7 +124,7 @@ public func gradeRFI(userOpens: Bool, spot: RFISpot,
     let h = spot.handClass
     let pct = RFIChart.openPercent[spot.seat] ?? 0
     let exact = exactPctText(RFIChart.range(for: spot.seat).percent)
-    var why = "\(h.description) · \(Chen.explain(h))\n"
+    var why = "\(h.description) · \(DrillTerms.chen(h, in: .korean))\n"
         + "\(KO.topic(spot.seat.rawValue)) 상위 약 \(Int(pct))%를 열어요(차트에서는 정확히 \(exact)%)."
     if spot.opens {
         why += " \(KO.topic(h.description)) 그 안에 들어와요."

@@ -48,6 +48,9 @@ regressions and verification limits.
   subscriptions, consumables or ads) after Korean business registration, per
   `docs/ROADMAP.md`. Chips never have or buy value. Preserve local progress and
   recovery bytes when changing the `progression.json` schema or persistence flows.
+  Any new persisted key, or new meaning for an existing one, bumps
+  `ProgressState.currentSchemaVersion`, copies the previous file before upgrading,
+  and adds a golden fixture (`docs/adr/0001-versioned-progression-json.md`).
 - Korean terminology is canonical in `docs/glossary.md`; use `KO` helpers for
   particles attached to dynamic text. Card-face glyphs stay fixed-size while
   ordinary text follows Dynamic Type.

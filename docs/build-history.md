@@ -115,3 +115,7 @@ This index is newly consolidated. Earlier records remain intact; missing install
 - Source `5c040c1`, merged to `main` as `0d8708c` (PR #14, same tree): the chart guide opens only the first time, a hand-specific chart reason, a verdict-first table review with Details, and a call-or-fold lesson `u2-callFold` before the price challenge.
 - Verification: Drills 432 XCTest + 96 Swift Testing, 97 app unit tests and 78 UI tests (graded, chart first use, beginner release, learning flows) on a simulator; `ci.yml` passed on GitHub.
 - Signed Release 1.0 (30), build 29 uninstalled first, then freshly installed on the physical iPhone 12 mini. Green Korean first-run welcome observed and left unadvanced. No phone progress copied. Evidence: `.archive/2026-10-15-owner-decisions-cleanup/owner-decisions/device-install-b30/`. Binary SHA256 `dc33b61bebe63a9bfe1344c1725cbe00b370fdab38de0eb889fa5ced56fb51a7`.
+
+## Build 31 — first TestFlight upload, 2026-10-16
+
+- Source `cc64042` (PR #17: scalable free-table captions and title) plus the build bump. First run of `release.yml` on a `v1.0-31` tag; App Store Connect record renamed to "Glass Table" the same day.

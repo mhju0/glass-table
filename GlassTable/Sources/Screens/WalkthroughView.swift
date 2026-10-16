@@ -13,7 +13,6 @@ import GlassTableDrills
 /// Highlights are stable. A beat change moves only the card or value that changed.
 struct WalkthroughView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @Environment(\.simpleQuestions) private var simple
     let title: String
@@ -156,12 +155,8 @@ struct WalkthroughView: View {
                         }
                     }.accessibilityIdentifier("walkthrough-pot-check")
                 }
-                let layout = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(spacing: 12))
-                    : AnyLayout(HStackLayout(spacing: 12))
-                layout {
-                    SecondaryCTAButton(title: language.text("이전", "Previous"), action: previousStep)
-                        .disabled(positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)).accessibilityIdentifier("walkthrough-previous")
+                let firstStep = positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)
+                GTStepRow(previous: firstStep ? nil : previousStep, previousID: "walkthrough-previous") {
                     PrimaryCTAButton(title: isCovered && concept != .potMath
                                      ? language.text("예시 확인", "Check example")
                                      : isLast ? language.text("예시 마치기", "Finish example")
@@ -432,12 +427,7 @@ struct WalkthroughView: View {
     private var sheet: some View {
         VStack(alignment: .leading, spacing: 8) {
             if concept == .rfi, simple, index == 2 {
-                DisclosureGroup(language.text("점수가 궁금하다면", "How the score works")) {
-                    Text([beat.value, beat.detail].compactMap { $0 }.joined(separator: "\n"))
-                        .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
-                    Text(language.text("패를 정렬하는 휴리스틱이며 정확한 승률이나 보편적인 최적 선택이 아니에요.", "This heuristic ranks hands; it is not exact equity or a universal best decision."))
-                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-                }.foregroundStyle(GT.ink)
+                chenRuleCard
             } else if let value = beat.value, beat.focus != .none {
                 Text(beat.caption)
                     .font(GT.semibold(13)).tracking(0.3)
@@ -468,9 +458,35 @@ struct WalkthroughView: View {
                 Text(detail).font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
+                if concept == .rfi, index == 2 { chenRuleCard }
             }
 
         }
+    }
+
+    /// How the starting-hand score is built, closed until asked for. The last line
+    /// works the rules through for the hand on the table.
+    private var chenRuleCard: some View {
+        DisclosureGroup(ChenScoreCopy.title(in: language)) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(ChenScoreCopy.intro(in: language))
+                ForEach(Array(ChenScoreCopy.rules(in: language).enumerated()), id: \.offset) { number, rule in
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text("\(number + 1).").monospacedDigit()
+                        Text(rule).fixedSize(horizontal: false, vertical: true)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+                Text(ChenScoreCopy.handLine(beat.highlight, in: language))
+                    .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                Text(ChenScoreCopy.closing(in: language))
+            }
+            .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 4)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("chen-rule-card")
+        }.foregroundStyle(GT.ink)
     }
 
     /// Covers the step's value until the learner taps it. The caption above it says

@@ -97,6 +97,57 @@ final class FreeTableBackFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 5))
     }
 
+    /// Back and Next sit on the shared step row: a narrow Previous beside Next, stacked
+    /// at the accessibility sizes, where the old row never stacked.
+    func testHandCoachUsesTheStepRow() { coachStepRow(ax: false) }
+    func testHandCoachUsesTheStepRowAX5() { coachStepRow(ax: true) }
+
+    private func coachStepRow(ax: Bool) {
+        let app = launch(ax: ax, phase: "result-review")
+        let review = app.buttons["free-review"]
+        for _ in 0..<6 where !review.isHittable { app.swipeUp() }
+        review.tap()
+        let next = app.buttons["coach-next"]
+        XCTAssertTrue(next.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["coach-back"].exists, "No Previous on the first step")
+        next.tap()
+        let back = app.buttons["coach-back"]
+        XCTAssertTrue(back.waitForExistence(timeout: 5))
+        let forward = app.buttons.matching(NSPredicate(format: "identifier IN %@", ["coach-next", "coach-done"])).firstMatch
+        XCTAssertTrue(back.isHittable)
+        XCTAssertTrue(forward.isHittable)
+        if ax {
+            XCTAssertLessThanOrEqual(back.frame.maxY, forward.frame.minY + 1, "Stacked, Previous on top")
+        } else {
+            XCTAssertEqual(back.frame.midY, forward.frame.midY, accuracy: 2)
+            XCTAssertLessThan(back.frame.width, forward.frame.width * 0.7)
+        }
+        attach(app, "steprow-coach-\(ax ? "AX5" : "L")")
+        back.tap()
+        XCTAssertFalse(app.buttons["coach-back"].waitForExistence(timeout: 2))
+    }
+
+    /// "Chen score" in Computer choices opens the glossary, which defines it.
+    func testComputerChoicesLinkTheChenScoreToTheGlossary() {
+        let app = launch()
+        app.buttons["free-raise-cancel"].tap()
+        app.buttons["free-table-help"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["free-math-tiles"].waitForExistence(timeout: 5))
+        app.buttons["free-back-rules"].tap()
+        let body = app.scrollViews["free-back-content"]
+        let policy = app.buttons["free-table-policy-toggle"]
+        reveal(policy, app: app, scroll: body)
+        policy.tap()
+        let chip = app.buttons["free-policy-chen-glossary"]
+        reveal(chip, app: app, scroll: body)
+        attach(app, "policy-chen-chip")
+        chip.tap()
+        let entry = app.staticTexts["Starting-hand score (Chen)"]
+        for _ in 0..<12 where !entry.isHittable { app.swipeUp() }
+        XCTAssertTrue(entry.isHittable)
+        attach(app, "glossary-chen")
+    }
+
     func testSettledReviewChanceAndResponsiveTabs() {
         let app = launch(phase: "result-review")
         app.buttons["free-table-help"].tap()

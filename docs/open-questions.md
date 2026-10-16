@@ -37,7 +37,7 @@ is the lowest-signal build and the GRAC direct review is an administrative
 fallback (spec `docs/specs/2026-07-23-m1-submission-design.md`). Revisit
 counsel before the betting-table milestone.
 
-12. **App name / branding in Korean.** Keep the English "Glass Table," use a Korean name (유리 테이블?), or a bilingual lockup. Store listing language.
+12. **App name / branding in Korean.** Decided 2026-10-16 (owner): "Glass Table" in both the Korean and English stores, the name on the GRAC application. Renamed in App Store Connect from "포커 배우기 — Glass Table".
 13. ~~**Design/visual tone.**~~ **RESOLVED: the felt/glass/paper system** — dark table felt, opaque "glass" surfaces, paper card faces; one pinned appearance; every boundary measured to WCAG 3:1. See `decisions.md` §G.
 14. **6-max option.** Historical question for the graded heads-up/table concept. The current separate Play table is four-seat; any larger layout now needs a new design and demand check.
 15. ~~**Curriculum unlock specifics.**~~ **RESOLVED, amended 2026-09-23:** R1 originally chose a strictly linear path; the combined release opens all nine units and eighteen concepts, with recommendation rather than a lock. Optional offline placement suggests a starting point without credit. See D45 and the combined delivery spec.

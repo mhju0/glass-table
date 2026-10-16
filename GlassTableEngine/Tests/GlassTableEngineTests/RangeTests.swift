@@ -142,16 +142,6 @@ final class ChenTests: XCTestCase {
             XCTAssertLessThan(rankOf(a), rankOf(b), "\(a) should outrank \(b) on a tie")
         }
     }
-
-    func testExplanationShowsTheArithmeticNotJustTheScore() {
-        let aks = HandClass.all.first { $0.description == "AKs" }!
-        let text = Chen.explain(aks)
-        XCTAssertTrue(text.contains("수티드 +2"), text)
-        XCTAssertTrue(text.contains("= 12"), text)
-
-        let twos = HandClass.all.first { $0.description == "22" }!
-        XCTAssertTrue(Chen.explain(twos).contains("최소 5"), Chen.explain(twos))
-    }
 }
 
 final class HandRangeTests: XCTestCase {

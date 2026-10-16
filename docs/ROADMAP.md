@@ -43,7 +43,7 @@ phase can run in parallel.
 5. **Apple Developer Program.** Individual, $99 a year. Then the App Store Connect app
    record: bundle ID `com.michaelju.glasstable`, name reservation, and Korean-law
    compliance email verification.
-6. **Name check.** Search "Glass Table" and "포커 배우기" in KIPRIS and USPTO.
+6. **Name check.** The store name is "Glass Table" in Korea and the US (owner, 2026-10-16, as filed with GRAC). Search it in KIPRIS and USPTO.
 7. **For 1.1, not blocking 1.0, and done by the owner without an accountant:** 사업자등록 on
    홈택스, industry code 722000 or the closest match found in 홈택스's industry-code search.
    In the Seoul area, 722000 is reportedly excluded from the simplified tier
@@ -129,7 +129,7 @@ Each item gets a short spec or issue under `.scratch/` before it is built.
 ## Still considered, not committed
 
 Carried over from the old roadmap: Sit In Their Seat, Run It 1000 Times, Lab, a 6-max
-table (#14), a Korean app name beyond "포커 배우기 — Glass Table" (#12), remote puzzle
+table (#14), remote puzzle
 content, captioned screenshots, the 8-seat animated table. See the archive for why
 each is parked.
 
