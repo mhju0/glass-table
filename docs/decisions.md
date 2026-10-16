@@ -955,8 +955,9 @@ and the line says the pot is split.
 
 - Used in the "Who wins?" answer, its restored answer, the free-table hand review's
   ending (the winner and whoever came closest) and the Hold'em basics check. The
-  basics check's first example (flush against straight) has no seven cards, so it
-  shows no comparison; later checks do.
+  basics check's first example (flush against straight) is now dealt from seven
+  cards too (owner, 2026-10-17): my A♦ J♦ flush against the opponent's 9♣ 5♥ straight
+  on K♦ 8♦ 7♠ 6♦ 2♣, each using both private cards, with no pair.
 - Only after the answer is locked in. Card faces stay 50pt (about 290pt for seven) at
   every text size; labels wrap.
 - A hole card that only repeats a board rank is not counted as used.

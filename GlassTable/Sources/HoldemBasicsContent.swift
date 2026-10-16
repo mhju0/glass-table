@@ -88,4 +88,11 @@ enum HoldemBasics {
     /// The check question: a flush against a straight on the same page.
     static let checkFlush = rank("flush")
     static let checkStraight = rank("straight")
+
+    /// The first check, dealt from seven cards like every later one: my A-high flush
+    /// (A♦ J♦ with K♦ 8♦ 6♦) against the opponent's 9-high straight (9♣ 5♥ with
+    /// 8♦ 7♠ 6♦). Both use their two private cards; nothing pairs and the board alone
+    /// is only a high card.
+    static let firstCheck = ShowdownSpot(hero: Card.parse("AdJd")!, villain: Card.parse("9c5h")!,
+                                         board: Card.parse("Kd8d7s6d2c")!)
 }

@@ -45,6 +45,12 @@ final class BestFiveComparisonTests: XCTestCase {
     func testKOAXBasicsCheck() { basicsCheck("ko", ax: true) }
     func testENAXBasicsCheck() { basicsCheck("en", ax: true) }
 
+    /// The first check (flush against straight) is dealt from seven cards too.
+    func testKOFirstBasicsCheck() { basicsCheck("ko", ax: false, seed: nil, choice: "flush") }
+    func testENFirstBasicsCheck() { basicsCheck("en", ax: false, seed: nil, choice: "flush") }
+    func testKOAXFirstBasicsCheck() { basicsCheck("ko", ax: true, seed: nil, choice: "flush") }
+    func testENAXFirstBasicsCheck() { basicsCheck("en", ax: true, seed: nil, choice: "flush") }
+
     // MARK: Flows
 
     private func lessonThenRestored(_ language: String, ax: Bool) {
@@ -116,25 +122,34 @@ final class BestFiveComparisonTests: XCTestCase {
         }
     }
 
-    private func basicsCheck(_ language: String, ax: Bool) {
-        let tag = "\(language)-\(ax ? "AX5" : "large")"
+    /// `seed` nil opens the first check, which a fresh store always deals.
+    private func basicsCheck(_ language: String, ax: Bool, seed: String? = "5", choice id: String = "check-0") {
+        let tag = "\(language)-\(ax ? "AX5" : "large")-\(seed == nil ? "first-" : "")"
         let app = XCUIApplication()
         app.launchArguments = arguments(language, ax: ax)
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
-                                 "GT_DEMO_BASICS": "check", "GT_DEMO_BASICS_SEED": "5"]
+                                 "GT_DEMO_BASICS": "check"]
+        if let seed { app.launchEnvironment["GT_DEMO_BASICS_SEED"] = seed }
         app.launch()
-        let choice = app.buttons["basics.choice.check-0"]
+        let choice = app.buttons["basics.choice.\(id)"]
         reach(choice, app: app)
         XCTAssertFalse(comparison(app).exists, "Never before the answer is locked in")
         choice.tap()
         let element = comparison(app)
         for _ in 0..<8 where !element.exists { app.swipeUp() }
         XCTAssertTrue(element.exists)
+        if seed == nil {
+            let ko = language == "ko"
+            assertLabel(app, 0, contains: ko ? "플러시" : "flush")
+            assertLabel(app, 0, contains: ko ? "내 카드 2장 · 공용 카드 3장" : "2 of your cards · 3 board cards")
+            assertLabel(app, 1, contains: ko ? "스트레이트" : "straight")
+            assertLabel(app, 1, contains: ko ? "상대 카드 2장 · 공용 카드 3장" : "2 of the opponent's cards · 3 board cards")
+        }
         assertCardsFit(app)
         show(app, app.descendants(matching: .any)["best-five-row-0"])
-        attach(app, "\(tag)-basics-rows")
+        attach(app, "\(tag)basics-rows")
         show(app, app.staticTexts["best-five-why"])
-        attach(app, "\(tag)-basics-why")
+        attach(app, "\(tag)basics-why")
     }
 
     // MARK: Helpers

@@ -118,8 +118,8 @@ Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 - Kept on purpose (owner, 2026-10-15): outs beginner choices can be 1 apart because
   exact counting is the skill; the starting check stays out of Settings (`7549a32`);
   audit #34/#41 compact-grid rank headers stay as they are.
-- Hold'em basics' first check (five-card flush and straight examples) has no seven
-  cards, so it shows no best-five comparison (D50); deal it from seven cards? Owner.
+- The "Who wins?" answer shows the why sentence twice, under the best-five comparison
+  and in the answer sheet (D50); the owner is choosing which copy to remove.
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications
@@ -185,12 +185,13 @@ Tests:
 - `BestFivePair` (Drills) and `BestFiveComparison` (app) show each player's seven
   cards with the unused two dimmed, the hand name, a count line and a ringed deciding
   card, after the answer only: "Who wins?", its restored answer, the hand review's
-  ending and the Hold'em basics check (not its first, five-card example).
+  ending and the Hold'em basics check. Owner then asked for the first basics check
+  (flush against straight) to be dealt from seven cards as well (`HoldemBasics.firstCheck`).
 - Fixed on the way: the kicker sentence compared ranks high-to-low instead of in
   evaluation order, and wrote "6라서".
 - Debug hooks: `GT_DEMO_SHOWDOWN_SPOT` (every showdown spot), `GT_DEMO_BASICS_SEED`.
-- Next: owner reviews the PR screenshots and decides whether the first basics check
-  should also be dealt from seven cards.
+- Next: owner reviews PR #23 and picks which copy of the duplicated why sentence to
+  remove.
 
 ### 2026-10-15 (Claude · records cleanup and PR #11)
 

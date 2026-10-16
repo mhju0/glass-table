@@ -26,16 +26,24 @@ struct HoldemBasicsView: View {
     @State private var rotationLoaded = false
 
     private var checkSpot: ShowdownSpot {
+        if variationSeed == 0 { return HoldemBasics.firstCheck }
         let rules: [FirstLesson.Rule] = [.flush, .trips, .straight, .pairOverHighCard, .higherPair]
         let variants = FirstLesson.bank(for: rules[Int(variationSeed % UInt64(rules.count))])
         return variants[Int((variationSeed / UInt64(rules.count)) % UInt64(variants.count))]
     }
 
     private var checkRanks: [HoldemBasics.Rank] {
-        if variationSeed == 0 { return [HoldemBasics.checkFlush, HoldemBasics.checkStraight] }
         let spot = checkSpot
         let hands = [(spot.heroBest, bestFiveCards(spot.hero + spot.board)),
                      (spot.villainBest, bestFiveCards(spot.villain + spot.board))]
+        if variationSeed == 0 {
+            // The first check keeps the ladder's names and its flush/straight ids.
+            return zip([HoldemBasics.checkFlush, HoldemBasics.checkStraight], hands).map { rank, hand in
+                HoldemBasics.Rank(id: rank.id, category: rank.category, isRoyal: false,
+                    korean: rank.korean, english: rank.english, koreanDetail: rank.koreanDetail,
+                    englishDetail: rank.englishDetail, example: hand.1)
+            }
+        }
         return hands.enumerated().map { index, hand in
             let template = HoldemBasics.ladder.first { $0.category == hand.0.category && !$0.isRoyal }!
             return HoldemBasics.Rank(id: "check-\(index)", category: template.category, isRoyal: false,
@@ -45,7 +53,7 @@ struct HoldemBasicsView: View {
     }
 
     private var winningCheck: HoldemBasics.Rank {
-        variationSeed == 0 ? HoldemBasics.checkFlush : checkRanks[checkSpot.winner]
+        checkRanks[checkSpot.winner]
     }
 
     private let pageCount = 2
@@ -96,7 +104,7 @@ struct HoldemBasicsView: View {
                 rotationLoaded = true
             }
             #if DEBUG
-            // GT_DEMO_BASICS_SEED picks a check dealt from seven cards; 0 is the first check.
+            // GT_DEMO_BASICS_SEED picks a check; 0 is the first (flush against straight).
             let environment = ProcessInfo.processInfo.environment
             let demoSeed = environment["GT_DEMO_BASICS_SEED"].flatMap(UInt64.init) ?? 0
             switch environment["GT_DEMO_BASICS"] {
@@ -222,9 +230,8 @@ struct HoldemBasicsView: View {
             VStack(spacing: 12) {
                 ForEach(checkRanks) { rank in checkHand(rank) }
             }
-            // Only once the pick is in, and only for a check dealt from seven cards:
-            // the first check's flush and straight are five-card examples.
-            if answer != nil, variationSeed != 0 {
+            // Only once the pick is in.
+            if answer != nil {
                 BestFiveComparison(pair: BestFivePair(checkSpot))
                     .gtInset(GT.Space.card, firstText: .semibold(13))
                     .gtCard(radius: GT.Radius.panel)
