@@ -13,7 +13,6 @@ import GlassTableDrills
 /// Highlights are stable. A beat change moves only the card or value that changed.
 struct WalkthroughView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @Environment(\.simpleQuestions) private var simple
     let title: String
@@ -156,12 +155,8 @@ struct WalkthroughView: View {
                         }
                     }.accessibilityIdentifier("walkthrough-pot-check")
                 }
-                let layout = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(spacing: 12))
-                    : AnyLayout(HStackLayout(spacing: 12))
-                layout {
-                    SecondaryCTAButton(title: language.text("이전", "Previous"), action: previousStep)
-                        .disabled(positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)).accessibilityIdentifier("walkthrough-previous")
+                let firstStep = positionTeachingStep == 0 || (positionTeachingStep == nil && index == 0 && concept != .position)
+                GTStepRow(previous: firstStep ? nil : previousStep, previousID: "walkthrough-previous") {
                     PrimaryCTAButton(title: isCovered && concept != .potMath
                                      ? language.text("예시 확인", "Check example")
                                      : isLast ? language.text("예시 마치기", "Finish example")

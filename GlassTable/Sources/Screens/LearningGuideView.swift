@@ -88,17 +88,15 @@ struct LearningGuideView: View {
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
                 if !dynamicTypeSize.isAccessibilitySize, lesson.question != nil, answer == nil { questionChoices }
-                FeltCTAButton(title: page == lessons.count - 1
-                              ? language.text("연습하러 가기", "Go to practice")
-                              : language.text("다음 이야기", "Next topic")) {
-                    if page == lessons.count - 1 { dismiss() }
-                    else { page += 1; answer = nil }
-                }
-                .disabled(lesson.question != nil && answer == nil)
-                if page > 0 {
-                    SecondaryCTAButton(title: language.text("이전 이야기", "Previous topic")) {
-                        page -= 1; answer = nil
+                GTStepRow(previous: page > 0 ? { page -= 1; answer = nil } : nil, previousID: "guide-previous") {
+                    FeltCTAButton(title: page == lessons.count - 1
+                                  ? language.text("연습하러 가기", "Go to practice")
+                                  : language.text("다음 이야기", "Next topic")) {
+                        if page == lessons.count - 1 { dismiss() }
+                        else { page += 1; answer = nil }
                     }
+                    .disabled(lesson.question != nil && answer == nil)
+                    .accessibilityIdentifier("guide-next")
                 }
             }
             .padding(.horizontal, GT.Space.sheet).padding(.vertical, 12).background(GT.felt)
