@@ -773,21 +773,24 @@ struct FreeTableView: View {
         .accessibilityIdentifier("free-raise-cancel")
     }
 
+    @ViewBuilder
     private func raiseAmountTitle(_ sizing: FreeRaisePresentation, amount: Int,
                                   besideControls: Bool) -> some View {
-        ScrollView {
-            Text(sizing.title(amount: amount, language: language))
-                .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
-                .fixedSize(horizontal: false, vertical: true)
-                .contentTransition(.numericText())
-                .frame(maxWidth: .infinity, minHeight: besideControls ? raiseAmountHeight : nil, alignment: .leading)
-                .accessibilityIdentifier("free-raise-amount")
+        let title = Text(sizing.title(amount: amount, language: language))
+            .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .contentTransition(.numericText())
+            .frame(maxWidth: .infinity, minHeight: besideControls ? raiseAmountHeight : nil, alignment: .leading)
+            .accessibilityIdentifier("free-raise-amount")
+        if besideControls {
+            ScrollView { title }
+                .frame(height: raiseAmountHeight)
+                .accessibilityIdentifier("free-raise-amount-scroll")
+        } else {
+            // On its own row a wrapped title grows; the dock scrolls at these sizes.
+            title.offset(y: GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18
+                         - GT.TextRole.title(24).inkLeading(in: language) * raiseTitleMetric / 24)
         }
-        .frame(height: raiseAmountHeight)
-        // Beside the back arrow and the help pill the title shares their centre line.
-        .offset(y: besideControls ? 0 : GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18
-                - GT.TextRole.title(24).inkLeading(in: language) * raiseTitleMetric / 24)
-        .accessibilityIdentifier("free-raise-amount-scroll")
     }
 
     private func raisePanel(_ table: PracticeTableState) -> some View {

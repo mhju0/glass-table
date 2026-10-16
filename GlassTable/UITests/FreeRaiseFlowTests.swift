@@ -138,6 +138,36 @@ final class FreeRaiseFlowTests: XCTestCase {
         capture(app, name: "raise-AX-en-help-pill")
     }
 
+    func testRaiseAXKOTitleShowsEveryLine() {
+        let app = app(code: "ko", ax: true, phase: "raise-open")
+        let amount = app.staticTexts["free-raise-amount"]
+        XCTAssertTrue(amount.exists)
+        // "99칩까지 레이즈" wraps to two lines at AX5.
+        let body = app.scrollViews["free-dock-content"]
+        let presets = app.scrollViews["free-raise-presets"]
+        reveal(presets, in: body)
+        let allIn = app.buttons["free-raise-preset-4"]
+        for _ in 0..<8 where allIn.frame.maxX > presets.frame.maxX + 0.5 {
+            let from = presets.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5))
+            from.press(forDuration: 0.1, thenDragTo: from.withOffset(CGVector(dx: -120, dy: 0)),
+                       withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
+        allIn.tap()
+        let minus = app.buttons["free-raise-minus"]
+        reveal(minus, in: body)
+        minus.tap()
+        XCTAssertTrue(amount.label.contains("99"), amount.label)
+        reveal(amount, in: body)
+        let clip = app.scrollViews["free-raise-amount-scroll"]
+        if clip.exists {
+            XCTAssertLessThanOrEqual(amount.frame.height, clip.frame.height + 0.5,
+                                     "The raise title must not hide lines in a fixed-height box: \(amount.frame), box \(clip.frame)")
+        }
+        XCTAssertLessThanOrEqual(amount.frame.maxY, app.staticTexts["free-raise-context"].frame.minY + 0.5,
+                                 "The raise title must end above the context line")
+        capture(app, name: "raise-AX-ko-title-every-line")
+    }
+
     func testRaiseAXKOFifthPresetAndCommitReachable() { verifyAX(code: "ko") }
     func testRaiseAXENFifthPresetAndCommitReachable() { verifyAX(code: "en") }
 
@@ -179,12 +209,10 @@ final class FreeRaiseFlowTests: XCTestCase {
         let app = app(code: code, ax: true, phase: "raise-open")
         XCTAssertTrue(app.staticTexts["free-raise-amount"].exists)
         let amount = app.staticTexts["free-raise-amount"]
-        let amountScroll = app.scrollViews["free-raise-amount-scroll"]
-        capture(app, name: "raise-AX-\(code)-amount-first-line")
-        for _ in 0..<5 where amount.frame.maxY > amountScroll.frame.maxY { amountScroll.swipeUp() }
-        XCTAssertLessThanOrEqual(amount.frame.maxY, amountScroll.frame.maxY + 0.5)
-        capture(app, name: "raise-AX-\(code)-amount-last-line")
         let context = app.staticTexts["free-raise-context"]
+        XCTAssertFalse(app.scrollViews["free-raise-amount-scroll"].exists, "At AX sizes the title grows instead of scrolling")
+        XCTAssertLessThanOrEqual(amount.frame.maxY, context.frame.minY + 0.5)
+        capture(app, name: "raise-AX-\(code)-amount-every-line")
         let contextScroll = app.scrollViews["free-raise-context-scroll"]
         capture(app, name: "raise-AX-\(code)-context-first-line")
         for _ in 0..<5 where context.frame.maxY > contextScroll.frame.maxY { contextScroll.swipeUp() }
@@ -217,12 +245,9 @@ final class FreeRaiseFlowTests: XCTestCase {
         reveal(commit, in: body)
         XCTAssertEqual(app.otherElements["free-dock"].frame.height, dockHeight, accuracy: 0.5)
         capture(app, name: "raise-AX-\(code)-ordinary99-commit-full")
-        reveal(amountScroll, in: body)
-        amountScroll.swipeDown()
-        capture(app, name: "raise-AX-\(code)-ordinary99-amount-first-line")
-        for _ in 0..<5 where amount.frame.maxY > amountScroll.frame.maxY { amountScroll.swipeUp() }
-        XCTAssertLessThanOrEqual(amount.frame.maxY, amountScroll.frame.maxY + 0.5)
-        capture(app, name: "raise-AX-\(code)-ordinary99-amount-last-line")
+        reveal(amount, in: body)
+        XCTAssertLessThanOrEqual(amount.frame.maxY, context.frame.minY + 0.5)
+        capture(app, name: "raise-AX-\(code)-ordinary99-amount-every-line")
         reveal(contextScroll, in: body)
         contextScroll.swipeDown()
         capture(app, name: "raise-AX-\(code)-ordinary99-context-first-line")
