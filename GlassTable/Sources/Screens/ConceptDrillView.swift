@@ -728,9 +728,10 @@ private struct ShowdownDrill: View {
     /// should *show* you something — the previous reveal changed only the text.
     private var winningFive: [Card] {
         guard let reveal else { return [] }
+        let pair = BestFivePair(spot)
         switch reveal.winner {
-        case 0: return bestFiveCards(spot.hero + spot.board)
-        case 1: return bestFiveCards(spot.villain + spot.board)
+        case 0: return pair.first.used
+        case 1: return pair.second.used
         default: return []
         }
     }
@@ -751,12 +752,9 @@ private struct ShowdownDrill: View {
                         .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("showdown-best-five-rule")
-                    Text(language.text("가장 좋은 5장", "Your best five"))
-                        .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
-                    CardRow(cards: bestFiveCards(spot.hero + spot.board))
-                    Text(language.text("상대의 가장 좋은 다섯 장", "Opponent's best five"))
-                        .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
-                    CardRow(cards: bestFiveCards(spot.villain + spot.board))
+                    BestFiveComparison(pair: BestFivePair(spot))
+                        .gtInset(GT.Space.card, firstText: .semibold(13))
+                        .gtCard(radius: GT.Radius.panel)
                 }
             }
         } sheet: {

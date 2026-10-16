@@ -35,7 +35,17 @@ public struct ShowdownSpot: Equatable {
 }
 
 public enum ShowdownSpotGenerator {
+    #if DEBUG
+    /// Screenshot and UI-test hook, set once at launch from `GT_DEMO_SHOWDOWN_SPOT`.
+    /// It replaces every generated spot, so the question, its reveal and a restored
+    /// answer all read the same cards. Debug builds only.
+    nonisolated(unsafe) public static var demoSpot: ShowdownSpot?
+    #endif
+
     public static func spot(baseSeed: UInt64, index: Int) -> ShowdownSpot {
+        #if DEBUG
+        if let demoSpot { return demoSpot }
+        #endif
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         var deck = Deck.all

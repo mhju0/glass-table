@@ -238,18 +238,27 @@ private struct RestoredDrillContextView: View {
             guard case let .integer(answer)? = input else { return nil }
             return gradeShowdown(answer: answer, spot: spot, language: language).winner
         }()
+        let pair = BestFivePair(spot)
         let winningFive: [Card] = switch winner {
-        case 0: bestFiveCards(spot.hero + spot.board)
-        case 1: bestFiveCards(spot.villain + spot.board)
+        case 0: pair.first.used
+        case 1: pair.second.used
         default: []
         }
-        return ThreeRegionCardTable(
-            opponent: spot.villain, board: spot.board, hero: spot.hero,
-            opponentTitle: winner == 1 ? language.text("상대 카드 · 승", "Opponent · won")
-                                       : language.text("상대 카드", "Opponent's cards"),
-            heroTitle: winner == 0 ? language.text("내 카드 · 승", "Your cards · won")
-                                   : language.text("내 카드", "Your cards"),
-            highlight: winningFive, sideBySide: true)
+        return VStack(alignment: .leading, spacing: GT.Space.related) {
+            ThreeRegionCardTable(
+                opponent: spot.villain, board: spot.board, hero: spot.hero,
+                opponentTitle: winner == 1 ? language.text("상대 카드 · 승", "Opponent · won")
+                                           : language.text("상대 카드", "Opponent's cards"),
+                heroTitle: winner == 0 ? language.text("내 카드 · 승", "Your cards · won")
+                                       : language.text("내 카드", "Your cards"),
+                highlight: winningFive, sideBySide: true)
+            // A saved answer was already locked in, so the comparison is never early.
+            if winner != nil {
+                BestFiveComparison(pair: pair)
+                    .gtInset(GT.Space.card, firstText: .semibold(13))
+                    .gtCard(radius: GT.Radius.panel)
+            }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(answerID)
     }

@@ -1188,30 +1188,10 @@ struct FirstLessonView: View {
         cards.map { language == .korean ? $0.spokenKorean : $0.description }.joined(separator: ", ")
     }
 
-    /// Seven cards, the five that play outlined; the rest step back but stay readable.
-    /// The two private cards come first, set apart from the shared five.
+    /// Seven cards, the five that play outlined (`SevenCardRow`, shared with the
+    /// best-five comparison).
     private func sevenCards(hole: [Card], board: [Card], size: CGFloat) -> some View {
-        let seven = hole + board
-        let best = bestFiveCards(seven)
-        return HStack(spacing: 5) {
-            ForEach(Array(seven.enumerated()), id: \.offset) { index, card in
-                sevenCard(card, plays: best.contains(card), index: index, size: size)
-            }
-        }
-    }
-
-    private func sevenCard(_ card: Card, plays: Bool, index: Int, size: CGFloat) -> some View {
-        let unused = plays ? "" : language.text(", 쓰지 않음", ", not used")
-        return PlayingCardView(card: card, size: size)
-            .overlay {
-                if plays {
-                    RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: size))
-                        .strokeBorder(GT.mint, lineWidth: 3)
-                }
-            }
-            .opacity(plays ? 1 : 0.55)
-            .padding(.leading, index == 2 ? 8 : 0)
-            .accessibilityLabel(card.spoken(in: language) + unused)
+        SevenCardRow(hole: hole, board: board, used: bestFiveCards(hole + board), size: size)
     }
 
     private func sevenCardCaptions(size: CGFloat) -> some View {

@@ -96,10 +96,17 @@ struct HoldemBasicsView: View {
                 rotationLoaded = true
             }
             #if DEBUG
-            switch ProcessInfo.processInfo.environment["GT_DEMO_BASICS"] {
-            case "check": page = .check
-            case "check-right": variationSeed = 0; page = .check; answer = HoldemBasics.checkFlush.id
-            case "check-wrong": variationSeed = 0; page = .check; answer = HoldemBasics.checkStraight.id
+            // GT_DEMO_BASICS_SEED picks a check dealt from seven cards; 0 is the first check.
+            let environment = ProcessInfo.processInfo.environment
+            let demoSeed = environment["GT_DEMO_BASICS_SEED"].flatMap(UInt64.init) ?? 0
+            switch environment["GT_DEMO_BASICS"] {
+            case "check":
+                if environment["GT_DEMO_BASICS_SEED"] != nil { variationSeed = demoSeed }
+                page = .check
+            case "check-right": variationSeed = demoSeed; page = .check; answer = winningCheck.id
+            case "check-wrong":
+                variationSeed = demoSeed; page = .check
+                answer = checkRanks.first { $0.id != winningCheck.id }?.id
             default: break
             }
             #endif
@@ -214,6 +221,13 @@ struct HoldemBasicsView: View {
                                 "Compare hand types first. If they match, compare the ranks."))
             VStack(spacing: 12) {
                 ForEach(checkRanks) { rank in checkHand(rank) }
+            }
+            // Only once the pick is in, and only for a check dealt from seven cards:
+            // the first check's flush and straight are five-card examples.
+            if answer != nil, variationSeed != 0 {
+                BestFiveComparison(pair: BestFivePair(checkSpot))
+                    .gtInset(GT.Space.card, firstText: .semibold(13))
+                    .gtCard(radius: GT.Radius.panel)
             }
         }
     }
