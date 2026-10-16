@@ -1168,30 +1168,10 @@ private struct PositionDrill: View {
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 
-    /// At the accessibility sizes the one-row strip cannot grow, so the same seating is
-    /// said in a sentence that does.
     @ViewBuilder private var seatDiagram: some View {
         LessonSeatLoop(markers: Dictionary(uniqueKeysWithValues: Position.allCases.compactMap { position in
             marker(position).map { (position, $0) }
         }), showsOrder: reveal != nil, postflop: !isPreflop)
-    }
-
-    private var seatSentence: String {
-        guard !termsLead, reveal == nil else {
-            return seatOrder.map { p in marker(p).map { "\(p.rawValue) (\($0))" } ?? p.rawValue }
-                .joined(separator: " → ")
-        }
-        var runs: [(name: String, count: Int, marks: [String])] = []
-        for p in [Position.btn, .sb, .bb, .utg, .utg1, .lj, .hj, .co] {
-            let name = groupName(p)
-            if runs.last?.name != name { runs.append((name, 0, [])) }
-            runs[runs.count - 1].count += 1
-            if let mark = marker(p) { runs[runs.count - 1].marks.append(mark) }
-        }
-        return runs.map { run in
-            let marks = run.marks.isEmpty ? "" : " (\(run.marks.joined(separator: ", ")))"
-            return language.text("\(run.name) \(run.count)명\(marks)", "\(run.name) \(run.count)\(marks)")
-        }.joined(separator: " → ")
     }
 
     /// The seat the question is about. With codes showing, a two-seat question names
@@ -2354,8 +2334,8 @@ private struct HitFrequencyDrill: View {
                     .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                 SectionLabel(text: language.text("상대 레인지", "Opponent's possible hands"))
                     .padding(.top, 8)
-                Text(language.text("\(spot.seat.rawValue) 오픈 · 상위 \(pctText(spot.range.percent))%",
-                                   "\(spot.seat.rawValue) raised first · top \(pctText(spot.range.percent))%"))
+                Text(language.text("\(spot.seat.rawValue) 오픈 · 상위 약 \(pctText(RFIChart.openPercent[spot.seat] ?? 0))%",
+                                   "\(spot.seat.rawValue) raised first · about \(pctText(RFIChart.openPercent[spot.seat] ?? 0))% of hands"))
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                 if reveal != nil {
                     BucketBarView(label: language.text("\(spot.seat.rawValue) 오픈 레인지",
@@ -2952,8 +2932,8 @@ private struct DefendDrill: View {
                               termsLead && !simple ? "Raises first to 3bb" : "Raises first to 3 big blinds"])
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(language.text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
-                                   "This seat starts with roughly the top \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands."))
+                Text(language.text("상위 약 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
+                                   "This seat starts with about \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands, strongest first."))
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
                 if reveal == nil {
                     DefendChartPrimer(expanded: $chartPractice.primerExpanded)

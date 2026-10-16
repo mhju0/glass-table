@@ -737,9 +737,9 @@ struct FreeTableView: View {
                              onCancel: @escaping () -> Void, onMath: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             if typeSize.isAccessibilitySize {
-                HStack(alignment: .top) {
+                // Beside the back arrow a large one-line pill runs past the dock's edge.
+                VStack(alignment: .leading, spacing: 8) {
                     raiseBack(onCancel: onCancel)
-                    Spacer(minLength: 8)
                     mathPill(onMath: onMath)
                 }
                 raiseAmountTitle(sizing, amount: amount, besideControls: false)
@@ -773,21 +773,24 @@ struct FreeTableView: View {
         .accessibilityIdentifier("free-raise-cancel")
     }
 
+    @ViewBuilder
     private func raiseAmountTitle(_ sizing: FreeRaisePresentation, amount: Int,
                                   besideControls: Bool) -> some View {
-        ScrollView {
-            Text(sizing.title(amount: amount, language: language))
-                .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
-                .fixedSize(horizontal: false, vertical: true)
-                .contentTransition(.numericText())
-                .frame(maxWidth: .infinity, minHeight: besideControls ? raiseAmountHeight : nil, alignment: .leading)
-                .accessibilityIdentifier("free-raise-amount")
+        let title = Text(sizing.title(amount: amount, language: language))
+            .font(GT.title(24).monospacedDigit()).foregroundStyle(GT.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .contentTransition(.numericText())
+            .frame(maxWidth: .infinity, minHeight: besideControls ? raiseAmountHeight : nil, alignment: .leading)
+            .accessibilityIdentifier("free-raise-amount")
+        if besideControls {
+            ScrollView { title }
+                .frame(height: raiseAmountHeight)
+                .accessibilityIdentifier("free-raise-amount-scroll")
+        } else {
+            // On its own row a wrapped title grows; the dock scrolls at these sizes.
+            title.offset(y: GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18
+                         - GT.TextRole.title(24).inkLeading(in: language) * raiseTitleMetric / 24)
         }
-        .frame(height: raiseAmountHeight)
-        // Beside the back arrow and the help pill the title shares their centre line.
-        .offset(y: besideControls ? 0 : GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18
-                - GT.TextRole.title(24).inkLeading(in: language) * raiseTitleMetric / 24)
-        .accessibilityIdentifier("free-raise-amount-scroll")
     }
 
     private func raisePanel(_ table: PracticeTableState) -> some View {
@@ -1551,6 +1554,7 @@ private struct FreeTableMathTiles: View {
 
 private struct FreeTableMathSummary: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var typeSize
     let pot: Int
     let call: Int
     let need: Int?
@@ -1576,15 +1580,22 @@ private struct FreeTableMathSummary: View {
                     ForEach(hole, id: \.self) { raw in
                         if let card = Card(raw) { PlayingCardView(card: card, size: 36) }
                     }
-                    if let top {
-                        Text(language.text("상위 \(top)%", "Top \(top)%")).font(GT.semibold(13))
-                            .padding(6).background(GT.glass, in: Capsule())
-                    }
+                    if let top, !typeSize.isAccessibilitySize { rankLabel(top) }
                 }
             }.foregroundStyle(GT.ink).fixedSize(horizontal: false, vertical: true)
              .accessibilityElement(children: .contain)
              .accessibilityIdentifier("free-math-hand")
+            // Beside the cards a large rank wraps a word per line, so it takes its own row.
+            if hand == nil, let top, typeSize.isAccessibilitySize {
+                rankLabel(top).foregroundStyle(GT.ink).accessibilityIdentifier("free-math-rank")
+            }
         }
+    }
+
+    private func rankLabel(_ top: Int) -> some View {
+        Text(PracticeDecisionFacts.startingHandRank(top, language: language)).font(GT.semibold(13))
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(6).background(GT.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 

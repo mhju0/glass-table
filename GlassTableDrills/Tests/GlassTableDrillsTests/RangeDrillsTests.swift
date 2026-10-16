@@ -122,8 +122,22 @@ final class RFIDrillTests: XCTestCase {
         XCTAssertEqual(gradeRFI(userOpens: false, spot: spot).band, .off)
         let why = gradeRFI(userOpens: true, spot: spot).whyText
         XCTAssertTrue(why.contains("AA"), why)
-        XCTAssertTrue(why.contains("상위 15%"), why)
+        XCTAssertTrue(why.contains("약 15%"), why)
+        XCTAssertTrue(why.contains("15.4%"), why)
         XCTAssertTrue(why.contains("= 20"), "the Chen arithmetic is shown, not just the verdict: \(why)")
+    }
+
+    /// Whole classes at the chart edge make a nominal 42% hold 42.4%, so the summary
+    /// says "about" and the exact share is stated beside it.
+    func testRevealQualifiesTheTargetAndStatesTheExactShare() {
+        let spot = RFISpot(hand: Card.parse("AhAs")!, seat: .btn)
+        let en = gradeRFI(userOpens: true, spot: spot, language: .english).whyText
+        XCTAssertTrue(en.contains("about 42%"), en)
+        XCTAssertTrue(en.contains("42.4%"), en)
+        XCTAssertFalse(en.contains("top 42%"), en)
+        let ko = gradeRFI(userOpens: true, spot: spot, language: .korean).whyText
+        XCTAssertTrue(ko.contains("약 42%"), ko)
+        XCTAssertTrue(ko.contains("42.4%"), ko)
     }
 
     /// A fold is never just "no" — it names the seat the hand does open from.

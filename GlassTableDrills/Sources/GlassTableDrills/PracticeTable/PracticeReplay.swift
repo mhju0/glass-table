@@ -97,8 +97,10 @@ extension PracticeTableState {
 /// Facts about the learner's decision that a hint may show. None of them is a
 /// recommendation: the hint names what the hand is and what each choice costs.
 public struct PracticeDecisionFacts: Equatable {
-    /// Share of all starting hands at least as strong by Chen score, e.g. 12 for the
-    /// top 12%. Present before the flop only.
+    /// Combo share of `Chen.ranked` up to and including this hand, e.g. 12 for the
+    /// top 12%. Ties in Chen score are broken by the ranking's secondary order, so
+    /// this is a place in the app's ranking, not the share of hands scoring at least
+    /// as high. Present before the flop only.
     public let startingHandTopPercent: Int?
     public let startingHand: String?
     /// The best made hand with the shared cards, after the flop.
@@ -133,6 +135,11 @@ public struct PracticeDecisionFacts: Equatable {
             : min(frame.stacks[0], max(0, currentBet - frame.streetCommitted[0]))
         pot = frame.pot
         requiredEquityPercent = Self.requiredEquityPercent(contributions: frame.committed, call: toCall)
+    }
+
+    /// `startingHandTopPercent` in words that say whose ranking it is.
+    public static func startingHandRank(_ top: Int, language: LearningLanguage) -> String {
+        language.text("앱의 시작 패 순위에서 상위 \(top)%", "Top \(top)% in the app's starting-hand ranking")
     }
 
     /// Only the learner's contestable chips count; unmatched excess is returned.

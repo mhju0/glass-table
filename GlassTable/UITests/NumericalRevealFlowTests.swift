@@ -8,6 +8,20 @@ final class NumericalRevealFlowTests: XCTestCase {
     func testKoreanLightReveals() { reveals(code: "ko", appearance: "light") }
     func testKoreanDarkReveals() { reveals(code: "ko", appearance: "dark") }
 
+    func testRevealGrabberTapTargetIsFullHeight() {
+        let app = application(code: "en", appearance: "light", environment: ["GT_DEMO_CONCEPT": "callFold"])
+        app.launch()
+        let call = app.buttons["Call"].firstMatch
+        XCTAssertTrue(call.waitForExistence(timeout: 20))
+        call.tap()
+        let grabber = app.buttons["reveal-sheet-toggle"]
+        XCTAssertTrue(grabber.waitForExistence(timeout: 10))
+        XCTAssertEqual(grabber.label, "Hide explanation")
+        XCTAssertGreaterThanOrEqual(grabber.frame.height, 44, "Grabber tap target: \(grabber.frame)")
+        grabber.tap()
+        XCTAssertTrue(app.buttons["Show explanation"].waitForExistence(timeout: 5))
+    }
+
     private func application(code: String, appearance: String, environment: [String: String]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-AppleLanguages", "(\(code))", "-glassTable.language", code == "ko" ? "korean" : "english", "-appAppearance", appearance]

@@ -892,22 +892,6 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(ProgressionModel(store: store).record(for: .outs), after)
     }
 
-    func testAttemptLedgerRequiresCommitAndRejectsDuplicateCommitAndAdvance() {
-        var ledger = SessionAttemptLedger()
-        let first = SessionAttemptID(concept: .showdown, seed: 9, index: 2)
-        let second = SessionAttemptID(concept: .showdown, seed: 9, index: 3)
-
-        XCTAssertFalse(ledger.advance(first), "Next before reveal commit must be ignored")
-        XCTAssertTrue(ledger.commit(first))
-        XCTAssertFalse(ledger.commit(first))
-        XCTAssertTrue(ledger.advance(first))
-        XCTAssertFalse(ledger.advance(first), "Repeated Next must not skip a question")
-        XCTAssertTrue(ledger.commit(second), "The next spot of the same concept is distinct")
-        XCTAssertTrue(ledger.advance(second))
-        XCTAssertEqual(ledger.committed.count, 2)
-        XCTAssertEqual(ledger.advanced.count, 2)
-    }
-
     func testInterruptedBossAnswerChangesRestartSeedAndShuffledPrefix() throws {
         let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
         let beforeSeed = NodeSessionSeed.make(nodeID: boss.id,

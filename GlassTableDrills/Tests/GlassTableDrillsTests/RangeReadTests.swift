@@ -416,6 +416,18 @@ final class BoardDrillTests: XCTestCase {
         }
     }
 
+    /// 8,000 samples give an estimate, not a guaranteed error bound.
+    func testRangeAdvantageNamesTheSampleCountWithoutAnErrorBound() {
+        let spot = RangeAdvantageSpotGenerator.spot(baseSeed: 3, index: 0)
+        let estimate = Estimate(point: 50, lo: 40, hi: 60)
+        let en = gradeRangeAdvantage(estimate: estimate, spot: spot, openerEquityPct: 55, language: .english).whyText
+        let ko = gradeRangeAdvantage(estimate: estimate, spot: spot, openerEquityPct: 55, language: .korean).whyText
+        XCTAssertTrue(en.hasSuffix("Estimated from 8,000 samples."), en)
+        XCTAssertTrue(ko.hasSuffix("8,000회 표본으로 추정했어요."), ko)
+        XCTAssertFalse(en.contains("±"), en)
+        XCTAssertFalse(ko.contains("±"), ko)
+    }
+
     func testBoardBeatScriptsAreCompleteOnArbitrarySpots() {
         for i in 0..<4 {
             for beats in [BeatScript.hitFrequency(

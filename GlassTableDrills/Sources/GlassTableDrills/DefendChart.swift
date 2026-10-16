@@ -62,13 +62,17 @@ public enum DefendChart {
         case .call: "a call"
         case .threeBet: "a raise again"
         }
+        // The opener's width is a target; the band edges are the shares the bands hold.
+        let threeBet = threeBetRange(vsOpenFrom: seat)
+        let raiseAgain = exactPctText(threeBet.percent)
+        let callTo = exactPctText(threeBet.percent + callRange(vsOpenFrom: seat).percent)
         return language.text(
-            "\(seat.plainName(in: language)): 상위 \(pctText(open))%로 먼저 올려요. "
-            + "그 폭의 상위 \(pctText(open * threeBetShare))%는 다시 올리고, "
-            + "\(pctText(open * defendShare))%까지는 콜이에요. "
+            "\(seat.plainName(in: language)): 상위 약 \(pctText(open))%로 먼저 올려요. "
+            + "상위 \(raiseAgain)%는 다시 올리고, "
+            + "\(callTo)%까지는 콜이에요. "
             + "\(KO.topic(hand.description)) 강한 순서로 상위 \(rank)%쯤이라 \(KO.copula(koAction))",
-            "\(seat.plainName(in: language)) raises first with the top \(pctText(open))% of hands. "
-            + "Raise again with the top \(pctText(open * threeBetShare))%; call up to \(pctText(open * defendShare))%. "
+            "\(seat.plainName(in: language)) raises first with about \(pctText(open))% of hands, strongest first. "
+            + "Raise again with the top \(raiseAgain)%; call up to \(callTo)%. "
             + "\(hand.description) ranks near the top \(rank)% by strength, so it is \(enAction).")
     }
 

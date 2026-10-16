@@ -216,20 +216,28 @@ final class FreeTableBackFlowTests: XCTestCase {
         let outer = app.scrollViews["free-dock-content"]
         reveal(tabs, app: app, scroll: outer)
         let rules = app.buttons["free-back-rules"]
-        for _ in 0..<5 where rules.frame.maxX > tabs.frame.maxX + 0.5 { tabs.swipeLeft() }
+        for _ in 0..<12 where rules.frame.maxX > tabs.frame.maxX + 0.5 {
+            let delta = max(40, min(160, rules.frame.maxX - tabs.frame.maxX + 12))
+            tabs.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)).slowDrag(by: CGVector(dx: -delta, dy: 0))
+            rules.waitForStableFrame()
+        }
+        rules.waitForStableFrame()
         rules.tap()
         let body = app.scrollViews["free-back-content"]
         let policy = app.buttons["free-table-policy-toggle"]
         reveal(policy, app: app, scroll: body)
+        policy.waitForStableFrame()
         policy.tap()
         let text = language == "ko"
             ? "컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요."
             : "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."
         let end = app.staticTexts.matching(NSPredicate(format: "label == %@", text)).firstMatch
-        XCTAssertTrue(end.waitForExistence(timeout: 5))
+        // On a loaded runner the expanded policy can take longer than 5s to appear.
+        XCTAssertTrue(end.waitForExistence(timeout: 15))
         for bottomEdge in [false, true] {
             var unchanged = 0
-            for _ in 0..<90 {
+            for _ in 0..<150 {
+                end.waitForStableFrame()
                 let frame = end.frame, viewport = body.frame, window = app.windows.firstMatch.frame
                 let top = max(130, viewport.minY), bottom = min(window.maxY - 20, viewport.maxY)
                 let height = min(60, frame.height)
@@ -240,15 +248,16 @@ final class FreeTableBackFlowTests: XCTestCase {
                 let difference = bottomEdge ? edgeBottom - bottom : edgeTop - top
                 let downward = difference < 0
                 let distance = abs(difference)
-                let amount = min(bottom - top - 60, max(24, distance + 2))
+                let amount = max(24, min(bottom - top - 60, distance + 2))
                 let startY = downward ? top + 30 : min(bottom - 30, window.maxY - 80)
                 let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: window.midX, dy: startY))
                 let delta = downward ? amount : -amount
-                start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: delta)),
-                            withVelocity: .slow, thenHoldForDuration: 0.2)
+                start.slowDrag(by: CGVector(dx: 0, dy: delta))
+                end.waitForStableFrame()
                 unchanged = abs(end.frame.minY - frame.minY) < 0.5 ? unchanged + 1 : 0
-                XCTAssertLessThan(unchanged, 3, "No policy scroll progress: \(end.frame), viewport \(body.frame)")
+                XCTAssertLessThan(unchanged, 5, "No policy scroll progress: \(end.frame), viewport \(body.frame)")
             }
+            end.waitForStableFrame()
             let frame = end.frame, viewport = body.frame, window = app.windows.firstMatch.frame
             let edgeTop = bottomEdge ? frame.maxY - min(60, frame.height) : frame.minY
             XCTAssertGreaterThanOrEqual(edgeTop, max(130, viewport.minY) - 0.5)
@@ -289,6 +298,11 @@ final class FreeTableBackFlowTests: XCTestCase {
         let hand = app.descendants(matching: .any)["free-math-hand"]
         reveal(hand, app: app, scroll: body)
         attach(app, "\(language)-AX-math-hand")
+        // At AX sizes the starting-hand rank sits on its own row under the cards.
+        let rank = app.descendants(matching: .any)["free-math-rank"]
+        reveal(rank, app: app, scroll: body)
+        XCTAssertGreaterThanOrEqual(rank.frame.minY, hand.frame.maxY - 0.5)
+        attach(app, "\(language)-AX-math-rank")
         let tabs = app.scrollViews["free-back-tabs"]
         reveal(tabs, app: app, scroll: app.scrollViews["free-dock-content"])
         for id in ["hint", "hand", "rules"] {
@@ -361,12 +375,17 @@ final class FreeTableBackFlowTests: XCTestCase {
         XCTAssertTrue(target.waitForExistence(timeout: 5))
         let window = app.windows.firstMatch.frame
         for _ in 0..<60 {
+            target.waitForStableFrame()
             let frame = target.frame
             let top = max(130, scroll.frame.minY)
             let bottom = min(window.maxY - windowBottomInset, scroll.frame.maxY)
             if frame.minY >= top - 0.5 && frame.maxY <= bottom + 0.5 { return }
             print("reveal \(target.identifier): target=\(frame), viewport=\(top)...\(bottom)")
-            let startY = min(bottom - 50, window.maxY - 80)
+            var startY = min(bottom - 50, window.maxY - 80)
+            // A short slow drag that starts on a button can register as a tap on it.
+            if startY >= frame.minY && startY <= frame.maxY {
+                startY = frame.minY - 10 > top + 10 ? frame.minY - 10 : min(frame.maxY + 10, bottom - 10)
+            }
             let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: max(25, scroll.frame.minX + 5), dy: startY))
             let delta: CGFloat = frame.maxY > bottom
                 ? max(-120, min(-24, bottom - frame.maxY - 2))

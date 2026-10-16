@@ -161,3 +161,12 @@ func computerSeatsMatchTheTableSize(computers: Int) {
     #expect(PracticeDecisionFacts(frame: frame, learnerHole: hole, visibleBoard: [])?.toCall == 0)
     #expect(PracticeDecisionFacts(frame: frame, learnerHole: hole, visibleBoard: [])?.requiredEquityPercent == nil)
 }
+
+/// The percentile is a prefix of the app's tie-broken ranking, so the words say whose
+/// ranking it is instead of implying a share of equal-or-better hands.
+@Test func startingHandRankNamesTheAppsRanking() {
+    #expect(PracticeDecisionFacts.startingHandRank(27, language: .english)
+            == "Top 27% in the app's starting-hand ranking")
+    #expect(PracticeDecisionFacts.startingHandRank(27, language: .korean)
+            == "앱의 시작 패 순위에서 상위 27%")
+}

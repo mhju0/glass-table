@@ -127,8 +127,6 @@ final class ProgressionModel {
         ReviewQueue.sessionConcepts(in: state, at: now)
     }
 
-    func needingExplainer() -> [Concept] { ReviewQueue.needingExplainer(in: state) }
-
     func record(for concept: Concept) -> ConceptRecord { state.record(for: concept) }
 
     /// Spec §4.3: the number the home screen leads with, never XP and never streak.
@@ -157,18 +155,6 @@ final class ProgressionModel {
         }
         #endif
         return !hasHistoricalActivity
-    }
-
-    /// The optional starting-point check follows the first-launch welcome.
-    var shouldPresentFirstPlacement: Bool {
-        guard shouldPresentFirstLesson, state.placement == nil else { return false }
-        #if DEBUG
-        let environment = ProcessInfo.processInfo.environment
-        if environment["GT_TEST_FIRST_PLACEMENT"] == "1" { return true }
-        if environment["GT_TEST_FIRST_LESSON"] != nil
-            || environment["GT_DEMO_FIRST_LESSON"] != nil { return false }
-        #endif
-        return true
     }
 
     private var hasHistoricalActivity: Bool {

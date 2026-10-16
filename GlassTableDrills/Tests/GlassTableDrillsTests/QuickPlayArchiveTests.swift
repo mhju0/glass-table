@@ -215,3 +215,18 @@ struct QuickPlayArchiveTests {
     }
 
 }
+
+/// "0/0" explains nothing; with no entered hands the ratio is said in words.
+@Test func enteredHandRatiosSayWhenNothingWasEntered() {
+    #expect(EnteredHandsText.raisesAmongEntries(raises: 0, entries: 0, language: .english) == "No entered hands yet")
+    #expect(EnteredHandsText.raisesAmongEntries(raises: 0, entries: 0, language: .korean) == "아직 참여한 핸드가 없어요")
+    #expect(EnteredHandsText.raisesAmongEntries(raises: 3, entries: 7, language: .english) == "3 / 7")
+    #expect(EnteredHandsText.entriesDetail(entries: 0, hands: 12, raises: 0, language: .english)
+            == "Voluntary entries 0/12 · No entered hands yet")
+    #expect(EnteredHandsText.entriesDetail(entries: 0, hands: 12, raises: 0, language: .korean)
+            == "자발적으로 참여 0/12 · 아직 참여한 핸드가 없어요")
+    #expect(EnteredHandsText.entriesDetail(entries: 40, hands: 100, raises: 28, language: .english)
+            == "Voluntary entries 40/100 · raises among entries 28/40")
+    #expect(EnteredHandsText.entriesDetail(entries: 40, hands: 100, raises: 28, language: .korean)
+            == "자발적으로 참여 40/100 · 그중 시작 전 레이즈 28/40")
+}

@@ -98,20 +98,10 @@ final class FreeDockFlowTests: XCTestCase {
             XCTAssertTrue(app.staticTexts["free-table-net"].exists)
             let nextBefore = next.frame
             let prose = app.scrollViews["free-result-prose"]
-            for _ in 0..<5 where prose.frame.maxY > body.frame.maxY || prose.frame.minY < body.frame.minY {
-                let delta = prose.frame.maxY > body.frame.maxY
-                    ? min(100, max(24, prose.frame.maxY - body.frame.maxY + 8))
-                    : -min(100, max(24, body.frame.minY - prose.frame.minY + 8))
-                let startY = delta > 0
-                    ? min(body.frame.maxY - 5, max(body.frame.minY + 5, prose.frame.minY - 5))
-                    : body.frame.maxY - 5
-                let start = body.coordinate(withNormalizedOffset: .zero)
-                    .withOffset(CGVector(dx: body.frame.width * 0.97, dy: startY - body.frame.minY))
-                start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -delta)),
-                            withVelocity: .slow, thenHoldForDuration: 0.5)
-            }
+            bring(prose, into: body)
             XCTAssertGreaterThanOrEqual(prose.frame.minY, body.frame.minY - 0.5)
             XCTAssertLessThanOrEqual(prose.frame.maxY, body.frame.maxY + 0.5)
+            next.waitForStableFrame()
             let nextAtProse = next.frame
             let first = prose.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "You · won")).firstMatch
             let last = prose.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Alex · won")).firstMatch
@@ -119,25 +109,21 @@ final class FreeDockFlowTests: XCTestCase {
             XCTAssertGreaterThan(last.frame.maxY - first.frame.minY, prose.frame.height,
                                  "The real three-winner fixture must overflow the bounded viewport")
             let before = last.frame.minY
-            prose.swipeUp()
+            for _ in 0..<12 where last.frame.maxY > prose.frame.maxY + 0.5 {
+                let travel = max(24, min(prose.frame.height - 30, last.frame.maxY - prose.frame.maxY + 8))
+                prose.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85)).slowDrag(by: CGVector(dx: 0, dy: -travel))
+                last.waitForStableFrame()
+            }
             XCTAssertLessThan(last.frame.minY, before, "The bounded prose must scroll at \(category)")
             XCTAssertLessThanOrEqual(last.frame.maxY, prose.frame.maxY + 0.5)
+            next.waitForStableFrame()
             XCTAssertEqual(next.frame.minY, nextAtProse.minY, accuracy: 0.5,
                            "Scrolling winner prose must not move the actions")
             let screenshot = XCTAttachment(screenshot: app.screenshot())
             screenshot.name = "result-prose-scrolled-\(category)"
             screenshot.lifetime = .keepAlways
             add(screenshot)
-            for _ in 0..<5 where next.frame.maxY > body.frame.maxY || next.frame.minY < body.frame.minY {
-                let delta = next.frame.maxY > body.frame.maxY
-                    ? min(100, max(24, next.frame.maxY - body.frame.maxY + 8))
-                    : -min(100, max(24, body.frame.minY - next.frame.minY + 8))
-                let startY = min(body.frame.maxY - 5, max(body.frame.minY + 5, next.frame.minY - 5))
-                let start = body.coordinate(withNormalizedOffset: .zero)
-                    .withOffset(CGVector(dx: body.frame.width * 0.97, dy: startY - body.frame.minY))
-                start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -delta)),
-                            withVelocity: .slow, thenHoldForDuration: 0.5)
-            }
+            bring(next, into: body)
             XCTAssertGreaterThanOrEqual(next.frame.minY, body.frame.minY - 0.5)
             XCTAssertLessThanOrEqual(next.frame.maxY, body.frame.maxY + 0.5)
             let nextCapture = XCTAttachment(screenshot: app.screenshot())
@@ -146,16 +132,7 @@ final class FreeDockFlowTests: XCTestCase {
             add(nextCapture)
             XCTAssertTrue(next.isHittable)
             let lastAction = app.buttons["free-change-table"]
-            for _ in 0..<20 where lastAction.frame.maxY > body.frame.maxY || lastAction.frame.minY < body.frame.minY {
-                let delta = lastAction.frame.maxY > body.frame.maxY
-                    ? min(100, max(24, lastAction.frame.maxY - body.frame.maxY + 8))
-                    : -min(100, max(24, body.frame.minY - lastAction.frame.minY + 8))
-                let startY = min(body.frame.maxY - 5, max(body.frame.minY + 5, lastAction.frame.minY - 5))
-                let start = body.coordinate(withNormalizedOffset: .zero)
-                    .withOffset(CGVector(dx: body.frame.width * 0.97, dy: startY - body.frame.minY))
-                start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -delta)),
-                            withVelocity: .slow, thenHoldForDuration: 0.5)
-            }
+            bring(lastAction, into: body)
             XCTAssertTrue(lastAction.isHittable)
             XCTAssertGreaterThanOrEqual(lastAction.frame.minY, body.frame.minY - 0.5)
             XCTAssertLessThanOrEqual(lastAction.frame.maxY, body.frame.maxY + 0.5,
@@ -169,6 +146,25 @@ final class FreeDockFlowTests: XCTestCase {
         }
     }
 
+
+    /// Drags the result body slowly until `target` sits fully inside it, waiting for each
+    /// drag to settle. Drags run at the body's trailing margin so the prose scroll inside
+    /// it does not take the pan.
+    private func bring(_ target: XCUIElement, into body: XCUIElement) {
+        for _ in 0..<30 {
+            target.waitForStableFrame()
+            let frame = target.frame, viewport = body.frame
+            if frame.minY >= viewport.minY - 0.5, frame.maxY <= viewport.maxY + 0.5 { return }
+            let up = frame.maxY > viewport.maxY
+            let distance = up ? frame.maxY - viewport.maxY + 8 : viewport.minY - frame.minY + 8
+            let amount = max(24, min(viewport.height - 60, distance + 2))
+            let startY = up ? min(viewport.maxY - 5, max(viewport.minY + 5, frame.minY - 5)) : viewport.minY + 5
+            body.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: viewport.width * 0.97, dy: startY - viewport.minY))
+                .slowDrag(by: CGVector(dx: 0, dy: up ? -amount : amount))
+        }
+        target.waitForStableFrame()
+    }
 
     private func fixtureApp(phase: String?, code: String = "en", accessibility: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()

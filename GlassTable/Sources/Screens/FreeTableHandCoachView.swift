@@ -95,12 +95,12 @@ struct FreeTableHandCoachView: View {
     }
 
     private func strengthLine(_ step: PracticeCoachStep) -> String {
-        let top = step.facts.startingHandTopPercent ?? 0
+        let top = PracticeDecisionFacts.startingHandRank(step.facts.startingHandTopPercent ?? 0, language: language)
         let made = step.facts.madeHand.map { DrillTerms.hand($0, in: language) } ?? ""
         return switch step.strength {
-        case .premium: language.text("시작 패 상위 \(top)%. 아주 좋은 패예요.", "Top \(top)% of starting hands. A very good hand.")
-        case .playable: language.text("시작 패 상위 \(top)%. 해 볼 만한 패예요.", "Top \(top)% of starting hands. Worth playing.")
-        case .weak: language.text("시작 패 상위 \(top)%. 약한 쪽에 속해요.", "Top \(top)% of starting hands. On the weak side.")
+        case .premium: language.text("\(top). 아주 좋은 패예요.", "\(top). A very good hand.")
+        case .playable: language.text("\(top). 해 볼 만한 패예요.", "\(top). Worth playing.")
+        case .weak: language.text("\(top). 약한 쪽에 속해요.", "\(top). On the weak side.")
         case .strong: language.text("\(made). 강한 패예요.", "\(made). A strong hand.")
         case .topPair: language.text("\(made). 보드에서 가장 높은 페어예요.", "\(made). The best pair on the board.")
         case .weakPair: language.text("\(made). 페어지만 더 높은 페어에 져요.", "\(made). A pair, but higher pairs beat it.")

@@ -4,7 +4,7 @@
 
 Glass Table is an offline iPhone learning app for No-Limit Hold'em, in Korean
 and English. It combines a recommended learning path, freely available practice,
-and a four-player computer table. Start with reading cards; build toward ranges,
+and a computer table for two to four players. Start with reading cards; build toward ranges,
 probability, and the cost of a decision.
 
 [![CI](https://github.com/mhju0/glass-table/actions/workflows/ci.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/ci.yml)
@@ -28,19 +28,20 @@ The images use simulator demo fixtures; a fresh install begins without progress.
 ## Product
 
 Learn begins with a simple hand comparison and a new hand to try. Short lessons
-use three questions; one-skill practice uses five, and review uses up to five.
+use three questions and pass with two answered alone and exactly right; track
+challenges mix at least six. One-skill practice uses five, and review uses up to five.
 Worked examples, delayed review, and mixed checkpoints support the learning path. It recommends a next activity without
 locking advanced lessons. The optional, untimed starting-point check changes
 the recommendation—not completed lessons or earned mastery.
 
-Play defaults to a quick four-player table with 40 starting chips and 10 hands.
+Play defaults to a quick game for you and three computers, with 40 starting chips, ending after 10 hands; two or three players can also be chosen.
 A longer 100-chip table, carried stacks, and explicit refills are also available.
 Its review reports what happened. Optional beginner-chart coaching is separate
 from a calculated strategy grade. A separate heads-up exercise
 grades preflop choices against a published chart and postflop choices under a
 disclosed checkdown approximation—not universal poker advice.
 
-Progress leads with completed lessons, seven recent practice dates, and topics
+Progress leads with passed lessons, seven recent practice dates, and topics
 to revisit. Submitted lesson, practice, and review answers count regardless of
 help use or result. The fourth consecutive recorded practice date adds a small
 flame in today’s date cell; missed dates carry no penalty. Free-table play does
