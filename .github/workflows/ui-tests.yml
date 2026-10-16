@@ -55,9 +55,24 @@ jobs:
               print(f'-only-testing:GlassTableUITests/{name}')
           EOF
           cat only-testing.txt
+      # Layout assertions depend on the screen size, so the device and OS are pinned
+      # rather than taking whichever iPhone is listed first. The macos-15 image lists
+      # iPhone 17 under iOS 26.0.1, 26.1 and 26.2; raise this when the image moves on.
       - name: Run UI tests
+        env:
+          TEST_DEVICE: iPhone 17
+          TEST_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-2
         run: |
-          test_simulator=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; print(next(d["udid"] for devices in json.load(sys.stdin)["devices"].values() for d in devices if d["name"].startswith("iPhone")))')
+          test_simulator=$(xcrun simctl list devices available -j | python3 -c '
+          import json, os, sys
+          devices = json.load(sys.stdin)["devices"].get(os.environ["TEST_RUNTIME"], [])
+          print(next((d["udid"] for d in devices if d["name"] == os.environ["TEST_DEVICE"]), ""))')
+          if [ -z "$test_simulator" ]; then
+            echo "::error::No available '$TEST_DEVICE' simulator on $TEST_RUNTIME. Installed:"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Testing on $TEST_DEVICE ($TEST_RUNTIME) $test_simulator"
           xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
             -destination "platform=iOS Simulator,id=$test_simulator" \
             $(cat only-testing.txt) -resultBundlePath ui-tests.xcresult \
