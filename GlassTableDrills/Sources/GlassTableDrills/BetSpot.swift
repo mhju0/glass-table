@@ -42,6 +42,12 @@ public func pctText(_ x: Double) -> String {
     abs(x - x.rounded()) < 0.05 ? "\(Int(x.rounded()))" : String(format: "%.1f", x)
 }
 
+/// Always one decimal, for the share a chart actually holds: "15.4" beside a nominal
+/// "about 15", since whole classes at the edge put a chart slightly off its target.
+public func exactPctText(_ x: Double) -> String {
+    String(format: "%.1f", x)
+}
+
 public func gradePotOdds(estimatePct: Int, spot: BetSpot,
                          language: LearningLanguage = .korean) -> PercentReveal {
     let correct = spot.requiredPct

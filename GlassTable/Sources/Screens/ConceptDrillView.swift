@@ -2354,8 +2354,8 @@ private struct HitFrequencyDrill: View {
                     .font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
                 SectionLabel(text: language.text("상대 레인지", "Opponent's possible hands"))
                     .padding(.top, 8)
-                Text(language.text("\(spot.seat.rawValue) 오픈 · 상위 \(pctText(spot.range.percent))%",
-                                   "\(spot.seat.rawValue) raised first · top \(pctText(spot.range.percent))%"))
+                Text(language.text("\(spot.seat.rawValue) 오픈 · 상위 약 \(pctText(RFIChart.openPercent[spot.seat] ?? 0))%",
+                                   "\(spot.seat.rawValue) raised first · about \(pctText(RFIChart.openPercent[spot.seat] ?? 0))% of hands"))
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                 if reveal != nil {
                     BucketBarView(label: language.text("\(spot.seat.rawValue) 오픈 레인지",
@@ -2952,8 +2952,8 @@ private struct DefendDrill: View {
                               termsLead && !simple ? "Raises first to 3bb" : "Raises first to 3 big blinds"])
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(language.text("상위 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
-                                   "This seat starts with roughly the top \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands."))
+                Text(language.text("상위 약 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
+                                   "This seat starts with about \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands, strongest first."))
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
                 if reveal == nil {
                     DefendChartPrimer(expanded: $chartPractice.primerExpanded)

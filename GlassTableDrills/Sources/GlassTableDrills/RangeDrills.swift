@@ -123,8 +123,9 @@ public func gradeRFI(userOpens: Bool, spot: RFISpot,
                      language: LearningLanguage = .korean) -> RFIReveal {
     let h = spot.handClass
     let pct = RFIChart.openPercent[spot.seat] ?? 0
+    let exact = exactPctText(RFIChart.range(for: spot.seat).percent)
     var why = "\(h.description) · \(Chen.explain(h))\n"
-        + "\(KO.topic(spot.seat.rawValue)) 상위 \(Int(pct))%를 열어요."
+        + "\(KO.topic(spot.seat.rawValue)) 상위 약 \(Int(pct))%를 열어요(차트에서는 정확히 \(exact)%)."
     if spot.opens {
         why += " \(KO.topic(h.description)) 그 안에 들어와요."
     } else if let earliest = RFIChart.earliestSeatOpening(spot.hand) {
@@ -133,7 +134,7 @@ public func gradeRFI(userOpens: Bool, spot: RFISpot,
         why += " \(KO.topic(h.description)) 어느 자리에서도 열지 않아요."
     }
     if language == .english {
-        why = "\(h.description) · \(DrillTerms.chen(h, in: language))\n\(spot.seat.rawValue) opens the top \(Int(pct))% of hands. "
+        why = "\(h.description) · \(DrillTerms.chen(h, in: language))\n\(spot.seat.rawValue) opens about \(Int(pct))% of hands, strongest first (exactly \(exact)% in this chart). "
         if spot.opens { why += "\(h.description) is in that range." }
         else if let earliest = RFIChart.earliestSeatOpening(spot.hand) {
             why += "\(h.description) starts opening from \(earliest.rawValue)."

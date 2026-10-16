@@ -1580,8 +1580,9 @@ private struct FreeTableMathSummary: View {
                         if let card = Card(raw) { PlayingCardView(card: card, size: 36) }
                     }
                     if let top {
-                        Text(language.text("상위 \(top)%", "Top \(top)%")).font(GT.semibold(13))
-                            .padding(6).background(GT.glass, in: Capsule())
+                        Text(PracticeDecisionFacts.startingHandRank(top, language: language)).font(GT.semibold(13))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(6).background(GT.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
                 }
             }.foregroundStyle(GT.ink).fixedSize(horizontal: false, vertical: true)
