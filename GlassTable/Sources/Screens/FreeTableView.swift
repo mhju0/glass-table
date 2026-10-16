@@ -1554,6 +1554,7 @@ private struct FreeTableMathTiles: View {
 
 private struct FreeTableMathSummary: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var typeSize
     let pot: Int
     let call: Int
     let need: Int?
@@ -1579,16 +1580,22 @@ private struct FreeTableMathSummary: View {
                     ForEach(hole, id: \.self) { raw in
                         if let card = Card(raw) { PlayingCardView(card: card, size: 36) }
                     }
-                    if let top {
-                        Text(PracticeDecisionFacts.startingHandRank(top, language: language)).font(GT.semibold(13))
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(6).background(GT.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    }
+                    if let top, !typeSize.isAccessibilitySize { rankLabel(top) }
                 }
             }.foregroundStyle(GT.ink).fixedSize(horizontal: false, vertical: true)
              .accessibilityElement(children: .contain)
              .accessibilityIdentifier("free-math-hand")
+            // Beside the cards a large rank wraps a word per line, so it takes its own row.
+            if hand == nil, let top, typeSize.isAccessibilitySize {
+                rankLabel(top).foregroundStyle(GT.ink).accessibilityIdentifier("free-math-rank")
+            }
         }
+    }
+
+    private func rankLabel(_ top: Int) -> some View {
+        Text(PracticeDecisionFacts.startingHandRank(top, language: language)).font(GT.semibold(13))
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(6).background(GT.glass, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 

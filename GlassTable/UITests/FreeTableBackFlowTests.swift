@@ -246,6 +246,11 @@ final class FreeTableBackFlowTests: XCTestCase {
         let hand = app.descendants(matching: .any)["free-math-hand"]
         reveal(hand, app: app, scroll: body)
         attach(app, "\(language)-AX-math-hand")
+        // At AX sizes the starting-hand rank sits on its own row under the cards.
+        let rank = app.descendants(matching: .any)["free-math-rank"]
+        reveal(rank, app: app, scroll: body)
+        XCTAssertGreaterThanOrEqual(rank.frame.minY, hand.frame.maxY - 0.5)
+        attach(app, "\(language)-AX-math-rank")
         let tabs = app.scrollViews["free-back-tabs"]
         reveal(tabs, app: app, scroll: app.scrollViews["free-dock-content"])
         for id in ["hint", "hand", "rules"] {
