@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import Foundation
 
-/// Bill Chen's starting-hand formula (Chen & Ankenman, *The Mathematics of Poker*,
-/// 2006), ported verbatim.
+/// After Bill Chen's starting-hand formula (Chen & Ankenman, *The Mathematics of
+/// Poker*, 2006): an app-specific Chen-based score that keeps half points (audit N10).
+/// The worked, localized arithmetic for a hand lives in `DrillTerms.chen`.
 ///
 /// **Why this and not an equity ranking.** The obvious derivation — rank hands by
 /// all-in equity versus a random hand — was measured over all 169 classes and puts
@@ -68,29 +69,6 @@ public enum Chen {
         if a.suited != b.suited { return a.suited }
         if a.gap != b.gap { return a.gap < b.gap }
         return a.high > b.high
-    }
-
-    /// A human-readable derivation of the score, for the reveal — the transparency
-    /// payload. "A 10 + 수티드 2 − 갭 2 = 10" rather than a bare number.
-    public static func explain(_ h: HandClass) -> String {
-        let r = HandClass.rankChars
-        var parts: [String] = []
-        let base = highCardValue(max(h.high, h.low))
-        if h.isPair {
-            parts.append("\(r[h.high - 2]) \(fmt(base)) × 2 = \(fmt(max(base * 2, 5)))")
-            if base * 2 < 5 { parts.append("최소 5 적용") }
-        } else {
-            parts.append("\(r[max(h.high, h.low) - 2]) \(fmt(base))")
-        }
-        if h.suited { parts.append("수티드 +2") }
-        let pen = gapPenalty(h.gap)
-        if pen > 0 { parts.append("갭 \(h.gap) −\(fmt(pen))") }
-        if !h.isPair, h.gap <= 1, h.high < 12 { parts.append("스트레이트 보너스 +1") }
-        return parts.joined(separator: " · ") + " = \(fmt(score(h)))"
-    }
-
-    private static func fmt(_ x: Double) -> String {
-        abs(x - x.rounded()) < 0.01 ? "\(Int(x.rounded()))" : String(format: "%.1f", x)
     }
 }
 

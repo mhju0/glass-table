@@ -390,7 +390,7 @@ public enum BeatScript {
                        + "많을수록 좁게 열어요.",
                  focus: .table, highlight: s.hand),
             Beat("이 핸드의 점수", value: "\(pctTextScore(Chen.score(h)))점",
-                 detail: Chen.explain(h),
+                 detail: DrillTerms.chen(h, in: .korean),
                  focus: .table, highlight: s.hand),
             Beat("\(KO.subject(s.seat.rawValue)) 여는 범위", value: "상위 \(Int(pct))%",
                  detail: "점수 순으로 위에서 \(Int(pct))%까지예요.",
