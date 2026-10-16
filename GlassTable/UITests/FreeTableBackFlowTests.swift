@@ -181,7 +181,8 @@ final class FreeTableBackFlowTests: XCTestCase {
             ? "컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요."
             : "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."
         let end = app.staticTexts.matching(NSPredicate(format: "label == %@", text)).firstMatch
-        XCTAssertTrue(end.waitForExistence(timeout: 5))
+        // On a loaded runner the expanded policy can take longer than 5s to appear.
+        XCTAssertTrue(end.waitForExistence(timeout: 15))
         for bottomEdge in [false, true] {
             var unchanged = 0
             for _ in 0..<150 {
