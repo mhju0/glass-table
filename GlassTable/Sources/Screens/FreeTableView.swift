@@ -247,10 +247,8 @@ struct FreeTableView: View {
         .gtChrome(leading: {
             HStack(alignment: typeSize.isAccessibilitySize ? .top : .center, spacing: 10) {
                 ChromeButton.close(onClose)
-                // Capped like the guide's header: at the largest sizes the dock needs the height.
-                Text(title(table)).font(GT.semibold(15)).foregroundStyle(GT.onFeltSecondary)
+                GTActionCaption(text: title(table), weight: .semibold, baseSize: 15, ink: GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
-                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             }
         }, trailing: {
             Menu {
