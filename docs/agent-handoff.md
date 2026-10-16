@@ -120,8 +120,9 @@ Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
   audit #34/#41 compact-grid rank headers stay as they are.
 
 Product and numbers:
-- Numerical audit N08–N12 and model qualifications; graded-flop sampling sensitivity
-  against the 0.5/2bb thresholds is not bounded (`docs/records/2026-10-11-numerical-audit.md`).
+- Numerical audit N08–N12 and model qualifications
+  (`docs/records/2026-10-11-numerical-audit.md`). Graded-flop sampling is gone: the flop
+  is exact on `feat/exact-flop-equity-20261016` (D49), once merged.
 - Build 15 crawl candidates never verified: short tap heights on ‘설명 접기’,
   ‘안내 건너뛰기’, ‘계산 보기’, ‘전체 차트 보기’, ‘크게 보고 핸드 찾기’; unlabelled buttons
   on free-table setup. Free-table review once paired 33% with "four wins in ten".
@@ -160,6 +161,20 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-16 (Claude · exact flop equity)
+
+- Owner approved replacing the graded table's 200-sample flop equity with exact
+  enumeration (D49). Branch `feat/exact-flop-equity-20261016` from the local
+  integration commit `9bb6c66` (PRs #19-#21); PR opened, not merged.
+- `exactEquitiesHeadsUp` (Engine) scores hero once per runout and shares it across the
+  range; `TableHand.comboEquities()` uses it on every street. `handSeed` was removed.
+  Reveal basis copy (KO/EN) no longer calls the flop a sampled estimate.
+- Grading already ran off the main thread (`TableView.prepareOptions`); only the
+  DEBUG `GT_DEMO_TABLE_STEP` hook grades on main (about 0.4-0.6s for its flop).
+- Release per flop decision on an M1 Pro, 200 seeded decisions: p50 41ms, p95 159ms,
+  max 196ms. Debug: about 1-2.5s. Not yet timed on the iPhone 12 mini.
+- Next: owner reviews the PR; time a flop decision on the phone against D07's 200ms.
 
 ### 2026-10-15 (Claude · records cleanup and PR #11)
 
@@ -233,15 +248,3 @@ Tests:
   starting check, outs choices).
 - Owner approved merging both branches; done via PR #12 and the fix branch PR.
 - Next: owner decides the items left open; before/after mocks were published.
-
-### 2026-10-15 (Claude · lean CI and TestFlight)
-
-- Owner asked for proper CI/CD and chose a lean pipeline over the Codex 3×130-minute
-  shard work. Ported Codex's two Xcode 26.3 type-check splits (`WalkthroughView`
-  header, `PracticeTableQuickGameTests`) without its handoff edits; main CI had failed on
-  them. Push CI now runs unit tests only; the UI suite moved to a nightly workflow;
-  tags ship to TestFlight.
-- Verification: Drills tests and the app build pass locally; CI run 38591907357 passed on
-  the branch in 22 minutes (unit tests 5, Release smoke 12, device Release build 3).
-- Next: owner merges the branch, stops the Codex CI session, then does the one-time
-  TestFlight setup in `docs/ci-cd.md` and pushes the first tag.
