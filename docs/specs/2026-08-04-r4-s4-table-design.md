@@ -84,10 +84,11 @@ checkdown equity vs `w` on the current board):
 - 레이즈 to `R` over his `b`: folds → `+pot+b`; calls (or capped re-raise) →
   `e·(pot+2R) − R`.
 
-Per-combo equities: exact on the river (one comparison) and turn (44 rivers);
-fixed-seed Monte Carlo (200 samples/combo) on the flop, where exact enumeration
-measured too slow for a debug build. All seeded, so the same hand grades identically
-every run.
+Per-combo equities: exact on the river (one comparison), turn (44 rivers) and
+flop (every turn and river; hero's key per runout is shared across the range). The
+flop used 200 fixed-seed samples per combo until 2026-10-16, when exact enumeration
+replaced it (release p95 about 160ms per flop decision on an M1 Pro). The same hand
+grades identically every run.
 
 ## 4. What the user sees
 
