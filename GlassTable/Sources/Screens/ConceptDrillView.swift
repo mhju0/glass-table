@@ -1168,30 +1168,10 @@ private struct PositionDrill: View {
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 
-    /// At the accessibility sizes the one-row strip cannot grow, so the same seating is
-    /// said in a sentence that does.
     @ViewBuilder private var seatDiagram: some View {
         LessonSeatLoop(markers: Dictionary(uniqueKeysWithValues: Position.allCases.compactMap { position in
             marker(position).map { (position, $0) }
         }), showsOrder: reveal != nil, postflop: !isPreflop)
-    }
-
-    private var seatSentence: String {
-        guard !termsLead, reveal == nil else {
-            return seatOrder.map { p in marker(p).map { "\(p.rawValue) (\($0))" } ?? p.rawValue }
-                .joined(separator: " → ")
-        }
-        var runs: [(name: String, count: Int, marks: [String])] = []
-        for p in [Position.btn, .sb, .bb, .utg, .utg1, .lj, .hj, .co] {
-            let name = groupName(p)
-            if runs.last?.name != name { runs.append((name, 0, [])) }
-            runs[runs.count - 1].count += 1
-            if let mark = marker(p) { runs[runs.count - 1].marks.append(mark) }
-        }
-        return runs.map { run in
-            let marks = run.marks.isEmpty ? "" : " (\(run.marks.joined(separator: ", ")))"
-            return language.text("\(run.name) \(run.count)명\(marks)", "\(run.name) \(run.count)\(marks)")
-        }.joined(separator: " → ")
     }
 
     /// The seat the question is about. With codes showing, a two-seat question names

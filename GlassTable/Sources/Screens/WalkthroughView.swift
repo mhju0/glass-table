@@ -376,19 +376,14 @@ struct WalkthroughView: View {
         }
     }
 
-    /// Four states, and none of them removes the card from the layout.
+    /// Three states, and none of them removes the card from the layout.
     private func cardView(_ card: Card, size: CGFloat) -> some View {
         let lit = beat.highlight.contains(card)
         let dead = beat.struck.contains(card)
-        let down = beat.hidden.contains(card)
         // Only dim when something is actually singled out, or a beat with no
         // highlight would grey the whole board for no reason.
-        let dim = !beat.highlight.isEmpty && !lit && !down
-        return PlayingCardView(card: card, size: size, faceDown: down)
-            // The river landing: it flips up and settles, so the one card that
-            // changed is the one thing that moved.
-            .rotation3DEffect(.degrees(down ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-            .scaleEffect(down ? 0.96 : 1)
+        let dim = !beat.highlight.isEmpty && !lit
+        return PlayingCardView(card: card, size: size)
             .overlay {
                 if dead {
                     // Strike + a red bar, so "removed" survives greyscale.
@@ -410,7 +405,6 @@ struct WalkthroughView: View {
                         .strokeBorder(GT.mint, lineWidth: 3)
                 }
             }
-            .animation(reduceMotion ? nil : GT.Motion.change, value: down)
             .animation(reduceMotion ? nil : GT.Motion.change, value: lit)
             .animation(reduceMotion ? nil : GT.Motion.change, value: index)
             .accessibilityLabel(accessibilityText(card, lit: lit, dead: dead))

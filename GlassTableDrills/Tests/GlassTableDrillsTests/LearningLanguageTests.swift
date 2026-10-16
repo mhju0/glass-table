@@ -20,8 +20,6 @@ struct LearningLanguageTests {
                             "\(concept) seed \(seed) beat \(index): highlight differs")
                     #expect(ko[index].struck == en[index].struck,
                             "\(concept) seed \(seed) beat \(index): struck differs")
-                    #expect(ko[index].hidden == en[index].hidden,
-                            "\(concept) seed \(seed) beat \(index): hidden differs")
                 }
             }
         }

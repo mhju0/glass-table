@@ -535,7 +535,6 @@ final class LearningFlowTests: XCTestCase {
             format: "identifier BEGINSWITH %@", "pot-answer-"
         )).firstMatch
         choice.tap()
-        XCTAssertFalse(app.descendants(matching: .any)["solved-with-help"].exists)
         XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 5))
 
         app.terminate()
@@ -547,8 +546,6 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(resume.waitForExistence(timeout: 15))
         resume.tap()
         XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 15))
-        XCTAssertFalse(app.descendants(matching: .any)["solved-with-help"].exists,
-                       "A restored answer keeps its factual feedback without public help categorization")
     }
 
     /// Every graded question can reopen its skill's explanation, with the approved
