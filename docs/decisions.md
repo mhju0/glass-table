@@ -780,8 +780,8 @@ questionnaire, regional path and the other distribution gates in
 ### D42 · Still genuinely open
 **Status: UNKNOWN / DEFERRED**
 
-- **Korean app name / branding** — "Glass Table", 유리 테이블, or a bilingual lockup? Never
-  decided (`open-questions.md` #12).
+- **Korean app name / branding** — decided 2026-10-16 (owner): "Glass Table" in both stores,
+  matching the GRAC application (`open-questions.md` #12).
 - **A 6-max table-size option** — cheap after 8-max, demand unconfirmed (#14).
 - **`.glasstable` puzzle-sharing schema** — never designed; blocks the post-v1 Lab (#16).
 - **Whether the archetype bot is *useful*, not merely correct** — the top-severity entry in
