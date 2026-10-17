@@ -5,15 +5,16 @@ import GlassTableEngine
 import GlassTableDrills
 
 /// The ungraded lesson before 쇼다운: the hand-ranking ladder with engine-counted
-/// frequencies, and one check question. How a hand is dealt and best five of seven are
+/// frequencies, a check question, and a same-pair check that introduces the kicker. How a hand is dealt and best five of seven are
 /// taught in the first-run guide.
 /// Content sits above; everything the learner taps sits in the bottom panel.
 struct HoldemBasicsView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
 
-    private enum Page: Int { case ladder, check }
+    private enum Page: Int { case ladder, check, kicker }
 
     let onClose: () -> Void
     /// `true` when the learner chose to go straight on to the first course lesson.
@@ -21,6 +22,8 @@ struct HoldemBasicsView: View {
 
     @State private var page: Page = .ladder
     @State private var answer: String?
+    /// The same-pair page's pick: 0 my cards, 1 the opponent's, 2 a tie, as `BestFivePair.winner`.
+    @State private var kickerAnswer: Int?
 
     @State private var variationSeed: UInt64 = 0
     @State private var rotationLoaded = false
@@ -53,7 +56,7 @@ struct HoldemBasicsView: View {
         checkRanks[checkSpot.winner]
     }
 
-    private let pageCount = 2
+    private let pageCount = 3
 
     var body: some View {
         VStack(spacing: 0) {
@@ -74,12 +77,21 @@ struct HoldemBasicsView: View {
                     .padding(.horizontal, GT.Space.edge).padding(.bottom, 28)
                 }
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: GT.Space.section) { content }
-                        .padding(.horizontal, GT.Space.edge).padding(.vertical, 12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: GT.Space.section) { content }
+                            .padding(.horizontal, GT.Space.edge).padding(.vertical, 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
+                    // The duel is the point of the page; bring it above the answer sheet.
+                    .onChange(of: kickerAnswer) { _, answer in
+                        guard answer != nil else { return }
+                        withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                            proxy.scrollTo(Self.kickerDuelID, anchor: .bottom)
+                        }
+                    }
                 }
-                .scrollBounceBehavior(.basedOnSize)
                 ActionSheet(band: band) {
                     VStack(alignment: .leading, spacing: GT.Space.related) { panel }
                 }
@@ -89,8 +101,8 @@ struct HoldemBasicsView: View {
         .background(FeltBackground())
         .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { value in
             guard value.startLocation.x < 24, value.translation.width > 80,
-                  abs(value.translation.height) < 60, page == .check else { return }
-            page = .ladder
+                  abs(value.translation.height) < 60, page != .ladder else { return }
+            page = page == .kicker ? .check : .ladder
         })
         .gtChrome(leading: {
             ChromeButton.close(onClose).accessibilityIdentifier("basics.close")
@@ -112,6 +124,9 @@ struct HoldemBasicsView: View {
             case "check-wrong":
                 variationSeed = demoSeed; page = .check
                 answer = checkRanks.first { $0.id != winningCheck.id }?.id
+            case "kicker": page = .kicker
+            case "kicker-right": page = .kicker; kickerAnswer = kickerPair.winner
+            case "kicker-wrong": page = .kicker; kickerAnswer = (kickerPair.winner + 1) % 3
             default: break
             }
             #endif
@@ -119,9 +134,14 @@ struct HoldemBasicsView: View {
     }
 
     private var band: GradeBand? {
-        guard page == .check, let answer else { return nil }
-        return answer == winningCheck.id ? .spotOn : .off
+        switch page {
+        case .ladder: return nil
+        case .check: return answer.map { $0 == winningCheck.id ? .spotOn : .off }
+        case .kicker: return kickerAnswer.map { $0 == kickerPair.winner ? .spotOn : .off }
+        }
     }
+
+    private var kickerPair: BestFivePair { BestFivePair(HoldemBasics.kickerCheck) }
 
     // MARK: Header
 
@@ -150,6 +170,7 @@ struct HoldemBasicsView: View {
         switch page {
         case .ladder: ladderPage
         case .check: checkPage
+        case .kicker: kickerPage
         }
     }
 
@@ -274,6 +295,111 @@ struct HoldemBasicsView: View {
                              mark?.text].compactMap { $0 }.joined(separator: ", "))
     }
 
+    /// Both hands share a pair of Js. Before the pick only the cards show; after it the
+    /// rows, the engine's line, and the duel that settles it: the equal pairs set aside,
+    /// then the kicker against the kicker.
+    private var kickerPage: some View {
+        let spot = HoldemBasics.kickerCheck
+        return VStack(alignment: .leading, spacing: GT.Space.section) {
+            intro(language.text("같은 페어라면?", "Same pair?"),
+                  language.text("둘 다 J 원 페어를 만들었어요. 어느 쪽이 이길까요?",
+                                "Both make a pair of Js. Which side wins?"))
+            if kickerAnswer == nil {
+                VStack(alignment: .leading, spacing: 12) {
+                    kickerCards(language.text("내 카드", "My cards"), spot.hero)
+                    kickerCards(language.text("상대 카드", "Opponent's cards"), spot.villain)
+                    kickerCards(language.text("공용 카드", "Board"), spot.board)
+                }
+                .gtInset(GT.Space.card, firstText: .semibold(13))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .gtCard(radius: GT.Radius.panel)
+            } else {
+                BestFiveComparison(pair: kickerPair)
+                    .gtInset(GT.Space.card, firstText: .semibold(13))
+                    .gtCard(radius: GT.Radius.panel)
+                kickerDuel
+            }
+        }
+    }
+
+    private func kickerCards(_ title: String, _ cards: [Card]) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
+            HStack(spacing: 5) {
+                ForEach(cards, id: \.self) { PlayingCardView(card: $0, size: 50) }
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title), \(cards.map { $0.spoken(in: language) }.joined(separator: ", "))")
+    }
+
+    /// K2: the equal pairs small and dimmed, then the two kickers large, the winning
+    /// one outlined like a deciding card in the rows above.
+    private var kickerDuel: some View {
+        let pair = kickerPair
+        let mine = pair.first, theirs = pair.second
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Text(language.text("키커", "Kicker")).font(GT.title(17)).foregroundStyle(GT.ink)
+                Text(language.text("kicker", "키커")).font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+            }
+            .accessibilityElement(children: .combine)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    duelCards(HoldemBasics.pairCards(mine))
+                    Text("=").font(GT.title(17)).foregroundStyle(GT.inkSecondary)
+                    duelCards(HoldemBasics.pairCards(theirs))
+                }
+                .opacity(0.55)
+                .accessibilityHidden(true)
+                Text(HoldemBasics.samePairLine(mine, in: language))
+                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(alignment: .center, spacing: 14) {
+                duelKicker(mine, wins: pair.winner == 0)
+                Text(pair.winner == 0 ? ">" : pair.winner == 1 ? "<" : "=")
+                    .font(GT.title(28)).foregroundStyle(GT.ink)
+                    .accessibilityHidden(true)
+                duelKicker(theirs, wins: pair.winner == 1)
+            }
+            GlossaryChip(term: "키커").accessibilityIdentifier("basics.kicker-glossary")
+        }
+        .gtInset(GT.Space.card, firstText: .title(17))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .gtCard(radius: GT.Radius.panel)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("basics.kicker-duel")
+        .id(Self.kickerDuelID)
+    }
+
+    private static let kickerDuelID = "basics.kicker-duel"
+
+    private func duelCards(_ cards: [Card]) -> some View {
+        HStack(spacing: 3) {
+            ForEach(cards, id: \.self) { PlayingCardView(card: $0, size: 30) }
+        }
+    }
+
+    private static let duelCardSize: CGFloat = 56
+
+    private func duelKicker(_ hand: BestFiveHand, wins: Bool) -> some View {
+        VStack(spacing: 4) {
+            ForEach(hand.deciding, id: \.self) { card in
+                PlayingCardView(card: card, size: Self.duelCardSize)
+                    .overlay {
+                        if wins {
+                            RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: Self.duelCardSize))
+                                .strokeBorder(GT.cta, lineWidth: 2.5)
+                        }
+                    }
+            }
+            Text(hand.owner.title(in: language))
+                .font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
     // MARK: Bottom panel
 
     @ViewBuilder
@@ -286,6 +412,30 @@ struct HoldemBasicsView: View {
             // Previous never stands alone; it returns beside the next step once answered.
             if let answer { verdict(correct: answer == winningCheck.id) }
             else { checkChoices }
+        case .kicker:
+            if let kickerAnswer { kickerVerdict(correct: kickerAnswer == kickerPair.winner) }
+            else { kickerChoices }
+        }
+    }
+
+    private var kickerChoices: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(language.text("이기는 쪽을 골라요", "Choose the winner"))
+                .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(spacing: 10))
+            layout {
+                let choices = [("mine", language.text("내 카드", "My cards")),
+                               ("theirs", language.text("상대 카드", "Opponent's cards")),
+                               ("tie", language.text("비겨요", "Tie"))]
+                ForEach(choices.indices, id: \.self) { index in
+                    GTChoiceButton(title: choices[index].1) {
+                        kickerAnswer = index
+                        AppFeedback.answer(correct: index == kickerPair.winner)
+                    }
+                    .accessibilityIdentifier("basics.kicker.choice.\(choices[index].0)")
+                }
+            }
         }
     }
 
@@ -312,21 +462,38 @@ struct HoldemBasicsView: View {
         return model.status(of: first) != .cleared
     }
 
-    private func verdict(correct: Bool) -> some View {
+    private func verdictTitle(correct: Bool, wrong: String) -> some View {
         let band: GradeBand = correct ? .spotOn : .off
-        return VStack(alignment: .leading, spacing: GT.Space.related) {
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: band.glyph)
-                    .font(.system(size: 26, weight: .semibold)).foregroundStyle(band.ink)
-                    .accessibilityHidden(true)
-                Text(correct ? language.text("맞았어요", "That's right")
-                             : language.text("이기는 패를 확인해요", "Check the winning hand"))
-                    .font(GT.title(GT.Typography.resultSize)).foregroundStyle(band.ink)
-                    .fixedSize(horizontal: false, vertical: true)
+        return HStack(alignment: .top, spacing: 10) {
+            Image(systemName: band.glyph)
+                .font(.system(size: 26, weight: .semibold)).foregroundStyle(band.ink)
+                .accessibilityHidden(true)
+            Text(correct ? language.text("맞았어요", "That's right") : wrong)
+                .font(GT.title(GT.Typography.resultSize)).foregroundStyle(band.ink)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("basics.verdict")
+    }
+
+    /// The line is the rows' own (`BestFivePair.why`), already shown with them above.
+    private func kickerVerdict(correct: Bool) -> some View {
+        VStack(alignment: .leading, spacing: GT.Space.related) {
+            verdictTitle(correct: correct, wrong: language.text("이기는 쪽을 확인해요", "Check the winning side"))
+            GTStepRow(previous: { page = .check }, previousID: "basics.previous") {
+                PrimaryCTAButton(title: startsCourse ? language.text("다음 레슨 시작", "Start the next lesson")
+                                                     : language.text("마치기", "Done")) {
+                    onFinish(startsCourse)
+                }
+                .accessibilityIdentifier("basics.finish")
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("basics.verdict")
+        }
+    }
+
+    private func verdict(correct: Bool) -> some View {
+        VStack(alignment: .leading, spacing: GT.Space.related) {
+            verdictTitle(correct: correct, wrong: language.text("이기는 패를 확인해요", "Check the winning hand"))
             RevealDetail {
                 Text(HoldemBasics.answerText(winner: winningCheck, in: language))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
@@ -334,11 +501,8 @@ struct HoldemBasicsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             GTStepRow(previous: { page = .ladder }, previousID: "basics.previous") {
-                PrimaryCTAButton(title: startsCourse ? language.text("다음 레슨 시작", "Start the next lesson")
-                                                     : language.text("마치기", "Done")) {
-                    onFinish(startsCourse)
-                }
-                .accessibilityIdentifier("basics.finish")
+                PrimaryCTAButton(title: language.text("다음", "Next")) { page = .kicker }
+                    .accessibilityIdentifier("basics.check-next")
             }
             if !correct {
                 // A miss gets a fresh pair of hands, since this one is already explained.

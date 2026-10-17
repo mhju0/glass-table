@@ -62,6 +62,8 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(
             format: "label BEGINSWITH %@", "플러시 쪽이 이겨요."
         )).firstMatch.waitForExistence(timeout: 5))
+        app.buttons["basics.check-next"].tap()
+        app.buttons["basics.kicker.choice.mine"].tap()
         app.buttons["basics.finish"].tap()
         XCTAssertTrue(app.buttons["guided-hand-invitation-continue"].waitForExistence(timeout: 10))
         app.buttons["guided-hand-invitation-continue"].tap()

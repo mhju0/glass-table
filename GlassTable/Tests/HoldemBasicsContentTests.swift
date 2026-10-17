@@ -1,5 +1,6 @@
 import XCTest
 import GlassTableEngine
+import GlassTableDrills
 @testable import GlassTable
 
 final class HoldemBasicsContentTests: XCTestCase {
@@ -77,5 +78,23 @@ final class HoldemBasicsContentTests: XCTestCase {
         XCTAssertEqual(twoPair.name(in: .english), "Two pair, K high")
         XCTAssertTrue(HoldemBasics.answerText(winner: twoPair, in: .english).hasPrefix("The two pair, K high, wins. "))
         XCTAssertTrue(HoldemBasics.answerText(winner: twoPair, in: .korean).hasPrefix("K 투 페어 쪽이 이겨요. "))
+    }
+
+    /// The third check (owner, 2026-10-17): both play the same pair of Js, and the
+    /// engine settles it on A♠ against Q♦, the kicker the duel panel shows.
+    func testKickerCheckIsTheSamePairSettledByTheKicker() {
+        let spot = HoldemBasics.kickerCheck
+        XCTAssertEqual(spot.heroBest, spot.villainBest)
+        XCTAssertEqual(spot.heroBest, HandBrief(category: 1, topRank: 11))
+        let pair = BestFivePair(spot)
+        XCTAssertEqual(pair.winner, 0)
+        XCTAssertEqual(pair.first.deciding, Card.parse("As")!)
+        XCTAssertEqual(pair.second.deciding, Card.parse("Qd")!)
+        XCTAssertEqual(Set(HoldemBasics.pairCards(pair.first)), Set(Card.parse("JhJs")!))
+        XCTAssertEqual(Set(HoldemBasics.pairCards(pair.second)), Set(Card.parse("JcJs")!))
+        XCTAssertEqual(HoldemBasics.samePairLine(pair.first, in: .korean), "J 페어는 같아요")
+        XCTAssertEqual(HoldemBasics.samePairLine(pair.first, in: .english), "The pair of Js is the same")
+        XCTAssertEqual(pair.why(in: .korean), "둘 다 J 원 페어예요. 키커가 승부를 갈랐어요. 내 A, 상대 Q라서 내 쪽이 이겨요.")
+        XCTAssertEqual(pair.why(in: .english), "Both have a pair of Js. The kicker decides it: your A beats the opponent's Q.")
     }
 }
