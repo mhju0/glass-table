@@ -47,7 +47,7 @@ struct RestoredDrillView: View {
         // The same shell as the question, so an answer restored after a relaunch keeps
         // the question's header and puts its explanation in the graded sheet.
         return DrillShell(title: ConceptDrillView.drillTitle(for: concept),
-                          progressText: progressText) {
+                          progressText: progressText, foldsOnReveal: concept == .outs) {
             RestoredDrillContextView(concept: concept, seed: seed, index: index,
                                      assisted: answer.isAssisted, input: input,
                                      answerID: "saved-answer-\(concept.rawValue)/\(seed)/\(index)")
@@ -214,7 +214,6 @@ private struct RestoredDrillContextView: View {
     @Environment(\.learningLanguage) private var language
     @State private var potStepIndex = 0
     @State private var showingPotHelp = false
-    @State private var selectedRiver: Card?
     let concept: Concept
     let seed: UInt64
     let index: Int
@@ -229,6 +228,11 @@ private struct RestoredDrillContextView: View {
     var body: some View {
         if concept == .showdown {
             showdownTable
+        } else if concept == .outs {
+            // A saved answer was already locked in, so the rivers are never early.
+            OutsRiverReveal(spot: OutsSpotGenerator.spot(baseSeed: seed, index: index))
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier(answerID)
         } else {
             replayPanel
         }
@@ -282,34 +286,7 @@ private struct RestoredDrillContextView: View {
                     }
                 }
             }
-            if concept == .outs {
-                let spot = OutsSpotGenerator.spot(baseSeed: seed, index: index)
-                Text(language.text("이기는 마지막 카드 · 눌러서 확인", "Winning final cards · tap to explore"))
-                    .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-                ForEach(Array(OutsOutcomeGroups.make(hero: spot.hero, villain: spot.villain, board: spot.board, candidates: spot.outs).enumerated()), id: \.offset) { _, group in
-                    if let representative = group.cards.first {
-                        let completed = ShowdownSpot(hero: spot.hero, villain: spot.villain, board: spot.board + [representative])
-                        let result = gradeShowdown(answer: completed.winner, spot: completed, language: language)
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(result.heroName + language.text(" · \(group.cards.count)장", " · \(group.cards.count) cards"))
-                                .font(GT.semibold(16)).fixedSize(horizontal: false, vertical: true)
-                            riverCards(group.cards, excluded: false)
-                            Text(result.whyText).font(GT.body(14)).fixedSize(horizontal: false, vertical: true)
-                        }
-                        .foregroundStyle(GT.ink).frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12).gtCard()
-                        Button(language.text("대표 카드로 비교", "Compare a representative")) { selectedRiver = representative }
-                            .buttonStyle(GTOutlinedAction())
-                    }
-                }
-
-                if !spot.excluded.isEmpty {
-                    Text(language.text("제외 · 무승부 또는 패배", "Excluded · ties or losses"))
-                        .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-                    riverCards(spot.excluded.sorted(by: BeatScript.byRank), excluded: true)
-                }
-                if let selectedRiver { RiverExplainPanel(spot: spot, river: selectedRiver) }
-            } else if concept == .rangeRead, let input,
+            if concept == .rangeRead, let input,
                       let result = RestoredLessonEvidence.rangeReveal(seed: seed, index: index, input: input, language: language) {
                 Text(language.text("색: 정답 · 테두리: 선택한 답", "Fill: answer · outline: your estimate"))
                     .font(GT.body(14)).foregroundStyle(GT.onFelt)
@@ -327,22 +304,6 @@ private struct RestoredDrillContextView: View {
                 PotMathIntroView { showingPotHelp = false }
                     .gtChrome(leading: { ChromeButton.close { showingPotHelp = false } })
                     .gtSheetSurface()
-            }
-        }
-    }
-
-    private func riverCards(_ cards: [Card], excluded: Bool) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)], spacing: 9) {
-            ForEach(cards, id: \.self) { card in
-                Button { selectedRiver = card } label: {
-                    PlayingCardView(card: card, dead: excluded)
-                        .overlay {
-                            if selectedRiver == card {
-                                RoundedRectangle(cornerRadius: 5).strokeBorder(GT.cta, lineWidth: 3)
-                            }
-                        }
-                }.buttonStyle(GTPress())
-                    .accessibilityHint(language.text("리버 완성 핸드 보기", "See the completed river hand"))
             }
         }
     }

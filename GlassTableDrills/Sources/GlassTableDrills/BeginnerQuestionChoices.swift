@@ -72,17 +72,16 @@ public enum LessonSessionSeed {
 
 public struct OutsOutcomeGroup: Equatable {
     public let cards: [Card]
-    public let heroCategory: Int
-    public let heroRanks: [Int]
-    public let villainCategory: Int
-    public let villainRanks: [Int]
-    public let winner: Int
+    /// `HandBrief.category` of my best five once the river is dealt.
+    public let category: Int
+    /// A royal flush is listed apart from other straight flushes, as on the hand-rank page.
+    public let isRoyal: Bool
 }
 
 public enum OutsOutcomeGroups {
-    /// Rank multisets of the engine-selected best five retain every kicker and
-    /// lower pair. Suits remain on candidate cards but do not break poker ties.
-    /// Groups come strongest hero hand first; cards within a group ace first.
+    /// River cards grouped by the kind of hand they give me. The exact names, kickers and
+    /// the opponent's hand can differ inside a group, so the reveal reads them per card.
+    /// Groups come strongest hand first; cards within a group ace first.
     public static func make(hero: [Card], villain: [Card], board: [Card], candidates: [Card]) -> [OutsOutcomeGroup] {
         let known = hero + villain + board
         guard hero.count == 2, villain.count == 2, board.count == 4,
@@ -90,35 +89,20 @@ public enum OutsOutcomeGroups {
               (known + candidates).allSatisfy({ (2...14).contains($0.rank) && (0...3).contains($0.suit) })
         else { return [] }
         var groups: [OutsOutcomeGroup] = []
-        for card in candidates where !(hero + villain + board).contains(card) {
-            let spot = ShowdownSpot(hero: hero, villain: villain, board: board + [card])
-            let h = bestFiveCards(hero + spot.board).map(\.rank).sorted(by: >)
-            let v = bestFiveCards(villain + spot.board).map(\.rank).sorted(by: >)
-            let hc = spot.heroBest.category, vc = spot.villainBest.category, winner = spot.winner
-            if let index = groups.firstIndex(where: {
-                $0.heroCategory == hc && $0.heroRanks == h && $0.villainCategory == vc
-                    && $0.villainRanks == v && $0.winner == winner
-            }) {
+        for card in candidates where !known.contains(card) {
+            let brief = bestHand(hero + board + [card])
+            let royal = brief.category == 8 && brief.topRank == 14
+            if let index = groups.firstIndex(where: { $0.category == brief.category && $0.isRoyal == royal }) {
                 let old = groups[index]
                 if !old.cards.contains(card) {
-                    groups[index] = OutsOutcomeGroup(cards: old.cards + [card], heroCategory: hc,
-                        heroRanks: h, villainCategory: vc, villainRanks: v, winner: winner)
+                    groups[index] = OutsOutcomeGroup(cards: old.cards + [card], category: old.category, isRoyal: royal)
                 }
             } else {
-                groups.append(OutsOutcomeGroup(cards: [card], heroCategory: hc, heroRanks: h,
-                    villainCategory: vc, villainRanks: v, winner: winner))
+                groups.append(OutsOutcomeGroup(cards: [card], category: brief.category, isRoyal: royal))
             }
         }
         return groups
-            .map { group in
-                OutsOutcomeGroup(cards: group.cards.sorted(by: BeatScript.byRank),
-                                 heroCategory: group.heroCategory, heroRanks: group.heroRanks,
-                                 villainCategory: group.villainCategory, villainRanks: group.villainRanks,
-                                 winner: group.winner)
-            }
-            .sorted { a, b in
-                a.heroCategory != b.heroCategory ? a.heroCategory > b.heroCategory
-                    : a.heroRanks.lexicographicallyPrecedes(b.heroRanks, by: >)
-            }
+            .map { OutsOutcomeGroup(cards: $0.cards.sorted(by: BeatScript.byRank), category: $0.category, isRoyal: $0.isRoyal) }
+            .sorted { a, b in a.category != b.category ? a.category > b.category : a.isRoyal && !b.isRoyal }
     }
 }
