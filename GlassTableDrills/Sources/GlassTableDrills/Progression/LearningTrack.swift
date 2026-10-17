@@ -24,6 +24,17 @@ public struct LearningTrack: Equatable, Identifiable, Sendable {
     }
 }
 
+/// The one lesson Learn marks (owner, 2026-10-17). Read from saved state only: there
+/// is no record of the last lesson, and none is needed.
+public enum MarkedLesson: Equatable, Sendable {
+    /// A lesson left part-way; it picks up where the learner stopped.
+    case inProgress(CurriculumNode)
+    /// Hold'em basics, for a new player who has not started yet.
+    case basics
+    /// The suggested next lesson (`suggestedLesson`).
+    case next(CurriculumNode)
+}
+
 public extension Curriculum {
     /// The path a new player is shown (decisions D46, D48). Lessons outside it stay in
     /// `units` with their saved progress, but are not offered. Top to bottom is the
@@ -57,6 +68,26 @@ public extension Curriculum {
         let start = startIndex(in: state)
         let owed = { (lesson: CurriculumNode) in lesson != skipped && isOwed(lesson, in: state) }
         return trackLessons[start...].first(where: owed) ?? trackLessons[..<start].first(where: owed)
+    }
+
+    /// The open, unfinished lesson; else Hold'em basics while it is suggested; else the
+    /// suggested lesson. A session saved at `.finished` (a summary closed with ✕) has
+    /// nothing left to continue, so it counts as closed. Nil once every lesson is passed.
+    static func markedLesson(in state: ProgressState) -> MarkedLesson? {
+        if let session = state.activeNodeSession, session.phase != .finished,
+           let node = node(id: session.nodeID) {
+            return .inProgress(node)
+        }
+        if suggestsBasicsLesson(in: state) { return .basics }
+        return suggestedLesson(in: state).map { .next($0) }
+    }
+
+    /// A new player who skipped the starting check and has passed nothing yet.
+    static func suggestsBasicsLesson(in state: ProgressState) -> Bool {
+        state.basicsLessonCompleted != true
+            && state.level == .newToPoker
+            && state.placement?.recommendedConcept == nil
+            && !allNodes.contains { status(of: $0.id, in: state) == .cleared }
     }
 
     /// Where the suggested order begins: the starting check's result, or the level's

@@ -324,12 +324,10 @@ final class ProgressionModel {
 
     /// Learn leads with the basics lesson only for someone who has not started the
     /// course: nothing cleared, no starting-point recommendation, lesson unfinished.
-    var shouldSuggestBasicsLesson: Bool {
-        state.basicsLessonCompleted != true
-            && state.level == .newToPoker
-            && state.placement?.recommendedConcept == nil
-            && !Curriculum.allNodes.contains { status(of: $0) == .cleared }
-    }
+    var shouldSuggestBasicsLesson: Bool { Curriculum.suggestsBasicsLesson(in: state) }
+
+    /// The one row Learn marks.
+    var markedLesson: MarkedLesson? { Curriculum.markedLesson(in: state) }
 
     /// Like the first lesson, the basics lesson is practice: finishing it writes only
     /// its marker.
