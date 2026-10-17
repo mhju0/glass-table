@@ -187,9 +187,9 @@ final class BestFiveComparisonTests: XCTestCase {
         let mine = app.buttons["basics.kicker.choice.mine"]
         reach(mine, app: app)
         XCTAssertTrue(app.staticTexts[ko ? "같은 페어라면?" : "Same pair?"].exists)
-        XCTAssertEqual(app.buttons["basics.kicker.choice.theirs"].label, ko ? "상대 카드" : "Opponent's cards")
-        XCTAssertEqual(app.buttons["basics.kicker.choice.tie"].label, ko ? "비겨요" : "Tie")
-        XCTAssertEqual(mine.label, ko ? "내 카드" : "My cards")
+        XCTAssertEqual(app.buttons["basics.kicker.choice.theirs"].label, ko ? "상대가 이김" : "They win")
+        XCTAssertEqual(app.buttons["basics.kicker.choice.tie"].label, ko ? "무승부" : "Tie")
+        XCTAssertEqual(mine.label, ko ? "내가 이김" : "I win")
         XCTAssertFalse(comparison(app).exists, "Never before the answer is locked in")
         XCTAssertFalse(app.descendants(matching: .any)["basics.kicker-duel"].exists)
         XCTAssertFalse(app.buttons["basics.kicker-glossary"].exists)
