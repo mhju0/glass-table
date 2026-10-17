@@ -716,7 +716,10 @@ struct ActionSheet<Content: View>: View {
     @ViewBuilder
     private var sheetBackground: some View {
         if #available(iOS 26.0, *), floats {
-            let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+            // The floating card's bottom corners follow the display's rounded corners
+            // (concentric, as system sheets do); a fixed small radius cut into the curve.
+            let shape = ConcentricRectangle(uniformTopCorners: .fixed(GT.Radius.control),
+                                            uniformBottomCorners: .concentric(minimum: .fixed(GT.Radius.control)))
             if let band {
                 shape.fill(band.tint).overlay(shape.stroke(band.ink, lineWidth: 2))
             } else {
