@@ -142,6 +142,29 @@ final class ShowdownTests: XCTestCase {
                        "Both players make equally strong five-card hands: two pair, K high. It is a tie.")
     }
 
+    /// After "have" or "beats" a lone name needs "a"/"an" where English uses one: a pair,
+    /// a straight, a flush, a full house, a straight flush, a royal flush. High card,
+    /// two pair, three and four of a kind take none.
+    func testHandWithArticleReadsAsEnglish() {
+        XCTAssertEqual(shapes.map { DrillTerms.handWithArticle(brief($0), in: .english) },
+                       ["A high", "a pair of Ks", "two pair, K high", "three 7s", "a 10-high straight",
+                        "an A-high flush", "a full house, Ks", "four Qs", "a 9-high straight flush", "a royal flush"])
+        XCTAssertEqual(DrillTerms.handWithArticle(brief("8c7d6h5s4c"), in: .english), "an 8-high straight")
+        XCTAssertEqual(DrillTerms.handWithArticle(brief("8h7h6h5h4h"), in: .english), "an 8-high straight flush")
+        XCTAssertEqual(DrillTerms.handWithArticle(brief("AdJd8d6d3d"), in: .english, capitalized: true), "An A-high flush")
+        XCTAssertEqual(DrillTerms.handWithArticle(brief("KhKs6d6c2h"), in: .english, capitalized: true), "Two pair, K high")
+        XCTAssertEqual(DrillTerms.handWithArticle(brief("KhKs9d5c2h"), in: .korean), "K 원 페어")
+    }
+
+    func testKickerSentenceUsesTheArticle() {
+        XCTAssertEqual(gradeShowdown(answer: 0, spot: spot("Kh4h", "Qh8h", "Ah9h7h2c3d"), language: .english).whyText,
+                       "Both have an A-high flush. The kicker decides it: your K beats the opponent's Q.")
+        let pair = brief("KhKs9d5c2h"), five = Card.parse("KhKs9d5c2h")!
+        XCTAssertEqual(showdownWhy(winner: pair, loser: pair, winFive: five, loseFive: five,
+                                   winnerSide: .learner, loserSide: .opponent, language: .english),
+                       "Both players have a pair of Ks.")
+    }
+
     func testKoreanWhyIsUnchanged() {
         XCTAssertEqual(gradeShowdown(answer: 0, spot: spot("Kc6d", "5d3h", "Qc6sKdJh3d")).whyText,
                        "내 K 투 페어가 상대 3 원 페어를 이겨요.")

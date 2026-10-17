@@ -263,7 +263,7 @@ enum EnglishBeatScript {
             range.tendencyShare($0) < range.tendencyShare($1)
         }) {
             beats.append(Beat("Where it leans", value: DrillTerms.tendency(lean, in: .english),
-                              detail: "\(Int((range.tendencyShare(lean) * 100).rounded()))% of this range is \(DrillTerms.tendency(lean, in: .english)). Shape matters as well as width.",
+                              detail: "\(Int((range.tendencyShare(lean) * 100).rounded()))% of this range is \(DrillTerms.tendencyInSentence(lean, in: .english)). Shape matters as well as width.",
                               focus: .rangeGrid(range, highlight: nil)))
         }
         return beats

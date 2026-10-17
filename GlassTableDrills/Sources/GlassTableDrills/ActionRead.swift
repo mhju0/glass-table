@@ -52,9 +52,11 @@ public struct ActionReadSpot: Equatable {
         actedBucketList(in: .korean)
     }
 
-    public func actedBucketList(in language: LearningLanguage) -> String {
+    /// `inSentence` lowercases the English groups for use after a colon in prose.
+    public func actedBucketList(in language: LearningLanguage, inSentence: Bool = false) -> String {
         MadeHand.allCases.filter { policy.buckets(after: action).contains($0) }
-            .map { DrillTerms.madeHand($0, in: language) }.joined(separator: " · ")
+            .map { inSentence ? DrillTerms.madeHandInSentence($0, in: language) : DrillTerms.madeHand($0, in: language) }
+            .joined(separator: " · ")
     }
 }
 
@@ -110,6 +112,6 @@ public func gradeActionRead(estimate: Estimate, spot: ActionReadSpot,
             "\(spot.action.rawValue)한 뒤 \(spot.villain.beginnerTitle(in: language)) 상대에게 남는 패: \(spot.actedBucketList). "
             + "\(a.combos)가지 조합(콤보) 중 \(pctText(correct))%가 페어 이상이에요. "
             + "행동 전에는 \(pctText(fullPct))%였어요. \(KO.subject(spot.action.rawValue)) 가능한 패(레인지)를 \(direction).",
-            "After \(spot.action == .bet ? "betting" : "checking"), the \(spot.villain.beginnerTitle(in: language)) opponent can hold: \(spot.actedBucketList(in: language)). "
+            "After \(spot.action == .bet ? "betting" : "checking"), the \(spot.villain.beginnerTitle(in: language)) opponent can hold: \(spot.actedBucketList(in: language, inSentence: true)). "
             + "Of \(a.combos) combinations, \(pctText(correct))% have at least a pair. Before the action it was \(pctText(fullPct))%."))
 }

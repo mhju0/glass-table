@@ -129,7 +129,7 @@ struct FreeTableHandCoachView: View {
                                                     "Usually top pair or better, but sometimes nothing at all (a bluff).")
             }
             let holds = MadeHand.allCases.filter { style.postflop.bets.contains($0) }
-                .map { DrillTerms.madeHand($0, in: language) }.joined(separator: ", ")
+                .map { DrillTerms.madeHandInSentence($0, in: language) }.joined(separator: ", ")
             return amount + " " + language.text("이 스타일이 먼저 거는 패: \(holds).", "This style bets first with: \(holds).")
         }
     }
@@ -260,7 +260,7 @@ enum FreeTableCoachWords {
         let action = raised ? language.text("레이즈", "raise") : language.text("벳", "bet")
         let category = held == .air
             ? language.text("페어·드로우 없음", "no pair and no draw")
-            : DrillTerms.madeHand(held, in: language).lowercased()
+            : DrillTerms.madeHandInSentence(held, in: language)
         return language.text("\(streetName) \(action) 당시 패: \(category)",
                              "\(streetName) \(action): \(category)")
     }

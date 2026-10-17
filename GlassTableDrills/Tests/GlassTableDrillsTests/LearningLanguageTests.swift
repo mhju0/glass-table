@@ -197,3 +197,40 @@ struct LearningLanguageTests {
     #expect(Concept.potOdds.term(in: .english) == "Pot odds")
     #expect(Concept.potOdds.term(in: .korean) == "팟 오즈")
 }
+
+/// Made-hand groups and range shapes are labels on bars and chips, and lowercase
+/// inside an English sentence.
+@Test func handGroupsAreLowercaseInsideASentence() {
+    #expect(MadeHand.allCases.map { DrillTerms.madeHand($0, in: .english) }
+            == MadeHand.allCases.map { DrillTerms.madeHandInSentence($0, in: .english).prefix(1).uppercased()
+                                       + DrillTerms.madeHandInSentence($0, in: .english).dropFirst() })
+    #expect([MadeHand.air, .weakPair, .topPair, .strong, .draw].map { DrillTerms.madeHandInSentence($0, in: .english) }
+            == ["no pair", "weak pair", "top pair", "two pair or better", "draw"])
+    #expect(DrillTerms.madeHand(.topPair, in: .english) == "Top pair")
+    #expect(DrillTerms.madeHandInSentence(.topPair, in: .korean) == MadeHand.topPair.korean)
+    #expect([RangeTendency.pairs, .suited, .offsuitBroadway, .connectors].map { DrillTerms.tendencyInSentence($0, in: .english) }
+            == ["pairs", "same-suit hands", "high cards of different suits", "neighboring ranks"])
+    #expect(DrillTerms.tendency(.suited, in: .english) == "Same-suit hands")
+
+    let groups = MadeHand.allCases.map { DrillTerms.madeHandInSentence($0, in: .english) }
+    for seed: UInt64 in [1, 7, 19, 23, 91, 0x5EED] {
+        let advantage = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: 0)
+        let why = gradeRangeAdvantage(estimate: Estimate(point: 50, lo: 40, hi: 60), spot: advantage,
+                                      openerEquityPct: 50, language: .english).whyText
+        #expect(groups.contains { why.contains("The largest gap is \($0):") }, "\(why)")
+
+        let read = ActionReadSpotGenerator.spot(baseSeed: seed, index: 0)
+        let readWhy = gradeActionRead(estimate: Estimate(point: 50, lo: 40, hi: 60), spot: read, language: .english).whyText
+        let held = MadeHand.allCases.filter { read.policy.buckets(after: read.action).contains($0) }
+            .map { DrillTerms.madeHandInSentence($0, in: .english) }.joined(separator: " · ")
+        #expect(readWhy.contains("opponent can hold: \(held). "), "\(readWhy)")
+        #expect(read.actedBucketList(in: .english).first?.isUppercase == true, "The beat label stays capitalized")
+
+        let leans = EnglishBeatScript.rangeRead(RangeReadSpotGenerator.spot(baseSeed: seed, index: 0))
+            .first { $0.caption == "Where it leans" }
+        if let leans, let value = leans.value {
+            #expect(value.first?.isUppercase == true)
+            #expect(leans.detail?.contains("of this range is \(value.lowercased()).") == true, "\(leans.detail ?? "")")
+        }
+    }
+}

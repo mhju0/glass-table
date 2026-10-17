@@ -148,7 +148,7 @@ func widestGapSentence(opener: RangeOnBoard, caller: RangeOnBoard,
     } ?? .strong
     let a = opener.share(bucket) * 100, b = caller.share(bucket) * 100
     if language == .english {
-        return "The largest gap is \(DrillTerms.madeHand(bucket, in: language)): opener \(pctText(a))% versus caller \(pctText(b))%."
+        return "The largest gap is \(DrillTerms.madeHandInSentence(bucket, in: language)): opener \(pctText(a))% versus caller \(pctText(b))%."
     }
     return "가장 크게 갈리는 건 \(KO.copula(bucket.korean)) "
          + "오프너 \(pctText(a))% 대 콜러 \(pctText(b))%."

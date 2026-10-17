@@ -1141,7 +1141,7 @@ struct FirstLessonView: View {
             let loser = spot.winner == 0 ? spot.villainBest : spot.heroBest
             Text(language.text(
                 "\(KO.subject(DrillTerms.hand(winner, in: .korean))) \(DrillTerms.hand(loser, in: .korean))보다 강해요.",
-                "\(DrillTerms.closingAside(DrillTerms.hand(winner, in: .english))) beats \(DrillTerms.handInSentence(loser, in: .english))."))
+                "\(DrillTerms.closingAside(DrillTerms.handWithArticle(winner, in: .english, capitalized: true))) beats \(DrillTerms.handWithArticle(loser, in: .english))."))
         } else {
             Text(gradeShowdown(answer: spot.winner, spot: spot, language: language).whyText)
         }

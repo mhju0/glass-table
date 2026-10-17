@@ -146,7 +146,7 @@ final class BestFivePairTests: XCTestCase {
         XCTAssertEqual(pair.why(in: .korean),
                        "둘 다 K 원 페어예요. 키커가 승부를 갈랐어요. 토마스의 A, 마이클의 Q라서 토마스 쪽이 이겨요.")
         XCTAssertEqual(pair.why(in: .english),
-                       "Both have pair of Ks. The kicker decides it: Tom's A beats Mike's Q.")
+                       "Both have a pair of Ks. The kicker decides it: Tom's A beats Mike's Q.")
     }
 
     func testTwoSeatsPlayingTheBoardAreNotAddressedAsYou() {
