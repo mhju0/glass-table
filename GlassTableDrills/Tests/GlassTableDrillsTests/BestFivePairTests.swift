@@ -116,6 +116,14 @@ final class BestFivePairTests: XCTestCase {
                        "Both have a full house of 5s. The pair decides it: your 9s beat the opponent's 7s.")
     }
 
+    /// Same two pair, the fifth card decides: the hand reads "Qs up" like the second-pair case.
+    func testTwoPairKickerSentenceNamesTheTopPairUp() {
+        let pair = BestFivePair(spot("AcQd", "KcQh", "QsJhJd5c3s"))
+        XCTAssertEqual(pair.winner, 0)
+        XCTAssertEqual(pair.why(in: .english),
+                       "Both have two pair, Qs up. The kicker decides it: your A beats the opponent's K.")
+    }
+
     /// The ten reads "10" as on the card face, pluralised like the other ranks.
     func testSameHandSentenceNamesTheTenAsOnTheCardFace() {
         XCTAssertEqual(BestFivePair(spot("9hQc", "6d6s", "ThTs2h3d9s")).why(in: .english),

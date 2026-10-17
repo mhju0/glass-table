@@ -147,14 +147,16 @@ func showdownWhy(winner winnerHand: HandBrief, loser loserHand: HandBrief, winFi
         let secondPair = winnerHand.category == 2 && i < 4
         let fullHousePair = winnerHand.category == 6
         if language == .english {
-            let both = "Both have \(DrillTerms.handWithArticle(winnerHand, in: language))."
-            let mine = winnerSide.englishPossessive(capitalized: false)
-            let theirs = loserSide.englishPossessive(capitalized: false)
             // The shared part is named the way the comparison reads ("two pair, Js up",
             // "a full house of 5s"), not with the hand-name label used elsewhere.
             let top = rankLabel(winnerHand.topRank)
+            let both = winnerHand.category == 2
+                ? "Both have two pair, \(top)s up."
+                : "Both have \(DrillTerms.handWithArticle(winnerHand, in: language))."
+            let mine = winnerSide.englishPossessive(capitalized: false)
+            let theirs = loserSide.englishPossessive(capitalized: false)
             if secondPair {
-                return "Both have two pair, \(top)s up. The second pair decides it: \(mine) \(w)s beat \(theirs) \(l)s."
+                return "\(both) The second pair decides it: \(mine) \(w)s beat \(theirs) \(l)s."
             }
             if fullHousePair {
                 return "Both have a full house of \(top)s. The pair decides it: \(mine) \(w)s beat \(theirs) \(l)s."
