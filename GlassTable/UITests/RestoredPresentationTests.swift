@@ -34,7 +34,7 @@ final class RestoredPresentationTests: XCTestCase {
             app.terminate()
             app.launchEnvironment = ["GT_TEST_STORE_ID": store, "GT_TEST_FIRST_LESSON": "0"]
             app.launch()
-            let resume = app.buttons[language == "ko" ? "레슨 이어서 하기" : "Resume lesson"]
+            let resume = app.buttons["learn-continue"]
             reach(resume, app: app); resume.tap()
             XCTAssertTrue(app.staticTexts[answerID].waitForExistence(timeout: 10))
             attach(app, "\(language)-\(ax ? "AX" : "large")-restored-\(node)-context")

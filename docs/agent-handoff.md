@@ -93,6 +93,12 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
+- Open PRs from 2026-10-17, not merged: #32 `feat/kicker-basics-check-20261017` (D50
+  kicker check; main merged in, the duel scrolls into view on the answer) and
+  `feat/learn-diagram-list-20261017` (D51: Learn is the lesson list, one marked row,
+  `PathView` removed). Both touch BestFiveComparisonTests, LearningFlowTests and
+  GuidedHandFlowTests and the end of `docs/decisions.md`; whichever merges second needs
+  a small merge.
 - Work only in this folder; there are no other worktrees.
 - Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the
   iOS 27 beta). After a rebuild, run
@@ -164,6 +170,21 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-17 (Claude · kicker duel scroll and Learn list)
+
+- PR #32: merged `origin/main` (#31's inset strokes reach the D50 rows; the duel's A♠
+  already strokes inside the card, and #31 has no shared stroke helper). The kicker
+  duel now scrolls into view above the answer sheet when the pick is committed, without
+  animation under Reduce Motion. Two UI tests in BestFiveComparisonTests (KO/EN).
+- Learn redesign, variant A2 (owner, D51), on `feat/learn-diagram-list-20261017`: Drills
+  `Curriculum.markedLesson` picks the one marked row (8 unit tests first);
+  `LearnView` is the list; `PathView` and its sheet are gone; a passed lesson's 연습
+  opens `FreePlayView(startConcept:)` straight into that skill's round, through its own
+  item-based cover (a shared `isPresented` cover showed the picker with a stale
+  concept). Records/activity copy says 연습. New `LearnListTests` (9); repaired tests
+  that used `learn-path` or the old resume labels; UXAuditCrawl follows the list.
+- No schema change. Next: owner reviews both PRs.
+
 ### 2026-10-17 (Claude · live language switch)
 
 - Cause, from logging on clones: on iOS 27 the App body re-ran with the new
@@ -220,30 +241,3 @@ Tests:
   `fix/a11y-play-captions-20261015` (testPlayTable 0/3 → 3/3 on iPhone 17). Codex's
   experiment branches deleted; their SHAs are in the record.
 - Next: owner looks at the caption PR and tries build 30.
-
-### 2026-10-15 (Claude · owner decisions)
-
-- Owner approved every suggestion in the before/after artifact and merging PR #13
-  (done once its gate passed). Branch `feat/owner-decisions-20261015`.
-- Chart guide: `ChartGuideMemory` (per-store UserDefaults) opens "How to read the chart"
-  only on the first chart. Chart reason: the preflop takeaway states the opener's
-  range, the call and re-raise slices, and where this hand ranks by Chen combos.
-- Review panel: verdict and takeaway first, then one row of outlined tiles (Details,
-  chart, policy; outlined, not the mock's gold links, per the clickable-controls rule);
-  prices and basis sit behind Details.
-- Call-or-fold lesson: new node `u2-callFold` (after `u2-evCall`, before `u2-boss`) on
-  the price track. Its questions show both shares (`callFoldLessonNumbers`); the
-  challenge does not. The boss keeps `own: .callFold` so saved challenge sessions stay
-  valid, so call-or-fold is the one concept taught twice. Challenge rows on the path now
-  read "Mixed practice". No schema change; the new lesson shows as not started.
-- Kept: outs choices, starting check, compact-grid headers (#34/#41).
-- `docs/ci-cd.md` records the first nightly UI run: shard 1 failed only
-  `testPlayTable`, a pre-existing failure on `main`.
-- Owner asked to merge and install: PR #14 merged, build 30 installed on the iPhone 12
-  mini after an uninstall (fresh data).
-- Cleanup (owner, 2026-10-15): removed the `owner-decisions` and `ux-lesson-gaps`
-  worktrees and the three merged branches (local and `origin`); their install and
-  screenshot evidence is summarized in `docs/records/2026-10-15-local-archives.md`. Builds
-  27–30 added to `docs/build-history.md`. Draft PR #11 left open: it still holds
-  Play and free-table accessibility fixes not in `main`.
-- Next: owner tries build 30.

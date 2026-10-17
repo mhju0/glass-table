@@ -296,7 +296,7 @@ struct RecordsView: View {
     private func practiceLane(_ key: DailyPracticeKey) -> String {
         let mode: String
         switch key.mode {
-        case "single-skill": mode = language.text("한 가지 연습", "One-skill practice")
+        case "single-skill": mode = language.text("연습", "Practice")
         case "path": mode = language.text("레슨", "Lesson")
         case "review": mode = language.text("복습", "Review")
         default: mode = language.text("연습", "Practice")
