@@ -23,8 +23,21 @@ final class LearningOrderChenStepRowTests: XCTestCase {
     }
 
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication, up: Bool = false) {
-        for _ in 0..<20 where !element.isHittable { up ? app.swipeDown() : app.swipeUp() }
+        for _ in 0..<20 where !element.isHittable || underStepRow(element, in: app) {
+            up ? app.swipeDown() : app.swipeUp()
+            element.waitForStableFrame()
+        }
         XCTAssertTrue(element.isHittable, element.debugDescription)
+        XCTAssertFalse(underStepRow(element, in: app), element.debugDescription)
+    }
+
+    /// isHittable ignores the step row drawn over the bottom of the scroll, so a tap on an
+    /// element behind it lands on Previous (seen on a GitHub runner at AX5).
+    private func underStepRow(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
+        let row = ["walkthrough-previous", "walkthrough-next"]
+        guard !row.contains(element.identifier) else { return false }
+        guard let top = row.map({ app.buttons[$0] }).filter(\.exists).map(\.frame.minY).min() else { return false }
+        return element.frame.maxY > top + 0.5
     }
 
     // MARK: Task 1 · order
