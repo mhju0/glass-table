@@ -28,6 +28,8 @@ struct FirstLessonView: View {
     @State private var returning = false
     @State private var submitted: [Step: Int] = [:]
     @State private var helped: Set<Step> = []
+    /// A second pick on a comparison already answered: shown, never saved.
+    @State private var practice: FirstLessonSnapshot.Response?
     @State private var comparisonVersion = FirstLesson.currentComparisonVersion
     @State private var variationSeed: UInt64 = 0
     @State private var rotationLoaded = false
@@ -215,12 +217,26 @@ struct FirstLessonView: View {
         onFinish()
     }
 
+    /// An answered comparison reopens as its question, unanswered, on the same cards.
     private func previous() {
-        guard let prior = history.last else { return }
+        guard var prior = history.last else { return }
+        var drop = 1
+        if let question = questionStep(prior) {
+            prior = question
+            if history.dropLast().last == question { drop = 2 }
+        }
         guard transition(to: prior) else { return }
-        history.removeLast()
+        history.removeLast(drop)
         returning = true
-        answer = submitted[prior]
+    }
+
+    private func questionStep(_ value: Step) -> Step? {
+        switch value {
+        case .exampleAnswer: .example
+        case .transferAnswer: .transfer
+        case .comparisonAnswer(let index): .comparison(index)
+        default: nil
+        }
     }
 
     private func savedStep(_ value: Step) -> FirstLessonSnapshot.Step {
@@ -292,6 +308,7 @@ struct FirstLessonView: View {
         comparisonVersion = saved.comparisonVersion
         submitted = [:]
         helped = []
+        practice = nil
         returning = localStep(saved.step) != step
         step = localStep(saved.step)
         for (index, response) in saved.responses {
@@ -315,13 +332,15 @@ struct FirstLessonView: View {
     @discardableResult
     private func transition(to target: Step, response: FirstLessonSnapshot.Response? = nil) -> Bool {
         guard model.saveError == nil else { return false }
+        // The first pick on a comparison stays; picking again after Previous is practice.
+        let isPractice = response != nil && submitted[target] != nil
         var responses: [Int: FirstLessonSnapshot.Response] = [:]
         for index in 0..<5 {
             let target = answerStep(index)
             if helped.contains(target) { responses[index] = .demonstrated }
             else if let value = submitted[target] { responses[index] = .choice(value) }
         }
-        if let response, let index = responseIndex(target) { responses[index] = response }
+        if let response, !isPractice, let index = responseIndex(target) { responses[index] = response }
         if context != .replay {
             guard let openingEpoch else { return false }
             if model.state.pendingFirstLesson == nil {
@@ -337,7 +356,10 @@ struct FirstLessonView: View {
             }
         }
         pendingTransition = nil
-        if let response {
+        practice = isPractice ? response : nil
+        if let practice {
+            if case .choice(let value) = practice { answer = value } else { answer = nil }
+        } else if let response {
             switch response {
             case .choice(let value): submitted[target] = value; helped.remove(target); answer = value
             case .demonstrated: submitted.removeValue(forKey: target); helped.insert(target); answer = nil
@@ -453,7 +475,7 @@ struct FirstLessonView: View {
     /// Green after a right answer, red after a wrong one; the neutral glass otherwise.
     private var panelBand: GradeBand? {
         switch step {
-        case _ where helped.contains(step): nil
+        case _ where showsHelp: nil
         case .exampleAnswer: isCorrect(exampleSpot) ? .spotOn : .off
         case .transferAnswer: isCorrect(transferSpot) ? .spotOn : .off
         case .comparisonAnswer(let i): isCorrect(comparisons[i]) ? .spotOn : .off
@@ -462,6 +484,8 @@ struct FirstLessonView: View {
     }
 
     private func isCorrect(_ spot: ShowdownSpot) -> Bool { answer == spot.winner }
+
+    private var showsHelp: Bool { practice.map { $0 == .demonstrated } ?? helped.contains(step) }
 
     private var brandStart: some View {
         VStack(spacing: 8) {
@@ -1040,7 +1064,7 @@ struct FirstLessonView: View {
         let picked = answer == value
         let wins = spot.winner == value
         let mark: (text: String, spoken: String, band: GradeBand)? =
-            helped.contains(step) ? nil : picked ? (copy(.myPick), wins ? copy(.pickCorrect) : copy(.pickWrong), wins ? .spotOn : .off)
+            showsHelp ? nil : picked ? (copy(.myPick), wins ? copy(.pickCorrect) : copy(.pickWrong), wins ? .spotOn : .off)
                    : (wins ? (copy(.rightAnswer), copy(.rightAnswer), .spotOn) : nil)
         // At accessibility sizes the badge would cover the title, so it sits above it.
         let inline = dynamicTypeSize.isAccessibilitySize
@@ -1089,7 +1113,7 @@ struct FirstLessonView: View {
     }
 
     private func verdict(spot: ShowdownSpot, isTransfer: Bool) -> some View {
-        let usedHelp = helped.contains(step)
+        let usedHelp = showsHelp
         let correct = isCorrect(spot)
         let band: GradeBand = correct ? .spotOn : .off
         let outcome = { (value: Int) in
