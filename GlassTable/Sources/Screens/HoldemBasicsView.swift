@@ -425,9 +425,10 @@ struct HoldemBasicsView: View {
             let layout = dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(spacing: 10))
             layout {
-                let choices = [("mine", language.text("내 카드", "My cards")),
-                               ("theirs", language.text("상대 카드", "Opponent's cards")),
-                               ("tie", language.text("비겨요", "Tie"))]
+                // The "Who wins?" lesson's words; short enough to share one row.
+                let choices = [("mine", language.text("내가 이김", "I win")),
+                               ("theirs", language.text("상대가 이김", "They win")),
+                               ("tie", language.text("무승부", "Tie"))]
                 ForEach(choices.indices, id: \.self) { index in
                     GTChoiceButton(title: choices[index].1) {
                         kickerAnswer = index
