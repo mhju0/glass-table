@@ -69,6 +69,9 @@ final class WelcomeFirstFlowTests: XCTestCase {
             XCTAssertFalse(app.buttons["firstLesson.continueGuide"].exists)
             if rawStep != "welcome" {
                 tap("firstLesson.previous", in: app)
+                XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+                XCTAssertFalse(app.descendants(matching: .any)["firstLesson.verdict"].exists)
+                tap("firstLesson.help", in: app)
                 XCTAssertTrue(app.descendants(matching: .any)["firstLesson.verdict"].label.contains("together"))
                 tap("firstLesson.next", in: app)
                 tap("firstLesson.help", in: app)
@@ -121,6 +124,8 @@ final class WelcomeFirstFlowTests: XCTestCase {
         tap("learn-resume-opening", in: app)
         XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
         tap("firstLesson.previous", in: app)
+        XCTAssertFalse(app.descendants(matching: .any)["firstLesson.verdict"].exists)
+        tap("firstLesson.help", in: app)
         XCTAssertTrue(app.descendants(matching: .any)["firstLesson.verdict"].label.contains("together"))
         tap("firstLesson.next", in: app)
         for _ in 0..<3 {
@@ -144,7 +149,44 @@ final class WelcomeFirstFlowTests: XCTestCase {
         XCTAssertEqual(verdict.label, label)
         tap("firstLesson.next", in: app)
         tap("firstLesson.previous", in: app)
-        XCTAssertEqual(verdict.label, label)
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+        XCTAssertFalse(verdict.exists)
+    }
+
+    /// Previous reopens an answered comparison as its question on the same cards, with
+    /// nothing picked or marked. A second pick is practice: the first one stays saved
+    /// (owner, 2026-10-18).
+    func testPreviousReopensAnsweredComparisonUnanswered() {
+        let app = app()
+        begin(app)
+        let heroLabel = app.buttons["firstLesson.choice.0"].label
+        let villainLabel = app.buttons["firstLesson.choice.1"].label
+        let winner = FirstLesson.requiredComparisons(seed: 0)[0].spot.winner
+        tap("firstLesson.choice.\(1 - winner)", in: app)
+        let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        let wrongLabel = verdict.label
+        tap("firstLesson.next", in: app)
+        XCTAssertTrue(app.staticTexts["Comparison 2/5"].waitForExistence(timeout: 5))
+        tap("firstLesson.previous", in: app)
+
+        XCTAssertTrue(app.staticTexts["Comparison 1/5"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].exists)
+        XCTAssertFalse(verdict.exists, "Previous shows the question unanswered.")
+        XCTAssertEqual(app.buttons["firstLesson.choice.0"].label, heroLabel)
+        XCTAssertEqual(app.buttons["firstLesson.choice.1"].label, villainLabel)
+        XCTAssertTrue(app.buttons["firstLesson.help"].exists)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "first-guide-previous-unanswered"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+
+        tap("firstLesson.choice.\(winner)", in: app)
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        XCTAssertTrue(verdict.label.contains("You got it"), verdict.label)
+        app.terminate(); app.launch()
+        XCTAssertTrue(verdict.waitForExistence(timeout: 15))
+        XCTAssertEqual(verdict.label, wrongLabel, "The redo is practice; the first answer stays saved.")
     }
 
     func testBrandSkipDoesNotCompleteGuide() {
@@ -197,7 +239,16 @@ final class WelcomeFirstFlowTests: XCTestCase {
         app.tabBars.buttons["Learn"].tap()
         tap("learn-resume-opening", in: app)
         XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
-        for _ in 0..<3 { tap("firstLesson.previous", in: app) }
+        // Back to the first comparison, unanswered; picking again there is practice.
+        for _ in 0..<2 { tap("firstLesson.previous", in: app) }
+        XCTAssertTrue(app.staticTexts["Comparison 1/5"].waitForExistence(timeout: 5))
+        XCTAssertFalse(verdict.exists)
+        tap("firstLesson.choice.\(FirstLesson.requiredComparisons(seed: 0)[0].spot.winner)", in: app)
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        tap("firstLesson.close", in: app)
+        app.terminate(); app.launch()
+        tap("learn-resume-opening", in: app)
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         XCTAssertEqual(verdict.label, originalVerdict)
         XCTAssertEqual(app.staticTexts["firstLesson.reason"].label, originalReason)
     }
@@ -213,12 +264,13 @@ final class WelcomeFirstFlowTests: XCTestCase {
         let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         let label = verdict.label
-        tap("firstLesson.next", in: app)
-        tap("firstLesson.previous", in: app)
-        XCTAssertEqual(verdict.label, label)
         app.terminate(); app.launch()
         XCTAssertTrue(verdict.waitForExistence(timeout: 15))
         XCTAssertEqual(verdict.label, label)
+        tap("firstLesson.next", in: app)
+        tap("firstLesson.previous", in: app)
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+        XCTAssertFalse(verdict.exists)
     }
 
     func testFailedChoiceReplacingHelpRetryKeepsCommittedChoice() {
@@ -236,12 +288,13 @@ final class WelcomeFirstFlowTests: XCTestCase {
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         XCTAssertFalse(verdict.label.contains("together"))
         let label = verdict.label
-        tap("firstLesson.next", in: app)
-        tap("firstLesson.previous", in: app)
-        XCTAssertEqual(verdict.label, label)
         app.terminate(); app.launch()
         XCTAssertTrue(verdict.waitForExistence(timeout: 15))
         XCTAssertEqual(verdict.label, label)
+        tap("firstLesson.next", in: app)
+        tap("firstLesson.previous", in: app)
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+        XCTAssertFalse(verdict.exists)
     }
 
     func testFailedResumedCompletionRetryOpensPromisedBasics() { failedCompletion(resumed: true) }

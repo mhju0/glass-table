@@ -102,7 +102,7 @@ struct HoldemBasicsView: View {
         .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { value in
             guard value.startLocation.x < 24, value.translation.width > 80,
                   abs(value.translation.height) < 60, page != .ladder else { return }
-            page = page == .kicker ? .check : .ladder
+            go(to: page == .kicker ? .check : .ladder)
         })
         .gtChrome(leading: {
             ChromeButton.close(onClose).accessibilityIdentifier("basics.close")
@@ -142,6 +142,14 @@ struct HoldemBasicsView: View {
     }
 
     private var kickerPair: BestFivePair { BestFivePair(HoldemBasics.kickerCheck) }
+
+    /// Every page opens unanswered, so Previous reopens a check as a fresh question on
+    /// the same cards (owner, 2026-10-18). Nothing here is saved.
+    private func go(to target: Page) {
+        answer = nil
+        kickerAnswer = nil
+        page = target
+    }
 
     // MARK: Header
 
@@ -406,7 +414,7 @@ struct HoldemBasicsView: View {
     private var panel: some View {
         switch page {
         case .ladder:
-            PrimaryCTAButton(title: language.text("확인 문제 풀기", "Try a quick check")) { page = .check }
+            PrimaryCTAButton(title: language.text("확인 문제 풀기", "Try a quick check")) { go(to: .check) }
                 .accessibilityIdentifier("basics.next")
         case .check:
             // Previous never stands alone; it returns beside the next step once answered.
@@ -481,7 +489,7 @@ struct HoldemBasicsView: View {
     private func kickerVerdict(correct: Bool) -> some View {
         VStack(alignment: .leading, spacing: GT.Space.related) {
             verdictTitle(correct: correct, wrong: language.text("이기는 쪽을 확인해요", "Check the winning side"))
-            GTStepRow(previous: { page = .check }, previousID: "basics.previous") {
+            GTStepRow(previous: { go(to: .check) }, previousID: "basics.previous") {
                 PrimaryCTAButton(title: startsCourse ? language.text("다음 레슨 시작", "Start the next lesson")
                                                      : language.text("마치기", "Done")) {
                     onFinish(startsCourse)
@@ -500,8 +508,8 @@ struct HoldemBasicsView: View {
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            GTStepRow(previous: { page = .ladder }, previousID: "basics.previous") {
-                PrimaryCTAButton(title: language.text("다음", "Next")) { page = .kicker }
+            GTStepRow(previous: { go(to: .ladder) }, previousID: "basics.previous") {
+                PrimaryCTAButton(title: language.text("다음", "Next")) { go(to: .kicker) }
                     .accessibilityIdentifier("basics.check-next")
             }
             if !correct {
