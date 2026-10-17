@@ -73,10 +73,12 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot,
     let w = spot.winner
     let hName = DrillTerms.hand(spot.heroBest, in: language)
     let vName = DrillTerms.hand(spot.villainBest, in: language)
+    let hSentence = DrillTerms.handInSentence(spot.heroBest, in: language)
+    let vSentence = DrillTerms.handInSentence(spot.villainBest, in: language)
     let why: String
     switch w {
-    case 0: why = showdownWhy(winner: hName, loser: vName, spot: spot, heroWon: true, language: language)
-    case 1: why = showdownWhy(winner: vName, loser: hName, spot: spot, heroWon: false, language: language)
+    case 0: why = showdownWhy(winner: hSentence, loser: vSentence, spot: spot, heroWon: true, language: language)
+    case 1: why = showdownWhy(winner: vSentence, loser: hSentence, spot: spot, heroWon: false, language: language)
     default: why = showdownTieWhy(spot, language: language)
     }
     return ShowdownReveal(band: answer == w ? .spotOn : .off,
@@ -88,7 +90,7 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot,
 /// mean the board plays: two players can use different hole cards to make the same
 /// straight, flush, or kicked hand.
 func showdownTieWhy(_ spot: ShowdownSpot, language: LearningLanguage = .korean) -> String {
-    let name = DrillTerms.hand(spot.heroBest, in: language)
+    let name = DrillTerms.handInSentence(spot.heroBest, in: language)
     if language == .english {
         return showdownBoardPlays(spot)
             ? "The five shared cards make the best hand for both players: \(name). It is a tie."
@@ -134,7 +136,7 @@ func showdownWhy(winner: String, loser: String, winFive: [Card], loseFive: [Card
                  language: LearningLanguage) -> String {
     guard winner == loser else {
         if language == .english {
-            return "\(winnerSide.englishPossessive(capitalized: true)) \(winner) beats \(loserSide.englishPossessive(capitalized: false)) \(loser)."
+            return "\(winnerSide.englishPossessive(capitalized: true)) \(DrillTerms.closingAside(winner)) beats \(loserSide.englishPossessive(capitalized: false)) \(loser)."
         }
         return "\(winnerSide.koreanPossessive) \(KO.subject(winner)) \(loserSide.koreanPossessive) \(KO.object(loser)) 이겨요."
     }

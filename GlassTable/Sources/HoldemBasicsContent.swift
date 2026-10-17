@@ -22,6 +22,8 @@ enum HoldemBasics {
         let isRoyal: Bool
         let korean: String
         let english: String
+        /// The English name inside a sentence: "flush", "two pair, K high".
+        let englishInSentence: String
         let koreanDetail: String
         let englishDetail: String
         let example: [Card]
@@ -33,6 +35,7 @@ enum HoldemBasics {
         }
 
         func name(in language: LearningLanguage) -> String { language.text(korean, english) }
+        func sentenceName(in language: LearningLanguage) -> String { language.text(korean, englishInSentence) }
         func detail(in language: LearningLanguage) -> String {
             language.text(koreanDetail, englishDetail)
         }
@@ -41,34 +44,44 @@ enum HoldemBasics {
     /// Strongest first.
     static let ladder: [Rank] = [
         Rank(id: "royal", category: 8, isRoyal: true, korean: "로열 플러시", english: "Royal flush",
+             englishInSentence: "royal flush",
              koreanDetail: "같은 무늬 A·K·Q·J·10", englishDetail: "A K Q J 10, one suit",
              example: Card.parse("AsKsQsJsTs")!),
         Rank(id: "straightFlush", category: 8, isRoyal: false, korean: "스트레이트 플러시",
              english: "Straight flush",
+             englishInSentence: "straight flush",
              koreanDetail: "한 무늬로 이어진 5장", englishDetail: "Five in a row, one suit",
              example: Card.parse("9h8h7h6h5h")!),
         Rank(id: "quads", category: 7, isRoyal: false, korean: "포카드", english: "Four of a kind",
+             englishInSentence: "four of a kind",
              koreanDetail: "같은 숫자 4장", englishDetail: "Four of one rank",
              example: Card.parse("QsQhQdQc7s")!),
         Rank(id: "fullHouse", category: 6, isRoyal: false, korean: "풀하우스", english: "Full house",
+             englishInSentence: "full house",
              koreanDetail: "트리플과 원페어", englishDetail: "Three of a kind and a pair",
              example: Card.parse("8s8h8dKcKs")!),
         Rank(id: "flush", category: 5, isRoyal: false, korean: "플러시", english: "Flush",
+             englishInSentence: "flush",
              koreanDetail: "같은 무늬 5장", englishDetail: "Five of one suit",
              example: Card.parse("AdJd8d6d3d")!),
         Rank(id: "straight", category: 4, isRoyal: false, korean: "스트레이트", english: "Straight",
+             englishInSentence: "straight",
              koreanDetail: "이어진 숫자 5장", englishDetail: "Five ranks in a row",
              example: Card.parse("Tc9d8h7s6c")!),
         Rank(id: "trips", category: 3, isRoyal: false, korean: "트리플", english: "Three of a kind",
+             englishInSentence: "three of a kind",
              koreanDetail: "같은 숫자 3장", englishDetail: "Three of one rank",
              example: Card.parse("7c7d7hKs2d")!),
         Rank(id: "twoPair", category: 2, isRoyal: false, korean: "투페어", english: "Two pair",
+             englishInSentence: "two pair",
              koreanDetail: "페어 두 쌍", englishDetail: "Two different pairs",
              example: Card.parse("JsJd4c4hAs")!),
         Rank(id: "pair", category: 1, isRoyal: false, korean: "원페어", english: "One pair",
+             englishInSentence: "one pair",
              koreanDetail: "같은 숫자 2장", englishDetail: "Two of one rank",
              example: Card.parse("ThTcKs6d3c")!),
         Rank(id: "highCard", category: 0, isRoyal: false, korean: "하이 카드", english: "High card",
+             englishInSentence: "high card",
              koreanDetail: "위 조합이 하나도 없음", englishDetail: "None of the above",
              example: Card.parse("AhJc8s5d2c")!),
     ]
@@ -88,6 +101,21 @@ enum HoldemBasics {
     /// The check question: a flush against a straight on the same page.
     static let checkFlush = rank("flush")
     static let checkStraight = rank("straight")
+
+    /// A later check's row, named after the hand it shows ("Two pair, K high").
+    static func checkRank(id: String, hand: HandBrief, example: [Card]) -> Rank {
+        let template = ladder.first { $0.category == hand.category && !$0.isRoyal }!
+        return Rank(id: id, category: template.category, isRoyal: false,
+                    korean: DrillTerms.hand(hand, in: .korean), english: DrillTerms.hand(hand, in: .english),
+                    englishInSentence: DrillTerms.handInSentence(hand, in: .english),
+                    koreanDetail: template.koreanDetail, englishDetail: template.englishDetail, example: example)
+    }
+
+    /// The line under the check's verdict. The English names the winner mid-sentence.
+    static func answerText(winner: Rank, in language: LearningLanguage) -> String {
+        language.text("\(winner.name(in: .korean)) 쪽이 이겨요. 먼저 족보를 비교하고, 같은 족보라면 조합을 만든 숫자부터 비교해요. 무늬에는 우열이 없어요.",
+                      "The \(DrillTerms.closingAside(winner.sentenceName(in: .english))) wins. Compare the hand types first; when they match, compare the combination’s ranks. Suits have no ranking.")
+    }
 
     /// The first check, dealt from seven cards like every later one: my A-high flush
     /// (A♦ J♦ with K♦ 8♦ 6♦) against the opponent's 9-high straight (9♣ 5♥ with

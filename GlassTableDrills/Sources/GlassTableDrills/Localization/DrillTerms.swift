@@ -14,19 +14,38 @@ public enum DrillTerms {
         }
     }
 
+    /// The hand's name as a label or a choice: "Pair of Ks", "Two pair, K high".
     public static func hand(_ hand: HandBrief, in language: LearningLanguage) -> String {
         guard language == .english else { return handName(hand) }
+        return englishHand(hand, label: true)
+    }
+
+    /// The hand's name inside an English sentence, lowercase as poker writing has it:
+    /// "pair of Ks", "two pair, K high". Korean is the same as `hand`.
+    public static func handInSentence(_ hand: HandBrief, in language: LearningLanguage) -> String {
+        guard language == .english else { return handName(hand) }
+        return englishHand(hand, label: false)
+    }
+
+    /// Closes the aside in "two pair, K high" or "full house, Ks" when the sentence goes
+    /// on past the name: "Your two pair, K high, beats ...". Other names are unchanged.
+    public static func closingAside(_ englishName: String) -> String {
+        englishName.contains(", ") ? englishName + "," : englishName
+    }
+
+    private static func englishHand(_ hand: HandBrief, label: Bool) -> String {
         let rank = Card.displayRanks[hand.topRank - 2]
+        func word(_ lowercase: String) -> String { label ? lowercase.prefix(1).uppercased() + lowercase.dropFirst() : lowercase }
         switch hand.category {
         case 0: return "\(rank) high"
-        case 1: return "Pair of \(rank)s"
-        case 2: return "Two pair, \(rank) high"
-        case 3: return "Three \(rank)s"
+        case 1: return word("pair") + " of \(rank)s"
+        case 2: return word("two") + " pair, \(rank) high"
+        case 3: return word("three") + " \(rank)s"
         case 4: return "\(rank)-high straight"
         case 5: return "\(rank)-high flush"
-        case 6: return "Full house, \(rank)s"
-        case 7: return "Four \(rank)s"
-        default: return hand.topRank == 14 ? "Royal flush" : "\(rank)-high straight flush"
+        case 6: return word("full") + " house, \(rank)s"
+        case 7: return word("four") + " \(rank)s"
+        default: return hand.topRank == 14 ? word("royal") + " flush" : "\(rank)-high straight flush"
         }
     }
 
