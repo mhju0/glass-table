@@ -23,10 +23,10 @@ concurrency:
 jobs:
   ui-tests:
     runs-on: macos-15
-    # Shards took 50 min to 2 h on the same commit, and a job killed at its limit uploads
-    # no evidence. The test step stops first so the upload below still runs, and a hung
-    # test is stopped after 15 min (the longest seen on a runner took under 6).
-    timeout-minutes: 150
+    # Runner speed varies about 2x: one four-shard run took 47 to 117 min per shard. A job
+    # killed at its limit uploads no evidence, so the test step stops first and the upload
+    # below still runs. A hung test is stopped after 15 min (the longest seen took under 6).
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
@@ -65,7 +65,7 @@ jobs:
       # rather than taking whichever iPhone is listed first. The macos-15 image lists
       # iPhone 17 under iOS 26.0.1, 26.1 and 26.2; raise this when the image moves on.
       - name: Run UI tests
-        timeout-minutes: 120
+        timeout-minutes: 165
         env:
           TEST_DEVICE: iPhone 17
           TEST_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-2

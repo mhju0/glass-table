@@ -6,7 +6,7 @@ Four GitHub Actions workflows, all on `macos-15` runners (free minutes, since th
 | --- | --- | --- | --- |
 | `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, Release launch smoke test, device Release build checked by `tools/verify_release.py` | about 22 min |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
-| `ui-tests.yml` | nightly 03:00 KST, by hand | the full UI flow suite, split across four parallel shards | 50–120 min per shard |
+| `ui-tests.yml` | nightly 03:00 KST, by hand | the full UI flow suite, split across four parallel shards | 45–120 min per shard (runner speed varies) |
 | `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
 
 `ci.yml` is the gate that has to pass before merging. The UI suite is too slow for every
