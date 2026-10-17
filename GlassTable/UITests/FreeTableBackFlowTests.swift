@@ -137,8 +137,8 @@ final class FreeTableBackFlowTests: XCTestCase {
         let body = app.scrollViews["free-back-content"]
         let policy = app.buttons["free-table-policy-toggle"]
         reveal(policy, app: app, scroll: body)
-        policy.tap()
         let chip = app.buttons["free-policy-chen-glossary"]
+        expand(policy, showing: chip)
         reveal(chip, app: app, scroll: body)
         attach(app, "policy-chen-chip")
         chip.tap()
@@ -226,12 +226,11 @@ final class FreeTableBackFlowTests: XCTestCase {
         let body = app.scrollViews["free-back-content"]
         let policy = app.buttons["free-table-policy-toggle"]
         reveal(policy, app: app, scroll: body)
-        policy.waitForStableFrame()
-        policy.tap()
         let text = language == "ko"
             ? "컴퓨터는 각 베팅 라운드에 벳하거나 올리는 행동을 한 번만 해요. 그 뒤에는 콜하거나 체크해요. 사람의 벳 횟수를 제한하는 규칙은 아니에요."
             : "Each computer bets or raises at most once per betting round. After that, it calls or checks. This is a bot policy, not a limit on your raises."
         let end = app.staticTexts.matching(NSPredicate(format: "label == %@", text)).firstMatch
+        expand(policy, showing: end)
         // On a loaded runner the expanded policy can take longer than 5s to appear.
         XCTAssertTrue(end.waitForExistence(timeout: 15))
         for bottomEdge in [false, true] {
@@ -369,6 +368,14 @@ final class FreeTableBackFlowTests: XCTestCase {
         XCTAssertGreaterThan(detail.frame.maxY, top + 40)
         print("\(language) cream guide detail=\(detail.frame), body=\(body.frame)")
         attach(app, "\(language)-AX-cream-guide-last-portion")
+    }
+
+    /// Opens a disclosure only if its content is not already there. The last short reveal
+    /// drag can start beside the toggle and open it on release (a GitHub runner's recording
+    /// showed it open before the tap), and a second tap would close it again.
+    private func expand(_ toggle: XCUIElement, showing content: XCUIElement) {
+        toggle.waitForStableFrame()
+        if !content.waitForExistence(timeout: 1) { toggle.tap() }
     }
 
     private func reveal(_ target: XCUIElement, app: XCUIApplication, scroll: XCUIElement, windowBottomInset: CGFloat = 20) {
