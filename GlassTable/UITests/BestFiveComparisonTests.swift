@@ -64,8 +64,9 @@ final class BestFiveComparisonTests: XCTestCase {
         XCTAssertTrue(comparison(app).waitForExistence(timeout: 10))
         assertLabel(app, 0, contains: ko ? "내 카드 2장 · 공용 카드 3장" : "2 of your cards · 3 board cards")
         assertLabel(app, 1, contains: ko ? "상대 카드 1장 · 공용 카드 4장" : "1 of the opponent's cards · 4 board cards")
-        XCTAssertEqual(app.staticTexts["best-five-why"].label,
-                       ko ? "내 K 투 페어가 상대 3 원 페어를 이겨요." : "Your Two pair, K high beats the opponent's Pair of 3s.")
+        let why = ko ? "내 K 투 페어가 상대 3 원 페어를 이겨요." : "Your Two pair, K high beats the opponent's Pair of 3s."
+        XCTAssertEqual(app.staticTexts["best-five-why"].label, why)
+        assertSaidOnce(app, why)
         assertCardsFit(app)
         show(app, app.descendants(matching: .any)["best-five-row-0"])
         attach(app, "\(tag)-lesson-rows")
@@ -82,11 +83,17 @@ final class BestFiveComparisonTests: XCTestCase {
         reach(resume, app: app)
         resume.tap()
         XCTAssertTrue(comparison(app).waitForExistence(timeout: 10), "A restored answer shows the comparison too")
+        assertSaidOnce(app, why)
         assertCardsFit(app)
         show(app, app.descendants(matching: .any)["best-five-row-0"])
         attach(app, "\(tag)-restored-rows")
         show(app, app.staticTexts["best-five-why"])
         attach(app, "\(tag)-restored-why")
+    }
+
+    /// The sentence under the cards is the whole explanation; the answer sheet must not repeat it.
+    private func assertSaidOnce(_ app: XCUIApplication, _ text: String) {
+        XCTAssertEqual(app.staticTexts.matching(NSPredicate(format: "label == %@", text)).count, 1, text)
     }
 
     private func handReview(_ language: String, ax: Bool) {

@@ -118,8 +118,6 @@ Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 - Kept on purpose (owner, 2026-10-15): outs beginner choices can be 1 apart because
   exact counting is the skill; the starting check stays out of Settings (`7549a32`);
   audit #34/#41 compact-grid rank headers stay as they are.
-- The "Who wins?" answer shows the why sentence twice, under the best-five comparison
-  and in the answer sheet (D50); the owner is choosing which copy to remove.
 
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications
@@ -190,8 +188,9 @@ Tests:
 - Fixed on the way: the kicker sentence compared ranks high-to-low instead of in
   evaluation order, and wrote "6라서".
 - Debug hooks: `GT_DEMO_SHOWDOWN_SPOT` (every showdown spot), `GT_DEMO_BASICS_SEED`.
-- Next: owner reviews PR #23 and picks which copy of the duplicated why sentence to
-  remove.
+- The why sentence now appears once, under the rows; the "Who wins?" sheet and its
+  restored sheet no longer repeat it (owner chose this, 2026-10-17).
+- Next: merge PR #23.
 
 ### 2026-10-15 (Claude · records cleanup and PR #11)
 

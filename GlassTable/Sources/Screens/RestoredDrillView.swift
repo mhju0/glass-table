@@ -78,6 +78,9 @@ struct RestoredDrillView: View {
             .font(GT.semibold(15)).foregroundStyle(GT.ink)
             .gtInset(GT.Space.card, firstText: .semibold(15))
             .gtExplanation(band: band)
+        } else if concept == .showdown {
+            // The sentence under the best-five rows already says why; the sheet does not repeat it.
+            EmptyView()
         } else {
             Text(detail?.why ?? language.text(
                 "답은 저장됐어요. 다음 문제로 이어가세요.",

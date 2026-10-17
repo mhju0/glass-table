@@ -960,6 +960,9 @@ and the line says the pot is split.
   on K♦ 8♦ 7♠ 6♦ 2♣, each using both private cards, with no pair.
 - Only after the answer is locked in. Card faces stay 50pt (about 290pt for seven) at
   every text size; labels wrap.
+- The "Who wins?" answer and its restored answer say the why sentence once, under the
+  rows; the answer sheet keeps only the verdict and Next (owner chose this over keeping
+  the sheet's box, 2026-10-17).
 - A hole card that only repeats a board rank is not counted as used.
 - The kicker sentence now compares ranks in evaluation order; it had named a six
   against a queen for K-K-6-6-5 against K-K-5-5-Q. No grading or saved data changed.

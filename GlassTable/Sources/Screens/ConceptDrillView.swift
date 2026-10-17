@@ -550,14 +550,18 @@ private struct RevealSheet: View {
                        },
                        correctTitle: correctTitle)
             if !collapsed {
-                Text(reveal?.why ?? language.text("답은 저장됐어요. 다음 문제로 이어가세요.",
-                                                  "Your answer was saved. Continue to the next question."))
-                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
-                    .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .gtInset(GT.Space.card, firstText: .body(16))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .gtExplanation(band: band)
-                    .fixedSize(horizontal: false, vertical: true)
+                // A showdown's why is the sentence under the best-five rows; saying it
+                // again here only repeats it.
+                if replayContext?.concept != .showdown {
+                    Text(reveal?.why ?? language.text("답은 저장됐어요. 다음 문제로 이어가세요.",
+                                                      "Your answer was saved. Continue to the next question."))
+                        .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
+                        .lineSpacing(GT.Typography.explanationLineSpacing)
+                        .gtInset(GT.Space.card, firstText: .body(16))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .gtExplanation(band: band)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 if let term { GlossaryChip(term: term) }
             }
             if saved, band == .off, let replayContext,
