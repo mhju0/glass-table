@@ -507,7 +507,8 @@ final class ProgressionModel {
                           expectedEpoch: UUID) -> Bool {
         guard expectedEpoch == epoch else { return false }
         if state.activeNodeSession?.nodeID == node.id { return true }
-        guard state.activeNodeSession == nil else { return false }
+        // A finished session has nothing left to play; its answers are already saved.
+        guard state.activeNodeSession.map({ $0.phase == .finished }) ?? true else { return false }
         let scheduled = Curriculum.sessionConcepts(for: node, seed: seed)
         guard Curriculum.isValidSession(scheduled, for: node) else { return false }
         let taught = Curriculum.taughtConcept(of: node)
