@@ -94,11 +94,11 @@ public enum BeatScript {
         // agreement and the same kicker sentence when the two hands share a name.
         switch s.winner {
         case 0: beats.append(Beat("내가 이겨요",
-                                  detail: showdownWhy(winner: heroName, loser: villainName,
+                                  detail: showdownWhy(winner: s.heroBest, loser: s.villainBest,
                                                       spot: s, heroWon: true),
                                   focus: .table, highlight: heroRiver))
         case 1: beats.append(Beat("상대가 이겨요",
-                                  detail: showdownWhy(winner: villainName, loser: heroName,
+                                  detail: showdownWhy(winner: s.villainBest, loser: s.heroBest,
                                                       spot: s, heroWon: false),
                                   focus: .table, highlight: villainRiver))
         default:

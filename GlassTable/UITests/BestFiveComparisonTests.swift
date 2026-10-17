@@ -64,7 +64,7 @@ final class BestFiveComparisonTests: XCTestCase {
         XCTAssertTrue(comparison(app).waitForExistence(timeout: 10))
         assertLabel(app, 0, contains: ko ? "내 카드 2장 · 공용 카드 3장" : "2 of your cards · 3 board cards")
         assertLabel(app, 1, contains: ko ? "상대 카드 1장 · 공용 카드 4장" : "1 of the opponent's cards · 4 board cards")
-        let why = ko ? "내 K 투 페어가 상대 3 원 페어를 이겨요." : "Your Two pair, K high beats the opponent's Pair of 3s."
+        let why = ko ? "내 K 투 페어가 상대 3 원 페어를 이겨요." : "Your two pair, K high, beats the opponent's pair of 3s."
         XCTAssertEqual(app.staticTexts["best-five-why"].label, why)
         assertSaidOnce(app, why)
         assertCardsFit(app)

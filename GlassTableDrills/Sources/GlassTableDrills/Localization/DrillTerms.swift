@@ -14,19 +14,54 @@ public enum DrillTerms {
         }
     }
 
+    /// The hand's name as a label or a choice: "Pair of Ks", "Two pair, K high".
     public static func hand(_ hand: HandBrief, in language: LearningLanguage) -> String {
         guard language == .english else { return handName(hand) }
+        return englishHand(hand, label: true)
+    }
+
+    /// The hand's name inside an English sentence, lowercase as poker writing has it:
+    /// "pair of Ks", "two pair, K high". Korean is the same as `hand`.
+    public static func handInSentence(_ hand: HandBrief, in language: LearningLanguage) -> String {
+        guard language == .english else { return handName(hand) }
+        return englishHand(hand, label: false)
+    }
+
+    /// The sentence form with the article English puts before a lone name, as after
+    /// "have" or "beats": "a pair of Ks", "an A-high flush", "a full house, Ks". High
+    /// card, two pair, three and four of a kind take none. `capitalized` starts a
+    /// sentence ("An A-high flush beats ..."). Korean is the same as `hand`.
+    public static func handWithArticle(_ hand: HandBrief, in language: LearningLanguage,
+                                       capitalized: Bool = false) -> String {
+        guard language == .english else { return handName(hand) }
+        let name = englishHand(hand, label: false)
+        let phrase: String
+        switch hand.category {
+        case 1, 4, 5, 6, 8: phrase = (name.hasPrefix("A") || name.hasPrefix("8") ? "an " : "a ") + name
+        default: phrase = name
+        }
+        return capitalized ? phrase.prefix(1).uppercased() + phrase.dropFirst() : phrase
+    }
+
+    /// Closes the aside in "two pair, K high" or "full house, Ks" when the sentence goes
+    /// on past the name: "Your two pair, K high, beats ...". Other names are unchanged.
+    public static func closingAside(_ englishName: String) -> String {
+        englishName.contains(", ") ? englishName + "," : englishName
+    }
+
+    private static func englishHand(_ hand: HandBrief, label: Bool) -> String {
         let rank = Card.displayRanks[hand.topRank - 2]
+        func word(_ lowercase: String) -> String { label ? lowercase.prefix(1).uppercased() + lowercase.dropFirst() : lowercase }
         switch hand.category {
         case 0: return "\(rank) high"
-        case 1: return "Pair of \(rank)s"
-        case 2: return "Two pair, \(rank) high"
-        case 3: return "Three \(rank)s"
+        case 1: return word("pair") + " of \(rank)s"
+        case 2: return word("two") + " pair, \(rank) high"
+        case 3: return word("three") + " \(rank)s"
         case 4: return "\(rank)-high straight"
         case 5: return "\(rank)-high flush"
-        case 6: return "Full house, \(rank)s"
-        case 7: return "Four \(rank)s"
-        default: return hand.topRank == 14 ? "Royal flush" : "\(rank)-high straight flush"
+        case 6: return word("full") + " house, \(rank)s"
+        case 7: return word("four") + " \(rank)s"
+        default: return hand.topRank == 14 ? word("royal") + " flush" : "\(rank)-high straight flush"
         }
     }
 
@@ -39,26 +74,42 @@ public enum DrillTerms {
         }
     }
 
+    /// The made-hand group as a label: "Top pair", "Two pair or better".
     public static func madeHand(_ hand: MadeHand, in language: LearningLanguage) -> String {
         guard language == .english else { return hand.korean }
+        return capitalizedFirst(madeHandInSentence(hand, in: language))
+    }
+
+    /// The made-hand group inside an English sentence: "top pair". Korean is unchanged.
+    public static func madeHandInSentence(_ hand: MadeHand, in language: LearningLanguage) -> String {
+        guard language == .english else { return hand.korean }
         switch hand {
-        case .air: return "No pair"
-        case .weakPair: return "Weak pair"
-        case .topPair: return "Top pair"
-        case .strong: return "Two pair or better"
-        case .draw: return "Draw"
+        case .air: return "no pair"
+        case .weakPair: return "weak pair"
+        case .topPair: return "top pair"
+        case .strong: return "two pair or better"
+        case .draw: return "draw"
         }
     }
 
+    /// The range shape as a label: "Same-suit hands".
     public static func tendency(_ tendency: RangeTendency, in language: LearningLanguage) -> String {
         guard language == .english else { return tendencyWord(tendency) }
+        return capitalizedFirst(tendencyInSentence(tendency, in: language))
+    }
+
+    /// The range shape inside an English sentence: "same-suit hands". Korean is unchanged.
+    public static func tendencyInSentence(_ tendency: RangeTendency, in language: LearningLanguage) -> String {
+        guard language == .english else { return tendencyWord(tendency) }
         switch tendency {
-        case .pairs: return "Pairs"
-        case .suited: return "Same-suit hands"
-        case .offsuitBroadway: return "High cards of different suits"
-        case .connectors: return "Neighboring ranks"
+        case .pairs: return "pairs"
+        case .suited: return "same-suit hands"
+        case .offsuitBroadway: return "high cards of different suits"
+        case .connectors: return "neighboring ranks"
         }
     }
+
+    private static func capitalizedFirst(_ text: String) -> String { text.prefix(1).uppercased() + text.dropFirst() }
 
     public static func suit(_ suit: Int, in language: LearningLanguage) -> String {
         guard language == .english else { return suitKoreanName(suit) }

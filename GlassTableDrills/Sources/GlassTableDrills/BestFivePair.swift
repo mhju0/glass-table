@@ -130,7 +130,7 @@ public struct BestFivePair: Equatable {
                                   language: language)
         }
         let (win, lose) = winner == 0 ? (first, second) : (second, first)
-        return showdownWhy(winner: win.name(in: language), loser: lose.name(in: language),
+        return showdownWhy(winner: win.brief, loser: lose.brief,
                            winFive: win.used, loseFive: lose.used,
                            winnerSide: win.owner, loserSide: lose.owner, language: language)
     }

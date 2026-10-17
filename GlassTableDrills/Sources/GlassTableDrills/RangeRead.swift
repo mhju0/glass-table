@@ -172,7 +172,7 @@ func explain(guess: HandRange, truth: HandRange, spot: RangeReadSpot, band: Grad
         case .wide: text += " Your range was too wide."
         case .narrow: text += " Your range was too narrow."
         case .raises: text += " Your estimate kept hands this player would have raised. Take more off the top."
-        case .shape(let t?): text += " The width is close, but the shape differs. Most missed hands are \(DrillTerms.tendency(t, in: language).lowercased())."
+        case .shape(let t?): text += " The width is close, but the shape differs. Most missed hands are \(DrillTerms.tendencyInSentence(t, in: language))."
         case .shape(nil): text += " The width is close, but few of the same hands overlap."
         }
         return text

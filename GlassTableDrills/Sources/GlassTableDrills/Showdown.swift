@@ -75,8 +75,8 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot,
     let vName = DrillTerms.hand(spot.villainBest, in: language)
     let why: String
     switch w {
-    case 0: why = showdownWhy(winner: hName, loser: vName, spot: spot, heroWon: true, language: language)
-    case 1: why = showdownWhy(winner: vName, loser: hName, spot: spot, heroWon: false, language: language)
+    case 0: why = showdownWhy(winner: spot.heroBest, loser: spot.villainBest, spot: spot, heroWon: true, language: language)
+    case 1: why = showdownWhy(winner: spot.villainBest, loser: spot.heroBest, spot: spot, heroWon: false, language: language)
     default: why = showdownTieWhy(spot, language: language)
     }
     return ShowdownReveal(band: answer == w ? .spotOn : .off,
@@ -88,7 +88,7 @@ public func gradeShowdown(answer: Int, spot: ShowdownSpot,
 /// mean the board plays: two players can use different hole cards to make the same
 /// straight, flush, or kicked hand.
 func showdownTieWhy(_ spot: ShowdownSpot, language: LearningLanguage = .korean) -> String {
-    let name = DrillTerms.hand(spot.heroBest, in: language)
+    let name = DrillTerms.handInSentence(spot.heroBest, in: language)
     if language == .english {
         return showdownBoardPlays(spot)
             ? "The five shared cards make the best hand for both players: \(name). It is a tie."
@@ -120,7 +120,7 @@ func showdownBoardPlays(_ spot: ShowdownSpot) -> Bool {
 /// When both hands share a name — two players on the same trips, say — "3 트리플이 3
 /// 트리플을 이겨요" is true and useless. The kicker decided it, so the kicker is what
 /// the sentence has to name.
-func showdownWhy(winner: String, loser: String, spot: ShowdownSpot, heroWon: Bool,
+func showdownWhy(winner: HandBrief, loser: HandBrief, spot: ShowdownSpot, heroWon: Bool,
                  language: LearningLanguage = .korean) -> String {
     showdownWhy(winner: winner, loser: loser,
                 winFive: bestFiveCards((heroWon ? spot.hero : spot.villain) + spot.board),
@@ -129,24 +129,26 @@ func showdownWhy(winner: String, loser: String, spot: ShowdownSpot, heroWon: Boo
                 loserSide: heroWon ? .opponent : .learner, language: language)
 }
 
-func showdownWhy(winner: String, loser: String, winFive: [Card], loseFive: [Card],
+func showdownWhy(winner winnerHand: HandBrief, loser loserHand: HandBrief, winFive: [Card], loseFive: [Card],
                  winnerSide: BestFiveOwner, loserSide: BestFiveOwner,
                  language: LearningLanguage) -> String {
+    let winner = DrillTerms.handInSentence(winnerHand, in: language)
+    let loser = DrillTerms.handInSentence(loserHand, in: language)
     guard winner == loser else {
         if language == .english {
-            return "\(winnerSide.englishPossessive(capitalized: true)) \(winner) beats \(loserSide.englishPossessive(capitalized: false)) \(loser)."
+            return "\(winnerSide.englishPossessive(capitalized: true)) \(DrillTerms.closingAside(winner)) beats \(loserSide.englishPossessive(capitalized: false)) \(loser)."
         }
         return "\(winnerSide.koreanPossessive) \(KO.subject(winner)) \(loserSide.koreanPossessive) \(KO.object(loser)) 이겨요."
     }
     if let i = decidingIndex(winFive, loseFive) {
         let w = rankLabel(winFive[i].rank), l = rankLabel(loseFive[i].rank)
         if language == .english {
-            return "Both have \(winner). The kicker decides it: \(winnerSide.englishPossessive(capitalized: false)) \(w) beats \(loserSide.englishPossessive(capitalized: false)) \(l)."
+            return "Both have \(DrillTerms.handWithArticle(winnerHand, in: language)). The kicker decides it: \(winnerSide.englishPossessive(capitalized: false)) \(w) beats \(loserSide.englishPossessive(capitalized: false)) \(l)."
         }
         return "둘 다 \(KO.copula(winner)) 키커가 승부를 갈랐어요. "
              + "\(winnerSide.koreanPossessive) \(w), \(loserSide.koreanPossessive) \(l)\(KO.endsInConsonant(l) ? "이라서" : "라서") \(winnerSide.koreanSide) 쪽이 이겨요."
     }
-    return language == .english ? "Both players have \(winner)." : "둘 다 \(KO.copula(winner))"
+    return language == .english ? "Both players have \(DrillTerms.handWithArticle(winnerHand, in: language))." : "둘 다 \(KO.copula(winner))"
 }
 
 /// The first position where two best fives differ in rank. `bestFiveCards` lists

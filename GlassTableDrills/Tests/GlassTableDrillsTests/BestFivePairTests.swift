@@ -49,6 +49,7 @@ final class BestFivePairTests: XCTestCase {
                            gradeShowdown(answer: 0, spot: s, language: language).whyText)
         }
         XCTAssertEqual(BestFivePair(s).why(in: .korean), "내 K 투 페어가 상대 3 원 페어를 이겨요.")
+        XCTAssertEqual(BestFivePair(s).why(in: .english), "Your two pair, K high, beats the opponent's pair of 3s.")
     }
 
     // MARK: A kicker decides
@@ -145,7 +146,7 @@ final class BestFivePairTests: XCTestCase {
         XCTAssertEqual(pair.why(in: .korean),
                        "둘 다 K 원 페어예요. 키커가 승부를 갈랐어요. 토마스의 A, 마이클의 Q라서 토마스 쪽이 이겨요.")
         XCTAssertEqual(pair.why(in: .english),
-                       "Both have Pair of Ks. The kicker decides it: Tom's A beats Mike's Q.")
+                       "Both have a pair of Ks. The kicker decides it: Tom's A beats Mike's Q.")
     }
 
     func testTwoSeatsPlayingTheBoardAreNotAddressedAsYou() {

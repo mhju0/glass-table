@@ -60,4 +60,22 @@ final class HoldemBasicsContentTests: XCTestCase {
         XCTAssertEqual(HoldemBasics.frequencyText(HoldemBasics.rank("pair").share, in: .korean),
                        "2.3판에 한 번")
     }
+
+    /// The check's answer names the winning hand mid-sentence, so English lowercases it
+    /// while the choice buttons keep the capitalized label.
+    func testCheckAnswerNamesTheWinnerInLowercase() {
+        XCTAssertEqual(HoldemBasics.checkFlush.name(in: .english), "Flush")
+        XCTAssertEqual(HoldemBasics.answerText(winner: HoldemBasics.checkFlush, in: .english),
+                       "The flush wins. Compare the hand types first; when they match, compare the combination’s ranks. Suits have no ranking.")
+        XCTAssertEqual(HoldemBasics.answerText(winner: HoldemBasics.checkFlush, in: .korean),
+                       "플러시 쪽이 이겨요. 먼저 족보를 비교하고, 같은 족보라면 조합을 만든 숫자부터 비교해요. 무늬에는 우열이 없어요.")
+        XCTAssertEqual(HoldemBasics.ladder.map { $0.sentenceName(in: .english) },
+                       ["royal flush", "straight flush", "four of a kind", "full house", "flush", "straight",
+                        "three of a kind", "two pair", "one pair", "high card"])
+        let five = Card.parse("KcKd6d6sQc")!
+        let twoPair = HoldemBasics.checkRank(id: "check-0", hand: bestHandOfAny(five), example: five)
+        XCTAssertEqual(twoPair.name(in: .english), "Two pair, K high")
+        XCTAssertTrue(HoldemBasics.answerText(winner: twoPair, in: .english).hasPrefix("The two pair, K high, wins. "))
+        XCTAssertTrue(HoldemBasics.answerText(winner: twoPair, in: .korean).hasPrefix("K 투 페어 쪽이 이겨요. "))
+    }
 }

@@ -40,15 +40,12 @@ struct HoldemBasicsView: View {
             // The first check keeps the ladder's names and its flush/straight ids.
             return zip([HoldemBasics.checkFlush, HoldemBasics.checkStraight], hands).map { rank, hand in
                 HoldemBasics.Rank(id: rank.id, category: rank.category, isRoyal: false,
-                    korean: rank.korean, english: rank.english, koreanDetail: rank.koreanDetail,
-                    englishDetail: rank.englishDetail, example: hand.1)
+                    korean: rank.korean, english: rank.english, englishInSentence: rank.englishInSentence,
+                    koreanDetail: rank.koreanDetail, englishDetail: rank.englishDetail, example: hand.1)
             }
         }
         return hands.enumerated().map { index, hand in
-            let template = HoldemBasics.ladder.first { $0.category == hand.0.category && !$0.isRoyal }!
-            return HoldemBasics.Rank(id: "check-\(index)", category: template.category, isRoyal: false,
-                korean: DrillTerms.hand(hand.0, in: .korean), english: DrillTerms.hand(hand.0, in: .english),
-                koreanDetail: template.koreanDetail, englishDetail: template.englishDetail, example: hand.1)
+            HoldemBasics.checkRank(id: "check-\(index)", hand: hand.0, example: hand.1)
         }
     }
 
@@ -331,8 +328,7 @@ struct HoldemBasicsView: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("basics.verdict")
             RevealDetail {
-                Text(language.text("\(winningCheck.name(in: language)) 쪽이 이겨요. 먼저 족보를 비교하고, 같은 족보라면 조합을 만든 숫자부터 비교해요. 무늬에는 우열이 없어요.",
-                                   "The \(winningCheck.name(in: language)) wins. Compare the hand types first; when they match, compare the combination’s ranks. Suits have no ranking."))
+                Text(HoldemBasics.answerText(winner: winningCheck, in: language))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
                     .lineSpacing(GT.Typography.explanationLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
