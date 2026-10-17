@@ -188,7 +188,7 @@ struct NodeSessionView: View {
             Text(language.text("지금까지 푼 답은 저장돼요. 이 레슨을 시작하면 이전 레슨의 남은 문제는 다시 시작해요.",
                                "Your answers are saved. Starting this lesson restarts the unfinished part of the other lesson."))
                 .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
-            FeltCTAButton(title: language.text("이 레슨 시작", "Start this lesson")) {
+            PrimaryCTAButton(title: language.text("이 레슨 시작", "Start this lesson")) {
                 guard model.abandonNodeSession(expectedEpoch: sessionEpoch ?? model.epoch) else { return }
                 let totals = Curriculum.concepts(of: node).map { model.seedCount(for: $0) }
                 let seed = NodeSessionSeed.make(nodeID: node.id, conceptTotals: totals)
@@ -489,7 +489,7 @@ struct NodeSessionView: View {
                     // Finishing used to end on "Done" alone and send the learner back to
                     // find their own way. The next lesson is one tap from here.
                     if onOpenLesson != nil, let next = model.nextNode, next.id != node.id {
-                        FeltCTAButton(title: language.text("다음 레슨: \(learningNodeTitle(next, language: language))",
+                        PrimaryCTAButton(title: language.text("다음 레슨: \(learningNodeTitle(next, language: language))",
                                                            "Next lesson: \(learningNodeTitle(next, language: language))")) {
                             leaveSummary(for: next)
                         }
@@ -497,10 +497,10 @@ struct NodeSessionView: View {
                         SecondaryCTAButton(title: language.text("완료", "Done"), action: finishSummary)
                             .accessibilityIdentifier("summary-done")
                     } else {
-                        FeltCTAButton(title: language.text("완료", "Done"), action: finishSummary)
+                        PrimaryCTAButton(title: language.text("완료", "Done"), action: finishSummary)
                     }
                 } else {
-                    FeltCTAButton(title: language.text("다른 카드로 다시 하기", "Try again with new cards"),
+                    PrimaryCTAButton(title: language.text("다른 카드로 다시 하기", "Try again with new cards"),
                                   action: retry)
                         .accessibilityIdentifier("summary-retry")
                     if Curriculum.taughtConcept(of: node) != nil {
@@ -974,7 +974,7 @@ struct FreePlayView: View {
                                    "You finished \(round.answers.count) questions. Try the same idea with different cards."))
                     .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
-                FeltCTAButton(title: language.text("다섯 문제 더", "Another five")) {
+                PrimaryCTAButton(title: language.text("다섯 문제 더", "Another five")) {
                     guard model.dismissFinishedRound(roundID: round.id,
                           expectedEpoch: sessionEpoch ?? model.epoch),
                           let concept = Concept(rawValue: round.concept) else { return }
@@ -1299,7 +1299,7 @@ struct ReviewSessionView: View {
                                      "You revisited \(topics.joined(separator: " · ").lowercased()). Try these topics in another spot anytime."))
                     .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                     .fixedSize(horizontal: false, vertical: true)
-                FeltCTAButton(title: language.text("학습으로 돌아가기", "Back to Learn")) {
+                PrimaryCTAButton(title: language.text("학습으로 돌아가기", "Back to Learn")) {
                     if let savedSession, savedSession.phase == .finished {
                         guard model.dismissFinishedReviewSession(sessionID: savedSession.id,
                             expectedEpoch: sessionEpoch ?? model.epoch) else { return }

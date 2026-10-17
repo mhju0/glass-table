@@ -770,6 +770,7 @@ struct RevealDetail<Content: View>: View {
 
 /// Primary action: mint fill, dark lettering. The one visually dominant control in
 /// any sheet — three equal rectangles is what made the old answer sheets read flat.
+/// The same button serves directly on felt, where there is no glass beneath it.
 struct PrimaryCTAButton: View {
     @Environment(\.isEnabled) private var isEnabled
     let title: String
@@ -946,25 +947,6 @@ private struct StepSplit: Layout {
                        proposal: ProposedViewSize(width: width, height: bounds.height))
             x += width + spacing
         }
-    }
-}
-
-/// Primary action sitting directly **on felt**, where there is no glass beneath it.
-struct FeltCTAButton: View {
-    @Environment(\.isEnabled) private var isEnabled
-    let title: String
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            Text(title).font(GT.title(GT.Typography.buttonSize))
-                .foregroundStyle(isEnabled ? GT.onCTA : GT.inkMuted)
-                .padding(.vertical, 16)
-                .frame(maxWidth: .infinity, minHeight: 54)
-                .background(isEnabled ? GT.cta : GT.surface,
-                            in: RoundedRectangle(cornerRadius: GT.Radius.control,
-                                                 style: .continuous))
-        }
-        .buttonStyle(GTPress())
     }
 }
 
