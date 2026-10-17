@@ -587,6 +587,14 @@ final class AccessibilityFlowTests: XCTestCase {
         XCTAssertTrue(scrollUntilHittable(choice, in: app),
                       "The basics check must remain reachable at AX XXXL.")
         choice.tap()
+        let checkNext = app.buttons["basics.check-next"]
+        XCTAssertTrue(scrollUntilHittable(checkNext, in: app),
+                      "The basics check verdict must remain reachable at AX XXXL.")
+        checkNext.tap()
+        let kickerChoice = app.buttons["basics.kicker.choice.mine"]
+        XCTAssertTrue(scrollUntilHittable(kickerChoice, in: app),
+                      "The same-pair check must remain reachable at AX XXXL.")
+        kickerChoice.tap()
         let finish = app.buttons["basics.finish"]
         XCTAssertTrue(scrollUntilHittable(finish, in: app),
                       "The basics verdict and course entry must remain reachable at AX XXXL.")

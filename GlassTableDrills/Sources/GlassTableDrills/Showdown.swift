@@ -118,8 +118,8 @@ func showdownBoardPlays(_ spot: ShowdownSpot) -> Bool {
 }
 
 /// When both hands share a name — two players on the same trips, say — "3 트리플이 3
-/// 트리플을 이겨요" is true and useless. The kicker decided it, so the kicker is what
-/// the sentence has to name.
+/// 트리플을 이겨요" is true and useless. The card that decided it — a kicker, the second
+/// pair of two pair, or the pair of a full house — is what the sentence has to name.
 func showdownWhy(winner: HandBrief, loser: HandBrief, spot: ShowdownSpot, heroWon: Bool,
                  language: LearningLanguage = .korean) -> String {
     showdownWhy(winner: winner, loser: loser,
@@ -142,11 +142,24 @@ func showdownWhy(winner winnerHand: HandBrief, loser loserHand: HandBrief, winFi
     }
     if let i = decidingIndex(winFive, loseFive) {
         let w = rankLabel(winFive[i].rank), l = rankLabel(loseFive[i].rank)
+        // Same name, so the top group matched: positions 2-3 of two pair are the second
+        // pair and 3-4 of a full house its pair. Only a leftover card is a kicker.
+        let secondPair = winnerHand.category == 2 && i < 4
+        let fullHousePair = winnerHand.category == 6
         if language == .english {
-            return "Both have \(DrillTerms.handWithArticle(winnerHand, in: language)). The kicker decides it: \(winnerSide.englishPossessive(capitalized: false)) \(w) beats \(loserSide.englishPossessive(capitalized: false)) \(l)."
+            let both = "Both have \(DrillTerms.handWithArticle(winnerHand, in: language))."
+            let mine = winnerSide.englishPossessive(capitalized: false)
+            let theirs = loserSide.englishPossessive(capitalized: false)
+            if secondPair || fullHousePair {
+                return "\(both) The \(secondPair ? "second pair" : "pair") decides it: \(mine) \(w)s beat \(theirs) \(l)s."
+            }
+            return "\(both) The kicker decides it: \(mine) \(w) beats \(theirs) \(l)."
         }
-        return "둘 다 \(KO.copula(winner)) 키커가 승부를 갈랐어요. "
-             + "\(winnerSide.koreanPossessive) \(w), \(loserSide.koreanPossessive) \(l)\(KO.endsInConsonant(l) ? "이라서" : "라서") \(winnerSide.koreanSide) 쪽이 이겨요."
+        let decider = secondPair ? "두 번째 페어가" : fullHousePair ? "함께 쓰는 페어가" : "키커가"
+        let pairWord = secondPair ? " 페어" : ""
+        let last = l + pairWord
+        return "둘 다 \(KO.copula(winner)) \(decider) 승부를 갈랐어요. "
+             + "\(winnerSide.koreanPossessive) \(w)\(pairWord), \(loserSide.koreanPossessive) \(last)\(KO.endsInConsonant(last) ? "이라서" : "라서") \(winnerSide.koreanSide) 쪽이 이겨요."
     }
     return language == .english ? "Both players have \(DrillTerms.handWithArticle(winnerHand, in: language))." : "둘 다 \(KO.copula(winner))"
 }

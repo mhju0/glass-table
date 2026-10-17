@@ -123,4 +123,20 @@ enum HoldemBasics {
     /// is only a high card.
     static let firstCheck = ShowdownSpot(hero: Card.parse("AdJd")!, villain: Card.parse("9c5h")!,
                                          board: Card.parse("Kd8d7s6d2c")!)
+
+    /// The third check: the same pair of Js on both sides, A♠ J♥ against Q♦ J♣ on
+    /// J♠ 8♦ 5♣ 3♥ 2♠. The pair cannot settle it; the A kicker does.
+    static let kickerCheck = ShowdownSpot(hero: Card.parse("AsJh")!, villain: Card.parse("QdJc")!,
+                                          board: Card.parse("Js8d5c3h2s")!)
+
+    /// The cards of a one-pair hand's pair, from the five that play.
+    static func pairCards(_ hand: BestFiveHand) -> [Card] {
+        hand.used.filter { $0.rank == hand.brief.topRank }
+    }
+
+    /// "J 페어는 같아요" over the kicker duel.
+    static func samePairLine(_ hand: BestFiveHand, in language: LearningLanguage) -> String {
+        let rank = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"][hand.brief.topRank - 2]
+        return language.text("\(rank) 페어는 같아요", "The pair of \(rank)s is the same")
+    }
 }

@@ -958,6 +958,14 @@ and the line says the pot is split.
   basics check's first example (flush against straight) is now dealt from seven
   cards too (owner, 2026-10-17): my A♦ J♦ flush against the opponent's 9♣ 5♥ straight
   on K♦ 8♦ 7♠ 6♦ 2♣, each using both private cards, with no pair.
+- Hold'em basics gets a third page, "같은 페어라면?" (owner, 2026-10-17): A♠ J♥ against
+  Q♦ J♣ on J♠ 8♦ 5♣ 3♥ 2♠, answered 내 카드 / 상대 카드 / 비겨요. After the pick the rows
+  above, then a "키커 · kicker" duel: the equal J pairs small and dimmed, then A♠ against
+  Q♦ at 56pt with A♠ outlined amber, and a 용어 · 키커 chip. The line is the engine's.
+  The second check's last button now reads 다음 and leads here; the lesson still saves
+  only that it was finished. 키커 joins the glossary. The sentence no longer says 키커
+  when the second pair of two pair or the pair of a full house decided it; it names
+  that pair (두 번째 페어 / 함께 쓰는 페어).
 - Only after the answer is locked in. Card faces stay 50pt (about 290pt for seven) at
   every text size; labels wrap.
 - The "Who wins?" answer and its restored answer say the why sentence once, under the

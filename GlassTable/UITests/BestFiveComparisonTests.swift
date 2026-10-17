@@ -51,6 +51,12 @@ final class BestFiveComparisonTests: XCTestCase {
     func testKOAXFirstBasicsCheck() { basicsCheck("ko", ax: true, seed: nil, choice: "flush") }
     func testENAXFirstBasicsCheck() { basicsCheck("en", ax: true, seed: nil, choice: "flush") }
 
+    /// The third page (owner, 2026-10-17): the same pair of Js, settled by the kicker.
+    func testKOBasicsKicker() { basicsKicker("ko", ax: false) }
+    func testENBasicsKicker() { basicsKicker("en", ax: false) }
+    func testKOAXBasicsKicker() { basicsKicker("ko", ax: true) }
+    func testENAXBasicsKicker() { basicsKicker("en", ax: true) }
+
     // MARK: Flows
 
     private func lessonThenRestored(_ language: String, ax: Bool) {
@@ -157,6 +163,58 @@ final class BestFiveComparisonTests: XCTestCase {
         attach(app, "\(tag)basics-rows")
         show(app, app.staticTexts["best-five-why"])
         attach(app, "\(tag)basics-why")
+    }
+
+    /// From the second check's verdict on to the same-pair page: no rows, duel or term
+    /// before the pick; afterwards the rows, the engine's line and the kicker duel.
+    private func basicsKicker(_ language: String, ax: Bool) {
+        let ko = language == "ko"
+        let tag = "\(language)-\(ax ? "AX5" : "large")-"
+        let app = XCUIApplication()
+        app.launchArguments = arguments(language, ax: ax)
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
+                                 "GT_DEMO_BASICS": "check-right"]
+        app.launch()
+        let next = app.buttons["basics.check-next"]
+        reach(next, app: app)
+        XCTAssertEqual(next.label, ko ? "다음" : "Next")
+        next.tap()
+
+        let mine = app.buttons["basics.kicker.choice.mine"]
+        reach(mine, app: app)
+        XCTAssertTrue(app.staticTexts[ko ? "같은 페어라면?" : "Same pair?"].exists)
+        XCTAssertEqual(app.buttons["basics.kicker.choice.theirs"].label, ko ? "상대 카드" : "Opponent's cards")
+        XCTAssertEqual(app.buttons["basics.kicker.choice.tie"].label, ko ? "비겨요" : "Tie")
+        XCTAssertEqual(mine.label, ko ? "내 카드" : "My cards")
+        XCTAssertFalse(comparison(app).exists, "Never before the answer is locked in")
+        XCTAssertFalse(app.descendants(matching: .any)["basics.kicker-duel"].exists)
+        XCTAssertFalse(app.buttons["basics.kicker-glossary"].exists)
+        attach(app, "\(tag)basics-kicker-question")
+        mine.tap()
+
+        let verdict = app.descendants(matching: .any)["basics.verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        XCTAssertTrue(verdict.label.contains(ko ? "맞았어요" : "That's right"), verdict.label)
+        let element = comparison(app)
+        for _ in 0..<8 where !element.exists { app.swipeUp() }
+        XCTAssertTrue(element.exists)
+        assertLabel(app, 0, contains: ko ? "J 원 페어" : "Pair of Js")
+        assertLabel(app, 1, contains: ko ? "J 원 페어" : "Pair of Js")
+        assertCardsFit(app)
+        show(app, app.descendants(matching: .any)["best-five-row-0"])
+        attach(app, "\(tag)basics-kicker-rows")
+        let why = app.staticTexts["best-five-why"]
+        XCTAssertEqual(why.label, ko ? "둘 다 J 원 페어예요. 키커가 승부를 갈랐어요. 내 A, 상대 Q라서 내 쪽이 이겨요."
+                                     : "Both have a pair of Js. The kicker decides it: your A beats the opponent's Q.")
+        let duel = app.descendants(matching: .any)["basics.kicker-duel"]
+        show(app, duel)
+        XCTAssertTrue(app.staticTexts[ko ? "J 페어는 같아요" : "The pair of Js is the same"].exists)
+        let chip = app.buttons["basics.kicker-glossary"]
+        for _ in 0..<6 where !chip.isHittable { app.swipeUp(velocity: .slow) }
+        XCTAssertTrue(chip.isHittable)
+        XCTAssertTrue(chip.label.contains(ko ? "키커" : "Kicker"), chip.label)
+        attach(app, "\(tag)basics-kicker-duel")
+        reach(app.buttons["basics.finish"], app: app)
     }
 
     // MARK: Helpers
