@@ -120,6 +120,10 @@ This index is newly consolidated. Earlier records remain intact; missing install
 
 - Source `cc64042` (PR #17: scalable free-table captions and title) plus the build bump. First run of `release.yml` on a `v1.0-31` tag; App Store Connect record renamed to "Glass Table" the same day.
 
+## Build 34 — fourth TestFlight build, 2026-10-17
+
+- Source: `main` after PRs #30–#34 (a finished lesson no longer blocks other lessons, winning river cards as hand-type rows with inset gold strokes, the kicker as the third Hold'em basics check, Learn as the lesson list with one marked row, 원 페어/투 페어 spelled with a space), plus the build bump. Tag `v1.0-34`.
+
 ## Build 33 — third TestFlight build, 2026-10-17
 
 - Source: `main` after PRs #27–#28 (lowercase English hand names in sentences, floating sheet's bottom corners concentric with the display), plus the build bump. Tag `v1.0-33`.
