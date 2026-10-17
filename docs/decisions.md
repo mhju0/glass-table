@@ -966,6 +966,8 @@ and the line says the pot is split.
   only that it was finished. 키커 joins the glossary. The sentence no longer says 키커
   when the second pair of two pair or the pair of a full house decided it; it names
   that pair (두 번째 페어 / 함께 쓰는 페어).
+  At the default text size the duel scrolls into view above the answer sheet when the
+  pick is committed, without animation under Reduce Motion (owner, 2026-10-17).
 - Only after the answer is locked in. Card faces stay 50pt (about 290pt for seven) at
   every text size; labels wrap.
 - The "Who wins?" answer and its restored answer say the why sentence once, under the
