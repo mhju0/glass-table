@@ -896,7 +896,7 @@ struct FirstLessonView: View {
             return language.text("둘 다 페어이면 높은 페어가 이겨요. A가 가장 높고, K, Q, J, 10, 9부터 2까지 차례로 낮아져요.",
                                  "When both hands have a pair, the higher pair wins. Ace is highest, then K, Q, J, 10, 9 and so on down to 2.")
         case .trips:
-            return language.text("같은 숫자 3장이면 트리플이에요. 트리플은 원페어와 투페어보다 강해요.",
+            return language.text("같은 숫자 3장이면 트리플이에요. 트리플은 원 페어와 투 페어보다 강해요.",
                                  "Three cards of one rank make three of a kind, or trips. Trips beat one pair and two pair.")
         case .straight:
             return language.text("숫자가 이어지는 5장이면 스트레이트예요. 스트레이트는 트리플보다 강해요.",

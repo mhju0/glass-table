@@ -311,7 +311,7 @@ struct GuidedHandView: View {
                     (nil, hand.stage == .preflop
                         ? language.text("A-K는 가장 좋은 시작 패 중 하나이고, 계속하는 데 1칩이면 돼요.",
                                         "A-K is one of the best starting hands, and staying in costs only 1 chip.")
-                        : language.text("에이스 원페어를 들고 있고, 계속하는 데 \(hand.owed)칩이면 돼요.",
+                        : language.text("에이스 원 페어를 들고 있고, 계속하는 데 \(hand.owed)칩이면 돼요.",
                                         "You hold a pair of aces, and staying in costs \(hand.owed) chips."))]
         }
         switch hand.stage {
@@ -339,7 +339,7 @@ struct GuidedHandView: View {
         case .flop:
             return [(now, language.text("공용 카드 세 장(플랍)이 나왔어요. \(KO.topic(name)) 체크했어요. 팟은 \(pot)칩.",
                                         "Three shared cards came out: the flop. \(name) checked. The pot is \(pot).")),
-                    (look, language.text("공용 카드의 A와 내 A. 에이스 원페어가 됐어요.",
+                    (look, language.text("공용 카드의 A와 내 A. 에이스 원 페어가 됐어요.",
                                          "The A on the table and your A. You have a pair of aces.")),
                     (think, language.text("받을 벳이 없어서 그냥 넘길(체크) 수 있어요. 좋은 패라면 먼저 걸어(벳) 팟을 키울 수도 있어요.",
                                           "Nothing to match, so you can pass (check) for free. Or bet first to grow the pot."))]
@@ -348,7 +348,7 @@ struct GuidedHandView: View {
                                         "The fourth card came: the turn. \(name) bet 2. The pot is \(pot).")),
                     (look, language.text("‘콜하려면 2칩’과 팟. 2칩을 내면 팟 \(pot)칩을 두고 계속해요.",
                                          "“To call: 2 chips” and the pot. Two chips keep you in for a pot of \(pot).")),
-                    (think, language.text("에이스 원페어는 여전히 좋은 패예요. 같은 금액을 내고(콜) 계속할 만해요.",
+                    (think, language.text("에이스 원 페어는 여전히 좋은 패예요. 같은 금액을 내고(콜) 계속할 만해요.",
                                           "A pair of aces is still a good hand. Matching the bet (a call) is reasonable."))]
         case .river:
             return [(now, language.text("마지막 카드(리버)가 나왔어요. \(KO.topic(name)) 체크했어요. 팟은 \(pot)칩.",

@@ -138,7 +138,7 @@ public func gradeRangeAdvantage(estimate: Estimate, spot: RangeAdvantageSpot,
 /// Names whichever bucket the two ranges differ on **most**, rather than always
 /// reporting two-pair-plus.
 ///
-/// Hardcoding 투페어 이상 produced headlines like "2.7% 대 0%" on boards where the real
+/// Hardcoding 투 페어 이상 produced headlines like "2.7% 대 0%" on boards where the real
 /// story was top pair 24% against nothing — comparing two near-zero numbers and calling
 /// it the lesson.
 func widestGapSentence(opener: RangeOnBoard, caller: RangeOnBoard,
