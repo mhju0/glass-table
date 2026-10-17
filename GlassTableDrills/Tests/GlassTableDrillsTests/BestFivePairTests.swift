@@ -102,7 +102,7 @@ final class BestFivePairTests: XCTestCase {
         XCTAssertEqual(pair.why(in: .korean),
                        "둘 다 J 투 페어예요. 두 번째 페어가 승부를 갈랐어요. 내 9 페어, 상대 6 페어라서 내 쪽이 이겨요.")
         XCTAssertEqual(pair.why(in: .english),
-                       "Both have two pair, J high. The second pair decides it: your 9s beat the opponent's 6s.")
+                       "Both have two pair, Js up. The second pair decides it: your 9s beat the opponent's 6s.")
     }
 
     /// Two full houses on the same three: the pair decides, not a kicker.
@@ -113,7 +113,15 @@ final class BestFivePairTests: XCTestCase {
         XCTAssertEqual(pair.why(in: .korean),
                        "둘 다 5 풀하우스예요. 함께 쓰는 페어가 승부를 갈랐어요. 내 9, 상대 7이라서 내 쪽이 이겨요.")
         XCTAssertEqual(pair.why(in: .english),
-                       "Both have a full house, 5s. The pair decides it: your 9s beat the opponent's 7s.")
+                       "Both have a full house of 5s. The pair decides it: your 9s beat the opponent's 7s.")
+    }
+
+    /// The ten reads "10" as on the card face, pluralised like the other ranks.
+    func testSameHandSentenceNamesTheTenAsOnTheCardFace() {
+        XCTAssertEqual(BestFivePair(spot("9hQc", "6d6s", "ThTs2h3d9s")).why(in: .english),
+                       "Both have two pair, 10s up. The second pair decides it: your 9s beat the opponent's 6s.")
+        XCTAssertEqual(BestFivePair(spot("9c9d", "7c7d", "TsThTd2c3h")).why(in: .english),
+                       "Both have a full house of 10s. The pair decides it: your 9s beat the opponent's 7s.")
     }
 
     /// The spot the Hold'em basics teaches the kicker with: the same pair of jacks,
