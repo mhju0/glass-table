@@ -974,3 +974,10 @@ and the line says the pot is split.
 - A hole card that only repeats a board rank is not counted as used.
 - The kicker sentence now compares ranks in evaluation order; it had named a six
   against a queen for K-K-6-6-5 against K-K-5-5-Q. No grading or saved data changed.
+- Outs answer (owner, 2026-10-17): the two seven-card rows with the river dealt, then
+  the winning rivers in one row per kind of hand I make (`OutsOutcomeGroups`, by
+  category, a royal flush apart), strongest first. A tap deals that river into both
+  rows; the first winning card starts picked and the answer sheet opens folded. No
+  representative comparison and no panel at the bottom. The five that play get a 1.5pt
+  amber outline inside the card and the deciding cards a 2.5pt one, so no outline
+  reaches a neighbouring card.

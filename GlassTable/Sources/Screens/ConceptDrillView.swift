@@ -384,6 +384,9 @@ struct DrillShell<Content: View, Sheet: View>: View {
     @State private var explaining = false
     let title: String
     let progressText: String
+    /// The graded sheet opens folded to its verdict and Next, for a reveal whose
+    /// evidence above needs the whole screen.
+    var foldsOnReveal = false
     @ViewBuilder var content: () -> Content
     @ViewBuilder var sheet: () -> Sheet
 
@@ -436,7 +439,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                     }
                     .accessibilityIdentifier("drill-content-scroll")
                     .safeAreaInset(edge: .bottom, spacing: 0) {
-                        ActionSheet(band: gradedBand) { sheet() }
+                        ActionSheet(band: gradedBand, foldsOnReveal: foldsOnReveal) { sheet() }
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier(sheetIdentifier)
                     }
@@ -1434,7 +1437,6 @@ private struct CountDrill: View {
     let onAnswer: (DrillOutcome) -> Void
     @State private var countEntry = ""
     @State private var result: GradeBand?
-    @State private var tappedOut: Card?
 
     /// Generated per use rather than held in a computed property, and never both at
     /// once: only the kind on screen is built, and the outs generator walks the deck
@@ -1447,13 +1449,14 @@ private struct CountDrill: View {
     }
 
     var body: some View {
-        DrillShell(title: kind == .outs ? "아웃" : "콤보", progressText: progressText) {
+        DrillShell(title: kind == .outs ? "아웃" : "콤보", progressText: progressText,
+                   foldsOnReveal: kind == .outs) {
             if kind == .outs {
                 // After the reveal the outs become tappable, so an abstract count turns
                 // into a hand you can actually see finish. Counting 9 teaches less than
                 // watching one of the nine win.
                 let spot = makeOutsSpot()
-                if result != nil { outsReveal(spot) } else { outsContent(spot) }
+                if result != nil { OutsRiverReveal(spot: spot) } else { outsContent(spot) }
             } else {
                 comboContent(makeComboSpot())
             }
@@ -1462,7 +1465,7 @@ private struct CountDrill: View {
                 RevealSheet(band: result,
                             submittedInput: .integer(Int(countEntry) ?? 0)) {
                     onAnswer(DrillOutcome(band: result, interval: nil))
-                    self.result = nil; countEntry = ""; tappedOut = nil
+                    self.result = nil; countEntry = ""
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
@@ -1494,6 +1497,13 @@ private struct CountDrill: View {
         }
         .onAppear {
             if case let .integerText(saved)? = initialDraft { countEntry = saved }
+            #if DEBUG
+            // GT_DEMO_REVEAL=<count> answers the outs question with that count, so the
+            // answer's rows are reachable by screenshot.
+            if kind == .outs, let v = ProcessInfo.processInfo.environment["GT_DEMO_REVEAL"], Int(v) != nil {
+                countEntry = v; submit()
+            }
+            #endif
         }
         .onChange(of: countEntry) { _, value in saveDraft(.integerText(value)) }
     }
@@ -1518,77 +1528,6 @@ private struct CountDrill: View {
 
     private func outsContent(_ spot: OutsSpot) -> some View {
         ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
-    }
-
-    /// The restored affordance from the M1 outs reveal: every out is tappable and
-    /// shows the finished river hand for both players via `RiverExplainPanel`.
-    private func outsReveal(_ spot: OutsSpot) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
-
-            SectionLabel(text: language.text("리버 아웃 · \(spot.outCount)장 · 눌러서 확인",
-                                              "Winning river cards · \(spot.outCount) · Tap a card"))
-                .padding(.top, 12)
-            ForEach(Array(OutsOutcomeGroups.make(hero: spot.hero, villain: spot.villain, board: spot.board, candidates: spot.outs).enumerated()), id: \.offset) { _, group in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(outsGroupTitle(group, spot: spot)).font(GT.semibold(16))
-                        .fixedSize(horizontal: false, vertical: true)
-                    outsGrid(group.cards, dead: false)
-                    if let representative = group.cards.first {
-                        let completed = ShowdownSpot(hero: spot.hero, villain: spot.villain, board: spot.board + [representative])
-                        Text(gradeShowdown(answer: completed.winner, spot: completed, language: language).whyText)
-                            .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .foregroundStyle(GT.ink).frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12).gtCard()
-                if let representative = group.cards.first {
-                    Button(language.text("대표 카드로 비교", "Compare a representative")) { tappedOut = representative }
-                        .buttonStyle(GTOutlinedAction())
-                }
-            }
-            if !spot.excluded.isEmpty {
-                SectionLabel(text: language.text("제외 · 무승부 또는 패배",
-                                                 "Excluded · ties or losses"))
-                    .padding(.top, 10)
-                outsGrid(spot.excluded.sorted(by: BeatScript.byRank), dead: true)
-            }
-            if let tappedOut {
-                RiverExplainPanel(spot: spot, river: tappedOut).padding(.top, 10)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func outsGroupTitle(_ group: OutsOutcomeGroup, spot: OutsSpot) -> String {
-        guard let card = group.cards.first else { return "" }
-        let completed = ShowdownSpot(hero: spot.hero, villain: spot.villain, board: spot.board + [card])
-        let result = gradeShowdown(answer: completed.winner, spot: completed, language: language)
-        return result.heroName + language.text(" · \(group.cards.count)장", " · \(group.cards.count) cards")
-    }
-
-    private func outsGrid(_ cards: [Card], dead: Bool) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 9)],
-                  alignment: .leading, spacing: 8) {
-            ForEach(Array(cards.enumerated()), id: \.offset) { _, card in
-                Button {
-                    withAnimation(GT.Motion.change) {
-                        tappedOut = tappedOut == card ? nil : card
-                    }
-                } label: {
-                    PlayingCardView(card: card, dead: dead)
-                        .overlay {
-                            if tappedOut == card {
-                                RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: PlayingCardView.canonicalSize))
-                                    .strokeBorder(GT.mint, lineWidth: 3)
-                            }
-                        }
-                }
-                .buttonStyle(GTPress())
-                .accessibilityHint(language.text("리버 완성 핸드 보기", "See the completed river hand"))
-            }
-        }
     }
 
     private func comboContent(_ spot: BlockerSpot) -> some View {

@@ -152,6 +152,7 @@ SCREENS=(
   "drill-potodds:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-potOdds"
   "drill-mdf:GT_DEMO_NODE=u9-mdf"
   "drill-outs:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-outs"
+  "drill-outs-reveal:GT_DEMO_NODE=u2-outs GT_DEMO_OUTS_SPOT=24500:4 GT_DEMO_REVEAL=15"
   "drill-equity:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-equitySense"
   "drill-ev:GT_DEMO_SEED=1 GT_DEMO_NODE=u2-evCall"
   "teach-evcall-zero:GT_DEMO_NODE=u2-evCall GT_DEMO_BEAT=0"

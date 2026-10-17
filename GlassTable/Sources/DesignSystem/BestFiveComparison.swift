@@ -5,7 +5,8 @@ import GlassTableDrills
 
 /// Seven cards, the five that play outlined; the rest step back but stay readable.
 /// The two private cards come first, set apart from the shared five. Cards whose rank
-/// decided a same-name contest also get an outer ring.
+/// decided a same-name contest get a thicker outline. Every outline is drawn inside
+/// the card, so it never reaches a neighbour.
 struct SevenCardRow: View {
     @Environment(\.learningLanguage) private var language
     let hole: [Card]
@@ -13,6 +14,8 @@ struct SevenCardRow: View {
     let used: [Card]
     var deciding: [Card] = []
     let size: CGFloat
+    /// Sets the last shared card apart as the river, as the outs answer deals it.
+    var separatesRiver = false
 
     /// The row's fixed width: card faces never follow Dynamic Type.
     static func width(size: CGFloat) -> CGFloat { 7 * size * 0.72 + 6 * 5 + 8 }
@@ -33,18 +36,11 @@ struct SevenCardRow: View {
             .overlay {
                 if plays {
                     RoundedRectangle(cornerRadius: radius)
-                        .strokeBorder(GT.mint, lineWidth: 3)
-                }
-            }
-            .overlay {
-                if decides {
-                    RoundedRectangle(cornerRadius: radius + 3)
-                        .strokeBorder(GT.cta, lineWidth: 2.5)
-                        .padding(-4.5)
+                        .strokeBorder(GT.cta, lineWidth: decides ? 2.5 : 1.5)
                 }
             }
             .opacity(plays ? 1 : 0.55)
-            .padding(.leading, index == 2 ? 8 : 0)
+            .padding(.leading, index == 2 || (separatesRiver && index == 6) ? 8 : 0)
             .accessibilityLabel(card.spoken(in: language) + note)
     }
 }
