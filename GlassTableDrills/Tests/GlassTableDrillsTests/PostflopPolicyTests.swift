@@ -45,7 +45,7 @@ final class PostflopPolicyTests: XCTestCase {
         // Maniac never folds: everything calls or raises.
         let m = Archetype.maniac.postflop
         XCTAssertEqual(m.calls.union(m.raises), Set(MadeHand.allCases))
-        // Nit's raise is 투페어 이상, and only that.
+        // Nit's raise is 투 페어 이상, and only that.
         XCTAssertEqual(Archetype.nit.postflop.raises, [.strong])
         // LAG bets air but checks weak pairs — the counterintuitive row.
         let lag = Archetype.lag.postflop
@@ -94,7 +94,7 @@ final class PostflopPolicyTests: XCTestCase {
 
     func testTheCertainTellsAreCertain() {
         let board = [Card(rank: 12, suit: 0), Card(rank: 8, suit: 1), Card(rank: 3, suit: 2)]
-        // Nit-벳: every betting combo is 투페어 이상 → pair-or-better is exactly 1.
+        // Nit-벳: every betting combo is 투 페어 이상 → pair-or-better is exactly 1.
         let nitBet = Archetype.nit.postflop.narrowed(
             Archetype.nit.raiseRange(from: .co), board: board, after: .bet)
         if nitBet.combos > 0 {

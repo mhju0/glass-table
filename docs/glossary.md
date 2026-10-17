@@ -38,6 +38,7 @@ languages. See [D45](decisions.md) and the
 | 레인지 | range | concept | bilingual on first sight |
 | MDF | minimum defense frequency | acronym | Latin; long form 최소 방어 빈도 as subtitle |
 | EV / GTO | — | acronym | Latin only |
+| 원 페어 / 투 페어 | one pair / two pair | hand | spaced, as in the engine's hand names (`J 원 페어`) |
 | 팟 / 벳 (sizing) | pot / bet | noun | Hangul; `bb` for blind-normalized amounts, 칩 for the pot-counting exercise |
 | 보드 / 공용 카드 | board | noun | Use 공용 카드 for the card-zone label |
 | 핸드 | hand | noun | Use 내 카드 / 상대 카드 for card-zone labels |

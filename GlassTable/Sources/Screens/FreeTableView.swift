@@ -483,7 +483,7 @@ struct FreeTableView: View {
         VStack(alignment: .leading, spacing: 12) {
             FreeTableBackHeader(tab: .constant(.hint), onClose: {})
             FreeTableMathSummary(pot: 100, call: 14, need: 25,
-                                 hand: language.text("Q 원페어", "Pair of queens"), top: nil, hole: [])
+                                 hand: language.text("Q 원 페어", "Pair of queens"), top: nil, hole: [])
         }
     }
 

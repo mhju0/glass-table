@@ -15,6 +15,13 @@ final class HoldemBasicsContentTests: XCTestCase {
         }
     }
 
+    /// The ladder names a pair the way every reveal does ("J 원 페어"), with the space.
+    func testLadderPairNamesMatchTheRevealNames() {
+        for rank in HoldemBasics.ladder where rank.category == 1 || rank.category == 2 {
+            XCTAssertTrue(handName(bestHandOfAny(rank.example)).hasSuffix(" " + rank.korean), rank.id)
+        }
+    }
+
     func testLadderRunsStrongestFirstAndCoversEveryCategory() {
         let categories = HoldemBasics.ladder.map(\.category)
         XCTAssertEqual(categories, [8, 8, 7, 6, 5, 4, 3, 2, 1, 0])

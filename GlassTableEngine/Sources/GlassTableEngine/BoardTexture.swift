@@ -95,7 +95,7 @@ public enum MadeHand: Int, CaseIterable, Comparable, Sendable {
         case .draw:     return "드로우"
         case .weakPair: return "약한 페어"
         case .topPair:  return "탑 페어"
-        case .strong:   return "투페어 이상"
+        case .strong:   return "투 페어 이상"
         }
     }
 }
