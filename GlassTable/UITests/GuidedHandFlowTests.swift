@@ -95,7 +95,7 @@ final class RestoredLessonParityFlowTests: XCTestCase {
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": store, "GT_TEST_FIRST_LESSON": "0"]
         app.launch()
-        let resume = app.buttons[korean ? "레슨 이어서 하기" : "Resume lesson"]
+        let resume = app.buttons["learn-continue"]
         reach(resume); resume.tap()
         let evidence = app.descendants(matching: .any)[identifier].firstMatch
         reach(evidence)
@@ -168,7 +168,7 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
             title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
                 .press(forDuration: 0.05,
                        thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98)))
-            XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.buttons["lesson-u1-showdown"].waitForExistence(timeout: 10))
             XCTAssertFalse(app.descendants(matching: .any)["walkthrough-step-0"].waitForExistence(timeout: 4),
                            "Closing the invitation without choosing must not start a lesson.")
             XCTAssertFalse(app.staticTexts["guided-hand-invitation"].exists)
@@ -178,7 +178,7 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
         if chooseHand {
             XCTAssertTrue(app.staticTexts["guided-hand-stage-seats"].waitForExistence(timeout: 10))
             tap(app.buttons["guided-hand-close"])
-            XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.buttons["lesson-u1-showdown"].waitForExistence(timeout: 10))
         } else {
             let firstStep = app.descendants(matching: .any)["walkthrough-step-0"]
             XCTAssertTrue(firstStep.waitForExistence(timeout: 10))
@@ -188,7 +188,7 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
             let secondStep = app.descendants(matching: .any)["walkthrough-step-1"]
             XCTAssertTrue(secondStep.waitForExistence(timeout: 5))
             tap(app.buttons[korean ? "닫기" : "Close"])
-            let resume = app.buttons[korean ? "레슨 이어서 하기" : "Resume lesson"]
+            let resume = app.buttons["learn-continue"]
             tap(resume)
             XCTAssertTrue(secondStep.waitForExistence(timeout: 10),
                           "Continue lessons opened a real node session and saved its walkthrough position.")

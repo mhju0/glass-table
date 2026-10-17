@@ -674,7 +674,7 @@ struct FreePlayView: View {
     @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
-    private var title: String { language.text("자유 연습", "Practice one skill") }
+    private var title: String { language.text("연습", "Practice") }
     private var blurb: String {
         language.text("횟수 제한은 없어요. 아무거나 골라서 원하는 만큼 푸세요.",
                       "No limits. Pick any skill and practice as much as you like.")
@@ -683,6 +683,8 @@ struct FreePlayView: View {
     /// Shown in place of the roster when `concepts` runs dry — the 복습 flow ends by
     /// emptying its own list, which must read as finishing, not as a broken screen.
     var emptyText: String?
+    /// Opens straight into this skill's round, as a passed lesson's "연습" does.
+    var startConcept: Concept?
     @State private var concept: Concept?
     @State private var index = 0
     /// Progress-salted at pick time, the same fresh-spots rule as a node re-run
@@ -825,6 +827,11 @@ struct FreePlayView: View {
                 concept = activeConcept
                 seed = round.seed
                 prepareIntro(for: activeConcept)
+            }
+            if let startConcept, concept != startConcept || activeRound?.phase == .finished {
+                if let round = activeRound, round.phase == .finished,
+                   !model.dismissFinishedRound(roundID: round.id, expectedEpoch: sessionEpoch ?? model.epoch) { return }
+                start(startConcept)
             }
         }
         .onChange(of: activeRound?.ordinal) { _, _ in
@@ -1028,28 +1035,31 @@ struct FreePlayView: View {
         }
     }
 
+    /// Opens this skill's round, replacing a round left open on another skill.
+    private func start(_ c: Concept) {
+        if let activeRound, activeRound.concept != c.rawValue {
+            guard model.abandonRound(roundID: activeRound.id,
+                expectedEpoch: sessionEpoch ?? model.epoch) else { return }
+        }
+        if model.state.activeRound == nil {
+            guard model.beginRound(concept: c,
+                seed: 0x5EED &+ UInt64(model.seedCount(for: c)),
+                expectedEpoch: sessionEpoch ?? model.epoch) else { return }
+            if let newRound = activeRound {
+                createdRoundID = newRound.id
+                if newRound.introPhase == nil {
+                    eligibleQuestionKey = "\(newRound.id):\(newRound.ordinal)"
+                }
+            }
+        }
+        concept = c
+        seed = model.state.activeRound?.seed ?? seed
+        prepareIntro(for: c)
+        questionReadyAt = nil
+    }
+
     private func skillCard(_ c: Concept) -> some View {
-                    Button {
-                        if let activeRound, activeRound.concept != c.rawValue {
-                            guard model.abandonRound(roundID: activeRound.id,
-                                expectedEpoch: sessionEpoch ?? model.epoch) else { return }
-                        }
-                        if model.state.activeRound == nil {
-                            guard model.beginRound(concept: c,
-                                seed: 0x5EED &+ UInt64(model.seedCount(for: c)),
-                                expectedEpoch: sessionEpoch ?? model.epoch) else { return }
-                            if let newRound = activeRound {
-                                createdRoundID = newRound.id
-                                if newRound.introPhase == nil {
-                                    eligibleQuestionKey = "\(newRound.id):\(newRound.ordinal)"
-                                }
-                            }
-                        }
-                        concept = c
-                        seed = model.state.activeRound?.seed ?? seed
-                        prepareIntro(for: c)
-                        questionReadyAt = nil
-                    } label: {
+                    Button { start(c) } label: {
                         HStack(spacing: 12) {
                             SkillGlyph(concept: c)
                             VStack(alignment: .leading, spacing: 2) {

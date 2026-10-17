@@ -155,7 +155,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
             Fixture(name: "opening-third", environment: ["GT_DEMO_FIRST_LESSON": "comparison-2"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
             Fixture(name: "opening-fourth", environment: ["GT_DEMO_FIRST_LESSON": "comparison-3"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
             Fixture(name: "opening-fifth", environment: ["GT_DEMO_FIRST_LESSON": "comparison-4"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
-            Fixture(name: "learn", environment: ["GT_DEMO_TAB": "learn"], ready: "learn-path", rootHeading: ["Learn", "배우기"]),
+            Fixture(name: "learn", environment: ["GT_DEMO_TAB": "learn"], ready: "lesson-u1-showdown", rootHeading: ["Learn", "배우기"]),
             Fixture(name: "play", environment: ["GT_DEMO_TAB": "play"], ready: "play-free", rootHeading: ["Play", "플레이"]),
             Fixture(name: "progress", environment: ["GT_DEMO_TAB": "records"], ready: "records-details", rootHeading: ["Progress", "학습 기록"]),
             Fixture(name: "settings", environment: ["GT_DEMO_SETTINGS": "1"], ready: "settings-language", rootHeading: ["Settings", "설정"]),
@@ -287,7 +287,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         XCTAssertFalse(app.buttons["firstLesson.finish"].exists)
         XCTAssertFalse(app.buttons["firstLesson.preference"].exists)
         tap(app.buttons["firstLesson.skip"], app: app)
-        XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["lesson-u1-showdown"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.tabBars.firstMatch.exists)
         print("B20_AX_FLOW opening-show-me-checkpoint \(code) \(appearance) passed")
         app.terminate()

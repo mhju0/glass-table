@@ -542,7 +542,7 @@ final class LearningFlowTests: XCTestCase {
         app.launchEnvironment = ["GT_TEST_STORE_ID": environment["GT_TEST_STORE_ID"]!,
                                  "GT_TEST_FIRST_LESSON": "0"]
         app.launch()
-        let resume = app.buttons["레슨 이어서 하기"]
+        let resume = app.buttons["learn-continue"]
         XCTAssertTrue(resume.waitForExistence(timeout: 15))
         resume.tap()
         XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 15))
@@ -625,7 +625,7 @@ final class LearningFlowTests: XCTestCase {
         app.buttons[wasKorean ? "language-english" : "language-korean"].tap()
         XCTAssertTrue(tabs[wasKorean ? "Learn" : "배우기"].waitForExistence(timeout: 5))
         tabs.element(boundBy: 0).tap()
-        let resume = button("레슨 이어서 하기", "Resume lesson")
+        let resume = app.buttons["learn-continue"]
         XCTAssertTrue(resume.waitForExistence(timeout: 5))
         resume.tap()
         XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-1"]
@@ -773,18 +773,15 @@ final class LearningFlowTests: XCTestCase {
                                  "GT_TEST_PATH_CURRENT_NODE": "u8-defend"]
         app.launch()
 
-        let path = app.buttons["learn-path"]
-        XCTAssertTrue(path.waitForExistence(timeout: 15))
-        path.tap()
         let node = app.buttons["lesson-u8-defend"]
         XCTAssertTrue(node.waitForExistence(timeout: 15))
         XCTAssertTrue(node.isHittable,
                       "Opening the list should scroll to a late suggested lesson once.")
         for _ in 0..<10 { app.swipeDown() }
-        XCTAssertTrue(app.staticTexts["전체 레슨"].isHittable)
+        XCTAssertTrue(app.staticTexts["배우기"].isHittable)
         app.tabBars.buttons["플레이"].tap()
         app.tabBars.buttons["배우기"].tap()
-        XCTAssertTrue(app.staticTexts["전체 레슨"].isHittable,
+        XCTAssertTrue(app.staticTexts["배우기"].firstMatch.isHittable,
                       "Returning to the path must preserve the learner's scroll position instead of jumping again.")
     }
 

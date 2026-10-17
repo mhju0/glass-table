@@ -11,7 +11,8 @@ struct RootView: View {
     @State private var tab: Tab = .learn
     @State private var showFreePlay = false
     @State private var showReview = false
-    @State private var showPath = false
+    /// The skill a passed lesson's "연습" opens straight into.
+    @State private var practiceConcept: Concept?
     @State private var showPlacement = false
     @State private var journey = BeginnerJourney()
     @State private var pendingOpeningFinishEpoch: UUID?
@@ -127,7 +128,8 @@ struct RootView: View {
             NavigationStack {
                 LearnView(onOpenNode: { journey.present(.lesson($0)) },
                           onOpenReview: { showReview = true },
-                          onOpenPractice: { showFreePlay = true },
+                          onOpenPractice: { practiceConcept = $0 },
+                          onChoosePractice: { showFreePlay = true },
                           onOpenBasics: { journey.present(.basics) },
                           onOpenGuidedHand: { journey.present(.guidedHand) },
                           onResumeOpening: { journey.present(.opening) })
@@ -200,21 +202,17 @@ struct RootView: View {
                 FreePlayView().modifier(ProgressSaveNotice())
             }.environment(model)
         }
+        .fullScreenCover(item: $practiceConcept) { concept in
+            NavigationStack {
+                FreePlayView(startConcept: concept).modifier(ProgressSaveNotice())
+            }.environment(model)
+        }
         // Snapshot the five most-overdue concepts and ask one question for each.
         .fullScreenCover(isPresented: $showReview) {
             NavigationStack {
                 ReviewSessionView().modifier(ProgressSaveNotice())
             }
             .environment(model)
-        }
-        .sheet(isPresented: $showPath) {
-            NavigationStack {
-                PathView(onOpenNode: { showPath = false; journey.present(.lesson($0)) },
-                         onOpenFreePlay: { showPath = false; showFreePlay = true },
-                         onOpenBasics: { showPath = false; journey.present(.basics) })
-                    .gtChrome(leading: { ChromeButton.close { showPath = false } })
-                    .gtSheetSurface()
-            }
         }
         .sheet(isPresented: $showPlacement) { NavigationStack { PlacementView() } }
         .onAppear {
@@ -250,7 +248,6 @@ struct RootView: View {
             }
             if env["GT_DEMO_REVIEW"] != nil { showReview = true }
             if env["GT_DEMO_SETTINGS"] != nil { tab = .settings }
-            if env["GT_DEMO_TAB"] == "path" { showPath = true }
             if env["GT_DEMO_PLACEMENT"] != nil { showPlacement = true }
             if env["GT_DEMO_BASICS"] != nil { journey.present(.basics) }
             if env["GT_DEMO_GUIDED_HAND"] != nil { journey.present(.guidedHand) }

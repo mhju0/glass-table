@@ -79,7 +79,7 @@ final class BestFiveComparisonTests: XCTestCase {
         app.launchEnvironment = ["GT_TEST_STORE_ID": store, "GT_TEST_FIRST_LESSON": "0",
                                  "GT_DEMO_SHOWDOWN_SPOT": Self.example]
         app.launch()
-        let resume = app.buttons[ko ? "레슨 이어서 하기" : "Resume lesson"]
+        let resume = app.buttons["learn-continue"]
         reach(resume, app: app)
         resume.tap()
         XCTAssertTrue(comparison(app).waitForExistence(timeout: 10), "A restored answer shows the comparison too")

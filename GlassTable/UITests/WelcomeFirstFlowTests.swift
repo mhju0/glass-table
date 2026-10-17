@@ -266,7 +266,7 @@ final class WelcomeFirstFlowTests: XCTestCase {
         retrySave(in: app)
         XCTAssertTrue(app.buttons["basics.close"].waitForExistence(timeout: 10))
         tap("basics.close", in: app)
-        XCTAssertTrue(app.buttons["learn-path"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["lesson-u1-showdown"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["learn-resume-opening"].exists)
     }
 
@@ -276,7 +276,7 @@ final class WelcomeFirstFlowTests: XCTestCase {
         thirdComparison(app)
         tap(app.buttons["firstLesson.skip"].exists ? "firstLesson.skip" : "firstLesson.close", in: app)
         XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["learn-path"].exists)
+        XCTAssertFalse(app.buttons["lesson-u1-showdown"].exists)
         retrySave(in: app)
         XCTAssertTrue(app.buttons["learn-resume-opening"].waitForExistence(timeout: 10))
         tap("learn-resume-opening", in: app)

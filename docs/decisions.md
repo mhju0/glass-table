@@ -973,3 +973,33 @@ and the line says the pot is split.
   representative comparison and no panel at the bottom. The five that play get a 1.5pt
   amber outline inside the card and the deciding cards a 2.5pt one, so no outline
   reaches a neighbouring card.
+
+### D51 · Learn is the lesson list, with one marked row
+**Status: ACTIVE — owner chose variant A2 on 2026-10-17.**
+
+Learn showed a suggestion card above several entries (전체 레슨, 한 가지 집중 연습, a
+review row), so the same lessons were reachable three ways. Learn is now the list:
+the tracks in D48 order, each lesson a 64×48 diagram, its title and one line on what
+it practises, with hairline separators instead of boxes. Track headers show the name
+and passed/total; a track's challenge is one quiet line (섞어서 확인하기 · 선택 도전).
+더 해보기 (Hold'em basics, 함께 한 판) follows, then the optional deeper track.
+
+- Removed: the suggestion card, 전체 레슨 (and the separate path screen), both
+  한 가지 집중 연습 entries and the separate review row. Due reviews are one top line
+  (↻ 복습 n개가 준비됐어요 · 시작); an open review continues from it (복습 이어서). The
+  opening-guide resume row stays while it is pending.
+- Exactly one row is marked, with a 1.5pt amber inset outline and the only filled
+  action (Drills `Curriculum.markedLesson`): a lesson left open and not at its summary
+  (진행 중 · 이어서); else Hold'em basics while it is suggested (여기서 시작 · 시작);
+  else the suggested next lesson (다음 · 시작). A lesson left open outside the tracks
+  (kept from an older path) gets its marked row at the top, so it can still be resumed. With every track lesson passed nothing
+  is marked and a top line leads to practice (D38).
+- A passed lesson gets a green ✓ on its diagram and a "연습" action that opens that
+  skill's five-question round directly (연습 이어서 while that round is open). The
+  action has one name everywhere, so Progress calls the mode 연습 / Practice too. No
+  question counts on the list; D47's "통과 전 · 최고 R/Q" stays.
+- Kept: the ahead-of-order dialog and the one-time scroll to the marked row (only
+  when it is below the fold). At the accessibility sizes each row stacks: diagram,
+  title, description, status, then a full-width action.
+- Hold'em basics has no single-skill round, so a passed basics row keeps its ✓ and a
+  chevron rather than a 연습 action.

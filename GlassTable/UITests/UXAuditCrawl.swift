@@ -188,7 +188,7 @@ final class UXAuditCrawl: XCTestCase {
         pause(1)
         rec.shot("건너뛴 뒤 첫 화면", after: "‘안내 건너뛰기’ 탭")
         tap(app.buttons["learn-basics-start"], "기초 레슨 시작")
-        rec.shot("홀덤 기초 (학습 탭에서 시작)", after: "‘레슨 시작’ 탭")
+        rec.shot("홀덤 기초 (학습 탭에서 시작)", after: "‘시작’ 탭")
         tap(app.buttons["basics.close"], "기초 닫기")
         rec.shot("기초를 닫은 뒤", after: "닫기 탭")
     }
@@ -216,16 +216,8 @@ final class UXAuditCrawl: XCTestCase {
         XCTAssertTrue(tabs())
         rec.flow("learn-new", section: "배우기 탭", title: "배우기 탭 · 막 시작한 사용자",
                  summary: "시작 안내를 마친 직후의 배우기 탭과 그 안의 모든 입구예요.")
+        // Learn is the lesson list itself (owner, 2026-10-17).
         rec.shot("배우기 탭", after: "앱 실행 (안내 완료 상태)")
-        tap(app.buttons["learn-path"], "전체 레슨")
-        pause(1)
-        rec.shot("전체 레슨", after: "‘전체 레슨’ 탭")
-        goBack()
-        rec.shot("배우기 탭으로 돌아옴", after: "뒤로", scroll: false)
-        tap(buttonContaining("한 가지 집중 연습"), "한 가지 집중 연습")
-        pause(1)
-        rec.shot("한 가지 집중 연습 · 주제 고르기", after: "‘한 가지 집중 연습’ 탭")
-        closeTop("집중 연습")
         if tap(app.buttons["learn-level"], "내 수준") {
             pause(1)
             rec.shot("내 수준 고르기", after: "‘내 수준’ 탭", scroll: false)
@@ -240,37 +232,15 @@ final class UXAuditCrawl: XCTestCase {
         returningUser()
     }
 
-    private func goBack() {
-        let back = app.navigationBars.buttons.firstMatch
-        if back.exists && back.isHittable { back.tap(); pause(); return }
-        for label in ["뒤로", "학습", "배우기", "Back"] where button(label).exists && button(label).isHittable {
-            button(label).tap(); pause(); return
-        }
-        // Edge swipe back.
-        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
-        start.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)))
-        pause()
-    }
-
-    /// 한 가지 집중 연습: one topic, five questions.
+    /// 연습: a passed lesson's five-question round.
     private func practiceRound() {
-        launch()
+        launch(pathNode: nil, seed: true)
         XCTAssertTrue(tabs())
-        rec.flow("learn-practice", section: "배우기 탭", title: "한 가지 집중 연습 · 한 라운드",
-                 summary: "배우기 탭에서 주제 하나를 골라 다섯 문제를 끝까지 풀어요. 이 흐름은 첫 번째 답을 그대로 보여줘요.")
-        tap(buttonContaining("한 가지 집중 연습"), "한 가지 집중 연습")
+        rec.flow("learn-practice", section: "배우기 탭", title: "연습 · 한 라운드",
+                 summary: "배우기 탭에서 통과한 레슨의 ‘연습’을 눌러 다섯 문제를 끝까지 풀어요. 이 흐름은 첫 번째 답을 그대로 보여줘요.")
+        guard tap(app.buttons["practice-showdown"], "연습") else { return }
         pause(1)
-        rec.shot("주제 고르기", after: "‘한 가지 집중 연습’ 탭")
-        // Pick the first topic row in the picker.
-        let candidates = app.buttons.allElementsBoundByIndex.filter {
-            $0.isHittable && $0.label.count > 1 && !["닫기", "배우기", "플레이", "기록", "설정"].contains($0.label)
-        }
-        guard let topic = candidates.first(where: { $0.label.contains("쇼다운") }) ?? candidates.first else {
-            rec.problem("No topic to pick in 한 가지 집중 연습"); return
-        }
-        let name = topic.label
-        topic.tap(); pause(1)
-        rec.shot("주제 선택 후", after: "‘\(name)’ 탭")
+        rec.shot("연습 시작", after: "‘연습’ 탭")
         var memory: [String: QMemory] = [:]
         driveSession(pass: .first, memory: &memory, maxSteps: 40, flowLabel: "집중 연습")
     }
@@ -331,13 +301,9 @@ final class UXAuditCrawl: XCTestCase {
         launch(pathNode: nil, seed: true)
         XCTAssertTrue(tabs())
         rec.flow("learn-returning", section: "배우기 탭", title: "배우기 탭 · 진행 중인 사용자",
-                 summary: "몇 레슨을 마치고 복습할 주제가 쌓인 상태(데모 진행 데이터)의 배우기 탭, 복습 한 번, 전체 레슨이에요.")
+                 summary: "몇 레슨을 마치고 복습할 주제가 쌓인 상태(데모 진행 데이터)의 배우기 탭과 복습 한 번이에요.")
         rec.shot("배우기 탭 (진행 중)", after: "앱 실행 (진행 중인 데이터)")
-        tap(app.buttons["learn-path"], "전체 레슨")
-        pause(1)
-        rec.shot("전체 레슨 (진행 중)", after: "‘전체 레슨’ 탭")
-        goBack()
-        let review = buttonContaining("복습")
+        let review = app.buttons["learn-review"]
         if review.waitForExistence(timeout: 3) {
             let label = review.label
             tap(review, "복습")
@@ -767,7 +733,7 @@ final class UXAuditCrawl: XCTestCase {
     func test13Unit4() { runUnit("t4") }
     func test14Unit5() { runUnit("t5") }
 
-    /// The five tracks on the All lessons screen, in the order `Curriculum.tracks` lists them.
+    /// The five tracks on Learn, in the order `Curriculum.tracks` lists them.
     private static let units: [String: (title: String, nodes: [(String, String)])] = [
         "t1": ("1. 기본기", [("u1-showdown", "쇼다운"), ("u1-position", "자리와 순서"), ("u1-boss", "선택 도전")]),
         "t2": ("2. 시작 패", [("u3-rfi", "먼저 올리기"), ("u8-defend", "올린 상대에 맞서기"), ("u3-boss", "선택 도전")]),
@@ -794,18 +760,16 @@ final class UXAuditCrawl: XCTestCase {
                 rec.flow("\(id)-\(pass == .first ? "a" : "b")", section: spec.title,
                          title: "\(title) · \(pass == .first ? "첫 번째 풀이" : "두 번째 풀이")",
                          summary: pass == .first
-                            ? "배우기 탭 → 전체 레슨 → ‘\(title)’. 따라 배우기의 모든 단계, 함께 풀기, 문제마다 첫 번째 답과 그 결과예요."
+                            ? "배우기 탭 → ‘\(title)’. 따라 배우기의 모든 단계, 함께 풀기, 문제마다 첫 번째 답과 그 결과예요."
                             : "같은 레슨을 같은 문제로 다시 풀어요. 첫 풀이에서 맞힌 문제는 일부러 틀리고, 틀린 문제는 정답을 골라요.",
                          group: id, pass: pass == .first ? "a" : "b")
                 if pass == .first { rec.shot("배우기 탭", after: "앱 실행", scroll: false) }
-                tap(app.buttons["learn-path"], "전체 레슨")
-                pause(1)
                 let row = app.buttons["lesson-\(id)"]
                 if pass == .first {
-                    // Scroll the path until the row is on screen, so the shot shows where it sits.
+                    // Scroll Learn until the row is on screen, so the shot shows where it sits.
                     var tries = 0
                     while row.exists && !row.isHittable && tries < 10 { rec.nudge(up: true); tries += 1 }
-                    rec.shot("전체 레슨 · ‘\(title)’ 위치", after: "‘전체 레슨’ 탭", scroll: false)
+                    rec.shot("배우기 탭 · ‘\(title)’ 위치", after: "앱 실행", scroll: false)
                 }
                 tap(row, "레슨 ‘\(title)’")
                 pause(1.5)

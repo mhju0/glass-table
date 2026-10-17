@@ -16,7 +16,6 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["learn-basics-start"].waitForExistence(timeout: 15))
         XCTAssertFalse(app.buttons["learn-level"].exists)
-        app.buttons["learn-path"].tap()
         let first = app.buttons["lesson-u1-showdown"]
         XCTAssertTrue(first.waitForExistence(timeout: 5))
         XCTAssertTrue(first.isEnabled)
@@ -78,7 +77,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.tabBars.buttons["Progress"].tap()
         XCTAssertFalse(app.staticTexts["100%"].exists)
         app.tabBars.buttons["Learn"].tap()
-        XCTAssertTrue(app.buttons["learn-path"].exists)
+        XCTAssertTrue(app.buttons["lesson-u1-showdown"].exists)
     }
 
     func testOpeningGuideResumesWithoutMandatoryPlacement() {
@@ -99,7 +98,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertFalse(app.buttons["placement.level.newToPoker"].exists)
         let skipLesson = app.buttons["firstLesson.skip"]
         skipLesson.tap()
-        let path = app.buttons["learn-path"]
+        let path = app.buttons["lesson-u1-showdown"]
         XCTAssertTrue(path.waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["learn-basics-start"].exists, "A new player is pointed at the basics")
         app.swipeUp()
@@ -269,7 +268,7 @@ final class BeginnerReleaseTests: XCTestCase {
         chooseLanguage("korean", in: app)
         XCTAssertTrue(app.tabBars.buttons["설정"].isSelected)
         app.tabBars.buttons["배우기"].tap()
-        app.buttons["레슨 이어서 하기"].tap()
+        app.buttons["learn-continue"].tap()
         XCTAssertTrue(app.firstLessonChoice.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["1/3"].exists)
         app.buttons["닫기"].firstMatch.tap()
@@ -281,22 +280,16 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Learn"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Learn"].tap()
-        app.buttons["Resume lesson"].tap()
+        app.buttons["learn-continue"].tap()
         XCTAssertTrue(app.firstLessonChoice.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["1/3"].exists)
     }
 
+    /// Learn is the lesson list itself (owner, 2026-10-17), so only the exercise pushes.
     func testLearningPathAndHeadsUpExerciseKeepBackNavigation() {
         let app = app()
         app.launch()
-        let path = app.buttons["learn-path"]
-        XCTAssertTrue(path.waitForExistence(timeout: 15))
-        path.tap()
-        XCTAssertTrue(app.staticTexts["All lessons"].waitForExistence(timeout: 5))
-        let pathBack = app.navigationBars.buttons.firstMatch
-        XCTAssertTrue(pathBack.isHittable)
-        pathBack.tap()
-        XCTAssertTrue(path.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["lesson-u1-showdown"].waitForExistence(timeout: 15))
 
         app.tabBars.buttons["Play"].tap()
         let headsUp = app.buttons["play-graded"]
@@ -364,8 +357,8 @@ final class BeginnerReleaseTests: XCTestCase {
         app.terminate()
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0"]
         app.launch()
-        XCTAssertTrue(app.buttons["Resume lesson"].waitForExistence(timeout: 15))
-        app.buttons["Resume lesson"].tap()
+        XCTAssertTrue(app.buttons["learn-continue"].waitForExistence(timeout: 15))
+        app.buttons["learn-continue"].tap()
         XCTAssertTrue(app.staticTexts[answerID].waitForExistence(timeout: 5))
         let next = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "drill-completion-")).firstMatch
         scrollTo(next, in: app)
@@ -471,8 +464,8 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0",
                                  "GT_DEMO_LEVEL": "playRegularly"]
         app.launch()
-        XCTAssertTrue(app.buttons["Resume lesson"].waitForExistence(timeout: 15))
-        app.buttons["Resume lesson"].tap()
+        XCTAssertTrue(app.buttons["learn-continue"].waitForExistence(timeout: 15))
+        app.buttons["learn-continue"].tap()
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "43")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@", "saved-answer-")).firstMatch.exists)
     }
