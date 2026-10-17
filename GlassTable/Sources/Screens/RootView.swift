@@ -334,7 +334,7 @@ struct StoreRecoveryView: View {
                 .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                 .lineSpacing(GT.Typography.explanationLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
-            FeltCTAButton(title: isReadingImport ? language.text("파일 확인 중", "Checking file") : language.text("백업 불러오기", "Import backup")) {
+            PrimaryCTAButton(title: isReadingImport ? language.text("파일 확인 중", "Checking file") : language.text("백업 불러오기", "Import backup")) {
                 importing = true
             }
             .disabled(isReadingImport)

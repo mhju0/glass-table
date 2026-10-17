@@ -36,7 +36,7 @@ struct PracticeActivityView: View {
             } else {
                 HStack(alignment: .top, spacing: 4) { dates }
             }
-            FeltCTAButton(title: overview.mainCourseCompletedLessons >= overview.mainCourseLessonCount
+            PrimaryCTAButton(title: overview.mainCourseCompletedLessons >= overview.mainCourseLessonCount
                           ? language.text("다시 연습하기", "Practice again")
                           : language.text("이어서 배우기", "Continue learning"), action: onContinue)
                 .accessibilityIdentifier("records-continue")

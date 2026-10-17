@@ -80,7 +80,7 @@ struct OpponentDetailView: View {
                 .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
                 if let onStart {
-                    FeltCTAButton(title: language.text("이 상대와 연습", "Practice with this opponent"),
+                    PrimaryCTAButton(title: language.text("이 상대와 연습", "Practice with this opponent"),
                                   action: onStart)
                         .accessibilityIdentifier("opponent-start")
                 }

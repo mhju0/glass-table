@@ -35,7 +35,7 @@ struct FreeTableHandCoachView: View {
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             GTStepRow(previous: page > 0 ? { move(-1) } : nil, previousID: "coach-back") {
-                FeltCTAButton(title: last ? language.text("완료", "Done") : language.text("다음", "Next")) {
+                PrimaryCTAButton(title: last ? language.text("완료", "Done") : language.text("다음", "Next")) {
                     if last { onClose() } else { move(1) }
                 }
                 .accessibilityIdentifier(last ? "coach-done" : "coach-next")
