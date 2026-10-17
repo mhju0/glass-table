@@ -56,6 +56,10 @@ final class BestFiveComparisonTests: XCTestCase {
     func testENBasicsKicker() { basicsKicker("en", ax: false) }
     func testKOAXBasicsKicker() { basicsKicker("ko", ax: true) }
     func testENAXBasicsKicker() { basicsKicker("en", ax: true) }
+    /// The duel is the point of the page: at the default size it comes into view on the
+    /// answer, with no swipe (owner, 2026-10-17).
+    func testKOKickerDuelInViewAfterAnswer() { kickerDuelInView("ko") }
+    func testENKickerDuelInViewAfterAnswer() { kickerDuelInView("en") }
 
     // MARK: Flows
 
@@ -215,6 +219,38 @@ final class BestFiveComparisonTests: XCTestCase {
         XCTAssertTrue(chip.label.contains(ko ? "키커" : "Kicker"), chip.label)
         attach(app, "\(tag)basics-kicker-duel")
         reach(app.buttons["basics.finish"], app: app)
+    }
+
+    /// Answers the same-pair page at the default text size and, without swiping, finds
+    /// the whole duel between the header and the answer sheet.
+    private func kickerDuelInView(_ language: String) {
+        let ko = language == "ko"
+        let app = XCUIApplication()
+        app.launchArguments = arguments(language, ax: false)
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
+                                 "GT_DEMO_BASICS": "kicker"]
+        app.launch()
+        let mine = app.buttons["basics.kicker.choice.mine"]
+        XCTAssertTrue(mine.waitForExistence(timeout: 15))
+        XCTAssertTrue(mine.isHittable)
+        mine.tap()
+
+        let verdict = app.descendants(matching: .any)["basics.verdict"]
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        let duel = app.descendants(matching: .any)["basics.kicker-duel"]
+        XCTAssertTrue(duel.waitForExistence(timeout: 5))
+        let chip = app.buttons["basics.kicker-glossary"]
+        let counter = app.staticTexts[ko ? "3쪽 중 3쪽" : "Page 3 of 3"]
+        XCTAssertTrue(counter.exists)
+        // Let the scroll settle; no gesture is made.
+        let settled = NSPredicate { _, _ in duel.frame.maxY <= verdict.frame.minY }
+        _ = XCTWaiter.wait(for: [expectation(for: settled, evaluatedWith: nil)], timeout: 3)
+        XCTAssertLessThanOrEqual(duel.frame.maxY, verdict.frame.minY,
+                                 "Duel \(duel.frame) runs under the answer sheet (verdict \(verdict.frame))")
+        XCTAssertGreaterThanOrEqual(duel.frame.minY, counter.frame.maxY,
+                                    "Duel \(duel.frame) starts under the header (\(counter.frame))")
+        XCTAssertTrue(chip.isHittable)
+        attach(app, "\(language)-large-basics-kicker-duel-on-answer")
     }
 
     // MARK: Helpers

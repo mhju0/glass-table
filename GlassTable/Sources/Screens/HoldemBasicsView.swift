@@ -10,6 +10,7 @@ import GlassTableDrills
 /// Content sits above; everything the learner taps sits in the bottom panel.
 struct HoldemBasicsView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.learningLanguage) private var language
     @Environment(ProgressionModel.self) private var model
 
@@ -76,12 +77,21 @@ struct HoldemBasicsView: View {
                     .padding(.horizontal, GT.Space.edge).padding(.bottom, 28)
                 }
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: GT.Space.section) { content }
-                        .padding(.horizontal, GT.Space.edge).padding(.vertical, 12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: GT.Space.section) { content }
+                            .padding(.horizontal, GT.Space.edge).padding(.vertical, 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
+                    // The duel is the point of the page; bring it above the answer sheet.
+                    .onChange(of: kickerAnswer) { _, answer in
+                        guard answer != nil else { return }
+                        withAnimation(reduceMotion ? nil : GT.Motion.change) {
+                            proxy.scrollTo(Self.kickerDuelID, anchor: .bottom)
+                        }
+                    }
                 }
-                .scrollBounceBehavior(.basedOnSize)
                 ActionSheet(band: band) {
                     VStack(alignment: .leading, spacing: GT.Space.related) { panel }
                 }
@@ -360,7 +370,10 @@ struct HoldemBasicsView: View {
         .gtCard(radius: GT.Radius.panel)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("basics.kicker-duel")
+        .id(Self.kickerDuelID)
     }
+
+    private static let kickerDuelID = "basics.kicker-duel"
 
     private func duelCards(_ cards: [Card]) -> some View {
         HStack(spacing: 3) {
