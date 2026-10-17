@@ -3,9 +3,19 @@ import GlassTableEngine
 
 /// Deterministic, procedural Outs-drill spots. Same (baseSeed, index) → same spot.
 public enum OutsSpotGenerator {
+    #if DEBUG
+    /// Screenshot and UI-test hook, set once at launch from `GT_DEMO_OUTS_SPOT`. It
+    /// replaces every generated spot, so the question, its reveal and a restored answer
+    /// all read the same cards. Debug builds only.
+    nonisolated(unsafe) public static var demoSpot: OutsSpot?
+    #endif
+
     /// Draw hero/villain/turn-board from a seeded shuffle; keep spots with 2...15
     /// winning rivers. This filter does not require hero to be behind on the turn.
     public static func spot(baseSeed: UInt64, index: Int) -> OutsSpot {
+        #if DEBUG
+        if let demoSpot { return demoSpot }
+        #endif
         var attempt = 0
         var lo = 2, hi = 15
         while true {

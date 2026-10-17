@@ -73,23 +73,19 @@ final class BeginnerQuestionChoicesTests: XCTestCase {
         }
     }
 
-    func testOutsGroupingKeepsKickersAndOpponentOutcomeSeparate() {
-        let hero = Card.parse("AhKh")!, villain = Card.parse("QsQd")!
-        let board = Card.parse("Qh7h2s3c")!
-        let candidates = Card.parse("4h5h6h8h9hThJh2h3h")!
-        let groups = OutsOutcomeGroups.make(hero: hero, villain: villain, board: board, candidates: candidates)
-        XCTAssertEqual(Set(groups.flatMap(\.cards)), Set(candidates))
-        // All seven safe hearts are ace-high flushes, but their full kickers differ.
-        XCTAssertEqual(groups.filter { $0.winner == 0 }.count, 7)
-        XCTAssertEqual(groups.filter { $0.winner == 1 }.count, 2)
-        for group in groups {
-            for river in group.cards {
-                let spot = ShowdownSpot(hero: hero, villain: villain, board: board + [river])
-                XCTAssertEqual(group.winner, spot.winner)
-                XCTAssertEqual(group.heroRanks, bestFiveCards(hero + spot.board).map(\.rank).sorted(by: >))
-                XCTAssertEqual(group.villainRanks, bestFiveCards(villain + spot.board).map(\.rank).sorted(by: >))
-            }
-        }
+    /// The reveal groups winning rivers by the hand they make for me, not by exact
+    /// ranks: A♥ J♥ against 6♦ K♦ on 5♠ 9♣ Q♥ K♥ has fifteen outs in four kinds of
+    /// hand, though the flushes alone differ in kickers and in what the opponent makes.
+    func testOutsGroupByMyHandCategory() {
+        let spot = OutsSpotGenerator.spot(baseSeed: 24500, index: 4)
+        XCTAssertEqual(Set(spot.hero), Set(Card.parse("AhJh")!))
+        let groups = OutsOutcomeGroups.make(hero: spot.hero, villain: spot.villain, board: spot.board,
+                                            candidates: spot.outs)
+        XCTAssertEqual(groups.map(\.cards.count), [1, 8, 3, 3])
+        XCTAssertEqual(groups.map(\.category), [8, 5, 4, 1])
+        XCTAssertEqual(groups.map(\.isRoyal), [true, false, false, false])
+        XCTAssertEqual(groups.first?.cards, Card.parse("Th")!)
+        XCTAssertEqual(Set(groups.flatMap(\.cards)), Set(spot.outs))
     }
 
     func testEquivalentSuitOutcomesGroupWithoutDroppingSuits() {
@@ -97,7 +93,7 @@ final class BeginnerQuestionChoicesTests: XCTestCase {
             board: Card.parse("2c4d7h9s")!, candidates: Card.parse("QcQhQs")!)
         XCTAssertEqual(groups.count, 1)
         XCTAssertEqual(groups.first?.cards, Card.parse("QsQhQc")!)
-        XCTAssertEqual(groups.first?.winner, 0)
+        XCTAssertEqual(groups.first?.category, 1)
     }
 
     func testGroupsComeStrongestHandFirstWithCardsAceFirst() {
@@ -105,8 +101,8 @@ final class BeginnerQuestionChoicesTests: XCTestCase {
         let hero = Card.parse("9h8h")!, villain = Card.parse("AsKd")!, board = Card.parse("Th7c2h2s")!
         let groups = OutsOutcomeGroups.make(hero: hero, villain: villain, board: board,
             candidates: countOuts(hero: hero, villain: villain, board: board))
-        XCTAssertEqual(groups.map(\.heroCategory), groups.map(\.heroCategory).sorted(by: >))
-        XCTAssertGreaterThan(Set(groups.map(\.heroCategory)).count, 1)
+        XCTAssertEqual(groups.map(\.category), groups.map(\.category).sorted(by: >))
+        XCTAssertEqual(Set(groups.map(\.category)).count, groups.count, "One group per kind of hand")
         for group in groups {
             XCTAssertEqual(group.cards.map(\.rank), group.cards.map(\.rank).sorted(by: >))
         }

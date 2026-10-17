@@ -268,39 +268,6 @@ struct VerdictRow: View {
     }
 }
 
-/// Board + the tapped river card, both finished hands, and who wins. Shared by the outs
-/// reveal and 첫 핸드 on purpose: the first hand rehearses the affordance the drill uses.
-struct RiverExplainPanel: View {
-    @Environment(\.learningLanguage) private var language
-    let spot: OutsSpot
-    let river: Card
-
-    var body: some View {
-        let ex = explainRiver(spot: spot, river: river)
-        VStack(alignment: .leading, spacing: 9) {
-            CardRow(cards: spot.board)
-            HStack(spacing: 10) {
-                SectionLabel(text: language.text("리버", "Final card"))
-                PlayingCardView(card: river)
-                    .overlay(RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: PlayingCardView.canonicalSize))
-                        .strokeBorder(GT.mint, lineWidth: 2.5))
-            }
-            Text("\(language.text("현재 패", "Your hand")) · \(DrillTerms.hand(ex.hero, in: language))")
-                .font(GT.title(14)).foregroundStyle(GT.onFelt)
-            Text("\(language.text("상대", "Opponent")) · \(DrillTerms.hand(ex.villain, in: language))")
-                .font(GT.semibold(13)).foregroundStyle(GT.onFelt.opacity(0.85))
-            Text(ex.heroWins ? language.text("이겼어요", "You win")
-                 : (ex.isTie ? language.text("무승부라서 이기는 아웃에는 포함되지 않아요", "This card ties the hand, so it is not an outright winning out")
-                             : language.text("완성해도 상대가 더 강해요", "The opponent still wins")))
-                .font(GT.title(13))
-                .foregroundStyle(ex.heroWins ? GTBand.spotOnInk : GTBand.offInk)
-        }
-        .padding(GT.Space.card)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(GT.onFelt.opacity(0.12), in: RoundedRectangle(cornerRadius: GT.Radius.panel))
-    }
-}
-
 /// "용어 · 팟 오즈" — opens the glossary from inside a reveal.
 /// Owns its own sheet state so a call site is one line.
 struct GlossaryChip: View {
@@ -652,6 +619,8 @@ struct ActionSheet<Content: View>: View {
     var band: GradeBand? = nil
     /// False where the sheet holds the answer buttons themselves and has nothing to fold.
     var collapsible = true
+    /// Folds as soon as a result arrives instead of waiting for the learner to fold it.
+    var foldsOnReveal = false
     var firstText: GT.TextRole? = .title(18)
     @ViewBuilder var content: () -> Content
     /// A graded sheet folds down to its verdict and Next, so evidence the reveal added
@@ -708,8 +677,9 @@ struct ActionSheet<Content: View>: View {
             if value.translation.height > 30 { setCollapsed(true) }
             if value.translation.height < -30 { setCollapsed(false) }
         })
-        .onChange(of: band) { _, newBand in
+        .onChange(of: band) { oldBand, newBand in
             if newBand == nil { collapsed = false }
+            if oldBand == nil, newBand != nil, foldsOnReveal { collapsed = true }
         }
     }
 
