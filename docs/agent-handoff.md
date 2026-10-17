@@ -5,7 +5,7 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-15)
+## Current state (2026-10-17)
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -93,13 +93,17 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
-- Open PRs from 2026-10-17, not merged: #32 `feat/kicker-basics-check-20261017` (D50
-  kicker check; main merged in, the duel scrolls into view on the answer) and
-  `feat/learn-diagram-list-20261017` (D51: Learn is the lesson list, one marked row,
-  `PathView` removed). Both touch BestFiveComparisonTests, LearningFlowTests and
-  GuidedHandFlowTests and the end of `docs/decisions.md`; whichever merges second needs
-  a small merge.
-- Work only in this folder; there are no other worktrees.
+- TestFlight (2026-10-17): builds 31–34 shipped by `v1.0-<build>` tags through
+  `release.yml`; the four App Store Connect secrets are set. Build 34 = `main` at
+  `f7f4ab4` (PRs #23–#35: best five, live language switch, help tiles at AX, lowercase
+  English hand names, concentric sheet corners, a finished lesson no longer blocks
+  others, outs answer as hand-type rows with inset gold strokes, the kicker as the third
+  basics check, Learn as the lesson list (D51, `PathView` gone), 원 페어/투 페어 spaced).
+  ASC app name "Glass Table", age rating and English localization are set; category and
+  stale metadata are not. Upload only; no App Store review submission (D23).
+- Unconfirmed whether the owner has added themselves as an internal tester (App Store
+  Connect → TestFlight → Internal Testing; no invite code is needed).
+- No open PRs. All 2026-10-16/17 worktrees were removed after their branches merged.
 - Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the
   iOS 27 beta). After a rebuild, run
   `xcrun simctl uninstall <device> com.michaelju.glasstable.GlassTableUITests.xctrunner`
@@ -117,6 +121,13 @@ Never verified with people or hardware:
   notification, share and review flows; backup export/import; huge-history save latency.
 - GRAC: owner submitted 1.0(22), now awaiting processing, any corrections, rating and RCN. Reviewer installation is unverified: development IPA permits only two registered devices; TestFlight upload/invite not performed. Confirm delivery with GRAC if needed. Video/simulator acceptance and statutory Annex 2(8) final selection remain unverified; working answers are not a final portal export.
 
+Owner checks pending on build 34 (2026-10-17): the floating sheet's concentric bottom
+corners on a real phone; the outs rows, kicker page and Learn list on the phone.
+- Known gap (D51): the marked row follows the open lesson or the suggestion, so a lesson
+  played out of order is not remembered; a saved `lastNodeID` would need a schema bump.
+- English sentences say "two pair, J high" and "a full house, 5s" (engine hand names),
+  not the "Js up" copy proposed in the kicker exploration.
+
 Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 - Outs sits second in the suggested order with no recorded
   reason (`c31a5c7`). Rules pages (pot, blinds, flow) stay optional; the glossary now
@@ -128,16 +139,13 @@ Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 Product and numbers:
 - Numerical audit N08–N12 and model qualifications
   (`docs/records/2026-10-11-numerical-audit.md`). Graded-flop sampling is gone: the flop
-  is exact on `feat/exact-flop-equity-20261016` (D49), once merged.
+  is exact (D49, PR #22).
 - Build 15 crawl candidates never verified: short tap heights on ‘설명 접기’,
   ‘안내 건너뛰기’, ‘계산 보기’, ‘전체 차트 보기’, ‘크게 보고 핸드 찾기’; unlabelled buttons
   on free-table setup. Free-table review once paired 33% with "four wins in ten".
 - Free-table dock/seat layout at 2–3 players: not confirmed closed; check `map.md`.
 - At AX5 in English the "Decision help" pill is clipped in the raise header; the
   Korean AX5 raise title is cut inside its scroll box.
-- iOS 27 (released, on the owner's phones): the Settings language switch left the app in
-  the old language until relaunch. Fixed on `fix/live-language-switch-20261016` (PR
-  open, not merged); close this once it is merged.
 - Clickable controls (not yet raised with the owner): the Play top-bar title stops
   growing at the first accessibility size, so the AX dock keeps its height. The walkthrough,
   hand review and learning guide keep equal-width Previous/Next; the guide and Hold'em
@@ -150,9 +158,9 @@ Product and numbers:
   identity; free raise 2BB presets and graded range/equity jargon.
 
 CI/CD:
-- `release.yml` has never run: it needs the paid Apple Developer membership, an App Store
-  Connect app record and the four secrets in `docs/ci-cd.md`. Whether an App Manager
-  API key is enough for cloud signing is unknown; the doc says Admin.
+- Push-triggered CI does not always start; dispatch it with
+  `gh workflow run ci.yml --ref <branch>`. The `.p8` key should move into a password
+  manager (owner reminder).
 - `ui-tests.yml` can only be started by hand once it is on `main`. The full UI suite has
   not passed on a GitHub runner (see `docs/records/2026-10-14-codex-ci-repair.md`).
 
@@ -169,6 +177,18 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-17 (Claude · TestFlight builds 31–34 and owner's phone feedback)
+
+- Shipped builds 31–34 to TestFlight by tag. Owner feedback from the phone, each with
+  exploration artifacts and owner picks: concentric bottom corners (iOS 26
+  `ConcentricRectangle`, PR #28); outs answer as hand-type rows with 1.5pt inset gold
+  strokes and no outer ring (1A + V1, PR #31); kicker as basics check 3 with a duel panel
+  (2A + K2, PR #32); Learn as list A2 with no question count and the marker = open lesson
+  else suggestion (D51, PR #33); lowercase English hand names (PR #27); a finished lesson
+  closed with ✕ no longer blocks others (PR #30); 원 페어/투 페어 spaced (PR #34).
+- One simulator job at a time throughout (owner's Mac-load rule).
+- Next: owner adds themselves as an internal tester and checks build 34 on the phone.
 
 ### 2026-10-17 (Claude · kicker duel scroll and Learn list)
 
@@ -225,19 +245,3 @@ Tests:
 - The why sentence now appears once, under the rows; the "Who wins?" sheet and its
   restored sheet no longer repeat it (owner chose this, 2026-10-17).
 - Next: merge PR #23.
-
-### 2026-10-15 (Claude · records cleanup and PR #11)
-
-- Owner asked to turn every report, audit and scratch folder into compact text, keep
-  less in the repo and locally, and deal with PR #11 by Claude's judgment.
-- 627 tracked originals (HTML reports, screenshots, ledgers, mocks, `.scratch/`,
-  `plans/`, old handoffs) became 31 records in `docs/records/` with an index; links
-  repointed. Rule added to AGENTS.md and `docs/agents/issue-tracker.md`: finished work
-  becomes one record, originals are not kept. Local `.build/`, `.archive/`, old build
-  folders and the untracked UX report were deleted after `2026-10-15-local-archives.md`
-  captured them (about 24 GB). `docs/grac-submission/` kept: it is the filed GRAC record.
-- PR #11 closed: its CI design lost to the lean CI, and its timeout fixes were already in
-  `main`. Its three accessibility fixes and four UI test commits moved to
-  `fix/a11y-play-captions-20261015` (testPlayTable 0/3 → 3/3 on iPhone 17). Codex's
-  experiment branches deleted; their SHAs are in the record.
-- Next: owner looks at the caption PR and tries build 30.
