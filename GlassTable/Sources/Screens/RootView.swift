@@ -5,7 +5,7 @@ import GlassTableDrills
 enum Tab: Hashable { case learn, play, progress, settings }
 
 struct RootView: View {
-    @Environment(\.learningLanguage) private var language
+    @State private var languageSettings = LanguageSettings()
     @State private var model = ProgressionModel()
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @State private var tab: Tab = .learn
@@ -37,6 +37,9 @@ struct RootView: View {
         .onChange(of: model.epoch) { _, _ in pendingOpeningFinishEpoch = nil }
         .preferredColorScheme(model.isShowingBrandWelcome ? .dark : appearance.colorScheme)
         .environment(model)
+        .environment(languageSettings)
+        .environment(\.learningLanguage, language)
+        .environment(\.locale, Locale(identifier: language.rawValue))
         .environment(\.leadsWithTerms, PokerTerms.lead(choice: termsChoice, level: level))
         .environment(\.simpleQuestions, level != .playRegularly)
         .environment(\.homeIndicatorInset, homeIndicatorInset)
@@ -45,6 +48,8 @@ struct RootView: View {
             homeIndicatorInset = $0
         }
     }
+
+    private var language: LearningLanguage { languageSettings.resolved }
 
     private var level: PlacementSelfReport {
         #if DEBUG

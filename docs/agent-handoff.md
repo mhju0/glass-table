@@ -129,7 +129,9 @@ Product and numbers:
 - Free-table dock/seat layout at 2–3 players: not confirmed closed; check `map.md`.
 - At AX5 in English the "Decision help" pill is clipped in the raise header; the
   Korean AX5 raise title is cut inside its scroll box.
-- iOS 27 beta only: Settings language switch does not re-render the screen.
+- iOS 27 (released, on the owner's phones): the Settings language switch left the app in
+  the old language until relaunch. Fixed on `fix/live-language-switch-20261016` (PR
+  open, not merged); close this once it is merged.
 - Clickable controls (not yet raised with the owner): the Play top-bar title stops
   growing at the first accessibility size, so the AX dock keeps its height. The walkthrough,
   hand review and learning guide keep equal-width Previous/Next; the guide and Hold'em
@@ -161,6 +163,17 @@ Tests:
 - Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-17 (Claude · live language switch)
+
+- Cause, from logging on clones: on iOS 27 the App body re-ran with the new
+  `AppStorage` language, but the open WindowGroup kept its old environment, so RootView
+  never re-rendered; iOS 26.5 re-renders it. Fix: an `@Observable` `LanguageSettings`
+  owned by RootView as `@State` injects the language and locale, and Settings writes
+  through it (no `.id`, so progress and navigation survive). The toggle failure blamed on
+  bc53bdc was a flake: it also happened once on unfixed code.
+- DeviceFeedbackSettingsTests now assert the tab bar, Settings and Learn in both
+  directions without a relaunch. PR open; next: owner review, then merge.
 
 ### 2026-10-16 (Claude · exact flop equity)
 

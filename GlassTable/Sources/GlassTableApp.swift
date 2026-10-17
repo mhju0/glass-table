@@ -5,8 +5,6 @@ import GlassTableEngine
 
 @main
 struct GlassTableApp: App {
-    @AppStorage(AppLanguage.storageKey) private var language = AppLanguage.system
-
     init() {
         #if DEBUG
         // GT_DEMO_SHOWDOWN_SPOT=Kc6d,5d3h,Qc6sKdJh3d deals every showdown question
@@ -19,20 +17,10 @@ struct GlassTableApp: App {
         #endif
     }
 
-    private var resolvedLanguage: LearningLanguage {
-        #if DEBUG
-        if let code = ProcessInfo.processInfo.environment["GT_DEMO_LANGUAGE"],
-           let selected = LearningLanguage(rawValue: code) { return selected }
-        #endif
-        return language.resolved
-    }
-
     var body: some Scene {
         WindowGroup {
             RootView()
                 .disclosureGroupStyle(GTDisclosureStyle())
-                .environment(\.learningLanguage, resolvedLanguage)
-                .environment(\.locale, Locale(identifier: resolvedLanguage.rawValue))
         }
     }
 }
