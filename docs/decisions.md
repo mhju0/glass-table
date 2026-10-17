@@ -941,3 +941,28 @@ range). Consequences:
   A debug build takes about 1–2.5s per flop decision.
 - `TableHand` no longer carries a sampling seed; a hand is still deterministic per
   deal seed.
+
+### D50 · Best five of seven, shown after the answer
+**Status: ACTIVE — owner approved option A on 2026-10-16.**
+
+Two plain five-card rows did not show where each five came from. One shared view,
+`BestFiveComparison` (logic in Drills `BestFivePair`), now shows each player's seven
+cards with the two unused ones dimmed (the first-run guide's pattern), the hand name
+and "내 카드 n장 · 공용 카드 n장". When two same-name hands are split by a kicker or the
+second pair, those cards get an amber ring on both rows; the line underneath is the
+reveal's own sentence. When the board plays, both rows light the same five board cards
+and the line says the pot is split.
+
+- Used in the "Who wins?" answer, its restored answer, the free-table hand review's
+  ending (the winner and whoever came closest) and the Hold'em basics check. The
+  basics check's first example (flush against straight) is now dealt from seven
+  cards too (owner, 2026-10-17): my A♦ J♦ flush against the opponent's 9♣ 5♥ straight
+  on K♦ 8♦ 7♠ 6♦ 2♣, each using both private cards, with no pair.
+- Only after the answer is locked in. Card faces stay 50pt (about 290pt for seven) at
+  every text size; labels wrap.
+- The "Who wins?" answer and its restored answer say the why sentence once, under the
+  rows; the answer sheet keeps only the verdict and Next (owner chose this over keeping
+  the sheet's box, 2026-10-17).
+- A hole card that only repeats a board rank is not counted as used.
+- The kicker sentence now compares ranks in evaluation order; it had named a six
+  against a queen for K-K-6-6-5 against K-K-5-5-Q. No grading or saved data changed.

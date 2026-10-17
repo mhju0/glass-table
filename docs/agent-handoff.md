@@ -137,7 +137,7 @@ Product and numbers:
   hand review and learning guide keep equal-width Previous/Next; the guide and Hold'em
   basics use the 36/64 `GTStepRow`.
 - Proposed, never approved: README drift fix (four tracks vs nine units, question
-  counts), topic-led summary, recent-topic Records, post-commit best-five explanation,
+  counts), topic-led summary, recent-topic Records,
   versioned integrity plan for archive/format/session-ending persistence.
 - (old) iOS 27 watchdog check on the affected phone; iPhone 16e AX walkthrough
   failure; live Bold Text redraw; tiny EV-loss grid labels; unseeded PotMath question
@@ -189,6 +189,22 @@ Tests:
   max 196ms. Debug: about 1-2.5s. Not yet timed on the iPhone 12 mini.
 - Next: owner reviews the PR; time a flop decision on the phone against D07's 200ms.
 
+### 2026-10-16 (Claude · best five after answering)
+
+- Owner approved option A (D50). Branch `feat/best-five-comparison-20261016` from the
+  local integration commit `9bb6c66`; PR open, not merged.
+- `BestFivePair` (Drills) and `BestFiveComparison` (app) show each player's seven
+  cards with the unused two dimmed, the hand name, a count line and a ringed deciding
+  card, after the answer only: "Who wins?", its restored answer, the hand review's
+  ending and the Hold'em basics check. Owner then asked for the first basics check
+  (flush against straight) to be dealt from seven cards as well (`HoldemBasics.firstCheck`).
+- Fixed on the way: the kicker sentence compared ranks high-to-low instead of in
+  evaluation order, and wrote "6라서".
+- Debug hooks: `GT_DEMO_SHOWDOWN_SPOT` (every showdown spot), `GT_DEMO_BASICS_SEED`.
+- The why sentence now appears once, under the rows; the "Who wins?" sheet and its
+  restored sheet no longer repeat it (owner chose this, 2026-10-17).
+- Next: merge PR #23.
+
 ### 2026-10-15 (Claude · records cleanup and PR #11)
 
 - Owner asked to turn every report, audit and scratch folder into compact text, keep
@@ -231,10 +247,3 @@ Tests:
   27–30 added to `docs/build-history.md`. Draft PR #11 left open: it still holds
   Play and free-table accessibility fixes not in `main`.
 - Next: owner tries build 30.
-
-### 2026-10-15 (Codex · revised screenshot UX report)
-
-- Owner requested a thorough critique, then supplied eleven more screenshots after
-  clicking and scrolling. Rebuilt the report from all fifteen images: 69 prioritized
-  findings. Recommendations only; no app change or simulator verification. (Recorded
-  from Codex's uncommitted edit, archived locally, since deleted.)

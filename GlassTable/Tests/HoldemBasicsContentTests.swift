@@ -36,6 +36,20 @@ final class HoldemBasicsContentTests: XCTestCase {
                        Set(Card.parse("7c2h")!))
     }
 
+    /// The first check is dealt from seven cards: my flush and the opponent's straight,
+    /// each using both private cards, with no pair and no board-only hand to confuse it.
+    func testFirstCheckIsAFlushAgainstAStraightFromSevenCards() {
+        let spot = HoldemBasics.firstCheck
+        XCTAssertEqual(spot.heroBest.category, 5)
+        XCTAssertEqual(spot.villainBest.category, 4)
+        XCTAssertEqual(spot.winner, 0)
+        XCTAssertEqual(bestHandOfAny(spot.board).category, 0, "The board alone is only a high card")
+        for hole in [spot.hero, spot.villain] {
+            XCTAssertTrue(hole.allSatisfy(bestFiveCards(hole + spot.board).contains))
+            XCTAssertEqual(Set((hole + spot.board).map(\.rank)).count, 7, "No pair anywhere")
+        }
+    }
+
     func testFrequencyTextRoundsOneInNToTwoSignificantFigures() {
         let english = HoldemBasics.ladder.map { HoldemBasics.frequencyText($0.share, in: .english) }
         XCTAssertEqual(english, ["1 in 31,000 hands", "1 in 3,600 hands", "1 in 600 hands",

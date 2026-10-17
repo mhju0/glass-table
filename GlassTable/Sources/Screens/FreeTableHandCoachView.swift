@@ -177,6 +177,12 @@ struct FreeTableHandCoachView: View {
                                    "Chip results and beginner-chart reviews measure different things. This chart uses a few simple rules and does not calculate optimal play."))
                     .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
             }
+            if let showdown = review.bestFiveShowdownPair,
+               let pair = bestFivePair(review, winner: showdown.winner, rival: showdown.rival) {
+                section(language.text("가장 좋은 5장", "Best five of seven")) {
+                    BestFiveComparison(pair: pair)
+                }
+            }
             let shown = (1..<table.seatCount).filter { seat in
                 review.pots.contains { $0.eligibleSeats.count > 1 && $0.eligibleSeats.contains(seat) }
             }
@@ -203,6 +209,20 @@ struct FreeTableHandCoachView: View {
                 }
             }
         }
+    }
+
+    /// The showdown's winner against whoever came closest; you are "내 패", the others
+    /// go by their seat names.
+    private func bestFivePair(_ review: PracticeTableReview, winner: Int, rival: Int) -> BestFivePair? {
+        guard let board = Card.parse(review.board.joined()),
+              let first = Card.parse(review.holeCards[winner].joined()),
+              let second = Card.parse(review.holeCards[rival].joined()) else { return nil }
+        func owner(_ seat: Int) -> BestFiveOwner {
+            seat == 0 ? .learner : .seat(korean: FreeTableWords.seatName(seat, language: .korean),
+                                         english: FreeTableWords.seatName(seat, language: .english))
+        }
+        return BestFivePair(first: first, firstOwner: owner(winner),
+                            second: second, secondOwner: owner(rival), board: board)
     }
 
     private func revealLine(_ reveal: PracticeCoachReveal) -> String {

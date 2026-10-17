@@ -550,14 +550,18 @@ private struct RevealSheet: View {
                        },
                        correctTitle: correctTitle)
             if !collapsed {
-                Text(reveal?.why ?? language.text("답은 저장됐어요. 다음 문제로 이어가세요.",
-                                                  "Your answer was saved. Continue to the next question."))
-                    .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
-                    .lineSpacing(GT.Typography.explanationLineSpacing)
-                    .gtInset(GT.Space.card, firstText: .body(16))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .gtExplanation(band: band)
-                    .fixedSize(horizontal: false, vertical: true)
+                // A showdown's why is the sentence under the best-five rows; saying it
+                // again here only repeats it.
+                if replayContext?.concept != .showdown {
+                    Text(reveal?.why ?? language.text("답은 저장됐어요. 다음 문제로 이어가세요.",
+                                                      "Your answer was saved. Continue to the next question."))
+                        .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
+                        .lineSpacing(GT.Typography.explanationLineSpacing)
+                        .gtInset(GT.Space.card, firstText: .body(16))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .gtExplanation(band: band)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 if let term { GlossaryChip(term: term) }
             }
             if saved, band == .off, let replayContext,
@@ -728,9 +732,10 @@ private struct ShowdownDrill: View {
     /// should *show* you something — the previous reveal changed only the text.
     private var winningFive: [Card] {
         guard let reveal else { return [] }
+        let pair = BestFivePair(spot)
         switch reveal.winner {
-        case 0: return bestFiveCards(spot.hero + spot.board)
-        case 1: return bestFiveCards(spot.villain + spot.board)
+        case 0: return pair.first.used
+        case 1: return pair.second.used
         default: return []
         }
     }
@@ -751,12 +756,9 @@ private struct ShowdownDrill: View {
                         .font(GT.body(16)).foregroundStyle(GT.onFeltSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("showdown-best-five-rule")
-                    Text(language.text("가장 좋은 5장", "Your best five"))
-                        .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
-                    CardRow(cards: bestFiveCards(spot.hero + spot.board))
-                    Text(language.text("상대의 가장 좋은 다섯 장", "Opponent's best five"))
-                        .font(GT.semibold(13)).foregroundStyle(GT.onFeltSecondary)
-                    CardRow(cards: bestFiveCards(spot.villain + spot.board))
+                    BestFiveComparison(pair: BestFivePair(spot))
+                        .gtInset(GT.Space.card, firstText: .semibold(13))
+                        .gtCard(radius: GT.Radius.panel)
                 }
             }
         } sheet: {
