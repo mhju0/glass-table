@@ -88,9 +88,42 @@ final class BestFivePairTests: XCTestCase {
         XCTAssertEqual(Set(pair.first.deciding), Set(cards("6h6c")))
         XCTAssertEqual(Set(pair.second.deciding), Set(cards("5d5c")))
         let ko = gradeShowdown(answer: 0, spot: s, language: .korean).whyText
-        XCTAssertTrue(ko.contains("내 6, 상대 5라서"), ko)
+        XCTAssertTrue(ko.contains("내 6 페어, 상대 5 페어라서"), ko)
         let en = gradeShowdown(answer: 0, spot: s, language: .english).whyText
-        XCTAssertTrue(en.contains("your 6 beats the opponent's 5"), en)
+        XCTAssertTrue(en.contains("your 6s beat the opponent's 5s"), en)
+    }
+
+    /// The word kicker names a leftover card. When the second pair of two pair decides,
+    /// the sentence names that pair instead (J-J-9-9 against J-J-6-6).
+    func testSecondPairDecidingIsNotCalledAKicker() {
+        let s = spot("9hQc", "6d6s", "JhJs2h3d9s")
+        let pair = BestFivePair(s)
+        XCTAssertEqual(pair.winner, 0)
+        XCTAssertEqual(pair.why(in: .korean),
+                       "둘 다 J 투 페어예요. 두 번째 페어가 승부를 갈랐어요. 내 9 페어, 상대 6 페어라서 내 쪽이 이겨요.")
+        XCTAssertEqual(pair.why(in: .english),
+                       "Both have two pair, J high. The second pair decides it: your 9s beat the opponent's 6s.")
+    }
+
+    /// Two full houses on the same three: the pair decides, not a kicker.
+    func testFullHousePairDecidingIsNotCalledAKicker() {
+        let s = spot("9c9d", "7c7d", "5s5h5d2c3h")
+        let pair = BestFivePair(s)
+        XCTAssertEqual(pair.winner, 0)
+        XCTAssertEqual(pair.why(in: .korean),
+                       "둘 다 5 풀하우스예요. 함께 쓰는 페어가 승부를 갈랐어요. 내 9, 상대 7이라서 내 쪽이 이겨요.")
+        XCTAssertEqual(pair.why(in: .english),
+                       "Both have a full house, 5s. The pair decides it: your 9s beat the opponent's 7s.")
+    }
+
+    /// The spot the Hold'em basics teaches the kicker with: the same pair of jacks,
+    /// the ace beats the queen.
+    func testBasicsKickerSpotNamesTheKicker() {
+        let pair = BestFivePair(spot("AsJh", "QdJc", "Js8d5c3h2s"))
+        XCTAssertEqual(pair.winner, 0)
+        XCTAssertEqual(pair.first.deciding, cards("As"))
+        XCTAssertEqual(pair.second.deciding, cards("Qd"))
+        XCTAssertEqual(pair.why(in: .korean), "둘 다 J 원 페어예요. 키커가 승부를 갈랐어요. 내 A, 상대 Q라서 내 쪽이 이겨요.")
     }
 
     /// "6라서" reads 육라서; a rank read with a final consonant takes 이라서.

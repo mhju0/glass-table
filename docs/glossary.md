@@ -46,6 +46,7 @@ languages. See [D45](decisions.md) and the
 | 정확 / 근접 / 다시 살펴볼까요? | spot-on / close / off | grade band | display labels; no grading change |
 | 따라 배우기 | worked guide | learning mode | replaces 천천히 in mode labels |
 | 무승부 | tie / chop | outcome | plain-language answer label |
+| 키커 | kicker | concept | bilingual. KO: 족보가 같을 때 승부를 가르는 나머지 카드예요. 같은 페어끼리라면 페어에 쓰지 않은 카드 중 높은 카드부터 차례로 비교해요. 가장 좋은 다섯 장 안에 든 카드만 셀 수 있어요. EN: Kicker: the leftover card that settles a tie between hands of the same type. With the same pair, compare the highest card outside the pair first, then the next. Only cards in the best five count. Not for the second pair of two pair or the pair of a full house. |
 | VPIP / PFR | voluntarily put money in pot / preflop raise | acronym | Optional authored opponent-policy detail, not a measured skill or aggression rank. In plain language: how often they choose to join / raise before shared cards. |
 | 신중형 / 선별형 / 공격형 / 콜 위주형 / 매우 공격형 | Cautious / Selective / Aggressive / Caller / Very aggressive | opponent choice | Five stationary Play rows. Entry and preflop-raise tendencies are explained separately; the names do not form one simple strength ladder. |
 | 3벳 | 3-bet | action | digit + Hangul per decisions.md §F |
