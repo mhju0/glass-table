@@ -232,7 +232,9 @@ struct FreeTableView: View {
             if typeSize.isAccessibilitySize {
                 ScrollView { tableSurface(table).padding(.horizontal, 8) }
                     .safeAreaInset(edge: .bottom, spacing: 0) {
-                        stableDock(table, heightLimit: availableHeight * 0.55 - 40)
+                        // The help face's header sits above its scrolling body; at 0.55 a
+                        // 12 mini left that body about 117pt, shorter than one math tile.
+                        stableDock(table, heightLimit: availableHeight * 0.62 - 40)
                     }
             } else {
                 tableSurface(table, fillsHeight: true)
