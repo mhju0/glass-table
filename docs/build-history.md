@@ -120,6 +120,10 @@ This index is newly consolidated. Earlier records remain intact; missing install
 
 - Source `cc64042` (PR #17: scalable free-table captions and title) plus the build bump. First run of `release.yml` on a `v1.0-31` tag; App Store Connect record renamed to "Glass Table" the same day.
 
+## Build 33 — third TestFlight build, 2026-10-17
+
+- Source: `main` after PRs #27–#28 (lowercase English hand names in sentences, floating sheet's bottom corners concentric with the display), plus the build bump. Tag `v1.0-33`.
+
 ## Build 32 — second TestFlight build, 2026-10-17
 
 - Source: `main` after PRs #18–#25 (progress schema 3, learning order and Chen score, known problems, exact flop equity, live language switch, best-five comparison with the why sentence said once, whole help tiles at AX sizes on small phones), plus the build bump. Tag `v1.0-32`; first build the owner installs from TestFlight.
