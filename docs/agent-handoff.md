@@ -247,10 +247,3 @@ Tests:
   27–30 added to `docs/build-history.md`. Draft PR #11 left open: it still holds
   Play and free-table accessibility fixes not in `main`.
 - Next: owner tries build 30.
-
-### 2026-10-15 (Codex · revised screenshot UX report)
-
-- Owner requested a thorough critique, then supplied eleven more screenshots after
-  clicking and scrolling. Rebuilt the report from all fifteen images: 69 prioritized
-  findings. Recommendations only; no app change or simulator verification. (Recorded
-  from Codex's uncommitted edit, archived locally, since deleted.)
