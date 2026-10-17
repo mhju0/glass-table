@@ -1085,7 +1085,7 @@ final class ProgressionModelTests: XCTestCase {
     /// Plays one whole lesson with the walkthrough skipped. `miss` answers every
     /// question off target; otherwise each answer is the correct one.
     private func playLesson(_ model: ProgressionModel, _ nodeID: String, miss: Bool,
-                            missing: Set<Int> = [], tag: String) throws {
+                            missing: Set<Int> = [], tag: String, leaveSummary: Bool = true) throws {
         let epoch = model.epoch
         let node = try XCTUnwrap(Curriculum.node(id: nodeID))
         XCTAssertTrue(model.beginNodeSession(node, seed: 5, expectedEpoch: epoch))
@@ -1109,7 +1109,30 @@ final class ProgressionModelTests: XCTestCase {
             XCTAssertTrue(model.nextNodeQuestion(sessionID: session.id, afterOrdinal: ordinal,
                                                  expectedEpoch: epoch))
         }
+        guard leaveSummary else { return }
         XCTAssertTrue(model.dismissFinishedNodeSession(sessionID: session.id, expectedEpoch: epoch))
+    }
+
+    /// Closing a summary with ✕ left the finished session saved, and every other lesson
+    /// then opened on "You have a lesson in progress" with nothing left to play.
+    func testAFinishedLessonDoesNotHoldTheSlotForAnotherLesson() throws {
+        let model = ProgressionModel(store: store)
+        try playLesson(model, "u1-showdown", miss: false, tag: "a", leaveSummary: false)
+        XCTAssertEqual(model.state.activeNodeSession?.phase, .finished)
+        let answers = model.state.record(for: .showdown).total
+        let next = try XCTUnwrap(Curriculum.node(id: "u1-position"))
+        XCTAssertTrue(model.beginNodeSession(next, seed: 5, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.activeNodeSession?.nodeID, "u1-position")
+        XCTAssertEqual(model.state.record(for: .showdown).total, answers, "The finished lesson's answers stay")
+    }
+
+    func testAnUnfinishedLessonStillHoldsTheSlot() throws {
+        let model = ProgressionModel(store: store)
+        let first = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertTrue(model.beginNodeSession(first, seed: 5, expectedEpoch: model.epoch))
+        let next = try XCTUnwrap(Curriculum.node(id: "u1-position"))
+        XCTAssertFalse(model.beginNodeSession(next, seed: 5, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.activeNodeSession?.nodeID, "u1-showdown")
     }
 
     /// The 90% range is hidden below "Plays sometimes", so the app saves the estimate

@@ -109,7 +109,7 @@ struct NodeSessionView: View {
         }
         .background(FeltBackground())
         .environment(\.lessonCallFoldNumbers, node.kind == .drill(.callFold))
-        .gtChrome(leading: { ChromeButton.close { dismiss() } }, trailing: {
+        .gtChrome(leading: { ChromeButton.close { finished ? closeSummary() : dismiss() } }, trailing: {
             if stage == .show, !finished, !sessionConcepts.isEmpty {
                 ChromeTextButton(title: WalkthroughView.skipTitle(language)) {
                     advanceTeaching(skip: true)
@@ -625,6 +625,15 @@ struct NodeSessionView: View {
             RatingPrompt.markRequested(version: version)
             requestReview()
         }
+        if let savedSession {
+            _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
+                expectedEpoch: sessionEpoch ?? model.epoch)
+        }
+        dismiss()
+    }
+
+    /// Closing the summary ends the lesson as Done does, without the rating prompt.
+    private func closeSummary() {
         if let savedSession {
             _ = model.dismissFinishedNodeSession(sessionID: savedSession.id,
                 expectedEpoch: sessionEpoch ?? model.epoch)
