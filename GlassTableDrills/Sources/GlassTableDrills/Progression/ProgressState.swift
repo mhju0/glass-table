@@ -214,9 +214,10 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
 
 /// Everything the app persists, as one value type. Schema 2 keeps durable summaries
 /// alongside the bounded answer log, so older history is never inferred from a ring.
-/// Schema 3 has schema 2's shape; any new key or new meaning bumps it (ADR 0001).
+/// Schema 3 has schema 2's shape; schema 4 adds `lastNodeID`. Any new key or new
+/// meaning bumps it (ADR 0001).
 public struct ProgressState: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 3
+    public static let currentSchemaVersion = 4
     /// Ring-buffer cap for the answer log. Bounded on purpose — an unbounded history
     /// is the one thing that would make a single-file store the wrong choice.
     public static let answerLogCap = 500
@@ -254,6 +255,10 @@ public struct ProgressState: Codable, Equatable, Sendable {
     /// Lessons in a row that went cleanly (positive) or roughly (negative). `nil` in
     /// every file written before learner levels existed, which reads as none.
     public var lessonTrend: Int?
+    /// The lesson or challenge most recently started, so Learn can follow a learner who
+    /// goes out of order (D52). `nil` in every file before schema 4, which reads as
+    /// no record: Learn then marks the suggested lesson as before.
+    public var lastNodeID: String?
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
@@ -301,6 +306,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands, quickPlaySessions, activeQuickPlaySessionID
         case processedAttemptIDs, basicsLessonCompleted, lessonTrend, openingDismissed, pendingFirstLesson
+        case lastNodeID
     }
 
     public init(from decoder: Decoder) throws {
@@ -337,6 +343,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
                                                     forKey: .processedAttemptIDs) ?? []
         basicsLessonCompleted = try c.decodeIfPresent(Bool.self, forKey: .basicsLessonCompleted)
         lessonTrend = try c.decodeIfPresent(Int.self, forKey: .lessonTrend)
+        lastNodeID = try c.decodeIfPresent(String.self, forKey: .lastNodeID)
     }
 
     public func record(for concept: Concept) -> ConceptRecord {

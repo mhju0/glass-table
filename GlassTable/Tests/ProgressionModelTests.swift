@@ -1126,6 +1126,22 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.state.record(for: .showdown).total, answers, "The finished lesson's answers stay")
     }
 
+    /// D52: Learn follows the learner. A lesson closed under the pass mark stays marked,
+    /// and so does one started out of order, across a relaunch.
+    func testStartingALessonIsRememberedForTheLearnMark() throws {
+        let model = ProgressionModel(store: store)
+        try playLesson(model, "u1-showdown", miss: true, tag: "m")
+        XCTAssertNil(model.state.activeNodeSession)
+        XCTAssertEqual(model.state.lastNodeID, "u1-showdown")
+        XCTAssertEqual(model.markedLesson, .next(try XCTUnwrap(Curriculum.node(id: "u1-showdown"))),
+                       "Not Hold'em basics: the learner already chose a lesson")
+
+        let outs = try XCTUnwrap(Curriculum.node(id: "u2-outs"))
+        XCTAssertTrue(model.beginNodeSession(outs, seed: 5, expectedEpoch: model.epoch))
+        XCTAssertTrue(model.abandonNodeSession(expectedEpoch: model.epoch))
+        XCTAssertEqual(ProgressionModel(store: store).markedLesson, .next(outs))
+    }
+
     func testAnUnfinishedLessonStillHoldsTheSlot() throws {
         let model = ProgressionModel(store: store)
         let first = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))

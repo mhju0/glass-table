@@ -25,7 +25,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
     }
 
     private static let fixtures = ["schema1-build3", "schema2-build16", "schema2-build22",
-                                   "schema2-build30"]
+                                   "schema2-build30", "schema3-build34"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -44,8 +44,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsThree() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 3)
+    func testCurrentSchemaVersionIsFour() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 4)
     }
 
     func testEveryShippedShapeLoadsValidatesRoundTripsAndRegrades() throws {
@@ -133,7 +133,20 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(b30.nodes["u1-showdown"]?.best, LessonScore(right: 3, questions: 3))
         XCTAssertEqual(b30.nodes["u1-potMath"]?.best, LessonScore(right: 1, questions: 3))
         XCTAssertEqual(b30.quickPlaySessions.count, 2)
-        for state in [b16, b22, b30] {
+
+        let b34 = try loaded("schema3-build34")
+        XCTAssertEqual(b34.nodes["u1-showdown"]?.best, LessonScore(right: 3, questions: 3))
+        XCTAssertEqual(b34.quickPlaySessions.count, 2)
+        for state in [schema1, b16, b22, b30, b34] {
+            // No file before schema 4 knows the last lesson, so Learn keeps the old mark.
+            XCTAssertNil(state.lastNodeID)
+            var closed = state
+            closed.activeNodeSession = nil
+            let old: MarkedLesson? = Curriculum.suggestsBasicsLesson(in: closed) ? .basics
+                : Curriculum.suggestedLesson(in: closed).map { .next($0) }
+            XCTAssertEqual(Curriculum.markedLesson(in: closed), old)
+        }
+        for state in [b16, b22, b30, b34] {
             XCTAssertEqual(state.revision, 14)
             XCTAssertEqual(state.lessonTrend, 1)
             XCTAssertEqual(state.basicsLessonCompleted, true)
@@ -146,7 +159,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
         let original = try fixture("schema2-build30")
         let s = try store(with: original)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 2 must upgrade") }
-        XCTAssertEqual(state.schemaVersion, 3)
+        XCTAssertEqual(state.schemaVersion, 4)
 
         let backups = try files(containing: "schema-2-")
         XCTAssertEqual(backups.count, 1)
@@ -154,10 +167,28 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertTrue(try XCTUnwrap(backups.first).lastPathComponent.hasPrefix("progress.schema-2-"))
 
         let header = try JSONSerialization.jsonObject(with: Data(contentsOf: s.url)) as? [String: Any]
-        XCTAssertEqual(header?["schemaVersion"] as? Int, 3)
+        XCTAssertEqual(header?["schemaVersion"] as? Int, 4)
         guard case let .loaded(reloaded) = s.load() else { return XCTFail("upgraded file must load") }
         XCTAssertEqual(reloaded, state)
         XCTAssertEqual(try files(containing: "schema-").count, 1, "a current file is not copied again")
+    }
+
+    /// Schema 4 adds `lastNodeID`; a schema-3 file is copied as written, then upgraded
+    /// with the key still absent.
+    func testSchemaThreeIsCopiedByteForByteBeforeUpgrade() throws {
+        let original = try fixture("schema3-build34")
+        let s = try store(with: original)
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 3 must upgrade") }
+        XCTAssertEqual(state.schemaVersion, 4)
+        XCTAssertNil(state.lastNodeID)
+
+        let backups = try files(containing: "schema-3-")
+        XCTAssertEqual(backups.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), original)
+
+        let header = try JSONSerialization.jsonObject(with: Data(contentsOf: s.url)) as? [String: Any]
+        XCTAssertEqual(header?["schemaVersion"] as? Int, 4)
+        XCTAssertNil(header?["lastNodeID"])
     }
 
     func testSchemaOneBackupKeepsItsVersionInTheName() throws {
@@ -180,18 +211,18 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: dir.path), ["progress.json"])
     }
 
-    func testSchemaFourIsRefusedAsUnsupported() throws {
+    func testSchemaFiveIsRefusedAsUnsupported() throws {
         var json = try XCTUnwrap(JSONSerialization.jsonObject(
             with: fixture("schema2-build30")) as? [String: Any])
-        json["schemaVersion"] = 4
+        json["schemaVersion"] = 5
         let future = try JSONSerialization.data(withJSONObject: json)
         let s = try store(with: future)
 
-        guard case .unreadable = s.load() else { return XCTFail("schema 4 is newer than this build") }
+        guard case .unreadable = s.load() else { return XCTFail("schema 5 is newer than this build") }
         XCTAssertEqual(try Data(contentsOf: s.url), future)
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: dir.path), ["progress.json"])
         XCTAssertThrowsError(try s.importData(future)) { error in
-            XCTAssertEqual(error as? StoreError, .unsupportedSchemaVersion(found: 4, supported: 3))
+            XCTAssertEqual(error as? StoreError, .unsupportedSchemaVersion(found: 5, supported: 4))
         }
     }
 

@@ -43,7 +43,7 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (3); newer is refused | `ProgressionStore.decodeAndValidate` (header read before full decode) and `validate(_ ProgressState)`; upgrade in `ProgressionStore.load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (4); newer is refused | `ProgressionStore.decodeAndValidate` (header read before full decode) and `validate(_ ProgressState)`; upgrade in `ProgressionStore.load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Practice round format | `activeRound.formatVersion` | exactly 1, with `questionCount` 5 | `ProgressionStore.validate(_ PracticeRound)` |
 | Review session format | `activeReviewSession.formatVersion` | exactly 1 | `ProgressionStore.validate(_ ReviewSessionSnapshot)` |

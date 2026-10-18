@@ -24,14 +24,15 @@ public struct LearningTrack: Equatable, Identifiable, Sendable {
     }
 }
 
-/// The one lesson Learn marks (owner, 2026-10-17). Read from saved state only: there
-/// is no record of the last lesson, and none is needed.
+/// The one lesson Learn marks (owner, 2026-10-17). Read from saved state only; since
+/// schema 4 that includes the last lesson started (`ProgressState.lastNodeID`, D52).
 public enum MarkedLesson: Equatable, Sendable {
     /// A lesson left part-way; it picks up where the learner stopped.
     case inProgress(CurriculumNode)
     /// Hold'em basics, for a new player who has not started yet.
     case basics
-    /// The suggested next lesson (`suggestedLesson`).
+    /// The lesson to start: the last one started while it is not passed, else the next
+    /// owed lesson after it, else the suggested lesson (`suggestedLesson`).
     case next(CurriculumNode)
 }
 
@@ -70,7 +71,9 @@ public extension Curriculum {
         return trackLessons[start...].first(where: owed) ?? trackLessons[..<start].first(where: owed)
     }
 
-    /// The open, unfinished lesson; else Hold'em basics while it is suggested; else the
+    /// The open, unfinished lesson; else the lesson last started, while it is not
+    /// passed; once it is, the next owed lesson after it (D52). With no lesson started
+    /// yet (or none this build lists): Hold'em basics while it is suggested, else the
     /// suggested lesson. A session saved at `.finished` (a summary closed with ✕) has
     /// nothing left to continue, so it counts as closed. Nil once every lesson is passed.
     static func markedLesson(in state: ProgressState) -> MarkedLesson? {
@@ -78,8 +81,22 @@ public extension Curriculum {
            let node = node(id: session.nodeID) {
             return .inProgress(node)
         }
+        if let last = state.lastNodeID.flatMap(node(id:)), let track = track(containing: last) {
+            if state.nodes[last.id]?.cleared != true { return .next(last) }
+            return lesson(after: last, in: track, state: state).map { .next($0) }
+        }
         if suggestsBasicsLesson(in: state) { return .basics }
         return suggestedLesson(in: state).map { .next($0) }
+    }
+
+    /// The first owed track lesson after a passed one; a challenge counts as the end of
+    /// its track. Nothing owed after it, or a "Go deeper" lesson, which has no place in
+    /// the suggested order: the suggested lesson.
+    private static func lesson(after node: CurriculumNode, in track: LearningTrack,
+                               state: ProgressState) -> CurriculumNode? {
+        guard !track.isOptional, let end = track.lessons.contains(node) ? node : track.lessons.last,
+              let index = trackLessons.firstIndex(of: end) else { return suggestedLesson(in: state) }
+        return trackLessons[(index + 1)...].first { isOwed($0, in: state) } ?? suggestedLesson(in: state)
     }
 
     /// A new player who skipped the starting check and has passed nothing yet.

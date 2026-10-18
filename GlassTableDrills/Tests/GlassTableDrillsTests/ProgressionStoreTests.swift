@@ -58,7 +58,7 @@ final class ProgressionStoreTests: XCTestCase {
         guard case let .loaded(migrated) = s.load() else {
             return XCTFail("schema one should migrate")
         }
-        XCTAssertEqual(migrated.schemaVersion, 3)
+        XCTAssertEqual(migrated.schemaVersion, 4)
         XCTAssertEqual(migrated.record(for: .outs).total, 6)
         XCTAssertEqual(migrated.record(for: .outs).correct, 4)
         XCTAssertNotNil(migrated.detailedTrackingStartedAt)
@@ -421,6 +421,10 @@ final class ProgressionStoreTests: XCTestCase {
         var emptyScore = ProgressState()
         emptyScore.nodes["u1-showdown"] = NodeRecord(best: LessonScore(right: 0, questions: 0))
         cases.append(emptyScore)
+
+        var emptyLastLesson = ProgressState()
+        emptyLastLesson.lastNodeID = ""
+        cases.append(emptyLastLesson)
 
         var badInterval = ProgressState()
         badInterval.answers = [AnswerRecord(concept: .equitySense, at: Date(), correct: true,

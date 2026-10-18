@@ -518,6 +518,8 @@ final class ProgressionModel {
                 scheduledConcepts: scheduled.map(\.rawValue),
                 phase: hasSeen ? .question : .show,
                 formatVersion: Curriculum.sessionFormat)
+            // Learn keeps marking this lesson after its session closes (D52).
+            candidate.lastNodeID = node.id
             // After two rough lessons the hint is back on the first question, even
             // for a lesson the learner has seen before.
             if hasSeen, taught != nil, state.guidanceIsUp {
