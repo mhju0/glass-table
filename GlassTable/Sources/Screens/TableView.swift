@@ -11,6 +11,7 @@ import GlassTableDrills
 /// copy the moment a decision node appears, and the buttons wait for it — the same
 /// pattern 레인지 어드밴티지 uses for its sampling.
 struct TableView: View {
+    @Environment(ProgressionModel.self) private var model
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     @Environment(\.leadsWithTerms) private var termsLead
@@ -703,6 +704,7 @@ struct TableView: View {
         if choice == .call, case let .hero(.open(b)) = h.phase { toCall = b }
         decisions.append(TurnRecord(street: 0, choice: choice, amount: toCall,
                                     fraction: nil, verdict: .chart(v)))
+        countDecision()
         h.play(choice)
         hand = h
         lastTurn = decisions.last
@@ -786,6 +788,15 @@ struct TableView: View {
                                     amount: chosen.amount,
                                     fraction: { if case let .bet(f) = choice { return f }; return nil }(),
                                     verdict: .ev(loss: grade.loss, best: best)))
+        countDecision()
+    }
+
+    /// The decision just made counts toward the day's practice, and nothing else
+    /// (D53): the table is not a lesson, so no schedule, accuracy or tier moves.
+    private func countDecision() {
+        guard let turn = decisions.last else { return }
+        _ = model.recordTableDecision(attemptID: "table:\(baseSeed):\(handIndex):\(decisions.count)",
+                                      band: turn.band, language: language)
     }
 
     /// The slow part, off the main thread on a copy (spec §3): exact on every street.

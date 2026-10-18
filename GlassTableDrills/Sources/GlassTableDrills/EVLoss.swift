@@ -148,7 +148,7 @@ public struct EVLossSpot: Equatable {
 }
 
 public enum EVLossSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> EVLossSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> EVLossSpot {
         var attempt = 0
         while true {
             var rng = SplitMix64(seed: baseSeed

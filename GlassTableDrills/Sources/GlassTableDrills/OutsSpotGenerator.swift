@@ -12,7 +12,7 @@ public enum OutsSpotGenerator {
 
     /// Draw hero/villain/turn-board from a seeded shuffle; keep spots with 2...15
     /// winning rivers. This filter does not require hero to be behind on the turn.
-    public static func spot(baseSeed: UInt64, index: Int) -> OutsSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> OutsSpot {
         #if DEBUG
         if let demoSpot { return demoSpot }
         #endif

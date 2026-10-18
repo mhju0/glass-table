@@ -61,7 +61,7 @@ public struct ActionReadSpot: Equatable {
 }
 
 public enum ActionReadSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> ActionReadSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> ActionReadSpot {
         var attempt = 0
         while true {
             var rng = SplitMix64(seed: baseSeed

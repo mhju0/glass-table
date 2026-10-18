@@ -46,7 +46,7 @@ func rankName(_ r: Int) -> String { ["T", "J", "Q", "K", "A"][r - 10] }
 
 /// Deterministic blocker questions. Same (baseSeed, index) → same spot.
 public enum BlockerSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> BlockerSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> BlockerSpot {
         var attempt = 0
         while true {
             let seed = baseSeed

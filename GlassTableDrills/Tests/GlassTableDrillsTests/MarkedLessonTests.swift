@@ -56,7 +56,7 @@ final class MarkedLessonTests: XCTestCase {
         XCTAssertFalse(Curriculum.suggestsBasicsLesson(in: state))
         XCTAssertEqual(Curriculum.markedLesson(in: state), .next(try XCTUnwrap(Curriculum.node(id: "u1-position"))))
         state.nodes["u1-position"] = NodeRecord(cleared: true)
-        XCTAssertEqual(Curriculum.markedLesson(in: state), .next(try XCTUnwrap(Curriculum.node(id: "u3-rfi"))))
+        XCTAssertEqual(Curriculum.markedLesson(in: state), .next(try XCTUnwrap(Curriculum.node(id: "u1-showdown.2"))))
     }
 
     /// Only a new player who took no starting check is sent to the basics.
@@ -70,7 +70,7 @@ final class MarkedLessonTests: XCTestCase {
     func testEveryLessonPassedLeavesNothingMarked() {
         var state = ProgressState()
         state.basicsLessonCompleted = true
-        for node in Curriculum.trackLessons { state.nodes[node.id] = NodeRecord(cleared: true) }
+        for node in Curriculum.steps { state.nodes[node.id] = NodeRecord(cleared: true) }
         XCTAssertNil(Curriculum.markedLesson(in: state))
         state.lastNodeID = "u2-callFold"
         XCTAssertNil(Curriculum.markedLesson(in: state), "A passed last lesson with nothing owed marks nothing")
@@ -117,7 +117,10 @@ final class MarkedLessonTests: XCTestCase {
         var state = ProgressState()
         state.basicsLessonCompleted = true
         state.nodes["u1-showdown"] = NodeRecord(cleared: true)
-        state.nodes["u2-callFold"] = NodeRecord(cleared: true)
+        // Everything after it in the first lap is passed too (D53).
+        for id in ["u2-callFold", "u1-potMath.2", "u2-callFold.2", "u2-boss"] {
+            state.nodes[id] = NodeRecord(cleared: true)
+        }
         state.lastNodeID = "u2-callFold"
         XCTAssertEqual(Curriculum.markedLesson(in: state), .next(try node("u1-position")))
         state.placement = PlacementState(selfReport: .playRegularly)

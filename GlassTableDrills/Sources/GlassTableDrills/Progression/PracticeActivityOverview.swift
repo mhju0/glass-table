@@ -33,7 +33,7 @@ public struct PracticeActivityOverview: Equatable, Sendable {
     public init(state: ProgressState, now: Date, calendar: Calendar) {
         let today = DayKey(now, calendar: calendar)
         self.today = today
-        let practiceModes: Set<String> = ["path", "single-skill", "review", "practice"]
+        let practiceModes: Set<String> = ["path", "single-skill", "review", "practice", "table"]
         let summaries = state.dailySummaries.filter {
             $0.total > 0 && $0.key.day <= today && practiceModes.contains($0.key.mode)
         }

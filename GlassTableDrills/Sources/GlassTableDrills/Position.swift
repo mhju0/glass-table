@@ -62,7 +62,7 @@ public struct PositionSpot: Equatable {
 }
 
 public enum PositionSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> PositionSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> PositionSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         // Two thirds counting, one third comparison — the count is the load-bearing

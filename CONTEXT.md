@@ -27,7 +27,7 @@ before reopening their work. Older updates below retain their historical scope.
 - Play is a four-seat integer-chip practice table with public bot policies and
   factual hand reviews. The original graded heads-up exercise remains separate;
   its chart/checkdown assumptions do not grade the four-seat game.
-- Schema 4 (schema 2's shape plus the last lesson started) stores resumable lessons,
+- Schema 5 (schema 2's shape plus the last lesson started and steps, D53) stores resumable lessons,
   drafts/reveals, daily practice and recent table evidence. Older files survive upgrade with a raw backup. Never
   discard old history or recovery bytes to simplify a save/import/reset change.
 - No accounts, network service, analytics, ads, purchases or real-money wagering.

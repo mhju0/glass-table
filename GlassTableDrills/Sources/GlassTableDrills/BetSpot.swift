@@ -20,7 +20,7 @@ public enum BetSpotGenerator {
     static let pots = [6, 8, 10, 12, 15, 20, 24, 30]
     static let fractions = [0.33, 0.5, 0.75, 1.0, 1.5]  // decisions.md §A sizing menu
 
-    public static func spot(baseSeed: UInt64, index: Int) -> BetSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> BetSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         let pot = pots.randomElement(using: &rng)!

@@ -252,7 +252,8 @@ final class LearningTrackTests: XCTestCase {
     }
 
     /// The path screen lists the tracks' lessons top to bottom; following the
-    /// suggestion from a fresh start visits them in exactly that order.
+    /// suggestion from a fresh start visits them in exactly that order, with each
+    /// track's later steps and challenge after its lessons (D53).
     func testThePathScreenOrderIsTheSuggestedOrder() {
         let shown = Curriculum.tracks.filter { !$0.isOptional }.flatMap(\.lessons).map(\.id)
         XCTAssertEqual(shown, Self.pathOrder)
@@ -262,7 +263,8 @@ final class LearningTrackTests: XCTestCase {
             suggested.append(next.id)
             state.nodes[next.id] = NodeRecord(cleared: true)
         }
-        XCTAssertEqual(suggested, shown)
+        XCTAssertEqual(suggested.filter { Curriculum.trackLessons.map(\.id).contains($0) }, shown)
+        XCTAssertEqual(suggested, StepCurriculumTests.stepOrder)
     }
 
     func testSuggestionFollowsTheTracksButNeverLocksAndIgnoresHiddenProgress() {
@@ -275,8 +277,8 @@ final class LearningTrackTests: XCTestCase {
         // Jumping ahead is allowed; the suggestion stays on the earliest gap.
         state.nodes["u2-potOdds"] = NodeRecord(cleared: true)
         XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u1-position")
-        for node in Curriculum.trackLessons { state.nodes[node.id] = NodeRecord(cleared: true) }
-        XCTAssertNil(Curriculum.suggestedLesson(in: state), "Go deeper and challenges are never suggested")
+        for node in Curriculum.steps { state.nodes[node.id] = NodeRecord(cleared: true) }
+        XCTAssertNil(Curriculum.suggestedLesson(in: state), "Go deeper is never suggested")
     }
 
     /// Progress is keyed by lesson id, so a file saved under the old order keeps every
@@ -296,6 +298,9 @@ final class LearningTrackTests: XCTestCase {
         for id in ["u2-equitySense", "u4-rangeRead", "u7-actionRead"] {
             state.nodes[id] = NodeRecord(cleared: true)
         }
+        // Since D53 a track's challenge is suggested after its lessons.
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u4-boss")
+        state.nodes["u4-boss"] = NodeRecord(cleared: true)
         XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u2-potOdds")
         // A passed old basics challenge now skips the new basics track.
         var passed = ProgressState()
@@ -308,24 +313,26 @@ final class LearningTrackTests: XCTestCase {
         let position = try XCTUnwrap(Curriculum.node(id: "u1-position"))
         state.nodes["u1-showdown"] = NodeRecord(cleared: true)
         XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u1-position")
-        XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: position)?.id, "u3-rfi")
-        state.nodes["u3-rfi"] = NodeRecord(cleared: true)
-        XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: position)?.id, "u8-defend")
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: position)?.id, "u1-showdown.2")
+        state.nodes["u1-showdown.2"] = NodeRecord(cleared: true)
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: position)?.id, "u1-boss")
     }
 
     func testGroundworkAndEasierLessonPointBackAlongTheTracks() throws {
         var state = ProgressState()
         let rfi = try XCTUnwrap(Curriculum.node(id: "u3-rfi"))
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state).map(\.id),
-                       ["u1-showdown", "u1-position"])
+                       ["u1-showdown", "u1-position", "u1-showdown.2"])
         state.nodes["u1-showdown"] = NodeRecord(cleared: true)
-        XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state).map(\.id), ["u1-position"])
+        XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state).map(\.id),
+                       ["u1-position", "u1-showdown.2"])
         XCTAssertEqual(Curriculum.easierLesson(than: rfi)?.id, "u1-position")
         XCTAssertNil(Curriculum.easierLesson(than: try XCTUnwrap(Curriculum.node(id: "u1-showdown"))))
         // A challenge leans on its own track; a deeper topic leans on all four.
         let challenge = try XCTUnwrap(Curriculum.node(id: "u2-boss"))
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: challenge, in: state).map(\.id),
-                       ["u2-outs", "u1-potMath", "u2-equitySense", "u2-potOdds", "u2-callFold"])
+                       ["u2-outs", "u1-potMath", "u2-equitySense", "u2-potOdds", "u2-callFold",
+                        "u1-potMath.2", "u2-callFold.2"])
         XCTAssertEqual(Curriculum.easierLesson(than: challenge)?.id, "u2-callFold")
         let combos = try XCTUnwrap(Curriculum.node(id: "u1-combos"))
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: combos, in: state).count, 10)

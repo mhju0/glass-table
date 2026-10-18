@@ -360,6 +360,7 @@ struct NodeSessionView: View {
                                                  expectedEpoch: sessionEpoch ?? model.epoch) })
         }
         return ConceptDrillView(concept: concept, seed: baseSeed, index: spotIndex,
+                         level: savedSession?.level(at: index) ?? .learn,
                          progressText: isHelpedQuestion
                              ? language.text("힌트와 함께 한 번 더", "Once more, with the hint")
                              : "\(index + 1)/\(itemCount)",
@@ -727,6 +728,7 @@ struct FreePlayView: View {
                     let restored = round.phase == .reveal ? round.answers.last : nil
                     ConceptDrillView(concept: concept, seed: round.seed,
                                      index: round.ordinal + 2,
+                                     level: round.level(at: round.ordinal),
                                      progressText: "\(round.ordinal + 1)/\(round.questionCount)",
                                      restoredAnswer: restored,
                                      initialDraft: round.draft?.input,
@@ -1136,6 +1138,7 @@ struct ReviewSessionView: View {
                 let spotIndex = index + 2
                 let restored = session.phase == .reveal ? session.answers.last?.answer : nil
                 ConceptDrillView(concept: concept, seed: session.seed, index: spotIndex,
+                                 level: session.level(at: index),
                                  progressText: language.text("복습 \(index + 1)/\(queue.count)",
                                                              "Review \(index + 1)/\(queue.count)"),
                                  restoredAnswer: restored,

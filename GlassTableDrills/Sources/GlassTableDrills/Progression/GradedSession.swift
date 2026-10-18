@@ -18,6 +18,8 @@ public protocol GradedSession {
     var step: GradedStep? { get set }
     var questionTotal: Int { get }
     func concept(at ordinal: Int) -> Concept?
+    /// The step the question at `ordinal` is dealt at (D53).
+    func level(at ordinal: Int) -> DrillLevel
     func contains(attemptID: String) -> Bool
     mutating func append(_ answer: RoundAnswer, concept: Concept)
 }
@@ -81,7 +83,8 @@ extension ProgressState {
     public mutating func recordGradedAnswer(concept: Concept, band: GradeBand, mode: String,
                                             formatVersion: Int, language: String, assisted: Bool,
                                             attemptID: String, interval: IntervalAnswer?, evLoss: Double?,
-                                            eligibleSeconds: Double?, now: Date, scheduler: FSRSScheduler) {
+                                            eligibleSeconds: Double?, level: DrillLevel = .learn,
+                                            now: Date, scheduler: FSRSScheduler) {
         if assisted {
             ReviewQueue.recordAssistedPractice(&self, concept: concept, now: now)
         } else {
@@ -89,13 +92,30 @@ extension ProgressState {
                                      now: now, scheduler: scheduler, evLoss: evLoss)
         }
         let key = DailyPracticeKey(day: DayKey(now), concept: concept.rawValue, mode: mode,
-                                   formatVersion: formatVersion, language: language, assisted: assisted)
+                                   formatVersion: formatVersion, language: language, assisted: assisted,
+                                   level: level > .learn ? level.rawValue : nil)
         // Only an unassisted, exact answer can show how quickly a skill is recalled.
         let seconds = !assisted && band == .spotOn && (evLoss == nil || evLoss == 0) ? eligibleSeconds : nil
         recordDetailedAttempt(PracticeEvidence(attemptID: attemptID, key: key, at: now, band: band,
                                                eligibleCorrectSeconds: seconds, decisionLossBB: evLoss))
     }
 }
+
+extension ProgressState {
+    /// One decision at the table (Graded 1:1) as a day's practice (D53, schema 5): it
+    /// counts toward what was studied that day, under mode and concept "table", and
+    /// touches no schedule, accuracy, tier or streak. The same attempt counts once.
+    public mutating func recordTableDecision(attemptID: String, band: GradeBand, language: String, now: Date) {
+        guard processedAttemptIDs.insert(attemptID).inserted else { return }
+        let key = DailyPracticeKey(day: DayKey(now), concept: "table", mode: "table", formatVersion: 1,
+                                   language: language, assisted: false)
+        recordDetailedAttempt(PracticeEvidence(attemptID: attemptID, key: key, at: now, band: band,
+                                               eligibleCorrectSeconds: nil, decisionLossBB: nil))
+    }
+}
+
+/// A stored step, or the first step when none is stored.
+private func storedLevel(_ raw: Int?) -> DrillLevel { raw.flatMap(DrillLevel.init(rawValue:)) ?? .learn }
 
 extension PracticeRound: GradedSession {
     public var step: GradedStep? {
@@ -117,6 +137,7 @@ extension PracticeRound: GradedSession {
     }
     public var questionTotal: Int { questionCount }
     public func concept(at ordinal: Int) -> Concept? { Concept(rawValue: concept) }
+    public func level(at ordinal: Int) -> DrillLevel { storedLevel(level) }
     public func contains(attemptID: String) -> Bool { answers.contains { $0.attemptID == attemptID } }
     public mutating func append(_ answer: RoundAnswer, concept: Concept) { answers.append(answer) }
 }
@@ -142,6 +163,9 @@ extension ReviewSessionSnapshot: GradedSession {
     public var questionTotal: Int { scheduledConcepts.count }
     public func concept(at ordinal: Int) -> Concept? {
         scheduledConcepts.indices.contains(ordinal) ? Concept(rawValue: scheduledConcepts[ordinal]) : nil
+    }
+    public func level(at ordinal: Int) -> DrillLevel {
+        storedLevel(levels.flatMap { $0.indices.contains(ordinal) ? $0[ordinal] : nil })
     }
     public func contains(attemptID: String) -> Bool { answers.contains { $0.answer.attemptID == attemptID } }
     public mutating func append(_ answer: RoundAnswer, concept: Concept) {
@@ -171,6 +195,12 @@ extension NodeSessionSnapshot: GradedSession {
     public var questionTotal: Int { scheduledConcepts.count }
     public func concept(at ordinal: Int) -> Concept? {
         scheduledConcepts.indices.contains(ordinal) ? Concept(rawValue: scheduledConcepts[ordinal]) : nil
+    }
+    /// A challenge's stored step for the question, else the lesson's step from its id.
+    public func level(at ordinal: Int) -> DrillLevel {
+        if let levels { return storedLevel(levels.indices.contains(ordinal) ? levels[ordinal] : nil) }
+        guard let node = Curriculum.node(id: nodeID), case .drill = node.kind else { return .learn }
+        return node.level
     }
     public func contains(attemptID: String) -> Bool { answers.contains { $0.answer.attemptID == attemptID } }
     public mutating func append(_ answer: RoundAnswer, concept: Concept) {

@@ -26,7 +26,7 @@ public struct HitFrequencySpot: Equatable {
 }
 
 public enum HitFrequencySpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> HitFrequencySpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> HitFrequencySpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         var deck = Deck.all
@@ -86,7 +86,7 @@ public struct RangeAdvantageSpot: Equatable {
 }
 
 public enum RangeAdvantageSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> RangeAdvantageSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> RangeAdvantageSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         var deck = Deck.all

@@ -41,7 +41,7 @@ public struct EquitySenseSpot: Equatable {
 }
 
 public enum EquitySenseSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> EquitySenseSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> EquitySenseSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         var deck = Deck.all
@@ -79,7 +79,7 @@ public struct EVCallSpot: Equatable {
 }
 
 public enum EVCallSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> EVCallSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> EVCallSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         let pot = [8, 10, 12, 16, 20, 24, 30].randomElement(using: &rng)!

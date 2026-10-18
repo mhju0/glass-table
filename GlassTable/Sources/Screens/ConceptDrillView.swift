@@ -38,10 +38,15 @@ struct ConceptDrillView: View {
     let onAnswer: (DrillOutcome) -> Void
     let help: DrillHelp?
     let showsContextualHint: Bool
+    /// The step the question is dealt at (D53). Drills read it as `\.drillLevel`.
+    let level: DrillLevel
 
-    private var questionID: String { "\(concept.rawValue)/\(seed)/\(index)" }
+    /// The first step keeps the id it always had, so help marks saved under it still match.
+    private var questionID: String {
+        "\(concept.rawValue)/\(seed)/\(index)" + (level > .learn ? "/step\(level.rawValue)" : "")
+    }
 
-    init(concept: Concept, seed: UInt64, index: Int, progressText: String,
+    init(concept: Concept, seed: UInt64, index: Int, level: DrillLevel = .learn, progressText: String,
          restoredAnswer: RoundAnswer? = nil,
          initialDraft: SavedDrillDraftInput? = nil,
          help: DrillHelp? = nil,
@@ -54,6 +59,7 @@ struct ConceptDrillView: View {
         self.concept = concept
         self.seed = seed
         self.index = index
+        self.level = level.capped(for: concept)
         self.progressText = progressText
         self.restoredAnswer = restoredAnswer
         self.initialDraft = initialDraft
@@ -72,7 +78,7 @@ struct ConceptDrillView: View {
             // the question put them. The saved reveal is only for an answer made before a
             // relaunch.
             if let restoredAnswer, !answerCommitted {
-                RestoredDrillView(concept: concept, seed: seed, index: index,
+                RestoredDrillView(concept: concept, seed: seed, index: index, level: level,
                                   progressText: progressText, answer: restoredAnswer,
                                   onNext: onAnswer)
                     .environment(\.drillQuestionID, questionID)
@@ -91,9 +97,11 @@ struct ConceptDrillView: View {
                     .environment(\.drillHelp, help)
                     .environment(\.drillExplain, help == nil ? nil : concept)
                     .environment(\.drillReplayContext,
-                                  DrillReplayContext(concept: concept, seed: seed, index: index))
+                                  DrillReplayContext(concept: concept, seed: seed, index: index, level: level))
             }
         }
+        .environment(\.drillLevel, level)
+        .environment(\.drillStepConcept, level > .learn ? concept : nil)
         .environment(\.drillHintConcept, showsContextualHint || help != nil ? concept : nil)
         .environment(\.lessonGuidedChart, showsContextualHint && help == nil)
         .onChange(of: questionID) { _, _ in
@@ -173,7 +181,7 @@ struct ConceptDrillView: View {
         case .showdown:
             ShowdownDrill(seed: seed, index: index, progressText: progressText, onAnswer: onAnswer)
         case .potMath:
-            PotMathDrill(seed: seed, index: index, progressText: progressText, onAnswer: onAnswer)
+            PotMathDrill(seed: seed, index: index, level: level, progressText: progressText, onAnswer: onAnswer)
         case .position:
             PositionDrill(seed: seed, index: index, progressText: progressText, onAnswer: onAnswer)
         case .equitySense:
@@ -240,6 +248,13 @@ private struct DrillReplayContext {
     let concept: Concept
     let seed: UInt64
     let index: Int
+    let level: DrillLevel
+}
+
+/// The step the question on screen is dealt at (D53). A drill whose skill has steps
+/// reads it to deal its spot and to show what that step shows.
+private struct DrillLevelKey: EnvironmentKey {
+    static let defaultValue: DrillLevel = .learn
 }
 
 private struct DrillReplayContextKey: EnvironmentKey {
@@ -250,10 +265,20 @@ private struct DrillHintConceptKey: EnvironmentKey {
     static let defaultValue: Concept? = nil
 }
 
+/// The skill of a question dealt above its first step, for the step's line in the header.
+private struct DrillStepConceptKey: EnvironmentKey {
+    static let defaultValue: Concept? = nil
+}
+
 private extension EnvironmentValues {
     var drillHintConcept: Concept? {
         get { self[DrillHintConceptKey.self] }
         set { self[DrillHintConceptKey.self] = newValue }
+    }
+
+    var drillStepConcept: Concept? {
+        get { self[DrillStepConceptKey.self] }
+        set { self[DrillStepConceptKey.self] = newValue }
     }
 }
 
@@ -301,6 +326,11 @@ extension EnvironmentValues {
     fileprivate var drillCommit: (DrillOutcome) -> Bool {
         get { self[DrillCommitKey.self] }
         set { self[DrillCommitKey.self] = newValue }
+    }
+
+    var drillLevel: DrillLevel {
+        get { self[DrillLevelKey.self] }
+        set { self[DrillLevelKey.self] = newValue }
     }
 
     fileprivate var drillReplayContext: DrillReplayContext? {
@@ -379,6 +409,8 @@ struct DrillShell<Content: View, Sheet: View>: View {
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.drillExplain) private var explainConcept
     @Environment(\.drillHintConcept) private var hintConcept
+    @Environment(\.drillStepConcept) private var stepConcept
+    @Environment(\.drillLevel) private var level
     @State private var gradedBand: GradeBand?
     @State private var hasEvidenceStart = false
     @State private var explaining = false
@@ -398,6 +430,7 @@ struct DrillShell<Content: View, Sheet: View>: View {
                         VStack(alignment: .leading, spacing: GT.Space.section) {
                             VStack(alignment: .leading, spacing: 10) {
                                 titleText.fixedSize(horizontal: false, vertical: true)
+                                stepLine
                                 HStack(alignment: .top, spacing: 16) {
                                     if explainConcept != nil {
                                         Button { explaining = true } label: {
@@ -479,9 +512,19 @@ struct DrillShell<Content: View, Sheet: View>: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 10) {
             titleText.fixedSize(horizontal: false, vertical: true)
+            stepLine
             HStack(alignment: .center, spacing: 16) { headerControls }
         }
         .padding(.bottom, 12)
+    }
+
+    /// What is new at this step (D53), above the first step only.
+    @ViewBuilder private var stepLine: some View {
+        if let stepConcept, let line = level.headline(for: stepConcept, in: language) {
+            Text(line).font(GT.semibold(14)).foregroundStyle(GT.onFeltSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("drill-step-line")
+        }
     }
 
     private var titleText: some View {
@@ -540,7 +583,7 @@ private struct RevealSheet: View {
     private var reveal: ConceptReveal? {
         guard let replayContext else { return nil }
         return ConceptReveal(concept: replayContext.concept, seed: replayContext.seed,
-                             index: replayContext.index, input: submittedInput,
+                             index: replayContext.index, level: replayContext.level, input: submittedInput,
                              openerEquityPct: interval?.truth, language: language, namesRange: !simple)
     }
 
@@ -725,11 +768,12 @@ private struct IntegerDraftModifier: ViewModifier {
 
 private struct ShowdownDrill: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.drillLevel) private var level
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: ShowdownReveal?
 
-    private var spot: ShowdownSpot { ShowdownSpotGenerator.spot(baseSeed: seed, index: index) }
+    private var spot: ShowdownSpot { ShowdownSpotGenerator.spot(baseSeed: seed, index: index, level: level) }
 
     /// The five cards that actually won, lit once the answer is in. Getting it right
     /// should *show* you something — the previous reveal changed only the text.
@@ -796,19 +840,23 @@ private struct PotMathDrill: View {
     @Environment(\.drillSaveDraft) private var saveDraft
     @Environment(\.drillHelp) private var help
     let seed: UInt64; let index: Int; let progressText: String
+    let level: DrillLevel
     let onAnswer: (DrillOutcome) -> Void
     private let spot: PotMathSpot
     private let introKey: String
+    /// The typed answer at the third step (owner default 2: counts are typed at Sharp).
+    @State private var typedTotal = ""
     @State private var showingIntro: Bool
     @State private var showingHelp = false
     @State private var confirmingTotals = false
     @State private var stepIndex: Int
     @State private var reveal: PotMathReveal?
 
-    init(seed: UInt64, index: Int, progressText: String,
+    init(seed: UInt64, index: Int, level: DrillLevel, progressText: String,
          onAnswer: @escaping (DrillOutcome) -> Void) {
         self.seed = seed
         self.index = index
+        self.level = level
         self.progressText = progressText
         self.onAnswer = onAnswer
 
@@ -817,7 +865,7 @@ private struct PotMathDrill: View {
         #else
         let environment: [String: String] = [:]
         #endif
-        let spot = Self.makeSpot(seed: seed, index: index, environment: environment)
+        let spot = Self.makeSpot(seed: seed, index: index, level: level, environment: environment)
         self.spot = spot
         // Every question starts at the blind posts: the seats carry no totals, so
         // opening at the last action would hide the hand the learner has to count.
@@ -898,8 +946,15 @@ private struct PotMathDrill: View {
                         }
                     } else {
                         PotMathReplayControls(steps: spot.replaySteps.count, stepIndex: $stepIndex)
-                        PotMathChoicesView(spot: spot, stepIndex: stepIndex) { choice in
-                            reveal = gradePotMath(answer: choice, spot: spot, language: language)
+                        if level.typesExactAnswer(.potMath) {
+                            PotMathTypedEntry(entry: $typedTotal,
+                                              reachedLastAction: stepIndex >= spot.replaySteps.count - 1) { value in
+                                reveal = gradePotMath(answer: value, spot: spot, language: language)
+                            }
+                        } else {
+                            PotMathChoicesView(spot: spot, stepIndex: stepIndex) { choice in
+                                reveal = gradePotMath(answer: choice, spot: spot, language: language)
+                            }
                         }
                     }
                 }
@@ -922,6 +977,7 @@ private struct PotMathDrill: View {
         .onChange(of: index) { _, _ in
             stepIndex = 0
             reveal = nil
+            typedTotal = ""
             restoreReplayDraft()
         }
         .onChange(of: stepIndex) { _, next in
@@ -956,19 +1012,45 @@ private struct PotMathDrill: View {
         showingIntro = false
     }
 
-    private static func makeSpot(seed: UInt64, index: Int,
+    private static func makeSpot(seed: UInt64, index: Int, level: DrillLevel,
                                  environment: [String: String]) -> PotMathSpot {
-        let generated = PotMathSpotGenerator.spot(baseSeed: seed, index: index)
+        let generated = PotMathSpotGenerator.spot(baseSeed: seed, index: index, level: level)
         #if DEBUG
         guard let rawCount = environment["GT_DEMO_POT_PLAYERS"],
               let count = Int(rawCount), (3...4).contains(count),
               generated.participantCount != count else { return generated }
         for candidate in (index + 1)...(index + 64) {
-            let spot = PotMathSpotGenerator.spot(baseSeed: seed, index: candidate)
+            let spot = PotMathSpotGenerator.spot(baseSeed: seed, index: candidate, level: level)
             if spot.participantCount == count { return spot }
         }
         #endif
         return generated
+    }
+}
+
+/// The third step's answer: the exact pot, typed once the replay reaches its end.
+private struct PotMathTypedEntry: View {
+    @Environment(\.learningLanguage) private var language
+    @Binding var entry: String
+    let reachedLastAction: Bool
+    let onSubmit: (Int) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(reachedLastAction
+                  ? language.text("이제 칩 수를 입력할 수 있어요.", "Now type the number of chips.")
+                  : language.text("마지막 행동까지 넘기면 답을 입력할 수 있어요.",
+                                  "Follow the actions to the end, then type your answer."),
+                  systemImage: reachedLastAction ? "lock.open" : "lock")
+                .font(GT.body(14))
+                .foregroundStyle(reachedLastAction ? GT.ink : GT.inkSecondary)
+            CountEntryView(entry: $entry, suffix: language.text("칩", " chips")) {
+                if let value = Int(entry) { onSubmit(value) }
+            }
+            .disabled(!reachedLastAction)
+            .accessibilityIdentifier("pot-typed-entry")
+        }
+        .padding(.top, 8)
     }
 }
 
@@ -1031,7 +1113,7 @@ private struct PotMathRevealSheet: View {
     private var localizedWhy: String {
         guard let replayContext else { return reveal.whyText }
         return ConceptReveal(concept: replayContext.concept, seed: replayContext.seed,
-            index: replayContext.index, input: submittedInput, language: language)?.why ?? reveal.whyText
+            index: replayContext.index, level: replayContext.level, input: submittedInput, language: language)?.why ?? reveal.whyText
     }
 
     var body: some View {
@@ -1639,6 +1721,7 @@ private struct CallFoldDrill: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.simpleQuestions) private var simple
     @Environment(\.lessonCallFoldNumbers) private var lessonNumbers
+    @Environment(\.drillLevel) private var level
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: CallFoldReveal?
@@ -1646,7 +1729,7 @@ private struct CallFoldDrill: View {
     /// Bound once per render: the generator runs an exact equity per candidate spot
     /// and rejects the lopsided ones, and `body` reads it five times.
     private func makeSpot() -> CallFoldSpot {
-        CallFoldSpotGenerator.spot(baseSeed: seed, index: index)
+        CallFoldSpotGenerator.spot(baseSeed: seed, index: index, level: level)
     }
 
     var body: some View {
@@ -1658,8 +1741,8 @@ private struct CallFoldDrill: View {
                 Text(language.text("팟 \(spot.pot)\(unit) · 상대 벳 \(spot.bet)\(unit)",
                                    "Pot \(spot.pot)\(unit) · Opponent bets \(spot.bet)\(unit)"))
                     .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
-                if lessonNumbers {
-                    Text(callFoldLessonNumbers(spot: spot, language: language))
+                if lessonNumbers, let numbers = callFoldLessonNumbers(spot: spot, language: language, level: level) {
+                    Text(numbers)
                         .font(GT.semibold(15)).foregroundStyle(GT.mint)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("callfold-lesson-numbers")
@@ -2518,7 +2601,7 @@ private struct EVLossRevealSheet: View {
     private var localizedWhy: String {
         guard let replayContext else { return reveal.whyText }
         return ConceptReveal(concept: replayContext.concept, seed: replayContext.seed,
-            index: replayContext.index, input: submittedInput, language: language)?.why ?? reveal.whyText
+            index: replayContext.index, level: replayContext.level, input: submittedInput, language: language)?.why ?? reveal.whyText
     }
 
     private func action(_ calls: Bool) -> String {
@@ -3005,7 +3088,7 @@ private struct DefendRevealSheet: View {
     private var localizedWhy: String {
         guard let replayContext else { return reveal.whyText }
         return ConceptReveal(concept: replayContext.concept, seed: replayContext.seed,
-            index: replayContext.index, input: submittedInput, language: language)?.why ?? reveal.whyText
+            index: replayContext.index, level: replayContext.level, input: submittedInput, language: language)?.why ?? reveal.whyText
     }
 
     var body: some View {

@@ -16,23 +16,23 @@ public struct ConceptReveal: Equatable, Sendable {
     ///     estimated by simulation and so cannot be recomputed exactly.
     ///   - namesRange: whether the learner gave a 90% range; only then is it judged.
     /// Returns nil when the input does not fit the concept.
-    public init?(concept: Concept, seed: UInt64, index: Int, input: SavedDrillInput,
+    public init?(concept: Concept, seed: UInt64, index: Int, level: DrillLevel = .learn, input: SavedDrillInput,
                  openerEquityPct: Double? = nil, language: LearningLanguage, namesRange: Bool = false) {
         func choice(_ isCall: Bool) -> String { isCall ? language.text("콜", "Call") : language.text("폴드", "Fold") }
         switch (concept, input) {
         case let (.showdown, .integer(value)):
-            let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             let result = gradeShowdown(answer: value, spot: spot, language: language)
             guard (0..<3).contains(value), (0..<3).contains(result.winner) else { return nil }
             self.init(mine: HandOutcomeCopy.answer(value, in: language),
                       correct: HandOutcomeCopy.answer(result.winner, in: language), why: result.whyText)
         case let (.potMath, .integer(value)):
             let result = gradePotMath(answer: value,
-                spot: PotMathSpotGenerator.spot(baseSeed: seed, index: index), language: language)
+                spot: PotMathSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             let unit = language.text("칩", " chips")
             self.init(mine: "\(value)\(unit)", correct: "\(result.correct)\(unit)", why: result.whyText)
         case let (.position, .integer(value)):
-            let spot = PositionSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = PositionSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             let result = gradePosition(answer: value, spot: spot, language: language)
             func label(_ value: Int) -> String {
                 switch spot.question {
@@ -42,56 +42,56 @@ public struct ConceptReveal: Equatable, Sendable {
             }
             self.init(mine: label(value), correct: label(result.correct), why: result.whyText)
         case let (.outs, .integer(value)):
-            let spot = OutsSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = OutsSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             let result = gradeOuts(estimate: value, spot: spot, language: language)
             let unit = language.text("장", " cards")
             self.init(mine: "\(value)\(unit)", correct: "\(spot.outCount)\(unit)", why: result.whyText)
         case let (.combos, .integer(value)):
-            let spot = BlockerSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = BlockerSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             let result = gradeBlocker(estimate: value, spot: spot, language: language)
             let unit = language.text("개", " combos")
             self.init(mine: "\(value)\(unit)", correct: "\(result.count)\(unit)", why: result.whyText)
         case let (.potOdds, .integer(value)), let (.mdf, .integer(value)):
-            let spot = BetSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = BetSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             let result = concept == .mdf
                 ? gradeMDF(estimatePct: value, spot: spot, language: language)
                 : gradePotOdds(estimatePct: value, spot: spot, language: language)
             self.init(mine: "\(value)%", correct: "\(pctText(result.correctPct))%", why: result.whyText)
         case let (.callFold, .boolean(value)):
             let result = gradeCallFold(userCalls: value,
-                spot: CallFoldSpotGenerator.spot(baseSeed: seed, index: index), language: language)
+                spot: CallFoldSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             self.init(mine: choice(value), correct: choice(result.correctIsCall), why: result.whyText)
         case let (.rangeNotation, .integer(value)):
             let result = gradeRangeNotation(estimate: value,
-                spot: RangeNotationSpotGenerator.spot(baseSeed: seed, index: index), language: language)
+                spot: RangeNotationSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             let unit = language.text(" 콤보", " combos")
             self.init(mine: "\(value)\(unit)", correct: "\(result.count)\(unit)", why: result.whyText)
         case let (.rfi, .boolean(value)):
             let result = gradeRFI(userOpens: value,
-                spot: RFISpotGenerator.spot(baseSeed: seed, index: index), language: language)
+                spot: RFISpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             func open(_ opens: Bool) -> String { opens ? language.text("오픈", "Raise") : language.text("폴드", "Fold") }
             self.init(mine: open(value), correct: open(result.correctOpens), why: result.whyText)
         case let (.rangeRead, .range(width, tendencies)):
             let result = gradeRangeRead(
                 estimate: RangeEstimate(width: width, tendencies: Set(tendencies.compactMap(RangeTendency.init(rawValue:)))),
-                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index), language: language)
+                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             self.init(mine: "\(pctText(result.guess.percent))%", correct: "\(pctText(result.truth.percent))%",
                       why: result.whyText)
         case let (.rangeRead, .rangeBand(width, excludedTop, tendencies)):
             let result = gradeRangeRead(
                 estimate: RangeEstimate(width: width, tendencies: Set(tendencies.compactMap(RangeTendency.init(rawValue:))),
                                         excludedTop: excludedTop),
-                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index), language: language)
+                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             self.init(mine: "\(pctText(result.guess.percent))%", correct: "\(pctText(result.truth.percent))%",
                       why: result.whyText)
         case let (.evLoss, .boolean(value)):
             let result = gradeEVLoss(userCalls: value,
-                spot: EVLossSpotGenerator.spot(baseSeed: seed, index: index), language: language)
+                spot: EVLossSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             self.init(mine: choice(value), correct: choice(result.grade.best.ev > 0), why: result.whyText)
         case let (.defend, .action(raw)):
             guard let selected = DefendAction(rawValue: raw) else { return nil }
             let result = gradeDefend(chosen: selected,
-                spot: DefendSpotGenerator.spot(baseSeed: seed, index: index), language: language)
+                spot: DefendSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             func label(_ action: DefendAction) -> String {
                 switch action {
                 case .fold: language.text("폴드", "Fold")
@@ -102,25 +102,25 @@ public struct ConceptReveal: Equatable, Sendable {
             self.init(mine: label(selected), correct: label(result.correct), why: result.whyText)
         case let (.equitySense, .interval(point, lo, hi)):
             self.init(estimate: gradeEquitySense(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: EquitySenseSpotGenerator.spot(baseSeed: seed, index: index), language: language),
+                spot: EquitySenseSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language),
                 unit: "%", language: language, namesRange: namesRange)
         case let (.evCall, .interval(point, lo, hi)):
             self.init(estimate: gradeEVCall(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: EVCallSpotGenerator.spot(baseSeed: seed, index: index), language: language),
+                spot: EVCallSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language),
                 unit: "bb", language: language, namesRange: namesRange)
         case let (.hitFrequency, .interval(point, lo, hi)):
             self.init(estimate: gradeHitFrequency(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: HitFrequencySpotGenerator.spot(baseSeed: seed, index: index), language: language),
+                spot: HitFrequencySpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language),
                 unit: "%", language: language, namesRange: namesRange)
         case let (.rangeAdvantage, .interval(point, lo, hi)):
             guard let openerEquityPct else { return nil }
             self.init(estimate: gradeRangeAdvantage(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index),
+                spot: RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index, level: level),
                 openerEquityPct: openerEquityPct, language: language),
                 unit: "%", language: language, namesRange: namesRange)
         case let (.actionRead, .interval(point, lo, hi)):
             self.init(estimate: gradeActionRead(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: ActionReadSpotGenerator.spot(baseSeed: seed, index: index), language: language),
+                spot: ActionReadSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language),
                 unit: "%", language: language, namesRange: namesRange)
         default: return nil
         }

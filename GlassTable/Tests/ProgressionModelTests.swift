@@ -855,16 +855,17 @@ final class ProgressionModelTests: XCTestCase {
         let scheduled = Curriculum.sessionConcepts(for: boss, seed: 2)
         var evidence: [Concept: SessionEvidence] = [:]
         for concept in scheduled {
-            let exact = concept == .showdown
+            // Position has one step, so a first-lap challenge can master it (D53).
+            let exact = concept == .position
             model.record(concept: concept, band: exact ? .spotOn : .close, now: now)
             evidence[concept, default: SessionEvidence()].record(spotOn: exact)
         }
 
         XCTAssertTrue(model.completeNode(boss, scheduled: scheduled,
                                          evidence: evidence, now: now))
-        XCTAssertEqual(model.record(for: .showdown).tier, .mastered)
+        XCTAssertEqual(model.record(for: .position).tier, .mastered)
         XCTAssertEqual(model.record(for: .potMath).tier, .proficient)
-        XCTAssertEqual(model.record(for: .position).tier, .proficient)
+        XCTAssertEqual(model.record(for: .showdown).tier, .proficient)
         XCTAssertEqual(model.record(for: .combos).tier, .proficient)
     }
 

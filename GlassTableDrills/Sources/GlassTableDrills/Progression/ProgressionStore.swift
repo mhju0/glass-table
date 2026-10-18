@@ -150,7 +150,32 @@ public struct ProgressionStore {
         // the file instead of dropping keys they cannot decode (ADR 0001).
         // 3 → 4 adds the optional `lastNodeID`; an older file has none, which reads as
         // no record of the last lesson.
+        // 4 → 5 adds steps (D53): the steps a tier already shows are marked passed.
+        if state.schemaVersion < 5 { markStepsReached(&upgraded) }
         return upgraded
+    }
+
+    /// Marks the steps an existing tier already shows (D53), so no one is sent back
+    /// over ground they have covered: 능숙 (Strong) passes a skill's first two steps,
+    /// 숙달 (Mastered) all of them; a cleared lesson is its first step already. Only
+    /// adds records, never changes one, and leaves tiers alone. Generic over
+    /// `DrillLevel.highest(for:)`, so a skill given steps later is covered by rerunning
+    /// it behind its own schema bump.
+    public static func markStepsReached(_ state: inout ProgressState) {
+        for lesson in Curriculum.tracks.flatMap(\.lessons) {
+            guard let concept = Curriculum.taughtConcept(of: lesson),
+                  let record = state.concepts[concept.rawValue], record.tier >= .proficient else { continue }
+            for step in Curriculum.lessonSteps(for: lesson) where state.nodes[step.id] == nil {
+                let reached: Date?
+                switch step.level {
+                case .learn, .apply: reached = record.proficientAt ?? record.masteredAt
+                case .sharp:
+                    guard record.tier == .mastered else { continue }
+                    reached = record.masteredAt ?? record.proficientAt
+                }
+                state.nodes[step.id] = NodeRecord(cleared: true, clearedAt: reached, attempts: 0)
+            }
+        }
     }
 
     /// Bounded raw read for file-importer callers. Pair with `importData` on a
@@ -289,6 +314,7 @@ public struct ProgressionStore {
         return !key.concept.isEmpty && !key.mode.isEmpty
             && (1...1_000_000).contains(key.formatVersion)
             && ["ko", "en"].contains(key.language)
+            && (key.level.map { (2...3).contains($0) } ?? true)
             && validCount(summary.exact) && validCount(summary.near)
             && validCount(summary.miss) && validCount(summary.eligibleCorrectCount)
             && summary.eligibleCorrectCount <= summary.exact + summary.near
@@ -309,7 +335,8 @@ public struct ProgressionStore {
 
     private static func validate(_ round: PracticeRound, verifyAnswers: Bool) -> Bool {
         guard !round.id.isEmpty, let concept = Concept(rawValue: round.concept),
-              round.formatVersion == 1,
+              round.formatVersion == 1 && round.level == nil
+                || round.formatVersion == 2 && (round.level.map { validStep($0, for: concept) } ?? true),
               round.questionCount == 5,
               (0..<round.questionCount).contains(round.ordinal),
               round.answers.count <= round.questionCount,
@@ -334,7 +361,8 @@ public struct ProgressionStore {
                       && validDate(answer.submittedAt)
                       && ["spotOn", "close", "off"].contains(answer.band)
                       && validateSavedAnswer(answer, concept: concept,
-                          seed: round.seed, index: index + 2, verifyAnswers: verifyAnswers)
+                          seed: round.seed, index: index + 2, level: round.level(at: index),
+                          verifyAnswers: verifyAnswers)
               })
         else { return false }
         switch round.phase {
@@ -363,6 +391,7 @@ public struct ProgressionStore {
               Curriculum.isSavedSchedule(session.scheduledConcepts.compactMap(Concept.init(rawValue:)),
                                          for: node, seed: session.seed, format: session.formatVersion),
               session.scheduledConcepts.allSatisfy({ Concept(rawValue: $0) != nil }),
+              validChallengeLevels(session.levels, node: node, scheduled: session.scheduledConcepts),
               session.answers.count <= session.scheduledConcepts.count,
               validTeaching(session.showBeatIndex, concept: taught,
                   seed: session.seed, verifyAnswers: verifyAnswers),
@@ -385,7 +414,7 @@ public struct ProgressionStore {
                       && validDate(graded.answer.submittedAt)
                       && Concept(rawValue: graded.concept)
                         .map({ validateSavedAnswer(graded.answer, concept: $0,
-                            seed: session.seed, index: index + 2,
+                            seed: session.seed, index: index + 2, level: session.level(at: index),
                             verifyAnswers: verifyAnswers) }) == true
               }) else { return false }
         switch session.phase {
@@ -398,6 +427,24 @@ public struct ProgressionStore {
         }
     }
 
+    /// A stored step: 2 or 3, up to the skill's highest. The first step is never stored.
+    private static func validStep(_ raw: Int, for concept: Concept) -> Bool {
+        guard let level = DrillLevel(rawValue: raw) else { return false }
+        return level > .learn && level <= DrillLevel.highest(for: concept)
+    }
+
+    /// One step per question, only on a challenge, up to Apply in the first lap and up
+    /// to Sharp on a challenge's third step.
+    private static func validChallengeLevels(_ levels: [Int]?, node: CurriculumNode, scheduled: [String]) -> Bool {
+        guard let levels else { return true }
+        guard case .boss = node.kind, levels.count == scheduled.count else { return false }
+        let cap: DrillLevel = node.level == .sharp ? .sharp : .apply
+        return zip(levels, scheduled).allSatisfy { raw, name in
+            guard let level = DrillLevel(rawValue: raw), let concept = Concept(rawValue: name) else { return false }
+            return level <= cap && level <= DrillLevel.highest(for: concept)
+        }
+    }
+
     /// Help belongs to one question that has already been reached.
     private static func validHelp(_ helpOrdinal: Int?, ordinal: Int, count: Int) -> Bool {
         guard let helpOrdinal else { return true }
@@ -405,7 +452,7 @@ public struct ProgressionStore {
     }
 
     private static func validateSavedAnswer(_ answer: RoundAnswer, concept: Concept,
-                                            seed: UInt64, index: Int,
+                                            seed: UInt64, index: Int, level: DrillLevel = .learn,
                                             verifyAnswers: Bool) -> Bool {
         guard answer.assisted != false,
               answer.input.count <= 4_096, answer.reveal.count <= 4_096,
@@ -422,7 +469,7 @@ public struct ProgressionStore {
         guard (reveal.interval != nil) == needsInterval else { return false }
         guard (reveal.evLoss != nil) == (concept == .evLoss) else { return false }
         return !verifyAnswers || SavedDrillScore.matches(
-            concept: concept, seed: seed, index: index, input: input, reveal: reveal)
+            concept: concept, seed: seed, index: index, level: level, input: input, reveal: reveal)
     }
 
     private static func validateDraft(_ draft: SavedDrillDraft?, ordinal: Int,
@@ -459,6 +506,13 @@ public struct ProgressionStore {
               (1...5).contains(session.scheduledConcepts.count),
               session.scheduledConcepts.allSatisfy({ Concept(rawValue: $0) != nil }),
               Set(session.scheduledConcepts).count == session.scheduledConcepts.count,
+              session.levels.map({ levels in
+                  levels.count == session.scheduledConcepts.count
+                      && zip(levels, session.scheduledConcepts).allSatisfy { raw, name in
+                          raw == DrillLevel.learn.rawValue
+                              || Concept(rawValue: name).map { validStep(raw, for: $0) } == true
+                      }
+              }) ?? true,
               (0..<session.scheduledConcepts.count).contains(session.ordinal),
               session.answers.count <= session.scheduledConcepts.count,
               Set(session.answers.map(\.answer.attemptID)).count == session.answers.count,
@@ -474,7 +528,7 @@ public struct ProgressionStore {
                       && validDate(graded.answer.submittedAt)
                       && Concept(rawValue: graded.concept)
                         .map({ validateSavedAnswer(graded.answer, concept: $0,
-                            seed: session.seed, index: index + 2,
+                            seed: session.seed, index: index + 2, level: session.level(at: index),
                             verifyAnswers: verifyAnswers) }) == true
               }) else { return false }
         switch session.phase {

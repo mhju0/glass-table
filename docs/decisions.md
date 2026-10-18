@@ -1038,3 +1038,37 @@ upgrade and reads with no record). The marked row (`Curriculum.markedLesson`):
 With every track lesson passed nothing is marked (D38's practice line), unless the
 last lesson started is a challenge or deeper lesson not yet passed. Practice rounds,
 reviews and Hold'em basics do not change `lastNodeID`.
+
+### D53 · Steps: each skill dealt harder as the learner goes
+**Status: ACTIVE — owner, 2026-10-18. Extends D48's order and D52's mark.**
+
+The owner asked for a step system that stays "simple and automatic; the learner never
+picks a difficulty", and approved three defaults. A skill now has up to three steps,
+named Learn, Apply and Sharp in code and docs only. On screen they are "1단계/2단계/3단계"
+("Step 1/2/3"), shown as three pips and in the tag ("다음 · 2단계" / "Next · Step 2").
+
+- **Which skills.** Showdown, pot math and call-or-fold have all three steps. The other
+  skills have only Learn and play exactly as before. `DrillLevel.highest(for:)` is the
+  one switch, and its doc comment lists the four steps for giving a skill steps.
+- **What changes per step.** Showdown: Apply keeps the same hand type and no ties;
+  Sharp adds ties and boards that play. Pot math: Apply deals more varied preflop
+  betting; Sharp adds a flop bet and the count is typed (default 2). Call-or-fold:
+  Apply shows only the needed share; Sharp shows no numbers and deals close spots.
+  The Learn spots are byte-identical to before (`LearnSpotGoldenTests`).
+- **Order (default 1).** Track by track, each track's lessons at Learn, then those with
+  Apply at Apply, then its challenge. After the four tracks, a Sharp lap: every Sharp
+  lesson, then each challenge again (`<id>.3`), for tracks with a Sharp skill. A Sharp
+  step is never suggested before the first lap is done. "Go deeper" has its own
+  challenge (`deeper-boss`) and is still never suggested.
+- **Steps are lessons.** A step is a node `<lesson>.2` / `.3` with its own pass record.
+  It skips the walkthrough. Practice rounds and reviews deal a skill at the highest step
+  passed. A first-lap challenge deals up to Apply, a `.3` challenge up to Sharp.
+- **Tiers.** 능숙 (Strong) needs a perfect session at Apply or above, 숙달 (Mastered) a
+  perfect challenge at the skill's highest step. For a skill with only Learn the rule
+  is the one it had. Tiers never drop.
+- **Persistence (schema 5, ADR 0001).** New optional keys hold the step of a practice
+  round (format 2), of each review or challenge question, and of a day's practice key.
+  Graded 1:1 table decisions count toward the day's practice under mode "table" without
+  touching FSRS, accuracy or tiers. Upgrading a schema-4 file copies it first, then marks
+  the steps a tier already shows: cleared stays Learn; 능숙 passes Learn and Apply;
+  숙달 passes all three. It never marks a `.3` challenge.

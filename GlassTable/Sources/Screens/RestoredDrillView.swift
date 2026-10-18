@@ -21,6 +21,8 @@ struct RestoredDrillView: View {
     let concept: Concept
     let seed: UInt64
     let index: Int
+    /// The step the answer was dealt at (D53); its spot and reveal are that step's.
+    let level: DrillLevel
     let progressText: String
     let answer: RoundAnswer
     let onNext: (DrillOutcome) -> Void
@@ -29,7 +31,7 @@ struct RestoredDrillView: View {
         let stored = try? JSONDecoder().decode(DrillStoredReveal.self, from: answer.reveal)
         let input = try? JSONDecoder().decode(DrillSubmittedInput.self, from: answer.input)
         let detail = input.flatMap { input in
-            ConceptReveal(concept: concept, seed: seed, index: index, input: input,
+            ConceptReveal(concept: concept, seed: seed, index: index, level: level, input: input,
                           openerEquityPct: stored?.interval?.truth, language: language,
                           // Stored wire ranges do not record whether confidence was solicited.
                           namesRange: false)
@@ -212,6 +214,7 @@ private struct RestoredEVLossResult: View {
 /// should not become an orphaned explanation after a relaunch.
 private struct RestoredDrillContextView: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.drillLevel) private var level
     @State private var potStepIndex = 0
     @State private var showingPotHelp = false
     let concept: Concept
@@ -240,7 +243,7 @@ private struct RestoredDrillContextView: View {
 
     /// The question's own table, with the winning five lit as the live reveal lights them.
     private var showdownTable: some View {
-        let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index)
+        let spot = ShowdownSpotGenerator.spot(baseSeed: seed, index: index, level: level)
         let winner: Int? = {
             guard case let .integer(answer)? = input else { return nil }
             return gradeShowdown(answer: answer, spot: spot, language: language).winner
@@ -312,7 +315,7 @@ private struct RestoredDrillContextView: View {
     private var questionContext: some View {
         switch concept {
         case .potMath:
-            let spot = PotMathSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = PotMathSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(language.text("팟 계산", "Count the pot"))
                 .font(GT.title(18)).foregroundStyle(GT.onFelt)
             PotMathReplayView(spot: spot, stepIndex: $potStepIndex, revealedPot: spot.pot,
@@ -357,7 +360,7 @@ private struct RestoredDrillContextView: View {
                 Text(line).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
             }
         case .callFold:
-            let spot = CallFoldSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = CallFoldSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(language.text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb",
                                "Pot \(spot.pot)bb · Opponent bets \(spot.bet)bb"))
                 .font(GT.body(15)).foregroundStyle(GT.onFelt)
