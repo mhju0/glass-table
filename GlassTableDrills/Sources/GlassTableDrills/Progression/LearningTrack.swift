@@ -56,6 +56,10 @@ public extension Curriculum {
     /// exactly the order the path screen lists them.
     static let trackLessons: [CurriculumNode] = tracks.filter { !$0.isOptional }.flatMap(\.lessons)
 
+    /// The skills the tracks teach, in path order, then "Go deeper". Concepts kept only
+    /// for older saved progress (MDF, EV loss, retired drills) are not among them.
+    static let skills: [Concept] = tracks.flatMap(\.concepts)
+
     static func track(containing node: CurriculumNode) -> LearningTrack? {
         tracks.first { $0.lessons.contains(node) || $0.challenge == node }
     }

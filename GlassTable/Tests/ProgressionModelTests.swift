@@ -1291,6 +1291,21 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertNotEqual(before, after)
     }
 
+    /// "Skills at Strong" counts the curriculum's 14 skills only. Concepts kept for older
+    /// saved progress (MDF, EV loss, retired drills) never inflate it.
+    func testStrongCountUsesOnlyTheCurriculumSkills() throws {
+        var state = ProgressState()
+        for retired in [Concept.mdf, .evLoss, .hitFrequency, .rangeAdvantage] {
+            state.concepts[retired.rawValue] = ConceptRecord(tier: .mastered, total: 4)
+        }
+        state.concepts[Concept.outs.rawValue] = ConceptRecord(tier: .proficient, total: 4)
+        state.concepts[Concept.combos.rawValue] = ConceptRecord(tier: .mastered, total: 4)
+        state.concepts[Concept.potMath.rawValue] = ConceptRecord(tier: .familiar, total: 4)
+        try store.save(state)
+        let model = ProgressionModel(store: store)
+        XCTAssertEqual(model.masteredCount, 2)
+    }
+
     private func withReadOnlyDirectory(_ body: () throws -> Void) throws {
         try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: dir.path)
         defer {

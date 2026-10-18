@@ -3,7 +3,8 @@ import SwiftUI
 import UIKit
 import GlassTableDrills
 
-/// Completion and recorded practice dates lead; detailed learning metrics stay available.
+/// Two numbers that only grow lead (owner, R3·G); the numbers that can drop wait
+/// under "Where to look next".
 struct RecordsView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
@@ -12,6 +13,7 @@ struct RecordsView: View {
     @State private var clockRefresh = 0
     @State private var detailsExpanded = false
     var onContinue: () -> Void = {}
+    var onOpenReview: () -> Void = {}
     @State private var replay: Concept?
     @State private var replaySeed: UInt64 = 0
     @State private var selectedPracticeConcept: Concept?
@@ -32,25 +34,22 @@ struct RecordsView: View {
                         .font(GT.title(textSize.isAccessibilitySize ? 22 : 30))
                         .foregroundStyle(GT.onFelt)
                         .padding(.top, 14)
-                    let activity = PracticeActivityOverview(state: model.state, now: now, calendar: .current)
-                    PracticeActivityView(overview: activity, onContinue: onContinue)
-                    if !activity.recentTopics.isEmpty {
-                        recentTopics(activity)
-                    }
-                    learningPathCard
-                    DisclosureGroup(language.text("자세한 학습 기록", "Detailed learning records"), isExpanded: $detailsExpanded) {
+                    ProgressSummaryView(overview: ProgressOverview(state: model.state, now: now, calendar: .current),
+                                        onContinue: onContinue, onOpenReview: onOpenReview)
+                    DisclosureGroup(isExpanded: $detailsExpanded) {
                         VStack(alignment: .leading, spacing: GT.Space.section) {
-                            headline(now: now)
-                            Text(language.text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실력 인증은 아니에요.",
-                                               "Stages describe practice in this app, not proven skill."))
-                                .font(GT.body(14)).foregroundStyle(GT.onFeltSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
                             practiceCard(now: now)
                             styleCard
                             calibrationCard
                             evLossCard
                             if studied.isEmpty { emptyState } else { conceptList(now: now) }
                         }.padding(.top, 12)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(language.text("더 살펴볼 곳", "Where to look next"))
+                            Text(language.text("목표 안 비율, 테이블 습관", "On target, table habits"))
+                                .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+                        }
                     }
                     .font(GT.semibold(16)).tint(GT.onFelt)
                     .accessibilityIdentifier("records-details")
@@ -97,98 +96,6 @@ struct RecordsView: View {
                 })
             }
             .gtSheetSurface()
-        }
-    }
-
-    private func recentTopics(_ activity: PracticeActivityOverview) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(language.text("최근 연습한 주제", "Recent topics"))
-                .font(GT.title(20)).foregroundStyle(GT.onFelt)
-                .padding(.bottom, 10)
-            ForEach(Array(activity.recentTopics.prefix(3).enumerated()), id: \.element.concept) { index, topic in
-                NavigationLink {
-                    FreePlayView(concepts: [topic.concept])
-                } label: {
-                    HStack(alignment: .firstTextBaseline, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(skillNames(topic.concept, language: language, termsLead: false).lead)
-                                .font(GT.semibold(16)).foregroundStyle(GT.onFelt)
-                            Text(friendlyDay(topic.lastPracticedDay, in: activity)).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
-                        }
-                        Spacer(minLength: 8)
-                        Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(GT.onFeltSecondary)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .padding(.vertical, 10)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(GTPress())
-                .accessibilityIdentifier("records-topic-\(topic.concept.rawValue)")
-                if index < min(3, activity.recentTopics.count) - 1 {
-                    Rectangle().fill(GT.border).frame(height: 1)
-                }
-            }
-        }
-    }
-
-    /// "오늘", "어제" or a month-and-day date. The stored key is an ISO day, which
-    /// reads as data rather than as a date.
-    private func friendlyDay(_ day: DayKey, in activity: PracticeActivityOverview) -> String {
-        if let today = activity.last7.firstIndex(where: \.isToday) {
-            if activity.last7[today].day == day { return language.text("오늘", "Today") }
-            if today > 0, activity.last7[today - 1].day == day { return language.text("어제", "Yesterday") }
-        }
-        let parts = day.raw.split(separator: "-").compactMap { Int($0) }
-        guard parts.count == 3, (1...12).contains(parts[1]) else { return day.raw }
-        let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        return language.text("\(parts[1])월 \(parts[2])일", "\(months[parts[1] - 1]) \(parts[2])")
-    }
-
-    private var learningPathCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(language.text("학습 과정", "Learning path"))
-                .font(GT.title(20)).foregroundStyle(GT.ink)
-            ForEach(Curriculum.tracks.filter { !$0.isOptional }) { track in
-                let finished = track.lessons.filter { model.state.nodes[$0.id]?.cleared == true }.count
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(trackTitle(track.id)).font(GT.semibold(15))
-                        Spacer(minLength: 8)
-                        Text("\(finished) / \(track.lessons.count)")
-                            .font(GT.body(14).monospacedDigit())
-                    }.foregroundStyle(GT.ink)
-                    ProgressView(value: Double(finished), total: Double(track.lessons.count))
-                        .tint(GT.cta).accessibilityHidden(true)
-                }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(language.text("\(trackTitle(track.id)), \(track.lessons.count)개 중 \(finished)개 통과",
-                                                  "\(trackTitle(track.id)), \(finished) of \(track.lessons.count) lessons passed"))
-            }
-        }
-        .gtInset(GT.Space.card).gtCard()
-        .accessibilityIdentifier("records-learning-path")
-    }
-
-    private func trackTitle(_ id: LearningTrack.ID) -> String { id.title(in: language) }
-
-    private func headline(now: Date) -> some View {
-        Group {
-            if textSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 6) {
-                    stat("\(model.masteredCount)", language.text("능숙 이상", "Strong topics"))
-                    stat("\(Streak.activeCurrent(model.state.streak, on: DayKey(now)))", language.text("연속 일수", "Day streak"))
-                        .accessibilityIdentifier("records-day-streak")
-                    stat("\(model.dueConcepts(now: now).count)", language.text("오늘 복습", "Review due"))
-                }
-            } else {
-                HStack(spacing: 9) {
-                    stat("\(model.masteredCount)", language.text("능숙 이상", "Strong topics"))
-                    stat("\(Streak.activeCurrent(model.state.streak, on: DayKey(now)))", language.text("연속 일수", "Day streak"))
-                        .accessibilityIdentifier("records-day-streak")
-                    stat("\(model.dueConcepts(now: now).count)", language.text("오늘 복습", "Review due"))
-                }
-            }
         }
     }
 
@@ -426,27 +333,6 @@ struct RecordsView: View {
         case .wideCaller: language.text("여러 핸드로 자주 따라감", "Frequent caller")
         case .mixed: language.text("참여와 레이즈 모두 중간", "Midrange participation and raising")
         }
-    }
-
-    private func stat(_ value: String, _ label: String) -> some View {
-        Group {
-            if textSize.isAccessibilitySize {
-                HStack(alignment: .firstTextBaseline, spacing: 16) {
-                    Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
-                    Text(label).font(GT.semibold(14)).foregroundStyle(GT.inkMuted)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
-                }
-            } else {
-                VStack(spacing: 3) {
-                    Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
-                    Text(label).font(GT.semibold(10)).foregroundStyle(GT.inkMuted)
-                        .lineLimit(1).minimumScaleFactor(0.8)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity).padding(.vertical, 10)
-        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder
