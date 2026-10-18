@@ -776,10 +776,13 @@ final class ProgressionModelTests: XCTestCase {
             $0.total = 5; $0.correct = 5; $0.tier = .proficient
             $0.proficientAt = now.addingTimeInterval(-86400)
         }
+        // Position has three steps, so only the challenge's third step, dealt at the
+        // learner's passed third step, can master it (D53).
+        original.nodes["u1-position.3"] = NodeRecord(cleared: true, attempts: 1)
         try store.save(original)
         let model = ProgressionModel(store: store)
         // The basics challenge is the one that mixes position in (D48).
-        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss.3"))
         let concepts = Curriculum.sessionConcepts(for: boss, seed: 7)
         XCTAssertEqual(concepts.count, 6)
         XCTAssertEqual(concepts.filter { $0 == .position }.count, 3)
@@ -849,13 +852,15 @@ final class ProgressionModelTests: XCTestCase {
                 $0.proficientAt = now.addingTimeInterval(-86400)
             }
         }
+        // Position's third step is passed, so the challenge's third step deals it at
+        // Sharp and can master it (D53).
+        original.nodes["u1-position.3"] = NodeRecord(cleared: true, attempts: 1)
         try store.save(original)
         let model = ProgressionModel(store: store)
-        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss.3"))
         let scheduled = Curriculum.sessionConcepts(for: boss, seed: 2)
         var evidence: [Concept: SessionEvidence] = [:]
         for concept in scheduled {
-            // Position has one step, so a first-lap challenge can master it (D53).
             let exact = concept == .position
             model.record(concept: concept, band: exact ? .spotOn : .close, now: now)
             evidence[concept, default: SessionEvidence()].record(spotOn: exact)

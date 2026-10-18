@@ -23,6 +23,7 @@ public struct DefendSpot: Equatable {
 
 public enum DefendSpotGenerator {
     public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> DefendSpot {
+        if level > .learn { return laterStep(baseSeed: baseSeed, index: index, level: level) }
         var attempt = 0
         while true {
             var rng = SplitMix64(seed: baseSeed
@@ -36,6 +37,24 @@ public enum DefendSpotGenerator {
             let score = Chen.score(spot.handClass)
             if (2.0...12.0).contains(score) || attempt > 40 { return spot }
             attempt += 1
+        }
+    }
+
+    /// Later steps deal from their own stream (D53) and keep only hands within two
+    /// percent of all hands of a band edge. The third step deals the same kind of hand;
+    /// its drill hides the opener's width.
+    private static func laterStep(baseSeed: UInt64, index: Int, level: DrillLevel) -> DefendSpot {
+        var attempt: UInt64 = 0
+        while true {
+            var rng = SplitMix64(seed: baseSeed
+                &+ UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03
+                &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15
+                &+ attempt)
+            attempt += 1
+            let deck = Deck.all.shuffled(using: &rng)
+            let spot = DefendSpot(hand: Array(deck[0..<2]),
+                                  opener: RFIChart.seats.randomElement(using: &rng)!)
+            if DefendChart.edgeDistance(of: spot.handClass, vsOpenFrom: spot.opener) <= 2 { return spot }
         }
     }
 }

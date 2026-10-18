@@ -298,7 +298,9 @@ final class LearningTrackTests: XCTestCase {
         for id in ["u2-equitySense", "u4-rangeRead", "u7-actionRead"] {
             state.nodes[id] = NodeRecord(cleared: true)
         }
-        // Since D53 a track's challenge is suggested after its lessons.
+        // Since D53 a track's second steps, then its challenge, follow its lessons.
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u4-rangeRead.2")
+        for id in ["u4-rangeRead.2", "u7-actionRead.2"] { state.nodes[id] = NodeRecord(cleared: true) }
         XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u4-boss")
         state.nodes["u4-boss"] = NodeRecord(cleared: true)
         XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u2-potOdds")
@@ -315,6 +317,8 @@ final class LearningTrackTests: XCTestCase {
         XCTAssertEqual(Curriculum.suggestedLesson(in: state)?.id, "u1-position")
         XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: position)?.id, "u1-showdown.2")
         state.nodes["u1-showdown.2"] = NodeRecord(cleared: true)
+        XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: position)?.id, "u1-position.2")
+        state.nodes["u1-position.2"] = NodeRecord(cleared: true)
         XCTAssertEqual(Curriculum.suggestedLesson(in: state, skipping: position)?.id, "u1-boss")
     }
 
@@ -322,10 +326,10 @@ final class LearningTrackTests: XCTestCase {
         var state = ProgressState()
         let rfi = try XCTUnwrap(Curriculum.node(id: "u3-rfi"))
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state).map(\.id),
-                       ["u1-showdown", "u1-position", "u1-showdown.2"])
+                       ["u1-showdown", "u1-position", "u1-showdown.2", "u1-position.2"])
         state.nodes["u1-showdown"] = NodeRecord(cleared: true)
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state).map(\.id),
-                       ["u1-position", "u1-showdown.2"])
+                       ["u1-position", "u1-showdown.2", "u1-position.2"])
         XCTAssertEqual(Curriculum.easierLesson(than: rfi)?.id, "u1-position")
         XCTAssertNil(Curriculum.easierLesson(than: try XCTUnwrap(Curriculum.node(id: "u1-showdown"))))
         // A challenge leans on its own track; a deeper topic leans on all four.

@@ -1,4 +1,5 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
+import Foundation
 import GlassTableEngine
 
 /// One Range Read spot: you see the action, never the cards, and estimate what the
@@ -61,6 +62,7 @@ public struct RangeReadSpot: Equatable {
 
 public enum RangeReadSpotGenerator {
     public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> RangeReadSpot {
+        if level > .learn { return laterStep(baseSeed: baseSeed, index: index, level: level) }
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         let archetype = Archetype.allCases.randomElement(using: &rng)!
@@ -79,6 +81,64 @@ public enum RangeReadSpotGenerator {
         // Named for the first exposures, hidden later — the band the spec calls for.
         return RangeReadSpot(archetype: archetype, action: action,
                              archetypeShown: index < 3 || Int.random(in: 0..<3, using: &rng) > 0)
+    }
+
+    /// Later steps deal from their own stream (D53). The second names the opponent one
+    /// time in three; the third never names them and deals only calls, where the
+    /// raising hands have to come off the top.
+    private static func laterStep(baseSeed: UInt64, index: Int, level: DrillLevel) -> RangeReadSpot {
+        var rng = SplitMix64(seed: baseSeed
+            &+ UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03
+            &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
+        let archetype = Archetype.allCases.randomElement(using: &rng)!
+        if level == .sharp {
+            let seat = RFIChart.seats.dropFirst().randomElement(using: &rng)!
+            let opener = RFIChart.seats.prefix { $0 != seat }.randomElement(using: &rng)!
+            return RangeReadSpot(archetype: archetype, action: .called(seat: seat, opener: opener),
+                                 archetypeShown: false)
+        }
+        let seat = RFIChart.seats.randomElement(using: &rng)!
+        let openersBefore = RFIChart.seats.prefix { $0 != seat }
+        let action: RangeReadSpot.Action
+        if let opener = openersBefore.randomElement(using: &rng), Bool.random(using: &rng) {
+            action = .called(seat: seat, opener: opener)
+        } else {
+            action = .opened(seat)
+        }
+        return RangeReadSpot(archetype: archetype, action: action,
+                             archetypeShown: Int.random(in: 0..<3, using: &rng) == 0)
+    }
+}
+
+/// The range-read answer choices at each step (D53). The first step's are
+/// `BeginnerQuestionChoices.rangeEstimates`. Later steps come closer: each wrong
+/// choice is 0.6× or 1.6× its neighbour toward the answer (a further step where a
+/// narrow band would still grade right), three choices at the second step and four
+/// at the third, with the answer's place among them varied.
+public enum RangeReadChoices {
+    public static func estimates(spot: RangeReadSpot, seed: UInt64, level: DrillLevel) -> [RangeEstimate] {
+        guard level > .learn else { return BeginnerQuestionChoices.rangeEstimates(spot: spot, seed: seed) }
+        let factor = Archetype.seatFactor(spot.seat)
+        let raising = spot.archetype.pfr * factor
+        let calling: Bool
+        if case .called = spot.action { calling = true } else { calling = false }
+        let truth = RangeEstimate(width: min(80, max(3, calling ? spot.archetype.passiveGap * factor : raising)),
+                                  excludedTop: calling ? raising : 0)
+        let wrong = level == .sharp ? 3 : 2
+        // A narrow band shares most hand types with one a step away, so a step that
+        // would still grade right is passed over for the next one out.
+        func ladder(_ ratio: Double, _ steps: ClosedRange<Int>) -> [Double] {
+            steps.map { truth.width * pow(ratio, Double($0)) }.filter { width in
+                (3...80).contains(width) && gradeRangeRead(
+                    estimate: RangeEstimate(width: width, excludedTop: truth.excludedTop), spot: spot).band != .spotOn
+            }.prefix(wrong).map { $0 }
+        }
+        let below = ladder(0.6, 1...4), above = ladder(1.6, 1...8)
+        var rng = SplitMix64(seed: seed)
+        let lower = Int.random(in: max(0, wrong - above.count)...min(wrong, below.count), using: &rng)
+        let widths = below.prefix(lower) + above.prefix(wrong - lower)
+        return ([truth] + widths.map { RangeEstimate(width: $0, excludedTop: truth.excludedTop) })
+            .shuffled(using: &rng)
     }
 }
 

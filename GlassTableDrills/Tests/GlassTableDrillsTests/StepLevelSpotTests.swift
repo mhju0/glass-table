@@ -17,6 +17,7 @@ final class StepLevelSpotTests: XCTestCase {
             let withSteps: Set<Concept> = [
                 .showdown, .potMath, .callFold,
                 .outs, .equitySense, .potOdds, .combos, .rangeNotation, .evCall,
+                .position, .rfi, .defend, .rangeRead, .actionRead,
             ]
             let expected: DrillLevel = withSteps.contains(concept) ? .sharp : .learn
             XCTAssertEqual(DrillLevel.highest(for: concept), expected, concept.rawValue)

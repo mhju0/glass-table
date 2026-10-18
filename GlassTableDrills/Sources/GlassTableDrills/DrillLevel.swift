@@ -31,6 +31,11 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
         case .combos: .sharp
         case .rangeNotation: .sharp
         case .evCall: .sharp
+        case .position: .sharp
+        case .rfi: .sharp
+        case .defend: .sharp
+        case .rangeRead: .sharp
+        case .actionRead: .sharp
         default: .learn
         }
     }
@@ -49,6 +54,7 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
         case .outs: return true
         case .combos: return true
         case .rangeNotation: return true
+        case .position: return true
         default: return false
         }
     }
@@ -78,6 +84,16 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
         case (.rangeNotation, .sharp): what = language.text("표기가 서너 개, 직접 입력", "Three or four parts, typed")
         case (.evCall, .apply): what = language.text("더 다양한 벳 크기", "More bet sizes")
         case (.evCall, .sharp): what = language.text("보기 없이 직접 맞춰요", "No choices: set the value")
+        case (.position, .apply): what = language.text("0부터 7까지 모두 보기", "Every count from 0 to 7")
+        case (.position, .sharp): what = language.text("남은 사람만 세서, 직접 입력", "Only players still in, typed")
+        case (.rfi, .apply): what = language.text("차트 경계에 걸친 패", "Hands at the chart's edge")
+        case (.rfi, .sharp): what = language.text("어느 자리부터 여는 패인가요", "The first seat that opens it")
+        case (.defend, .apply): what = language.text("밴드 경계에 걸친 패", "Hands at a band's edge")
+        case (.defend, .sharp): what = language.text("여는 폭 안내 없이", "No opening width given")
+        case (.rangeRead, .apply): what = language.text("더 가까운 보기, 상대는 더 자주 숨겨요", "Closer choices, opponent hidden more")
+        case (.rangeRead, .sharp): what = language.text("콜만, 모르는 상대, 보기 넷", "Calls only, unknown opponent, four choices")
+        case (.actionRead, .apply): what = language.text("10%씩 차이 나는 보기", "Choices 10 points apart")
+        case (.actionRead, .sharp): what = language.text("더 가까운 보기, 모르는 상대", "Closer choices, unknown opponent")
         default: return nil
         }
         return "\(step) · \(what)"

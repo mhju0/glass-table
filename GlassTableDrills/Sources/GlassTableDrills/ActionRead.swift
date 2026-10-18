@@ -91,6 +91,25 @@ public enum ActionReadSpotGenerator {
     }
 }
 
+/// The action-read answer choices at each step (D53). The first step's are
+/// `BeginnerQuestionChoices.percentages`. Later steps put them closer: three choices
+/// ten points apart at the second, four six points apart at the third. Every wrong
+/// choice is outside the five-point spot-on band, so only one is right.
+public enum ActionReadChoices {
+    public static func values(answer: Double, seed: UInt64, level: DrillLevel) -> [Double] {
+        guard level > .learn else { return BeginnerQuestionChoices.percentages(answer: answer, seed: seed) }
+        let truth = min(100, max(0, Int(answer.rounded())))
+        let gap = level == .sharp ? 6 : 10
+        let wrong = level == .sharp ? 3 : 2
+        let below = (1...wrong).map { truth - $0 * gap }.filter { $0 >= 0 }
+        let above = (1...wrong).map { truth + $0 * gap }.filter { $0 <= 100 }
+        var rng = SplitMix64(seed: seed)
+        let lower = Int.random(in: max(0, wrong - above.count)...min(wrong, below.count), using: &rng)
+        return ([truth] + below.prefix(lower) + above.prefix(wrong - lower))
+            .shuffled(using: &rng).map(Double.init)
+    }
+}
+
 public func gradeActionRead(estimate: Estimate, spot: ActionReadSpot,
                             language: LearningLanguage = .korean) -> EstimateReveal {
     // `acted` narrows the whole range combo by combo, so it is taken once and read
