@@ -19,6 +19,19 @@ public struct CurriculumNode: Equatable, Identifiable, Sendable {
     public let kind: NodeKind
     /// Korean title, from the approved spec §4.1 roster.
     public let title: String
+    /// The step this node deals its lesson at (D53). A step node is its lesson again,
+    /// with `.<step>` on the id (`u1-showdown.2`), so it is passed, scored and
+    /// remembered like any other node. A challenge's `.3` deals its skills up to Sharp.
+    public let level: DrillLevel
+
+    public init(id: String, kind: NodeKind, title: String, level: DrillLevel = .learn) {
+        self.id = id; self.kind = kind; self.title = title; self.level = level
+    }
+
+    /// The id of the lesson or challenge this is a step of; its own id at the first step.
+    public var baseID: String {
+        level == .learn ? id : String(id[..<(id.lastIndex(of: ".") ?? id.endIndex)])
+    }
 }
 
 public struct CurriculumUnit: Equatable, Sendable {
@@ -153,9 +166,24 @@ public enum Curriculum {
     /// Flattened in path order — this ordering *is* the unlock order.
     public static let allNodes: [CurriculumNode] = units.flatMap(\.nodes)
 
+    /// A path node, the "Go deeper" challenge, or a step of either (`<id>.2`, `<id>.3`).
     public static func node(id: String) -> CurriculumNode? {
-        allNodes.first { $0.id == id }
+        if let base = baseNode(id: id) { return base }
+        guard let dot = id.lastIndex(of: "."),
+              let raw = Int(id[id.index(after: dot)...]), let level = DrillLevel(rawValue: raw), level > .learn,
+              let base = baseNode(id: String(id[..<dot])) else { return nil }
+        return stepNode(base, at: level)
     }
+
+    /// The nodes that exist without a step: the units' nodes and the deeper challenge.
+    static func baseNode(id: String) -> CurriculumNode? {
+        id == deeperChallenge.id ? deeperChallenge : allNodes.first { $0.id == id }
+    }
+
+    /// "Go deeper"'s challenge (D53). Outside `units`, so it never takes part in the
+    /// legacy unlock order; it mixes the deeper track's own skills.
+    static let deeperChallenge = CurriculumNode(
+        id: "deeper-boss", kind: .boss(own: nil, mixes: [.combos, .rangeNotation, .evCall]), title: "섞어 풀기")
 
     /// Every concept a node can serve up.
     public static func concepts(of node: CurriculumNode) -> [Concept] {
@@ -169,7 +197,7 @@ public enum Curriculum {
     /// mixes only that track's own skills, so it never asks about a topic the tracks
     /// no longer teach. A challenge saved in format 1 keeps its original mix.
     static func sessionPool(of node: CurriculumNode, format: Int) -> [Concept] {
-        if format >= 2, let track = tracks.first(where: { $0.challenge == node }) { return track.concepts }
+        if format >= 2, let track = tracks.first(where: { $0.challenge?.id == node.baseID }) { return track.concepts }
         return concepts(of: node)
     }
 

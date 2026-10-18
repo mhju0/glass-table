@@ -1,6 +1,6 @@
 # The full UI flow suite, too slow for every push. Runs nightly and on demand.
-# Test classes are split across four shards by test count, so a new class needs
-# no workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT. A push that
+# Test classes are split across four shards by measured minutes; a new class runs
+# without a workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT. A push that
 # changes this file runs it too, so a workflow edit is proven before it merges.
 name: UI tests
 on:
@@ -41,22 +41,58 @@ jobs:
         run: brew install xcodegen
       - name: Generate project
         run: xcodegen generate
+      # Shards are balanced by measured minutes per class on a GitHub runner (runs
+      # 38961587746 to 39054133933; BestFive, LearnList, OutsReveal and Bounds are local
+      # times x1.4). A class not in the table is estimated from its test count, so a new
+      # class still runs; add its measured minutes here once a run has shown them.
       - name: Pick this shard's test classes
         run: |
           python3 - "${{ matrix.shard }}" > only-testing.txt <<'EOF'
           import pathlib, re, sys
-          shard = int(sys.argv[1])
-          classes = []
+          shard, shards = int(sys.argv[1]), 4
+          minutes = {
+              'BilingualConsistencyB20Tests': 74, 'BestFiveComparisonTests': 26,
+              'FreeTableBackFlowTests': 23, 'BeginnerReleaseTests': 14,
+              'LearningFlowTests': 12, 'AccessibilityFlowTests': 12,
+              'WelcomeFirstFlowTests': 11, 'FinalPresentationVerificationTests': 10,
+              'FreeTableMotionFlowTests': 9, 'RestoredPresentationTests': 7,
+              'FreeDockFlowTests': 6, 'ChartFirstUseFlowTests': 6,
+              'FreeRaiseFlowTests': 4, 'BasicsGuidedHandInvitationTests': 4,
+              'GuidedHandFlowTests': 4, 'QuickPlayArchiveFlowTests': 4,
+              'NativeRefinementTests': 3, 'DeviceFeedbackLessonTests': 3,
+              'AccessibilityAuditTests': 3, 'BottomPanelB22Tests': 3,
+              'LearningOrderChenStepRowTests': 3, 'LearnListTests': 3,
+              'GradedLearningFlowTests': 2, 'AppearanceFlowTests': 2,
+              'DeviceFeedbackSettingsTests': 2, 'FirstLessonFeedbackFlowTests': 2,
+              'RestoredLessonParityFlowTests': 2, 'NumericalRevealFlowTests': 2,
+              'OutsRevealTests': 2, 'GradedDockFlowTests': 1,
+              'NumericalRecordsFlowTests': 1, 'ReleaseSmokeTests': 1,
+              'DeviceFeedbackBoundsTests': 1, 'UXAuditCrawl': 0,
+          }
+          classes, declared = {}, 0
           for path in sorted(pathlib.Path('GlassTable/UITests').glob('*.swift')):
               text = path.read_text()
-              for name in re.findall(r'^(?:final )?class (\w+)\s*:\s*XCTestCase', text, re.M):
-                  classes.append((len(re.findall(r'func test\w*\(', text)), name))
-          loads = [0, 0, 0, 0]
-          picked = [[], [], [], []]
-          for count, name in sorted(classes, reverse=True):
+              declared += len(re.findall(r'\bclass\s+\w+\s*:\s*XCTestCase\b', text))
+              for name in re.findall(r'^\s*(?:@\w+\s+)*(?:final\s+)?class\s+(\w+)\s*:\s*XCTestCase\b', text, re.M):
+                  classes[name] = minutes.get(name, 0.75 * len(re.findall(r'func test\w*\(', text)))
+          loads = [0] * shards
+          picked = [[] for _ in range(shards)]
+          for name in sorted(classes, key=lambda n: (-classes[n], n)):
               i = loads.index(min(loads))
-              loads[i] += count
+              loads[i] += classes[name]
               picked[i].append(name)
+          # Every class must land in exactly one shard, or it would silently never run.
+          assigned = [name for names in picked for name in names]
+          if declared != len(classes) or sorted(assigned) != sorted(classes):
+              print(f'::error::{declared} XCTestCase classes declared, {len(classes)} found, '
+                    f'{len(assigned)} assigned; fix the class pattern above', file=sys.stderr)
+              sys.exit(1)
+          for name in sorted(set(classes) - set(minutes)):
+              print(f'::warning::{name} has no measured minutes; estimated {classes[name]:.0f}', file=sys.stderr)
+          for name in sorted(set(minutes) - set(classes)):
+              print(f'::warning::{name} is in the minutes table but not in GlassTable/UITests', file=sys.stderr)
+          for i in range(shards):
+              print(f'shard {i}: about {loads[i]:.0f} min, {len(picked[i])} classes', file=sys.stderr)
           for name in sorted(picked[shard]):
               print(f'-only-testing:GlassTableUITests/{name}')
           EOF

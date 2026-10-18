@@ -332,6 +332,7 @@ struct TableSurface: View {
             Text("\(amount)").font(GT.semibold(12)).monospacedDigit()
         }
         .foregroundStyle(GT.onTable)
+        .gtTablePartTextCap()
         .accessibilityHidden(true)
     }
 
@@ -344,6 +345,7 @@ struct TableSurface: View {
                     .font(GT.semibold(13)).monospacedDigit().fixedSize()
             }
             .foregroundStyle(stack == 0 ? (seat.isHero ? Color(hex: 0x88600F) : GT.tableSeatActive) : ink)
+            .gtTablePartTextCap()
         }
     }
 
@@ -463,6 +465,7 @@ struct TableSurface: View {
                     .fixedSize(horizontal: freeVisuals == nil, vertical: true)
                     .contentTransition(.numericText())
             }
+            .gtTablePartTextCap()
             .background { anchorProbe(.pot) }
             .overlay { ring(.pot) }
             .opacity(dim(.pot))

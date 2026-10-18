@@ -1013,3 +1013,83 @@ and passed/total; a track's challenge is one quiet line (섞어서 확인하기 
   title, description, status, then a full-width action.
 - Hold'em basics has no single-skill round, so a passed basics row keeps its ✓ and a
   chevron rather than a 연습 action.
+
+### D52 · The Learn mark follows the learner
+**Status: ACTIVE — owner, 2026-10-18. Amends D51's marked-row rule.**
+
+D51 marked the open lesson or the suggestion, so a lesson played out of order was
+forgotten once its session closed. The owner: "we should follow the learner even if
+they do things out of lesson or out of order." Starting a lesson or challenge now
+saves it as `lastNodeID` (schema 4, ADR 0001; a schema-3 file is copied before the
+upgrade and reads with no record). The marked row (`Curriculum.markedLesson`):
+
+1. A lesson left open and not at its summary: 진행 중 · 이어서, as before.
+2. Else the last lesson started, while it is not passed (D47's pass mark, unchanged):
+   다음 · 시작 on that row, with its "통과 전 · 최고 R/Q" line. This includes a
+   challenge or an optional deeper lesson the learner chose.
+3. Else, once it is passed, the next owed lesson after it in the D48 order; a passed
+   challenge counts as the end of its track. With nothing owed after it, or after a
+   deeper lesson (never suggested), the suggested lesson, which starts from the
+   learner's starting point and wraps to earlier ones.
+4. With no lesson started yet, or one with no row on Learn (kept from an older path,
+   or unknown to this build): today's rule, Hold'em basics while suggested, else the
+   suggested lesson.
+
+With every track lesson passed nothing is marked (D38's practice line), unless the
+last lesson started is a challenge or deeper lesson not yet passed. Practice rounds,
+reviews and Hold'em basics do not change `lastNodeID`.
+
+### D53 · Steps: each skill dealt harder as the learner goes
+**Status: ACTIVE — owner, 2026-10-18. Extends D48's order and D52's mark.**
+
+The owner asked for a step system that stays "simple and automatic; the learner never
+picks a difficulty", and approved three defaults. A skill now has up to three steps,
+named Learn, Apply and Sharp in code and docs only. On screen they are "1단계/2단계/3단계"
+("Step 1/2/3"), shown as three pips and in the tag ("다음 · 2단계" / "Next · Step 2").
+
+- **Which skills.** Showdown, pot math and call-or-fold have all three steps. The other
+  skills have only Learn and play exactly as before. `DrillLevel.highest(for:)` is the
+  one switch, and its doc comment lists the four steps for giving a skill steps.
+- **What changes per step.** Showdown: Apply keeps the same hand type and no ties;
+  Sharp adds ties and boards that play. Pot math: Apply deals more varied preflop
+  betting; Sharp adds a flop bet and the count is typed (default 2). Call-or-fold:
+  Apply shows only the needed share; Sharp shows no numbers and deals close spots.
+  The Learn spots are byte-identical to before (`LearnSpotGoldenTests`).
+- **Order (default 1).** Track by track, each track's lessons at Learn, then those with
+  Apply at Apply, then its challenge. After the four tracks, a Sharp lap: every Sharp
+  lesson, then each challenge again (`<id>.3`), for tracks with a Sharp skill. A Sharp
+  step is never suggested before the first lap is done. "Go deeper" has its own
+  challenge (`deeper-boss`) and is still never suggested.
+- **Steps are lessons.** A step is a node `<lesson>.2` / `.3` with its own pass record.
+  It skips the walkthrough. Practice rounds and reviews deal a skill at the highest step
+  passed. A first-lap challenge deals up to Apply, a `.3` challenge up to Sharp.
+- **Tiers.** 능숙 (Strong) needs a perfect session at Apply or above, 숙달 (Mastered) a
+  perfect challenge at the skill's highest step. For a skill with only Learn the rule
+  is the one it had. Tiers never drop.
+- **Persistence (schema 5, ADR 0001).** New optional keys hold the step of a practice
+  round (format 2), of each review or challenge question, and of a day's practice key.
+  Graded 1:1 table decisions count toward the day's practice under mode "table" without
+  touching FSRS, accuracy or tiers. Upgrading a schema-4 file copies it first, then marks
+  the steps a tier already shows: cleared stays Learn; 능숙 passes Learn and Apply;
+  숙달 passes all three. It never marks a `.3` challenge.
+
+### D54 · Largest text sizes: table parts stop at AX3, reading text goes on
+**Status: ACTIVE — owner chose option B on 2026-10-18.**
+
+All text grows to AX3 (over 200%). Above AX3, lessons, explanations, answers and
+results keep growing to AX5. Only the dense table parts stop at AX3, through
+`gtTablePartTextCap`: the free table's top-bar title, the Decision help pill, the raise title, the dock's
+action buttons, the To call / Pot facts, seat chip and pot labels, the drills' price
+bar and the hand-chart explorer cells. The 13×13 range and defend grid labels were
+already sized to their cells, not to the text setting (D37).
+
+- No press-and-hold Large Content Viewer on these parts (2026-10-18, build 35 gate): it
+  swallowed scroll drags that started on them at AX sizes, so the free-table dock and
+  range-read reveal could not be scrolled. Above AX3 the capped parts stay readable.
+
+- Shrinking text to fit (`minimumScaleFactor`) is not used for text that follows the
+  reader's size: it undoes their choice. Text wraps, or a table part stops at AX3.
+  The milestone share card keeps it: it is an image drawn at one fixed text size.
+- The cap goes on the specific part, never at the root. Card faces stay fixed (D37).
+- D37's one-row seat and street strips keep their `.xxLarge` limit; they now wrap
+  rather than shrink.

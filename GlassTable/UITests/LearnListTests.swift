@@ -14,6 +14,8 @@ final class LearnListTests: XCTestCase {
     func testKOAXSeededListMarksNextAndPracticesAPassedLesson() { seeded("ko", ax: true) }
     func testKOLessonLeftPartWayIsMarkedInProgress() { inProgress("ko") }
     func testENLessonLeftPartWayIsMarkedInProgress() { inProgress("en") }
+    func testKOLessonPlayedOutOfOrderKeepsTheMark() { outOfOrder("ko") }
+    func testENLessonPlayedOutOfOrderKeepsTheMark() { outOfOrder("en") }
     func testKOEveryLessonPassedLeadsToPractice() { allPassed("ko") }
     func testENEveryLessonPassedLeadsToPractice() { allPassed("en") }
 
@@ -98,6 +100,41 @@ final class LearnListTests: XCTestCase {
         attach(app, "\(language)-large-learn-in-progress")
         resume.tap()
         XCTAssertTrue(step1.waitForExistence(timeout: 10), "Continue reopens the saved lesson where it was left")
+    }
+
+    /// D52: a new learner who goes straight to a late lesson and finishes it is followed
+    /// there, not sent back to Hold'em basics or the first lesson. Not passed, that
+    /// lesson stays marked; passed, the next lesson after it is.
+    private func outOfOrder(_ language: String) {
+        let ko = language == "ko"
+        let store = UUID().uuidString
+        let app = launch(language, ax: false, ["GT_TEST_STORE_ID": store, "GT_TEST_FIRST_LESSON": "0",
+                                               "GT_TEST_FIRST_PLACEMENT": "0", "GT_DEMO_NODE": "u2-potOdds"])
+        for number in 1...3 {
+            XCTAssertTrue(app.staticTexts["\(number)/3"].waitForExistence(timeout: 15))
+            XCTAssertTrue(app.firstLessonChoice.waitForExistence(timeout: 5))
+            app.firstLessonChoice.tap()
+            let next = app.buttons[ko ? "다음 문제" : "Next question"]
+            XCTAssertTrue(next.waitForExistence(timeout: 5))
+            next.tap()
+        }
+        let done = app.buttons["summary-done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 10))
+        let passed = app.staticTexts[ko ? "레슨 통과" : "Lesson passed"].exists
+        done.tap()
+        // Relaunch without the demo hook, which would reopen the lesson on every appear.
+        app.terminate()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": store, "GT_TEST_FIRST_LESSON": "0"]
+        app.launch()
+        let start = app.buttons["learn-start"]
+        reach(start, app: app)
+        let marked = app.buttons[passed ? "lesson-u2-callFold" : "lesson-u2-potOdds"]
+        XCTAssertTrue(marked.label.contains(ko ? "다음" : "Next"), "passed: \(passed), \(marked.label)")
+        XCTAssertGreaterThanOrEqual(start.frame.minY, marked.frame.minY, "The filled action belongs to the marked row")
+        XCTAssertLessThanOrEqual(start.frame.minY, marked.frame.maxY, "The filled action belongs to the marked row")
+        XCTAssertFalse(app.buttons["learn-basics-start"].exists, "Not sent back to Hold'em basics")
+        assertOneMark(app)
+        attach(app, "\(language)-large-learn-out-of-order-\(passed ? "passed" : "not-passed")")
     }
 
     /// D38: with nothing left to mark, the list still leads somewhere.

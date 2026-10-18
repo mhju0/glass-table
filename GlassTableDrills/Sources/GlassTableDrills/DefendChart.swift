@@ -46,6 +46,15 @@ public enum DefendChart {
         return Double(running) / Double(HandClass.totalCombos) * 100
     }
 
+    /// How far, in percent of all hands, the hand sits from the nearer band edge: the
+    /// top of the raise-again band or the top of the call band.
+    public static func edgeDistance(of hand: HandClass, vsOpenFrom seat: Position) -> Double {
+        let strength = strengthPercent(of: hand)
+        let raiseAgain = threeBetRange(vsOpenFrom: seat).percent
+        let callTo = raiseAgain + callRange(vsOpenFrom: seat).percent
+        return min(abs(strength - raiseAgain), abs(strength - callTo))
+    }
+
     /// The opener's rule in the chart's own numbers, then where this hand sits in it.
     public static func reason(for hand: HandClass, vsOpenFrom seat: Position,
                               language: LearningLanguage) -> String {

@@ -74,7 +74,7 @@ struct RangeGridView: View {
             }
             Text(h.description)
                 .font(.system(size: max(6, side * 0.30), weight: .semibold))
-                .minimumScaleFactor(0.5).lineLimit(1)
+                .lineLimit(1)
                 .foregroundStyle(w > 0 ? GT.onCTA : GT.inkMuted)
         }
         .frame(width: side, height: side)

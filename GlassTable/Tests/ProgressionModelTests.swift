@@ -776,10 +776,13 @@ final class ProgressionModelTests: XCTestCase {
             $0.total = 5; $0.correct = 5; $0.tier = .proficient
             $0.proficientAt = now.addingTimeInterval(-86400)
         }
+        // Position has three steps, so only the challenge's third step, dealt at the
+        // learner's passed third step, can master it (D53).
+        original.nodes["u1-position.3"] = NodeRecord(cleared: true, attempts: 1)
         try store.save(original)
         let model = ProgressionModel(store: store)
         // The basics challenge is the one that mixes position in (D48).
-        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss.3"))
         let concepts = Curriculum.sessionConcepts(for: boss, seed: 7)
         XCTAssertEqual(concepts.count, 6)
         XCTAssertEqual(concepts.filter { $0 == .position }.count, 3)
@@ -849,22 +852,25 @@ final class ProgressionModelTests: XCTestCase {
                 $0.proficientAt = now.addingTimeInterval(-86400)
             }
         }
+        // Position's third step is passed, so the challenge's third step deals it at
+        // Sharp and can master it (D53).
+        original.nodes["u1-position.3"] = NodeRecord(cleared: true, attempts: 1)
         try store.save(original)
         let model = ProgressionModel(store: store)
-        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss"))
+        let boss = try XCTUnwrap(Curriculum.node(id: "u1-boss.3"))
         let scheduled = Curriculum.sessionConcepts(for: boss, seed: 2)
         var evidence: [Concept: SessionEvidence] = [:]
         for concept in scheduled {
-            let exact = concept == .showdown
+            let exact = concept == .position
             model.record(concept: concept, band: exact ? .spotOn : .close, now: now)
             evidence[concept, default: SessionEvidence()].record(spotOn: exact)
         }
 
         XCTAssertTrue(model.completeNode(boss, scheduled: scheduled,
                                          evidence: evidence, now: now))
-        XCTAssertEqual(model.record(for: .showdown).tier, .mastered)
+        XCTAssertEqual(model.record(for: .position).tier, .mastered)
         XCTAssertEqual(model.record(for: .potMath).tier, .proficient)
-        XCTAssertEqual(model.record(for: .position).tier, .proficient)
+        XCTAssertEqual(model.record(for: .showdown).tier, .proficient)
         XCTAssertEqual(model.record(for: .combos).tier, .proficient)
     }
 
@@ -1126,6 +1132,22 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.state.record(for: .showdown).total, answers, "The finished lesson's answers stay")
     }
 
+    /// D52: Learn follows the learner. A lesson closed under the pass mark stays marked,
+    /// and so does one started out of order, across a relaunch.
+    func testStartingALessonIsRememberedForTheLearnMark() throws {
+        let model = ProgressionModel(store: store)
+        try playLesson(model, "u1-showdown", miss: true, tag: "m")
+        XCTAssertNil(model.state.activeNodeSession)
+        XCTAssertEqual(model.state.lastNodeID, "u1-showdown")
+        XCTAssertEqual(model.markedLesson, .next(try XCTUnwrap(Curriculum.node(id: "u1-showdown"))),
+                       "Not Hold'em basics: the learner already chose a lesson")
+
+        let outs = try XCTUnwrap(Curriculum.node(id: "u2-outs"))
+        XCTAssertTrue(model.beginNodeSession(outs, seed: 5, expectedEpoch: model.epoch))
+        XCTAssertTrue(model.abandonNodeSession(expectedEpoch: model.epoch))
+        XCTAssertEqual(ProgressionModel(store: store).markedLesson, .next(outs))
+    }
+
     func testAnUnfinishedLessonStillHoldsTheSlot() throws {
         let model = ProgressionModel(store: store)
         let first = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
@@ -1289,6 +1311,21 @@ final class ProgressionModelTests: XCTestCase {
         let after = NodeSessionSeed.make(nodeID: node.id,
             conceptTotals: Curriculum.concepts(of: node).map { model.seedCount(for: $0) })
         XCTAssertNotEqual(before, after)
+    }
+
+    /// "Skills at Strong" counts the curriculum's 14 skills only. Concepts kept for older
+    /// saved progress (MDF, EV loss, retired drills) never inflate it.
+    func testStrongCountUsesOnlyTheCurriculumSkills() throws {
+        var state = ProgressState()
+        for retired in [Concept.mdf, .evLoss, .hitFrequency, .rangeAdvantage] {
+            state.concepts[retired.rawValue] = ConceptRecord(tier: .mastered, total: 4)
+        }
+        state.concepts[Concept.outs.rawValue] = ConceptRecord(tier: .proficient, total: 4)
+        state.concepts[Concept.combos.rawValue] = ConceptRecord(tier: .mastered, total: 4)
+        state.concepts[Concept.potMath.rawValue] = ConceptRecord(tier: .familiar, total: 4)
+        try store.save(state)
+        let model = ProgressionModel(store: store)
+        XCTAssertEqual(model.masteredCount, 2)
     }
 
     private func withReadOnlyDirectory(_ body: () throws -> Void) throws {

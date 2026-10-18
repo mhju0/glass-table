@@ -44,6 +44,12 @@ public enum RFIChart {
         seats.first { opens(hand, from: $0) }
     }
 
+    /// The Chen score of the weakest hand a seat opens: the seat's edge, where the
+    /// chart has to be known rather than guessed.
+    public static func cutoffScore(for seat: Position) -> Double {
+        range(for: seat).classes.map(Chen.score).min() ?? 0
+    }
+
     /// The chart in three groups for a new player: opened from every seat, opened
     /// from some seats only, or opened from none.
     public static func group(of hand: [Card]) -> OpeningGroup {

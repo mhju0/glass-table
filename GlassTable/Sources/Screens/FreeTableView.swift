@@ -51,7 +51,6 @@ struct FreeTableView: View {
     @ScaledMetric(relativeTo: .title) private var resultNetHeight = 36
     @ScaledMetric(relativeTo: .title2) private var raiseAmountHeight = 36
     @ScaledMetric(relativeTo: .body) private var frontTitleMetric = 18
-    @ScaledMetric(relativeTo: .title2) private var raiseTitleMetric = 24
     @ScaledMetric(relativeTo: .body) private var raiseContextHeight = 32
     #if DEBUG
     @State private var demoTable: PracticeTableState?
@@ -249,8 +248,10 @@ struct FreeTableView: View {
         .gtChrome(leading: {
             HStack(alignment: typeSize.isAccessibilitySize ? .top : .center, spacing: 10) {
                 ChromeButton.close(onClose)
-                GTActionCaption(text: title(table), weight: .semibold, baseSize: 15, ink: GT.onFeltSecondary)
+                GTActionCaption(text: title(table), weight: .semibold, baseSize: 15, ink: GT.onFeltSecondary,
+                                identifier: "free-table-title")
                     .fixedSize(horizontal: false, vertical: true)
+                    .gtTablePartTextCap()
             }
         }, trailing: {
             Menu {
@@ -408,7 +409,10 @@ struct FreeTableView: View {
             GTStableDockLayout(heightLimit: heightLimit) {
                 GeometryReader { geometry in
                     if heightLimit != nil {
+                        // Only scroll when the face is taller than the dock. A bouncing outer
+                        // scroll took some drags meant for the Help face's own scroll at AX5.
                         ScrollView { dockFace(table, minimumHeight: geometry.size.height) }
+                            .scrollBounceBehavior(.basedOnSize)
                             .accessibilityIdentifier("free-dock-content")
                     } else {
                         dockFace(table, minimumHeight: geometry.size.height)
@@ -585,6 +589,7 @@ struct FreeTableView: View {
             turnFact(language.text("팟", "Pot"),
                      language.text("\(frame.pot)칩", "\(frame.pot) \(frame.pot == 1 ? "chip" : "chips")"))
         }
+        .gtTablePartTextCap()
         .accessibilityIdentifier("free-turn-facts")
     }
 
@@ -732,6 +737,7 @@ struct FreeTableView: View {
                 .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
+        .gtTablePartTextCap()
         .accessibilityIdentifier("free-table-help")
     }
 
@@ -789,9 +795,10 @@ struct FreeTableView: View {
                 .frame(height: raiseAmountHeight)
                 .accessibilityIdentifier("free-raise-amount-scroll")
         } else {
-            // On its own row a wrapped title grows; the dock scrolls at these sizes.
-            title.offset(y: GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18
-                         - GT.TextRole.title(24).inkLeading(in: language) * raiseTitleMetric / 24)
+            // On its own row a wrapped title grows to AX3; the dock scrolls at these sizes.
+            FreeRaiseRowTitle(title: title,
+                              frontInkTop: GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18)
+                .gtTablePartTextCap()
         }
     }
 
@@ -1880,6 +1887,19 @@ private struct FreeTablePolicyDetails: View {
         case .call: language.text("콜", "call")
         case .raise: language.text("최소 금액으로 올리기. 올릴 수 없으면 콜", "minimum raise; call if raising is not allowed")
         }
+    }
+}
+
+/// The raise title on its own row. Its metric is read under the table-part cap, so the
+/// title's ink still starts where the dock title's did.
+private struct FreeRaiseRowTitle<Title: View>: View {
+    @Environment(\.learningLanguage) private var language
+    @ScaledMetric(relativeTo: .title2) private var raiseTitleMetric = 24
+    let title: Title
+    let frontInkTop: CGFloat
+
+    var body: some View {
+        title.offset(y: frontInkTop - GT.TextRole.title(24).inkLeading(in: language) * raiseTitleMetric / 24)
     }
 }
 

@@ -42,4 +42,22 @@ final class LessonLearningUITests: XCTestCase {
         })
         XCTAssertGreaterThan(orders.count, 1)
     }
+
+    /// The on-target choice must not always be the middle value, or a learner can skip the math.
+    func testEVChoicesSpreadTheAnswerAcrossLowMiddleAndHigh() {
+        var ranks = [0, 0, 0]
+        let total = 300
+        for seed in 0..<total {
+            let spot = EVCallSpotGenerator.spot(baseSeed: UInt64(seed), index: 0)
+            let choices = LessonEstimateChoices.evValues(answer: spot.evBB, seed: UInt64(seed))
+            XCTAssertEqual(Set(choices).count, 3)
+            XCTAssertTrue(choices.allSatisfy { $0 >= -Double(spot.bet) }, "a call cannot lose more than the bet")
+            let onTarget = choices.filter { abs($0 - spot.evBB) <= 0.25 }
+            XCTAssertEqual(onTarget.count, 1)
+            ranks[choices.sorted().firstIndex(of: onTarget[0])!] += 1
+        }
+        for count in ranks {
+            XCTAssertGreaterThan(count, total / 5, "value ranks \(ranks)")
+        }
+    }
 }

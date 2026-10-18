@@ -14,16 +14,21 @@ final class NativeRefinementTests: XCTestCase {
         return app
     }
 
-    func testRecordedDatesIncludeWrongAndHelpedAnswersButExcludeHelpOnlyAndFutureDates() {
+    /// The week line counts a day with a wrong or helped answer; a row with no answer
+    /// is no practice, so a learner with only that sees the start card instead.
+    func testWeekLineCountsWrongAndHelpedAnswersButNotEmptyRows() {
         for code in ["ko", "en"] {
-            for (fixture, days) in [("help-only", 0), ("wrong", 1), ("helped", 1), ("sparse-future", 1)] {
+            for fixture in ["help-only", "wrong", "helped"] {
                 let app = application(code, activity: fixture)
                 app.launch()
-                XCTAssertTrue(app.staticTexts["records-completion"].waitForExistence(timeout: 15))
-                let cells = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "records-day-"))
-                XCTAssertEqual(cells.count, 7)
-                let marker = code == "ko" ? "연습 기록 있음" : "Practice recorded"
-                XCTAssertEqual(cells.allElementsBoundByIndex.filter { $0.label.contains(marker) }.count, days, fixture)
+                let week = app.descendants(matching: .any)["progress-week"]
+                if fixture == "help-only" {
+                    XCTAssertTrue(app.descendants(matching: .any)["progress-start"].waitForExistence(timeout: 15))
+                    XCTAssertFalse(week.exists)
+                } else {
+                    XCTAssertTrue(week.waitForExistence(timeout: 15))
+                    XCTAssertEqual(week.label, code == "ko" ? "이번 주 · 1일 연습" : "This week · 1 day", fixture)
+                }
                 XCTAssertFalse(app.staticTexts["With help"].exists)
                 XCTAssertFalse(app.staticTexts["도움 받음"].exists)
                 app.terminate()
@@ -31,27 +36,12 @@ final class NativeRefinementTests: XCTestCase {
         }
     }
 
-    func testFourthDateUsesTheSameDateCellAndWaitsForTodaysRecordedAnswer() {
-        for (fixture, flame) in [("before-fourth", false), ("four-days", true)] {
-            let app = application(activity: fixture)
-            app.launch()
-            XCTAssertTrue(app.staticTexts["records-completion"].waitForExistence(timeout: 15))
-            let today = app.descendants(matching: .any).matching(NSPredicate(
-                format: "identifier BEGINSWITH %@ AND label BEGINSWITH %@", "records-day-", "Today, ")).firstMatch
-            XCTAssertTrue(today.exists)
-            XCTAssertEqual(today.label.contains("4 consecutive practice days"), flame)
-            XCTAssertFalse(app.staticTexts["Streak protection"].exists)
-            app.terminate()
-        }
-    }
-
-    func testRecordsContinuationOpensLearnAndFullCompletionHasTheRealDenominator() {
+    func testRecordsContinuationOpensLearn() {
         let app = application(activity: "completed")
         app.launch()
-        let completion = app.staticTexts["records-completion"]
-        XCTAssertTrue(completion.waitForExistence(timeout: 15))
-        XCTAssertEqual(completion.label, "11 of 11 main lessons passed")
-        app.buttons["records-continue"].tap()
+        let button = app.buttons["records-continue"]
+        XCTAssertTrue(button.waitForExistence(timeout: 15))
+        button.tap()
         XCTAssertTrue(app.tabBars.buttons["Learn"].isSelected)
     }
 

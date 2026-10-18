@@ -78,12 +78,9 @@ final class LearningOrderChenStepRowTests: XCTestCase {
         let app = launch(language, ax: ax, ["GT_DEMO_NODE": "u3-rfi", "GT_DEMO_BEAT": "2", "GT_DEMO_LEVEL": level])
         let title = language == "ko" ? "점수 계산법" : "How the score works"
         let disclosure = app.buttons[title]
-        XCTAssertTrue(disclosure.waitForExistence(timeout: 15), "The rule card sits behind a disclosure")
+        XCTAssertTrue(disclosure.waitForExistence(timeout: 15), "The rule card sits in a disclosure")
         let card = app.descendants(matching: .any)["chen-rule-card"]
-        XCTAssertFalse(card.exists, "Closed until asked for")
-        scrollTo(disclosure, in: app)
-        disclosure.tap()
-        XCTAssertTrue(card.waitForExistence(timeout: 5))
+        XCTAssertTrue(card.waitForExistence(timeout: 5), "Open on arrival, without a tap")
         let source = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Bill Chen")).firstMatch
         XCTAssertTrue(source.exists)
         let limit = language == "ko" ? "차트용으로 패를 줄 세우는 점수예요. 이길 확률이 아니에요."
@@ -97,7 +94,24 @@ final class LearningOrderChenStepRowTests: XCTestCase {
         attach(app, "chen-\(level)-\(language)-\(ax ? "AX5" : "L")")
         scrollTo(closing, in: app)
         attach(app, "chen-\(level)-\(language)-\(ax ? "AX5" : "L")-end")
-        XCTAssertTrue(app.buttons["walkthrough-next"].exists)
+        // Previous and Next stay reachable with the card open.
+        let next = app.buttons["walkthrough-next"]
+        let previous = app.buttons["walkthrough-previous"]
+        scrollTo(next, in: app)
+        scrollTo(previous, in: app)
+        XCTAssertTrue(next.isHittable && previous.isHittable)
+        // The learner can still close it.
+        scrollTo(disclosure, in: app, up: true)
+        // At AX5 the swipe can leave the disclosure under the Close button's bar, which
+        // takes the tap (seen on iPhone 17).
+        let close = app.buttons["xmark"]
+        if close.exists, disclosure.frame.minY < close.frame.maxY {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4))
+                .slowDrag(by: CGVector(dx: 0, dy: close.frame.maxY - disclosure.frame.minY + 40))
+            disclosure.waitForStableFrame()
+        }
+        disclosure.tap()
+        XCTAssertTrue(card.waitForNonExistence(timeout: 5), "Closes on tap")
     }
 
     // MARK: Task 3 · step row

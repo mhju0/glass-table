@@ -20,10 +20,13 @@ public struct CallFoldSpot: Equatable {
 
 /// Deterministic call/fold spots. Same (baseSeed, index) → same spot.
 public enum CallFoldSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> CallFoldSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> CallFoldSpot {
         var attempt = 0
         while true {
+            // The third step draws from its own stream; the second shares the first
+            // step's spots and differs only in the numbers the lesson shows.
             let seed = baseSeed
+                &+ (level == .sharp ? 0xD1B5_4A32_D192_ED03 &* 3 : 0)
                 &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15
                 &+ UInt64(attempt)
             var rng = SplitMix64(seed: seed)
@@ -37,9 +40,11 @@ public enum CallFoldSpotGenerator {
             if equity >= 0.05 && equity <= 0.95 {
                 let pot = BetSpotGenerator.pots.randomElement(using: &rng)!
                 let f = BetSpotGenerator.fractions.randomElement(using: &rng)!
-                return CallFoldSpot(hero: hero, villain: villain, board: board,
-                                    pot: pot, bet: max(1, Int((f * Double(pot)).rounded())),
-                                    equityPct: equity * 100)
+                let spot = CallFoldSpot(hero: hero, villain: villain, board: board,
+                                        pot: pot, bet: max(1, Int((f * Double(pot)).rounded())),
+                                        equityPct: equity * 100)
+                // The third step keeps only close spots, where a guess will not do.
+                if level != .sharp || abs(spot.equityPct - spot.requiredPct) <= 8 { return spot }
             }
             attempt += 1
         }
@@ -56,9 +61,17 @@ public struct CallFoldReveal: Equatable {
 }
 
 /// The two numbers the call-or-fold lesson shows before the answer. Comparing them is
-/// the skill; estimating the share is the equity lesson's job.
-public func callFoldLessonNumbers(spot: CallFoldSpot, language: LearningLanguage) -> String {
-    language.text("끝까지 갔을 때 내 몫 \(pctText(spot.equityPct))% · 콜에 필요한 몫 \(pctText(spot.requiredPct))%",
+/// the skill; estimating the share is the equity lesson's job. Later steps (D53) take
+/// them away: the second shows only the price, the third shows nothing.
+public func callFoldLessonNumbers(spot: CallFoldSpot, language: LearningLanguage,
+                                  level: DrillLevel = .learn) -> String? {
+    switch level {
+    case .sharp: return nil
+    case .apply: return language.text("콜에 필요한 몫 \(pctText(spot.requiredPct))%",
+                                      "The call needs \(pctText(spot.requiredPct))%")
+    case .learn: break
+    }
+    return language.text("끝까지 갔을 때 내 몫 \(pctText(spot.equityPct))% · 콜에 필요한 몫 \(pctText(spot.requiredPct))%",
                   "Your share if it goes to the end \(pctText(spot.equityPct))% · The call needs \(pctText(spot.requiredPct))%")
 }
 

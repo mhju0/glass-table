@@ -10,12 +10,15 @@ public struct DailyPracticeKey: Codable, Equatable, Hashable, Sendable {
     public var formatVersion: Int
     public var language: String
     public var assisted: Bool
+    /// The step the answer was dealt at (D53, schema 5): 2 or 3. Absent at the first
+    /// step, so every summary written before steps keeps its key.
+    public var level: Int?
 
     public init(day: DayKey, concept: String, mode: String, formatVersion: Int,
-                language: String, assisted: Bool) {
+                language: String, assisted: Bool, level: Int? = nil) {
         self.day = day; self.concept = concept; self.mode = mode
         self.formatVersion = formatVersion; self.language = language
-        self.assisted = assisted
+        self.assisted = assisted; self.level = level
     }
 }
 
@@ -152,6 +155,9 @@ public struct PracticeRound: Codable, Equatable, Sendable {
     /// The ordinal whose calculation help the learner opened before committing.
     /// Written when help opens, so leaving and relaunching keep the attempt assisted.
     public var helpOrdinal: Int?
+    /// The step every question is dealt at (D53): 2 or 3, only in format 2. Absent
+    /// means the first step, as in every round saved before steps (format 1).
+    public var level: Int?
 
     public enum Phase: String, Codable, Sendable { case question, reveal, finished }
 
@@ -197,6 +203,9 @@ public struct NodeSessionSnapshot: Codable, Equatable, Sendable {
     /// The ordinal whose calculation help the learner opened before committing.
     /// Written when help opens, so leaving and relaunching keep the attempt assisted.
     public var helpOrdinal: Int?
+    /// A challenge's step for each scheduled question (D53), fixed when it starts.
+    /// Absent means the first step for all; a lesson's step is in its node id instead.
+    public var levels: [Int]?
 
     public init(id: String, nodeID: String, seed: UInt64,
                 scheduledConcepts: [String], phase: Phase,
@@ -223,6 +232,9 @@ public struct ReviewSessionSnapshot: Codable, Equatable, Sendable {
     /// The ordinal whose calculation help the learner opened before committing.
     /// Written when help opens, so leaving and relaunching keep the attempt assisted.
     public var helpOrdinal: Int?
+    /// Each scheduled question's step (D53), fixed when the review starts. Absent
+    /// means the first step for all, as in every review saved before steps.
+    public var levels: [Int]?
 
     public init(id: String, seed: UInt64, scheduledConcepts: [String],
                 formatVersion: Int = 1) {

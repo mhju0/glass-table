@@ -54,7 +54,10 @@ final class ProgressionModel {
             // A passed track challenge would take the requested lesson off the suggestions.
             let challenge = Curriculum.track(containing: Curriculum.allNodes[index])?.challenge
             for node in Curriculum.allNodes[..<index] where node != challenge {
-                fixture.nodes[node.id] = NodeRecord(cleared: true, clearedAt: Date(), attempts: 1)
+                // Every step of it (D53), so the requested lesson is the one suggested.
+                for step in Curriculum.lessonSteps(for: node) {
+                    fixture.nodes[step.id] = NodeRecord(cleared: true, clearedAt: Date(), attempts: 1)
+                }
             }
             state = fixture
             return
@@ -129,10 +132,9 @@ final class ProgressionModel {
 
     func record(for concept: Concept) -> ConceptRecord { state.record(for: concept) }
 
-    /// Spec §4.3: the number the home screen leads with, never XP and never streak.
-    var masteredCount: Int {
-        Concept.allCases.filter { state.record(for: $0).tier >= .proficient }.count
-    }
+    /// Spec §4.3: skills at Strong or better, never XP and never streak. Counts the
+    /// curriculum's skills only, not concepts kept for older saved progress.
+    var masteredCount: Int { ProgressOverview.strongCount(in: state) }
 
     var calibrationHitRate: Double? { Calibration.hitRate(in: state) }
 
@@ -252,6 +254,16 @@ final class ProgressionModel {
         }
     }
 
+    /// One decision at the Graded 1:1 table counts toward the day's practice only
+    /// (D53): no schedule, accuracy or tier. The same attempt counts once.
+    @discardableResult
+    func recordTableDecision(attemptID: String, band: GradeBand, language: LearningLanguage,
+                             now: Date = Date()) -> Bool {
+        guard !state.processedAttemptIDs.contains(attemptID) else { return true }
+        return commit { $0.recordTableDecision(attemptID: attemptID, band: band,
+                                               language: language.rawValue, now: now) }
+    }
+
     /// Records a fully answered node's result (cleared at the pass mark), then evaluates each concept against only
     /// its own current-session evidence. Missing or extra evidence changes nothing.
     @discardableResult
@@ -269,8 +281,10 @@ final class ProgressionModel {
         for concept in Set(scheduled) {
             guard let conceptEvidence = evidence[concept],
                   conceptEvidence.attempted > 0 else { continue }
+            let level = viaBoss ? Curriculum.challengeLevel(of: concept, in: node, state: candidate) : node.level
             candidate.updateRecord(for: concept) {
-                Mastery.promote(&$0, evidence: conceptEvidence, viaBoss: viaBoss, now: now)
+                Mastery.promote(&$0, evidence: conceptEvidence, viaBoss: viaBoss,
+                                level: level, of: concept, now: now)
             }
         }
         }
@@ -344,9 +358,13 @@ final class ProgressionModel {
         guard expectedEpoch == epoch, state.activeRound == nil else { return false }
         let needsIntro = state.record(for: concept).total == 0
             && !state.introducedConcepts.contains(concept.rawValue)
+        // Practice deals the highest step passed (D53); the first step keeps format 1.
+        let level = Curriculum.passedLevel(of: concept, in: state)
         return commit { candidate in
-            candidate.activeRound = PracticeRound(id: roundID, concept: concept.rawValue,
-                seed: seed, introPhase: needsIntro ? .show : nil)
+            var round = PracticeRound(id: roundID, concept: concept.rawValue, seed: seed,
+                formatVersion: level > .learn ? 2 : 1, introPhase: needsIntro ? .show : nil)
+            if level > .learn { round.level = level.rawValue }
+            candidate.activeRound = round
         }
     }
 
@@ -415,7 +433,7 @@ final class ProgressionModel {
     @discardableResult
     func commitRoundAnswer(roundID: String, attemptID: String, ordinal: Int,
                            band: GradeBand, language: String, assisted: Bool,
-                           formatVersion: Int = 1, input: Data, reveal: Data,
+                           formatVersion: Int? = nil, input: Data, reveal: Data,
                            eligibleSeconds: Double? = nil, interval: IntervalAnswer? = nil,
                            evLoss: Double? = nil, now: Date = Date(),
                            expectedEpoch: UUID) -> Bool {
@@ -426,7 +444,8 @@ final class ProgressionModel {
             mode: "single-skill", language: language, assisted: assisted, input: input,
             reveal: reveal, eligibleSeconds: eligibleSeconds, interval: interval,
             evLoss: evLoss, now: now, expectedEpoch: expectedEpoch,
-            fits: { $0.introPhase == nil && $0.formatVersion == formatVersion })
+            fits: { round in round.introPhase == nil
+                && formatVersion.map { $0 == round.formatVersion } ?? true })
     }
 
     @discardableResult
@@ -449,10 +468,14 @@ final class ProgressionModel {
         if state.activeReviewSession != nil { return true }
         let concepts = ReviewQueue.sessionConcepts(in: state, at: now)
         guard !concepts.isEmpty else { return false }
+        let levels = concepts.map { Curriculum.passedLevel(of: $0, in: state).rawValue }
         return commit { candidate in
-            candidate.activeReviewSession = ReviewSessionSnapshot(
+            var session = ReviewSessionSnapshot(
                 id: UUID().uuidString, seed: seed,
                 scheduledConcepts: concepts.map(\.rawValue))
+            // Each skill at the learner's step (D53); none stored while all are first steps.
+            if levels.contains(where: { $0 > DrillLevel.learn.rawValue }) { session.levels = levels }
+            candidate.activeReviewSession = session
         }
     }
 
@@ -510,14 +533,24 @@ final class ProgressionModel {
         let scheduled = Curriculum.sessionConcepts(for: node, seed: seed)
         guard Curriculum.isValidSession(scheduled, for: node) else { return false }
         let taught = Curriculum.taughtConcept(of: node)
-        let hasSeen = taught.map { state.record(for: $0).total > 0
+        // A later step goes straight to its questions: its skill was taught at the first.
+        let hasSeen = node.level > .learn || taught.map { state.record(for: $0).total > 0
             || state.introducedConcepts.contains($0.rawValue) } ?? true
+        // A challenge deals each skill at the learner's step, within its lap (D53).
+        var levels: [Int]?
+        if case .boss = node.kind {
+            let dealt = scheduled.map { Curriculum.challengeLevel(of: $0, in: node, state: state).rawValue }
+            if dealt.contains(where: { $0 > DrillLevel.learn.rawValue }) { levels = dealt }
+        }
         return commit { candidate in
             candidate.activeNodeSession = NodeSessionSnapshot(
                 id: UUID().uuidString, nodeID: node.id, seed: seed,
                 scheduledConcepts: scheduled.map(\.rawValue),
                 phase: hasSeen ? .question : .show,
                 formatVersion: Curriculum.sessionFormat)
+            candidate.activeNodeSession?.levels = levels
+            // Learn keeps marking this lesson after its session closes (D52).
+            candidate.lastNodeID = node.id
             // After two rough lessons the hint is back on the first question, even
             // for a lesson the learner has seen before.
             if hasSeen, taught != nil, state.guidanceIsUp {
@@ -624,11 +657,14 @@ final class ProgressionModel {
                     helped: answers.filter(\.isAssisted).count)
                 let scheduled = session.scheduledConcepts.compactMap(Concept.init(rawValue:))
                 var evidence: [Concept: SessionEvidence] = [:]
-                for graded in candidate.activeNodeSession?.answers ?? [] {
+                // The lowest step a skill's answers were dealt at is the step they show.
+                var levels: [Concept: DrillLevel] = [:]
+                for (index, graded) in (candidate.activeNodeSession?.answers ?? []).enumerated() {
                     guard let gradedConcept = Concept(rawValue: graded.concept) else { continue }
                     evidence[gradedConcept, default: SessionEvidence()].record(
                         spotOn: graded.answer.countedBand == .spotOn,
                         assisted: graded.answer.isAssisted)
+                    levels[gradedConcept] = min(levels[gradedConcept] ?? .sharp, session.level(at: index))
                 }
                 if Curriculum.isValidSession(scheduled, for: node, format: session.formatVersion),
                    SessionEvidence.validates(evidence, scheduled: scheduled) {
@@ -639,8 +675,9 @@ final class ProgressionModel {
                     if case .boss = node.kind { viaBoss = true } else { viaBoss = false }
                     for (gradedConcept, result) in evidence where result.attempted > 0 {
                         candidate.updateRecord(for: gradedConcept) {
-                            Mastery.promote(&$0, evidence: result,
-                                            viaBoss: viaBoss, now: now)
+                            Mastery.promote(&$0, evidence: result, viaBoss: viaBoss,
+                                            level: levels[gradedConcept] ?? .learn,
+                                            of: gradedConcept, now: now)
                         }
                     }
                 }
@@ -896,7 +933,8 @@ final class ProgressionModel {
             candidate.recordGradedAnswer(
                 concept: concept, band: band, mode: mode, formatVersion: session.formatVersion,
                 language: language, assisted: assisted, attemptID: attemptID, interval: interval,
-                evLoss: evLoss, eligibleSeconds: eligibleSeconds, now: now, scheduler: scheduler)
+                evLoss: evLoss, eligibleSeconds: eligibleSeconds, level: session.level(at: ordinal),
+                now: now, scheduler: scheduler)
             candidate[keyPath: path]?.reveal(RoundAnswer(
                 attemptID: attemptID, ordinal: ordinal, band: band, submittedAt: now,
                 input: input, reveal: reveal, assisted: assisted), concept: concept)
@@ -989,6 +1027,8 @@ final class ProgressionModel {
         }
         // Tried once and under the pass mark, so the path shows its best score.
         s.nodes["u2-equitySense"] = NodeRecord(attempts: 1, best: LessonScore(right: 1, questions: 3))
+        // The steps these tiers show, as a schema-5 upgrade marks them (D53).
+        ProgressionStore.markStepsReached(&s)
 
         // Deliberately overconfident: tight intervals that mostly miss, which is the
         // state the calibration copy is written for.
@@ -1010,6 +1050,14 @@ final class ProgressionModel {
             s.append(AnswerRecord(concept: .evLoss,
                                   at: now.addingTimeInterval(-Double(i) * 1800),
                                   correct: loss == 0, evLoss: loss))
+        }
+
+        // Answered days, so Progress has decisions studied and a journal to show.
+        for (days, concept, count) in [(6.0, Concept.showdown, 40), (3, .potMath, 35), (1, .position, 30), (0, .equitySense, 12)] {
+            var summary = DailyPracticeSummary(key: DailyPracticeKey(day: DayKey(now.addingTimeInterval(-86400 * days)),
+                concept: concept.rawValue, mode: "path", formatVersion: 1, language: "ko", assisted: false))
+            summary.exact = count
+            s.dailySummaries.append(summary)
         }
 
         s.streak = StreakRecord(current: 12, longest: 12, lastSessionDay: DayKey(now),

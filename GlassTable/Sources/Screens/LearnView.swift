@@ -131,9 +131,12 @@ struct LearnView: View {
     // MARK: Tracks
 
     private func trackSection(_ track: LearningTrack) -> some View {
-        let cleared = track.lessons.filter { model.state.nodes[$0.id]?.cleared == true }.count
+        // Each lesson counts once per step (D53); a track without steps counts lessons.
+        let steps = track.lessons.flatMap(Curriculum.lessonSteps(for:))
+        let cleared = steps.filter { model.state.nodes[$0.id]?.cleared == true }.count
         return VStack(alignment: .leading, spacing: 0) {
-            sectionHeader(track.id.title(in: language), count: (cleared, track.lessons.count))
+            sectionHeader(track.id.title(in: language), count: (cleared, steps.count),
+                          countsSteps: steps.count > track.lessons.count)
             ForEach(track.lessons, id: \.id) { lessonRow($0) }
             if let challenge = track.challenge { challengeLine(challenge) }
         }
@@ -141,7 +144,8 @@ struct LearnView: View {
         .accessibilityIdentifier("track-\(track.id.rawValue)")
     }
 
-    private func sectionHeader(_ title: String, count: (passed: Int, of: Int)?) -> some View {
+    private func sectionHeader(_ title: String, count: (passed: Int, of: Int)?,
+                               countsSteps: Bool = false) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title).font(GT.title(17)).foregroundStyle(GT.onFelt)
                 .accessibilityAddTraits(.isHeader)
@@ -149,8 +153,11 @@ struct LearnView: View {
             if let count {
                 Text("\(count.passed)/\(count.of)")
                     .font(GT.semibold(13).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
-                    .accessibilityLabel(language.text("\(count.of)개 중 \(count.passed)개 통과",
-                                                      "\(count.passed) of \(count.of) passed"))
+                    .accessibilityLabel(countsSteps
+                        ? language.text("\(count.of)단계 중 \(count.passed)단계 통과",
+                                        "\(count.passed) of \(count.of) steps passed")
+                        : language.text("\(count.of)개 중 \(count.passed)개 통과",
+                                        "\(count.passed) of \(count.of) passed"))
             }
         }
         .padding(.top, 22).padding(.bottom, 4)
@@ -162,27 +169,50 @@ struct LearnView: View {
             ?? learningNodeTitle(node, language: language)
         let detail = concept.map { conceptBlurb($0, language: language) }
             ?? learningNodeDescription(node, language: language)
+        let steps = Curriculum.lessonSteps(for: node)
+        let passedSteps = steps.filter { model.state.nodes[$0.id]?.cleared == true }.count
+        let target = rowTarget(node, steps: steps)
         return row(id: node.id, title: title, detail: detail,
                    passed: model.state.nodes[node.id]?.cleared == true,
-                   best: bestLine(node), mark: mark(for: node), practice: concept,
-                   open: { open(node) }, buttonID: "lesson-\(node.id)") {
+                   best: bestLine(target), mark: mark(for: target), markedStep: target.level,
+                   steps: steps.count > 1 ? (passedSteps, steps.count) : nil, practice: concept,
+                   open: { open(target) }, buttonID: "lesson-\(node.id)") {
             if let concept { SkillGlyph(concept: concept) } else { tile("crown.fill") }
         }
     }
 
+    /// The step a lesson's row opens: the marked one, else the first not passed, else
+    /// the first step, to play again.
+    private func rowTarget(_ node: CurriculumNode, steps: [CurriculumNode]) -> CurriculumNode {
+        switch marked {
+        case .inProgress(let open)? where open.baseID == node.id && open.kind == node.kind: return open
+        case .next(let next)? where next.baseID == node.id && next.kind == node.kind: return next
+        default: break
+        }
+        return steps.first { model.state.nodes[$0.id]?.cleared != true } ?? node
+    }
+
     /// A challenge is optional, so it stays one quiet line unless it is the open lesson.
-    @ViewBuilder private func challengeLine(_ node: CurriculumNode) -> some View {
+    @ViewBuilder private func challengeLine(_ challenge: CurriculumNode) -> some View {
+        // Once passed, a challenge with a third step offers that step (D53).
+        let sharp = Curriculum.stepNode(challenge, at: .sharp)
+        let node = sharp.flatMap { step in
+            model.state.nodes[challenge.id]?.cleared == true || mark(for: step) != nil ? step : nil
+        } ?? challenge
         let title = learningNodeTitle(node, language: language, asChallenge: true)
         if let mark = mark(for: node) {
-            row(id: node.id, title: title,
+            row(id: challenge.id, title: title,
                 detail: learningNodeDescription(node, language: language, asChallenge: true),
-                passed: false, best: bestLine(node), mark: mark, practice: nil, open: { open(node) },
-                buttonID: "lesson-\(node.id)") {
+                passed: false, best: bestLine(node), mark: mark, markedStep: node.level,
+                practice: nil, open: { open(node) },
+                buttonID: "lesson-\(challenge.id)") {
                 tile("crown.fill")
             }
         } else {
             let passed = model.state.nodes[node.id]?.cleared == true
-            let optional = language.text("선택 도전", "Optional challenge")
+            let optional = node.level > .learn
+                ? language.text("선택 도전 · \(node.level.rawValue)단계", "Optional challenge · Step \(node.level.rawValue)")
+                : language.text("선택 도전", "Optional challenge")
             let best = bestLine(node)
             Button { open(node) } label: {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -206,7 +236,8 @@ struct LearnView: View {
             .accessibilityLabel([title, optional, passed ? language.text("통과", "Passed") : nil, best]
                 .compactMap { $0 }.joined(separator: ", "))
             .accessibilityAddTraits(.isButton)
-            .accessibilityIdentifier("lesson-\(node.id)")
+            .accessibilityIdentifier("lesson-\(challenge.id)")
+            .id(challenge.id)
         }
     }
 
@@ -239,12 +270,15 @@ struct LearnView: View {
     private enum RowMark {
         case inProgress, basics, next
 
-        func tag(_ language: LearningLanguage) -> String {
-            switch self {
+        /// The step joins the tag above the first step: "다음 · 2단계" (D53).
+        func tag(_ language: LearningLanguage, step: DrillLevel = .learn) -> String {
+            let tag = switch self {
             case .inProgress: language.text("진행 중", "In progress")
             case .basics: language.text("여기서 시작", "Start here")
             case .next: language.text("다음", "Next")
             }
+            guard step > .learn else { return tag }
+            return tag + language.text(" · \(step.rawValue)단계", " · Step \(step.rawValue)")
         }
 
         func action(_ language: LearningLanguage) -> String {
@@ -274,7 +308,8 @@ struct LearnView: View {
     /// Diagram, title, description and status; then the row's one action. At the
     /// accessibility sizes everything stacks and the action spans the row.
     private func row<Glyph: View>(id: String, title: String, detail: String, passed: Bool,
-                                  best: String?, mark: RowMark?, practice: Concept?,
+                                  best: String?, mark: RowMark?, markedStep: DrillLevel = .learn,
+                                  steps: (passed: Int, of: Int)? = nil, practice: Concept?,
                                   open: @escaping () -> Void, buttonID: String, actionID: String? = nil,
                                   @ViewBuilder glyph: () -> Glyph) -> some View {
         let round = practice.flatMap { concept in
@@ -282,8 +317,11 @@ struct LearnView: View {
         } ?? false
         let practiceTitle = round ? language.text("연습 이어서", "Continue practice") : language.text("연습", "Practice")
         let showsPractice = mark == nil && practice != nil && (passed || round)
-        let status = [mark?.tag(language), best].compactMap { $0 }
-        let label = [title, detail, passed ? language.text("통과", "Passed") : nil].compactMap { $0 }
+        let status = [mark?.tag(language, step: markedStep), best].compactMap { $0 }
+        let stepsLabel = steps.map {
+            language.text("\($0.of)단계 중 \($0.passed)단계 통과", "\($0.passed) of \($0.of) steps passed")
+        }
+        let label = [title, detail, passed ? language.text("통과", "Passed") : nil, stepsLabel].compactMap { $0 }
             + status
         let glyphView = glyph()
             .overlay(alignment: .topTrailing) {
@@ -301,8 +339,9 @@ struct LearnView: View {
             Text(detail).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
                 .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
+            if let steps { stepPips(steps) }
             if let mark {
-                Text(mark.tag(language)).font(GT.semibold(12)).foregroundStyle(GT.cta)
+                Text(mark.tag(language, step: markedStep)).font(GT.semibold(12)).foregroundStyle(GT.cta)
             }
             if let best {
                 Text(best).font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
@@ -363,6 +402,21 @@ struct LearnView: View {
         .id(id)
     }
 
+    /// One dot per step, filled once passed (D53). Read out in the row's label.
+    private func stepPips(_ steps: (passed: Int, of: Int)) -> some View {
+        HStack(spacing: 4) {
+            ForEach(0..<steps.of, id: \.self) { step in
+                Circle()
+                    .fill(step < steps.passed ? GT.green : Color.clear)
+                    .overlay(Circle().strokeBorder(step < steps.passed ? GT.green : GT.onFeltSecondary,
+                                                   lineWidth: 1))
+                    .frame(width: 7, height: 7)
+            }
+        }
+        .padding(.top, 3)
+        .accessibilityHidden(true)
+    }
+
     /// A stack across the row, or down it at the accessibility sizes.
     private func layoutStack<Content: View>(spacing: CGFloat, @ViewBuilder _ content: () -> Content) -> some View {
         let layout = stacks ? AnyLayout(VStackLayout(alignment: .leading, spacing: spacing))
@@ -412,7 +466,7 @@ struct LearnView: View {
         guard !didScrollToMarkedRow, let marked else { return }
         didScrollToMarkedRow = true
         let id: String = switch marked {
-        case .inProgress(let node), .next(let node): node.id
+        case .inProgress(let node), .next(let node): node.baseID
         case .basics: Self.basicsRowID
         }
         // Defer the one initial scroll until layout has produced the row; later

@@ -168,7 +168,8 @@ struct GuidedHandView: View {
             .overlay {
                 // The stage names the screen, so the coach card below keeps its room for the guide.
                 if !textSize.isAccessibilitySize {
-                    Text(stageTitle).font(GT.semibold(16)).lineLimit(1).minimumScaleFactor(0.8)
+                    Text(stageTitle).font(GT.semibold(16))
+                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 52).allowsHitTesting(false)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("guided-hand-stage-\(hand.stage)")

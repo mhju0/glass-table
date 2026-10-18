@@ -32,6 +32,7 @@ struct WalkthroughView: View {
     /// until they tap it, and Next waits for that tap.
     @State private var practiceRevealed = false
     @State private var workedAnswer: Int?
+    @State private var chenRulesOpen = true
 
     init(title: String, concept: Concept? = nil, purpose: String? = nil, beats: [Beat], rows: [(String, [Card])],
          initialIndex: Int = 0, onStep: @escaping (Int) -> Bool = { _ in true },
@@ -464,10 +465,10 @@ struct WalkthroughView: View {
         }
     }
 
-    /// How the starting-hand score is built, closed until asked for. The last line
+    /// How the starting-hand score is built, open until the learner closes it. The last line
     /// works the rules through for the hand on the table.
     private var chenRuleCard: some View {
-        DisclosureGroup(ChenScoreCopy.title(in: language)) {
+        DisclosureGroup(ChenScoreCopy.title(in: language), isExpanded: $chenRulesOpen) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(ChenScoreCopy.intro(in: language))
                 ForEach(Array(ChenScoreCopy.rules(in: language).enumerated()), id: \.offset) { number, rule in
@@ -516,7 +517,9 @@ struct WalkthroughView: View {
 /// rows a `.table` beat needs. Keeping this beside the player means a new concept
 /// only has to be added in one place on the app side.
 enum Walkthrough {
-    static func make(concept: Concept, seed: UInt64, index: Int,
+    /// `level` is the step a restored answer was dealt at (D53), so its replay shows
+    /// that question's spot; teaching and worked examples use the first step.
+    static func make(concept: Concept, seed: UInt64, index: Int, level: DrillLevel = .learn,
                      language: LearningLanguage = .korean)
         -> (beats: [Beat], rows: [(String, [Card])]) {
         let opponent = language.text("상대 카드", "Opponent's cards")
@@ -550,7 +553,7 @@ enum Walkthrough {
         case .potMath:
             return (BeatScript.potMath(PotMathSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .position:
-            return (BeatScript.position(PositionSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
+            return (BeatScript.position(PositionSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language), [])
         case .potOdds:
             return (BeatScript.potOdds(BetSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .mdf:
@@ -561,12 +564,12 @@ enum Walkthrough {
             return (BeatScript.rangeNotation(
                 RangeNotationSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
         case .rfi:
-            let s = RFISpotGenerator.spot(baseSeed: seed, index: index)
+            let s = RFISpotGenerator.spot(baseSeed: seed, index: index, level: level)
             return (BeatScript.rfi(s, language: language), [(mine, s.hand)])
         case .rangeRead:
             // No card rows on purpose: seeing no cards *is* the drill.
             return (BeatScript.rangeRead(
-                RangeReadSpotGenerator.spot(baseSeed: seed, index: index), language: language), [])
+                RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language), [])
         case .hitFrequency:
             let s = HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.hitFrequency(s, language: language), [("\(shared) · \(flop)", s.board)])
@@ -577,10 +580,10 @@ enum Walkthrough {
             let s = EVLossSpotGenerator.spot(baseSeed: seed, index: index)
             return (BeatScript.evLoss(s, language: language), [("\(shared) · \(river)", s.board), (mine, s.hero)])
         case .actionRead:
-            let s = ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
+            let s = ActionReadSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             return (BeatScript.actionRead(s, language: language), [("\(shared) · \(flop)", s.board)])
         case .defend:
-            let s = DefendSpotGenerator.spot(baseSeed: seed, index: index)
+            let s = DefendSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             return (BeatScript.defend(s, language: language), [(mine, s.hand)])
         }
     }

@@ -47,6 +47,9 @@ public struct PositionSpot: Equatable {
         case behind(Position, preflop: Bool)
         /// "Which of these two seats is better?" — better meaning acts later.
         case whichIsLater(Position, Position)
+        /// After the flop, with only `stillIn` left besides you (in seat order):
+        /// "How many of them act after you?" The third step's question (D53).
+        case behindInHand(Position, stillIn: [Position])
     }
     public let question: Question
 
@@ -57,12 +60,14 @@ public struct PositionSpot: Equatable {
         switch question {
         case let .behind(p, preflop): return p.playersBehind(preflop: preflop)
         case let .whichIsLater(a, b): return b.actsAfter(a) ? 1 : 0
+        case let .behindInHand(p, stillIn): return stillIn.filter { $0.actsAfter(p) }.count
         }
     }
 }
 
 public enum PositionSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> PositionSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> PositionSpot {
+        if level > .learn { return laterStep(baseSeed: baseSeed, index: index, level: level) }
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         // Two thirds counting, one third comparison — the count is the load-bearing
@@ -75,6 +80,34 @@ public enum PositionSpotGenerator {
         var b = Position.allCases.randomElement(using: &rng)!
         while b == a { b = Position.allCases.randomElement(using: &rng)! }
         // Stable ordering from the seed so the same index always renders the same way.
+        if Int.random(in: 0..<2, using: &rng) == 1 { swap(&a, &b) }
+        return PositionSpot(question: .whichIsLater(a, b))
+    }
+
+    /// Later steps deal from their own stream (D53). The second asks the same two
+    /// questions, but half of its after-the-flop counts sit in a blind, where the order
+    /// turns over. The third keeps only some players in after the flop and asks how
+    /// many of them act after you.
+    private static func laterStep(baseSeed: UInt64, index: Int, level: DrillLevel) -> PositionSpot {
+        var rng = SplitMix64(seed: baseSeed
+            &+ UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03
+            &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
+        if level == .sharp {
+            let seat = Position.allCases.randomElement(using: &rng)!
+            let count = Int.random(in: 1...4, using: &rng)
+            let others = Position.allCases.filter { $0 != seat }.shuffled(using: &rng).prefix(count)
+            return PositionSpot(question: .behindInHand(seat, stillIn: Position.allCases.filter(others.contains)))
+        }
+        if Int.random(in: 0..<3, using: &rng) < 2 {
+            let preflop = Bool.random(using: &rng)
+            let seat = !preflop && Bool.random(using: &rng)
+                ? [Position.sb, .bb].randomElement(using: &rng)!
+                : Position.allCases.randomElement(using: &rng)!
+            return PositionSpot(question: .behind(seat, preflop: preflop))
+        }
+        var a = Position.allCases.randomElement(using: &rng)!
+        var b = Position.allCases.randomElement(using: &rng)!
+        while b == a { b = Position.allCases.randomElement(using: &rng)! }
         if Int.random(in: 0..<2, using: &rng) == 1 { swap(&a, &b) }
         return PositionSpot(question: .whichIsLater(a, b))
     }
@@ -104,6 +137,17 @@ public func gradePosition(answer: Int, spot: PositionSpot,
         why = after.isEmpty
             ? "\(p.plainName(in: language)): \(preflop ? "프리플랍" : "플랍 이후") 마지막이에요. 뒤에 아무도 없어요."
             : "\(p.plainName(in: language)) 뒤에는 \(after.map(\.rawValue).joined(separator: " · ")), 모두 \(correct)명이에요."
+    case let .behindInHand(p, stillIn):
+        let order = Position.postflopOrder.filter { $0 == p || stillIn.contains($0) }
+            .map { $0 == p ? "\($0.rawValue) \(language.text("(나)", "(you)"))" : $0.rawValue }
+            .joined(separator: " → ")
+        let after = stillIn.filter { $0.actsAfter(p) }.map(\.rawValue).joined(separator: " · ")
+        why = language.text(
+            "플랍 이후 남은 사람의 순서: \(order). "
+                + (after.isEmpty ? "내가 마지막이라 뒤에 아무도 없어요." : "내 뒤에는 \(after), 모두 \(correct)명이에요."),
+            "After the flop, the players still in act in this order: \(order). "
+                + (after.isEmpty ? "You act last, so nobody acts after you."
+                                 : "After you: \(after). \(correct) \(correct == 1 ? "player acts" : "players act") after you."))
     case let .whichIsLater(a, b):
         let later = correct == 1 ? b : a
         why = language.text("\(later.plainName(in: language)): 더 늦게 행동해요. 앞선 행동을 더 보고 결정할 수 있어요.",

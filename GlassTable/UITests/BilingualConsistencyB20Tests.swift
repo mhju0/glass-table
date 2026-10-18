@@ -156,7 +156,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
             Fixture(name: "opening-fourth", environment: ["GT_DEMO_FIRST_LESSON": "comparison-3"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
             Fixture(name: "opening-fifth", environment: ["GT_DEMO_FIRST_LESSON": "comparison-4"], ready: "firstLesson.question", pairedHeadingID: "firstLesson.heading", primaryActionID: "firstLesson.help"),
             Fixture(name: "learn", environment: ["GT_DEMO_TAB": "learn"], ready: "lesson-u1-showdown", rootHeading: ["Learn", "배우기"]),
-            Fixture(name: "play", environment: ["GT_DEMO_TAB": "play"], ready: "play-free", rootHeading: ["Play", "플레이"]),
+            Fixture(name: "play", environment: ["GT_DEMO_TAB": "play"], ready: "play-quick", rootHeading: ["Play", "플레이"]),
             Fixture(name: "progress", environment: ["GT_DEMO_TAB": "records"], ready: "records-details", rootHeading: ["Progress", "학습 기록"]),
             Fixture(name: "settings", environment: ["GT_DEMO_SETTINGS": "1"], ready: "settings-language", rootHeading: ["Settings", "설정"]),
             Fixture(name: "showdown", environment: ["GT_DEMO_NODE": "u1-showdown"], ready: "drill-question-"),

@@ -21,15 +21,11 @@ final class NumericalRecordsFlowTests: XCTestCase {
             app.swipeUp()
         }
         details.tap()
-        let streak = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ AND label BEGINSWITH %@",
-            code == "ko" ? "연속 일수" : "Day streak", "0")).firstMatch
-        for _ in 0..<5 {
-            if streak.exists && streak.isHittable { break }
-            app.swipeUp()
-        }
-        XCTAssertTrue(streak.waitForExistence(timeout: 5))
-        XCTAssertTrue(streak.label.contains("0"), streak.label)
-        capture(app, name: "records-streak-\(code)-\(appearance)")
+        // The streak record is kept but a daily 0 is never shown (owner, 2026-10-18).
+        let streak = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@",
+            "연속 일수", "Day streak")).firstMatch
+        XCTAssertFalse(streak.exists, streak.label)
+        capture(app, name: "records-no-streak-\(code)-\(appearance)")
         let row = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@",
             code == "ko" ? "콜하려면 얼마나 자주 이겨야 할까요?" : "How often must I win to call?",
             code == "ko" ? "5문제" : "5 answers")).firstMatch

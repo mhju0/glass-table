@@ -6,7 +6,7 @@ final class ProgressStateTests: XCTestCase {
     func testEmptyStateHasCurrentSchemaVersionAndNoRecords() {
         let s = ProgressState()
         XCTAssertEqual(s.schemaVersion, ProgressState.currentSchemaVersion)
-        XCTAssertEqual(s.schemaVersion, 3)
+        XCTAssertEqual(s.schemaVersion, 5)
         XCTAssertTrue(s.concepts.isEmpty)
         XCTAssertTrue(s.nodes.isEmpty)
         XCTAssertTrue(s.answers.isEmpty)
@@ -82,6 +82,16 @@ final class ProgressStateTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(ProgressState.self, from: data).basicsLessonCompleted, true)
     }
 
+    /// Schema 4: the last lesson started is saved; without one the key is not written.
+    func testLastLessonSurvivesEncodingAndIsAbsentUntilSet() throws {
+        var s = ProgressState()
+        XCTAssertFalse(String(decoding: try JSONEncoder().encode(s), as: UTF8.self).contains("lastNodeID"))
+        s.lastNodeID = "u2-outs"
+        let data = try JSONEncoder().encode(s)
+        XCTAssertTrue(String(decoding: data, as: UTF8.self).contains("\"lastNodeID\":\"u2-outs\""))
+        XCTAssertEqual(try JSONDecoder().decode(ProgressState.self, from: data).lastNodeID, "u2-outs")
+    }
+
     func testOpeningSnapshotRoundTripPreservesSeedAndResponses() throws {
         var state = ProgressState()
         state.openingDismissed = true
@@ -90,7 +100,7 @@ final class ProgressStateTests: XCTestCase {
         let decoded = try JSONDecoder().decode(ProgressState.self, from: JSONEncoder().encode(state))
         XCTAssertEqual(decoded, state)
         XCTAssertNil(decoded.firstLessonCompleted)
-        XCTAssertEqual(decoded.schemaVersion, 3)
+        XCTAssertEqual(decoded.schemaVersion, 5)
     }
 
     func testUnversionedGuideKeepsLegacyCardsAndAnswersAcrossRoundTrip() throws {

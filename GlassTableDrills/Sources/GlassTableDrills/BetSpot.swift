@@ -5,11 +5,14 @@ import GlassTableEngine
 public struct BetSpot: Equatable {
     public let pot: Int
     public let bet: Int
-    public init(pot: Int, bet: Int) { self.pot = pot; self.bet = bet }
+    /// Players who already called the bet before you (D53's third pot-odds step); their
+    /// chips are in the pot you are priced against.
+    public let callers: Int
+    public init(pot: Int, bet: Int, callers: Int = 0) { self.pot = pot; self.bet = bet; self.callers = callers }
 
     /// Equity needed to call, in percent. Engine's `pot` param includes the bet.
     public var requiredPct: Double {
-        requiredEquity(toCall: Double(bet), pot: Double(pot + bet)) * 100
+        requiredEquity(toCall: Double(bet), pot: Double(pot + bet + callers * bet)) * 100
     }
     /// Minimum defense frequency, in percent.
     public var mdfPct: Double { mdf(bet: Double(bet), pot: Double(pot)) * 100 }
@@ -20,12 +23,18 @@ public enum BetSpotGenerator {
     static let pots = [6, 8, 10, 12, 15, 20, 24, 30]
     static let fractions = [0.33, 0.5, 0.75, 1.0, 1.5]  // decisions.md §A sizing menu
 
-    public static func spot(baseSeed: UInt64, index: Int) -> BetSpot {
+    /// Later steps' sizes (D53): the first step's menu plus a quarter, two thirds and double.
+    static let stepFractions = [0.25, 0.33, 0.5, 0.66, 0.75, 1.0, 1.5, 2.0]
+
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> BetSpot {
+        // Later steps draw from their own stream; the first step's is frozen.
         var rng = SplitMix64(seed: baseSeed
+            &+ (level > .learn ? UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03 : 0)
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         let pot = pots.randomElement(using: &rng)!
-        let f = fractions.randomElement(using: &rng)!
-        return BetSpot(pot: pot, bet: max(1, Int((f * Double(pot)).rounded())))
+        let f = (level > .learn ? stepFractions : fractions).randomElement(using: &rng)!
+        // The third step is multiway: one player has already called the bet.
+        return BetSpot(pot: pot, bet: max(1, Int((f * Double(pot)).rounded())), callers: level == .sharp ? 1 : 0)
     }
 }
 
@@ -51,13 +60,16 @@ public func exactPctText(_ x: Double) -> String {
 public func gradePotOdds(estimatePct: Int, spot: BetSpot,
                          language: LearningLanguage = .korean) -> PercentReveal {
     let correct = spot.requiredPct
+    // A caller already in (the third step) puts their chips in the pot too.
+    let earlier = String(repeating: language.text(" + 먼저 한 콜 \(spot.bet)", " + earlier call \(spot.bet)"),
+                         count: spot.callers)
     return PercentReveal(
         band: gradeEstimate(user: Double(estimatePct), correct: correct,
                             closeWithin: 7.5, spotOnWithin: 2.5),
         answerPct: estimatePct, correctPct: correct,
         whyText: language.text(
-            "벳 \(spot.bet) ÷ (팟 \(spot.pot) + 벳 \(spot.bet) + 콜 \(spot.bet)) = \(pctText(correct))%",
-            "Call \(spot.bet) ÷ (pot \(spot.pot) + bet \(spot.bet) + your call \(spot.bet)) = \(pctText(correct))%."))
+            "벳 \(spot.bet) ÷ (팟 \(spot.pot) + 벳 \(spot.bet)\(earlier) + 콜 \(spot.bet)) = \(pctText(correct))%",
+            "Call \(spot.bet) ÷ (pot \(spot.pot) + bet \(spot.bet)\(earlier) + your call \(spot.bet)) = \(pctText(correct))%."))
 }
 
 public func gradeMDF(estimatePct: Int, spot: BetSpot,

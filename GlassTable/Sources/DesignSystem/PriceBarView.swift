@@ -24,38 +24,76 @@ struct PriceBarView: View {
 
     /// 팟 + 상대 벳, plus the hypothetical 콜 when `withCall` — the pot-odds shape.
     /// MDF's bar omits the call: its denominator is only what is already out there.
-    static func priced(pot: Int, bet: Int, withCall: Bool) -> PriceBarView {
+    /// `callers` who already called the bet (the third pot-odds step) add their chips.
+    static func priced(pot: Int, bet: Int, withCall: Bool, callers: Int = 0) -> PriceBarView {
         var segs = [Segment(label: "팟", bb: pot, fill: GT.segPot),
                     Segment(label: "벳", bb: bet, fill: GT.segBet)]
+        if callers > 0 {
+            segs.append(Segment(label: "먼저 콜", bb: bet * callers, fill: GT.segBet))
+        }
         if withCall {
             segs.append(Segment(label: "콜", bb: bet, fill: GT.segCall, hypothetical: true))
         }
         return PriceBarView(segments: segs)
     }
 
-    private var total: Double { Double(segments.reduce(0) { $0 + $1.bb }) }
+    var body: some View {
+        PriceBarSegments(segments: segments, label: displayLabel)
+            .gtTablePartTextCap()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(segments.map { "\(displayLabel($0.label)) \($0.bb) \(language.text("빅 블라인드", "big blinds"))" }
+                .joined(separator: ", "))
+    }
+
+    private func displayLabel(_ value: String) -> String {
+        switch value {
+        case "팟": language.text("팟", "Pot")
+        case "벳": language.text("벳", "Bet")
+        case "콜": language.text("콜", "Call")
+        case "먼저 콜": language.text("먼저 콜", "Called")
+        default: value
+        }
+    }
+}
+
+/// The bar itself, laid out under the text cap so its height and narrowest segment
+/// grow with the labels instead of shrinking them.
+private struct PriceBarSegments: View {
+    let segments: [PriceBarView.Segment]
+    let label: (String) -> String
+    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 58
+    @ScaledMetric(relativeTo: .body) private var minimumWidth: CGFloat = 44
+
+    private var total: CGFloat { CGFloat(segments.reduce(0) { $0 + $1.bb }) }
 
     var body: some View {
         GeometryReader { geo in
+            let widths = widths(in: geo.size.width)
             HStack(spacing: 3) {
-                ForEach(segments) { seg in
-                    segmentView(seg, width: max(44, geo.size.width * Double(seg.bb) / total))
+                ForEach(Array(segments.enumerated()), id: \.element.id) { index, seg in
+                    segmentView(seg, width: widths[index])
                 }
             }
         }
-        .frame(height: 58)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(segments.map { "\(displayLabel($0.label)) \($0.bb) \(language.text("빅 블라인드", "big blinds"))" }
-            .joined(separator: ", "))
+        .frame(height: height)
     }
 
-    private func segmentView(_ seg: Segment, width: CGFloat) -> some View {
+    /// Proportional, as before; once the narrowest segments no longer fit beside the
+    /// rest, each keeps room for its label and the remainder is shared by size.
+    private func widths(in available: CGFloat) -> [CGFloat] {
+        let proportional = segments.map { max(minimumWidth, available * CGFloat($0.bb) / total) }
+        guard proportional.reduce(0, +) > available + 0.5 else { return proportional }
+        let room = available - 3 * CGFloat(segments.count - 1)
+        let spare = max(0, room - minimumWidth * CGFloat(segments.count))
+        return segments.map { minimumWidth + spare * CGFloat($0.bb) / total }
+    }
+
+    private func segmentView(_ seg: PriceBarView.Segment, width: CGFloat) -> some View {
         VStack(spacing: 2) {
-            Text(displayLabel(seg.label)).font(GT.semibold(11)).foregroundStyle(GT.onTable)
+            Text(label(seg.label)).font(GT.semibold(11)).foregroundStyle(GT.onTable)
             Text("\(seg.bb)").font(GT.title(17).monospacedDigit()).foregroundStyle(GT.onTable)
         }
-        .minimumScaleFactor(0.6)
-        .frame(width: width, height: 58)
+        .frame(width: width, height: height)
         .background(seg.fill,
                     in: RoundedRectangle(cornerRadius: 10))
         .overlay {
@@ -64,15 +102,6 @@ struct PriceBarView: View {
                     .strokeBorder(GT.onTable,
                                   style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
             }
-        }
-    }
-
-    private func displayLabel(_ value: String) -> String {
-        switch value {
-        case "팟": language.text("팟", "Pot")
-        case "벳": language.text("벳", "Bet")
-        case "콜": language.text("콜", "Call")
-        default: value
         }
     }
 }

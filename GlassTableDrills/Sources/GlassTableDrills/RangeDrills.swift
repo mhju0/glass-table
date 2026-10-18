@@ -22,9 +22,21 @@ public struct RangeNotationSpot: Equatable {
 
 public enum RangeNotationSpotGenerator {
     /// Built from templates rather than a fixed list, so the drill never runs out.
-    public static func spot(baseSeed: UInt64, index: Int) -> RangeNotationSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> RangeNotationSpot {
         var rng = SplitMix64(seed: baseSeed
+            &+ (level > .learn ? UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03 : 0)
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
+        let tokens = level > .learn ? laterTokens(using: &rng) : learnTokens(using: &rng)
+        let notation = tokens.joined(separator: ", ")
+        // The generator only emits forms the parser accepts, so a throw here would be
+        // a bug rather than bad input — fall back to a known-good spot instead of
+        // shipping a crash.
+        let range = (try? RangeNotation.parse(notation)) ?? HandRange([HandClass.all[0]])
+        return RangeNotationSpot(notation: notation, range: range)
+    }
+
+    /// The first step's one or two parts, frozen by `LearnSpotGoldenTests`.
+    private static func learnTokens(using rng: inout SplitMix64) -> [String] {
         let r = HandClass.rankChars
 
         var tokens: [String] = []
@@ -45,12 +57,25 @@ public enum RangeNotationSpotGenerator {
             let lo = Int.random(in: 3...(hi - 1), using: &rng)
             tokens = ["\(r[hi])\(r[lo])s", "\(r[hi])\(r[lo])o"]
         }
-        let notation = tokens.joined(separator: ", ")
-        // The generator only emits forms the parser accepts, so a throw here would be
-        // a bug rather than bad input — fall back to a known-good spot instead of
-        // shipping a crash.
-        let range = (try? RangeNotation.parse(notation)) ?? HandRange([HandClass.all[0]])
-        return RangeNotationSpot(notation: notation, range: range)
+        return tokens
+    }
+
+    /// Later steps (D53): three or four parts, a pair part, a same-suit run, a
+    /// different-suit part and sometimes one more same-suit hand. Each non-pair part has
+    /// its own high card, so no hand is counted twice.
+    private static func laterTokens(using rng: inout SplitMix64) -> [String] {
+        let r = HandClass.rankChars
+        let highs = [12, 11, 10].shuffled(using: &rng)   // A, K, Q
+        let pair = Int.random(in: 2...10, using: &rng)
+        var tokens = ["\(r[pair])".duplicated() + (Bool.random(using: &rng) ? "+" : "")]
+        let suitedLow = Int.random(in: 3...(highs[0] - 2), using: &rng)
+        tokens.append("\(r[highs[0]])\(r[suitedLow])s+")
+        let offLow = Int.random(in: 5...(highs[1] - 1), using: &rng)
+        tokens.append("\(r[highs[1]])\(r[offLow])o" + (offLow < highs[1] - 1 && Bool.random(using: &rng) ? "+" : ""))
+        if Bool.random(using: &rng) {
+            tokens.append("\(r[highs[2]])\(r[Int.random(in: 3...(highs[2] - 1), using: &rng)])s")
+        }
+        return tokens
     }
 }
 
@@ -92,7 +117,8 @@ public struct RFISpot: Equatable {
 }
 
 public enum RFISpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> RFISpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> RFISpot {
+        if level > .learn { return laterStep(baseSeed: baseSeed, index: index, level: level) }
         var attempt = 0
         while true {
             var rng = SplitMix64(seed: baseSeed
@@ -110,6 +136,90 @@ public enum RFISpotGenerator {
             attempt += 1
         }
     }
+
+    /// Later steps deal from their own stream (D53). The second keeps hands within 1.5
+    /// Chen points of the seat's edge. The third asks which seat first opens the hand,
+    /// so its seat is that one (the button's chart when none does), and it keeps hands
+    /// whose answer is not a glance: opened late, or just short of either end.
+    private static func laterStep(baseSeed: UInt64, index: Int, level: DrillLevel) -> RFISpot {
+        var attempt: UInt64 = 0
+        while true {
+            var rng = SplitMix64(seed: baseSeed
+                &+ UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03
+                &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15
+                &+ attempt)
+            attempt += 1
+            let deck = Deck.all.shuffled(using: &rng)
+            let hand = Array(deck[0..<2])
+            let seat = RFIChart.seats.randomElement(using: &rng)!
+            let score = Chen.score(HandClass(hand)!)
+            if level == .apply {
+                if abs(score - RFIChart.cutoffScore(for: seat)) <= 1.5 { return RFISpot(hand: hand, seat: seat) }
+                continue
+            }
+            let near = switch RFIChart.group(of: hand) {
+            case .late: true
+            case .always: score <= RFIChart.cutoffScore(for: .utg) + 1.5
+            case .fold: score >= RFIChart.cutoffScore(for: .btn) - 1.5
+            }
+            if near { return RFISpot(hand: hand, seat: RFIChart.earliestSeatOpening(hand) ?? .btn) }
+        }
+    }
+}
+
+/// The third RFI step's question: from which seat does this hand first open? Answers
+/// are seats in order of action, then "no seat". The small blind is never first: the
+/// button opens every hand it does, so it is not offered.
+public enum RFIFirstSeat {
+    public static let answers: [Position?] = [.utg, .utg1, .lj, .hj, .co, .btn, nil]
+
+    /// The index in `answers` of the hand's first opening seat.
+    public static func answer(for hand: [Card]) -> Int {
+        answers.firstIndex(of: RFIChart.earliestSeatOpening(hand)) ?? answers.count - 1
+    }
+
+    /// Four neighbouring answers in seat order, one of them right; where the window
+    /// sits around the answer comes from the seed.
+    public static func choices(answer: Int, seed: UInt64) -> [Int] {
+        var rng = SplitMix64(seed: seed)
+        let start = Int.random(in: max(0, answer - 3)...min(answer, answers.count - 4), using: &rng)
+        return Array(start..<(start + 4))
+    }
+
+    public static func label(_ answer: Int, in language: LearningLanguage) -> String {
+        guard answers.indices.contains(answer), let seat = answers[answer] else {
+            return language.text("여는 자리 없음", "No seat")
+        }
+        return seat.rawValue
+    }
+}
+
+public struct RFIFirstSeatReveal: Equatable {
+    public let band: GradeBand
+    public let answer: Int
+    public let correct: Int
+    public let whyText: String
+}
+
+public func gradeRFIFirstSeat(answer: Int, spot: RFISpot,
+                              language: LearningLanguage = .korean) -> RFIFirstSeatReveal {
+    let h = spot.handClass
+    let correct = RFIFirstSeat.answer(for: spot.hand)
+    func pct(_ seat: Position) -> String { pctText(RFIChart.openPercent[seat] ?? 0) }
+    var why = "\(h.description) · \(DrillTerms.chen(h, in: language))\n"
+    if let first = RFIFirstSeat.answers[correct] {
+        why += language.text("\(KO.topic(h.description)) \(first.rawValue)부터 열어요. \(KO.topic(first.rawValue)) 상위 약 \(pct(first))%를 열어요.",
+                             "\(h.description) first opens from \(first.rawValue), which opens about \(pct(first))% of hands.")
+        if correct > 0, let before = RFIFirstSeat.answers[correct - 1] {
+            why += language.text(" 바로 앞 \(KO.topic(before.rawValue)) 상위 약 \(pct(before))%라 접어요.",
+                                 " \(before.rawValue), one seat earlier, opens about \(pct(before))% and folds it.")
+        }
+    } else {
+        why += language.text("\(KO.topic(h.description)) 어느 자리에서도 열지 않아요. 가장 넓은 \(KO.topic("BTN")) 상위 약 \(pct(.btn))%까지만 열어요.",
+                             "No seat opens \(h.description) in this chart; even BTN opens only about \(pct(.btn))%.")
+    }
+    return RFIFirstSeatReveal(band: answer == correct ? .spotOn : .off,
+                              answer: answer, correct: correct, whyText: why)
 }
 
 public struct RFIReveal: Equatable {

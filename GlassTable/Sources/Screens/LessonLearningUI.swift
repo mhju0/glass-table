@@ -384,8 +384,10 @@ struct LessonEstimateChoices: View {
     }
     static func evValues(answer: Double, seed: UInt64) -> [Double] {
         let rounded = (answer * 2).rounded() / 2
-        var values = [rounded - 1, rounded, rounded + 1]
         var rng = SplitMix64(seed: seed)
+        // The answer is sometimes the lowest or highest value, so the middle value is no tell.
+        let offsets: [Double] = [[-2, -1, 0], [-1, 0, 1], [0, 1, 2]].randomElement(using: &rng)!
+        var values = offsets.map { rounded + $0 }
         values.shuffle(using: &rng)
         return values
     }

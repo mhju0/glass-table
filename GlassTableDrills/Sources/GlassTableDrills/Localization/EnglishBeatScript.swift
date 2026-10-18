@@ -119,6 +119,15 @@ enum EnglishBeatScript {
                      detail: after.isEmpty ? "You act last." : after.map(\.rawValue).joined(separator: " · ")),
                 Beat("Why position matters", detail: "Acting later lets you see more decisions before yours."),
             ]
+        case let .behindInHand(seat, stillIn):
+            let after = stillIn.filter { $0.actsAfter(seat) }
+            return [
+                Beat("Order after the flop", detail: Position.postflopOrder.map(\.rawValue).joined(separator: " → ")),
+                Beat("Still in", value: stillIn.map(\.rawValue).joined(separator: " · "),
+                     detail: "Seats that folded are not counted."),
+                Beat("Players after you", value: "\(after.count)",
+                     detail: after.isEmpty ? "You act last." : after.map(\.rawValue).joined(separator: " · ")),
+            ]
         case let .whichIsLater(a, b):
             let later = b.actsAfter(a) ? b : a
             return [Beat("Order after the flop", detail: Position.postflopOrder.map(\.rawValue).joined(separator: " → ")),

@@ -24,6 +24,7 @@ public enum SavedDrillInput: Codable, Equatable, Sendable {
             return (0...100).contains(value)
         case (.callFold, .boolean), (.rfi, .boolean), (.evLoss, .boolean):
             return true
+        case let (.rfi, .integer(value)): return RFIFirstSeat.answers.indices.contains(value)
         case let (.rangeRead, .range(width, tendencies)):
             return width.isFinite && (3...80).contains(width)
                 && tendencies.count <= RangeTendency.allCases.count
@@ -77,79 +78,82 @@ public struct SavedDrillReveal: Codable, Equatable, Sendable {
 /// Used only when accepting bytes from disk or an import. Ordinary writes keep the
 /// cheap shape check, while an untrusted saved reveal must agree with the real spot.
 enum SavedDrillScore {
-    static func matches(concept: Concept, seed: UInt64, index: Int,
+    static func matches(concept: Concept, seed: UInt64, index: Int, level: DrillLevel = .learn,
                         input: SavedDrillInput, reveal: SavedDrillReveal) -> Bool {
         let actual: (band: GradeBand, interval: IntervalAnswer?, evLoss: Double?)?
         switch (concept, input) {
         case let (.showdown, .integer(value)):
             actual = (gradeShowdown(answer: value,
-                spot: ShowdownSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: ShowdownSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.potMath, .integer(value)):
             actual = (gradePotMath(answer: value,
-                spot: PotMathSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: PotMathSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.position, .integer(value)):
             actual = (gradePosition(answer: value,
-                spot: PositionSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: PositionSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.outs, .integer(value)):
             actual = (gradeOuts(estimate: value,
-                spot: OutsSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: OutsSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.combos, .integer(value)):
             actual = (gradeBlocker(estimate: value,
-                spot: BlockerSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: BlockerSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.potOdds, .integer(value)):
             actual = (gradePotOdds(estimatePct: value,
-                spot: BetSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: BetSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.mdf, .integer(value)):
             actual = (gradeMDF(estimatePct: value,
-                spot: BetSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: BetSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.callFold, .boolean(value)):
             actual = (gradeCallFold(userCalls: value,
-                spot: CallFoldSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: CallFoldSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.rangeNotation, .integer(value)):
             actual = (gradeRangeNotation(estimate: value,
-                spot: RangeNotationSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: RangeNotationSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.rfi, .boolean(value)):
             actual = (gradeRFI(userOpens: value,
-                spot: RFISpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: RFISpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
+        case let (.rfi, .integer(value)):
+            actual = (gradeRFIFirstSeat(answer: value,
+                spot: RFISpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.rangeRead, .range(width, tendencies)):
             let selected = Set(tendencies.compactMap(RangeTendency.init(rawValue:)))
             actual = (gradeRangeRead(
                 estimate: RangeEstimate(width: width, tendencies: selected),
-                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.rangeRead, .rangeBand(width, excludedTop, tendencies)):
             let selected = Set(tendencies.compactMap(RangeTendency.init(rawValue:)))
             actual = (gradeRangeRead(
                 estimate: RangeEstimate(width: width, tendencies: selected, excludedTop: excludedTop),
-                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.evLoss, .boolean(value)):
             let result = gradeEVLoss(userCalls: value,
-                spot: EVLossSpotGenerator.spot(baseSeed: seed, index: index))
+                spot: EVLossSpotGenerator.spot(baseSeed: seed, index: index, level: level))
             actual = (result.band, nil, result.grade.loss)
         case let (.defend, .action(raw)):
             guard let choice = DefendAction(rawValue: raw) else { return false }
             actual = (gradeDefend(chosen: choice,
-                spot: DefendSpotGenerator.spot(baseSeed: seed, index: index)).band, nil, nil)
+                spot: DefendSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.equitySense, .interval(point, lo, hi)):
             let result = gradeEquitySense(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: EquitySenseSpotGenerator.spot(baseSeed: seed, index: index))
+                spot: EquitySenseSpotGenerator.spot(baseSeed: seed, index: index, level: level))
             actual = (result.band, result.intervalAnswer, nil)
         case let (.evCall, .interval(point, lo, hi)):
             let result = gradeEVCall(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: EVCallSpotGenerator.spot(baseSeed: seed, index: index))
+                spot: EVCallSpotGenerator.spot(baseSeed: seed, index: index, level: level))
             actual = (result.band, result.intervalAnswer, nil)
         case let (.hitFrequency, .interval(point, lo, hi)):
             let result = gradeHitFrequency(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: HitFrequencySpotGenerator.spot(baseSeed: seed, index: index))
+                spot: HitFrequencySpotGenerator.spot(baseSeed: seed, index: index, level: level))
             actual = (result.band, result.intervalAnswer, nil)
         case let (.rangeAdvantage, .interval(point, lo, hi)):
-            let spot = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = RangeAdvantageSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             let result = gradeRangeAdvantage(
                 estimate: Estimate(point: point, lo: lo, hi: hi), spot: spot,
                 openerEquityPct: spot.openerEquityPct)
             actual = (result.band, result.intervalAnswer, nil)
         case let (.actionRead, .interval(point, lo, hi)):
             let result = gradeActionRead(estimate: Estimate(point: point, lo: lo, hi: hi),
-                spot: ActionReadSpotGenerator.spot(baseSeed: seed, index: index))
+                spot: ActionReadSpotGenerator.spot(baseSeed: seed, index: index, level: level))
             actual = (result.band, result.intervalAnswer, nil)
         default:
             return false

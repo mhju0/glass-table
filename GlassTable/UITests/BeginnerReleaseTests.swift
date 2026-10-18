@@ -115,22 +115,22 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertFalse(app.buttons["placement-start"].exists)
     }
 
-    func testPlayHomeOffersTwoModesAboveTheTabBar() {
+    /// Play is a list like Learn (owner, 2026-10-18): every way to start is in view at once.
+    func testPlayHomeListsEveryModeAboveTheTabBar() {
         let app = app()
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Play"].tap()
-        let free = app.buttons["play-free"]
+        let quick = app.buttons["play-quick"]
+        let long = app.buttons["play-long"]
         let graded = app.buttons["play-graded"]
-        XCTAssertTrue(free.waitForExistence(timeout: 5))
-        XCTAssertTrue(free.label.contains("Free table"), free.label)
-        XCTAssertTrue(graded.label.contains("Graded 1:1 practice"), graded.label)
-        XCTAssertTrue(free.isHittable && graded.isHittable)
+        XCTAssertTrue(quick.waitForExistence(timeout: 5))
+        XCTAssertTrue(quick.label.hasPrefix("Quick game"), quick.label)
+        XCTAssertTrue(long.label.hasPrefix("Long table"), long.label)
+        XCTAssertTrue(graded.label.hasPrefix("Graded 1:1 practice"), graded.label)
+        XCTAssertTrue(quick.isHittable && long.isHittable && graded.isHittable)
         XCTAssertLessThan(graded.frame.maxY, app.tabBars.firstMatch.frame.minY,
-                          "Both mode cards must clear the tab bar without scrolling")
-        let midline = app.windows.firstMatch.frame.midY
-        XCTAssertLessThanOrEqual(free.frame.maxY, midline, "The screen's midline falls between the two cards")
-        XCTAssertGreaterThanOrEqual(graded.frame.minY, midline, "The screen's midline falls between the two cards")
+                          "Every mode must clear the tab bar without scrolling")
     }
 
     func testTableHabitsShowAProgressLineAndKeepTheEvidenceOneTapDown() {
@@ -156,7 +156,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Play"].tap()
-        app.buttons["play-free"].tap()
+        app.buttons["play-quick"].tap()
         let title = app.staticTexts["Set up the table"]
         XCTAssertTrue(title.waitForExistence(timeout: 5))
         // The app's own Back control, with the title starting clear below it.
@@ -216,7 +216,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Play"].tap()
-        app.buttons["play-free"].tap()
+        app.buttons["play-quick"].tap()
         XCTAssertTrue(app.buttons["seat-style-3"].waitForExistence(timeout: 5))
         app.buttons["2 players"].tap()
         XCTAssertTrue(app.buttons["player-count-2"].isSelected)
@@ -475,7 +475,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Play"].tap()
-        app.buttons["play-free"].tap()
+        app.buttons["play-quick"].tap()
         XCTAssertTrue(app.buttons["game-length-quick"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["game-length-quick"].isSelected)
         XCTAssertEqual(app.staticTexts["game-length-detail"].label,
@@ -532,7 +532,7 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Play"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Play"].tap()
-        app.buttons["play-free"].tap()
+        app.buttons["play-quick"].tap()
         XCTAssertTrue(app.buttons["table-start"].waitForExistence(timeout: 5))
         app.buttons["table-start"].tap()
         let close = app.buttons["free-table-back-close"]
@@ -558,9 +558,9 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launchEnvironment["GT_DEMO_TAB"] = "play"
         app.launch()
         // Play opens on its landing; the table in progress is one tap away.
-        let resume = app.buttons["play-free"]
+        let resume = app.buttons["play-continue"]
         XCTAssertTrue(resume.waitForExistence(timeout: 15))
-        XCTAssertTrue(resume.label.hasPrefix("Continue the free table"), resume.label)
+        XCTAssertTrue(resume.label.hasPrefix("Quick game · 4 players, Hand 1 of 10."), resume.label)
         resume.tap()
         XCTAssertTrue(table.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["Your cards"].exists, "The guide shows only once")
@@ -617,9 +617,9 @@ final class BeginnerReleaseTests: XCTestCase {
         app.launchEnvironment = ["GT_TEST_STORE_ID": storeID, "GT_TEST_FIRST_LESSON": "0",
                                  "GT_DEMO_TAB": "play"]
         app.launch()
-        let resume = app.buttons["play-free"]
+        let resume = app.buttons["play-continue"]
         XCTAssertTrue(resume.waitForExistence(timeout: 15))
-        XCTAssertTrue(resume.label.contains("hand 2"), resume.label)
+        XCTAssertTrue(resume.label.hasPrefix("Long table · 4 players, Hand 2."), resume.label)
         resume.tap()
         XCTAssertTrue(app.staticTexts["Four players · Hand 2"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["practice-table"].exists)
