@@ -29,8 +29,9 @@ final class StepLevelsTests: XCTestCase {
         XCTAssertTrue(showdown.label.contains(ko ? "3단계 중 3단계 통과" : "3 of 3 steps passed"), showdown.label)
         let potMath = app.buttons["lesson-u1-potMath"]
         XCTAssertTrue(potMath.label.contains(ko ? "3단계 중 2단계 통과" : "2 of 3 steps passed"), potMath.label)
-        // A skill without steps keeps its row as it was.
-        XCTAssertFalse(app.buttons["lesson-u1-position"].label.contains(ko ? "단계 중" : "steps passed"))
+        // 익숙 in position marks only its first step.
+        let position = app.buttons["lesson-u1-position"]
+        XCTAssertTrue(position.label.contains(ko ? "3단계 중 1단계 통과" : "1 of 3 steps passed"), position.label)
         assertNoStepNames(app)
         attach(app, "\(language)-\(ax ? "AX5" : "large")-learn-steps")
     }

@@ -225,7 +225,7 @@ private struct RestoredDrillContextView: View {
     let answerID: String
 
     private var script: (beats: [Beat], rows: [(String, [Card])]) {
-        Walkthrough.make(concept: concept, seed: seed, index: index, language: language)
+        Walkthrough.make(concept: concept, seed: seed, index: index, level: level, language: language)
     }
 
     var body: some View {
@@ -290,7 +290,8 @@ private struct RestoredDrillContextView: View {
                 }
             }
             if concept == .rangeRead, let input,
-                      let result = RestoredLessonEvidence.rangeReveal(seed: seed, index: index, input: input, language: language) {
+                      let result = RestoredLessonEvidence.rangeReveal(seed: seed, index: index, level: level,
+                                                                      input: input, language: language) {
                 Text(language.text("색: 정답 · 테두리: 선택한 답", "Fill: answer · outline: your estimate"))
                     .font(GT.body(14)).foregroundStyle(GT.onFelt)
                 RangeGridView(range: result.truth, outline: result.guess).frame(maxWidth: 350)
@@ -324,12 +325,19 @@ private struct RestoredDrillContextView: View {
             }
             .onAppear { potStepIndex = max(0, spot.replaySteps.count - 1) }
         case .position:
-            let spot = PositionSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = PositionSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             switch spot.question {
             case let .behind(seat, preflop):
                 LessonSeatLoop(active: seat, markers: [seat: language.text("나", "You")], postflop: !preflop)
                 Text(language.text("\(seat.seatLabel(in: language)) · \(preflop ? "플랍 전" : "플랍 이후")",
                                    "\(seat.seatLabel(in: language)) · \(preflop ? "before" : "after") the flop"))
+                    .font(GT.body(15)).foregroundStyle(GT.onFelt)
+            case let .behindInHand(seat, stillIn):
+                LessonSeatLoop(active: seat, markers: Dictionary(uniqueKeysWithValues:
+                    [(seat, language.text("나", "You"))] + stillIn.map { ($0, language.text("참여", "In")) }),
+                               showsOrder: false, postflop: true)
+                Text(language.text("\(seat.seatLabel(in: language)) · 플랍 이후 · 남은 상대 \(stillIn.count)명",
+                                   "\(seat.seatLabel(in: language)) · after the flop · \(stillIn.count) still in"))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
             case let .whichIsLater(a, b):
                 LessonSeatLoop(markers: [a: "A", b: "B"])
@@ -352,7 +360,7 @@ private struct RestoredDrillContextView: View {
             Text(spot.notation).font(GT.title(27).monospaced())
                 .foregroundStyle(GT.onFelt)
         case .rangeRead:
-            let spot = RangeReadSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(spot.archetypeShown ? spot.archetype.beginnerTitle(in: language)
                                      : language.text("모르는 상대", "Unknown opponent"))
                 .font(GT.title(16)).foregroundStyle(GT.onFelt)
@@ -378,7 +386,7 @@ private struct RestoredDrillContextView: View {
                                "Pot \(spot.pot)bb · Bet \(spot.bet)bb"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .defend:
-            let spot = DefendSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = DefendSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(language.text("\(KO.subject(spot.opener.rawValue)) 3bb 오픈",
                                "\(spot.opener.rawValue) raises first to 3bb"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
@@ -396,13 +404,16 @@ private struct RestoredDrillContextView: View {
                                "\(spot.openerSeat.rawValue) raises first · \(spot.callerSeat.rawValue) calls"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .actionRead:
-            let spot = ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = ActionReadSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(language.text("\(spot.villainSeat.rawValue) 오픈 → \(spot.actionLine)",
                                "\(spot.villainSeat.rawValue) raises first → \(spot.actionLine(in: language))"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .rfi:
-            let spot = RFISpotGenerator.spot(baseSeed: seed, index: index)
-            Text(language.text("내 자리 · \(spot.seat.rawValue)", "Your seat · \(spot.seat.rawValue)"))
+            let spot = RFISpotGenerator.spot(baseSeed: seed, index: index, level: level)
+            // The third step asked for the first seat, so the hand is the question.
+            Text(level == .sharp
+                 ? language.text("\(spot.handClass.description) · 먼저 올리는 첫 자리", "\(spot.handClass.description) · first seat to raise")
+                 : language.text("내 자리 · \(spot.seat.rawValue)", "Your seat · \(spot.seat.rawValue)"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .showdown, .outs, .equitySense: EmptyView()
         }
@@ -424,7 +435,7 @@ private struct RestoredDrillContextView: View {
         case let .defendChart(opener, highlight):
             DefendGridView(opener: opener, highlight: highlight,
                            cards: concept == .defend
-                            ? DefendSpotGenerator.spot(baseSeed: seed, index: index).hand : [])
+                            ? DefendSpotGenerator.spot(baseSeed: seed, index: index, level: level).hand : [])
                 .frame(maxWidth: 350)
         case let .actionList(lines, _):
             VStack(alignment: .leading, spacing: 5) {
@@ -445,7 +456,7 @@ private struct RestoredDrillContextView: View {
 
 /// Semantic evidence shared by restored rendering and replay tests.
 enum RestoredLessonEvidence {
-    static func rangeReveal(seed: UInt64, index: Int, input: DrillSubmittedInput,
+    static func rangeReveal(seed: UInt64, index: Int, level: DrillLevel = .learn, input: DrillSubmittedInput,
                             language: LearningLanguage) -> RangeReadReveal? {
         let estimate: RangeEstimate
         switch input {
@@ -455,6 +466,7 @@ enum RestoredLessonEvidence {
             estimate = RangeEstimate(width: width, tendencies: Set(tendencies.compactMap(RangeTendency.init(rawValue:))), excludedTop: excludedTop)
         default: return nil
         }
-        return gradeRangeRead(estimate: estimate, spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index), language: language)
+        return gradeRangeRead(estimate: estimate, spot: RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level),
+                              language: language)
     }
 }

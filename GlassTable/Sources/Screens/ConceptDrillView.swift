@@ -1173,11 +1173,16 @@ private struct PositionDrill: View {
     @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.simpleQuestions) private var simple
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.drillLevel) private var level
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: PositionReveal?
+    /// The typed count at the third step (owner default 2: counts are typed at Sharp).
+    @State private var typedCount = ""
 
-    private var spot: PositionSpot { PositionSpotGenerator.spot(baseSeed: seed, index: index) }
+    private var spot: PositionSpot { PositionSpotGenerator.spot(baseSeed: seed, index: index, level: level) }
+    /// The first step's three choices; later steps answer from every count or type it.
+    private var picksFromThree: Bool { simple && level == .learn }
 
     var body: some View {
         DrillShell(title: "포지션", progressText: progressText) {
@@ -1194,6 +1199,7 @@ private struct PositionDrill: View {
                             submittedInput: .integer(reveal.answer)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil
+                    typedCount = ""
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
@@ -1203,6 +1209,7 @@ private struct PositionDrill: View {
                 }
             }
         }
+        .onChange(of: index) { _, _ in typedCount = "" }
     }
 
     private var isPreflop: Bool {
@@ -1256,9 +1263,11 @@ private struct PositionDrill: View {
     }
 
     @ViewBuilder private var seatDiagram: some View {
+        // With only some players still in, the loop's "all eight seats" caption would be
+        // wrong, so the order is left to the reveal's sentence.
         LessonSeatLoop(markers: Dictionary(uniqueKeysWithValues: Position.allCases.compactMap { position in
             marker(position).map { (position, $0) }
-        }), showsOrder: reveal != nil, postflop: !isPreflop)
+        }), showsOrder: reveal != nil && !countsStillIn, postflop: !isPreflop)
     }
 
     /// The seat the question is about. With codes showing, a two-seat question names
@@ -1266,10 +1275,17 @@ private struct PositionDrill: View {
     private func marker(_ p: Position) -> String? {
         switch spot.question {
         case let .behind(mine, _): return p == mine ? language.text("나", "You") : nil
+        case let .behindInHand(mine, stillIn):
+            return p == mine ? language.text("나", "You") : (stillIn.contains(p) ? language.text("참여", "In") : nil)
         case let .whichIsLater(a, b):
             guard !termsLead else { return nil }
             return p == a ? "A" : (p == b ? "B" : nil)
         }
+    }
+
+    private var countsStillIn: Bool {
+        if case .behindInHand = spot.question { return true }
+        return false
     }
 
     private func groupName(_ p: Position) -> String {
@@ -1300,6 +1316,15 @@ private struct PositionDrill: View {
             return language.text(
                 "\(p.rawValue) 자리예요. \(preflop ? "프리플랍" : "플랍 이후")에 내 뒤에 몇 명이 남았나요?",
                 "You are in \(p.rawValue). How many players act after you \(preflop ? "before the flop" : "after the flop")?")
+        case let .behindInHand(p, stillIn):
+            guard termsLead else {
+                return language.text(
+                    "내 자리: \(p.plainName(in: language)). 플랍 이후 \(stillIn.count)명이 더 남았어요(참여 표시). 그중 내 뒤에 행동하는 사람은 몇 명인가요?",
+                    "Your seat: \(p.plainName(in: language)). After the flop, \(stillIn.count) other \(stillIn.count == 1 ? "player is" : "players are") still in (marked In). How many of them act after you?")
+            }
+            let list = stillIn.map(\.rawValue).joined(separator: " · ")
+            return language.text("\(p.rawValue) 자리예요. 플랍 이후 남은 상대: \(list). 그중 내 뒤에 몇 명이 행동하나요?",
+                                 "You are in \(p.rawValue). Still in after the flop: \(list). How many of them act after you?")
         case let .whichIsLater(a, b):
             guard termsLead else {
                 return language.text("A와 B 중 어느 자리가 더 늦게 행동하나요?", "Which seat acts later: A or B?")
@@ -1313,14 +1338,19 @@ private struct PositionDrill: View {
     private var answerControls: some View {
         switch spot.question {
         case .behind:
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: simple ? 3 : 4),
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: picksFromThree ? 3 : 4),
                       spacing: 8) {
-                ForEach(simple ? BeginnerQuestionChoices.integers(answer: spot.correctAnswer, bounds: 0...7, seed: seed &+ UInt64(index)) : Array(0...7), id: \.self) { n in
+                ForEach(picksFromThree ? BeginnerQuestionChoices.integers(answer: spot.correctAnswer, bounds: 0...7, seed: seed &+ UInt64(index)) : Array(0...7), id: \.self) { n in
                     GTChoiceButton(title: "\(n)", minHeight: 50) {
                         reveal = gradePosition(answer: n, spot: spot, language: language)
                     }
                 }
             }
+        case .behindInHand:
+            CountEntryView(entry: $typedCount, suffix: language.text("명", " players"), onSubmit: {
+                if let n = Int(typedCount) { reveal = gradePosition(answer: n, spot: spot, language: language) }
+            }, maximumDigits: 1, maximumValue: 7)
+            .accessibilityIdentifier("position-typed-entry")
         case let .whichIsLater(a, b):
             HStack(spacing: 10) {
                 ForEach(Array([a, b].enumerated()), id: \.offset) { i, p in
@@ -1868,8 +1898,13 @@ private struct RFIDrill: View {
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var reveal: RFIReveal?
+    @Environment(\.drillLevel) private var level
+    /// The third step's answer: the first seat whose chart raises the hand (D53).
+    @State private var firstSeatReveal: RFIFirstSeatReveal?
 
-    private var spot: RFISpot { RFISpotGenerator.spot(baseSeed: seed, index: index) }
+    private var spot: RFISpot { RFISpotGenerator.spot(baseSeed: seed, index: index, level: level) }
+    /// At the third step the seat is the answer, so no seat is given.
+    private var asksFirstSeat: Bool { level == .sharp }
 
     var body: some View {
         DrillShell(title: "RFI 차트", progressText: progressText) {
@@ -1877,12 +1912,19 @@ private struct RFIDrill: View {
                 SectionLabel(text: language.text("내 핸드", "Your hand"))
                 if simple { LessonHandNotation(cards: spot.hand) }
                 else { CardRow(cards: spot.hand) }
-                SectionLabel(text: language.text("내 자리", "Your seat"))
-                    .padding(.top, 8)
-                if simple {
-                    LessonSeatLoop(active: spot.seat, showsOrder: false)
-                } else {
-                    seatStrip
+                if !asksFirstSeat {
+                    SectionLabel(text: language.text("내 자리", "Your seat"))
+                        .padding(.top, 8)
+                    if simple {
+                        LessonSeatLoop(active: spot.seat, showsOrder: false)
+                    } else {
+                        seatStrip
+                    }
+                }
+                if firstSeatReveal != nil {
+                    // The chart of the seat that decides it: the first that raises the
+                    // hand, or the widest when none does.
+                    chart.padding(.top, 10).revealEvidenceStart()
                 }
                 if let reveal {
                     if simple {
@@ -1899,12 +1941,20 @@ private struct RFIDrill: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } sheet: {
-            if let reveal {
+            if let firstSeatReveal {
+                RevealSheet(band: firstSeatReveal.band,
+                            submittedInput: .integer(firstSeatReveal.answer)) {
+                    onAnswer(DrillOutcome(band: firstSeatReveal.band, interval: nil))
+                    self.firstSeatReveal = nil
+                }
+            } else if let reveal {
                 RevealSheet(band: reveal.band,
                             submittedInput: .boolean(reveal.userOpens)) {
                     onAnswer(DrillOutcome(band: reveal.band, interval: nil))
                     self.reveal = nil
                 }
+            } else if asksFirstSeat {
+                firstSeatQuestion
             } else {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(termsLead
@@ -1925,6 +1975,39 @@ private struct RFIDrill: View {
                 }
             }
         }
+    }
+
+    private var firstSeatQuestion: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(language.text("이 패는 어느 자리부터 먼저 올리나요?",
+                               "From which seat does the chart first raise with this hand?"))
+                .fixedSize(horizontal: false, vertical: true)
+                .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
+            // Two by two, stacked at accessibility sizes so every seat name fits.
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 10) { firstSeatChoices }
+            } else {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 2),
+                          spacing: 10) { firstSeatChoices }
+            }
+        }
+    }
+
+    private var firstSeatChoices: some View {
+        ForEach(RFIFirstSeat.choices(answer: RFIFirstSeat.answer(for: spot.hand),
+                                     seed: seed &+ UInt64(index)), id: \.self) { choice in
+            GTChoiceButton(title: firstSeatLabel(choice), minHeight: 56) {
+                firstSeatReveal = gradeRFIFirstSeat(answer: choice, spot: spot, language: language)
+            }
+            .accessibilityIdentifier("rfi-first-seat-\(choice)")
+        }
+    }
+
+    private func firstSeatLabel(_ choice: Int) -> String {
+        guard RFIFirstSeat.answers.indices.contains(choice), let seat = RFIFirstSeat.answers[choice] else {
+            return RFIFirstSeat.label(choice, in: language)
+        }
+        return termsLead ? seat.rawValue : seat.plainName(in: language)
     }
 
     @ViewBuilder
@@ -2028,7 +2111,8 @@ private struct RangeReadDrill: View {
     @State private var pickedStart = false
     private var asksInWords: Bool { simple && !pickedStart && reveal == nil }
 
-    private var spot: RangeReadSpot { RangeReadSpotGenerator.spot(baseSeed: seed, index: index) }
+    @Environment(\.drillLevel) private var level
+    private var spot: RangeReadSpot { RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level) }
     private var isCall: Bool { if case .called = spot.action { true } else { false } }
     private var estimate: RangeEstimate {
         RangeEstimate(width: width, tendencies: tendencies, excludedTop: isCall ? excludedTop : 0)
@@ -2116,7 +2200,7 @@ private struct RangeReadDrill: View {
             Text(language.text("이 행동에 맞는 패 범위는 어느 쪽일까요?", "Which range fits these actions?"))
                 .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                 .fixedSize(horizontal: false, vertical: true)
-            ForEach(Array(BeginnerQuestionChoices.rangeEstimates(spot: spot, seed: seed &+ UInt64(index)).enumerated()), id: \.offset) { option, candidate in
+            ForEach(Array(RangeReadChoices.estimates(spot: spot, seed: seed &+ UInt64(index), level: level).enumerated()), id: \.offset) { option, candidate in
                 GTChoiceButton(title: language.text("가능한 패 약 \(pctText(candidate.range.percent))%", "About \(pctText(candidate.range.percent))% of hands"), minHeight: 52) {
                     width = candidate.width
                     tendencies = candidate.tendencies
@@ -2819,8 +2903,13 @@ private struct ActionReadDrill: View {
     /// reseeds past the archetype/action pairs whose answer is a certainty, narrowing
     /// the range on each attempt to find out.
     private func makeSpot() -> ActionReadSpot {
-        ActionReadSpotGenerator.spot(baseSeed: seed, index: index)
+        ActionReadSpotGenerator.spot(baseSeed: seed, index: index, level: level)
     }
+
+    @Environment(\.drillLevel) private var level
+    /// The third step keeps who the opponent is until the answer (D53): how they play
+    /// is read from the action too.
+    private var namesOpponent: Bool { level < .sharp || reveal != nil }
 
     var body: some View {
         let spot = makeSpot()
@@ -2834,12 +2923,18 @@ private struct ActionReadDrill: View {
                 Text(language.text("\(spot.villainSeat.plainName(in: language)) 먼저 올림 → \(spot.actionLine)",
                                    "\(spot.villainSeat.plainName(in: language)) raises first → \(spot.actionLine(in: language))"))
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
-                Text("\(spot.villain.beginnerTitle(in: language)) · \(spot.villain.beginnerDescription(in: language))")
+                Text(namesOpponent
+                     ? "\(spot.villain.beginnerTitle(in: language)) · \(spot.villain.beginnerDescription(in: language))"
+                     : language.text("모르는 상대 · 어떤 사람인지도 액션으로 판단해야 해요.",
+                                     "Unknown opponent · Use their actions to judge how they play."))
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("action-read-opponent")
                 // The grid is fair game before the answer: the preflop range is the
                 // stated premise, the same way EV 손실 prints it. A newer player is
-                // asked in words first and sees it with the answer.
-                if !simple || reveal != nil {
+                // asked in words first and sees it with the answer. At the third step
+                // the grid would name the hidden opponent, so it waits for the answer.
+                if (!simple && namesOpponent) || reveal != nil {
                     RangeGridView(range: spot.range)
                         .frame(height: 230)
                         .padding(.top, 6)
@@ -2898,7 +2993,7 @@ private struct ActionReadDrill: View {
                     // Steps of ten keep every answer within the on-target band of some
                     // choice, so the words never cost a learner the grade.
                     if simple {
-                        LessonEstimateChoices(values: BeginnerQuestionChoices.percentages(answer: spot.pairOrBetterPct, seed: seed &+ UInt64(index)), suffix: "%") { value in
+                        LessonEstimateChoices(values: ActionReadChoices.values(answer: spot.pairOrBetterPct, seed: seed &+ UInt64(index), level: level), suffix: "%") { value in
                             point = value
 
                         reveal = gradeActionRead(
@@ -2941,7 +3036,8 @@ private struct DefendDrill: View {
     @Binding var chartPractice: DefendChartPracticeState
     @State private var reveal: DefendReveal?
 
-    private var spot: DefendSpot { DefendSpotGenerator.spot(baseSeed: seed, index: index) }
+    @Environment(\.drillLevel) private var level
+    private var spot: DefendSpot { DefendSpotGenerator.spot(baseSeed: seed, index: index, level: level) }
 
     var body: some View {
         DrillShell(title: "디펜드 차트", progressText: progressText) {
@@ -2956,9 +3052,13 @@ private struct DefendDrill: View {
                               termsLead && !simple ? "Raises first to 3bb" : "Raises first to 3 big blinds"])
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(language.text("상위 약 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
-                                   "This seat starts with about \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands, strongest first."))
-                    .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                // The third step leaves the opener's width to the learner (D53).
+                if level < .sharp {
+                    Text(language.text("상위 약 \(pctText(RFIChart.openPercent[spot.opener] ?? 0))%를 여는 자리예요",
+                                       "This seat starts with about \(pctText(RFIChart.openPercent[spot.opener] ?? 0))% of hands, strongest first."))
+                        .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
+                        .accessibilityIdentifier("defend-opening-width")
+                }
                 if reveal == nil {
                     DefendChartPrimer(expanded: $chartPractice.primerExpanded)
                     if simple, chartPractice.offersIndependentTry {
