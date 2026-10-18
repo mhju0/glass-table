@@ -59,7 +59,8 @@ struct PracticeActivityOverviewTests {
     @Test func zeroFutureAndUnsupportedModesDoNotGrantPractice() {
         let result = overview([
             row("2026-10-06", exact: 0), row("2026-10-07", exact: 100),
-            row("2026-10-06", mode: "free-play"), row("2026-10-06", mode: "table"),
+            // "table" counts since schema 5 (D53); StepPersistenceTests covers it.
+            row("2026-10-06", mode: "free-play"),
             row("2026-10-06", mode: "guided"), row("2026-10-06", mode: "future-mode"),
             row("2026-10-05", concept: "potMath"),
         ])

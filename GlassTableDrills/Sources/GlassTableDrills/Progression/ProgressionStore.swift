@@ -161,7 +161,7 @@ public struct ProgressionStore {
     /// adds records, never changes one, and leaves tiers alone. Generic over
     /// `DrillLevel.highest(for:)`, so a skill given steps later is covered by rerunning
     /// it behind its own schema bump.
-    static func markStepsReached(_ state: inout ProgressState) {
+    public static func markStepsReached(_ state: inout ProgressState) {
         for lesson in Curriculum.tracks.flatMap(\.lessons) {
             guard let concept = Curriculum.taughtConcept(of: lesson),
                   let record = state.concepts[concept.rawValue], record.tier >= .proficient else { continue }
