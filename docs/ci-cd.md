@@ -10,8 +10,12 @@ Four GitHub Actions workflows, all on `macos-15` runners (free minutes, since th
 | `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
 
 `ci.yml` is the gate that has to pass before merging. The UI suite is too slow for every
-push, so it runs nightly. Its shards split test classes by test count, so a new UI test
-class runs without editing the workflow. To run the UI suite on a branch before merging:
+push, so it runs nightly. Its shards split test classes by the minutes each class took on
+a GitHub runner, listed in the workflow; `BilingualConsistencyB20Tests` alone takes about
+74 min, so it gets a shard to itself. A new UI test class runs without editing the
+workflow: it is estimated from its test count and flagged with a warning until its
+measured minutes are added. The shard step fails if any `XCTestCase` class in
+`GlassTable/UITests` is not assigned to a shard. To run the UI suite on a branch before merging:
 Actions → UI tests → Run workflow → pick the branch.
 
 First full run (2026-10-15, run 38664206149): shards 2 and 3 passed in about 51 and
