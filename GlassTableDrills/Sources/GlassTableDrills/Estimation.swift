@@ -42,8 +42,20 @@ public struct EquitySenseSpot: Equatable {
 
 public enum EquitySenseSpotGenerator {
     public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> EquitySenseSpot {
-        var rng = SplitMix64(seed: baseSeed
-            &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
+        guard level > .learn else { return deal(seed: baseSeed &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15) }
+        // Later steps (D53) draw from their own stream and keep only close matchups,
+        // between 25% and 75%, where a rough sense of "ahead" or "behind" is not enough.
+        var attempt: UInt64 = 0
+        while true {
+            let spot = deal(seed: baseSeed &+ UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03
+                &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15 &+ attempt)
+            if (25...75).contains(spot.equityPct) { return spot }
+            attempt += 1
+        }
+    }
+
+    private static func deal(seed: UInt64) -> EquitySenseSpot {
+        var rng = SplitMix64(seed: seed)
         var deck = Deck.all
         deck.shuffle(using: &rng)
         let street = Bool.random(using: &rng) ? 3 : 4
@@ -80,10 +92,12 @@ public struct EVCallSpot: Equatable {
 
 public enum EVCallSpotGenerator {
     public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> EVCallSpot {
+        // Later steps (D53) draw from their own stream and add an overbet.
         var rng = SplitMix64(seed: baseSeed
+            &+ (level > .learn ? UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03 : 0)
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         let pot = [8, 10, 12, 16, 20, 24, 30].randomElement(using: &rng)!
-        let f = [0.33, 0.5, 0.75, 1.0].randomElement(using: &rng)!
+        let f = (level > .learn ? [0.33, 0.5, 0.75, 1.0, 1.5] : [0.33, 0.5, 0.75, 1.0]).randomElement(using: &rng)!
         let bet = max(1, Int((f * Double(pot)).rounded()))
         // Equity in whole percent, spread either side of the break-even price so the
         // answer's sign is not guessable from the sizing alone.

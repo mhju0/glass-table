@@ -2,8 +2,8 @@
 import GlassTableEngine
 
 /// "How many combos of X remain?" given removed (visible) cards.
-/// Kinds used: .pair, .any, .suited — offsuit deferred (any − suited; more
-/// confusing than instructive). Ranks are always T–A (10...14).
+/// Kinds used: .pair, .any, .suited; offsuit (any − suited) only from the second step
+/// (D53), where the extra subtraction is the point. Ranks are always T–A (10...14).
 public struct BlockerSpot: Equatable {
     public let rankA: Int          // for non-pairs, always the higher rank
     public let rankB: Int
@@ -16,12 +16,13 @@ public struct BlockerSpot: Equatable {
         switch kind {
         case .pair: return rankName(rankA) + rankName(rankA)
         case .suited: return rankName(rankA) + rankName(rankB) + "s"
+        case .offsuit: return rankName(rankA) + rankName(rankB) + "o"
         default: return rankName(rankA) + rankName(rankB)
         }
     }
     /// Unblocked baseline for the class — the stepper's starting value.
     public var baseline: Int {
-        switch kind { case .pair: return 6; case .suited: return 4; default: return 16 }
+        switch kind { case .pair: return 6; case .suited: return 4; case .offsuit: return 12; default: return 16 }
     }
 
     /// One exact two-card hand of this class, used to define "combo". It avoids the
@@ -49,22 +50,26 @@ public enum BlockerSpotGenerator {
     public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> BlockerSpot {
         var attempt = 0
         while true {
+            // Later steps (D53) draw from their own stream, add different-suit hands
+            // and show four to six cards.
+            let later = level > .learn
             let seed = baseSeed
+                &+ (later ? UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03 : 0)
                 &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15
                 &+ UInt64(attempt)
             var rng = SplitMix64(seed: seed)
-            let roll = rng.next() % 3
+            let roll = rng.next() % (later ? 4 : 3)
             var rankA = Int.random(in: 10...14, using: &rng)
             var rankB = rankA
             let kind: ComboKind
             if roll == 0 {
                 kind = .pair
             } else {
-                kind = roll == 1 ? .any : .suited
+                kind = roll == 1 ? .any : roll == 2 ? .suited : .offsuit
                 repeat { rankB = Int.random(in: 10...14, using: &rng) } while rankB == rankA
                 if rankB > rankA { swap(&rankA, &rankB) }
             }
-            let k = Int.random(in: 2...4, using: &rng)
+            let k = Int.random(in: later ? 4...6 : 2...4, using: &rng)
             let removed = Array(Deck.all.shuffled(using: &rng)[0..<k])
             // The answer must differ from the baseline: ≥1 removed card hits the class.
             guard removed.contains(where: { $0.rank == rankA || $0.rank == rankB }) else {
@@ -107,6 +112,13 @@ func whyText(for spot: BlockerSpot, language: LearningLanguage = .korean) -> Str
     case .suited:
         if language == .english { return "\(spot.count) suits still have both ranks: \(spot.count) combinations." }
         return "양쪽 다 남은 무늬 \(spot.count)개 = \(spot.count) 콤보"
+    case .offsuit:
+        let nb = left(spot.rankB)
+        let suited = na * nb - spot.count
+        if language == .english {
+            return "\(na) \(rankName(spot.rankA)) cards × \(nb) \(rankName(spot.rankB)) cards = \(na * nb), less \(suited) with the same suit = \(spot.count) combinations."
+        }
+        return "\(rankName(spot.rankA)) \(na)장 × \(rankName(spot.rankB)) \(nb)장 = \(na * nb), 같은 무늬 \(suited)개를 빼면 \(spot.count) 콤보"
     default:
         if language == .english { return "\(na) \(rankName(spot.rankA)) cards × \(left(spot.rankB)) \(rankName(spot.rankB)) cards = \(spot.count) combinations." }
         return "\(rankName(spot.rankA)) \(na)장 × \(rankName(spot.rankB)) \(left(spot.rankB))장 = \(spot.count) 콤보"

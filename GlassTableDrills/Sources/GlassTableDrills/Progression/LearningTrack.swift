@@ -214,8 +214,10 @@ public extension Curriculum {
     static func unfinishedGroundwork(for node: CurriculumNode, in state: ProgressState) -> [CurriculumNode] {
         guard let track = track(containing: node) else { return [] }
         if track.isOptional {
-            // A deeper topic builds on all four tracks; the deeper challenge on its own.
-            let base = node == track.challenge ? track.lessons : trackLessons
+            // A deeper topic builds on all four tracks; the deeper challenge on its own
+            // lessons, at the challenge's step.
+            let base = node.baseID == track.challenge?.id
+                ? track.lessons.compactMap { stepNode($0, at: node.level) } : trackLessons
             return base.filter { $0 != node && state.nodes[$0.id]?.cleared != true }
         }
         guard let index = steps.firstIndex(of: node) else { return [] }
@@ -240,8 +242,10 @@ public extension Curriculum {
     static func easierLesson(than node: CurriculumNode) -> CurriculumNode? {
         if node.level > .learn, let base = baseNode(id: node.baseID) {
             if case .boss = node.kind {
-                // A challenge's third step: the last Sharp lesson of its track.
+                // A challenge's third step: the last Sharp lesson of its track. "Go
+                // deeper" is outside the suggested steps, so its lessons are read directly.
                 return lapLessons(of: node).last
+                    ?? track(containing: node)?.lessons.compactMap { stepNode($0, at: .sharp) }.last
             }
             return lessonSteps(for: base).last { $0.level < node.level }
         }

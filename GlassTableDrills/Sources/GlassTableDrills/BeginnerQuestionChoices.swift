@@ -39,6 +39,55 @@ public enum BeginnerQuestionChoices {
         }
         return values.shuffled(using: &rng).map(Double.init)
     }
+
+    // MARK: Later steps (D53)
+
+    /// A count's choices at a step. Later steps offer four neighbouring counts, so the
+    /// answer cannot be told from the others by size.
+    public static func integers(answer: Int, bounds: ClosedRange<Int>, seed: UInt64, level: DrillLevel) -> [Int] {
+        guard level > .learn else { return integers(answer: answer, bounds: bounds, seed: seed) }
+        var rng = SplitMix64(seed: seed)
+        return spread(answer: Double(answer), gap: 1, count: 4,
+                      bounds: Double(bounds.lowerBound)...Double(bounds.upperBound), rng: &rng).map { Int($0) }
+    }
+
+    /// An equity's choices at a step: four 10 points apart, then four 5 or 6 apart.
+    public static func percentages(answer: Double, seed: UInt64, level: DrillLevel) -> [Double] {
+        guard level > .learn else { return percentages(answer: answer, seed: seed) }
+        var rng = SplitMix64(seed: seed)
+        let gap: Double = level == .sharp ? (Bool.random(using: &rng) ? 5 : 6) : 10
+        return spread(answer: Double(min(100, max(0, Int(answer.rounded())))), gap: gap, count: 4,
+                      bounds: 0...100, rng: &rng)
+    }
+
+    /// A price's choices at a step: three 10 points apart, then four 5 apart.
+    public static func shares(answer: Double, seed: UInt64, level: DrillLevel) -> [Int] {
+        guard level > .learn else { return shares(answer: answer, seed: seed) }
+        var rng = SplitMix64(seed: seed)
+        return spread(answer: Double(min(100, max(0, Int(answer.rounded())))), gap: level == .sharp ? 5 : 10,
+                      count: level == .sharp ? 4 : 3, bounds: 0...100, rng: &rng).map { Int($0) }
+    }
+
+    /// The second EV step's choices: four, 1bb apart, with the answer (to the nearest
+    /// half bb) anywhere among them. None loses more than the bet, which no call can.
+    /// The first step's three choices are the app's `LessonEstimateChoices.evValues`.
+    public static func evValues(answer: Double, bet: Int, seed: UInt64) -> [Double] {
+        let rounded = (answer * 2).rounded() / 2
+        var rng = SplitMix64(seed: seed)
+        return spread(answer: rounded, gap: 1, count: 4,
+                      bounds: min(rounded, -Double(bet))...Double.greatestFiniteMagnitude, rng: &rng)
+    }
+
+    /// `count` values `gap` apart with the answer at a seeded place among them, all in
+    /// `bounds`. Evenly spaced, so neither the middle nor an end gives the answer away.
+    static func spread(answer: Double, gap: Double, count: Int, bounds: ClosedRange<Double>,
+                       rng: inout SplitMix64) -> [Double] {
+        let below = Int(min(Double(count - 1), ((answer - bounds.lowerBound) / gap + 1e-9).rounded(.down)))
+        let above = Int(min(Double(count - 1), ((bounds.upperBound - answer) / gap + 1e-9).rounded(.down)))
+        let place = Int.random(in: max(0, count - 1 - above)...max(0, below), using: &rng)
+        return (0..<count).map { answer + Double($0 - place) * gap }.shuffled(using: &rng)
+    }
+
     public static func rangeEstimates(spot: RangeReadSpot, seed: UInt64) -> [RangeEstimate] {
         let factor = Archetype.seatFactor(spot.seat)
         let raising = spot.archetype.pfr * factor

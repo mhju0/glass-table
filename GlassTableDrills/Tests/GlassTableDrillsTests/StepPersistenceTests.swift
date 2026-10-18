@@ -53,16 +53,16 @@ final class StepPersistenceTests: XCTestCase {
         XCTAssertFalse(imports(try state(format: 2, level: nil, answeredAt: .sharp)), "checked at its own step")
         XCTAssertFalse(imports(try state(format: 1, level: 3, answeredAt: .sharp)), "format 1 has no step")
         XCTAssertFalse(imports(try state(format: 2, level: 1, answeredAt: .learn)), "the first step is written as none")
-        var outs = try state(format: 2, level: 2, answeredAt: .apply)
-        outs.activeRound?.concept = Concept.outs.rawValue
-        outs.activeRound?.answers = []
-        outs.activeRound?.phase = .question
-        XCTAssertFalse(imports(outs), "a skill without a second step")
+        var noSteps = try state(format: 2, level: 2, answeredAt: .apply)
+        noSteps.activeRound?.concept = Concept.mdf.rawValue
+        noSteps.activeRound?.answers = []
+        noSteps.activeRound?.phase = .question
+        XCTAssertFalse(imports(noSteps), "a skill without a second step")
     }
 
     func testAReviewSavesEachQuestionsStep() throws {
         func state(levels: [Int]?, answeredAt: DrillLevel) throws -> ProgressState {
-            var review = ReviewSessionSnapshot(id: "v", seed: seed, scheduledConcepts: ["potMath", "outs"])
+            var review = ReviewSessionSnapshot(id: "v", seed: seed, scheduledConcepts: ["potMath", "mdf"])
             review.levels = levels
             review.answers = [NodeGradedAnswer(concept: "potMath", answer: try potAnswer(answeredAt: answeredAt))]
             review.phase = .reveal
@@ -73,7 +73,7 @@ final class StepPersistenceTests: XCTestCase {
         XCTAssertTrue(imports(try state(levels: [3, 1], answeredAt: .sharp)))
         XCTAssertTrue(imports(try state(levels: nil, answeredAt: .learn)))
         XCTAssertFalse(imports(try state(levels: [3], answeredAt: .sharp)), "one step per question")
-        XCTAssertFalse(imports(try state(levels: [1, 2], answeredAt: .learn)), "outs has no second step")
+        XCTAssertFalse(imports(try state(levels: [1, 2], answeredAt: .learn)), "MDF has no second step")
         XCTAssertFalse(imports(try state(levels: nil, answeredAt: .sharp)))
     }
 
@@ -194,9 +194,10 @@ final class StepPersistenceTests: XCTestCase {
         // Mastered: all three.
         XCTAssertEqual(state.nodes["u2-callFold.2"]?.clearedAt, proficientAt)
         XCTAssertEqual(state.nodes["u2-callFold.3"], NodeRecord(cleared: true, clearedAt: masteredAt, attempts: 0))
-        // A skill without steps: its one lesson.
+        // A skill given steps in the same schema (outs): Strong, so its first two.
         XCTAssertEqual(state.nodes["u2-outs"]?.cleared, true)
-        XCTAssertNil(state.nodes["u2-outs.2"])
+        XCTAssertEqual(state.nodes["u2-outs.2"]?.cleared, true)
+        XCTAssertNil(state.nodes["u2-outs.3"])
         // Tiers never drop.
         XCTAssertEqual(state.record(for: .potMath).tier, .proficient)
         XCTAssertEqual(state.record(for: .callFold).tier, .mastered)
@@ -221,5 +222,9 @@ final class StepPersistenceTests: XCTestCase {
         XCTAssertEqual(state.nodes["u1-showdown.2"]?.cleared, true)
         XCTAssertNil(state.nodes["u1-showdown.3"])
         XCTAssertEqual(state.nodes["u2-potOdds"]?.cleared, true)
+        // Pot odds has steps and was 숙달, so all three are passed.
+        XCTAssertEqual(state.nodes["u2-potOdds.2"]?.cleared, true)
+        XCTAssertEqual(state.nodes["u2-potOdds.3"]?.cleared, true)
+        XCTAssertEqual(Curriculum.passedLevel(of: .potOdds, in: state), .sharp)
     }
 }

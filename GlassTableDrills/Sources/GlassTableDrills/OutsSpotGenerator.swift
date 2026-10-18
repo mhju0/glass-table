@@ -19,7 +19,9 @@ public enum OutsSpotGenerator {
         var attempt = 0
         var lo = 2, hi = 15
         while true {
+            // Later steps (D53) draw from their own stream; the first step's is frozen.
             let seed = baseSeed
+                &+ (level > .learn ? UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03 : 0)
                 &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15
                 &+ UInt64(attempt)
             var rng = SplitMix64(seed: seed)
@@ -30,8 +32,13 @@ public enum OutsSpotGenerator {
             let outs = countOuts(hero: hero, villain: villain, board: board)
             if outs.count >= lo && outs.count <= hi {
                 let excluded = excludedCards(hero: hero, villain: villain, board: board, outs: outs)
-                return OutsSpot(hero: hero, villain: villain, board: board,
-                                outs: outs, excluded: excluded)
+                // Later steps keep only spots with a catch: flush cards that do not win,
+                // or outs that make more than one kind of hand.
+                if level == .learn || !excluded.isEmpty
+                    || OutsOutcomeGroups.make(hero: hero, villain: villain, board: board, candidates: outs).count >= 2 {
+                    return OutsSpot(hero: hero, villain: villain, board: board,
+                                    outs: outs, excluded: excluded)
+                }
             }
             attempt += 1
             // ponytail: 2..15 selects ~a third of random spots, so this never widens in

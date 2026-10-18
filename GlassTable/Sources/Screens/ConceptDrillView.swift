@@ -1338,6 +1338,7 @@ private struct PositionDrill: View {
 
 private struct EquitySenseDrill: View {
     @Environment(\.simpleQuestions) private var simple
+    @Environment(\.drillLevel) private var level
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
     let seed: UInt64; let index: Int; let progressText: String
@@ -1346,7 +1347,7 @@ private struct EquitySenseDrill: View {
     @State private var halfWidth = 10.0
     @State private var reveal: EstimateReveal?
 
-    private var spot: EquitySenseSpot { EquitySenseSpotGenerator.spot(baseSeed: seed, index: index) }
+    private var spot: EquitySenseSpot { EquitySenseSpotGenerator.spot(baseSeed: seed, index: index, level: level) }
 
     var body: some View {
         DrillShell(title: "에퀴티 감각", progressText: progressText) {
@@ -1387,7 +1388,7 @@ private struct EquitySenseDrill: View {
                         .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if simple {
-                        LessonEstimateChoices(values: BeginnerQuestionChoices.percentages(answer: spot.equityPct, seed: seed &+ UInt64(index)), suffix: "%") { value in
+                        LessonEstimateChoices(values: BeginnerQuestionChoices.percentages(answer: spot.equityPct, seed: seed &+ UInt64(index), level: level), suffix: "%") { value in
                             point = value
 
                         reveal = gradeEquitySense(
@@ -1427,6 +1428,7 @@ private struct EquitySenseDrill: View {
 
 private struct EVCallDrill: View {
     @Environment(\.simpleQuestions) private var simple
+    @Environment(\.drillLevel) private var level
     @Environment(\.learningLanguage) private var language
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
@@ -1434,7 +1436,15 @@ private struct EVCallDrill: View {
     @State private var halfWidth = 1.0
     @State private var reveal: EstimateReveal?
 
-    private var spot: EVCallSpot { EVCallSpotGenerator.spot(baseSeed: seed, index: index) }
+    private var spot: EVCallSpot { EVCallSpotGenerator.spot(baseSeed: seed, index: index, level: level) }
+
+    /// Three choices at the first step, four 1bb apart at the second (D53); the third
+    /// step sets the value on the stepper instead.
+    private var choices: [Double] {
+        level == .learn
+            ? LessonEstimateChoices.evValues(answer: spot.evBB, seed: seed &+ UInt64(index))
+            : BeginnerQuestionChoices.evValues(answer: spot.evBB, bet: spot.bet, seed: seed &+ UInt64(index))
+    }
 
     var body: some View {
         DrillShell(title: "EV 계산", progressText: progressText) {
@@ -1470,15 +1480,15 @@ private struct EVCallDrill: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(simple
+                    Text(simple && level < .sharp
                         ? language.text("이 콜을 여러 번 하면 평균 몇 bb를 얻거나 잃을까요? 가장 가까운 값을 골라요. (EV)",
                                         "Over many tries, how many bb does this call win or lose on average? Pick the closest value. (its EV)")
                         : language.text("이 콜의 EV는 몇 bb인가요?",
                                         "What is this call's EV in bb?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
-                    if simple {
-                        LessonEstimateChoices(values: LessonEstimateChoices.evValues(answer: spot.evBB, seed: seed &+ UInt64(index)), suffix: "bb") { value in
+                    if simple && level < .sharp {
+                        LessonEstimateChoices(values: choices, suffix: "bb") { value in
                             point = value
 
                         reveal = gradeEVCall(
@@ -1513,6 +1523,7 @@ private struct CountDrill: View {
     @Environment(\.simpleQuestions) private var simple
     @Environment(\.drillInitialDraft) private var initialDraft
     @Environment(\.drillSaveDraft) private var saveDraft
+    @Environment(\.drillLevel) private var level
     enum Kind { case outs, combos }
     let kind: Kind
     let seed: UInt64; let index: Int; let progressText: String
@@ -1524,10 +1535,10 @@ private struct CountDrill: View {
     /// once: only the kind on screen is built, and the outs generator walks the deck
     /// looking for a spot with a countable number of outs.
     private func makeOutsSpot() -> OutsSpot {
-        OutsSpotGenerator.spot(baseSeed: seed, index: index)
+        OutsSpotGenerator.spot(baseSeed: seed, index: index, level: level)
     }
     private func makeComboSpot() -> BlockerSpot {
-        BlockerSpotGenerator.spot(baseSeed: seed, index: index)
+        BlockerSpotGenerator.spot(baseSeed: seed, index: index, level: level)
     }
 
     var body: some View {
@@ -1561,10 +1572,12 @@ private struct CountDrill: View {
                                         "How many combos can they hold?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
-                    if simple {
+                    // The third step types the count (owner default 2).
+                    if simple && !level.typesExactAnswer(kind == .outs ? .outs : .combos) {
                         LessonCountChoices(values: BeginnerQuestionChoices.integers(
                             answer: kind == .outs ? makeOutsSpot().outCount : makeComboSpot().count,
-                            bounds: kind == .outs ? 0...46 : 0...1326, seed: seed &+ UInt64(index)),
+                            bounds: kind == .outs ? 0...46 : 0...1326, seed: seed &+ UInt64(index),
+                            level: kind == .outs ? level : .learn),
                             suffix: kind == .outs ? language.text("장", " cards") : language.text("개", " ways")) { value in
                             countEntry = String(value); submit()
                         }
@@ -1627,6 +1640,7 @@ private struct CountDrill: View {
 private struct PercentDrill: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.simpleQuestions) private var simple
+    @Environment(\.drillLevel) private var level
     private var unit: String { simple ? language.text("칩", " chips") : "bb" }
     let isMDF: Bool
     let seed: UInt64; let index: Int; let progressText: String
@@ -1634,7 +1648,7 @@ private struct PercentDrill: View {
     @State private var value = 30
     @State private var reveal: PercentReveal?
 
-    private var spot: BetSpot { BetSpotGenerator.spot(baseSeed: seed, index: index) }
+    private var spot: BetSpot { BetSpotGenerator.spot(baseSeed: seed, index: index, level: level) }
 
     var body: some View {
         DrillShell(title: isMDF ? "MDF" : "팟 오즈", progressText: progressText) {
@@ -1645,11 +1659,18 @@ private struct PercentDrill: View {
                 Text(language.text("상대 벳 \(spot.bet)\(unit)", "Opponent bets \(spot.bet)\(unit)"))
                     .font(GT.title(18))
                     .foregroundStyle(GT.onFeltSecondary)
+                if spot.callers > 0 {
+                    Text(language.text("다른 한 명이 먼저 \(spot.bet)\(unit) 콜했어요",
+                                       "Another player has already called \(spot.bet)\(unit)"))
+                        .font(GT.title(18)).foregroundStyle(GT.onFeltSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("potodds-earlier-call")
+                }
                 // The price as a picture: the answer is a share of this bar, so the
                 // proportion can be *read* before it is computed — which is the drill.
                 // MDF's bar has no 콜 segment; its denominator is only the money
                 // already out there.
-                PriceBarView.priced(pot: spot.pot, bet: spot.bet, withCall: !isMDF)
+                PriceBarView.priced(pot: spot.pot, bet: spot.bet, withCall: !isMDF, callers: spot.callers)
                     .padding(.top, 12)
                 // Explains the dash, not which share is the answer — that stays the
                 // drill's job. MDF's bar needs no caption at all.
@@ -1685,7 +1706,7 @@ private struct PercentDrill: View {
                     if simple {
                         LessonCountChoices(values: BeginnerQuestionChoices.shares(
                             answer: isMDF ? spot.mdfPct : spot.requiredPct,
-                            seed: seed &+ UInt64(index)), suffix: "%") { choice in
+                            seed: seed &+ UInt64(index), level: level), suffix: "%") { choice in
                             value = choice
                             reveal = isMDF ? gradeMDF(estimatePct: choice, spot: spot, language: language)
                                            : gradePotOdds(estimatePct: choice, spot: spot, language: language)
@@ -1785,13 +1806,14 @@ private struct RangeNotationDrill: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.drillInitialDraft) private var initialDraft
     @Environment(\.drillSaveDraft) private var saveDraft
+    @Environment(\.drillLevel) private var level
     let seed: UInt64; let index: Int; let progressText: String
     let onAnswer: (DrillOutcome) -> Void
     @State private var countEntry = ""
     @State private var reveal: RangeNotationReveal?
 
     private var spot: RangeNotationSpot {
-        RangeNotationSpotGenerator.spot(baseSeed: seed, index: index)
+        RangeNotationSpotGenerator.spot(baseSeed: seed, index: index, level: level)
     }
 
     var body: some View {
@@ -1835,7 +1857,7 @@ private struct RangeNotationDrill: View {
                                         "How many combos is this range?"))
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                         .fixedSize(horizontal: false, vertical: true)
-                    if simple {
+                    if simple && !level.typesExactAnswer(.rangeNotation) {
                         LessonCountChoices(values: BeginnerQuestionChoices.integers(answer: spot.comboCount,
                             bounds: 0...1326, seed: seed &+ UInt64(index)), suffix: language.text("개", " combos")) { choice in
                             countEntry = String(choice)
