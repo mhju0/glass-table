@@ -167,8 +167,8 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["player-count-detail"].label, "You + 3 computers")
         let seats = (1...3).map { app.buttons["seat-style-\($0)"] }
         XCTAssertTrue(seats.allSatisfy(\.exists))
-        XCTAssertEqual(seats.map(\.label), ["Tom's style, Just for fun", "Mike's style, Just for fun",
-                                            "Alex's style, Just for fun"], "A first table is a friendly one")
+        XCTAssertEqual(seats.map(\.label), ["Tom's style, Casual", "Mike's style, Casual",
+                                            "Alex's style, Casual"], "A first table uses the default casual style")
 
         seats[1].tap()
         app.buttons["Very aggressive"].firstMatch.tap()
@@ -179,7 +179,7 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(cautious.waitForExistence(timeout: 5))
         let casual = app.descendants(matching: .any)["opponent-casual"]
         XCTAssertTrue(casual.exists, "The guide lists the default style the seat menu offers")
-        XCTAssertTrue(casual.label.contains("Just for fun (default)"), casual.label)
+        XCTAssertTrue(casual.label.contains("Casual (default)"), casual.label)
         XCTAssertLessThan(casual.frame.minY, cautious.frame.minY)
         cautious.tap()
         XCTAssertTrue(app.staticTexts["Starting habits"].waitForExistence(timeout: 5))
