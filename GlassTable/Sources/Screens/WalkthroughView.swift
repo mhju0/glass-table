@@ -32,6 +32,7 @@ struct WalkthroughView: View {
     /// until they tap it, and Next waits for that tap.
     @State private var practiceRevealed = false
     @State private var workedAnswer: Int?
+    @State private var chenRulesOpen = true
 
     init(title: String, concept: Concept? = nil, purpose: String? = nil, beats: [Beat], rows: [(String, [Card])],
          initialIndex: Int = 0, onStep: @escaping (Int) -> Bool = { _ in true },
@@ -464,10 +465,10 @@ struct WalkthroughView: View {
         }
     }
 
-    /// How the starting-hand score is built, closed until asked for. The last line
+    /// How the starting-hand score is built, open until the learner closes it. The last line
     /// works the rules through for the hand on the table.
     private var chenRuleCard: some View {
-        DisclosureGroup(ChenScoreCopy.title(in: language)) {
+        DisclosureGroup(ChenScoreCopy.title(in: language), isExpanded: $chenRulesOpen) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(ChenScoreCopy.intro(in: language))
                 ForEach(Array(ChenScoreCopy.rules(in: language).enumerated()), id: \.offset) { number, rule in
