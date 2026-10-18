@@ -970,7 +970,7 @@ struct GTChoiceButton: View {
             if let verdict {
                 HStack(spacing: 6) {
                     Image(systemName: verdict.glyph).accessibilityHidden(true)
-                    Text(title).lineLimit(2).minimumScaleFactor(0.8)
+                    Text(title).fixedSize(horizontal: false, vertical: true)
                 }
                 .font(GT.title(GT.Typography.buttonSize))
                 .foregroundStyle(verdict.ink)
@@ -1025,6 +1025,14 @@ private struct TabBarClearance: ViewModifier {
 extension View {
     func gtTabBarClearance(_ height: CGFloat = 96) -> some View {
         modifier(TabBarClearance(height: height))
+    }
+
+    /// A dense table part (D54): its text grows with the reader's size up to AX3 and
+    /// stops there, and press and hold shows `largeText` in the system's large viewer.
+    /// Lesson, explanation, answer and result text never takes this.
+    func gtTablePartTextCap(_ largeText: String) -> some View {
+        dynamicTypeSize(...DynamicTypeSize.accessibility3)
+            .accessibilityShowsLargeContentViewer { Text(largeText) }
     }
 }
 
@@ -1117,9 +1125,9 @@ struct GTActionButton: View {
                 } else {
                     VStack(spacing: 3) {
                         Text(title).font(GT.semibold(12)).foregroundStyle(GT.inkSecondary)
-                            .lineLimit(1).minimumScaleFactor(0.6)
+                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         Text(price).font(GT.title(15).monospacedDigit()).foregroundStyle(GT.ink)
-                            .lineLimit(1).minimumScaleFactor(0.6)
+                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         Capsule().fill(role.accent)
                             .frame(height: 3).padding(.horizontal, 8).padding(.top, 1)
                     }
@@ -1132,6 +1140,7 @@ struct GTActionButton: View {
             .background { GTDockControlBackground() }
         }
         .buttonStyle(GTPress(pressedScale: freeTablePresentation ? 0.97 : 0.98))
+        .gtTablePartTextCap([title, secondaryTitle, price.isEmpty ? nil : price].compactMap { $0 }.joined(separator: " · "))
         .accessibilityLabel([title, secondaryTitle, price.isEmpty ? nil : price].compactMap { $0 }.joined(separator: ", "))
     }
 }

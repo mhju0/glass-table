@@ -53,7 +53,8 @@ regressions and verification limits.
   and adds a golden fixture (`docs/adr/0001-versioned-progression-json.md`).
 - Korean terminology is canonical in `docs/glossary.md`; use `KO` helpers for
   particles attached to dynamic text. Card-face glyphs stay fixed-size while
-  ordinary text follows Dynamic Type.
+  ordinary text follows Dynamic Type. No shrink-to-fit (`minimumScaleFactor`) on
+  such text; only dense table parts stop at AX3, via `gtTablePartTextCap` (D54).
 - `GlassTableEngine/Tests/GlassTableEngineTests/Fixtures/random_spots.json` is a
   frozen eval7 oracle fixture. Its generator is `tools/gen_fixtures.py`; it is
   not routine build output and should not be hand-edited.

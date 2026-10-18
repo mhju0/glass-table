@@ -1072,3 +1072,21 @@ named Learn, Apply and Sharp in code and docs only. On screen they are "1단계/
   touching FSRS, accuracy or tiers. Upgrading a schema-4 file copies it first, then marks
   the steps a tier already shows: cleared stays Learn; 능숙 passes Learn and Apply;
   숙달 passes all three. It never marks a `.3` challenge.
+
+### D54 · Largest text sizes: table parts stop at AX3, reading text goes on
+**Status: ACTIVE — owner chose option B on 2026-10-18.**
+
+All text grows to AX3 (over 200%). Above AX3, lessons, explanations, answers and
+results keep growing to AX5. Only the dense table parts stop at AX3, through
+`gtTablePartTextCap`, which also turns on the press-and-hold Large Content Viewer:
+the free table's top-bar title, the Decision help pill, the raise title, the dock's
+action buttons, the To call / Pot facts, seat chip and pot labels, the drills' price
+bar and the hand-chart explorer cells. The 13×13 range and defend grid labels were
+already sized to their cells, not to the text setting (D37); they get the large viewer.
+
+- Shrinking text to fit (`minimumScaleFactor`) is not used for text that follows the
+  reader's size: it undoes their choice. Text wraps, or a table part stops at AX3.
+  The milestone share card keeps it: it is an image drawn at one fixed text size.
+- The cap goes on the specific part, never at the root. Card faces stay fixed (D37).
+- D37's one-row seat and street strips keep their `.xxLarge` limit; they now wrap
+  rather than shrink.

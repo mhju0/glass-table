@@ -154,7 +154,7 @@ struct DefendGridView: View {
             Rectangle().fill(Self.bandFill(a))
             Text(h.description)
                 .font(.system(size: max(6, side * 0.30), weight: .semibold))
-                .minimumScaleFactor(0.5).lineLimit(1)
+                .lineLimit(1)
                 .foregroundStyle(a == .fold ? GT.inkMuted : GT.onCTA)
         }
         .frame(width: side, height: side)
@@ -165,6 +165,9 @@ struct DefendGridView: View {
                     .strokeBorder(GT.ink, lineWidth: 2)
             }
         }
+        // A grid label is sized to its cell, not to the text setting; press and hold
+        // shows it large (D54).
+        .accessibilityShowsLargeContentViewer { Text(h.description) }
         .accessibilityHidden(true)
     }
 }
@@ -228,7 +231,8 @@ private struct DefendChartExplorer: View {
                                                 if isOwn {
                                                     Text(language.text("내 패", "My hand"))
                                                         .font(GT.semibold(10))
-                                                        .lineLimit(1).minimumScaleFactor(0.7)
+                                                        .multilineTextAlignment(.center)
+                                                        .fixedSize(horizontal: false, vertical: true)
                                                 }
                                             }
                                             .frame(width: typeSize.isAccessibilitySize ? 150 : 78)
@@ -247,6 +251,8 @@ private struct DefendChartExplorer: View {
                                             }
                                         }
                                         .buttonStyle(.plain)
+                                        .gtTablePartTextCap((isOwn ? language.text("내 패 · ", "My hand · ") : "")
+                                                            + "\(hand.description) · \(language.text(verdict.rawValue, verdict.englishTitle))")
                                         .id(hand.description)
                                         .accessibilityIdentifier("chart-cell-\(hand.description)")
                                         .accessibilityLabel((isOwn ? language.text("내 패, ", "Your hand, ") : "")
