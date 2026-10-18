@@ -148,6 +148,8 @@ public struct ProgressionStore {
         }
         // 2 → 3 changes no data: the bump makes builds that know only schema 2 refuse
         // the file instead of dropping keys they cannot decode (ADR 0001).
+        // 3 → 4 adds the optional `lastNodeID`; an older file has none, which reads as
+        // no record of the last lesson.
         return upgraded
     }
 
@@ -212,6 +214,7 @@ public struct ProgressionStore {
               state.activeReviewSession.map({ validate($0, verifyAnswers: verifyAnswers) }) ?? true,
               state.placement.map(validate) ?? true,
               ProgressState.lessonTrendRange.contains(state.lessonTrend ?? 0),
+              state.lastNodeID.map({ !$0.isEmpty }) ?? true,
               state.recentHands.count <= 200,
               Set(state.recentHands.map(\.handID)).count == state.recentHands.count,
               state.recentHands.allSatisfy({ DayKey(raw: $0.day) != nil }),
