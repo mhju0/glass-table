@@ -1013,3 +1013,28 @@ and passed/total; a track's challenge is one quiet line (섞어서 확인하기 
   title, description, status, then a full-width action.
 - Hold'em basics has no single-skill round, so a passed basics row keeps its ✓ and a
   chevron rather than a 연습 action.
+
+### D52 · The Learn mark follows the learner
+**Status: ACTIVE — owner, 2026-10-18. Amends D51's marked-row rule.**
+
+D51 marked the open lesson or the suggestion, so a lesson played out of order was
+forgotten once its session closed. The owner: "we should follow the learner even if
+they do things out of lesson or out of order." Starting a lesson or challenge now
+saves it as `lastNodeID` (schema 4, ADR 0001; a schema-3 file is copied before the
+upgrade and reads with no record). The marked row (`Curriculum.markedLesson`):
+
+1. A lesson left open and not at its summary: 진행 중 · 이어서, as before.
+2. Else the last lesson started, while it is not passed (D47's pass mark, unchanged):
+   다음 · 시작 on that row, with its "통과 전 · 최고 R/Q" line. This includes a
+   challenge or an optional deeper lesson the learner chose.
+3. Else, once it is passed, the next owed lesson after it in the D48 order; a passed
+   challenge counts as the end of its track. With nothing owed after it, or after a
+   deeper lesson (never suggested), the suggested lesson, which starts from the
+   learner's starting point and wraps to earlier ones.
+4. With no lesson started yet, or one with no row on Learn (kept from an older path,
+   or unknown to this build): today's rule, Hold'em basics while suggested, else the
+   suggested lesson.
+
+With every track lesson passed nothing is marked (D38's practice line), unless the
+last lesson started is a challenge or deeper lesson not yet passed. Practice rounds,
+reviews and Hold'em basics do not change `lastNodeID`.
