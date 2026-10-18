@@ -20,15 +20,22 @@ public enum Mastery {
     /// Promotion uses only this concept's answers from the completed session. The
     /// lifetime accuracy for the familiar tier counts only spot-on answers, and a
     /// proficiency claim requires every current answer to be spot-on.
+    ///
+    /// `level` is the step the answers were dealt at (D53). For a skill with steps,
+    /// 능숙 needs a perfect session at Apply or above and 숙달 a perfect challenge at
+    /// its highest step; the bar is `min(.apply, highest)`, so a skill with only its
+    /// first step (or a call that names no skill) keeps the rule it always had.
     public static func promote(_ r: inout ConceptRecord, evidence: SessionEvidence,
-                               viaBoss: Bool, now: Date) {
+                               viaBoss: Bool, level: DrillLevel = .learn, of concept: Concept? = nil,
+                               now: Date) {
         guard evidence.isComplete else { return }
+        let highest = concept.map(DrillLevel.highest(for:)) ?? .learn
         let wasProficient = r.tier >= .proficient
         var earned: MasteryTier = r.accuracy >= familiarThreshold ? .familiar : .attempted
 
-        if evidence.isPerfect, earned >= .familiar { earned = .proficient }
+        if evidence.isPerfect, earned >= .familiar, level >= min(.apply, highest) { earned = .proficient }
 
-        if viaBoss, evidence.isPerfect, wasProficient,
+        if viaBoss, evidence.isPerfect, wasProficient, level >= highest,
            let since = r.proficientAt,
            now.timeIntervalSince(since) >= masteryCooldown {
             earned = .mastered
