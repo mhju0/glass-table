@@ -25,6 +25,11 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
     public static func highest(for concept: Concept) -> DrillLevel {
         switch concept {
         case .showdown, .potMath, .callFold: .sharp
+        case .position: .sharp
+        case .rfi: .sharp
+        case .defend: .sharp
+        case .rangeRead: .sharp
+        case .actionRead: .sharp
         default: .learn
         }
     }
@@ -38,6 +43,7 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
     /// from choices (owner default 2: counts are typed at Sharp).
     public func typesExactAnswer(_ concept: Concept) -> Bool {
         self == .sharp && concept == .potMath
+            || self == .sharp && concept == .position
     }
 
     /// The one line a step's lesson opens with: what is new at this step. Nil at the
@@ -53,6 +59,16 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
         case (.potMath, .sharp): what = language.text("플랍 베팅까지, 직접 입력", "Through the flop, typed")
         case (.callFold, .apply): what = language.text("필요한 몫만 보여요", "Only the price is shown")
         case (.callFold, .sharp): what = language.text("숫자 없이, 아슬아슬한 판", "No numbers, close spots")
+        case (.position, .apply): what = language.text("0부터 7까지 모두 보기", "Every count from 0 to 7")
+        case (.position, .sharp): what = language.text("남은 사람만 세서, 직접 입력", "Only players still in, typed")
+        case (.rfi, .apply): what = language.text("차트 경계에 걸친 패", "Hands at the chart's edge")
+        case (.rfi, .sharp): what = language.text("어느 자리부터 여는 패인가요", "The first seat that opens it")
+        case (.defend, .apply): what = language.text("밴드 경계에 걸친 패", "Hands at a band's edge")
+        case (.defend, .sharp): what = language.text("여는 폭 안내 없이", "No opening width given")
+        case (.rangeRead, .apply): what = language.text("더 가까운 보기, 상대는 더 자주 숨겨요", "Closer choices, opponent hidden more")
+        case (.rangeRead, .sharp): what = language.text("콜만, 모르는 상대, 보기 넷", "Calls only, unknown opponent, four choices")
+        case (.actionRead, .apply): what = language.text("10%씩 차이 나는 보기", "Choices 10 points apart")
+        case (.actionRead, .sharp): what = language.text("더 가까운 보기, 모르는 상대", "Closer choices, unknown opponent")
         default: return nil
         }
         return "\(step) · \(what)"

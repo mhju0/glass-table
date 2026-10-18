@@ -33,7 +33,8 @@ final class LearnerLevelTests: XCTestCase {
     }
 
     func testUpNextReturnsToEarlierLessonsOnceTheLaterOnesAreDone() {
-        let reads = state(.playRegularly, cleared: ["u4-rangeRead", "u7-actionRead"])
+        let reads = state(.playRegularly, cleared: ["u4-rangeRead", "u7-actionRead",
+                                                    "u4-rangeRead.2", "u7-actionRead.2"])
         XCTAssertEqual(Curriculum.suggestedLesson(in: reads)?.id, "u4-boss", "D53: the track's challenge")
         let read = state(.playRegularly, cleared: ["u4-rangeRead", "u7-actionRead", "u4-boss"])
         XCTAssertEqual(Curriculum.suggestedLesson(in: read)?.id, "u2-outs")
@@ -69,7 +70,7 @@ final class LearnerLevelTests: XCTestCase {
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: position, in: state(.knowRules)), [])
         let rfi = Curriculum.node(id: "u3-rfi")!
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: rfi, in: state(.knowRules)).map(\.id),
-                       ["u1-position", "u1-showdown.2"])
+                       ["u1-position", "u1-showdown.2", "u1-position.2"])
     }
 
     func testTwoRoughLessonsInARowTurnGuidanceUpAndOneBetterLessonTurnsItBack() {
@@ -107,7 +108,7 @@ final class LearnerLevelTests: XCTestCase {
         let rfi = Curriculum.node(id: "u3-rfi")!
         XCTAssertEqual(Curriculum.skipAheadChallenge(after: rfi, in: state(.knowRules))?.id, "u3-boss")
         XCTAssertNil(Curriculum.skipAheadChallenge(after: rfi,
-            in: state(.knowRules, cleared: ["u3-rfi", "u8-defend"])))
+            in: state(.knowRules, cleared: ["u3-rfi", "u8-defend", "u3-rfi.2", "u8-defend.2"])))
         XCTAssertNil(Curriculum.skipAheadChallenge(after: rfi, in: state(.knowRules, cleared: ["u3-boss"])))
         let position = Curriculum.node(id: "u1-position")!
         XCTAssertEqual(Curriculum.skipAheadChallenge(after: position, in: state(.newToPoker))?.id, "u1-boss")

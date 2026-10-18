@@ -71,7 +71,7 @@ final class PositionTests: XCTestCase {
         for i in 0..<300 {
             let s = PositionSpotGenerator.spot(baseSeed: 3, index: i)
             switch s.question {
-            case .behind: XCTAssertTrue((0...7).contains(s.correctAnswer))
+            case .behind, .behindInHand: XCTAssertTrue((0...7).contains(s.correctAnswer))
             case .whichIsLater: XCTAssertTrue((0...1).contains(s.correctAnswer))
             }
             XCTAssertEqual(gradePosition(answer: s.correctAnswer, spot: s).band, .spotOn)

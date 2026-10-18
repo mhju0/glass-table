@@ -234,6 +234,17 @@ public enum BeatScript {
                 Beat("뒤에 사람이 많을수록 좁게 플레이해요",
                      detail: "누군가 좋은 패를 들고 있을 확률이 그만큼 올라가니까요."),
             ]
+        case let .behindInHand(p, stillIn):
+            let after = stillIn.filter { $0.actsAfter(p) }
+            return [
+                Beat("플랍 이후 행동 순서예요",
+                     detail: Position.postflopOrder.map(\.rawValue).joined(separator: " → ")),
+                Beat("남은 사람", value: stillIn.map(\.rawValue).joined(separator: " · "),
+                     detail: "폴드한 자리는 세지 않아요."),
+                Beat("내 뒤에 남은 사람", value: "\(after.count)명",
+                     detail: after.isEmpty ? "뒤에 아무도 없어요. \(KO.subject(p.rawValue)) 마지막이에요."
+                                           : after.map(\.rawValue).joined(separator: " · ")),
+            ]
         case let .whichIsLater(a, b):
             let later = b.actsAfter(a) ? b : a
             return [

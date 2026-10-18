@@ -16,12 +16,13 @@ final class StepCurriculumTests: XCTestCase {
     }
 
     static let stepOrder = [
-        "u1-showdown", "u1-position", "u1-showdown.2", "u1-boss",
-        "u3-rfi", "u8-defend", "u3-boss",
-        "u4-rangeRead", "u7-actionRead", "u4-boss",
+        "u1-showdown", "u1-position", "u1-showdown.2", "u1-position.2", "u1-boss",
+        "u3-rfi", "u8-defend", "u3-rfi.2", "u8-defend.2", "u3-boss",
+        "u4-rangeRead", "u7-actionRead", "u4-rangeRead.2", "u7-actionRead.2", "u4-boss",
         "u2-outs", "u1-potMath", "u2-equitySense", "u2-potOdds", "u2-callFold",
         "u1-potMath.2", "u2-callFold.2", "u2-boss",
-        "u1-showdown.3", "u1-potMath.3", "u2-callFold.3", "u1-boss.3", "u2-boss.3",
+        "u1-showdown.3", "u1-position.3", "u3-rfi.3", "u8-defend.3", "u4-rangeRead.3", "u7-actionRead.3",
+        "u1-potMath.3", "u2-callFold.3", "u1-boss.3", "u3-boss.3", "u4-boss.3", "u2-boss.3",
     ]
 
     func testStepsRunEachTrackAtLearnThenApplyThenItsChallengeThenASharpLap() {
@@ -36,13 +37,13 @@ final class StepCurriculumTests: XCTestCase {
         XCTAssertEqual(try node("u1-showdown").level, .learn)
         XCTAssertEqual(try node("u2-boss.3").level, .sharp)
         XCTAssertEqual(try node("u2-boss.3").kind, try node("u2-boss").kind)
-        for missing in ["u1-position.2", "u1-showdown.4", "u3-boss.3", "u1-boss.2", "u1-showdown.1"] {
+        for missing in ["u5-hitFrequency.2", "u1-showdown.4", "u6-boss.3", "u1-boss.2", "u1-showdown.1"] {
             XCTAssertNil(Curriculum.node(id: missing), missing)
         }
         XCTAssertEqual(Curriculum.track(containing: apply)?.id, .basics)
         XCTAssertEqual(Curriculum.lessonSteps(for: try node("u1-potMath")).map(\.id),
                        ["u1-potMath", "u1-potMath.2", "u1-potMath.3"])
-        XCTAssertEqual(Curriculum.lessonSteps(for: try node("u3-rfi")).map(\.id), ["u3-rfi"])
+        XCTAssertEqual(Curriculum.lessonSteps(for: try node("u3-rfi")).map(\.id), ["u3-rfi", "u3-rfi.2", "u3-rfi.3"])
     }
 
     func testGoDeeperHasAChallengeOfItsOwnSkills() throws {
@@ -85,6 +86,8 @@ final class StepCurriculumTests: XCTestCase {
         state.lastNodeID = "u1-showdown.2"
         XCTAssertEqual(Curriculum.markedLesson(in: state), .next(try node("u1-showdown.2")), "not passed yet")
         state.nodes["u1-showdown.2"] = NodeRecord(cleared: true)
+        XCTAssertEqual(Curriculum.markedLesson(in: state), .next(try node("u1-position.2")))
+        state.nodes["u1-position.2"] = NodeRecord(cleared: true)
         XCTAssertEqual(Curriculum.markedLesson(in: state), .next(try node("u1-boss")))
     }
 
@@ -98,16 +101,18 @@ final class StepCurriculumTests: XCTestCase {
         let state = state()
         XCTAssertEqual(Curriculum.skipAheadChallenge(after: try node("u1-potMath.3"), in: state)?.id, "u2-boss.3")
         XCTAssertEqual(Curriculum.skipAheadChallenge(after: try node("u1-potMath.2"), in: state)?.id, "u2-boss")
-        XCTAssertNil(Curriculum.skipAheadChallenge(after: try node("u1-showdown.3"), in: state),
+        XCTAssertEqual(Curriculum.skipAheadChallenge(after: try node("u1-showdown.3"), in: state)?.id, "u1-boss.3")
+        XCTAssertNil(Curriculum.skipAheadChallenge(after: try node("u1-showdown.3"),
+                                                   in: self.state(cleared: ["u1-position.3"])),
                      "nothing else in the basics Sharp lap")
     }
 
     func testGroundworkForAStepIsTheLessonStepsBeforeIt() throws {
         let state = state(cleared: ["u1-showdown", "u1-position"])
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: try node("u3-rfi"), in: state).map(\.id),
-                       ["u1-showdown.2"], "challenges are never groundwork")
+                       ["u1-showdown.2", "u1-position.2"], "challenges are never groundwork")
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: try node("u1-boss.3"), in: state).map(\.id),
-                       ["u1-showdown.3"])
+                       ["u1-showdown.3", "u1-position.3"])
     }
 
     // MARK: Which step a skill is dealt at

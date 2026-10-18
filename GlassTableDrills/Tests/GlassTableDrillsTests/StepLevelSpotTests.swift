@@ -14,7 +14,9 @@ final class StepLevelSpotTests: XCTestCase {
 
     func testOnlyTheFirstThreeSkillsHaveSteps() {
         for concept in Concept.allCases {
-            let expected: DrillLevel = [.showdown, .potMath, .callFold].contains(concept) ? .sharp : .learn
+            let expected: DrillLevel = [.showdown, .potMath, .callFold,
+                                        .position, .rfi, .defend, .rangeRead, .actionRead]
+                .contains(concept) ? .sharp : .learn
             XCTAssertEqual(DrillLevel.highest(for: concept), expected, concept.rawValue)
         }
         XCTAssertEqual(DrillLevel.sharp.capped(for: .outs), .learn)

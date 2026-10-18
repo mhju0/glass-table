@@ -36,7 +36,7 @@ public struct ConceptReveal: Equatable, Sendable {
             let result = gradePosition(answer: value, spot: spot, language: language)
             func label(_ value: Int) -> String {
                 switch spot.question {
-                case .behind: language.text("\(value)명", "\(value) players")
+                case .behind, .behindInHand: language.text("\(value)명", "\(value) players")
                 case let .whichIsLater(a, b): (value == 0 ? a : b).seatLabel(in: language)
                 }
             }
@@ -71,6 +71,11 @@ public struct ConceptReveal: Equatable, Sendable {
                 spot: RFISpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
             func open(_ opens: Bool) -> String { opens ? language.text("오픈", "Raise") : language.text("폴드", "Fold") }
             self.init(mine: open(value), correct: open(result.correctOpens), why: result.whyText)
+        case let (.rfi, .integer(value)):
+            let result = gradeRFIFirstSeat(answer: value,
+                spot: RFISpotGenerator.spot(baseSeed: seed, index: index, level: level), language: language)
+            self.init(mine: RFIFirstSeat.label(value, in: language),
+                      correct: RFIFirstSeat.label(result.correct, in: language), why: result.whyText)
         case let (.rangeRead, .range(width, tendencies)):
             let result = gradeRangeRead(
                 estimate: RangeEstimate(width: width, tendencies: Set(tendencies.compactMap(RangeTendency.init(rawValue:)))),

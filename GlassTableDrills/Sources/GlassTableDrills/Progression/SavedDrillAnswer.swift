@@ -24,6 +24,7 @@ public enum SavedDrillInput: Codable, Equatable, Sendable {
             return (0...100).contains(value)
         case (.callFold, .boolean), (.rfi, .boolean), (.evLoss, .boolean):
             return true
+        case let (.rfi, .integer(value)): return RFIFirstSeat.answers.indices.contains(value)
         case let (.rangeRead, .range(width, tendencies)):
             return width.isFinite && (3...80).contains(width)
                 && tendencies.count <= RangeTendency.allCases.count
@@ -110,6 +111,9 @@ enum SavedDrillScore {
                 spot: RangeNotationSpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.rfi, .boolean(value)):
             actual = (gradeRFI(userOpens: value,
+                spot: RFISpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
+        case let (.rfi, .integer(value)):
+            actual = (gradeRFIFirstSeat(answer: value,
                 spot: RFISpotGenerator.spot(baseSeed: seed, index: index, level: level)).band, nil, nil)
         case let (.rangeRead, .range(width, tendencies)):
             let selected = Set(tendencies.compactMap(RangeTendency.init(rawValue:)))
