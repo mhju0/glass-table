@@ -148,9 +148,10 @@ final class StepPersistenceTests: XCTestCase {
         XCTAssertTrue(state.concepts.isEmpty, "no schedule, accuracy or tier")
         XCTAssertTrue(state.answers.isEmpty)
         XCTAssertEqual(state.streak, ProgressState().streak)
-        let overview = PracticeActivityOverview(state: state, now: t0, calendar: .current)
-        XCTAssertEqual(overview.todayAnswerCount, 2)
-        XCTAssertTrue(overview.recentTopics.isEmpty)
+        let overview = ProgressOverview(state: state, now: t0, calendar: .current)
+        XCTAssertEqual(overview.decisionsStudied, 2)
+        XCTAssertEqual(overview.daysThisWeek, 1)
+        XCTAssertEqual(overview.strongSkills, 0)
         XCTAssertTrue(imports(state))
     }
 
