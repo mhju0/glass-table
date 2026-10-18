@@ -5,7 +5,26 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-17)
+## Current state (2026-10-18)
+
+- Build 35 (owner held it until all of this was in, 2026-10-18): `main` at `d910f99`
+  via integration PR #53 (PRs #42–#52), tag `v1.0-35`, TestFlight upload only. Adds:
+  - Steps (D53, schema 5): every skill but MDF is dealt at Learn → Apply → Sharp
+    (`DrillLevel`, nodes `<id>.2/.3`); Strong needs a perfect Apply/Sharp session,
+    Mastered a perfect Sharp challenge. Learn spots are byte-identical (golden tests).
+    Go deeper has a challenge (`deeper-boss`). Graded 1:1 decisions are saved as daily
+    mode "table". Golden fixture `schema4-build35.json`.
+  - Learn mark follows the learner (D52, schema 4, `lastNodeID`); Chen card opens by default.
+  - Play tab as a list (P2·A, `PlayView`, `PlayGlyph`); Progress tab rebuilt around
+    numbers that only grow (`ProgressOverview`, `ProgressSummaryView`; no goal picker,
+    no badges; `PracticeActivityOverview` deleted).
+  - Largest text (D54): dense table parts stop at AX3 via `gtTablePartTextCap()`. Its
+    press-and-hold Large Content Viewer was removed at the build gate: it swallowed
+    scroll drags at AX sizes (11 UI failures).
+  - EV call answer no longer always the middle choice; UI shards balanced by minutes.
+- Owner rule (2026-10-18): keep the app simple and automatic; no pickers or settings.
+- Left out on purpose: free-table "hands played" milestone (needs a new key); a
+  separate Sharp segment on the Progress stage bars (tiers already follow steps).
 
 - GRAC application submitted by owner on 2026-10-13: receipt `TG-OM-26-01177`, screenshot state **접수대기**, candidate 1.0(22). Private local record, working form answers, screenshots and prepared artifacts: `docs/grac-submission/2026-10-13/archive-index.txt`; Downloads backup `GlassTable_GRAC_신청보관_2026-10-13.zip`. Notion 10/13 task checked. Full final portal form export and payment receipt were not captured.
 
@@ -103,7 +122,7 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   stale metadata are not. Upload only; no App Store review submission (D23).
 - Unconfirmed whether the owner has added themselves as an internal tester (App Store
   Connect → TestFlight → Internal Testing; no invite code is needed).
-- No open PRs. All 2026-10-16/17 worktrees were removed after their branches merged.
+- No open PRs after build 35.
 - Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the
   iOS 27 beta). After a rebuild, run
   `xcrun simctl uninstall <device> com.michaelju.glasstable.GlassTableUITests.xctrunner`
@@ -121,17 +140,16 @@ Never verified with people or hardware:
   notification, share and review flows; backup export/import; huge-history save latency.
 - GRAC: owner submitted 1.0(22), now awaiting processing, any corrections, rating and RCN. Reviewer installation is unverified: development IPA permits only two registered devices; TestFlight upload/invite not performed. Confirm delivery with GRAC if needed. Video/simulator acceptance and statutory Annex 2(8) final selection remain unverified; working answers are not a final portal export.
 
-Owner checks pending on build 34 (2026-10-17): the floating sheet's concentric bottom
-corners on a real phone; the outs rows, kicker page and Learn list on the phone.
-- Known gap (D51): the marked row follows the open lesson or the suggestion, so a lesson
-  played out of order is not remembered; a saved `lastNodeID` would need a schema bump.
-- English sentences say "two pair, J high" and "a full house, 5s" (engine hand names),
-  not the "Js up" copy proposed in the kicker exploration.
+Owner checks pending on build 35 (2026-10-18): update the iPhone 12 mini from
+TestFlight (it is on build 31); try steps, Play and Progress on the phone. Whether the
+step content change needs a GRAC notice is unknown.
+- Build 35's step screens (22 uisweep entries) were never screenshot-swept: owner asked
+  for a lean finish. Only targeted UI classes and the merged suite's failures were run.
 
 Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
 - Outs sits second in the suggested order with no recorded
   reason (`c31a5c7`). Rules pages (pot, blinds, flow) stay optional; the glossary now
-  defines those words. Chen score is never explained.
+  defines those words.
 - Kept on purpose (owner, 2026-10-15): outs beginner choices can be 1 apart because
   exact counting is the skill; the starting check stays out of Settings (`7549a32`);
   audit #34/#41 compact-grid rank headers stay as they are.
@@ -144,8 +162,6 @@ Product and numbers:
   ‘안내 건너뛰기’, ‘계산 보기’, ‘전체 차트 보기’, ‘크게 보고 핸드 찾기’; unlabelled buttons
   on free-table setup. Free-table review once paired 33% with "four wins in ten".
 - Free-table dock/seat layout at 2–3 players: not confirmed closed; check `map.md`.
-- At AX5 in English the "Decision help" pill is clipped in the raise header; the
-  Korean AX5 raise title is cut inside its scroll box.
 - Clickable controls (not yet raised with the owner): the Play top-bar title stops
   growing at the first accessibility size, so the AX dock keeps its height. The walkthrough,
   hand review and learning guide keep equal-width Previous/Next; the guide and Hold'em
@@ -165,18 +181,22 @@ CI/CD:
   not passed on a GitHub runner (see `docs/records/2026-10-14-codex-ci-repair.md`).
 
 Tests:
-- `AccessibilityAuditTests/testPlayTable` fails on `main`: 0/3 on iPhone 17 iOS 26.5 on
-  2026-10-15 (contrast and partial Dynamic Type on the free-table title), also on the
-  12 mini. The fixes carried from PR #11 to `fix/a11y-play-captions-20261015` make it
-  pass 3/3; that PR awaits the owner (it changes the dock caption colour to `GT.ink`
-  and draws captions with a UIKit label).
 - Build 24 had only the unit tests and three hand-rank UI tests on iPhone 17, not the
   full suite.
 - Intermittent: `FreeTableBackFlowTests/testAXKOExpandedPolicyEndReachable` (iPhone 17),
   `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes`.
-- Unused code seen and left: `ProgressionModel.shouldPresentFirstPlacement`, `seatSentence`, `TodayView`, `Beat.hidden`, WalkthroughView flip code, PrimaryCTA/FeltCTA duplicate, `SolvedWithHelpLabel`, `SessionAttemptLedger`.
 
 ## Recent sessions
+
+### 2026-10-18 (Claude · build 35: steps, Play, Progress)
+
+- Merged PRs #37–#41, then built and merged through #53: steps for all skills (D53,
+  schema 5), Learn mark follows the learner (D52), Play list, Progress tab, largest text
+  (D54), Chen card open, EV call spread, Help scroll fix, UI shards by time.
+- Integration conflicts: union of step lists; D52/D54 renumber; kept #49's deletions.
+  The final UI run failed 11 AX tests; cause was the Large Content Viewer on capped
+  parts, removed (D54 updated); all 11 then passed locally, unit CI green.
+- Tagged `v1.0-35`. Next: owner installs from TestFlight and checks steps on the phone.
 
 ### 2026-10-17 (Claude · TestFlight builds 31–34 and owner's phone feedback)
 
@@ -229,19 +249,3 @@ Tests:
 - Release per flop decision on an M1 Pro, 200 seeded decisions: p50 41ms, p95 159ms,
   max 196ms. Debug: about 1-2.5s. Not yet timed on the iPhone 12 mini.
 - Next: owner reviews the PR; time a flop decision on the phone against D07's 200ms.
-
-### 2026-10-16 (Claude · best five after answering)
-
-- Owner approved option A (D50). Branch `feat/best-five-comparison-20261016` from the
-  local integration commit `9bb6c66`; PR open, not merged.
-- `BestFivePair` (Drills) and `BestFiveComparison` (app) show each player's seven
-  cards with the unused two dimmed, the hand name, a count line and a ringed deciding
-  card, after the answer only: "Who wins?", its restored answer, the hand review's
-  ending and the Hold'em basics check. Owner then asked for the first basics check
-  (flush against straight) to be dealt from seven cards as well (`HoldemBasics.firstCheck`).
-- Fixed on the way: the kicker sentence compared ranks high-to-low instead of in
-  evaluation order, and wrote "6라서".
-- Debug hooks: `GT_DEMO_SHOWDOWN_SPOT` (every showdown spot), `GT_DEMO_BASICS_SEED`.
-- The why sentence now appears once, under the rows; the "Who wins?" sheet and its
-  restored sheet no longer repeat it (owner chose this, 2026-10-17).
-- Next: merge PR #23.
