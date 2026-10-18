@@ -441,7 +441,7 @@ struct RecordsView: View {
                 VStack(spacing: 3) {
                     Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
                     Text(label).font(GT.semibold(10)).foregroundStyle(GT.inkMuted)
-                        .lineLimit(1).minimumScaleFactor(0.8)
+                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 }
             }
         }

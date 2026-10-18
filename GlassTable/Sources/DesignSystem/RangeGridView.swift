@@ -74,7 +74,7 @@ struct RangeGridView: View {
             }
             Text(h.description)
                 .font(.system(size: max(6, side * 0.30), weight: .semibold))
-                .minimumScaleFactor(0.5).lineLimit(1)
+                .lineLimit(1)
                 .foregroundStyle(w > 0 ? GT.onCTA : GT.inkMuted)
         }
         .frame(width: side, height: side)
@@ -89,6 +89,9 @@ struct RangeGridView: View {
                     .strokeBorder(GT.ink, lineWidth: max(1, side * 0.09))
             }
         }
+        // A grid label is sized to its cell, not to the text setting; press and hold
+        // shows it large (D52).
+        .accessibilityShowsLargeContentViewer { Text(h.description) }
         .accessibilityHidden(true)
     }
 

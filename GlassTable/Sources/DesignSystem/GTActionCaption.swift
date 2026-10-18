@@ -17,6 +17,7 @@ struct GTActionCaption: View {
     var weight: Weight = .body
     var baseSize: CGFloat = 12
     var ink: Color = GT.ink
+    var identifier: String? = nil
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.displayScale) private var displayScale
     @Environment(\.colorScheme) private var colorScheme
@@ -43,7 +44,7 @@ struct GTActionCaption: View {
         let currentFont = font
         NativeActionCaption(text: text, font: currentFont,
                             ink: UIColor(ink).resolvedColor(with: traits),
-                            locale: locale.identifier, direction: direction)
+                            locale: locale.identifier, direction: direction, identifier: identifier)
             .alignmentGuide(.firstTextBaseline) { _ in
                 let lineHeight = ceil(currentFont.lineHeight * displayScale) / displayScale
                 return currentFont.ascender + (lineHeight - currentFont.lineHeight) / 2
@@ -64,6 +65,7 @@ private struct NativeActionCaption: UIViewRepresentable {
     let ink: UIColor
     let locale: String
     let direction: LayoutDirection
+    let identifier: String?
 
     func makeUIView(context: Context) -> UILabel {
         let label = UILabel()
@@ -91,6 +93,7 @@ private struct NativeActionCaption: UIViewRepresentable {
         label.semanticContentAttribute = direction == .rightToLeft ? .forceRightToLeft : .forceLeftToRight
         label.accessibilityLabel = text
         label.accessibilityLanguage = locale
+        label.accessibilityIdentifier = identifier
         if sizingChanged { label.invalidateIntrinsicContentSize() }
     }
 

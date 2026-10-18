@@ -13,6 +13,9 @@ final class AccessibilityAuditTests: XCTestCase {
 
     /// Room for the scroll-edge fade above the tab bar; findings there reached 22pt above it.
     private static let scrollFadeHeight: CGFloat = 56
+    /// Table parts that stop growing at AX3 on purpose and show the large content viewer
+    /// instead (D52); the audit reads that cap as partial Dynamic Type support.
+    private static let cappedAtAX3: Set<String> = ["free-table-title"]
 
     private func audit(_ name: String, environment: [String: String], swipes: Int = 0,
                        ready: (XCUIApplication) -> XCUIElement) throws {
@@ -62,6 +65,9 @@ final class AccessibilityAuditTests: XCTestCase {
             attachment.lifetime = .keepAlways
             self.add(attachment)
             if issue.auditType == .contrast, let frame = issue.element?.frame, frame.maxY > fadeTop {
+                return true
+            }
+            if issue.auditType == .dynamicType, let id = issue.element?.identifier, Self.cappedAtAX3.contains(id) {
                 return true
             }
             return false

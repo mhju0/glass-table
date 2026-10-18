@@ -1013,3 +1013,21 @@ and passed/total; a track's challenge is one quiet line (섞어서 확인하기 
   title, description, status, then a full-width action.
 - Hold'em basics has no single-skill round, so a passed basics row keeps its ✓ and a
   chevron rather than a 연습 action.
+
+### D52 · Largest text sizes: table parts stop at AX3, reading text goes on
+**Status: ACTIVE — owner chose option B on 2026-10-18.**
+
+All text grows to AX3 (over 200%). Above AX3, lessons, explanations, answers and
+results keep growing to AX5. Only the dense table parts stop at AX3, through
+`gtTablePartTextCap`, which also turns on the press-and-hold Large Content Viewer:
+the free table's top-bar title, the Decision help pill, the raise title, the dock's
+action buttons, the To call / Pot facts, seat chip and pot labels, the drills' price
+bar and the hand-chart explorer cells. The 13×13 range and defend grid labels were
+already sized to their cells, not to the text setting (D37); they get the large viewer.
+
+- Shrinking text to fit (`minimumScaleFactor`) is not used for text that follows the
+  reader's size: it undoes their choice. Text wraps, or a table part stops at AX3.
+  The milestone share card keeps it: it is an image drawn at one fixed text size.
+- The cap goes on the specific part, never at the root. Card faces stay fixed (D37).
+- D37's one-row seat and street strips keep their `.xxLarge` limit; they now wrap
+  rather than shrink.

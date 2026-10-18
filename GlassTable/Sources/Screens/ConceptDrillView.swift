@@ -1145,7 +1145,7 @@ private struct PositionDrill: View {
                     ForEach(Array(groupRuns(order).enumerated()), id: \.offset) { _, run in
                         Text(run.name)
                             .font(GT.semibold(10)).foregroundStyle(GT.onFeltSecondary)
-                            .lineLimit(1).minimumScaleFactor(0.7)
+                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity)
                             .gridCellColumns(run.count)
                             .accessibilityHidden(true)
@@ -1157,7 +1157,7 @@ private struct PositionDrill: View {
                     let marked = marker(p) != nil
                     Text(termsLead || reveal != nil ? p.rawValue : (marker(p) ?? ""))
                         .font(GT.semibold(10)).foregroundStyle(marked ? GT.cardInk : GT.onFelt)
-                        .lineLimit(1).minimumScaleFactor(0.7)
+                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, minHeight: 34)
                         .background(marked ? Color(hex: 0xF3EDE0) : GT.onFelt.opacity(0.12),
                                     in: RoundedRectangle(cornerRadius: 8))
@@ -1699,7 +1699,6 @@ private struct CallFoldDrill: View {
 private struct RangeNotationDrill: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.simpleQuestions) private var simple
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.drillInitialDraft) private var initialDraft
     @Environment(\.drillSaveDraft) private var saveDraft
     let seed: UInt64; let index: Int; let progressText: String
@@ -1720,10 +1719,7 @@ private struct RangeNotationDrill: View {
                 // arithmetic into cell counting.
                 Text(spot.notation)
                     .font(GT.title(30).monospaced()).foregroundStyle(GT.onFelt)
-                    .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 1 : 0.8)
-                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 3)
-                    .fixedSize(horizontal: false,
-                               vertical: dynamicTypeSize.isAccessibilitySize)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(language.text("페어 6 · 수티드 4 · 오프수트 12",
                                    "Pair 6 · same suit 4 · different suits 12"))
                     .font(GT.semibold(12)).foregroundStyle(GT.onFeltMuted)
@@ -1913,7 +1909,7 @@ private struct RFIDrill: View {
         Text(position.rawValue)
             .font(GT.semibold(compact ? 9.5 : 12))
             .foregroundStyle(position == spot.seat ? GT.cardInk : GT.onFelt.opacity(0.75))
-            .lineLimit(1).minimumScaleFactor(compact ? 0.8 : 1)
+            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: compact ? 32 : 44)
             .background(position == spot.seat ? Color(hex: 0xF3EDE0) : GT.onFelt.opacity(0.10),
                         in: RoundedRectangle(cornerRadius: GT.Radius.tile))
@@ -2226,7 +2222,7 @@ private struct RangeReadDrill: View {
                 Text(chipLabel(t))
                     .font(on ? GT.title(13) : GT.semibold(13))
                     .foregroundStyle(on ? GT.onCTA : GT.ink)
-                    .minimumScaleFactor(0.7).lineLimit(1)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 if saturated {
                     Image(systemName: "equal.circle.fill").font(.system(size: 11))
                         .foregroundStyle(on ? GT.onCTA.opacity(0.75) : GT.inkMuted)
