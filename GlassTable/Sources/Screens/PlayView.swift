@@ -269,7 +269,7 @@ struct PlayTableGuideView: View {
                     Text(language.text("테이블 보는 법", "How to read the table"))
                         .font(GT.title(26)).foregroundStyle(GT.ink)
                     PlayTableGuideList()
-                    FeltCTAButton(title: language.text("테이블로 가기", "Go to the table"), action: onClose)
+                    PrimaryCTAButton(title: language.text("테이블로 가기", "Go to the table"), action: onClose)
                         .accessibilityIdentifier("play-table-guide-close")
                 }
                 .gtContentEdge()

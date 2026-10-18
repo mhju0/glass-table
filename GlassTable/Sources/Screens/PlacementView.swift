@@ -31,7 +31,7 @@ struct PlacementView: View {
                         Text(language.text("시작점 제안일 뿐이에요. 어떤 레슨이든 고를 수 있고, 이전 레슨은 완료로 바뀌지 않아요.", "This is only a starting suggestion. Every lesson stays open, and earlier lessons aren't marked complete."))
                             .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                         Spacer(minLength: 12)
-                        FeltCTAButton(title: onFinish == nil ? language.text("배우기로 돌아가기", "Return to Learn")
+                        PrimaryCTAButton(title: onFinish == nil ? language.text("배우기로 돌아가기", "Return to Learn")
                                       : language.text("계속", "Continue")) { finish() }
                             .accessibilityIdentifier("placement.continue")
                     } else if question < 0 {
