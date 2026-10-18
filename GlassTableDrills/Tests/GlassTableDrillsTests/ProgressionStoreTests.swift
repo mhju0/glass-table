@@ -58,7 +58,7 @@ final class ProgressionStoreTests: XCTestCase {
         guard case let .loaded(migrated) = s.load() else {
             return XCTFail("schema one should migrate")
         }
-        XCTAssertEqual(migrated.schemaVersion, 4)
+        XCTAssertEqual(migrated.schemaVersion, 5)
         XCTAssertEqual(migrated.record(for: .outs).total, 6)
         XCTAssertEqual(migrated.record(for: .outs).correct, 4)
         XCTAssertNotNil(migrated.detailedTrackingStartedAt)

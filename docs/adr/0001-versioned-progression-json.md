@@ -43,11 +43,11 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (4); newer is refused | `ProgressionStore.decodeAndValidate` (header read before full decode) and `validate(_ ProgressState)`; upgrade in `ProgressionStore.load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (5); newer is refused | `ProgressionStore.decodeAndValidate` (header read before full decode) and `validate(_ ProgressState)`; upgrade in `ProgressionStore.load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
-| Practice round format | `activeRound.formatVersion` | exactly 1, with `questionCount` 5 | `ProgressionStore.validate(_ PracticeRound)` |
-| Review session format | `activeReviewSession.formatVersion` | exactly 1 | `ProgressionStore.validate(_ ReviewSessionSnapshot)` |
-| Daily-summary format | `dailySummaries[].key.formatVersion`, `recentEvidence[].key.formatVersion` | 1…1,000,000, kept as written; Records compares only equal versions | `ProgressionStore.validate(_ DailyPracticeSummary)`; `RecordsView` |
+| Practice round format | `activeRound.formatVersion` | 1 (no `level`) or 2 (optional `level` 2…the skill's highest step, D53), with `questionCount` 5 | `ProgressionStore.validate(_ PracticeRound)` |
+| Review session format | `activeReviewSession.formatVersion` | exactly 1; optional `levels`, one step (1…3, within the skill's highest) per question (D53) | `ProgressionStore.validate(_ ReviewSessionSnapshot)` |
+| Daily-summary format | `dailySummaries[].key.formatVersion`, `recentEvidence[].key.formatVersion` | 1…1,000,000, kept as written; Records compares only equal versions. Optional `key.level` 2…3 (D53); mode and concept "table" for table decisions | `ProgressionStore.validate(_ DailyPracticeSummary)`; `RecordsView` |
 | Saved reveal | `reveal.version` inside saved answers | exactly 1 | `SavedDrillReveal.isValid` |
 | Opening guide | `pendingFirstLesson.comparisonVersion` | 1…`FirstLesson.currentComparisonVersion` (2); missing reads as 1 | `FirstLessonSnapshot.init(from:)` / `isValid` |
 | Placement | `placement.assessmentVersion` | exactly `PlacementGuide.version` (1) | `ProgressionStore.validate(_ PlacementState)` |

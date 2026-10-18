@@ -11,6 +11,7 @@ seeds and `fixture-*` IDs. No real phone progress is included.
 | `schema2-build22.json` | 1.0 (22) | `113e27b` | build 16 plus `quickPlaySessions` (one finished, one active), `activeQuickPlaySessionID`, `pendingFirstLesson` |
 | `schema2-build30.json` | 1.0 (30) | `5c040c1` | build 22 plus `NodeRecord.best` |
 | `schema3-build34.json` | 1.0 (34) | `v1.0-34` | schema 3, the last shape before `lastNodeID` (schema 4): build 34 loaded `schema2-build30.json`, upgraded it and saved it |
+| `schema4-build35.json` | 1.0 (35), not shipped | `ceb0ea8` (PR #43 branch) | schema 4, the last shape before steps (schema 5): `schema3-build34.json` upgraded, with showdown at 능숙, potOdds at 숙달 and `lastNodeID` `u1-potMath` |
 
 Build commits come from `docs/build-history.md` and the `CFBundleVersion` bumps in
 `project.yml`.
@@ -32,6 +33,11 @@ For `schema3-build34.json` (2026-10-18) the generator loaded `schema2-build30.js
 through build 34's `ProgressionStore.load` (which upgrades to schema 3) and saved the
 result with build 34's `save`; schema 3 has schema 2's data, so no new content was
 needed.
+
+For `schema4-build35.json` (2026-10-18) the generator ran on the PR #43 branch
+(schema 4, which shipped in no build): it loaded `schema3-build34.json`, set
+showdown to proficient (2026-09-25), potOdds to mastered 13 h later and
+`lastNodeID`, saved with that branch's `save`, and checked the reload was equal.
 
 The generator was not committed; only its output was. Do not hand-edit these files.
 When the schema changes, add a fixture written by the last build of the old schema

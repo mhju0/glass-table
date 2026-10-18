@@ -214,10 +214,13 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
 
 /// Everything the app persists, as one value type. Schema 2 keeps durable summaries
 /// alongside the bounded answer log, so older history is never inferred from a ring.
-/// Schema 3 has schema 2's shape; schema 4 adds `lastNodeID`. Any new key or new
+/// Schema 3 has schema 2's shape; schema 4 adds `lastNodeID`. Schema 5 adds steps
+/// (D53): step node ids (`<id>.2`, `<id>.3`), `PracticeRound.level` (format 2),
+/// `NodeSessionSnapshot.levels`, `ReviewSessionSnapshot.levels`,
+/// `DailyPracticeKey.level` and the table's "table" summaries. Any new key or new
 /// meaning bumps it (ADR 0001).
 public struct ProgressState: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 4
+    public static let currentSchemaVersion = 5
     /// Ring-buffer cap for the answer log. Bounded on purpose — an unbounded history
     /// is the one thing that would make a single-file store the wrong choice.
     public static let answerLogCap = 500
