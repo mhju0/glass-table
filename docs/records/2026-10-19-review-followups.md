@@ -4,6 +4,7 @@
 - **Asked by / for:** owner; correct review weaknesses while preserving the simple,
   automatic learning flow and useful phone-feedback practice
 - **Branch:** `fix/review-followups-20261019`, isolated `glass-table-review-followups`
+- **Delivery:** [draft PR #55](https://github.com/mhju0/glass-table/pull/55), remote checks pending
 - **Core candidate:** `116187c5835551e90fe0519b0f8b23b8f74c8a7a`
 - **Final code candidate:** `66d9c22a3af10ffc2ef85e99122313b63ce7883e` (copy-only delta)
 - **Originals:** local `/tmp/gt-followups-*.log` / `.xcresult` and `.uisweep/` captures;

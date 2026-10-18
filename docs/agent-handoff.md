@@ -139,7 +139,8 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   stale metadata are not. Upload only; no App Store review submission (D23).
 - Unconfirmed whether the owner has added themselves as an internal tester (App Store
   Connect → TestFlight → Internal Testing; no invite code is needed).
-- No open PRs after build 35; follow-up branch has not yet been published.
+- Follow-up [draft PR #55](https://github.com/mhju0/glass-table/pull/55) is open.
+  Remote checks are pending; keep it separate from build-35 release claims.
 - Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the
   iOS 27 beta). After a rebuild, run
   `xcrun simctl uninstall <device> com.michaelju.glasstable.GlassTableUITests.xctrunner`
