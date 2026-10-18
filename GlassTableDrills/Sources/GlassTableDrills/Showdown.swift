@@ -42,17 +42,46 @@ public enum ShowdownSpotGenerator {
     nonisolated(unsafe) public static var demoSpot: ShowdownSpot?
     #endif
 
-    public static func spot(baseSeed: UInt64, index: Int) -> ShowdownSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> ShowdownSpot {
         #if DEBUG
         if let demoSpot { return demoSpot }
         #endif
-        var rng = SplitMix64(seed: baseSeed
-            &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
-        var deck = Deck.all
-        deck.shuffle(using: &rng)
-        return ShowdownSpot(hero: Array(deck[0..<2]),
-                            villain: Array(deck[2..<4]),
-                            board: Array(deck[4..<9]))
+        guard level > .learn else {
+            var rng = SplitMix64(seed: baseSeed
+                &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
+            var deck = Deck.all
+            deck.shuffle(using: &rng)
+            return ShowdownSpot(hero: Array(deck[0..<2]),
+                                villain: Array(deck[2..<4]),
+                                board: Array(deck[4..<9]))
+        }
+        // Later steps redeal from their own stream until the spot is one the step
+        // promises (D53): the hand type never decides it, so a card has to.
+        var attempt: UInt64 = 0
+        while true {
+            var rng = SplitMix64(seed: baseSeed
+                &+ UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03
+                &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15
+                &+ attempt)
+            var deck = Deck.all
+            deck.shuffle(using: &rng)
+            let spot = ShowdownSpot(hero: Array(deck[0..<2]),
+                                    villain: Array(deck[2..<4]),
+                                    board: Array(deck[4..<9]))
+            if spot.heroBest.category == spot.villainBest.category {
+                let tie = spot.winner == 2
+                if level == .apply, !tie { return spot }
+                if level == .sharp, tie || boardPlaysForOne(spot) { return spot }
+            }
+            attempt += 1
+        }
+    }
+
+    /// Whether one player's best five is all board cards.
+    private static func boardPlaysForOne(_ spot: ShowdownSpot) -> Bool {
+        [spot.hero, spot.villain].contains { hole in
+            !bestFiveCards(hole + spot.board).contains(where: hole.contains)
+        }
     }
 }
 

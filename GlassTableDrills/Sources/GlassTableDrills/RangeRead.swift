@@ -60,7 +60,7 @@ public struct RangeReadSpot: Equatable {
 }
 
 public enum RangeReadSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> RangeReadSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> RangeReadSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         let archetype = Archetype.allCases.randomElement(using: &rng)!

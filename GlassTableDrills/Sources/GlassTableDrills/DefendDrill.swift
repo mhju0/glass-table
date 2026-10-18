@@ -22,7 +22,7 @@ public struct DefendSpot: Equatable {
 }
 
 public enum DefendSpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> DefendSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> DefendSpot {
         var attempt = 0
         while true {
             var rng = SplitMix64(seed: baseSeed

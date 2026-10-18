@@ -22,7 +22,7 @@ public struct RangeNotationSpot: Equatable {
 
 public enum RangeNotationSpotGenerator {
     /// Built from templates rather than a fixed list, so the drill never runs out.
-    public static func spot(baseSeed: UInt64, index: Int) -> RangeNotationSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> RangeNotationSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
         let r = HandClass.rankChars
@@ -92,7 +92,7 @@ public struct RFISpot: Equatable {
 }
 
 public enum RFISpotGenerator {
-    public static func spot(baseSeed: UInt64, index: Int) -> RFISpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> RFISpot {
         var attempt = 0
         while true {
             var rng = SplitMix64(seed: baseSeed

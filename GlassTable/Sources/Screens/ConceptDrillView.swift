@@ -1658,8 +1658,8 @@ private struct CallFoldDrill: View {
                 Text(language.text("팟 \(spot.pot)\(unit) · 상대 벳 \(spot.bet)\(unit)",
                                    "Pot \(spot.pot)\(unit) · Opponent bets \(spot.bet)\(unit)"))
                     .font(GT.title(15)).foregroundStyle(GT.onFelt).padding(.top, 12)
-                if lessonNumbers {
-                    Text(callFoldLessonNumbers(spot: spot, language: language))
+                if lessonNumbers, let numbers = callFoldLessonNumbers(spot: spot, language: language) {
+                    Text(numbers)
                         .font(GT.semibold(15)).foregroundStyle(GT.mint)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("callfold-lesson-numbers")

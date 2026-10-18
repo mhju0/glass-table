@@ -234,7 +234,46 @@ public enum PotMathSpotGenerator {
     /// fraction question indistinguishable from the already practised pot total.
     static let fractions = [0.33, 0.5, 0.75]
 
-    public static func spot(baseSeed: UInt64, index: Int) -> PotMathSpot {
+    public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> PotMathSpot {
+        guard level > .learn else { return learnSpot(baseSeed: baseSeed, index: index) }
+        var rng = SplitMix64(seed: baseSeed
+            &+ UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03
+            &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
+
+        // Later steps (D53) vary every size the first step fixes: any open from 4 to 8,
+        // a 3-bet to three or four times it, the SB sometimes calling instead of
+        // folding, and the question picked at random from the first question on. The
+        // table still seats four, so a second caller never appears.
+        var actions: [PotMathSpot.Action] = [.blinds(sb: 1, bb: 2)]
+        let open = Int.random(in: 4...8, using: &rng)
+        actions.append(.raiseTo(actor: .opener, total: open, alreadyIn: 0))
+        if Bool.random(using: &rng) {
+            actions.append(.call(actor: .caller1, amount: open))
+        }
+        let sbCalls = Bool.random(using: &rng)
+        if sbCalls {
+            actions.append(.call(actor: .sb, amount: open - 1))
+        }
+        let threeBet = open * Int.random(in: 3...4, using: &rng)
+        actions.append(.raiseTo(actor: .bb, total: threeBet, alreadyIn: 2))
+        actions.append(.call(actor: .opener, amount: threeBet - open))
+
+        // The third step plays on: the BB leads the flop and the opener calls.
+        if level == .sharp {
+            let preflop = PotMathSpot(actions: actions, question: .potNow).pot
+            let bet = max(1, Int((Double(preflop) * fractions.randomElement(using: &rng)!).rounded()))
+            actions.append(.bet(actor: .bb, amount: bet))
+            actions.append(.call(actor: .opener, amount: bet))
+        }
+
+        let question: PotMathSpot.Question = Bool.random(using: &rng)
+            ? .potNow
+            : .fractionOfPot(fractions.randomElement(using: &rng)!)
+        return PotMathSpot(actions: actions, question: question, foldedActors: sbCalls ? [] : [.sb])
+    }
+
+    /// The first step, frozen by `LearnSpotGoldenTests`.
+    private static func learnSpot(baseSeed: UInt64, index: Int) -> PotMathSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
 
