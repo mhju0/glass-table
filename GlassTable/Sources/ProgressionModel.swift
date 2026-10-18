@@ -132,10 +132,9 @@ final class ProgressionModel {
 
     func record(for concept: Concept) -> ConceptRecord { state.record(for: concept) }
 
-    /// Spec §4.3: the number the home screen leads with, never XP and never streak.
-    var masteredCount: Int {
-        Concept.allCases.filter { state.record(for: $0).tier >= .proficient }.count
-    }
+    /// Spec §4.3: skills at Strong or better, never XP and never streak. Counts the
+    /// curriculum's skills only, not concepts kept for older saved progress.
+    var masteredCount: Int { ProgressOverview.strongCount(in: state) }
 
     var calibrationHitRate: Double? { Calibration.hitRate(in: state) }
 
@@ -1051,6 +1050,14 @@ final class ProgressionModel {
             s.append(AnswerRecord(concept: .evLoss,
                                   at: now.addingTimeInterval(-Double(i) * 1800),
                                   correct: loss == 0, evLoss: loss))
+        }
+
+        // Answered days, so Progress has decisions studied and a journal to show.
+        for (days, concept, count) in [(6.0, Concept.showdown, 40), (3, .potMath, 35), (1, .position, 30), (0, .equitySense, 12)] {
+            var summary = DailyPracticeSummary(key: DailyPracticeKey(day: DayKey(now.addingTimeInterval(-86400 * days)),
+                concept: concept.rawValue, mode: "path", formatVersion: 1, language: "ko", assisted: false))
+            summary.exact = count
+            s.dailySummaries.append(summary)
         }
 
         s.streak = StreakRecord(current: 12, longest: 12, lastSessionDay: DayKey(now),

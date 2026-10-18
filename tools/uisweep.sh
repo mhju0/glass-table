@@ -115,6 +115,8 @@ SCREENS=(
   "records-returning:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=returning"
   "records-mixed:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=mixed"
   "records-completed:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=completed"
+  "progress-today:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=progress-today"
+  "progress-away:GT_DEMO_TAB=records GT_DEMO_ACTIVITY=progress-away"
   "today:GT_DEMO_SEED=1 GT_DEMO_TAB=today"
   "path:GT_DEMO_SEED=1 GT_DEMO_TAB=path"
   "records:GT_DEMO_SEED=1 GT_DEMO_TAB=records"
