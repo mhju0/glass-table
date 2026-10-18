@@ -48,6 +48,7 @@ SCREENS=(
   "learn:GT_DEMO_TAB=learn"
   "placement:GT_DEMO_PLACEMENT=1"
   "play:GT_DEMO_TAB=play"
+  "play-open:GT_DEMO_TAB=play GT_DEMO_PLAY_OPEN=6"
   "play-setup:GT_DEMO_TAB=play GT_DEMO_PLAY_SETUP=1"
   "opponent-details:GT_DEMO_TAB=play GT_DEMO_PLAY_SETUP=1 GT_DEMO_OPPONENT=tag"
   "play-hand:GT_DEMO_TAB=play GT_DEMO_PRACTICE=1"

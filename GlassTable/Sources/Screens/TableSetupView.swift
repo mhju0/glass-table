@@ -19,6 +19,13 @@ struct TableSetupView: View {
     @State private var showGuide = false
     @State private var failure = false
 
+    /// `quick` preselects the game length the Play row named.
+    init(epoch: UUID, quick: Bool = true, onStarted: (() -> Void)? = nil) {
+        self.epoch = epoch
+        self.onStarted = onStarted
+        _quick = State(initialValue: quick)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
@@ -171,8 +178,8 @@ struct TableSetupView: View {
 }
 
 /// Every style one tap away, for comparing before choosing. Picking stays on the setup
-/// screen, so this guide only explains.
-private struct StyleGuideView: View {
+/// screen, so this guide only explains. Play's "About the styles" link opens it too.
+struct StyleGuideView: View {
     @Environment(\.learningLanguage) private var language
     let onClose: () -> Void
 

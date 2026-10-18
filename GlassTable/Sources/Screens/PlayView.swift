@@ -5,9 +5,15 @@ import GlassTableEngine
 struct PlayView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var failure = false
     @State private var epoch: UUID?
     @State private var showSetup = false
+    /// The game length setup opens with: the row that was tapped.
+    @State private var setupQuick = true
+    /// A new table's length, waiting on the learner to end the open one.
+    @State private var pendingNewTable: Bool?
+    @State private var showStyles = false
     @State private var showGraded = false
     @State private var showTable = false
     @State private var showArchive = false
@@ -30,33 +36,63 @@ struct PlayView: View {
         }
     }
 
+    private var stacks: Bool { dynamicTypeSize.isAccessibilitySize }
+    private var savedGames: [QuickPlaySession] { model.state.quickPlaySessions.filter { !$0.hands.isEmpty } }
+
+    /// The list in Learn's style (owner, 2026-10-18, P2·A): the open table alone under
+    /// "Continue", then the ways to start one, then what can be looked back on.
     private var playContent: some View {
-        GeometryReader { viewport in
-            ScrollView {
-                // The screen's midline falls in the gap between the two choices.
-                // Content is padded 18 inside a viewport that starts below the top
-                // safe area, so the midline is converted into this layout's space.
-                let screenHeight = viewport.safeAreaInsets.top + viewport.size.height
-                    + viewport.safeAreaInsets.bottom
-                VStack(spacing: 20) {
-                MidlineSplitLayout(splitY: screenHeight / 2 - viewport.safeAreaInsets.top - 18,
-                                   spacing: 22, gap: 12) {
-                    playTitle
-                    Text(language.text("컴퓨터와 한 판씩 연습해요.",
-                                       "Practice against computers."))
-                        .font(GT.body(16)).foregroundStyle(GT.inkSecondary)
-                        .lineSpacing(GT.Typography.bodyLineSpacing)
-                    freeCard
-                    gradedCard
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(language.text("플레이", "Play")).font(GT.title(30))
+                    .padding(.bottom, 12)
+                if let table = model.state.tableState {
+                    sectionHeader(language.text("이어하기", "Continue"))
+                    continueRow(table)
                 }
-                    if model.state.quickPlaySessions.contains(where: { !$0.hands.isEmpty }) {
-                        SecondaryCTAButton(title: language.text("빠른 게임 기록", "Quick Game history")) { showArchive = true }
-                            .accessibilityIdentifier("play-quick-history")
+                sectionHeader(language.text("새 테이블 시작", "Start a new table"))
+                VStack(spacing: 0) {
+                    row(title: language.text("빠른 게임", "Quick game"),
+                        detail: language.text("각자 \(TableSetupView.quickStack)칩. \(TableSetupView.quickHands)핸드 뒤에 끝나요.",
+                                              "\(TableSetupView.quickStack) chips each. Ends after \(TableSetupView.quickHands) hands."),
+                        id: "play-quick", open: { startNewTable(quick: true) }) { PlayGlyph(kind: .quick) }
+                        .disabled(model.saveError != nil)
+                    row(title: language.text("긴 테이블", "Long table"),
+                        detail: language.text("각자 100칩. 그만할 때까지 계속해요.", "100 chips each. Keeps going until you stop."),
+                        id: "play-long", open: { startNewTable(quick: false) }) { PlayGlyph(kind: .long) }
+                        .disabled(model.saveError != nil)
+                }
+                // The same question the table asks before its own "Start new game".
+                .confirmationDialog(language.text("새 게임을 시작할까요?", "Start a new game?"),
+                                    isPresented: Binding(get: { pendingNewTable != nil }, set: { if !$0 { pendingNewTable = nil } }),
+                                    titleVisibility: .visible, presenting: pendingNewTable) { quick in
+                    Button(language.text("새 게임 시작", "Start new game")) {
+                        guard let table = model.state.tableState,
+                              model.endTable(handID: table.handID, expectedEpoch: epoch ?? model.epoch) else { return }
+                        setupQuick = quick
+                        showSetup = true
                     }
+                    Button(language.text("취소", "Cancel"), role: .cancel) {}
+                } message: { _ in
+                    Text(model.state.tableState?.street == .finished
+                         ? language.text("끝난 빠른 게임 핸드는 기록에 남아요.", "Settled Quick Game hands stay in history.")
+                         : language.text("진행 중인 핸드는 버리고, 끝난 빠른 게임 핸드는 기록에 남아요.",
+                                         "The unfinished hand will be discarded. Settled Quick Game hands stay in history."))
                 }
-                .padding(18)
-                .frame(minHeight: viewport.size.height, alignment: .top)
+                row(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
+                    detail: language.text("상대 한 명. 고른 행동이 얼마나 좋았는지 봐요.",
+                                          "One opponent. See how good each choice was."),
+                    id: "play-graded", open: { showGraded = true }) { PlayGlyph(kind: .graded) }
+                if !savedGames.isEmpty {
+                    sectionHeader(language.text("돌아보기", "Look back"))
+                    row(title: language.text("게임 돌아보기", "Game review"),
+                        detail: language.text("저장된 게임 \(savedGames.count)개. 어느 핸드든 선택 하나씩 다시 봐요.",
+                                              "\(savedGames.count) saved \(savedGames.count == 1 ? "game" : "games"). Replay any hand, one choice at a time."),
+                        id: "play-quick-history", open: { showArchive = true }) { PlayGlyph(kind: .review) }
+                }
+                styleLink
             }
+            .padding(18)
         }
         .background(FeltBackground())
         // Page ground behind the status bar, so nothing scrolls under the clock bare.
@@ -65,7 +101,7 @@ struct PlayView: View {
         }
         .gtTabBarClearance()
         .navigationDestination(isPresented: $showSetup) {
-            TableSetupView(epoch: epoch ?? model.epoch) {
+            TableSetupView(epoch: epoch ?? model.epoch, quick: setupQuick) {
                 var instant = Transaction()
                 instant.disablesAnimations = true
                 withTransaction(instant) { showSetup = false }
@@ -76,19 +112,27 @@ struct PlayView: View {
         .navigationDestination(isPresented: $showGraded) { TableView() }
         .fullScreenCover(isPresented: $showTable, onDismiss: {
             replayFromStart = false
-            if setupAfterTable { setupAfterTable = false; showSetup = true }
+            if setupAfterTable { setupAfterTable = false; setupQuick = true; showSetup = true }
         }) {
             FreeTableView(epoch: epoch ?? model.epoch, replayFromStart: replayFromStart,
                           onClose: { showTable = false },
                           onNewTable: { setupAfterTable = true; showTable = false })
         }
         .fullScreenCover(isPresented: $showArchive) {
-            QuickPlayArchiveView(sessions: model.state.quickPlaySessions.filter { !$0.hands.isEmpty }) { showArchive = false }
+            QuickPlayArchiveView(sessions: savedGames) { showArchive = false }
         }
+        .sheet(isPresented: $showStyles) { StyleGuideView { showStyles = false } }
         .modifier(ProgressSaveNotice())
         .onAppear {
             if epoch == nil { epoch = model.epoch }
             #if DEBUG
+            // A quick game left open, after this many hands, at the next one that waits on the learner.
+            if let hands = ProcessInfo.processInfo.environment["GT_DEMO_PLAY_OPEN"].flatMap(Int.init),
+               ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+               !Self.demoTableOpened {
+                Self.demoTableOpened = true
+                configureQuickReview(stopAtHand: hands)
+            }
             if ProcessInfo.processInfo.environment["GT_DEMO_PRACTICE"] != nil {
                 if ProcessInfo.processInfo.environment["GT_DEMO_QUICK_REVIEW"] == "1",
                    ProcessInfo.processInfo.environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil {
@@ -110,7 +154,10 @@ struct PlayView: View {
     }
 
     #if DEBUG
-    private func configureQuickReview() {
+    /// Once per launch, so a table the test ends is not dealt again when Play reappears.
+    private static var demoTableOpened = false
+
+    private func configureQuickReview(stopAtHand: Int? = nil) {
         do {
             if model.state.tableState == nil {
                 guard try model.startTable(seed: 97, styles: [.tag, .station, .lag],
@@ -118,6 +165,7 @@ struct PlayView: View {
             }
             for _ in 0..<200 {
                 guard let table = model.state.tableState, !table.isGameOver else { return }
+                if let stopAtHand, table.handNumber >= stopAtHand, table.review == nil { return }
                 let saved: Bool
                 if table.review != nil {
                     saved = try model.nextTableHand(handID: UUID().uuidString, after: table.handID,
@@ -132,41 +180,150 @@ struct PlayView: View {
     }
     #endif
 
-    /// Opens the table in progress, or sets up a new one.
-    private var freeCard: some View {
-        Button {
-            if model.state.tableState != nil { showTable = true } else { showSetup = true }
-        } label: {
-            if let table = model.state.tableState {
-                TapCardLabel(title: language.text("자유 대전 이어서", "Continue the free table"),
-                             detail: language.text("\(table.seatCount)명 테이블 · \(table.handNumber + 1)번째 핸드. 여기서는 채점하지 않아요.",
-                                                   "\(table.seatCount)-player table · hand \(table.handNumber + 1). No grading here."),
-                             emphasized: true)
-            } else {
-                TapCardLabel(title: language.text("자유 대전", "Free table"),
-                             detail: language.text("컴퓨터와 한 판을 치고 선택을 돌아봐요. 점수는 매기지 않아요.",
-                                                   "Play a hand, then review your choices. Nothing is graded."),
-                             emphasized: true)
-            }
+    // MARK: Rows
+
+    /// The open table, marked like Learn's open lesson: its own cards and hand count.
+    private func continueRow(_ table: PracticeTableState) -> some View {
+        let players = language.text("\(table.seatCount)명", "\(table.seatCount) players")
+        let title = table.handLimit == nil
+            ? language.text("긴 테이블 · \(players)", "Long table · \(players)")
+            : language.text("빠른 게임 · \(players)", "Quick game · \(players)")
+        let hand = table.handNumber + 1
+        let detail = table.handLimit.map {
+            language.text("핸드 \(hand)/\($0). 여기서는 채점하지 않아요.", "Hand \(hand) of \($0). No grading here.")
+        } ?? language.text("\(hand)번째 핸드. 여기서는 채점하지 않아요.", "Hand \(hand). No grading here.")
+        // Between hands the last hand's cards are no longer in play, so backs stand in.
+        let hole = table.street == .finished ? [] : table.learnerHole.compactMap(Card.init)
+        let cards = hole.count == 2
+            ? language.text("내 카드 ", "Your cards: ") + hole.map { $0.spoken(in: language) }.joined(separator: ", ")
+            : nil
+        return row(title: title, detail: detail, id: "play-continue", spoken: cards, marked: true,
+                   open: { showTable = true }) {
+            PlayGlyph(kind: .open(hole: hole, hand: hand, of: table.handLimit))
         }
-        .buttonStyle(GTPress())
-        .accessibilityIdentifier("play-free")
         .disabled(model.saveError != nil)
     }
 
-    /// The graded 1:1 exercise lives in Play as its own mode, beside the free table.
-    private var playTitle: some View {
-        Text(language.text("플레이", "Play")).font(GT.title(30))
+    private func startNewTable(quick: Bool) {
+        if model.state.tableState != nil {
+            pendingNewTable = quick
+        } else {
+            setupQuick = quick
+            showSetup = true
+        }
     }
 
-    private var gradedCard: some View {
-        Button { showGraded = true } label: {
-            TapCardLabel(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
-                         detail: language.text("컴퓨터 한 명과 치면서, 고른 행동이 얼마나 좋았는지 바로 확인해요.",
-                                               "Play one opponent and see right away how good each choice was."))
+    /// A small link under the list, as on the board; table setup keeps its own.
+    private var styleLink: some View {
+        Button { showStyles = true } label: {
+            HStack(spacing: 8) {
+                Text(language.text("스타일 자세히 보기", "About the styles"))
+                    .font(GT.semibold(14)).foregroundStyle(GT.onFelt)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(GT.onFeltSecondary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .padding(.top, 4)
+            .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
-        .accessibilityIdentifier("play-graded")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(language.text("스타일 자세히 보기", "About the styles"))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityIdentifier("play-style-guide")
+    }
+
+    // Header, row, stack and pill follow LearnView's list, so the two tabs read alike.
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title).font(GT.title(17)).foregroundStyle(GT.onFelt)
+            .accessibilityAddTraits(.isHeader)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 22).padding(.bottom, 4)
+    }
+
+    /// Picture, title and description, then a chevron; the marked row has its action
+    /// instead. At the accessibility sizes everything stacks and the action spans the row.
+    private func row<Glyph: View>(title: String, detail: String, id: String, spoken: String? = nil,
+                                  marked: Bool = false, open: @escaping () -> Void,
+                                  @ViewBuilder glyph: () -> Glyph) -> some View {
+        let text = VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(GT.title(15)).foregroundStyle(GT.onFelt)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(detail).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                .lineSpacing(GT.Typography.bodyLineSpacing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        let main = Button(action: open) {
+            layoutStack(spacing: stacks ? 8 : 12) {
+                glyph()
+                text
+                if !stacks {
+                    Spacer(minLength: 0)
+                    if !marked {
+                        Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(GT.onFeltSecondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(GTPress())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([title, detail, spoken].compactMap { $0 }.joined(separator: ", "))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityIdentifier(id)
+
+        return layoutStack(spacing: 10) {
+            main
+            if marked {
+                let action = language.text("이어서", "Continue")
+                Button(action: open) { pill(action) }
+                    .buttonStyle(GTPress())
+                    .accessibilityLabel("\(action), \(title)")
+                    .accessibilityIdentifier("\(id)-action")
+            }
+        }
+        .padding(.vertical, marked ? 8 : 10)
+        .padding(.horizontal, marked ? 8 : 0)
+        .background {
+            if marked {
+                let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+                shape.fill(GT.glass).overlay(shape.strokeBorder(GT.cta, lineWidth: 1.5))
+            }
+        }
+        .padding(.horizontal, marked ? -8 : 0)
+        .padding(.vertical, marked ? 2 : 0)
+        .overlay(alignment: .bottom) {
+            if !marked {
+                Rectangle().fill(GT.border).frame(height: 1).padding(.leading, stacks ? 0 : 76)
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    /// A stack across the row, or down it at the accessibility sizes.
+    private func layoutStack<Content: View>(spacing: CGFloat, @ViewBuilder _ content: () -> Content) -> some View {
+        let layout = stacks ? AnyLayout(VStackLayout(alignment: .leading, spacing: spacing))
+                            : AnyLayout(HStackLayout(alignment: .center, spacing: spacing))
+        return layout(content)
+    }
+
+    /// The marked row's filled action.
+    private func pill(_ title: String) -> some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+        return Text(title).font(GT.semibold(14))
+            .foregroundStyle(GT.onCTA)
+            .fixedSize(horizontal: !stacks, vertical: true)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 12).padding(.vertical, 7)
+            .frame(maxWidth: stacks ? .infinity : nil, minHeight: 36)
+            .background { shape.fill(GT.cta) }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
     }
 
     private func perform(_ operation: () throws -> Bool) {
@@ -279,42 +436,5 @@ struct PlayTableGuideView: View {
             .gtSheetSurface()
         }
         .accessibilityIdentifier("play-table-guide-sheet")
-    }
-}
-
-/// Stacks a header, then two cards whose shared gap sits at `splitY`. When the header
-/// is too tall for that (large text), the cards simply follow it.
-private struct MidlineSplitLayout: Layout {
-    let splitY: CGFloat
-    let spacing: CGFloat
-    let gap: CGFloat
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let width = proposal.width ?? 0
-        return CGSize(width: width, height: frames(width: width, subviews: subviews).last?.maxY ?? 0)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews,
-                       cache: inout ()) {
-        for (subview, frame) in zip(subviews, frames(width: bounds.width, subviews: subviews)) {
-            subview.place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
-                          proposal: ProposedViewSize(frame.size))
-        }
-    }
-
-    private func frames(width: CGFloat, subviews: Subviews) -> [CGRect] {
-        let sizes = subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)) }
-        guard sizes.count >= 2 else { return [] }
-        var frames: [CGRect] = []
-        var y: CGFloat = 0
-        for size in sizes.dropLast(2) {
-            frames.append(CGRect(x: 0, y: y, width: width, height: size.height))
-            y += size.height + spacing
-        }
-        let first = sizes[sizes.count - 2], second = sizes[sizes.count - 1]
-        let firstY = max(y, splitY - gap / 2 - first.height)
-        frames.append(CGRect(x: 0, y: firstY, width: width, height: first.height))
-        frames.append(CGRect(x: 0, y: firstY + first.height + gap, width: width, height: second.height))
-        return frames
     }
 }
