@@ -54,8 +54,11 @@ final class PlayListTests: XCTestCase {
         let row = app.buttons["play-continue"]
         XCTAssertTrue(row.waitForExistence(timeout: 30))
         XCTAssertTrue(app.staticTexts[ko ? "이어하기" : "Continue"].exists)
-        XCTAssertTrue(row.label.hasPrefix(ko ? "빠른 게임 · 4명, 핸드 7/10. 여기서는 채점하지 않아요."
-                                              : "Quick game · 4 players, Hand 7 of 10. No grading here."), row.label)
+        // Six hands are played first; a hand that settles before the learner acts is skipped too.
+        let hand = handNumber(row.label, ko: ko)
+        XCTAssertGreaterThanOrEqual(hand, 7, row.label)
+        XCTAssertTrue(row.label.hasPrefix(ko ? "빠른 게임 · 4명, 핸드 \(hand)/10. 여기서는 채점하지 않아요."
+                                              : "Quick game · 4 players, Hand \(hand) of 10. No grading here."), row.label)
         XCTAssertTrue(row.label.contains(ko ? "내 카드 " : "Your cards: "), "A dealt hand names its cards: \(row.label)")
         let action = app.buttons["play-continue-action"]
         XCTAssertTrue(action.exists)
@@ -89,13 +92,14 @@ final class PlayListTests: XCTestCase {
         let row = app.buttons["play-continue"]
         XCTAssertTrue(row.waitForExistence(timeout: 30))
         let table = app.descendants(matching: .any)["practice-table"]
+        let hand = handNumber(row.label, ko: ko)
 
         // Continue: the open table, from the row and from its action.
         for id in ["play-continue", "play-continue-action"] {
             app.buttons[id].tap()
             closeTableGuide(in: app)
             XCTAssertTrue(table.waitForExistence(timeout: 10), id)
-            XCTAssertTrue(app.staticTexts[ko ? "네 명 · 핸드 7/10" : "Four players · Hand 7 of 10"].exists,
+            XCTAssertTrue(app.staticTexts[ko ? "네 명 · 핸드 \(hand)/10" : "Four players · Hand \(hand) of 10"].exists,
                           "The row opens the same table, at the same hand")
             app.buttons[ko ? "닫기" : "Close"].firstMatch.tap()
             XCTAssertTrue(row.waitForExistence(timeout: 5))
@@ -129,7 +133,12 @@ final class PlayListTests: XCTestCase {
         app.buttons["play-quick"].tap()
         let confirm = app.buttons[ko ? "새 게임 시작" : "Start new game"]
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
-        app.buttons[ko ? "취소" : "Cancel"].tap()
+        // iOS 26 shows this dialog as a popover with no Cancel button; tapping outside cancels.
+        let cancel = app.buttons[ko ? "취소" : "Cancel"]
+        if cancel.exists { cancel.tap() }
+        else if app.otherElements["PopoverDismissRegion"].exists { app.otherElements["PopoverDismissRegion"].tap() }
+        else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.1)).tap() }
+        XCTAssertTrue(confirm.waitForNonExistence(timeout: 5))
         XCTAssertFalse(app.buttons["game-length-quick"].exists)
         XCTAssertTrue(row.exists, "Cancelling keeps the open table")
 
@@ -173,6 +182,13 @@ final class PlayListTests: XCTestCase {
     }
 
     // MARK: Helpers
+
+    /// The hand number the Continue row names, or 0.
+    private func handNumber(_ label: String, ko: Bool) -> Int {
+        let pattern = ko ? "핸드 ([0-9]+)/10" : "Hand ([0-9]+) of 10"
+        guard let match = label.range(of: pattern, options: .regularExpression) else { return 0 }
+        return Int(label[match].filter(\.isNumber).dropLast(2)) ?? 0
+    }
 
     private func launch(_ language: String, ax: Bool, _ environment: [String: String]) -> XCUIApplication {
         let app = XCUIApplication()

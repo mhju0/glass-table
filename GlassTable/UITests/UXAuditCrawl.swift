@@ -330,9 +330,9 @@ final class UXAuditCrawl: XCTestCase {
                      title: "자유 대전 · 컴퓨터 \(players - 1)명",
                      summary: "플레이 탭에서 자유 대전을 열고 \(players)명 테이블을 만들어 핸드를 끝까지 쳐요. 1번 핸드는 체크·콜로 쇼다운까지, 2번 핸드는 처음에 올리고 이후 체크·콜\(players == 4 ? ", 3번 핸드는 첫 차례에 폴드해요." : "해요.")")
             rec.shot("플레이 탭", after: "탭 바의 ‘플레이’ 탭")
-            tap(app.buttons["play-free"], "자유 대전")
+            tap(app.buttons["play-quick"], "빠른 게임")
             pause(1)
-            rec.shot("테이블 만들기", after: "‘자유 대전’ 탭")
+            rec.shot("테이블 만들기", after: "‘빠른 게임’ 탭")
             if players == 2 { exploreSetup() }
             tap(app.buttons["player-count-\(players)"], "\(players)명")
             rec.shot("\(players)명 선택", after: "‘\(players)명’ 탭")
@@ -360,7 +360,7 @@ final class UXAuditCrawl: XCTestCase {
         tap(app.tabBars.buttons["플레이"], "플레이 탭")
         rec.flow("play-crash", section: "플레이 탭", title: "자유 대전 · 컴퓨터 규칙 펼치기 (2명 테이블)",
                  summary: "2명 테이블에서 도움 패널의 규칙 탭을 열고 ‘컴퓨터는 어떻게 고를까요?’를 펼쳐요. 예전에는 여기서 앱이 종료됐어요.")
-        tap(app.buttons["play-free"], "자유 대전")
+        tap(app.buttons["play-quick"], "빠른 게임")
         tap(app.buttons["player-count-2"], "2명")
         tap(app.buttons["table-start"], "이 테이블로 시작")
         pause(1.5)
