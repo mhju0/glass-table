@@ -4,13 +4,15 @@ Four GitHub Actions workflows, all on `macos-15` runners (free minutes, since th
 
 | Workflow | Runs on | What it checks | Time |
 | --- | --- | --- | --- |
-| `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, Release launch smoke test, device Release build checked by `tools/verify_release.py` | about 22 min |
+| `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, focused teaching/recovery UI flows, Release launch smoke test, device Release build checked by `tools/verify_release.py` | varies; about 22 min before the focused UI subset |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
 | `ui-tests.yml` | nightly 03:00 KST, by hand | the full UI flow suite, split across four parallel shards | about 70–75 min per shard (runner speed varies) |
 | `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
 
-`ci.yml` is the gate that has to pass before merging. The UI suite is too slow for every
-push, so it runs nightly. Its shards split test classes by the minutes each class took on
+`ci.yml` is the gate that has to pass before merging. It includes the focused
+`GradedTableRecoveryFlowTests`, `ReviewTeachingFollowupTests`, and AX postflop
+chart/Continue regression, with result bundles retained on failure. The full UI suite
+runs nightly. Its shards split test classes by the minutes each class took on
 a GitHub runner, listed in the workflow; `BilingualConsistencyB20Tests` alone takes about
 74 min, so it gets a shard to itself. A new UI test class runs without editing the
 workflow: it is estimated from its test count and flagged with a warning until its
@@ -24,6 +26,15 @@ First full run (2026-10-15, run 38664206149): shards 2 and 3 passed in about 51 
 
 First run with time-balanced shards (2026-10-18, run 39088052141): all four shards
 passed, with test steps of 74, 74, 68 and 72 min (tests alone 69, 65, 63 and 65 min).
+
+Build 35 (`d910f99`) passed [CI](https://github.com/mhju0/glass-table/actions/runs/39126165684)
+and [TestFlight upload](https://github.com/mhju0/glass-table/actions/runs/39126186102).
+Its [full UI run](https://github.com/mhju0/glass-table/actions/runs/39126165724)
+had an unresolved AX postflop Continue-button failure in `GradedLearningFlowTests`.
+Passing an older full suite does not clear a later candidate's failure.
+
+The focused PR UI gate uses the same iPhone 17/iOS 26.2 destination as the nightly
+workflow. Local follow-up checks used iOS 26.5; they do not establish remote success.
 
 ## One-time setup for TestFlight
 
@@ -59,6 +70,9 @@ You do these steps once, in a browser. Nothing here goes in the repository.
 
 ## Shipping a build
 
+Use the focused checks and evidence template in [validation.md](validation.md) first.
+Keep one frozen candidate for the checks; record any unresolved failures explicitly.
+
 1. Raise `CFBundleVersion` in `project.yml` (TestFlight refuses a build number it has
    seen). Change `CFBundleShortVersionString` only for a new public version.
 2. Merge to `main` and wait for CI to pass.
@@ -70,9 +84,9 @@ You do these steps once, in a browser. Nothing here goes in the repository.
    git push origin v1.0-30
    ```
 
-4. Watch Actions → TestFlight. When it passes, the build appears in App Store Connect →
-   TestFlight after Apple's processing, usually 5–30 minutes. Internal testers get it
-   then. External testers need a one-time Beta App Review first.
+4. Watch Actions → TestFlight and record its run link. Then check the build's
+   processing status and tester availability in App Store Connect → TestFlight.
+   Record the installed build and an actual phone flow separately from upload success.
 
 The workflow refuses to upload when:
 
@@ -84,8 +98,10 @@ The workflow refuses to upload when:
 A refused tag can be deleted and pushed again:
 `git push origin :refs/tags/v1.0-30`.
 
-## Not yet proven
+## Evidence boundaries
 
-`release.yml` has not run end to end. It cannot, until the secrets above exist. The
-first real tag is its test. If signing fails, the archive and export logs are kept as a
+The release workflow has run end to end for TestFlight builds 31–35; the build-35
+upload run is linked above. A successful upload is not an App Store submission or
+proof of processing, installation or correct phone behavior. Keep those states in
+the build record. If signing fails, the archive and export logs are kept as a
 workflow artifact named `testflight-logs`.
