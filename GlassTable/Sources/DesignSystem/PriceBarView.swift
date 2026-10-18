@@ -24,9 +24,13 @@ struct PriceBarView: View {
 
     /// 팟 + 상대 벳, plus the hypothetical 콜 when `withCall` — the pot-odds shape.
     /// MDF's bar omits the call: its denominator is only what is already out there.
-    static func priced(pot: Int, bet: Int, withCall: Bool) -> PriceBarView {
+    /// `callers` who already called the bet (the third pot-odds step) add their chips.
+    static func priced(pot: Int, bet: Int, withCall: Bool, callers: Int = 0) -> PriceBarView {
         var segs = [Segment(label: "팟", bb: pot, fill: GT.segPot),
                     Segment(label: "벳", bb: bet, fill: GT.segBet)]
+        if callers > 0 {
+            segs.append(Segment(label: "먼저 콜", bb: bet * callers, fill: GT.segBet))
+        }
         if withCall {
             segs.append(Segment(label: "콜", bb: bet, fill: GT.segCall, hypothetical: true))
         }
@@ -72,6 +76,7 @@ struct PriceBarView: View {
         case "팟": language.text("팟", "Pot")
         case "벳": language.text("벳", "Bet")
         case "콜": language.text("콜", "Call")
+        case "먼저 콜": language.text("먼저 콜", "Called")
         default: value
         }
     }

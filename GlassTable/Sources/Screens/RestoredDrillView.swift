@@ -233,7 +233,7 @@ private struct RestoredDrillContextView: View {
             showdownTable
         } else if concept == .outs {
             // A saved answer was already locked in, so the rivers are never early.
-            OutsRiverReveal(spot: OutsSpotGenerator.spot(baseSeed: seed, index: index))
+            OutsRiverReveal(spot: OutsSpotGenerator.spot(baseSeed: seed, index: index, level: level))
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(answerID)
         } else {
@@ -337,18 +337,23 @@ private struct RestoredDrillContextView: View {
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
             }
         case .evCall:
-            let spot = EVCallSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = EVCallSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(language.text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb · 내 에퀴티 \(pctText(spot.equityPct))% (무승부 몫 포함)",
                                "Pot \(spot.pot)bb · Bet \(spot.bet)bb · Equity \(pctText(spot.equityPct))% (including tie shares)"))
                 .font(GT.body(15)).foregroundStyle(GT.onFelt)
         case .potOdds, .mdf:
-            let spot = BetSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = BetSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(language.text("팟 \(spot.pot)bb · 상대 벳 \(spot.bet)bb",
                                "Pot \(spot.pot)bb · Opponent bets \(spot.bet)bb"))
                 .font(GT.body(15)).foregroundStyle(GT.onFelt)
-            PriceBarView.priced(pot: spot.pot, bet: spot.bet, withCall: concept == .potOdds)
+            if spot.callers > 0 {
+                Text(language.text("다른 한 명이 먼저 \(spot.bet)bb 콜했어요",
+                                   "Another player has already called \(spot.bet)bb"))
+                    .font(GT.body(15)).foregroundStyle(GT.onFelt)
+            }
+            PriceBarView.priced(pot: spot.pot, bet: spot.bet, withCall: concept == .potOdds, callers: spot.callers)
         case .rangeNotation:
-            let spot = RangeNotationSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = RangeNotationSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(spot.notation).font(GT.title(27).monospaced())
                 .foregroundStyle(GT.onFelt)
         case .rangeRead:
@@ -383,7 +388,7 @@ private struct RestoredDrillContextView: View {
                                "\(spot.opener.rawValue) raises first to 3bb"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .combos:
-            let spot = BlockerSpotGenerator.spot(baseSeed: seed, index: index)
+            let spot = BlockerSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(spot.className).font(GT.title(18)).foregroundStyle(GT.onFelt)
         case .hitFrequency:
             let spot = HitFrequencySpotGenerator.spot(baseSeed: seed, index: index)
