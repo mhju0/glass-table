@@ -1,10 +1,13 @@
 # The full UI flow suite, too slow for every push. Runs nightly and on demand.
-# Test classes are split across three shards by test count, so a new class needs
+# Test classes are split across four shards by test count, so a new class needs
 # no workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT. A push that
 # changes this file runs it too, so a workflow edit is proven before it merges.
 name: UI tests
 on:
+  # Paths filters are not applied to tag pushes, so without `branches` every release tag
+  # started a full UI run.
   push:
+    branches: ['**']
     paths: ['.github/workflows/ui-tests.yml']
   schedule:
     - cron: '0 18 * * *'   # 18:00 UTC = 03:00 KST
@@ -20,11 +23,14 @@ concurrency:
 jobs:
   ui-tests:
     runs-on: macos-15
-    timeout-minutes: 120
+    # Runner speed varies about 2x: one four-shard run took 47 to 117 min per shard. A job
+    # killed at its limit uploads no evidence, so the test step stops first and the upload
+    # below still runs. A hung test is stopped after 15 min (the longest seen took under 6).
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2]
+        shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v5
       - name: Select newest Xcode
@@ -45,8 +51,8 @@ jobs:
               text = path.read_text()
               for name in re.findall(r'^(?:final )?class (\w+)\s*:\s*XCTestCase', text, re.M):
                   classes.append((len(re.findall(r'func test\w*\(', text)), name))
-          loads = [0, 0, 0]
-          picked = [[], [], []]
+          loads = [0, 0, 0, 0]
+          picked = [[], [], [], []]
           for count, name in sorted(classes, reverse=True):
               i = loads.index(min(loads))
               loads[i] += count
@@ -59,6 +65,7 @@ jobs:
       # rather than taking whichever iPhone is listed first. The macos-15 image lists
       # iPhone 17 under iOS 26.0.1, 26.1 and 26.2; raise this when the image moves on.
       - name: Run UI tests
+        timeout-minutes: 165
         env:
           TEST_DEVICE: iPhone 17
           TEST_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-2
@@ -76,10 +83,14 @@ jobs:
           xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
             -destination "platform=iOS Simulator,id=$test_simulator" \
             $(cat only-testing.txt) -resultBundlePath ui-tests.xcresult \
-            CODE_SIGNING_ALLOWED=NO test > ui-tests.log 2>&1 || { tail -200 ui-tests.log; exit 1; }
+            -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
+            CODE_SIGNING_ALLOWED=NO test > ui-tests.log 2>&1 || {
+            tail -200 ui-tests.log
+            grep -E "error: -\[|^Test Case .* failed \(" ui-tests.log | sed 's/^/::error::/'
+            exit 1; }
           tail -30 ui-tests.log
       - name: Retain failure evidence
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: ui-tests-shard-${{ matrix.shard }}

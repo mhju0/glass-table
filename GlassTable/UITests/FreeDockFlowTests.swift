@@ -157,7 +157,12 @@ final class FreeDockFlowTests: XCTestCase {
             if frame.minY >= viewport.minY - 0.5, frame.maxY <= viewport.maxY + 0.5 { return }
             let up = frame.maxY > viewport.maxY
             let distance = up ? frame.maxY - viewport.maxY + 8 : viewport.minY - frame.minY + 8
-            let amount = max(24, min(viewport.height - 60, distance + 2))
+            // A 24pt drag that starts just above Next hand tapped it on a GitHub runner (the
+            // recording shows the press, then the demo's "Couldn't apply" alert). Longer
+            // drags from the same spot scrolled cleanly, so move at least 60pt when the
+            // target still fits; the loop corrects any overshoot.
+            let floor = max(24, min(60, viewport.height - frame.height - 16))
+            let amount = max(floor, min(viewport.height - 60, distance + 2))
             let startY = up ? min(viewport.maxY - 5, max(viewport.minY + 5, frame.minY - 5)) : viewport.minY + 5
             body.coordinate(withNormalizedOffset: .zero)
                 .withOffset(CGVector(dx: viewport.width * 0.97, dy: startY - viewport.minY))

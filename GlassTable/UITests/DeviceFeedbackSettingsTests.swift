@@ -48,10 +48,10 @@ final class DeviceFeedbackSettingsTests: XCTestCase {
         let tabs: [String], settings: String, learn: String
         static let english = Words(tabs: ["Learn", "Play", "Progress", "Settings"],
                                    settings: "Play & feedback",
-                                   learn: "Follow a suggestion or choose any lesson.")
+                                   learn: "More to try")
         static let korean = Words(tabs: ["배우기", "플레이", "기록", "설정"],
                                   settings: "플레이와 피드백",
-                                  learn: "추천부터 시작하거나, 직접 골라요.")
+                                  learn: "더 해보기")
     }
 
     /// The whole app follows the switch at once: the tab bar, the Settings screen and
