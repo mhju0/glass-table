@@ -24,7 +24,19 @@ public enum RangeNotationSpotGenerator {
     /// Built from templates rather than a fixed list, so the drill never runs out.
     public static func spot(baseSeed: UInt64, index: Int, level: DrillLevel = .learn) -> RangeNotationSpot {
         var rng = SplitMix64(seed: baseSeed
+            &+ (level > .learn ? UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03 : 0)
             &+ UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15)
+        let tokens = level > .learn ? laterTokens(using: &rng) : learnTokens(using: &rng)
+        let notation = tokens.joined(separator: ", ")
+        // The generator only emits forms the parser accepts, so a throw here would be
+        // a bug rather than bad input — fall back to a known-good spot instead of
+        // shipping a crash.
+        let range = (try? RangeNotation.parse(notation)) ?? HandRange([HandClass.all[0]])
+        return RangeNotationSpot(notation: notation, range: range)
+    }
+
+    /// The first step's one or two parts, frozen by `LearnSpotGoldenTests`.
+    private static func learnTokens(using rng: inout SplitMix64) -> [String] {
         let r = HandClass.rankChars
 
         var tokens: [String] = []
@@ -45,12 +57,25 @@ public enum RangeNotationSpotGenerator {
             let lo = Int.random(in: 3...(hi - 1), using: &rng)
             tokens = ["\(r[hi])\(r[lo])s", "\(r[hi])\(r[lo])o"]
         }
-        let notation = tokens.joined(separator: ", ")
-        // The generator only emits forms the parser accepts, so a throw here would be
-        // a bug rather than bad input — fall back to a known-good spot instead of
-        // shipping a crash.
-        let range = (try? RangeNotation.parse(notation)) ?? HandRange([HandClass.all[0]])
-        return RangeNotationSpot(notation: notation, range: range)
+        return tokens
+    }
+
+    /// Later steps (D53): three or four parts, a pair part, a same-suit run, a
+    /// different-suit part and sometimes one more same-suit hand. Each non-pair part has
+    /// its own high card, so no hand is counted twice.
+    private static func laterTokens(using rng: inout SplitMix64) -> [String] {
+        let r = HandClass.rankChars
+        let highs = [12, 11, 10].shuffled(using: &rng)   // A, K, Q
+        let pair = Int.random(in: 2...10, using: &rng)
+        var tokens = ["\(r[pair])".duplicated() + (Bool.random(using: &rng) ? "+" : "")]
+        let suitedLow = Int.random(in: 3...(highs[0] - 2), using: &rng)
+        tokens.append("\(r[highs[0]])\(r[suitedLow])s+")
+        let offLow = Int.random(in: 5...(highs[1] - 1), using: &rng)
+        tokens.append("\(r[highs[1]])\(r[offLow])o" + (offLow < highs[1] - 1 && Bool.random(using: &rng) ? "+" : ""))
+        if Bool.random(using: &rng) {
+            tokens.append("\(r[highs[2]])\(r[Int.random(in: 3...(highs[2] - 1), using: &rng)])s")
+        }
+        return tokens
     }
 }
 

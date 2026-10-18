@@ -25,6 +25,12 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
     public static func highest(for concept: Concept) -> DrillLevel {
         switch concept {
         case .showdown, .potMath, .callFold: .sharp
+        case .outs: .sharp
+        case .equitySense: .sharp
+        case .potOdds: .sharp
+        case .combos: .sharp
+        case .rangeNotation: .sharp
+        case .evCall: .sharp
         default: .learn
         }
     }
@@ -37,7 +43,14 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
     /// Whether the answer is typed as an exact number at this step instead of picked
     /// from choices (owner default 2: counts are typed at Sharp).
     public func typesExactAnswer(_ concept: Concept) -> Bool {
-        self == .sharp && concept == .potMath
+        guard self == .sharp else { return false }
+        switch concept {
+        case .potMath: return true
+        case .outs: return true
+        case .combos: return true
+        case .rangeNotation: return true
+        default: return false
+        }
     }
 
     /// The one line a step's lesson opens with: what is new at this step. Nil at the
@@ -53,6 +66,18 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
         case (.potMath, .sharp): what = language.text("플랍 베팅까지, 직접 입력", "Through the flop, typed")
         case (.callFold, .apply): what = language.text("필요한 몫만 보여요", "Only the price is shown")
         case (.callFold, .sharp): what = language.text("숫자 없이, 아슬아슬한 판", "No numbers, close spots")
+        case (.outs, .apply): what = language.text("함정이 있는 아웃", "Outs with a catch")
+        case (.outs, .sharp): what = language.text("함정이 있는 아웃, 직접 입력", "Outs with a catch, typed")
+        case (.equitySense, .apply): what = language.text("팽팽한 승부", "Close matchups")
+        case (.equitySense, .sharp): what = language.text("팽팽한 승부, 더 가까운 보기", "Close matchups, closer choices")
+        case (.potOdds, .apply): what = language.text("더 다양한 벳 크기", "More bet sizes")
+        case (.potOdds, .sharp): what = language.text("먼저 콜한 사람이 있어요", "Someone has already called")
+        case (.combos, .apply): what = language.text("보이는 카드가 더 많아요", "More cards in sight")
+        case (.combos, .sharp): what = language.text("보이는 카드가 더 많아요, 직접 입력", "More cards in sight, typed")
+        case (.rangeNotation, .apply): what = language.text("표기가 서너 개", "Three or four parts")
+        case (.rangeNotation, .sharp): what = language.text("표기가 서너 개, 직접 입력", "Three or four parts, typed")
+        case (.evCall, .apply): what = language.text("더 다양한 벳 크기", "More bet sizes")
+        case (.evCall, .sharp): what = language.text("보기 없이 직접 맞춰요", "No choices: set the value")
         default: return nil
         }
         return "\(step) · \(what)"

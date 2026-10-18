@@ -332,7 +332,7 @@ final class LearningTrackTests: XCTestCase {
         let challenge = try XCTUnwrap(Curriculum.node(id: "u2-boss"))
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: challenge, in: state).map(\.id),
                        ["u2-outs", "u1-potMath", "u2-equitySense", "u2-potOdds", "u2-callFold",
-                        "u1-potMath.2", "u2-callFold.2"])
+                        "u2-outs.2", "u1-potMath.2", "u2-equitySense.2", "u2-potOdds.2", "u2-callFold.2"])
         XCTAssertEqual(Curriculum.easierLesson(than: challenge)?.id, "u2-callFold")
         let combos = try XCTUnwrap(Curriculum.node(id: "u1-combos"))
         XCTAssertEqual(Curriculum.unfinishedGroundwork(for: combos, in: state).count, 10)

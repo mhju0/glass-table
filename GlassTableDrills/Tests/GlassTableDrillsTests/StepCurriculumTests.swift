@@ -20,8 +20,10 @@ final class StepCurriculumTests: XCTestCase {
         "u3-rfi", "u8-defend", "u3-boss",
         "u4-rangeRead", "u7-actionRead", "u4-boss",
         "u2-outs", "u1-potMath", "u2-equitySense", "u2-potOdds", "u2-callFold",
-        "u1-potMath.2", "u2-callFold.2", "u2-boss",
-        "u1-showdown.3", "u1-potMath.3", "u2-callFold.3", "u1-boss.3", "u2-boss.3",
+        "u2-outs.2", "u1-potMath.2", "u2-equitySense.2", "u2-potOdds.2", "u2-callFold.2", "u2-boss",
+        "u1-showdown.3",
+        "u2-outs.3", "u1-potMath.3", "u2-equitySense.3", "u2-potOdds.3", "u2-callFold.3",
+        "u1-boss.3", "u2-boss.3",
     ]
 
     func testStepsRunEachTrackAtLearnThenApplyThenItsChallengeThenASharpLap() {
@@ -150,10 +152,10 @@ final class StepCurriculumTests: XCTestCase {
     func testASkillWithoutStepsKeepsTodaysRule() {
         var r = record()
         Mastery.promote(&r, evidence: SessionEvidence(attempted: 3, spotOn: 3), viaBoss: false,
-                        level: .learn, of: .outs, now: t0)
+                        level: .learn, of: .mdf, now: t0)
         XCTAssertEqual(r.tier, .proficient)
         Mastery.promote(&r, evidence: SessionEvidence(attempted: 2, spotOn: 2), viaBoss: true,
-                        level: .learn, of: .outs, now: t0.addingTimeInterval(Mastery.masteryCooldown))
+                        level: .learn, of: .mdf, now: t0.addingTimeInterval(Mastery.masteryCooldown))
         XCTAssertEqual(r.tier, .mastered)
     }
 

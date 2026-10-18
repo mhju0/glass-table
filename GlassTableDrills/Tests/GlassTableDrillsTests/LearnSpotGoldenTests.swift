@@ -24,7 +24,12 @@ final class LearnSpotGoldenTests: XCTestCase {
         }),
         ("outs", 24, { s, i in "\(OutsSpotGenerator.spot(baseSeed: s, index: i))" }),
         ("combos", 24, { s, i in "\(BlockerSpotGenerator.spot(baseSeed: s, index: i))" }),
-        ("potOdds", 24, { s, i in "\(BetSpotGenerator.spot(baseSeed: s, index: i))" }),
+        ("potOdds", 24, { s, i in
+            // `callers` came with the third step; a first-step spot has none, so it is
+            // printed only when set and the frozen dump stays as it was written.
+            let spot = BetSpotGenerator.spot(baseSeed: s, index: i)
+            return spot.callers == 0 ? "BetSpot(pot: \(spot.pot), bet: \(spot.bet))" : "\(spot)"
+        }),
         ("callFold", 24, { s, i in
             let spot = CallFoldSpotGenerator.spot(baseSeed: s, index: i)
             return "\(spot) required=\(spot.requiredPct) call=\(spot.correctIsCall)"

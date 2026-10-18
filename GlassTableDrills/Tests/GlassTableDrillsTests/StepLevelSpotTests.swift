@@ -14,10 +14,14 @@ final class StepLevelSpotTests: XCTestCase {
 
     func testOnlyTheFirstThreeSkillsHaveSteps() {
         for concept in Concept.allCases {
-            let expected: DrillLevel = [.showdown, .potMath, .callFold].contains(concept) ? .sharp : .learn
+            let withSteps: Set<Concept> = [
+                .showdown, .potMath, .callFold,
+                .outs, .equitySense, .potOdds, .combos, .rangeNotation, .evCall,
+            ]
+            let expected: DrillLevel = withSteps.contains(concept) ? .sharp : .learn
             XCTAssertEqual(DrillLevel.highest(for: concept), expected, concept.rawValue)
         }
-        XCTAssertEqual(DrillLevel.sharp.capped(for: .outs), .learn)
+        XCTAssertEqual(DrillLevel.sharp.capped(for: .mdf), .learn)
         XCTAssertEqual(DrillLevel.apply.capped(for: .showdown), .apply)
     }
 
@@ -151,6 +155,6 @@ final class StepLevelSpotTests: XCTestCase {
         XCTAssertNil(DrillLevel.learn.headline(for: .showdown, in: .english))
         XCTAssertEqual(DrillLevel.apply.headline(for: .showdown, in: .english)?.hasPrefix("Step 2 · "), true)
         XCTAssertEqual(DrillLevel.sharp.headline(for: .callFold, in: .korean)?.hasPrefix("3단계 · "), true)
-        XCTAssertNil(DrillLevel.apply.headline(for: .outs, in: .english))
+        XCTAssertNil(DrillLevel.apply.headline(for: .mdf, in: .english))
     }
 }
