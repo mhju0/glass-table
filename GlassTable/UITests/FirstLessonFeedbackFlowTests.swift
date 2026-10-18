@@ -40,8 +40,12 @@ final class FirstLessonFeedbackFlowTests: XCTestCase {
         XCTAssertFalse(repeated.exists, "The cards already mark the answer; the guide does not repeat both choices.")
         tap(next)
         tap(app.buttons["firstLesson.previous"])
+        // Previous reopens the comparison unanswered; picking again shows a fresh verdict.
+        XCTAssertTrue(app.staticTexts["firstLesson.question"].waitForExistence(timeout: 5))
+        XCTAssertFalse(verdict.exists, "Previous reopens the question unanswered.")
+        tap(app.buttons["firstLesson.choice.\(loser)"])
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
-        XCTAssertEqual(verdict.label, initialVerdict, "Previous restores the committed wrong answer.")
+        XCTAssertEqual(verdict.label, initialVerdict)
         tap(next)
         for index in 2...5 {
             let progress = app.staticTexts[english ? "Comparison \(index)/5" : "비교 \(index)/5"]

@@ -61,6 +61,58 @@ final class BestFiveComparisonTests: XCTestCase {
     func testKOKickerDuelInViewAfterAnswer() { kickerDuelInView("ko") }
     func testENKickerDuelInViewAfterAnswer() { kickerDuelInView("en") }
 
+    /// Previous reopens an answered check as a fresh question on the same cards, and the
+    /// page after it starts unanswered again (owner, 2026-10-18).
+    func testENBasicsPreviousReopensChecksUnanswered() {
+        let app = XCUIApplication()
+        app.launchArguments = arguments("en", ax: false)
+        app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
+                                 "GT_DEMO_BASICS": "check", "GT_DEMO_BASICS_SEED": "0"]
+        app.launch()
+        let verdict = app.descendants(matching: .any)["basics.verdict"]
+        let straight = app.buttons["basics.choice.straight"]
+        reach(straight, app: app)
+        straight.tap()
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        reach(app.buttons["basics.check-next"], app: app)
+        app.buttons["basics.check-next"].tap()
+        let mine = app.buttons["basics.kicker.choice.mine"]
+        reach(mine, app: app)
+        mine.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["basics.kicker-duel"].waitForExistence(timeout: 5))
+        reach(app.buttons["basics.previous"], app: app)
+        app.buttons["basics.previous"].tap()
+
+        // The first check again: the same flush and straight, nothing picked or marked.
+        let flush = app.buttons["basics.choice.flush"]
+        reach(flush, app: app)
+        XCTAssertTrue(straight.exists)
+        XCTAssertFalse(verdict.exists)
+        XCTAssertFalse(comparison(app).exists)
+        attach(app, "en-large-basics-previous-check")
+        flush.tap()
+        XCTAssertTrue(verdict.waitForExistence(timeout: 5))
+        XCTAssertTrue(verdict.label.contains("That's right"), verdict.label)
+        reach(app.buttons["basics.check-next"], app: app)
+        app.buttons["basics.check-next"].tap()
+        reach(mine, app: app)
+        XCTAssertFalse(verdict.exists)
+        XCTAssertFalse(app.descendants(matching: .any)["basics.kicker-duel"].exists)
+
+        // From an answered check back to the ladder, then forward: the check is fresh again.
+        mine.tap()
+        reach(app.buttons["basics.previous"], app: app)
+        app.buttons["basics.previous"].tap()
+        reach(flush, app: app)
+        flush.tap()
+        reach(app.buttons["basics.previous"], app: app)
+        app.buttons["basics.previous"].tap()
+        reach(app.buttons["basics.next"], app: app)
+        app.buttons["basics.next"].tap()
+        reach(flush, app: app)
+        XCTAssertFalse(verdict.exists)
+    }
+
     // MARK: Flows
 
     private func lessonThenRestored(_ language: String, ax: Bool) {
