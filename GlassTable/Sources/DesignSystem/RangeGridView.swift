@@ -89,9 +89,6 @@ struct RangeGridView: View {
                     .strokeBorder(GT.ink, lineWidth: max(1, side * 0.09))
             }
         }
-        // A grid label is sized to its cell, not to the text setting; press and hold
-        // shows it large (D54).
-        .accessibilityShowsLargeContentViewer { Text(h.description) }
         .accessibilityHidden(true)
     }
 

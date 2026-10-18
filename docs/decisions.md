@@ -1078,11 +1078,14 @@ named Learn, Apply and Sharp in code and docs only. On screen they are "1단계/
 
 All text grows to AX3 (over 200%). Above AX3, lessons, explanations, answers and
 results keep growing to AX5. Only the dense table parts stop at AX3, through
-`gtTablePartTextCap`, which also turns on the press-and-hold Large Content Viewer:
-the free table's top-bar title, the Decision help pill, the raise title, the dock's
+`gtTablePartTextCap`: the free table's top-bar title, the Decision help pill, the raise title, the dock's
 action buttons, the To call / Pot facts, seat chip and pot labels, the drills' price
 bar and the hand-chart explorer cells. The 13×13 range and defend grid labels were
-already sized to their cells, not to the text setting (D37); they get the large viewer.
+already sized to their cells, not to the text setting (D37).
+
+- No press-and-hold Large Content Viewer on these parts (2026-10-18, build 35 gate): it
+  swallowed scroll drags that started on them at AX sizes, so the free-table dock and
+  range-read reveal could not be scrolled. Above AX3 the capped parts stay readable.
 
 - Shrinking text to fit (`minimumScaleFactor`) is not used for text that follows the
   reader's size: it undoes their choice. Text wraps, or a table part stops at AX3.

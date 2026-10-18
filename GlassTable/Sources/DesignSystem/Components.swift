@@ -1028,11 +1028,10 @@ extension View {
     }
 
     /// A dense table part (D54): its text grows with the reader's size up to AX3 and
-    /// stops there, and press and hold shows `largeText` in the system's large viewer.
+    /// stops there. No press-and-hold viewer: inside a scroll it swallowed scroll drags.
     /// Lesson, explanation, answer and result text never takes this.
-    func gtTablePartTextCap(_ largeText: String) -> some View {
+    func gtTablePartTextCap() -> some View {
         dynamicTypeSize(...DynamicTypeSize.accessibility3)
-            .accessibilityShowsLargeContentViewer { Text(largeText) }
     }
 }
 
@@ -1140,7 +1139,7 @@ struct GTActionButton: View {
             .background { GTDockControlBackground() }
         }
         .buttonStyle(GTPress(pressedScale: freeTablePresentation ? 0.97 : 0.98))
-        .gtTablePartTextCap([title, secondaryTitle, price.isEmpty ? nil : price].compactMap { $0 }.joined(separator: " · "))
+        .gtTablePartTextCap()
         .accessibilityLabel([title, secondaryTitle, price.isEmpty ? nil : price].compactMap { $0 }.joined(separator: ", "))
     }
 }

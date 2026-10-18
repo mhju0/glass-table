@@ -39,7 +39,7 @@ struct PriceBarView: View {
 
     var body: some View {
         PriceBarSegments(segments: segments, label: displayLabel)
-            .gtTablePartTextCap(segments.map { "\(displayLabel($0.label)) \($0.bb)" }.joined(separator: " · "))
+            .gtTablePartTextCap()
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(segments.map { "\(displayLabel($0.label)) \($0.bb) \(language.text("빅 블라인드", "big blinds"))" }
                 .joined(separator: ", "))

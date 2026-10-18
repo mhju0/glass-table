@@ -165,9 +165,6 @@ struct DefendGridView: View {
                     .strokeBorder(GT.ink, lineWidth: 2)
             }
         }
-        // A grid label is sized to its cell, not to the text setting; press and hold
-        // shows it large (D54).
-        .accessibilityShowsLargeContentViewer { Text(h.description) }
         .accessibilityHidden(true)
     }
 }
@@ -251,8 +248,7 @@ private struct DefendChartExplorer: View {
                                             }
                                         }
                                         .buttonStyle(.plain)
-                                        .gtTablePartTextCap((isOwn ? language.text("내 패 · ", "My hand · ") : "")
-                                                            + "\(hand.description) · \(language.text(verdict.rawValue, verdict.englishTitle))")
+                                        .gtTablePartTextCap()
                                         .id(hand.description)
                                         .accessibilityIdentifier("chart-cell-\(hand.description)")
                                         .accessibilityLabel((isOwn ? language.text("내 패, ", "Your hand, ") : "")

@@ -332,7 +332,7 @@ struct TableSurface: View {
             Text("\(amount)").font(GT.semibold(12)).monospacedDigit()
         }
         .foregroundStyle(GT.onTable)
-        .gtTablePartTextCap("\(amount)")
+        .gtTablePartTextCap()
         .accessibilityHidden(true)
     }
 
@@ -345,7 +345,7 @@ struct TableSurface: View {
                     .font(GT.semibold(13)).monospacedDigit().fixedSize()
             }
             .foregroundStyle(stack == 0 ? (seat.isHero ? Color(hex: 0x88600F) : GT.tableSeatActive) : ink)
-            .gtTablePartTextCap(stack == 0 ? language.text("올인", "All in") : "\(stack)")
+            .gtTablePartTextCap()
         }
     }
 
@@ -465,7 +465,7 @@ struct TableSurface: View {
                     .fixedSize(horizontal: freeVisuals == nil, vertical: true)
                     .contentTransition(.numericText())
             }
-            .gtTablePartTextCap(center.potTotal ?? language.text("팟", "Pot"))
+            .gtTablePartTextCap()
             .background { anchorProbe(.pot) }
             .overlay { ring(.pot) }
             .opacity(dim(.pot))

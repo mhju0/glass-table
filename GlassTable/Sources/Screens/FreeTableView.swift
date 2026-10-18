@@ -251,7 +251,7 @@ struct FreeTableView: View {
                 GTActionCaption(text: title(table), weight: .semibold, baseSize: 15, ink: GT.onFeltSecondary,
                                 identifier: "free-table-title")
                     .fixedSize(horizontal: false, vertical: true)
-                    .gtTablePartTextCap(title(table))
+                    .gtTablePartTextCap()
             }
         }, trailing: {
             Menu {
@@ -589,8 +589,7 @@ struct FreeTableView: View {
             turnFact(language.text("팟", "Pot"),
                      language.text("\(frame.pot)칩", "\(frame.pot) \(frame.pot == 1 ? "chip" : "chips")"))
         }
-        .gtTablePartTextCap(language.text("콜하려면 \(price)칩 · 팟 \(frame.pot)칩",
-                                          "To call \(price) · Pot \(frame.pot)"))
+        .gtTablePartTextCap()
         .accessibilityIdentifier("free-turn-facts")
     }
 
@@ -738,7 +737,7 @@ struct FreeTableView: View {
                 .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
-        .gtTablePartTextCap(language.text("선택 도움말", "Decision help"))
+        .gtTablePartTextCap()
         .accessibilityIdentifier("free-table-help")
     }
 
@@ -799,7 +798,7 @@ struct FreeTableView: View {
             // On its own row a wrapped title grows to AX3; the dock scrolls at these sizes.
             FreeRaiseRowTitle(title: title,
                               frontInkTop: GT.TextRole.title(18).inkLeading(in: language) * frontTitleMetric / 18)
-                .gtTablePartTextCap(sizing.title(amount: amount, language: language))
+                .gtTablePartTextCap()
         }
     }
 
