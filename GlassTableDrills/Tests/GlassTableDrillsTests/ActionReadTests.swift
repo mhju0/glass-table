@@ -6,6 +6,27 @@ import GlassTableEngine
 /// Spec: docs/specs/2026-08-04-r4-s3-postflop-policy-design.md §4, §7.6.
 final class ActionReadTests: XCTestCase {
 
+    func testTheSameCheckNeedsItsOpponentAssumptionToHaveOneAnswer() throws {
+        let board = try XCTUnwrap(Card.parse("As7h2c"))
+        let nit = ActionReadSpot(villainSeat: .co, villain: .nit, board: board, action: .check)
+        let tag = ActionReadSpot(villainSeat: .co, villain: .tag, board: board, action: .check)
+        XCTAssertEqual(nit.actionLine, tag.actionLine)
+        XCTAssertGreaterThan(abs(nit.pairOrBetterPct - tag.pairOrBetterPct), 20)
+        for language in [LearningLanguage.korean, .english] {
+            XCTAssertNotEqual(nit.gradingAssumption(in: language), tag.gradingAssumption(in: language))
+            XCTAssertNotEqual(nit.policyAssumption(in: language), tag.policyAssumption(in: language))
+            for spot in [nit, tag] {
+                XCTAssertTrue(spot.gradingAssumption(in: language).contains(spot.villain.beginnerTitle(in: language)))
+                XCTAssertTrue(spot.policyAssumption(in: language).contains(
+                    spot.actedBucketList(in: language, inSentence: language == .english)))
+                XCTAssertFalse(spot.policyAssumption(in: language).contains("%"), "state the policy, not the answer")
+                let reveal = gradeActionRead(estimate: Estimate(point: spot.pairOrBetterPct, lo: 0, hi: 100),
+                                             spot: spot, language: language)
+                XCTAssertEqual(reveal.band, .spotOn)
+            }
+        }
+    }
+
     func testGenerationIsDeterministic() {
         for i in 0..<10 {
             XCTAssertEqual(ActionReadSpotGenerator.spot(baseSeed: 11, index: i),

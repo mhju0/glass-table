@@ -3,6 +3,19 @@ import GlassTableEngine
 @testable import GlassTableDrills
 
 final class PotMathTests: XCTestCase {
+    func testSharpReplayClosesTheSmallBlindBeforeTheFlopBet() {
+        let spot = PotMathSpotGenerator.spot(baseSeed: 7, index: 3, level: .sharp)
+        let why = gradePotMath(answer: spot.correctAnswer, spot: spot, language: .english).whyText
+        XCTAssertTrue(why.contains("SB folds"), why)
+        XCTAssertTrue(why.contains("Before the flop: SB folds"), why)
+        XCTAssertTrue(why.contains("Flop"), why)
+        let korean = gradePotMath(answer: spot.correctAnswer, spot: spot, language: .korean).whyText
+        XCTAssertTrue(korean.contains("플랍 전: SB 폴드"), korean)
+        if let fold = why.range(of: "SB folds"), let bet = why.range(of: "BB bets") {
+            XCTAssertLessThan(fold.lowerBound, bet.lowerBound)
+        }
+    }
+
     func testBlindsAloneMakeTheOpeningPot() {
         let s = PotMathSpot(actions: [.blinds(sb: 1, bb: 2)], question: .potNow)
         XCTAssertEqual(s.pot, 3)

@@ -84,16 +84,31 @@ struct ProgressSummaryView: View {
     private func cell(value: Int, label: String, detail: String, placeholder: String) -> some View {
         Group {
             if value > 0 {
-                let layout = stacks ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-                                    : AnyLayout(HStackLayout(alignment: .center, spacing: 10))
-                layout {
-                    Text(value.formatted()).font(GT.title(44).monospacedDigit()).foregroundStyle(GT.onFelt)
-                        .lineLimit(1).minimumScaleFactor(0.6)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(label).font(GT.semibold(14)).foregroundStyle(GT.onFelt)
-                        Text(detail).font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+                let count = Text(value.formatted())
+                    .font(GT.title(44).monospacedDigit()).foregroundStyle(GT.onFelt)
+                let description = VStack(alignment: .leading, spacing: 2) {
+                    Text(label).font(GT.semibold(14)).foregroundStyle(GT.onFelt)
+                    Text(detail).font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                Group {
+                    if stacks {
+                        VStack(alignment: .leading, spacing: 4) {
+                            count.fixedSize(horizontal: false, vertical: true)
+                            description
+                        }
+                    } else {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(alignment: .center, spacing: 10) {
+                                count.fixedSize()
+                                description.fixedSize()
+                            }
+                            VStack(alignment: .leading, spacing: 4) {
+                                count.fixedSize(horizontal: false, vertical: true)
+                                description
+                            }
+                        }
                     }
-                    .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("\(value.formatted()) \(label), \(detail)")

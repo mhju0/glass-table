@@ -14,9 +14,9 @@ public struct RangeReadSpot: Equatable {
 
     public let archetype: Archetype
     public let action: Action
-    /// Whether the drill names the opponent. Reading *which* opponent this is from
-    /// their actions is most of the skill, but hiding it makes a first exposure
-    /// nearly impossible — so it is a difficulty band, not a fixed choice.
+    /// The original named-opponent flag, retained so seeded spots stay unchanged.
+    /// When false, the UI now states the opponent as an exercise assumption: a
+    /// single action cannot identify which model the exact grade uses.
     public let archetypeShown: Bool
 
     public init(archetype: Archetype, action: Action, archetypeShown: Bool) {
@@ -42,6 +42,11 @@ public struct RangeReadSpot: Equatable {
     /// Plain-Korean action history, the only thing the user gets to see.
     public var actionLines: [String] {
         actionLines(in: .korean)
+    }
+
+    public func gradingAssumption(in language: LearningLanguage) -> String {
+        language.text("이 문제는 \(archetype.beginnerTitle(in: language)) 상대의 규칙을 가정해요.",
+                      "This exercise assumes the \(archetype.beginnerTitle(in: language)) opponent model.")
     }
 
     public func actionLines(in language: LearningLanguage) -> [String] {
@@ -83,9 +88,9 @@ public enum RangeReadSpotGenerator {
                              archetypeShown: index < 3 || Int.random(in: 0..<3, using: &rng) > 0)
     }
 
-    /// Later steps deal from their own stream (D53). The second names the opponent one
-    /// time in three; the third never names them and deals only calls, where the
-    /// raising hands have to come off the top.
+    /// Later steps retain their original seed stream and named-opponent flags. The
+    /// third deals only calls, where raising hands have to come off the top. The UI
+    /// discloses the assumed model even when the original flag is false.
     private static func laterStep(baseSeed: UInt64, index: Int, level: DrillLevel) -> RangeReadSpot {
         var rng = SplitMix64(seed: baseSeed
             &+ UInt64(level.rawValue) &* 0xD1B5_4A32_D192_ED03

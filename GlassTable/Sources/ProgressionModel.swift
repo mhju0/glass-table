@@ -27,6 +27,7 @@ final class ProgressionModel {
     private var pendingState: ProgressState?
     #if DEBUG
     private var openingSaveFailureConsumed = false
+    private var tableSaveFailureConsumed = false
     #endif
 
     private let store: ProgressionStore
@@ -876,6 +877,17 @@ final class ProgressionModel {
     }
 
     #if DEBUG
+    private func injectTableSaveFailureIfRequested(candidate: ProgressState) throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard !tableSaveFailureConsumed,
+              environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+              environment["GT_TEST_TABLE_SAVE_FAILURE"] == "1",
+              candidate.recentEvidence.filter({ $0.key.mode == "table" }).count
+                > state.recentEvidence.filter({ $0.key.mode == "table" }).count else { return }
+        tableSaveFailureConsumed = true
+        throw CocoaError(.fileWriteUnknown)
+    }
+
     private func injectOpeningSaveFailureIfRequested(candidate: ProgressState) throws {
         let environment = ProcessInfo.processInfo.environment
         guard !openingSaveFailureConsumed,
@@ -966,6 +978,7 @@ final class ProgressionModel {
         do {
             #if DEBUG
             try injectOpeningSaveFailureIfRequested(candidate: candidate)
+            try injectTableSaveFailureIfRequested(candidate: candidate)
             #endif
             try store.save(candidate)
             state = candidate

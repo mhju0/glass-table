@@ -46,6 +46,17 @@ public struct ActionReadSpot: Equatable {
         }
     }
 
+    /// The model is a premise of the exercise, not something one action identifies.
+    public func gradingAssumption(in language: LearningLanguage) -> String {
+        language.text("이 문제는 \(villain.beginnerTitle(in: language)) 상대의 규칙을 가정해요.",
+                      "This exercise assumes the \(villain.beginnerTitle(in: language)) opponent model.")
+    }
+
+    public func policyAssumption(in language: LearningLanguage) -> String {
+        language.text("이 상대의 규칙 · \(action.rawValue)하는 패: \(actedBucketList(in: language))",
+                      "Model rule · hands that \(action == .bet ? "bet" : "check"): \(actedBucketList(in: language, inSentence: true)).")
+    }
+
     /// The policy row for this action, in bucket order — what the reveal and the
     /// walkthrough print so the number is checkable against the rule that made it.
     public var actedBucketList: String {

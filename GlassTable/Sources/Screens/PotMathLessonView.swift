@@ -103,7 +103,10 @@ struct PotMathReplayView: View {
                     : order == 0 ? .bottomTrailing : .bottomLeading
             }
             let shown = steps.prefix(visibleStepIndex + 1)
-            let folded = shown.contains { $0.actor == actor && $0.kind == .fold }
+            let folded = shown.contains {
+                ($0.actor == actor && $0.kind == .fold)
+                    || $0.flopTransition?.foldedActors.contains(actor) == true
+            }
             let additions = shown.filter { $0.actor == actor && $0.addedChips > 0 }
                 .map(\.addedChips)
             let paid = additions.reduce(0, +)
@@ -125,16 +128,30 @@ struct PotMathReplayView: View {
     /// One short description beside the table for the acting seat, in place of
     /// captions scattered over every seat.
     private var actionLine: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(language.text("행동 \(visibleStepIndex + 1)/\(steps.count)",
-                               "Action \(visibleStepIndex + 1)/\(steps.count)"))
-                .font(GT.body(14).monospacedDigit())
-                .foregroundStyle(GT.inkSecondary)
-                .fixedSize()
-            Text("\(actorName(currentStep.actor)): \(caption(for: currentStep))")
-                .font(GT.semibold(15))
-                .foregroundStyle(GT.ink)
-                .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 8) {
+            if spot.flopTransition != nil {
+                let onFlop = steps.prefix(visibleStepIndex + 1).contains { $0.flopTransition != nil }
+                Text(onFlop ? language.text("플랍", "Flop") : language.text("프리플랍", "Preflop"))
+                    .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
+                    .accessibilityIdentifier("pot-replay-street")
+            }
+            if let folds = currentStep.flopTransition?.foldExplanation(in: language) {
+                Text(folds)
+                    .font(GT.body(14)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("pot-replay-flop-folds")
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(language.text("행동 \(visibleStepIndex + 1)/\(steps.count)",
+                                   "Action \(visibleStepIndex + 1)/\(steps.count)"))
+                    .font(GT.body(14).monospacedDigit())
+                    .foregroundStyle(GT.inkSecondary)
+                    .fixedSize()
+                Text("\(actorName(currentStep.actor)): \(caption(for: currentStep))")
+                    .font(GT.semibold(15))
+                    .foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
