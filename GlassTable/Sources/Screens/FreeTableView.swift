@@ -408,7 +408,10 @@ struct FreeTableView: View {
             GTStableDockLayout(heightLimit: heightLimit) {
                 GeometryReader { geometry in
                     if heightLimit != nil {
+                        // Only scroll when the face is taller than the dock. A bouncing outer
+                        // scroll took some drags meant for the Help face's own scroll at AX5.
                         ScrollView { dockFace(table, minimumHeight: geometry.size.height) }
+                            .scrollBounceBehavior(.basedOnSize)
                             .accessibilityIdentifier("free-dock-content")
                     } else {
                         dockFace(table, minimumHeight: geometry.size.height)
