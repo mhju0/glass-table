@@ -26,6 +26,37 @@ final class LearningReferenceFlowTests: XCTestCase {
         XCTAssertTrue(element.isHittable)
     }
 
+    private func reachLookup(_ button: XCUIElement, app: XCUIApplication,
+                             scroll: XCUIElement, footer: XCUIElement) {
+        XCTAssertTrue(button.waitForExistence(timeout: 15))
+        XCTAssertTrue(scroll.exists)
+        XCTAssertTrue(footer.exists)
+        let close = app.buttons["Close"].firstMatch
+        func viewport() -> CGRect {
+            let visible = scroll.frame.intersection(app.windows.firstMatch.frame)
+            let top = max(visible.minY, close.frame.maxY + 8)
+            let bottom = min(visible.maxY, footer.frame.minY - 8)
+            return CGRect(x: visible.minX, y: top, width: visible.width, height: max(0, bottom - top))
+        }
+        for _ in 0..<12 {
+            let visible = viewport()
+            let target = button.frame
+            if target.minY >= visible.minY, target.maxY <= visible.maxY, button.isHittable { return }
+            XCTAssertGreaterThan(visible.height, 44, "No scrollable viewport: \(visible)")
+            let moveDown = target.minY < visible.minY
+            let origin = scroll.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: visible.midX - scroll.frame.minX,
+                dy: visible.minY + visible.height * (moveDown ? 0.3 : 0.7) - scroll.frame.minY))
+            let end = origin.withOffset(CGVector(dx: visible.midX - scroll.frame.minX,
+                dy: visible.minY + visible.height * (moveDown ? 0.7 : 0.3) - scroll.frame.minY))
+            start.press(forDuration: 0.05, thenDragTo: end)
+        }
+        let visible = viewport()
+        XCTAssertGreaterThanOrEqual(button.frame.minY, visible.minY, "Target \(button.frame), viewport \(visible)")
+        XCTAssertLessThanOrEqual(button.frame.maxY, visible.maxY, "Target \(button.frame), viewport \(visible)")
+        XCTAssertTrue(button.isHittable)
+    }
+
     func testGlossarySearchAliasesAndNoResults() {
         for korean in [false, true] {
             let app = launch(["GT_DEMO_SETTINGS": "1", "GT_DEMO_GLOSSARY": "1"], korean: korean)
@@ -73,7 +104,8 @@ final class LearningReferenceFlowTests: XCTestCase {
         app.buttons["Done entering"].tap()
         XCTAssertTrue(app.buttons["12 cards"].exists)
         let chip = app.buttons["drill-term-lookup"]
-        reach(chip, app: app, upward: false)
+        let content = app.scrollViews["drill-content-scroll"]
+        reachLookup(chip, app: app, scroll: content, footer: app.descendants(matching: .any)["answer-sheet"])
         chip.tap()
         XCTAssertTrue(app.descendants(matching: .any)["glossary-detail-outs"].waitForExistence(timeout: 5))
         app.buttons["glossary-close"].tap()
@@ -93,7 +125,7 @@ final class LearningReferenceFlowTests: XCTestCase {
         let revealedText = app.descendants(matching: .any)[revealID]
             .staticTexts.allElementsBoundByIndex.map(\.label)
         let revealedCards = cards(app)
-        reach(chip, app: app, upward: false)
+        reachLookup(chip, app: app, scroll: content, footer: app.descendants(matching: .any)[revealID])
         chip.tap()
         XCTAssertTrue(app.descendants(matching: .any)["glossary-detail-outs"].waitForExistence(timeout: 5))
         app.buttons["glossary-close"].tap()
@@ -135,16 +167,13 @@ final class LearningReferenceFlowTests: XCTestCase {
         let topics = ["lessons", "steps", "passing", "help", "challenges-review", "progress", "tables"]
         for (index, topic) in topics.enumerated() {
             XCTAssertTrue(app.staticTexts["guide-topic-\(topic)"].waitForExistence(timeout: 10))
-            let terms = app.descendants(matching: .any)["guide-topic-terms"]
-            reach(terms, app: app, scroll: scroll)
-            let links = terms.buttons
+            let links = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'guide-term-'"))
             XCTAssertGreaterThan(links.count, 0)
             let link = links.element(boundBy: links.count - 1)
-            reach(link, app: app, scroll: scroll)
-            for _ in 0..<6 where link.frame.maxY > app.buttons["guide-next"].frame.minY + 1 {
-                scroll.swipeUp()
-            }
-            XCTAssertLessThanOrEqual(link.frame.maxY, app.buttons["guide-next"].frame.minY + 1)
+            let footer = app.buttons["guide-previous"].exists
+                ? app.buttons["guide-previous"] : app.buttons["guide-next"]
+            reachLookup(link, app: app, scroll: scroll, footer: footer)
+            XCTAssertLessThanOrEqual(link.frame.maxY, footer.frame.minY - 8)
             link.tap()
             XCTAssertTrue(app.buttons["glossary-all"].waitForExistence(timeout: 5))
             app.buttons["glossary-close"].tap()

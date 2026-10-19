@@ -226,6 +226,8 @@ struct LessonSeatLoop: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if textSize.isAccessibilitySize {
+                streetCaption
+                    .foregroundStyle(GT.ink)
                 ForEach(Position.allCases, id: \.self) { position in
                     HStack(alignment: .firstTextBaseline) {
                         Text("\(position.seatNumber)").font(GT.title(20)).frame(minWidth: 28)
@@ -250,8 +252,7 @@ struct LessonSeatLoop: View {
                 .overlay { if showsOrder { directionOverlay } }
                 .overlay {
                     VStack(spacing: 6) {
-                        Text(language.text(postflop ? "플랍 이후" : "플랍 전", postflop ? "After flop" : "Before flop"))
-                            .font(GT.semibold(13))
+                        streetCaption
                         if let active { Text("\(active.seatNumber)").font(GT.title(26)) }
                     }.foregroundStyle(GT.ink).allowsHitTesting(false)
                 }
@@ -265,6 +266,13 @@ struct LessonSeatLoop: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("position-boxed-loop")
     }
+
+    private var streetCaption: some View {
+        Text(language.text(postflop ? "플랍 이후" : "플랍 전", postflop ? "After flop" : "Before flop"))
+            .font(GT.semibold(13))
+            .accessibilityIdentifier("position-street")
+    }
+
     private func seat(_ position: Position) -> some View {
         VStack(spacing: 3) {
             HStack(spacing: 4) {

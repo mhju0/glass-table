@@ -11,7 +11,7 @@ Its stable IDs are independent of the display language and are not persisted.
 1. Korean actions and streets use 콜 · 레이즈 · 폴드 · 체크 · 벳 · 올인 and
    프리플랍 · **플랍** · 턴 · 리버. Accept 플롭 as a search alias, not display copy.
 2. Acronyms and seat identifiers stay Latin: EV · GTO · MDF · VPIP · PFR · RFI ·
-   UTG · HJ · CO · BTN · SB · BB. Write **3벳/4벳** in Korean. `bb` is the unit
+   UTG · UTG+1 · LJ · HJ · CO · BTN · SB · BB. Write **3벳/4벳** in Korean. `bb` is the unit
    equal to one big blind; `BB` is also the seat identifier.
 3. Introduce the real name with an accessible meaning; pair Korean and English at
    the first introduction. Glossary chips open that entry, with a route to search
@@ -35,7 +35,7 @@ Its stable IDs are independent of the display language and are not persisted.
 | `blinds` | 블라인드 | blinds, SB, small blind |
 | `big-blind` | bb · 빅 블라인드 단위 | bb, BB, big blind |
 | `dealer-button` | 딜러 버튼 | dealer button, D, BTN |
-| `position` | 포지션 | position, UTG, HJ, CO |
+| `position` | 포지션 | position; UTG / UTG+1 (early seats), LJ / lojack and HJ / hijack (middle seats), CO / cutoff; UTG1 and under-the-gun+1 aliases |
 | `hand` | 핸드 · 패 | hand |
 | `board` | 보드 · 공용 카드 | board, shared / community cards |
 | `suits` | 무늬 · 스페이드 · 하트 · 다이아몬드 · 클럽 | suits, spades, hearts, diamonds, clubs; singular forms too |

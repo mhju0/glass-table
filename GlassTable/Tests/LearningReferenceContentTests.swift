@@ -29,6 +29,17 @@ final class LearningReferenceContentTests: XCTestCase {
         XCTAssertTrue(GlossaryCatalog.search("?!").isEmpty)
     }
 
+    func testEveryVisibleSeatCodeResolvesAndIsSearchable() throws {
+        for seat in Position.allCases {
+            let entry = try XCTUnwrap(GlossaryCatalog.entry(for: seat.rawValue), seat.rawValue)
+            XCTAssertTrue(GlossaryCatalog.search(seat.rawValue).contains(entry), seat.rawValue)
+        }
+        for alias in ["LJ", "lojack", "UTG+1", "UTG1", "under-the-gun+1"] {
+            XCTAssertEqual(GlossaryCatalog.entry(for: alias)?.id, "position", alias)
+            XCTAssertTrue(GlossaryCatalog.search(alias).contains { $0.id == "position" }, alias)
+        }
+    }
+
     func testEveryContextualAndGuideLinkResolvesWithoutDependingOnLanguage() throws {
         XCTAssertEqual(Set(GlossaryCatalog.entries.map(\.id)).count, GlossaryCatalog.entries.count)
         for concept in Concept.allCases {

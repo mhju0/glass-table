@@ -1273,7 +1273,7 @@ private struct PositionDrill: View {
                 "내 자리: \(LessonSeatIdentity.label(p, language: language)). 플랍 이후 \(stillIn.count)명이 더 남았어요(참여 표시). 그중 내 뒤에 행동하는 사람은 몇 명인가요?",
                 "Your seat: \(LessonSeatIdentity.label(p, language: language)). After the flop, \(stillIn.count) other \(stillIn.count == 1 ? "player is" : "players are") still in (marked In). How many of them act after you?")
         case let .whichIsLater(a, b):
-            return language.text("A와 B 중 어느 자리가 더 늦게 행동하나요?", "Which seat acts later: A or B?")
+            return language.text("플랍 이후, A와 B 중 어느 자리가 더 늦게 행동하나요?", "After the flop, which seat acts later: A or B?")
                 + "\n" + LessonSeatIdentity.label(a, marker: "A", language: language)
                 + "\n" + LessonSeatIdentity.label(b, marker: "B", language: language)
         }

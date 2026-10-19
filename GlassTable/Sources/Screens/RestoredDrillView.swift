@@ -344,8 +344,8 @@ private struct RestoredDrillContextView: View {
                                    "\(LessonSeatIdentity.label(seat, language: language)) · after the flop · \(stillIn.count) still in"))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
             case let .whichIsLater(a, b):
-                LessonSeatLoop(markers: [a: "A", b: "B"])
-                Text(language.text("A와 B 중 나중에 행동하는 자리는 어디일까요?", "Which acts later, A or B?"))
+                LessonSeatLoop(markers: [a: "A", b: "B"], postflop: true)
+                Text(language.text("플랍 이후, A와 B 중 어느 자리가 더 늦게 행동하나요?", "After the flop, which seat acts later: A or B?"))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
                 Text(LessonSeatIdentity.label(a, marker: "A", language: language))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)

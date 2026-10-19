@@ -7,12 +7,15 @@ final class TerminologyLearningFlowTests: XCTestCase {
     func testKoreanAXComparisonKeepsBothSeatIdentitiesAfterRestore() { comparison("ko", ax: true) }
 
     func testCountQuestionNamesTheSameSeatAsTheDiagram() {
-        let app = launch("en", node: "u1-position", ax: false)
+        let store = UUID().uuidString
+        let app = launch("en", node: "u1-position", ax: false, store: store)
         let seat = app.descendants(matching: .any)["position-seat-CO"].firstMatch
         XCTAssertTrue(seat.waitForExistence(timeout: 15))
         XCTAssertTrue(seat.label.contains("CO · Before dealer"), seat.label)
         let prompt = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Your seat: CO · Before dealer")).firstMatch
         XCTAssertTrue(prompt.exists)
+        XCTAssertTrue(prompt.label.contains("before the flop"), prompt.label)
+        XCTAssertEqual(app.staticTexts["position-street"].label, "Before flop")
         XCTAssertFalse(app.staticTexts["position-action-order"].exists, "The question must not show its action order")
         let answer = app.buttons["3"]
         reach(answer, in: app)
@@ -20,14 +23,25 @@ final class TerminologyLearningFlowTests: XCTestCase {
         XCTAssertTrue(completion(in: app).waitForExistence(timeout: 15))
         XCTAssertTrue(seat.exists)
         XCTAssertTrue(app.staticTexts["position-action-order"].exists)
+        app.terminate()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": store, "GT_TEST_FIRST_LESSON": "0", "GT_TEST_FIRST_PLACEMENT": "0",
+                                 "GT_DEMO_LEVEL": "playRegularly"]
+        app.launch()
+        let resume = app.buttons["learn-continue"]
+        reach(resume, in: app)
+        resume.tap()
+        XCTAssertTrue(completion(in: app).waitForExistence(timeout: 15))
+        XCTAssertEqual(app.staticTexts["position-street"].label, "Before flop")
         attach(app, "position-count-term-and-meaning")
     }
 
     func testKoreanAXSharpCountsOnlyMarkedPlayersWithTheirSeatCodes() {
-        let app = launch("ko", node: "u1-position.3", ax: true)
+        let store = UUID().uuidString
+        let app = launch("ko", node: "u1-position.3", ax: true, store: store)
         let me = app.descendants(matching: .any)["position-seat-BTN"].firstMatch
         XCTAssertTrue(me.waitForExistence(timeout: 15))
         XCTAssertTrue(me.label.contains("나 · BTN · 딜러"), me.label)
+        XCTAssertEqual(app.staticTexts["position-street"].label, "플랍 이후")
         for code in ["LJ", "CO"] {
             let seat = app.descendants(matching: .any)["position-seat-\(code)"].firstMatch
             XCTAssertTrue(seat.label.contains("참여 · \(code)"), seat.label)
@@ -49,6 +63,15 @@ final class TerminologyLearningFlowTests: XCTestCase {
         XCTAssertTrue(completion(in: app).waitForExistence(timeout: 15))
         XCTAssertTrue(me.exists)
         XCTAssertFalse(app.staticTexts["position-action-order"].exists, "A partial table never claims all eight remain")
+        app.terminate()
+        app.launchEnvironment = ["GT_TEST_STORE_ID": store, "GT_TEST_FIRST_LESSON": "0", "GT_TEST_FIRST_PLACEMENT": "0",
+                                 "GT_DEMO_LEVEL": "playRegularly"]
+        app.launch()
+        let resume = app.buttons["learn-continue"]
+        reach(resume, in: app)
+        resume.tap()
+        XCTAssertTrue(completion(in: app).waitForExistence(timeout: 15))
+        XCTAssertEqual(app.staticTexts["position-street"].label, "플랍 이후")
         attach(app, "position-sharp-AX-seat-identities")
     }
 
@@ -62,6 +85,10 @@ final class TerminologyLearningFlowTests: XCTestCase {
         XCTAssertTrue(a.waitForExistence(timeout: 15))
         XCTAssertEqual(a.label, first)
         XCTAssertEqual(b.label, second)
+        let promptPrefix = ko ? "플랍 이후, A와 B 중" : "After the flop, which seat acts later"
+        let prompt = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", promptPrefix)).firstMatch
+        XCTAssertTrue(prompt.exists, "The graded comparison must explicitly state its street")
+        XCTAssertEqual(app.staticTexts["position-street"].label, ko ? "플랍 이후" : "After flop")
         for (code, identity) in [("BB", first), ("CO", second)] {
             let seat = app.descendants(matching: .any)["position-seat-\(code)"].firstMatch
             XCTAssertTrue(seat.exists)
@@ -85,6 +112,8 @@ final class TerminologyLearningFlowTests: XCTestCase {
         resume.tap()
         XCTAssertTrue(completion(in: app).waitForExistence(timeout: 15))
         XCTAssertTrue(verdict.exists)
+        XCTAssertTrue(prompt.exists, "The restored comparison must state the same postflop question")
+        XCTAssertEqual(app.staticTexts["position-street"].label, ko ? "플랍 이후" : "After flop")
         XCTAssertEqual(app.descendants(matching: .any)["position-seat-BB"].firstMatch.label, first)
         XCTAssertEqual(app.descendants(matching: .any)["position-seat-CO"].firstMatch.label, second)
         attach(app, "\(language)-\(ax ? "AX5" : "large")-restored-position-identities")
@@ -105,8 +134,38 @@ final class TerminologyLearningFlowTests: XCTestCase {
         app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'drill-completion-'")).firstMatch
     }
     private func reach(_ element: XCUIElement, in app: XCUIApplication) {
-        XCTAssertTrue(element.waitForExistence(timeout: 15))
-        for _ in 0..<16 where !element.isHittable { app.swipeUp() }
+        let drillScroll = app.scrollViews["drill-accessibility-scroll"]
+        let fallbackScroll = app.scrollViews.firstMatch
+        XCTAssertTrue(fallbackScroll.waitForExistence(timeout: 15))
+
+        func safeViewport() -> CGRect {
+            let window = app.frame
+            let visible = drillScroll.exists ? drillScroll.frame.intersection(window) : window
+            let close = app.buttons["xmark"].firstMatch
+            let top = max(visible.minY + 12, close.exists ? close.frame.maxY + 12 : window.minY + 100)
+            let bottom = min(visible.maxY - 40, window.maxY - 40)
+            return CGRect(x: visible.minX + 8, y: top,
+                          width: visible.width - 16, height: max(0, bottom - top))
+        }
+
+        for _ in 0..<20 {
+            let viewport = safeViewport()
+            if element.exists {
+                let frame = element.frame
+                let midpoint = CGPoint(x: frame.midX, y: frame.midY)
+                if frame.width > 0, frame.height > 0, viewport.contains(midpoint), element.isHittable { return }
+                let scroll = drillScroll.exists ? drillScroll : fallbackScroll
+                if frame.height > 0, frame.midY < viewport.minY { scroll.swipeDown() }
+                else { scroll.swipeUp() }
+            } else {
+                // The inline keypad is lazy: scrolling creates its offscreen buttons.
+                (drillScroll.exists ? drillScroll : fallbackScroll).swipeUp()
+            }
+        }
+        XCTAssertTrue(element.exists, "Unreachable lazy control: \(element.identifier)")
+        let frame = element.frame
+        XCTAssertTrue(safeViewport().contains(CGPoint(x: frame.midX, y: frame.midY)),
+                      "Control midpoint outside safe viewport: \(frame), \(safeViewport())")
         XCTAssertTrue(element.isHittable, element.identifier)
     }
     private func attach(_ app: XCUIApplication, _ name: String) {
