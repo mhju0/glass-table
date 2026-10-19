@@ -59,12 +59,6 @@ extension EnvironmentValues {
         set { self[LearningLanguageKey.self] = newValue }
     }
 
-    /// Poker terms lead and plain words follow. Off by default for newer players.
-    var leadsWithTerms: Bool {
-        get { self[LeadsWithTermsKey.self] }
-        set { self[LeadsWithTermsKey.self] = newValue }
-    }
-
     /// Questions are asked the simpler way: counts before percentages, chips rather
     /// than big blinds, and the full chart one tap away. On below "Plays regularly".
     var simpleQuestions: Bool {
@@ -73,21 +67,8 @@ extension EnvironmentValues {
     }
 }
 
-private struct LeadsWithTermsKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
 private struct SimpleQuestionsKey: EnvironmentKey {
     static let defaultValue = false
-}
-
-enum PokerTerms {
-    /// Unset until the learner flips the switch; until then their level decides.
-    static let storageKey = "glassTable.pokerTerms"
-
-    static func lead(choice: Bool?, level: PlacementSelfReport) -> Bool {
-        choice ?? level.leadsWithTerms
-    }
 }
 
 extension PlacementSelfReport {
@@ -100,12 +81,11 @@ extension PlacementSelfReport {
     }
 }
 
-/// A skill's everyday name and its poker term, in the order this learner reads them.
-func skillNames(_ concept: Concept, language: LearningLanguage,
-                termsLead: Bool) -> (lead: String, tag: String) {
+/// Task names stay plain; the poker term accompanies the task when it is introduced.
+func skillNames(_ concept: Concept, language: LearningLanguage) -> (lead: String, tag: String) {
     let plain = ConceptIntroduction.make(concept, language: language).title
     let term = concept.term(in: language)
-    return termsLead ? (term, plain) : (plain, term)
+    return (plain, term)
 }
 
 func rangeMatchTitle(_ band: GradeBand, language: LearningLanguage) -> String {

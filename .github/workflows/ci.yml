@@ -65,6 +65,9 @@ jobs:
             -only-testing:GlassTableUITests/GradedTableRecoveryFlowTests \
             -only-testing:GlassTableUITests/ReviewTeachingFollowupTests \
             -only-testing:GlassTableUITests/GradedLearningFlowTests/testAXPostflopChartIsExplicitlyAStartingHandReference \
+            -only-testing:GlassTableUITests/BeginnerReleaseTests/testLegacyTerminologyPreferencesUseOneLearningPolicy \
+            -only-testing:GlassTableUITests/TerminologyLearningFlowTests/testKoreanAXComparisonKeepsBothSeatIdentitiesAfterRestore \
+            -only-testing:GlassTableUITests/LearningReferenceFlowTests \
             -resultBundlePath focused-ui.xcresult \
             CODE_SIGNING_ALLOWED=NO test > focused-ui.log 2>&1 || { tail -100 focused-ui.log; exit 1; }
           tail -30 focused-ui.log

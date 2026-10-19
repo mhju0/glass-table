@@ -7,7 +7,6 @@ import GlassTableDrills
 struct LearnView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenReview: () -> Void
@@ -165,9 +164,9 @@ struct LearnView: View {
 
     private func lessonRow(_ node: CurriculumNode) -> some View {
         let concept = Curriculum.taughtConcept(of: node)
-        let title = concept.map { skillNames($0, language: language, termsLead: termsLead).lead }
+        let title = concept.map { skillNames($0, language: language).lead }
             ?? learningNodeTitle(node, language: language)
-        let detail = concept.map { conceptBlurb($0, language: language) }
+        let detail = concept.map { skillNames($0, language: language).tag + " · " + conceptBlurb($0, language: language) }
             ?? learningNodeDescription(node, language: language)
         let steps = Curriculum.lessonSteps(for: node)
         let passedSteps = steps.filter { model.state.nodes[$0.id]?.cleared == true }.count
@@ -496,9 +495,9 @@ struct LearnView: View {
 }
 
 func learningNodeTitle(_ node: CurriculumNode, language: LearningLanguage,
-                       termsLead: Bool = false, asChallenge: Bool = false) -> String {
+                       asChallenge: Bool = false) -> String {
     if !asChallenge, let concept = Curriculum.taughtConcept(of: node) {
-        return skillNames(concept, language: language, termsLead: termsLead).lead
+        return skillNames(concept, language: language).lead
     }
     return language.text("섞어서 확인하기", "Mixed practice")
 }

@@ -158,24 +158,19 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(empty.waitForExistence(timeout: 10))
     }
 
-    func testGuideRequiresRetrievalBeforeExplanation() {
+    func testGuidePagesAreReadableWithoutAnsweringAQuiz() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
-        // A fresh store pins the question to its first wording.
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
                                  "GT_DEMO_SETTINGS": "1", "GT_DEMO_GUIDE": "1",
                                  "GT_DEMO_GUIDE_PAGE": "1"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["좋은 결정도 질 수 있어요"].waitForExistence(timeout: 15))
-        let answer = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "아니요")).firstMatch
-        XCTAssertTrue(answer.waitForExistence(timeout: 15))
-        let next = app.buttons["다음 이야기"]
-        XCTAssertFalse(next.isEnabled)
-        answer.tap()
-        XCTAssertTrue(app.staticTexts["맞아요"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["guide-topic-steps"].waitForExistence(timeout: 15))
+        let next = app.buttons["guide-next"]
         XCTAssertTrue(next.isEnabled)
         next.tap()
-        XCTAssertTrue(app.staticTexts["정답의 조건도 배워요"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["guide-topic-passing"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["guide-previous"].isEnabled)
     }
 
     /// A sheet would close on a downward swipe and leave the tabs peeking above it;
@@ -582,7 +577,8 @@ final class LearningFlowTests: XCTestCase {
         app.launch()
         let seats = app.descendants(matching: .any)["position-boxed-loop"].firstMatch
         XCTAssertTrue(seats.waitForExistence(timeout: 15))
-        let choice = app.buttons.matching(NSPredicate(format: "label MATCHES %@", "[0-9]|A|B")).firstMatch
+        let choice = app.buttons.matching(NSPredicate(format: "label MATCHES %@ OR identifier BEGINSWITH %@",
+                                                       "[0-9]", "position-choice-")).firstMatch
         for _ in 0..<12 where !choice.isHittable { app.swipeUp() }
         choice.tap()
         XCTAssertTrue(app.buttons["다음 문제"].waitForExistence(timeout: 5))
@@ -657,7 +653,7 @@ final class LearningFlowTests: XCTestCase {
         next.tap()
         XCTAssertTrue(app.staticTexts["복습 2/2"].waitForExistence(timeout: 5))
         let positionChoice = app.buttons.matching(NSPredicate(
-            format: "label MATCHES %@", "[0-9]|A|B"
+            format: "label MATCHES %@ OR identifier BEGINSWITH %@", "[0-9]", "position-choice-"
         )).firstMatch
         XCTAssertTrue(positionChoice.waitForExistence(timeout: 5))
         positionChoice.tap()

@@ -159,19 +159,26 @@ struct ConceptDrillView: View {
     }
 
     /// Stable glossary IDs, independent of the current display language.
-    private static func glossaryTerm(for concept: Concept) -> String? {
+    static func glossaryTerm(for concept: Concept) -> String? {
         switch concept {
-        case .showdown, .position: return nil   // no matching glossary entry
+        case .showdown: return "showdown"
+        case .position: return "position"
         case .potMath:             return "chip"
-        case .evLoss:              return "big-blind"
-        case .equitySense, .evCall, .rangeAdvantage: return "equity"
-        case .combos, .rangeNotation: return "combo"
+        case .evLoss:              return "ev-loss"
+        case .equitySense: return "equity"
+        case .evCall: return "ev"
+        case .rangeAdvantage: return "range-advantage"
+        case .combos: return "combo"
+        case .rangeNotation: return "range-notation"
         case .outs:     return "outs"
         case .potOdds:  return "pot-odds"
         case .mdf:      return "mdf"
         case .callFold: return "required-equity"
-        case .rfi, .rangeRead, .hitFrequency, .actionRead: return "range"
-        case .defend:   return "three-bet"
+        case .rfi: return "rfi"
+        case .rangeRead: return "range"
+        case .hitFrequency: return "hit-frequency"
+        case .actionRead: return "action-read"
+        case .defend:   return "defend-chart"
         }
     }
 
@@ -405,7 +412,6 @@ struct DrillShell<Content: View, Sheet: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.drillQuestionID) private var questionID
     @Environment(\.drillExplain) private var explainConcept
     @Environment(\.drillHintConcept) private var hintConcept
@@ -528,7 +534,12 @@ struct DrillShell<Content: View, Sheet: View>: View {
     }
 
     private var titleText: some View {
-        Text(localizedTitle).font(GT.title(19)).foregroundStyle(GT.onFelt)
+        VStack(alignment: .leading, spacing: 5) {
+            Text(localizedTitle).font(GT.title(19)).foregroundStyle(GT.onFelt)
+            if let concept = titleConcept, let term = ConceptDrillView.glossaryTerm(for: concept) {
+                GlossaryChip(term: term).accessibilityIdentifier("drill-term-lookup")
+            }
+        }
     }
 
     @ViewBuilder private var headerControls: some View {
@@ -551,10 +562,14 @@ struct DrillShell<Content: View, Sheet: View>: View {
     }
 
     private var localizedTitle: String {
-        guard let concept = Concept.allCases.first(where: {
+        guard let concept = titleConcept else { return title }
+        return skillNames(concept, language: language).lead
+    }
+
+    private var titleConcept: Concept? {
+        Concept.allCases.first(where: {
             ConceptDrillView.drillTitle(for: $0) == title
-        }) else { return title }
-        return skillNames(concept, language: language, termsLead: termsLead).lead
+        })
     }
 
 }
@@ -587,10 +602,17 @@ private struct RevealSheet: View {
                              openerEquityPct: interval?.truth, language: language, namesRange: !simple)
     }
 
+    private var positionLabels: (mine: String, correct: String)? {
+        guard let replayContext, replayContext.concept == .position else { return nil }
+        let spot = PositionSpotGenerator.spot(baseSeed: replayContext.seed, index: replayContext.index,
+                                              level: replayContext.level)
+        return LessonSeatIdentity.answerLabels(spot: spot, input: submittedInput, language: language)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            VerdictRow(band: band, mine: reveal?.mine ?? language.text("답변 저장됨", "Answer saved"),
-                       correct: reveal?.correct ?? language.text("결과 저장됨", "Result saved"),
+            VerdictRow(band: band, mine: positionLabels?.mine ?? reveal?.mine ?? language.text("답변 저장됨", "Answer saved"),
+                       correct: positionLabels?.correct ?? reveal?.correct ?? language.text("결과 저장됨", "Result saved"),
                        title: replayContext.flatMap {
                             practiceFeedbackTitle($0.concept, band: band, language: language)
                        },
@@ -640,7 +662,7 @@ private struct RevealSheet: View {
                 let worked = Walkthrough.make(concept: concept,
                     seed: 0xE9A1 &+ workedExampleSeed, index: 0, language: language)
                 NavigationStack {
-                    WalkthroughView(title: skillNames(concept, language: language, termsLead: false).lead,
+                    WalkthroughView(title: skillNames(concept, language: language).lead,
                                     concept: concept, beats: worked.beats, rows: worked.rows,
                                     onFinish: { showingWorkedExample = false })
                         .gtChrome(leading: { ChromeButton.close { showingWorkedExample = false } })
@@ -1170,7 +1192,6 @@ private struct PotMathRevealSheet: View {
 
 private struct PositionDrill: View {
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.simpleQuestions) private var simple
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.drillLevel) private var level
@@ -1188,8 +1209,8 @@ private struct PositionDrill: View {
         DrillShell(title: "포지션", progressText: progressText) {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel(text: reveal == nil
-                    ? language.text(termsLead ? "8맥스 테이블 · 버튼부터 시계 방향" : "8명 테이블 · 딜러 버튼부터 시계 방향", "8-player table · clockwise from the button")
-                    : language.text(termsLead ? "8맥스 테이블 · 행동 순서" : "8명 테이블 · 행동 순서", "8-player table · action order"))
+                    ? language.text("8명 테이블 · 딜러 버튼부터 시계 방향", "8-player table · clockwise from the button")
+                    : language.text("8명 테이블 · 행동 순서", "8-player table · action order"))
                 seatDiagram
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1217,51 +1238,6 @@ private struct PositionDrill: View {
         return false
     }
 
-    private var seatOrder: [Position] {
-        reveal == nil ? [.btn, .sb, .bb, .utg, .utg1, .lj, .hj, .co]
-            : (isPreflop ? Position.preflopOrder : Position.postflopOrder)
-    }
-
-    /// Before the answer the seats are drawn as they sit, from the dealer button; the
-    /// action order is the answer, so it appears only in the reveal. Until the learner
-    /// asks for poker terms, seats are grouped as early, middle, late and blinds and the
-    /// eight codes wait for the reveal.
-    private var seatStrip: some View {
-        let order = seatOrder
-        return Grid(horizontalSpacing: 5, verticalSpacing: 4) {
-            if !termsLead {
-                GridRow {
-                    ForEach(Array(groupRuns(order).enumerated()), id: \.offset) { _, run in
-                        Text(run.name)
-                            .font(GT.semibold(10)).foregroundStyle(GT.onFeltSecondary)
-                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity)
-                            .gridCellColumns(run.count)
-                            .accessibilityHidden(true)
-                    }
-                }
-            }
-            GridRow {
-                ForEach(order, id: \.self) { p in
-                    let marked = marker(p) != nil
-                    Text(termsLead || reveal != nil ? p.rawValue : (marker(p) ?? ""))
-                        .font(GT.semibold(10)).foregroundStyle(marked ? GT.cardInk : GT.onFelt)
-                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, minHeight: 34)
-                        .background(marked ? Color(hex: 0xF3EDE0) : GT.onFelt.opacity(0.12),
-                                    in: RoundedRectangle(cornerRadius: 8))
-                        .accessibilityLabel([marker(p), p.plainName(in: language)]
-                            .compactMap { $0 }.joined(separator: ", "))
-                }
-            }
-        }
-        // The strip is a diagram of the eight seats in order, so it has to stay one
-        // row: reading it depends on seeing every seat at once. The labels still grow,
-        // but stop short of the accessibility sizes, where "UTG+1" was breaking into
-        // three stacked lines. VoiceOver reads the seat regardless.
-        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-    }
-
     @ViewBuilder private var seatDiagram: some View {
         // With only some players still in, the loop's "all eight seats" caption would be
         // wrong, so the order is left to the reveal's sentence.
@@ -1270,15 +1246,13 @@ private struct PositionDrill: View {
         }), showsOrder: reveal != nil && !countsStillIn, postflop: !isPreflop)
     }
 
-    /// The seat the question is about. With codes showing, a two-seat question names
-    /// its seats in the text, so only "my seat" is marked.
+    /// A/B identify the same seats before and after the answer at every text size.
     private func marker(_ p: Position) -> String? {
         switch spot.question {
         case let .behind(mine, _): return p == mine ? language.text("나", "You") : nil
         case let .behindInHand(mine, stillIn):
             return p == mine ? language.text("나", "You") : (stillIn.contains(p) ? language.text("참여", "In") : nil)
         case let .whichIsLater(a, b):
-            guard !termsLead else { return nil }
             return p == a ? "A" : (p == b ? "B" : nil)
         }
     }
@@ -1288,49 +1262,20 @@ private struct PositionDrill: View {
         return false
     }
 
-    private func groupName(_ p: Position) -> String {
-        switch p {
-        case .utg, .utg1: language.text("앞자리", "Early")
-        case .lj, .hj: language.text("중간", "Middle")
-        case .co, .btn: language.text("뒷자리", "Late")
-        case .sb, .bb: language.text("블라인드", "Blinds")
-        }
-    }
-
-    private func groupRuns(_ order: [Position]) -> [(name: String, count: Int)] {
-        order.reduce(into: []) { runs, p in
-            let name = groupName(p)
-            if runs.last?.name == name { runs[runs.count - 1].count += 1 }
-            else { runs.append((name, 1)) }
-        }
-    }
-
     private var questionText: String {
         switch spot.question {
         case let .behind(p, preflop):
-            guard termsLead else {
-                return language.text(
-                    "내 자리: \(p.plainName(in: language)). \(preflop ? "프리플랍" : "플랍 이후")에 내 뒤에 몇 명이 남았나요?",
-                    "Your seat: \(p.plainName(in: language)). How many players act after you \(preflop ? "before the flop" : "after the flop")?")
-            }
             return language.text(
-                "\(p.rawValue) 자리예요. \(preflop ? "프리플랍" : "플랍 이후")에 내 뒤에 몇 명이 남았나요?",
-                "You are in \(p.rawValue). How many players act after you \(preflop ? "before the flop" : "after the flop")?")
+                "내 자리: \(LessonSeatIdentity.label(p, language: language)). \(preflop ? "프리플랍" : "플랍 이후")에 내 뒤에 몇 명이 남았나요?",
+                "Your seat: \(LessonSeatIdentity.label(p, language: language)). How many players act after you \(preflop ? "before the flop" : "after the flop")?")
         case let .behindInHand(p, stillIn):
-            guard termsLead else {
-                return language.text(
-                    "내 자리: \(p.plainName(in: language)). 플랍 이후 \(stillIn.count)명이 더 남았어요(참여 표시). 그중 내 뒤에 행동하는 사람은 몇 명인가요?",
-                    "Your seat: \(p.plainName(in: language)). After the flop, \(stillIn.count) other \(stillIn.count == 1 ? "player is" : "players are") still in (marked In). How many of them act after you?")
-            }
-            let list = stillIn.map(\.rawValue).joined(separator: " · ")
-            return language.text("\(p.rawValue) 자리예요. 플랍 이후 남은 상대: \(list). 그중 내 뒤에 몇 명이 행동하나요?",
-                                 "You are in \(p.rawValue). Still in after the flop: \(list). How many of them act after you?")
+            return language.text(
+                "내 자리: \(LessonSeatIdentity.label(p, language: language)). 플랍 이후 \(stillIn.count)명이 더 남았어요(참여 표시). 그중 내 뒤에 행동하는 사람은 몇 명인가요?",
+                "Your seat: \(LessonSeatIdentity.label(p, language: language)). After the flop, \(stillIn.count) other \(stillIn.count == 1 ? "player is" : "players are") still in (marked In). How many of them act after you?")
         case let .whichIsLater(a, b):
-            guard termsLead else {
-                return language.text("A와 B 중 어느 자리가 더 늦게 행동하나요?", "Which seat acts later: A or B?")
-            }
-            return language.text("\(KO.and(a.rawValue)) \(b.rawValue) 중 어느 쪽이 더 늦게 행동하나요?",
-                                 "Which seat acts later: \(a.rawValue) or \(b.rawValue)?")
+            return language.text("A와 B 중 어느 자리가 더 늦게 행동하나요?", "Which seat acts later: A or B?")
+                + "\n" + LessonSeatIdentity.label(a, marker: "A", language: language)
+                + "\n" + LessonSeatIdentity.label(b, marker: "B", language: language)
         }
     }
 
@@ -1354,9 +1299,10 @@ private struct PositionDrill: View {
         case let .whichIsLater(a, b):
             HStack(spacing: 10) {
                 ForEach(Array([a, b].enumerated()), id: \.offset) { i, p in
-                    GTChoiceButton(title: termsLead ? p.rawValue : ["A", "B"][i], minHeight: 54) {
+                    GTChoiceButton(title: LessonSeatIdentity.label(p, marker: ["A", "B"][i], language: language), minHeight: 54) {
                         reveal = gradePosition(answer: i, spot: spot, language: language)
                     }
+                    .accessibilityIdentifier("position-choice-\(i)")
                 }
             }
         }
@@ -1910,7 +1856,6 @@ private struct RangeNotationDrill: View {
 
 private struct RFIDrill: View {
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.simpleQuestions) private var simple
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let seed: UInt64; let index: Int; let progressText: String
@@ -1975,11 +1920,8 @@ private struct RFIDrill: View {
                 firstSeatQuestion
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(termsLead
-                        ? language.text("\(spot.seat.rawValue)에서 이 핸드, 오픈인가요?",
-                                        "In \(spot.seat.rawValue), raise first with this hand?")
-                        : language.text("내 자리: \(spot.seat.plainName(in: language)). 이 패로 먼저 올릴까요?",
-                                        "Your seat: \(spot.seat.plainName(in: language)). Raise first with this hand?"))
+                    Text(language.text("내 자리: \(LessonSeatIdentity.label(spot.seat, language: language)). 이 패로 먼저 올릴까요?",
+                                       "Your seat: \(LessonSeatIdentity.label(spot.seat, language: language)). Raise first with this hand?"))
                         .fixedSize(horizontal: false, vertical: true)
                         .font(GT.title(GT.Typography.questionSize)).foregroundStyle(GT.ink)
                     HStack(spacing: 10) {
@@ -2025,7 +1967,7 @@ private struct RFIDrill: View {
         guard RFIFirstSeat.answers.indices.contains(choice), let seat = RFIFirstSeat.answers[choice] else {
             return RFIFirstSeat.label(choice, in: language)
         }
-        return termsLead ? seat.rawValue : seat.plainName(in: language)
+        return LessonSeatIdentity.label(seat, language: language)
     }
 
     @ViewBuilder
@@ -3042,7 +2984,6 @@ private struct ActionReadDrill: View {
 
 private struct DefendDrill: View {
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.simpleQuestions) private var simple
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.lessonGuidedChart) private var guidedChart
@@ -3063,9 +3004,9 @@ private struct DefendDrill: View {
                 SectionLabel(text: language.text("상황", "Situation")).padding(.top, 8)
                 LessonPairedText(
                     korean: ["상대: \(seatName)",
-                             termsLead && !simple ? "3bb로 먼저 올렸어요" : "빅 블라인드 3개로 먼저 올렸어요"],
+                             "빅 블라인드 3개(3bb)로 먼저 올렸어요"],
                     english: ["Opponent: \(seatName)",
-                              termsLead && !simple ? "Raises first to 3bb" : "Raises first to 3 big blinds"])
+                              "Raises first to 3 big blinds (3bb)"])
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
                     .fixedSize(horizontal: false, vertical: true)
                 // The third step leaves the opener's width to the learner (D53).
@@ -3139,11 +3080,7 @@ private struct DefendDrill: View {
     }
 
     private var seatName: String {
-        if termsLead && !simple { return spot.opener.rawValue }
-        let number = spot.opener.seatNumber
-        let name = spot.opener.seatName(in: language)
-            .replacingOccurrences(of: "\n", with: " ")
-        return language.text("\(number)번 자리 · \(name)", "Seat \(number) · \(name)")
+        LessonSeatIdentity.label(spot.opener, language: language)
     }
 
     private var chartInvitation: some View {
@@ -3170,7 +3107,7 @@ private struct DefendDrill: View {
         switch action {
         case .fold: return language.text("폴드", "Fold")
         case .call: return language.text("콜", "Call")
-        case .threeBet: return language.text("다시 올리기", "Raise again")
+        case .threeBet: return language.text("3벳 · 다시 올리기", "3-bet · Raise again")
         }
     }
 }

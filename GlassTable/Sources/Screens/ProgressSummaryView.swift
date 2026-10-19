@@ -8,7 +8,6 @@ import GlassTableDrills
 struct ProgressSummaryView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.dynamicTypeSize) private var textSize
     let overview: ProgressOverview
     let onContinue: () -> Void
@@ -441,7 +440,7 @@ struct ProgressSummaryView: View {
     }
 
     private func skillName(_ concept: Concept) -> String {
-        skillNames(concept, language: language, termsLead: termsLead).lead
+        skillNames(concept, language: language).lead
     }
 
     private func stageWord(_ tier: MasteryTier) -> String {

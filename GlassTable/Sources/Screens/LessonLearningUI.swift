@@ -196,6 +196,24 @@ func lessonCueSentence(_ concept: Concept, language: LearningLanguage) -> String
     }
 }
 
+enum LessonSeatIdentity {
+    static func label(_ position: Position, marker: String? = nil, language: LearningLanguage) -> String {
+        let name = position.seatName(in: language).replacingOccurrences(of: "\n", with: " ")
+        return [marker, position.rawValue, name].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    static func answerLabels(spot: PositionSpot, input: SavedDrillInput,
+                             language: LearningLanguage) -> (mine: String, correct: String)? {
+        guard case let .whichIsLater(a, b) = spot.question,
+              case let .integer(answer) = input, (0...1).contains(answer) else { return nil }
+        let seats = [a, b]
+        func choice(_ index: Int) -> String {
+            label(seats[index], marker: ["A", "B"][index], language: language)
+        }
+        return (choice(answer), choice(spot.correctAnswer))
+    }
+}
+
 struct LessonSeatLoop: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var textSize
@@ -203,18 +221,20 @@ struct LessonSeatLoop: View {
     var markers: [Position: String] = [:]
     var showsOrder = true
     var postflop = false
-    @State private var terms = false
     private let places: [[Position?]] = [[nil, .utg, .utg1, nil], [.bb, nil, nil, .lj],
                                         [.sb, nil, nil, .hj], [nil, .btn, .co, nil]]
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if textSize.isAccessibilitySize {
                 ForEach(Position.allCases, id: \.self) { position in
-                    HStack {
+                    HStack(alignment: .firstTextBaseline) {
                         Text("\(position.seatNumber)").font(GT.title(20)).frame(minWidth: 28)
-                        Text(position.seatName(in: language).replacingOccurrences(of: "\n", with: " "))
-                        if let marker = markers[position] { Text(marker).bold() }
+                        Text(LessonSeatIdentity.label(position, marker: markers[position], language: language))
+                            .fixedSize(horizontal: false, vertical: true)
                     }.font(GT.body(17)).foregroundStyle(active == position ? GT.cta : GT.ink)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(LessonSeatIdentity.label(position, marker: markers[position], language: language))
+                    .accessibilityIdentifier("position-seat-\(position.rawValue)")
                 }
             } else {
                 Grid(horizontalSpacing: 12, verticalSpacing: 12) {
@@ -222,7 +242,7 @@ struct LessonSeatLoop: View {
                         GridRow {
                             ForEach(places[row].indices, id: \.self) { column in
                                 if let position = places[row][column] { seat(position) }
-                                else { Color.clear.frame(maxWidth: .infinity).frame(height: terms ? 80 : 68) }
+                                else { Color.clear.frame(maxWidth: .infinity).frame(height: 80) }
                             }
                         }
                     }
@@ -239,12 +259,8 @@ struct LessonSeatLoop: View {
             if showsOrder {
                 Text(language.text("시계 방향 · 여덟 자리 모두 참여 중", "Clockwise · all eight seats active"))
                     .font(GT.body(12)).foregroundStyle(GT.inkSecondary)
+                    .accessibilityIdentifier("position-action-order")
             }
-            Button { terms.toggle() } label: {
-                Text(language.text(terms ? "용어 접기" : "포커 용어 보기", terms ? "Hide terms" : "Show poker terms"))
-            }
-                .buttonStyle(GTOutlinedAction())
-                .accessibilityIdentifier("position-terms-toggle")
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("position-boxed-loop")
@@ -257,14 +273,15 @@ struct LessonSeatLoop: View {
             }.font(GT.semibold(17))
             Text(position.seatName(in: language)).font(GT.semibold(12))
                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-            if terms { Text(position.rawValue).font(GT.body(10)) }
+            Text(position.rawValue).font(GT.body(10))
         }
-        .frame(maxWidth: .infinity).frame(height: terms ? 80 : 68)
+        .frame(maxWidth: .infinity).frame(minHeight: 80)
         .foregroundStyle(active == position ? GT.onCTA : GT.ink)
         .background(active == position ? GT.cta : GT.surface, in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(GT.borderStrong, lineWidth: 1))
-        .accessibilityLabel("\(position.seatNumber), " + position.seatName(in: language).replacingOccurrences(of: "\n", with: " ")
-                            + (markers[position].map { ", \($0)" } ?? ""))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(LessonSeatIdentity.label(position, marker: markers[position], language: language))
+        .accessibilityIdentifier("position-seat-\(position.rawValue)")
     }
     private var directionOverlay: some View {
         GeometryReader { geometry in

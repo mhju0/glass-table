@@ -100,7 +100,7 @@ struct RecordsView: View {
     }
 
     private func conceptName(_ concept: Concept) -> String {
-        skillNames(concept, language: language, termsLead: false).lead
+        skillNames(concept, language: language).lead
     }
 
     private var practiceConcepts: [Concept] {

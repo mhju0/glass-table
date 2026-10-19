@@ -14,7 +14,6 @@ struct TableView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hand: TableHand?
@@ -430,7 +429,7 @@ struct TableView: View {
             }
             }
             if case .hero = hand.phase, let event = hand.events.last, lastTurn == nil {
-                Text(event.text(in: language, plain: !termsLead))
+                Text(event.text(in: language, plain: true))
                     .font(GT.body(15)).foregroundStyle(GT.tableStatus)
                     .fixedSize(horizontal: false, vertical: true)
             }

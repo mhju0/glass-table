@@ -102,15 +102,11 @@ final class RestoredLessonParityFlowTests: XCTestCase {
         if range {
             XCTAssertTrue(app.staticTexts[korean ? "색: 정답 · 테두리: 선택한 답" : "Fill: answer · outline: your estimate"].exists)
         } else {
-            let terms = app.buttons["position-terms-toggle"]
-            let scroll = app.scrollViews[ax ? "drill-accessibility-scroll" : "drill-content-scroll"]
-            XCTAssertTrue(scroll.waitForExistence(timeout: 5))
-            for _ in 0..<16 where !terms.exists || !terms.isHittable { scroll.swipeUp() }
-            reach(terms)
-            terms.tap()
-            XCTAssertEqual(terms.label, korean ? "용어 접기" : "Hide terms")
-            terms.tap()
-            XCTAssertEqual(terms.label, korean ? "포커 용어 보기" : "Show poker terms")
+            XCTAssertFalse(app.buttons["position-terms-toggle"].exists)
+            let seat = app.descendants(matching: .any)["position-seat-UTG"].firstMatch
+            XCTAssertTrue(seat.exists)
+            XCTAssertTrue(seat.label.contains("UTG"), seat.label)
+            XCTAssertTrue(seat.label.contains(korean ? "첫 자리" : "First seat"), seat.label)
         }
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "\(korean ? "ko" : "en")-\(ax ? "ax5" : "normal")-" + (range ? "restored-range-comparison" : "restored-numbered-position")

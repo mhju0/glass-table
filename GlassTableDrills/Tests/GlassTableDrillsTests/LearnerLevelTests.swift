@@ -126,11 +126,6 @@ final class LearnerLevelTests: XCTestCase {
         XCTAssertNil(try JSONDecoder().decode(ProgressState.self, from: old).lessonTrend)
     }
 
-    func testPlainWordsLeadUnlessTheLearnerPlaysSometimes() {
-        XCTAssertFalse(PlacementSelfReport.newToPoker.leadsWithTerms)
-        XCTAssertFalse(PlacementSelfReport.knowRules.leadsWithTerms)
-        XCTAssertTrue(PlacementSelfReport.playRegularly.leadsWithTerms)
-    }
 }
 
 final class PlainQuestionWordsTests: XCTestCase {

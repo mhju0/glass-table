@@ -863,7 +863,8 @@ The owner approved all recommendations and delegated the seven open decisions:
    questions. Removed from Learn; kept in Settings. This amends D45's Learn placement.
 4. **Chips.** Quick game (40 chips, with an ending) becomes the default; Long table
    (100 chips) stays as an option. Simulate 30/40/50 before fixing the number.
-5. **Opponents.** A casual "Just for fun" opponent is the default for new players;
+5. **Opponents.** A casual opponent (renamed **Casual / 캐주얼형** by the owner on
+   2026-10-19; previously "Just for fun") is the default for new players;
    opponents get names instead of "Computer N". Seeded randomness, free table only.
 6. **Checkpoints.** One optional mixed challenge per track.
 7. **Order.** (a) small fixes · (b) free play · (c) learning structure and terms ·
@@ -1101,3 +1102,33 @@ already sized to their cells, not to the text setting (D37).
 - The cap goes on the specific part, never at the root. Card faces stay fixed (D37).
 - D37's one-row seat and street strips keep their `.xxLarge` limit; they now wrap
   rather than shrink.
+
+### D55 · Poker terms with explanations, without a terminology preference
+**Status: ACTIVE — owner requested and clarified on 2026-10-19.**
+
+The app introduces poker vocabulary rather than offering to hide it. A plain task
+heading can lead, but the actual concept term stays alongside it. Actions use their
+poker name with a short meaning and an unambiguous price. This replaces the old
+experience/default/Settings terminology choice; question difficulty and assistance
+remain separate teaching decisions.
+
+- Remove “Use poker terms” and the Position “Show/Hide poker terms” switch. Ignore
+  the retired `glassTable.pokerTerms` UserDefaults value; do not rewrite progress or
+  reinterpret saved questions. Generated cards, answer indexes and grading stay the same.
+- Position comparisons keep A/B paired with the real seat code and plain seat name
+  in the diagram, prompt, choices and restored explanation. Learning the vocabulary
+  must not reveal the action order before the answer.
+- The glossary is a searchable Korean/English reference with abbreviation aliases.
+  A contextual term chip opens the requested definition; the full glossary remains
+  available. Closing it preserves cards, question, draft, reveal and assistance state.
+  The owner explicitly treats looking up a word or reading a general explanation as
+  active, self-directed learning: it counts as self-done and has no scoring effect.
+  Only coaching for the current decision—such as advice on what to choose, a hint,
+  or that question's worked calculation—counts as assisted work. This preserves the
+  existing open-reference behavior of “Explain this skill”. No replacement toggle.
+- Settings’ “How learning works” explains the actual lesson, step, pass, hint,
+  challenge, review and progress behavior. Reference help is readable without a
+  quiz gate and links unfamiliar vocabulary to the glossary. It distinguishes Play
+  from the separately graded table and states the practice model’s limits.
+- Keep existing visual language, Dynamic Type, offline behavior and recoverable
+  progress. Do not add replacement preferences, account flows or telemetry.
