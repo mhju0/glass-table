@@ -44,10 +44,21 @@ final class GradedLearningFlowTests: XCTestCase {
     }
 
     private func reach(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<16 where !element.isHittable { app.swipeUp() }
+        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        // A partly exposed AX button can be hittable even when its label is under
+        // bottom chrome. Keep its tap target clear of the viewport edges.
+        let window = app.windows.firstMatch.frame
+        let middle = window.insetBy(dx: 0, dy: window.height * 0.1)
+        for _ in 0..<16 {
+            if element.isHittable, middle.contains(CGPoint(x: window.midX, y: element.frame.midY)) { break }
+            if element.frame.midY < middle.minY { app.swipeDown() }
+            else { app.swipeUp() }
+        }
         XCTAssertTrue(element.isHittable)
-        XCTAssertGreaterThanOrEqual(element.frame.minX, app.windows.firstMatch.frame.minX)
-        XCTAssertLessThanOrEqual(element.frame.maxX, app.windows.firstMatch.frame.maxX)
+        XCTAssertGreaterThanOrEqual(element.frame.minX, window.minX)
+        XCTAssertLessThanOrEqual(element.frame.maxX, window.maxX)
+        XCTAssertGreaterThanOrEqual(element.frame.midY, middle.minY)
+        XCTAssertLessThanOrEqual(element.frame.midY, middle.maxY)
     }
 
     func testNormalPreflopFooterHugsControlsAndBothHandsFit() {
@@ -148,7 +159,18 @@ final class GradedLearningFlowTests: XCTestCase {
         reach(passive, app: app)
         passive.tap()
         let next = app.buttons["table-continue"]
-        XCTAssertTrue(next.waitForExistence(timeout: 10))
+        let revealed = next.waitForExistence(timeout: 10)
+        if !revealed {
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "postflop-after-passive-missing-continue"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "postflop-after-passive-hierarchy"
+            hierarchy.lifetime = .keepAlways
+            add(hierarchy)
+        }
+        XCTAssertTrue(revealed, "A committed postflop action must show its Continue button")
         reach(next, app: app)
         next.tap()
         XCTAssertTrue(app.buttons["table-policy"].exists)

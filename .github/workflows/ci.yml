@@ -24,7 +24,8 @@ jobs:
       # installed Xcode and say which, so the next SDK mismatch is one log line away.
       - name: Select newest Xcode
         run: |
-          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          xcode_candidates=(/Applications/Xcode_*.app)
+          sudo xcode-select -s "$(printf '%s\n' "${xcode_candidates[@]}" | sort -V | tail -1)"
           xcodebuild -version
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -35,7 +36,7 @@ jobs:
       - name: Drills package tests
         run: swift test --package-path GlassTableDrills
       # Testing builds the app as well; a separate Debug build repeats that work.
-      # The UI flow suite runs nightly in ui-tests.yml; this gate takes about 22 minutes.
+      # The full UI suite stays nightly; a small teaching/recovery subset also gates PRs.
       - name: Build app and run unit tests
         run: |
           set -o pipefail
@@ -44,6 +45,29 @@ jobs:
             -destination "platform=iOS Simulator,id=$test_simulator" \
             -only-testing:GlassTableTests CODE_SIGNING_ALLOWED=NO test > app-tests.log 2>&1 || { cat app-tests.log; exit 1; }
           tail -30 app-tests.log
+      - name: Focused teaching and progress-recovery flows
+        env:
+          TEST_DEVICE: iPhone 17
+          TEST_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-2
+        run: |
+          test_simulator=$(xcrun simctl list devices available -j | python3 -c '
+          import json, os, sys
+          devices = json.load(sys.stdin)["devices"].get(os.environ["TEST_RUNTIME"], [])
+          print(next((d["udid"] for d in devices if d["name"] == os.environ["TEST_DEVICE"]), ""))')
+          if [ -z "$test_simulator" ]; then
+            echo "::error::No available '$TEST_DEVICE' simulator on $TEST_RUNTIME. Installed:"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Testing on $TEST_DEVICE ($TEST_RUNTIME) $test_simulator"
+          xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+            -destination "platform=iOS Simulator,id=$test_simulator" \
+            -only-testing:GlassTableUITests/GradedTableRecoveryFlowTests \
+            -only-testing:GlassTableUITests/ReviewTeachingFollowupTests \
+            -only-testing:GlassTableUITests/GradedLearningFlowTests/testAXPostflopChartIsExplicitlyAStartingHandReference \
+            -resultBundlePath focused-ui.xcresult \
+            CODE_SIGNING_ALLOWED=NO test > focused-ui.log 2>&1 || { tail -100 focused-ui.log; exit 1; }
+          tail -30 focused-ui.log
       - name: Exercise Release launch without demo hooks
         run: |
           test_simulator=$(xcrun simctl list devices available -j | python3 -c 'import json, sys; print(next(d["udid"] for devices in json.load(sys.stdin)["devices"].values() for d in devices if d["name"].startswith("iPhone")))')
@@ -65,5 +89,7 @@ jobs:
           name: validation-logs
           path: |
             app-tests.log
+            focused-ui.log
+            focused-ui.xcresult
             release-build.log
             release-smoke.log

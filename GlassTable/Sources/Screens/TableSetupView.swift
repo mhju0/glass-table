@@ -193,10 +193,11 @@ struct StyleGuideView: View {
                         .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                     // The default style has no published chart, so it has no detail page.
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(language.text("재미로 (기본)", "Just for fun (default)"))
+                        Text(Archetype.casual.beginnerTitle(in: language) + language.text(" (기본)", " (default)"))
                             .font(GT.title(18)).foregroundStyle(GT.ink)
-                        Text(language.text("편하게 자주 들어오고, 가끔 블러프해요. 판마다 조금씩 달라서 정해진 표는 없어요.",
-                                           "Plays for fun: joins often and sometimes bluffs. It varies hand to hand, so it has no fixed chart."))
+                        Text(Archetype.casual.beginnerDescription(in: language)
+                             + language.text(". 판마다 조금씩 달라서 정해진 표는 없어요.",
+                                             ". It varies hand to hand, so it has no fixed chart."))
                             .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
                             .lineSpacing(GT.Typography.bodyLineSpacing)
                     }

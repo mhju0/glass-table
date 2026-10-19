@@ -367,8 +367,9 @@ private struct RestoredDrillContextView: View {
         case .rangeRead:
             let spot = RangeReadSpotGenerator.spot(baseSeed: seed, index: index, level: level)
             Text(spot.archetypeShown ? spot.archetype.beginnerTitle(in: language)
-                                     : language.text("모르는 상대", "Unknown opponent"))
+                                     : spot.gradingAssumption(in: language))
                 .font(GT.title(16)).foregroundStyle(GT.onFelt)
+                .accessibilityIdentifier("range-read-opponent")
             ForEach(Array(spot.actionLines(in: language).enumerated()), id: \.offset) { _, line in
                 Text(line).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
             }
@@ -410,6 +411,14 @@ private struct RestoredDrillContextView: View {
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)
         case .actionRead:
             let spot = ActionReadSpotGenerator.spot(baseSeed: seed, index: index, level: level)
+            if level == .sharp {
+                Text(spot.gradingAssumption(in: language))
+                    .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                    .accessibilityIdentifier("action-read-opponent")
+                Text(spot.policyAssumption(in: language))
+                    .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                    .accessibilityIdentifier("action-read-policy")
+            }
             Text(language.text("\(spot.villainSeat.rawValue) 오픈 → \(spot.actionLine)",
                                "\(spot.villainSeat.rawValue) raises first → \(spot.actionLine(in: language))"))
                 .font(GT.body(14)).foregroundStyle(GT.onFelt)

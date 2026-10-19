@@ -108,7 +108,7 @@ public extension Archetype {
         case .lag: language.text("공격형", "Aggressive")
         case .station: language.text("콜 위주형", "Caller")
         case .maniac: language.text("매우 공격형", "Very aggressive")
-        case .casual: language.text("재미로", "Just for fun")
+        case .casual: language.text("캐주얼형", "Casual")
         }
     }
 
@@ -119,7 +119,7 @@ public extension Archetype {
         case .lag: language.text("여러 카드로 들어오고 자주 올려요", "Plays many hands and raises")
         case .station: language.text("자주 들어오지만 잘 안 올려요", "Joins often but rarely raises")
         case .maniac: language.text("아주 자주 들어오고 금액도 자주 올려요", "Joins very often and frequently raises")
-        case .casual: language.text("편하게 자주 들어오고, 가끔 블러프해요", "Plays for fun, joins often and sometimes bluffs")
+        case .casual: language.text("자주 들어오고, 가끔 블러프해요", "Joins often and sometimes bluffs")
         }
     }
 }

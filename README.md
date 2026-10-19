@@ -124,6 +124,7 @@ fixtures, or run the full normal and accessibility sweep with
 - [Research foundation](docs/specs/2026-09-13-revamp-research.md)
 - [Combined beginner release and verification](docs/specs/2026-09-23-beginner-native-release.md)
 - [Learner-trust audit and verification limits](docs/specs/2026-09-20-learner-trust-audit.md)
+- [Build checks, beginner sessions and useful feedback](docs/validation.md)
 - [App Store preparation status](docs/submission.md)
 - [Privacy policy](docs/privacy-policy.md)
 - [License](#license)

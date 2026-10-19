@@ -391,7 +391,7 @@ final class UXAuditCrawl: XCTestCase {
             app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)).tap()
             pause()
             // Still open: choosing an entry is the other way out.
-            if !app.buttons["style-guide"].isHittable, button("재미로").exists { button("재미로").tap(); pause() }
+            if !app.buttons["style-guide"].isHittable, button("캐주얼형").exists { button("캐주얼형").tap(); pause() }
         }
         tap(app.buttons["style-guide"], "스타일 자세히 보기")
         pause(1)

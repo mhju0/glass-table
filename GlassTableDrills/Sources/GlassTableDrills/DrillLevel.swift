@@ -90,10 +90,10 @@ public enum DrillLevel: Int, Codable, CaseIterable, Comparable, Sendable {
         case (.rfi, .sharp): what = language.text("어느 자리부터 여는 패인가요", "The first seat that opens it")
         case (.defend, .apply): what = language.text("밴드 경계에 걸친 패", "Hands at a band's edge")
         case (.defend, .sharp): what = language.text("여는 폭 안내 없이", "No opening width given")
-        case (.rangeRead, .apply): what = language.text("더 가까운 보기, 상대는 더 자주 숨겨요", "Closer choices, opponent hidden more")
-        case (.rangeRead, .sharp): what = language.text("콜만, 모르는 상대, 보기 넷", "Calls only, unknown opponent, four choices")
+        case (.rangeRead, .apply): what = language.text("더 가까운 보기", "Closer choices")
+        case (.rangeRead, .sharp): what = language.text("콜만, 공개된 상대, 보기 넷", "Calls only, stated opponent, four choices")
         case (.actionRead, .apply): what = language.text("10%씩 차이 나는 보기", "Choices 10 points apart")
-        case (.actionRead, .sharp): what = language.text("더 가까운 보기, 모르는 상대", "Closer choices, unknown opponent")
+        case (.actionRead, .sharp): what = language.text("공개된 상대 규칙, 더 가까운 보기", "Stated opponent rules, closer choices")
         default: return nil
         }
         return "\(step) · \(what)"

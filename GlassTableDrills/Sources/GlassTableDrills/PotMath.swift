@@ -90,6 +90,36 @@ public struct PotMathSpot: Equatable {
         }
     }
 
+    /// The first bet after preflop raises begins the flop. Earlier callers who did
+    /// not match the final raise fold before it; their chips stay in the pot. This
+    /// transition is attached to that bet, preserving saved replay-step indexes.
+    public var flopTransition: PotMathFlopTransition? {
+        guard let index = actions.firstIndex(where: {
+            if case .bet = $0 { return true }
+            return false
+        }), actions[..<index].contains(where: {
+            if case .raiseTo = $0 { return true }
+            return false
+        }) else { return nil }
+        var paid: [Actor: Int] = [:]
+        for action in actions[..<index] {
+            switch action {
+            case let .blinds(sb, bb):
+                paid[.sb, default: 0] += sb
+                paid[.bb, default: 0] += bb
+            case let .bet(actor, amount), let .call(actor, amount): paid[actor, default: 0] += amount
+            case let .raiseTo(actor, total, alreadyIn): paid[actor, default: 0] += total - alreadyIn
+            }
+        }
+        let price = paid.values.max() ?? 0
+        let order: [Actor] = [.opener, .caller1, .caller2, .sb, .bb]
+        let folds = order.filter { actor in
+            guard let chips = paid[actor] else { return false }
+            return !foldedActors.contains(actor) && chips < price
+        }
+        return PotMathFlopTransition(actionIndex: index, foldedActors: folds)
+    }
+
 
     /// The question's three equal-weight choices. Wrong values represent useful
     /// arithmetic checks, but feedback never claims which mistake the learner made.
@@ -154,11 +184,13 @@ public struct PotMathSpot: Equatable {
         var contributions: [Actor: Int] = [:]
         var insertedFolds: Set<Actor> = []
 
-        func add(_ actor: Actor, _ amount: Int, _ kind: PotMathReplayStep.Kind) {
+        func add(_ actor: Actor, _ amount: Int, _ kind: PotMathReplayStep.Kind,
+                 transition: PotMathFlopTransition? = nil) {
             contributions[actor, default: 0] += amount
             result.append(PotMathReplayStep(actor: actor, kind: kind,
                                             addedChips: amount,
-                                            totalContribution: contributions[actor, default: 0]))
+                                            totalContribution: contributions[actor, default: 0],
+                                            flopTransition: transition))
         }
 
         func insertFolds() {
@@ -170,13 +202,14 @@ public struct PotMathSpot: Equatable {
             }
         }
 
-        for action in actions {
+        let transition = flopTransition
+        for (index, action) in actions.enumerated() {
             switch action {
             case let .blinds(sb, bb):
                 add(.sb, sb, .post)
                 add(.bb, bb, .post)
             case let .bet(actor, amount):
-                add(actor, amount, .bet)
+                add(actor, amount, .bet, transition: transition?.actionIndex == index ? transition : nil)
             case let .call(actor, amount):
                 add(actor, amount, .call)
             case let .raiseTo(actor, total, alreadyIn):
@@ -214,6 +247,21 @@ public struct PotMathSpot: Equatable {
     }
 }
 
+public struct PotMathFlopTransition: Equatable {
+    public let actionIndex: Int
+    public let foldedActors: [PotMathSpot.Actor]
+
+    public func foldExplanation(in language: LearningLanguage) -> String? {
+        guard !foldedActors.isEmpty else { return nil }
+        let folds = foldedActors.map { actor in
+            language.text("\(DrillTerms.actor(actor, in: language)) 폴드",
+                          "\(DrillTerms.actor(actor, in: language)) folds")
+        }.joined(separator: " · ")
+        return language.text("플랍 전: ", "Before the flop: ") + folds
+            + language.text(" · 이미 낸 칩은 팟에 남아요", " · paid chips stay in the pot")
+    }
+}
+
 public struct PotMathReplayStep: Equatable {
     public enum Kind: Equatable {
         case post
@@ -227,6 +275,16 @@ public struct PotMathReplayStep: Equatable {
     public let kind: Kind
     public let addedChips: Int
     public let totalContribution: Int
+    public let flopTransition: PotMathFlopTransition?
+
+    public init(actor: PotMathSpot.Actor, kind: Kind, addedChips: Int, totalContribution: Int,
+                flopTransition: PotMathFlopTransition? = nil) {
+        self.actor = actor
+        self.kind = kind
+        self.addedChips = addedChips
+        self.totalContribution = totalContribution
+        self.flopTransition = flopTransition
+    }
 }
 
 public enum PotMathSpotGenerator {
@@ -258,7 +316,9 @@ public enum PotMathSpotGenerator {
         actions.append(.raiseTo(actor: .bb, total: threeBet, alreadyIn: 2))
         actions.append(.call(actor: .opener, amount: threeBet - open))
 
-        // The third step plays on: the BB leads the flop and the opener calls.
+        // The third step plays on: unmatched callers fold at `flopTransition`,
+        // then the BB leads the flop and the opener calls. No RNG or chips are added
+        // for those folds, so saved Sharp questions retain their original answers.
         if level == .sharp {
             let preflop = PotMathSpot(actions: actions, question: .potNow).pot
             let bet = max(1, Int((Double(preflop) * fractions.randomElement(using: &rng)!).rounded()))
@@ -331,7 +391,12 @@ public func gradePotMath(answer: Int, spot: PotMathSpot,
 func potBreakdown(_ spot: PotMathSpot, language: LearningLanguage = .korean) -> String {
     var running = 0
     var parts: [String] = []
-    for action in spot.actions {
+    let transition = spot.flopTransition
+    for (index, action) in spot.actions.enumerated() {
+        if transition?.actionIndex == index {
+            if let folds = transition?.foldExplanation(in: language) { parts.append(folds) }
+            parts.append(language.text("플랍", "Flop"))
+        }
         switch action {
         case let .blinds(sb, bb):
             running += sb + bb

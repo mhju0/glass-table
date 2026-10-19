@@ -5,11 +5,24 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-18)
+## Current state (2026-10-19)
+
+- Independent Codex review of builds 24–35 at `ed54c2f` found open teaching and
+  recovery issues; no product fixes or new release. See
+  `docs/records/2026-10-18-independent-build-review.md`. Build 35's upload and CI
+  succeeded, but its full GitHub UI run has one unresolved AX postflop failure.
+- Owner authorized follow-up corrections and a better validation routine (2026-10-19).
+  Work is on `fix/review-followups-20261019` in the isolated
+  `glass-table-review-followups` worktree. R01–R04 corrections, analogous Range Read
+  assumptions, focused PR CI and `docs/validation.md` are implemented. Independent
+  review accepted core `116187c` and final code `66d9c22`; local checks passed.
+  Sampled KO/dark and EN/light normal/AX5 frames were inspected (limits in the record).
+  Owner chose **Casual / 캐주얼형** for the free-play style; behavior is unchanged.
+  No new tag, upload or phone install.
 
 - Build 35 (owner held it until all of this was in, 2026-10-18): `main` at `d910f99`
   via integration PR #53 (PRs #42–#52), tag `v1.0-35`, TestFlight upload only. Adds:
-  - Steps (D53, schema 5): every skill but MDF is dealt at Learn → Apply → Sharp
+  - Steps (D53, schema 5): all 14 active track skills are dealt at Learn → Apply → Sharp
     (`DrillLevel`, nodes `<id>.2/.3`); Strong needs a perfect Apply/Sharp session,
     Mastered a perfect Sharp challenge. Learn spots are byte-identical (golden tests).
     Go deeper has a challenge (`deeper-boss`). Graded 1:1 decisions are saved as daily
@@ -67,7 +80,8 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 - Hand rank page shows all ten hands with "1 in N hands" / "N판에 한 번" and no toggles
   (owner chose mock A1, https://claude.ai/artifact/MiZkf88JjGtZdwF9Bjxsiy); in `main`
   and in build 24.
-- `main` holds all of this session's work and matches `origin/main`. The standing rule is still to work on a feature branch and not push `main`
+- Published build 35 is on `main`; current follow-up work is on its feature branch.
+  The standing rule is still to work on a feature branch and not push `main`
   unasked. Merged feature branches were deleted locally and on `origin` (2026-10-14).
   The Codex `fix/*`, `diagnostic/*` and `rollback/*` branches and PR #11 were closed and
   deleted on 2026-10-15 (`docs/records/2026-10-14-codex-ci-repair.md`).
@@ -91,10 +105,11 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   "Details", and a call-or-fold lesson `u2-callFold` before the price challenge.
   Merged as PR #14 and installed as build 30 on the iPhone 12 mini (owner, 2026-10-15).
 - CI/CD (owner chose "simpler CI, I take over" and "TestFlight on tag"): `ci.yml` gates
-  pushes/PRs on unit tests plus the Release smoke and bundle checks; `ui-tests.yml` runs
-  the UI suite nightly in three shards; `release.yml` uploads a `v<version>-<build>` tag
-  on `main` to TestFlight. Setup steps: `docs/ci-cd.md`. The App Store Connect API key
-  is not ready yet (owner, 2026-10-15), so no secrets are set and no tag has shipped.
+  pushes/PRs on unit tests plus the Release smoke and bundle checks; the follow-up
+  branch adds focused teaching/recovery UI flows. `ui-tests.yml` runs the full UI
+  suite nightly in four shards; `release.yml` uploads a `v<version>-<build>` tag
+  on `main` to TestFlight. Builds 31–35 have uploaded through it; setup secrets are
+  present. Setup and run links: `docs/ci-cd.md`. No App Store submission is implied.
 - Records cleanup (owner, 2026-10-15): every finished report, audit, research note,
   scratch folder, plan and old handoff is now one short text record in `docs/records/`
   (index in its README); originals are in git at `f5c5e22`. Local `.build/`, `.archive/`
@@ -108,8 +123,10 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 - One corner radius, 10, for cards, panels, seats, felt and controls (`GT.Radius.panel`
   and `.control`; owner chose "everything 10" on 2026-10-13). Nothing in the app's own
   shapes may follow the display curve. Pills and playing cards are separate.
-- Phones: iPhone 12 mini has signed 1.0 (30), fresh install; iPhone 13 mini has build
-  18. Build list: `docs/build-history.md`. The GRAC video and source freeze in
+- Phones: the older signed-install record has 1.0 (30) on iPhone 12 mini and build
+  18 on iPhone 13 mini; the later build-35 handoff reports 31 on iPhone 12 mini.
+  Neither phone was inspected during the Codex review/follow-up. Build list:
+  `docs/build-history.md`. The GRAC video and source freeze in
   `docs/grac-submission/2026-10-13/` are of 1.0 (22) at `4c191a6`; 23 differs from that
   source only by the build number and docs.
 - TestFlight (2026-10-17): builds 31–34 shipped by `v1.0-<build>` tags through
@@ -122,13 +139,20 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   stale metadata are not. Upload only; no App Store review submission (D23).
 - Unconfirmed whether the owner has added themselves as an internal tester (App Store
   Connect → TestFlight → Internal Testing; no invite code is needed).
-- No open PRs after build 35.
+- Follow-up [draft PR #55](https://github.com/mhju0/glass-table/pull/55) is open.
+  Remote checks are pending; keep it separate from build-35 release claims.
 - Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the
   iOS 27 beta). After a rebuild, run
   `xcrun simctl uninstall <device> com.michaelju.glasstable.GlassTableUITests.xctrunner`
   before a UI run, or the simulator can run an old test bundle.
 
 ## Open issues
+
+Review follow-ups (2026-10-19):
+- Remote focused CI on its pinned iOS 26.2 runtime and the full UI suite on the new
+  candidate remain unverified. Build-35 failure evidence was inspected: the Call tap
+  was near the bottom viewport. The helper now scrolls targets inward, retains the
+  Continue assertion and adds failure attachments; exact interception cause is unknown.
 
 Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
@@ -143,7 +167,7 @@ Never verified with people or hardware:
 Owner checks pending on build 35 (2026-10-18): update the iPhone 12 mini from
 TestFlight (it is on build 31); try steps, Play and Progress on the phone. Whether the
 step content change needs a GRAC notice is unknown.
-- Build 35's step screens (22 uisweep entries) were never screenshot-swept: owner asked
+- Build 35's full set of step screens (22 uisweep entries) was not screenshot-swept: owner asked
   for a lean finish. Only targeted UI classes and the merged suite's failures were run.
 
 Lesson path (from the 2026-10-15 lesson review; owner decisions, not code bugs):
@@ -177,8 +201,10 @@ CI/CD:
 - Push-triggered CI does not always start; dispatch it with
   `gh workflow run ci.yml --ref <branch>`. The `.p8` key should move into a password
   manager (owner reminder).
-- `ui-tests.yml` can only be started by hand once it is on `main`. The full UI suite has
-  not passed on a GitHub runner (see `docs/records/2026-10-14-codex-ci-repair.md`).
+- `ui-tests.yml` is available by hand on branches. Full time-balanced run 39088052141
+  passed all four shards; later build-35 run 39126165724 failed the AX postflop
+  Continue assertion. The follow-up helper passed three local repetitions on iPhone
+  17/iOS 26.5. A new full remote run is still required before claiming full-suite success.
 
 Tests:
 - Build 24 had only the unit tests and three hand-rank UI tests on iPhone 17, not the
@@ -187,6 +213,29 @@ Tests:
   `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes`.
 
 ## Recent sessions
+
+### 2026-10-19 (Codex · review corrections and validation routine)
+
+- Fixed R01 save-recovery gating, R02 scalable counts, R03 preflop street closure
+  and R04 visible grading assumptions; applied the same premise correction to Range
+  Read. Saved question indices, seeds, grades and progress schema stay unchanged.
+- Focused recovery/teaching UI flows now gate PR CI. Investigated the prior AX tap
+  failure instead of dismissing it as a flake; tightened scrolling and diagnostics.
+- Owner chose Casual / 캐주얼형; wording only. Added `docs/validation.md` with a
+  session guide for someone who knows the rules but rarely plays; no person tested yet.
+- Core `116187c` and copy candidate `66d9c22` passed independent review. Drills 671,
+  app unit 158, focused UI 23, separate Progress/AX checks and final setup flow passed.
+  R01–R04 and documentation drift are closed locally; remote CI/full UI and physical
+  checks remain open. Evidence: `docs/records/2026-10-19-review-followups.md`.
+
+### 2026-10-18 (Codex · independent builds 24–35 review)
+
+- Reviewed frozen `ed54c2f` with independent standards/persistence, teaching/spec and
+  release-evidence checks. Recorded R01–R04 above; no app code changed.
+- Fresh Drills 664 and Engine release 96 tests passed; simulator build passed.
+  Targeted screenshot checks and their limits are in the review record.
+- Next: resolve teaching/recovery findings and investigate the runner failure before
+  treating Sharp and build 35 as fully verified. No new release or phone install.
 
 ### 2026-10-18 (Claude · build 35: steps, Play, Progress)
 
@@ -224,28 +273,3 @@ Tests:
   concept). Records/activity copy says 연습. New `LearnListTests` (9); repaired tests
   that used `learn-path` or the old resume labels; UXAuditCrawl follows the list.
 - No schema change. Next: owner reviews both PRs.
-
-### 2026-10-17 (Claude · live language switch)
-
-- Cause, from logging on clones: on iOS 27 the App body re-ran with the new
-  `AppStorage` language, but the open WindowGroup kept its old environment, so RootView
-  never re-rendered; iOS 26.5 re-renders it. Fix: an `@Observable` `LanguageSettings`
-  owned by RootView as `@State` injects the language and locale, and Settings writes
-  through it (no `.id`, so progress and navigation survive). The toggle failure blamed on
-  bc53bdc was a flake: it also happened once on unfixed code.
-- DeviceFeedbackSettingsTests now assert the tab bar, Settings and Learn in both
-  directions without a relaunch. PR open; next: owner review, then merge.
-
-### 2026-10-16 (Claude · exact flop equity)
-
-- Owner approved replacing the graded table's 200-sample flop equity with exact
-  enumeration (D49). Branch `feat/exact-flop-equity-20261016` from the local
-  integration commit `9bb6c66` (PRs #19-#21); PR opened, not merged.
-- `exactEquitiesHeadsUp` (Engine) scores hero once per runout and shares it across the
-  range; `TableHand.comboEquities()` uses it on every street. `handSeed` was removed.
-  Reveal basis copy (KO/EN) no longer calls the flop a sampled estimate.
-- Grading already ran off the main thread (`TableView.prepareOptions`); only the
-  DEBUG `GT_DEMO_TABLE_STEP` hook grades on main (about 0.4-0.6s for its flop).
-- Release per flop decision on an M1 Pro, 200 seeded decisions: p50 41ms, p95 159ms,
-  max 196ms. Debug: about 1-2.5s. Not yet timed on the iPhone 12 mini.
-- Next: owner reviews the PR; time a flop decision on the phone against D07's 200ms.

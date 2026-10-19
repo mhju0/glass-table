@@ -53,7 +53,7 @@ public enum Archetype: String, CaseIterable, Sendable {
         case .lag: return "넓게 들어오고 공격적이에요"
         case .station: return "아주 넓게 들어오지만 거의 레이즈하지 않아요"
         case .maniac: return "넓게 들어오고 대부분 레이즈해요"
-        case .casual: return "재미로 넓게 들어오고 가끔 블러프해요"
+        case .casual: return "여러 패로 들어오고 가끔 블러프해요"
         }
     }
 

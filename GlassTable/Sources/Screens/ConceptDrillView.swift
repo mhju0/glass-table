@@ -2246,15 +2246,14 @@ private struct RangeReadDrill: View {
     // MARK: what the user is told
 
     private var opponentLine: some View {
-        // Hidden archetype is the harder band, and it must not read as a bug: say
-        // outright that the identification is part of the question.
         VStack(alignment: .leading, spacing: 1) {
             Text(spot.archetypeShown ? spot.archetype.beginnerTitle(in: language)
-                                    : language.text("모르는 상대", "Unknown opponent"))
+                                    : spot.gradingAssumption(in: language))
                 .font(GT.title(19)).foregroundStyle(GT.onFelt)
+                .accessibilityIdentifier("range-read-opponent")
             Text(spot.archetypeShown ? spot.archetype.beginnerDescription(in: language)
-                                     : language.text("어떤 사람인지도 액션으로 판단해야 해요.",
-                                                     "Use their actions to judge how they play."))
+                                     : language.text("채점은 이 상대의 공개된 규칙을 따라요.",
+                                                     "Grading follows this opponent's published rules."))
                 .font(GT.body(11.5)).foregroundStyle(GT.onFeltSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -2925,10 +2924,6 @@ private struct ActionReadDrill: View {
     }
 
     @Environment(\.drillLevel) private var level
-    /// The third step keeps who the opponent is until the answer (D53): how they play
-    /// is read from the action too.
-    private var namesOpponent: Bool { level < .sharp || reveal != nil }
-
     var body: some View {
         let spot = makeSpot()
         return DrillShell(title: "액션 리드", progressText: progressText) {
@@ -2941,18 +2936,21 @@ private struct ActionReadDrill: View {
                 Text(language.text("\(spot.villainSeat.plainName(in: language)) 먼저 올림 → \(spot.actionLine)",
                                    "\(spot.villainSeat.plainName(in: language)) raises first → \(spot.actionLine(in: language))"))
                     .font(GT.title(17)).foregroundStyle(GT.onFelt)
-                Text(namesOpponent
-                     ? "\(spot.villain.beginnerTitle(in: language)) · \(spot.villain.beginnerDescription(in: language))"
-                     : language.text("모르는 상대 · 어떤 사람인지도 액션으로 판단해야 해요.",
-                                     "Unknown opponent · Use their actions to judge how they play."))
+                Text(level == .sharp ? spot.gradingAssumption(in: language)
+                     : "\(spot.villain.beginnerTitle(in: language)) · \(spot.villain.beginnerDescription(in: language))")
                     .font(GT.body(11)).foregroundStyle(GT.onFeltMuted)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("action-read-opponent")
+                if level == .sharp {
+                    Text(spot.policyAssumption(in: language))
+                        .font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("action-read-policy")
+                }
                 // The grid is fair game before the answer: the preflop range is the
                 // stated premise, the same way EV 손실 prints it. A newer player is
-                // asked in words first and sees it with the answer. At the third step
-                // the grid would name the hidden opponent, so it waits for the answer.
-                if (!simple && namesOpponent) || reveal != nil {
+                // asked in words first and sees it with the answer.
+                if !simple || reveal != nil {
                     RangeGridView(range: spot.range)
                         .frame(height: 230)
                         .padding(.top, 6)

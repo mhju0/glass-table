@@ -1,0 +1,66 @@
+{
+  "activeRound" : {
+    "answers" : [
+      {
+        "attemptID" : "build35-pot-0",
+        "band" : "spotOn",
+        "input" : "ewogICJpbnRlZ2VyIiA6IHsKICAgICJfMCIgOiAxMTUKICB9Cn0=",
+        "ordinal" : 0,
+        "reveal" : "ewogICJiYW5kIiA6ICJzcG90T24iLAogICJ2ZXJzaW9uIiA6IDEKfQ==",
+        "submittedAt" : 812073600
+      }
+    ],
+    "concept" : "potMath",
+    "draft" : {
+      "concept" : "potMath",
+      "input" : {
+        "potReplay" : {
+          "stepIndex" : 6
+        }
+      },
+      "ordinal" : 1
+    },
+    "formatVersion" : 2,
+    "id" : "build35-sharp-draft",
+    "level" : 3,
+    "ordinal" : 1,
+    "phase" : "question",
+    "questionCount" : 5,
+    "seed" : 7,
+    "showBeatIndex" : 0
+  },
+  "answers" : [
+
+  ],
+  "concepts" : {
+
+  },
+  "dailySummaries" : [
+
+  ],
+  "introducedConcepts" : [
+
+  ],
+  "nodes" : {
+
+  },
+  "processedAttemptIDs" : [
+
+  ],
+  "quickPlaySessions" : [
+
+  ],
+  "recentEvidence" : [
+
+  ],
+  "recentHands" : [
+
+  ],
+  "revision" : 0,
+  "schemaVersion" : 5,
+  "streak" : {
+    "current" : 0,
+    "freezesRemaining" : 2,
+    "longest" : 0
+  }
+}

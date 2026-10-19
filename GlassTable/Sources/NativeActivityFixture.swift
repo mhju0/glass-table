@@ -44,6 +44,9 @@ enum NativeActivityFixture {
             }
         case "progress-today": progressLearner(&state, away: 0, now: now, calendar: calendar)
         case "progress-away": progressLearner(&state, away: 10, now: now, calendar: calendar)
+        case "progress-large-count":
+            progressLearner(&state, away: 0, now: now, calendar: calendar)
+            state.dailySummaries = [row(0, exact: 1_234_567)]
         default: break
         }
         return state

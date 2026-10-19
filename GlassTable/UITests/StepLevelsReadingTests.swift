@@ -19,8 +19,8 @@ final class StepLevelsReadingTests: XCTestCase {
     func testENAXStepThreeDefendHidesTheOpeningWidth() { defendWidth("en", ax: true) }
     func testKOStepThreeRangeReadOffersFourChoices() { rangeRead("ko", ax: false) }
     func testENAXStepThreeRangeReadOffersFourChoices() { rangeRead("en", ax: true) }
-    func testENStepThreeActionReadHidesTheOpponent() { actionRead("en", ax: false) }
-    func testKOAXStepThreeActionReadHidesTheOpponent() { actionRead("ko", ax: true) }
+    func testENStepThreeActionReadStatesTheOpponentAssumption() { actionRead("en", ax: false) }
+    func testKOAXStepThreeActionReadStatesTheOpponentAssumption() { actionRead("ko", ax: true) }
 
     private func positionTyped(_ language: String, ax: Bool) {
         let ko = language == "ko"
@@ -69,7 +69,10 @@ final class StepLevelsReadingTests: XCTestCase {
     private func rangeRead(_ language: String, ax: Bool) {
         let ko = language == "ko"
         let app = open("u4-rangeRead.3", language, ax: ax)
-        assertStepLine(app, ko ? "3단계 · 콜만, 모르는 상대, 보기 넷" : "Step 3 · Calls only, unknown opponent, four choices")
+        assertStepLine(app, ko ? "3단계 · 콜만, 공개된 상대, 보기 넷" : "Step 3 · Calls only, stated opponent, four choices")
+        let opponent = app.staticTexts["range-read-opponent"]
+        XCTAssertTrue(opponent.exists)
+        XCTAssertTrue(opponent.label.hasPrefix(ko ? "이 문제는" : "This exercise assumes"), opponent.label)
         let choices = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'range-estimate-choice-'"))
         for _ in 0..<8 where !choices.firstMatch.exists { app.swipeUp() }
         XCTAssertEqual(choices.count, 4)
@@ -80,10 +83,15 @@ final class StepLevelsReadingTests: XCTestCase {
     private func actionRead(_ language: String, ax: Bool) {
         let ko = language == "ko"
         let app = open("u7-actionRead.3", language, ax: ax)
-        assertStepLine(app, ko ? "3단계 · 더 가까운 보기, 모르는 상대" : "Step 3 · Closer choices, unknown opponent")
+        assertStepLine(app, ko ? "3단계 · 공개된 상대 규칙, 더 가까운 보기" : "Step 3 · Stated opponent rules, closer choices")
         let opponent = app.staticTexts["action-read-opponent"]
         XCTAssertTrue(opponent.exists)
-        XCTAssertTrue(opponent.label.hasPrefix(ko ? "모르는 상대" : "Unknown opponent"), opponent.label)
+        XCTAssertTrue(opponent.label.hasPrefix(ko ? "이 문제는" : "This exercise assumes"), opponent.label)
+        let policy = app.staticTexts["action-read-policy"]
+        XCTAssertTrue(policy.exists)
+        XCTAssertTrue(policy.label.hasPrefix(ko ? "이 상대의 규칙" : "Model rule"), policy.label)
+        XCTAssertFalse(app.buttons[ko ? "다음 문제" : "Next question"].exists,
+                       "The assumption and policy are stated before answering")
         assertNoStepNames(app)
         attach(app, "\(language)-\(ax ? "AX5" : "large")-step3-actionread")
     }

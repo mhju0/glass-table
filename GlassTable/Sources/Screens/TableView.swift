@@ -30,6 +30,11 @@ struct TableView: View {
     @State private var baseSeed = UInt64.random(in: 0..<UInt64.max)
     @State private var handIndex = 0
     @State private var villainPick: Archetype?
+    @State private var sessionEpoch: UUID?
+
+    private var canMutateTable: Bool {
+        sessionEpoch == model.epoch && model.saveError == nil && model.unreadable == nil
+    }
 
     /// One graded hero decision, kept for the pill and the summary. Postflop
     /// decisions carry a bb price; the preflop one carries the chart verdict —
@@ -136,6 +141,8 @@ struct TableView: View {
             }
         }
         .onAppear {
+            if sessionEpoch == nil { sessionEpoch = model.epoch }
+            guard canMutateTable else { return }
             #if DEBUG
             // GT_DEMO_TABLE=<archetype|random> starts a seeded hand;
             // GT_DEMO_TABLE_STEP=<n> plays n passive decisions with grading, so the
@@ -148,6 +155,7 @@ struct TableView: View {
                 var h = TableDealer.deal(baseSeed: 0x5EED, index: 0, villain: villain)
                 let steps = env["GT_DEMO_TABLE_STEP"].flatMap(Int.init) ?? 0
                 for _ in 0..<steps {
+                    guard canMutateTable else { break }
                     guard case let .hero(facing) = h.phase else { break }
                     if case .open = facing {
                         if let v = h.preflopVerdict(for: .call) {
@@ -180,6 +188,24 @@ struct TableView: View {
             }
             #endif
         }
+        .onChange(of: model.epoch) { _, _ in
+            hand = nil; options = nil; lastTurn = nil; decisions = []
+            choosingBetSize = false
+            showChart = false; showPolicyReference = false; showDecisionDetails = false
+            dismiss()
+        }
+        #if DEBUG
+        .overlay(alignment: .topLeading) {
+            if ProcessInfo.processInfo.environment["GT_TEST_TABLE_SAVE_FAILURE"] != nil {
+                Color.clear.frame(width: 1, height: 1)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Table recovery state")
+                    .accessibilityValue("\(decisions.count),\(model.state.recentEvidence.filter { $0.key.mode == "table" }.count)")
+                    .accessibilityIdentifier("table-recovery-state")
+                    .allowsHitTesting(false)
+            }
+        }
+        #endif
     }
 
     // MARK: picker
@@ -208,6 +234,7 @@ struct TableView: View {
                                      detail: opponent.beginnerDescription(in: language))
                     }
                     .buttonStyle(GTPress())
+                    .disabled(!canMutateTable)
                     .accessibilityIdentifier("opponent-\(opponent.rawValue)")
                 }
             }
@@ -218,6 +245,7 @@ struct TableView: View {
     }
 
     private func start(vs villain: Archetype?) {
+        guard canMutateTable else { return }
         villainPick = villain
         decisions = []; lastTurn = nil; options = nil; choosingBetSize = false
         let h = TableDealer.deal(baseSeed: baseSeed, index: handIndex, villain: villain)
@@ -541,6 +569,7 @@ struct TableView: View {
                     gradedAction(bets.isEmpty ? language.text("레이즈", "Raise") : language.text("벳", "Bet"),
                                  role: .aggressive, enabled: raise != nil || !bets.isEmpty,
                                  reason: options.isEmpty ? language.text("선택을 계산하고 있어요", "The choices are being calculated") : language.text("이 결정에서는 레이즈가 허용되지 않아요", "This decision does not allow another raise")) {
+                        guard canMutateTable else { return }
                         if let raise { act(raise.choice) } else { choosingBetSize = true }
                     }.accessibilityIdentifier("table-aggressive")
                 }
@@ -555,9 +584,11 @@ struct TableView: View {
         VStack(spacing: GT.Space.related) {
             ForEach(bets, id: \.choice) { option in
                 PrimaryCTAButton(title: "\(option.headline(in: language)) · \(option.subline(in: language))") {
+                    guard canMutateTable else { return }
                     choosingBetSize = false
                     act(option.choice)
                 }
+                .disabled(!canMutateTable)
                 .accessibilityIdentifier("table-bet-size-\(option.headline(in: .english))")
             }
         }
@@ -568,7 +599,7 @@ struct TableView: View {
                               reason: String = "", action: @escaping () -> Void) -> some View {
         GTActionButton(title: title, price: price, role: role, freeTablePresentation: true,
                        minHeight: 87, action: action)
-            .disabled(!enabled).opacity(enabled ? 1 : 0.45)
+            .disabled(!enabled || !canMutateTable).opacity(enabled && canMutateTable ? 1 : 0.45)
             .accessibilityHint(enabled ? "" : reason)
     }
 
@@ -615,10 +646,12 @@ struct TableView: View {
                 }
             }
             PrimaryCTAButton(title: language.text("계속", "Continue")) {
+                guard canMutateTable else { return }
                 lastTurn = nil
                 showDecisionDetails = false
                 if let hand { prepareOptions(for: hand) }
             }
+            .disabled(!canMutateTable)
             .accessibilityIdentifier("table-continue")
         }
     }
@@ -699,7 +732,7 @@ struct TableView: View {
     }
 
     private func actPreflop(_ choice: TableHand.HeroChoice, _ current: TableHand) {
-        guard var h = hand, let v = h.preflopVerdict(for: choice) else { return }
+        guard canMutateTable, var h = hand, let v = h.preflopVerdict(for: choice) else { return }
         var toCall: Double?
         if choice == .call, case let .hero(.open(b)) = h.phase { toCall = b }
         decisions.append(TurnRecord(street: 0, choice: choice, amount: toCall,
@@ -739,14 +772,17 @@ struct TableView: View {
             .font(GT.semibold(15)).foregroundStyle(GT.inkSecondary)
             .accessibilityIdentifier("table-review-decisions")
             PrimaryCTAButton(title: language.text("다음 핸드", "Next hand")) { start(vs: villainPick) }
+                .disabled(!canMutateTable)
                 .accessibilityIdentifier("table-next-hand")
             Button(language.text("상대 바꾸기", "Change opponent")) { hand2Picker() }
                 .buttonStyle(GTOutlinedAction(fills: true))
+                .disabled(!canMutateTable)
                 .accessibilityIdentifier("table-change-opponent")
         }
     }
 
     private func hand2Picker() {
+        guard canMutateTable else { return }
         hand = nil; options = nil; lastTurn = nil; decisions = []
     }
 
@@ -771,7 +807,7 @@ struct TableView: View {
     // MARK: acting
 
     private func act(_ choice: TableHand.HeroChoice) {
-        guard var h = hand, let options else { return }
+        guard canMutateTable, var h = hand, let options else { return }
         record(choice, options: options, of: h)
         h.play(choice)
         hand = h
@@ -795,6 +831,8 @@ struct TableView: View {
     /// (D53): the table is not a lesson, so no schedule, accuracy or tier moves.
     private func countDecision() {
         guard let turn = decisions.last else { return }
+        // A failed write retains this attempt for Retry. Finish this local turn once;
+        // canMutateTable freezes later actions until the pending write succeeds.
         _ = model.recordTableDecision(attemptID: "table:\(baseSeed):\(handIndex):\(decisions.count)",
                                       band: turn.band, language: language)
     }
@@ -804,13 +842,14 @@ struct TableView: View {
     /// low hundreds of milliseconds in release.
     private func prepareOptions(for hand: TableHand) {
         guard case .hero = hand.phase else { return }
+        let expectedEpoch = sessionEpoch
         options = nil
         choosingBetSize = false
         Task.detached(priority: .userInitiated) {
             let priced = hand.gradedOptions()
             await MainActor.run {
                 // A stale computation must never price a different node.
-                if self.hand == hand { self.options = priced }
+                if expectedEpoch == self.model.epoch, self.hand == hand { self.options = priced }
             }
         }
     }

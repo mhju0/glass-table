@@ -1047,14 +1047,22 @@ picks a difficulty", and approved three defaults. A skill now has up to three st
 named Learn, Apply and Sharp in code and docs only. On screen they are "1단계/2단계/3단계"
 ("Step 1/2/3"), shown as three pips and in the tag ("다음 · 2단계" / "Next · Step 2").
 
-- **Which skills.** Showdown, pot math and call-or-fold have all three steps. The other
-  skills have only Learn and play exactly as before. `DrillLevel.highest(for:)` is the
+- **Which skills.** All 14 active track skills have all three steps: showdown, position,
+  RFI, defend, range read, action read, outs, pot math, equity sense, pot odds,
+  call-or-fold, combos, range notation and EV call. MDF, hit frequency, range advantage
+  and EV loss remain at Learn. `DrillLevel.highest(for:)` is the
   one switch, and its doc comment lists the four steps for giving a skill steps.
 - **What changes per step.** Showdown: Apply keeps the same hand type and no ties;
   Sharp adds ties and boards that play. Pot math: Apply deals more varied preflop
   betting; Sharp adds a flop bet and the count is typed (default 2). Call-or-fold:
   Apply shows only the needed share; Sharp shows no numbers and deals close spots.
   The Learn spots are byte-identical to before (`LearnSpotGoldenTests`).
+  Correctness follow-up (2026-10-19): Sharp pot math explicitly folds unmatched
+  callers before its flop, at the existing replay boundary so saved indexes and
+  numeric answers stay unchanged. Action Read's Sharp step states the assumed
+  opponent and policy; Range Read names formerly hidden opponent assumptions.
+  A single action does not identify a latent opponent model. These disclosures
+  preserve questions and grades while making their premises available before grading.
 - **Order (default 1).** Track by track, each track's lessons at Learn, then those with
   Apply at Apply, then its challenge. After the four tracks, a Sharp lap: every Sharp
   lesson, then each challenge again (`<id>.3`), for tracks with a Sharp skill. A Sharp
