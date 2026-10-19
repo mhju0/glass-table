@@ -40,6 +40,15 @@
   Root inspected sampled verdict/river frames; recordings establish captured interaction,
   not measured performance or physical-device feel. No before/after baseline video.
 - Temporary Settings harness is verification-only and is not part of the product/tests.
+  Initial cloud CI `39287743826` passed 14 of 15 focused UI tests. Its new slider test
+  incorrectly assumed a normalized screen coordinate restored an exact stepped value:
+  iOS 26.2 produced 20 → 67 → 22 rather than 20 → 67 → 20. The regression check now
+  distinguishes gesture reversal from exact restoration using the existing ±1 controls;
+  final grid/value, question identity and uncommitted-state assertions remain exact.
+  Corrected checks passed on iOS 26.5 with normal motion (20 → 67 → 12, eight
+  increments back to 20) and system Reduce Motion (20 → 68 → 13, seven increments
+  back to 20). Results: `/tmp/gt-motion-portability-normal.xcresult` and
+  `/tmp/gt-motion-portability-rm.xcresult`. Exact iOS 26.2 coverage remains a CI check.
   Published-branch cloud results are available in the PR's checks and
   [CI branch view](https://github.com/mhju0/glass-table/actions/workflows/ci.yml?query=branch%3Afix%2Fios-motion-20261020).
 

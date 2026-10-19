@@ -14,7 +14,9 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   one-shot first-answer glow is removed while verdict text/marks remain.
   Fresh build and app tests (119 XCTest + 46 Swift Testing), all ten normal-motion
   targets and all nine actual-system Reduce Motion targets passed on iOS 26.5.
-  Cloud CI is tracked by this branch's PR checks. No merge/build bump/release included.
+  Initial CI exposed a slider-test coordinate assumption on iOS 26.2; the correction
+  keeps exact restoration assertions using existing precision controls. Cloud CI is
+  tracked by this branch's PR checks. No merge/build bump/release included.
   Evidence and limits: `docs/records/2026-10-20-existing-motion-alignment.md`.
 - Build **1.0 (36)** is released to TestFlight from `6ea894f`, tag `v1.0-36`, after
   merging #55 (`fe124b8`) then #56. Owner authorized full CI, merges and upload.
