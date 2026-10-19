@@ -58,10 +58,14 @@ final class LearningReferenceFlowTests: XCTestCase {
     }
 
     func testGlossarySearchAliasesAndNoResults() {
-        for korean in [false, true] {
-            let app = launch(["GT_DEMO_SETTINGS": "1", "GT_DEMO_GLOSSARY": "1"], korean: korean)
+        for (korean, ax) in [(false, false), (true, false), (false, true), (true, true)] {
+            let app = launch(["GT_DEMO_SETTINGS": "1", "GT_DEMO_GLOSSARY": "1"], korean: korean, ax: ax)
             let search = app.textFields["glossary-search"]
             XCTAssertTrue(search.waitForExistence(timeout: 15))
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "glossary-search-\(korean ? "ko" : "en")-\(ax ? "AX5" : "large")"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
             search.tap(); search.typeText("3bet\n")
             let entry = app.buttons["glossary-entry-three-bet"]
             XCTAssertTrue(entry.waitForExistence(timeout: 5))
