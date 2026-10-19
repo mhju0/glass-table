@@ -80,8 +80,8 @@ Keep one frozen candidate for the checks; record any unresolved failures explici
 
    ```sh
    git switch main && git pull
-   git tag v1.0-30
-   git push origin v1.0-30
+   git tag v1.0-36
+   git push origin v1.0-36
    ```
 
 4. Watch Actions → TestFlight and record its run link. Then check the build's
@@ -96,7 +96,7 @@ The workflow refuses to upload when:
 - `tools/verify_release.py` rejects the archived app.
 
 A refused tag can be deleted and pushed again:
-`git push origin :refs/tags/v1.0-30`.
+`git push origin :refs/tags/v1.0-36`.
 
 ## Evidence boundaries
 

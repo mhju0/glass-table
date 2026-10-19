@@ -11,7 +11,9 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   terminology controls. Work is on `feat/terminology-learning-help-20261019` in
   `glass-table-terminology`, based on the unmerged PR #55 head `ebb0fae`.
   [Draft PR #56](https://github.com/mhju0/glass-table/pull/56) is stacked on #55.
-  No merge, tag, TestFlight upload or phone installation is included.
+  Owner now authorized full CI, ordered merges and TestFlight upload (2026-10-19).
+  Build 36 is being prepared on that branch; merge/tag/upload wait for green gates.
+  No phone installation or App Store review submission is included.
 - Owner clarified reference learning (2026-10-19): glossary lookup and general skill
   explanations count as self-directed work with no scoring effect. Only coaching,
   hints or calculated guidance for the current decision count as assisted. See D55.
@@ -242,6 +244,15 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-19 (Codex · build 36 release preparation)
+
+- Owner authorized full CI followed by merges and TestFlight upload. Prepared version
+  1.0 (36) on #56 over #55; no product or progress-schema changes for the build bump.
+- Release gates include full CI, the four-shard UI suite and Engine release tests on
+  one frozen candidate, then main CI before the matching tag/upload. All are pending.
+- Release record: `docs/records/2026-10-19-build36-release.md`. Owner is signing into
+  App Store Connect so processing and tester availability can be checked separately.
+
 ### 2026-10-19 (Codex · CI Release-guide assertion)
 
 - Checked exact PR #56 head `a61b9c2`: CI ran, but its Release smoke test still
@@ -289,13 +300,3 @@ Tests:
   Targeted screenshot checks and their limits are in the review record.
 - Next: resolve teaching/recovery findings and investigate the runner failure before
   treating Sharp and build 35 as fully verified. No new release or phone install.
-
-### 2026-10-18 (Claude · build 35: steps, Play, Progress)
-
-- Merged PRs #37–#41, then built and merged through #53: steps for all skills (D53,
-  schema 5), Learn mark follows the learner (D52), Play list, Progress tab, largest text
-  (D54), Chen card open, EV call spread, Help scroll fix, UI shards by time.
-- Integration conflicts: union of step lists; D52/D54 renumber; kept #49's deletions.
-  The final UI run failed 11 AX tests; cause was the Large Content Viewer on capped
-  parts, removed (D54 updated); all 11 then passed locally, unit CI green.
-- Tagged `v1.0-35`. Next: owner installs from TestFlight and checks steps on the phone.
