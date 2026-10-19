@@ -48,7 +48,10 @@
   Corrected checks passed on iOS 26.5 with normal motion (20 → 67 → 12, eight
   increments back to 20) and system Reduce Motion (20 → 68 → 13, seven increments
   back to 20). Results: `/tmp/gt-motion-portability-normal.xcresult` and
-  `/tmp/gt-motion-portability-rm.xcresult`. Exact iOS 26.2 coverage remains a CI check.
+  `/tmp/gt-motion-portability-rm.xcresult`. Exact iOS 26.2 coverage then passed in
+  [full CI attempt 2](https://github.com/mhju0/glass-table/actions/runs/39294450649/attempts/2)
+  on `89bd57d`: 15 focused UI tests, both Release launch tests and bundle checks passed.
+  The first attempt ran no steps because GitHub could not allocate a macOS runner.
   Published-branch cloud results are available in the PR's checks and
   [CI branch view](https://github.com/mhju0/glass-table/actions/workflows/ci.yml?query=branch%3Afix%2Fios-motion-20261020).
 

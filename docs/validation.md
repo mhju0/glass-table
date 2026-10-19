@@ -46,6 +46,10 @@ and its live content should follow direct manipulation without trailing animatio
   Retain readable text, selection marks and accessible labels when movement is removed.
 - Include compact screens and relevant Korean/English normal/AX5 flows. Simulator
   evidence does not establish physical-device feel, haptics or measured frame rate.
+- For repeating amount controls, verify one-step taps, multiple adjustments during a
+  hold, stopping on release/drag-away/scroll, both bounds and fresh input after a
+  background or dismissal. Native repeat cadence belongs to the system; do not assert
+  the removed custom timer's delay or interval as the expected platform behavior.
 
 ## Before a TestFlight tag
 

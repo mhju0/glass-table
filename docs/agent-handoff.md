@@ -7,6 +7,14 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-20)
 
+- Owner approved the next Apple-alignment scope before any merge/TestFlight release.
+  On the same motion branch, free-table amount buttons now use native repeat behavior
+  with existing press styling, active-scene guards and amount bounds. Removed the
+  custom repeat task/latch; existing native menus/dialogs/sheets remain. All ten amount
+  tests, five actual-system Reduce Motion cases and an active-hold background
+  interruption passed on iOS 26.5. Four critical amount tests join PR CI.
+  Final independent review and cloud results are tracked in PR #58; no merge,
+  build/version bump or release. Evidence: `docs/records/2026-10-20-native-control-behavior.md`.
 - Owner approved the first Apple-motion scope. Candidate `3dc9023` on
   `fix/ios-motion-20261020` in `glass-table-motion` refines existing motion without
   changing layout, branding, native presentations, replay/cancellation, grades or progress.
@@ -15,8 +23,8 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   Fresh build and app tests (119 XCTest + 46 Swift Testing), all ten normal-motion
   targets and all nine actual-system Reduce Motion targets passed on iOS 26.5.
   Initial CI exposed a slider-test coordinate assumption on iOS 26.2; the correction
-  keeps exact restoration assertions using existing precision controls. Cloud CI is
-  tracked by this branch's PR checks. No merge/build bump/release included.
+  keeps exact restoration assertions using existing precision controls. Full CI then
+  passed at `89bd57d` (run `39294450649`, attempt 2). No merge/build bump/release included.
   Evidence and limits: `docs/records/2026-10-20-existing-motion-alignment.md`.
 - Build **1.0 (36)** is released to TestFlight from `6ea894f`, tag `v1.0-36`, after
   merging #55 (`fe124b8`) then #56. Owner authorized full CI, merges and upload.
@@ -238,7 +246,7 @@ Tests:
 
 ## Recent sessions
 
-### 2026-10-20 (Codex · existing motion alignment)
+### 2026-10-20 (Codex · motion alignment and native controls)
 
 - Implemented the owner-approved first scope at `3dc9023`: missing Reduce Motion
   guards, immediate slider-grid updates and removal of the 1.2-second verdict shadow.
@@ -249,6 +257,11 @@ Tests:
 - Root reviewed source and sampled recorded frames. Cloud results live in PR checks;
   no physical-device/performance or iOS 17 claim. Latest released app remains 1.0 (36).
   Evidence: `docs/records/2026-10-20-existing-motion-alignment.md`.
+- Owner then approved scope 2 before merge/release. Native amount repetition replaces
+  the custom scheduler; menus/dialogs/sheets already use system presentations. Ten
+  amount tests, five system Reduce Motion cases and actual active-hold interruption
+  passed. Four control cases now gate PRs; independent review/cloud evidence lives
+  in PR #58 and `docs/records/2026-10-20-native-control-behavior.md`.
 
 ### 2026-10-19 (Codex · build 36 validation and release)
 

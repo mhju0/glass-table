@@ -874,13 +874,18 @@ struct FreeTableView: View {
 
     private func raiseStep(_ title: String, enabled: Bool, spoken: String,
                            action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button {
+            guard enabled, scenePhase == .active else { return }
+            action()
+        } label: {
             Image(systemName: title == "−" ? "minus" : "plus")
                 .font(.system(size: 24, weight: .semibold)).foregroundStyle(GT.ink)
                 .frame(width: 54).frame(minHeight: 54, maxHeight: .infinity)
                 .background { GTDockControlBackground() }
         }
-        .buttonStyle(GTHoldStepStyle(enabled: enabled)).disabled(!enabled).opacity(enabled ? 1 : 0.45)
+        .buttonStyle(GTPress(pressedScale: 0.97))
+        .buttonRepeatBehavior(.enabled)
+        .disabled(!enabled || scenePhase != .active).opacity(enabled ? 1 : 0.45)
         .accessibilityLabel(spoken)
         .accessibilityHint(enabled ? "" : title == "−"
             ? language.text("최소 레이즈 금액이에요", "At the minimum raise")
