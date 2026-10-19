@@ -39,8 +39,8 @@ struct LearningGuideView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .gtContentEdge()
-            .id(page)
         }
+        .id(page)
         .accessibilityIdentifier("guide-content")
         .simultaneousGesture(DragGesture().onEnded { gesture in
             if gesture.startLocation.x < 24, gesture.translation.width > 70, page > 0 { page -= 1 }

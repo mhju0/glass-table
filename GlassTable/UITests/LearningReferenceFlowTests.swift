@@ -166,11 +166,16 @@ final class LearningReferenceFlowTests: XCTestCase {
         let scroll = app.scrollViews["guide-content"]
         let topics = ["lessons", "steps", "passing", "help", "challenges-review", "progress", "tables"]
         for (index, topic) in topics.enumerated() {
-            XCTAssertTrue(app.staticTexts["guide-topic-\(topic)"].waitForExistence(timeout: 10))
-            let terms = app.descendants(matching: .any)
-                .matching(identifier: "guide-topic-terms").firstMatch
-            XCTAssertTrue(terms.exists)
-            let links = terms.buttons
+            let heading = app.staticTexts["guide-topic-\(topic)"]
+            XCTAssertTrue(heading.waitForExistence(timeout: 10))
+            let footer = app.buttons["guide-previous"].exists
+                ? app.buttons["guide-previous"] : app.buttons["guide-next"]
+            let close = app.buttons["Close"].firstMatch
+            XCTAssertGreaterThanOrEqual(heading.frame.minY, max(scroll.frame.minY, close.frame.maxY) + 7,
+                                       "A new topic must begin below the chrome: \(heading.frame)")
+            XCTAssertLessThanOrEqual(heading.frame.maxY, min(scroll.frame.maxY, footer.frame.minY),
+                                    "A new topic's heading must be visible before scrolling: \(heading.frame)")
+            let links = app.buttons.matching(identifier: "guide-topic-terms")
             if links.count == 0 {
                 let hierarchy = XCTAttachment(string: app.debugDescription)
                 hierarchy.name = "guide-\(topic)-missing-term-buttons"
@@ -179,14 +184,15 @@ final class LearningReferenceFlowTests: XCTestCase {
             }
             XCTAssertGreaterThan(links.count, 0)
             let link = links.element(boundBy: links.count - 1)
-            let footer = app.buttons["guide-previous"].exists
-                ? app.buttons["guide-previous"] : app.buttons["guide-next"]
             reachLookup(link, app: app, scroll: scroll, footer: footer)
             XCTAssertLessThanOrEqual(link.frame.maxY, footer.frame.minY - 8)
+            let linkBeforeLookup = link.frame
             link.tap()
             XCTAssertTrue(app.buttons["glossary-all"].waitForExistence(timeout: 5))
             app.buttons["glossary-close"].tap()
             XCTAssertTrue(app.staticTexts["guide-topic-\(topic)"].exists)
+            XCTAssertEqual(link.frame.minY, linkBeforeLookup.minY, accuracy: 1,
+                           "Closing a lookup must retain the current topic's reading position")
             XCTAssertTrue(app.buttons["guide-next"].isEnabled)
             let screenshot = XCTAttachment(screenshot: app.screenshot())
             screenshot.name = "guide-AX5-\(topic)-terms-reachable"
