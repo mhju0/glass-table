@@ -23,9 +23,9 @@ final class FreeDockFlowTests: XCTestCase {
         let fold = app.buttons["free-fold"]
         let call = app.buttons["free-call"]
         let raise = app.buttons["free-raise"]
-        XCTAssertEqual(fold.label, "Give up, Fold")
-        XCTAssertEqual(call.label, "Add 2, Call")
-        XCTAssertEqual(raise.label, "Increase, Raise")
+        XCTAssertEqual(fold.label, "Fold, Give up this hand")
+        XCTAssertEqual(call.label, "Call, Match the bet, 2")
+        XCTAssertEqual(raise.label, "Raise, Increase")
         XCTAssertEqual(fold.frame.height, 87, accuracy: 0.5)
         XCTAssertEqual(call.frame.height, 87, accuracy: 0.5)
         XCTAssertEqual(raise.frame.height, 87, accuracy: 0.5)
@@ -69,7 +69,7 @@ final class FreeDockFlowTests: XCTestCase {
         }
         let check = app.buttons["free-check"]
         XCTAssertTrue(check.exists && check.isEnabled)
-        XCTAssertEqual(check.label, "Pass, Check")
+        XCTAssertEqual(check.label, "Check, Pass without chips")
         XCTAssertTrue(app.buttons["free-fold"].exists)
         XCTAssertFalse(app.buttons["free-fold"].isEnabled)
         XCTAssertTrue(app.buttons["free-raise"].exists)

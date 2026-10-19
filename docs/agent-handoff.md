@@ -35,6 +35,12 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   test passed locally on iOS 26.1; CI was iOS 26.2. A bounded dismissal wait and
   positive Settings-return assertion passed locally on iOS 26.1; replacement CI and the
   full UI suite must pass before merge. No product source change is indicated.
+- Replacement CI `39207572894` and Engine `39207578368` passed on `e27aeab`.
+  Full UI `39203633214` exposed two stale term-order accessibility expectations in
+  FreeDockFlowTests (shard 1); shards 0, 2 and 3 passed, with no additional failures.
+  Four dock label equalities were corrected; all seven tests passed locally on fresh
+  iPhone 17/iOS 26.5, preserving every behavior assertion. A replacement full suite
+  remains required. No merge, tag or upload has occurred.
 - PR #55's exact `ebb0fae` passed [remote CI](https://github.com/mhju0/glass-table/actions/runs/39143752775),
   including focused UI, Release smoke and unsigned device bundle checks. It remains
   a draft, unmerged and unreleased; no new full nightly or phone checks are implied.
@@ -257,7 +263,9 @@ Tests:
 - Release gates include full CI, the four-shard UI suite and Engine release tests on
   one frozen candidate, then main CI before the matching tag/upload. `605c8c2` passed
   Engine, but CI failed the immediate post-Done guide assertion. A test-only bounded
-  dismissal wait plus Settings-return check passed locally; replacement gates pending.
+  dismissal wait plus Settings-return check passed locally, then CI and Engine passed.
+  Full UI found two stale dock-label assertions; four equalities corrected and all
+  seven dock tests passed locally. Replacement full UI and final CI remain pending.
 - Release record: `docs/records/2026-10-19-build36-release.md`. App Store Connect is
   signed in; existing internal group uses automatic builds. Build 36 is not uploaded.
 

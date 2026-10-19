@@ -31,6 +31,15 @@
   retaining all page and lookup assertions. This is test synchronization only;
   the corrected exact test passed locally on iPhone 17/iOS 26.1 (241 seconds).
   Replacement CI is required. The full UI run on `605c8c2` is still pending.
+- Replacement CI `39207572894` and Engine `39207578368` passed on `e27aeab`,
+  including all 14 focused flows, both Release smoke tests and device bundle checks.
+- Full UI run `39203633214` on `605c8c2` exposed two stale Free Dock accessibility
+  expectations in shard 1: old plain-language-first labels versus the approved
+  term-first labels. Shards 0, 2 and 3 passed, with no additional failures. The complete
+  suite will be rerun after correction. All seven Free Dock tests passed locally
+  on fresh iPhone 17/iOS 26.5 (262.6 seconds), including both AX languages, slots,
+  disabled Fold, fixed heights and cancelled-press/raise/fold interactions. Only
+  four label equalities changed; product code and behavior assertions are unchanged.
 
 ## Still open
 
