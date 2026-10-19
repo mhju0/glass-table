@@ -167,7 +167,16 @@ final class LearningReferenceFlowTests: XCTestCase {
         let topics = ["lessons", "steps", "passing", "help", "challenges-review", "progress", "tables"]
         for (index, topic) in topics.enumerated() {
             XCTAssertTrue(app.staticTexts["guide-topic-\(topic)"].waitForExistence(timeout: 10))
-            let links = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'guide-term-'"))
+            let terms = app.descendants(matching: .any)
+                .matching(identifier: "guide-topic-terms").firstMatch
+            XCTAssertTrue(terms.exists)
+            let links = terms.buttons
+            if links.count == 0 {
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "guide-\(topic)-missing-term-buttons"
+                hierarchy.lifetime = .keepAlways
+                add(hierarchy)
+            }
             XCTAssertGreaterThan(links.count, 0)
             let link = links.element(boundBy: links.count - 1)
             let footer = app.buttons["guide-previous"].exists
