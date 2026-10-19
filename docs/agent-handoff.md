@@ -5,8 +5,17 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-19)
+## Current state (2026-10-20)
 
+- Owner approved the first Apple-motion scope. Candidate `3dc9023` on
+  `fix/ios-motion-20261020` in `glass-table-motion` refines existing motion without
+  changing layout, branding, native presentations, replay/cancellation, grades or progress.
+  Missing Reduce Motion guards are fixed; Range Read sliders track directly; the
+  one-shot first-answer glow is removed while verdict text/marks remain.
+  Fresh build and app tests (119 XCTest + 46 Swift Testing), all ten normal-motion
+  targets and all nine actual-system Reduce Motion targets passed on iOS 26.5.
+  Cloud CI is tracked by this branch's PR checks. No merge/build bump/release included.
+  Evidence and limits: `docs/records/2026-10-20-existing-motion-alignment.md`.
 - Build **1.0 (36)** is released to TestFlight from `6ea894f`, tag `v1.0-36`, after
   merging #55 (`fe124b8`) then #56. Owner authorized full CI, merges and upload.
   Release source exactly matches frozen `bb65365`; main CI `39222312223` passed.
@@ -227,6 +236,18 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-20 (Codex · existing motion alignment)
+
+- Implemented the owner-approved first scope at `3dc9023`: missing Reduce Motion
+  guards, immediate slider-grid updates and removal of the 1.2-second verdict shadow.
+  Preserved the app's look, native presentations and instructional replay semantics.
+- Fresh build, 165 app tests, ten normal-motion scenarios and nine actual-system
+  Reduce Motion scenarios passed. Temporary Settings automation is verification-only.
+  Added permanent behavior regressions and a motion section in the validation routine.
+- Root reviewed source and sampled recorded frames. Cloud results live in PR checks;
+  no physical-device/performance or iOS 17 claim. Latest released app remains 1.0 (36).
+  Evidence: `docs/records/2026-10-20-existing-motion-alignment.md`.
+
 ### 2026-10-19 (Codex · build 36 validation and release)
 
 - Completed full CI, Engine release tests and all four UI shards on `bb65365`.
@@ -277,12 +298,3 @@ Tests:
   app unit 158, focused UI 23, separate Progress/AX checks and final setup flow passed.
   R01–R04 and documentation drift are closed locally; PR #55 remote CI later passed
   at `ebb0fae`. Full UI and physical checks remain open. Evidence: `docs/records/2026-10-19-review-followups.md`.
-
-### 2026-10-18 (Codex · independent builds 24–35 review)
-
-- Reviewed frozen `ed54c2f` with independent standards/persistence, teaching/spec and
-  release-evidence checks. Recorded R01–R04 above; no app code changed.
-- Fresh Drills 664 and Engine release 96 tests passed; simulator build passed.
-  Targeted screenshot checks and their limits are in the review record.
-- Next: resolve teaching/recovery findings and investigate the runner failure before
-  treating Sharp and build 35 as fully verified. No new release or phone install.
