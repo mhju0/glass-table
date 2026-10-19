@@ -446,7 +446,7 @@ struct FreeTableView: View {
                     .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 16)))
             }
         }
-        .animation(GT.Motion.fade, value: showHelp)
+        .animation(reduceMotion ? nil : GT.Motion.fade, value: showHelp)
     }
 
     // Reachable structures share the live presentation views; sizing never reads future cards.

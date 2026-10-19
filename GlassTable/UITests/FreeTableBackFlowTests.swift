@@ -64,6 +64,37 @@ final class FreeTableBackFlowTests: XCTestCase {
         attach(app, "flop-math")
     }
 
+    func testRepeatedHelpReversalKeepsTheUncommittedDecision() {
+        let app = launch(phase: "raise-postflop")
+        app.buttons["free-raise-cancel"].tap()
+        let fold = app.buttons["free-fold"]
+        let original = fold.label
+        let check = app.buttons["free-check"]
+        XCTAssertTrue(check.exists)
+        XCTAssertTrue(check.isEnabled)
+        let checkBefore = check.label
+        let hero = app.otherElements["practice-0"]
+        let pot = app.descendants(matching: .any)["table-pot"]
+        XCTAssertTrue(hero.exists)
+        XCTAssertTrue(pot.exists)
+        let heroBefore = hero.label
+        let potBefore = pot.label
+        XCTAssertFalse(heroBefore.isEmpty)
+        XCTAssertFalse(potBefore.isEmpty)
+        for _ in 0..<5 {
+            app.buttons["free-table-help"].tap()
+            app.buttons["free-table-back-close"].tap()
+        }
+        XCTAssertTrue(check.isEnabled)
+        XCTAssertEqual(check.label, checkBefore)
+        XCTAssertFalse(fold.isEnabled, "With nothing owed, help must not enable a fold")
+        XCTAssertEqual(fold.label, original)
+        XCTAssertEqual(hero.label, heroBefore)
+        XCTAssertEqual(pot.label, potBefore)
+        XCTAssertFalse(app.buttons["free-next-hand"].exists)
+        attach(app, "help-reversal-uncommitted-decision")
+    }
+
     func testAXKOMathRulesReachable() { axReach("ko") }
     func testAXENMathRulesReachable() { axReach("en") }
 

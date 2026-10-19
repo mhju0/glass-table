@@ -29,6 +29,24 @@ Run relevant package/app tests and the required CI gates. A fresh full UI workfl
 can run separately; inspect any failures on the exact candidate and record whether
 they are fixed, reproduced, or still unresolved. Do not silently call them flakes.
 
+## Motion checks
+
+Use Apple's [Motion HIG](https://developer.apple.com/design/human-interface-guidelines/motion)
+for purposeful, brief feedback, natural gesture response and cancellable interaction.
+Keep instructional card/chip sequencing distinct from decorative UI effects. A slider
+and its live content should follow direct manipulation without trailing animation.
+
+- Exercise repeated selections, reversals, dismissal and return. Verify that the final
+  visible state matches the last action, without committing an answer or losing work.
+- Check normal motion and the actual system Reduce Motion setting. The free-table
+  `GT_DEMO_REDUCE_MOTION` override covers only that path; it does not exercise SwiftUI's
+  environment in other screens. Use a disposable simulator for system-setting checks.
+- Inspect rendered feedback as well as final state. Screenshots establish content and
+  geometry; recordings or observed interactions are needed to judge timing/continuity.
+  Retain readable text, selection marks and accessible labels when movement is removed.
+- Include compact screens and relevant Korean/English normal/AX5 flows. Simulator
+  evidence does not establish physical-device feel, haptics or measured frame rate.
+
 ## Before a TestFlight tag
 
 Freeze the candidate commit. Finish focused checks after the last relevant edit.

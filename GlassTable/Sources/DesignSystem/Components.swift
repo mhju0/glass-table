@@ -959,6 +959,7 @@ private struct StepSplit: Layout {
 /// moves fill, border and weight together so it never leans on colour alone.
 struct GTChoiceButton: View {
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let title: String
     var selected: Bool = false
     var minHeight: CGFloat = 54
@@ -998,7 +999,7 @@ struct GTChoiceButton: View {
             }
         }
         .buttonStyle(GTPress())
-        .animation(GT.Motion.change, value: isEnabled)
+        .animation(reduceMotion ? nil : GT.Motion.change, value: isEnabled)
     }
 }
 

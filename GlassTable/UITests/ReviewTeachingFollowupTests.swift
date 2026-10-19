@@ -26,6 +26,38 @@ final class ReviewTeachingFollowupTests: XCTestCase {
     func testSimpleSharpActionReadKeepsItsAssumptionAfterRelaunch() { actionAssumption(regular: false) }
     func testAdvancedSharpActionReadKeepsItsAssumptionAfterRelaunch() { actionAssumption(regular: true) }
 
+    func testRangeSliderReversesWithoutCommittingOrChangingTheQuestion() {
+        let app = launch(node: "u4-rangeRead", regular: true)
+        let slider = app.sliders["Range width"]
+        reach(slider, in: app)
+        let opponent = app.staticTexts["range-read-opponent"].label
+        let rows = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Row "))
+        XCTAssertEqual(rows.count, 13)
+        let before = rows.allElementsBoundByIndex.map(\.label)
+        let value = slider.value as? String
+        print("MOTION_SLIDER frame=\(slider.frame) value=\(value ?? "nil")")
+        let start = slider.coordinate(withNormalizedOffset: CGVector(dx: 0.23, dy: 0.5))
+        let end = slider.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
+        start
+            .press(forDuration: 0.05,
+                   thenDragTo: end,
+                   withVelocity: .slow, thenHoldForDuration: 0)
+        print("MOTION_SLIDER dragged-value=\(slider.value as? String ?? "nil")")
+        XCTAssertNotEqual(slider.value as? String, value)
+        XCTAssertNotEqual(rows.allElementsBoundByIndex.map(\.label), before,
+                          "The range grid follows the slider's changed estimate")
+        end.press(forDuration: 0.05, thenDragTo: start,
+                  withVelocity: .slow, thenHoldForDuration: 0)
+        XCTAssertEqual(slider.value as? String, value)
+        XCTAssertEqual(rows.allElementsBoundByIndex.map(\.label), before,
+                       "Reversing the slider restores the same range")
+        XCTAssertEqual(app.staticTexts["range-read-opponent"].label, opponent)
+        XCTAssertFalse(app.descendants(matching: .any)["range-difference-list"].exists,
+                       "Dragging is not an answer commitment")
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "drill-completion-")).firstMatch.exists)
+        attach(app, "range-slider-reversed-before-commit")
+    }
+
     func testSharpRangeReadKeepsItsAssumedOpponentAfterRelaunch() {
         let store = UUID().uuidString
         let app = launch(node: "u4-rangeRead.3", regular: false, store: store)

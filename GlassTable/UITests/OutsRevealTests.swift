@@ -54,6 +54,15 @@ final class OutsRevealTests: XCTestCase {
                                                : "Your pair of As beats the opponent's pair of Ks."), why(app).label)
         assertOnScreen(app)
         attach(app, "\(language)-large-outs-As")
+
+        // Reversing a selection must leave both rows and the selected card in agreement.
+        for card in ["9h", "As", "9h", "As", "9h"] {
+            app.buttons["outs-river-\(card)"].tap()
+        }
+        XCTAssertTrue(why(app).waitForLabel(flushWhy), why(app).label)
+        XCTAssertTrue(nine.isSelected)
+        XCTAssertFalse(app.buttons["outs-river-As"].isSelected)
+        assertOnScreen(app)
     }
 
     private func why(_ app: XCUIApplication) -> XCUIElement { app.staticTexts["outs-why"] }
