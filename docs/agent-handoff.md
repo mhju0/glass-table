@@ -7,6 +7,24 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-19)
 
+- Owner requested glossary/Settings learning-help improvements and removal of both
+  terminology controls. Work is on `feat/terminology-learning-help-20261019` in
+  `glass-table-terminology`, based on the unmerged PR #55 head `ebb0fae`.
+  [Draft PR #56](https://github.com/mhju0/glass-table/pull/56) is stacked on #55.
+  No merge, tag, TestFlight upload or phone installation is included.
+- Owner clarified reference learning (2026-10-19): glossary lookup and general skill
+  explanations count as self-directed work with no scoring effect. Only coaching,
+  hints or calculated guidance for the current decision count as assisted. See D55.
+  Terminology changes, 56-entry focused/searchable glossary and seven guide topics
+  are implemented. Independent review cleared final product code `5522a12`; app unit
+  165, preserved-answer/Position UI and all seven AX5 guide navigation/lookup checks
+  passed. KO/EN normal/AX5 search, both five-state AX dock checks and sampled layouts
+  passed/inspected. Final hint copy `b8ff2cc` was rechecked; no scoring changes.
+  Evidence: `docs/records/2026-10-19-terminology-learning-help.md`.
+- PR #55's exact `ebb0fae` passed [remote CI](https://github.com/mhju0/glass-table/actions/runs/39143752775),
+  including focused UI, Release smoke and unsigned device bundle checks. It remains
+  a draft, unmerged and unreleased; no new full nightly or phone checks are implied.
+
 - Independent Codex review of builds 24–35 at `ed54c2f` found open teaching and
   recovery issues; no product fixes or new release. See
   `docs/records/2026-10-18-independent-build-review.md`. Build 35's upload and CI
@@ -140,7 +158,7 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 - Unconfirmed whether the owner has added themselves as an internal tester (App Store
   Connect → TestFlight → Internal Testing; no invite code is needed).
 - Follow-up [draft PR #55](https://github.com/mhju0/glass-table/pull/55) is open.
-  Remote checks are pending; keep it separate from build-35 release claims.
+  Remote CI passed at `ebb0fae`; keep it separate from build-35 release claims.
 - Test environment: use the iPhone 17 iOS 26.5 simulator by id (the bare name picks the
   iOS 27 beta). After a rebuild, run
   `xcrun simctl uninstall <device> com.michaelju.glasstable.GlassTableUITests.xctrunner`
@@ -149,8 +167,9 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 ## Open issues
 
 Review follow-ups (2026-10-19):
-- Remote focused CI on its pinned iOS 26.2 runtime and the full UI suite on the new
-  candidate remain unverified. Build-35 failure evidence was inspected: the Call tap
+- PR #55 focused CI on iOS 26.2 passed at `ebb0fae`; its full UI suite remains
+  unverified. PR #56 local checks passed; its final-head remote CI is pending.
+  Build-35 failure evidence was inspected: the Call tap
   was near the bottom viewport. The helper now scrolls targets inward, retains the
   Continue assertion and adds failure attachments; exact interception cause is unknown.
 
@@ -198,9 +217,10 @@ Product and numbers:
   identity; free raise 2BB presets and graded range/equity jargon.
 
 CI/CD:
-- Push-triggered CI does not always start; dispatch it with
-  `gh workflow run ci.yml --ref <branch>`. The `.p8` key should move into a password
-  manager (owner reminder).
+- Check Actions for the exact head before manually dispatching CI; the PR status
+  list can lag a push. If no run is actually scheduled, use
+  `gh workflow run ci.yml --ref <branch>`. Keep one owned run instead of duplicates.
+  The `.p8` key should move into a password manager (owner reminder).
 - `ui-tests.yml` is available by hand on branches. Full time-balanced run 39088052141
   passed all four shards; later build-35 run 39126165724 failed the AX postflop
   Continue assertion. The follow-up helper passed three local repetitions on iPhone
@@ -214,6 +234,20 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-19 (Codex · terminology and learning reference)
+
+- Removed both terminology controls; paired real terms with plain meanings and added
+  a 56-entry searchable bilingual glossary with focused lookup and seven readable
+  Settings guide topics. Owner explicitly chose self-directed lookup with no scoring
+  effect; only current-question coaching or calculated hints count as assistance (D55).
+- Independent review found and resolved ambiguous Position street labels and missing
+  LJ/UTG+1 lookup. Final product code `5522a12` passed its delta review. Saved progress,
+  question identities and grading remain unchanged.
+- Local guide/search/dock and normal/AX5 KO/EN render checks passed; final hint
+  copy is `b8ff2cc`. PR #56 remote CI is pending. It is stacked on unmerged #55.
+  Final evidence is in
+  `docs/records/2026-10-19-terminology-learning-help.md`; no release or phone install.
+
 ### 2026-10-19 (Codex · review corrections and validation routine)
 
 - Fixed R01 save-recovery gating, R02 scalable counts, R03 preflop street closure
@@ -225,8 +259,8 @@ Tests:
   session guide for someone who knows the rules but rarely plays; no person tested yet.
 - Core `116187c` and copy candidate `66d9c22` passed independent review. Drills 671,
   app unit 158, focused UI 23, separate Progress/AX checks and final setup flow passed.
-  R01–R04 and documentation drift are closed locally; remote CI/full UI and physical
-  checks remain open. Evidence: `docs/records/2026-10-19-review-followups.md`.
+  R01–R04 and documentation drift are closed locally; PR #55 remote CI later passed
+  at `ebb0fae`. Full UI and physical checks remain open. Evidence: `docs/records/2026-10-19-review-followups.md`.
 
 ### 2026-10-18 (Codex · independent builds 24–35 review)
 
@@ -258,18 +292,3 @@ Tests:
   closed with ✕ no longer blocks others (PR #30); 원 페어/투 페어 spaced (PR #34).
 - One simulator job at a time throughout (owner's Mac-load rule).
 - Next: owner adds themselves as an internal tester and checks build 34 on the phone.
-
-### 2026-10-17 (Claude · kicker duel scroll and Learn list)
-
-- PR #32: merged `origin/main` (#31's inset strokes reach the D50 rows; the duel's A♠
-  already strokes inside the card, and #31 has no shared stroke helper). The kicker
-  duel now scrolls into view above the answer sheet when the pick is committed, without
-  animation under Reduce Motion. Two UI tests in BestFiveComparisonTests (KO/EN).
-- Learn redesign, variant A2 (owner, D51), on `feat/learn-diagram-list-20261017`: Drills
-  `Curriculum.markedLesson` picks the one marked row (8 unit tests first);
-  `LearnView` is the list; `PathView` and its sheet are gone; a passed lesson's 연습
-  opens `FreePlayView(startConcept:)` straight into that skill's round, through its own
-  item-based cover (a shared `isPresented` cover showed the picker with a stale
-  concept). Records/activity copy says 연습. New `LearnListTests` (9); repaired tests
-  that used `learn-path` or the old resume labels; UXAuditCrawl follows the list.
-- No schema change. Next: owner reviews both PRs.
