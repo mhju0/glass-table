@@ -20,6 +20,11 @@ the stated model. Hiding a required assumption is not a harder question.
 - Cross-screen state: leave, resume and switch language without resetting navigation
   or progress. Use the actual app path, not only a demo frame.
 
+When changing onboarding, Settings navigation or the learning guide, also run
+`GlassTableReleaseSmoke` in Release without demo hooks before delivery. Keep its
+assertions aligned with stable topic/control identifiers and exercise navigation;
+a passing Debug demo flow does not establish the real Release path.
+
 Run relevant package/app tests and the required CI gates. A fresh full UI workflow
 can run separately; inspect any failures on the exact candidate and record whether
 they are fixed, reproduced, or still unresolved. Do not silently call them flakes.

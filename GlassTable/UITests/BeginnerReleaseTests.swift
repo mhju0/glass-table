@@ -21,31 +21,23 @@ final class BeginnerReleaseTests: XCTestCase {
         XCTAssertTrue(first.isEnabled)
     }
 
-    func testPokerTermsSwitchPutsTheTermFirst() {
-        let plain = app()
-        plain.launchEnvironment["GT_DEMO_TAB"] = "path"
-        plain.launch()
-        let row = plain.buttons["lesson-u1-showdown"]
-        XCTAssertTrue(row.waitForExistence(timeout: 15))
-        XCTAssertTrue(row.label.hasPrefix("Who wins?"), row.label)
-        plain.terminate()
-
-        let terms = app()
-        terms.launchArguments += ["-glassTable.pokerTerms", "YES"]
-        terms.launchEnvironment["GT_DEMO_TAB"] = "path"
-        terms.launch()
-        let termRow = terms.buttons["lesson-u1-showdown"]
-        XCTAssertTrue(termRow.waitForExistence(timeout: 15))
-        XCTAssertTrue(termRow.label.hasPrefix("Showdown"), termRow.label)
-        terms.terminate()
-
-        let settings = app()
-        settings.launchArguments += ["-glassTable.pokerTerms", "YES"]
-        settings.launchEnvironment["GT_DEMO_TAB"] = "settings"
-        settings.launch()
-        let toggle = settings.switches["settings-poker-terms"]
-        XCTAssertTrue(toggle.waitForExistence(timeout: 15))
-        XCTAssertEqual(toggle.value as? String, "1")
+    func testLegacyTerminologyPreferencesUseOneLearningPolicy() {
+        var labels: [String] = []
+        for legacyChoice: String? in [nil, "YES", "NO"] {
+            let app = app()
+            if let legacyChoice { app.launchArguments += ["-glassTable.pokerTerms", legacyChoice] }
+            app.launchEnvironment["GT_DEMO_TAB"] = "learn"
+            app.launch()
+            let row = app.buttons["lesson-u1-showdown"]
+            XCTAssertTrue(row.waitForExistence(timeout: 15))
+            XCTAssertTrue(row.label.hasPrefix("Who wins?"), row.label)
+            XCTAssertTrue(row.label.contains("Showdown"), row.label)
+            labels.append(row.label)
+            app.tabBars.buttons["Settings"].tap()
+            XCTAssertFalse(app.switches["settings-poker-terms"].exists)
+            app.terminate()
+        }
+        XCTAssertEqual(Set(labels).count, 1, "An old preference must not change the learning language")
     }
 
     func testFourTabsWithoutExperienceQuestion() {

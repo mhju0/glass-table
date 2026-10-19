@@ -672,7 +672,6 @@ struct FreePlayView: View {
     @Environment(\.simpleQuestions) private var simple
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     private var title: String { language.text("연습", "Practice") }
@@ -965,7 +964,7 @@ struct FreePlayView: View {
 
     private func roundSummary(_ round: PracticeRound) -> some View {
         let topic = Concept(rawValue: round.concept).map {
-            skillNames($0, language: language, termsLead: false).lead
+            skillNames($0, language: language).lead
         } ?? language.text("연습", "Practice")
         return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
@@ -1065,7 +1064,7 @@ struct FreePlayView: View {
                         HStack(spacing: 12) {
                             SkillGlyph(concept: c)
                             VStack(alignment: .leading, spacing: 2) {
-                                let names = skillNames(c, language: language, termsLead: termsLead)
+                                let names = skillNames(c, language: language)
                                 Text(names.lead)
                                     .font(GT.title(15)).foregroundStyle(GT.ink)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -1289,7 +1288,7 @@ struct ReviewSessionView: View {
     }
 
     private var summary: some View {
-        let topics = queue.map { skillNames($0, language: language, termsLead: false).lead }
+        let topics = queue.map { skillNames($0, language: language).lead }
         return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 Text(queue.isEmpty

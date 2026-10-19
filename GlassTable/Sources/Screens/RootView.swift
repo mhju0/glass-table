@@ -18,7 +18,6 @@ struct RootView: View {
     @State private var pendingOpeningFinishEpoch: UUID?
     @State private var pendingOpeningFinishResumed = false
     @State private var homeIndicatorInset: CGFloat = 0
-    @AppStorage(PokerTerms.storageKey) private var termsChoice: Bool?
 
     var body: some View {
         Group {
@@ -41,7 +40,6 @@ struct RootView: View {
         .environment(languageSettings)
         .environment(\.learningLanguage, language)
         .environment(\.locale, Locale(identifier: language.rawValue))
-        .environment(\.leadsWithTerms, PokerTerms.lead(choice: termsChoice, level: level))
         .environment(\.simpleQuestions, level != .playRegularly)
         .environment(\.homeIndicatorInset, homeIndicatorInset)
         .tint(GT.onFelt)

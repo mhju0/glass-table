@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 
 /// The learner's level is the answer they gave at the starting check, or picked by
-/// hand later. It changes which lesson is suggested, how much help is on by default
-/// and which words lead. It never clears a lesson or awards mastery.
+/// hand later. It changes which lesson is suggested and how much help is on by default.
+/// It never clears a lesson or awards mastery.
 public extension PlacementSelfReport {
     /// The first lesson suggested when the starting check was skipped.
     var startingConcept: Concept {
@@ -13,8 +13,6 @@ public extension PlacementSelfReport {
         }
     }
 
-    /// Whether poker terms lead and plain words follow, unless the learner chose.
-    var leadsWithTerms: Bool { self == .playRegularly }
 }
 
 public extension ProgressState {

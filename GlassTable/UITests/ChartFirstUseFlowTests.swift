@@ -44,7 +44,7 @@ final class ChartFirstUseFlowTests: XCTestCase {
             XCTAssertTrue(definition.exists, "The first primer must start expanded.")
             reach(definition, app: app)
             XCTAssertFalse(app.descendants(matching: .any)["defend-selected-evidence"].exists)
-            let action = app.buttons[korean ? "다시 올리기" : "Raise again"]
+            let action = app.buttons[korean ? "3벳 · 다시 올리기" : "3-bet · Raise again"]
             reach(action, app: app)
             action.tap()
             XCTAssertTrue(app.descendants(matching: .any)["defend-selected-evidence"].waitForExistence(timeout: 5))
@@ -91,7 +91,7 @@ final class ChartFirstUseFlowTests: XCTestCase {
                 switch correct {
                 case .fold: label = korean ? "폴드" : "Fold"
                 case .call: label = korean ? "콜" : "Call"
-                case .threeBet: label = korean ? "다시 올리기" : "Raise again"
+                case .threeBet: label = korean ? "3벳 · 다시 올리기" : "3-bet · Raise again"
                 }
                 let choice = app.buttons[label]
                 reach(choice, app: app)

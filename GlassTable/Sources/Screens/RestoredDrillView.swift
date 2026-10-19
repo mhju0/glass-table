@@ -101,8 +101,12 @@ struct RestoredDrillView: View {
     @ViewBuilder
     private func verdict(band: GradeBand, detail: ConceptReveal?,
                          input: DrillSubmittedInput?) -> some View {
-        let mine = detail?.mine ?? language.text("답변 저장됨", "Answer saved")
-        let correct = detail?.correct ?? language.text("결과 저장됨", "Result saved")
+        let positionLabels: (mine: String, correct: String)? = if concept == .position, let input {
+            LessonSeatIdentity.answerLabels(spot: PositionSpotGenerator.spot(baseSeed: seed, index: index, level: level),
+                                             input: input, language: language)
+        } else { nil }
+        let mine = positionLabels?.mine ?? detail?.mine ?? language.text("답변 저장됨", "Answer saved")
+        let correct = positionLabels?.correct ?? detail?.correct ?? language.text("결과 저장됨", "Result saved")
         switch concept {
         case .defend:
             VerdictRow(band: band, mine: mine, correct: correct,
@@ -329,19 +333,23 @@ private struct RestoredDrillContextView: View {
             switch spot.question {
             case let .behind(seat, preflop):
                 LessonSeatLoop(active: seat, markers: [seat: language.text("나", "You")], postflop: !preflop)
-                Text(language.text("\(seat.seatLabel(in: language)) · \(preflop ? "플랍 전" : "플랍 이후")",
-                                   "\(seat.seatLabel(in: language)) · \(preflop ? "before" : "after") the flop"))
+                Text(language.text("\(LessonSeatIdentity.label(seat, language: language)) · \(preflop ? "플랍 전" : "플랍 이후")",
+                                   "\(LessonSeatIdentity.label(seat, language: language)) · \(preflop ? "before" : "after") the flop"))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
             case let .behindInHand(seat, stillIn):
                 LessonSeatLoop(active: seat, markers: Dictionary(uniqueKeysWithValues:
                     [(seat, language.text("나", "You"))] + stillIn.map { ($0, language.text("참여", "In")) }),
                                showsOrder: false, postflop: true)
-                Text(language.text("\(seat.seatLabel(in: language)) · 플랍 이후 · 남은 상대 \(stillIn.count)명",
-                                   "\(seat.seatLabel(in: language)) · after the flop · \(stillIn.count) still in"))
+                Text(language.text("\(LessonSeatIdentity.label(seat, language: language)) · 플랍 이후 · 남은 상대 \(stillIn.count)명",
+                                   "\(LessonSeatIdentity.label(seat, language: language)) · after the flop · \(stillIn.count) still in"))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
             case let .whichIsLater(a, b):
-                LessonSeatLoop(markers: [a: "A", b: "B"])
-                Text(language.text("A와 B 중 나중에 행동하는 자리는 어디일까요?", "Which acts later, A or B?"))
+                LessonSeatLoop(markers: [a: "A", b: "B"], postflop: true)
+                Text(language.text("플랍 이후, A와 B 중 어느 자리가 더 늦게 행동하나요?", "After the flop, which seat acts later: A or B?"))
+                    .font(GT.body(15)).foregroundStyle(GT.onFelt)
+                Text(LessonSeatIdentity.label(a, marker: "A", language: language))
+                    .font(GT.body(15)).foregroundStyle(GT.onFelt)
+                Text(LessonSeatIdentity.label(b, marker: "B", language: language))
                     .font(GT.body(15)).foregroundStyle(GT.onFelt)
             }
         case .evCall:

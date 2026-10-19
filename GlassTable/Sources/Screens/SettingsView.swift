@@ -8,8 +8,6 @@ struct SettingsView: View {
     @Environment(ProgressionModel.self) private var model
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @Environment(LanguageSettings.self) private var languageSettings
-    @Environment(\.leadsWithTerms) private var leadsWithTerms
-    @AppStorage(PokerTerms.storageKey) private var termsChoice: Bool?
     @AppStorage(AppFeedback.soundKey) private var soundOn = false
     @AppStorage(AppFeedback.hapticsKey) private var hapticsOn = true
     @State private var showGlossary = false
@@ -56,20 +54,6 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(language.text("설정", "Settings")).font(GT.title(26)).foregroundStyle(GT.onFelt)
                     .padding(.top, 20)
-                Toggle(isOn: Binding(get: { leadsWithTerms }, set: { termsChoice = $0 })) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(language.text("포커 용어 먼저 보기", "Use poker terms"))
-                            .font(GT.semibold(15)).foregroundStyle(GT.ink)
-                        Text(language.text("끄면 쉬운 말이 먼저 나오고 용어는 옆에 작게 보여요.",
-                                           "When off, plain words come first and the term sits beside them."))
-                            .font(GT.body(12)).foregroundStyle(GT.inkMuted)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .tint(GT.cta)
-                .accessibilityIdentifier("settings-poker-terms")
-                .gtInset(GT.Space.card)
-                .gtCard(radius: 20)
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("플레이와 피드백", "Play & feedback"))
                         .font(GT.semibold(15)).foregroundStyle(GT.ink)

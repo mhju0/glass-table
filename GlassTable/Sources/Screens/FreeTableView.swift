@@ -13,7 +13,6 @@ import GlassTableEngine
 struct FreeTableView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
-    @Environment(\.leadsWithTerms) private var termsLead
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.scenePhase) private var scenePhase
@@ -703,14 +702,16 @@ struct FreeTableView: View {
     private func freeAction(_ title: String, price: String, role: GTActionRole,
                             enabled: Bool, reason: String,
                             action: @escaping () -> Void) -> some View {
-        let plain: String = switch role {
-        case .fold: language.text("포기", "Give up")
-        case .passive: price.isEmpty ? language.text("넘기기", "Pass") : language.text("\(price) 내기", "Add \(price)")
+        let meaning: String = switch role {
+        case .fold: language.text("이번 판 포기", "Give up this hand")
+        case .passive: title == language.text("올인", "All in")
+            ? language.text("남은 칩 모두", "All remaining chips")
+            : price.isEmpty ? language.text("칩 없이 넘기기", "Pass without chips") : language.text("금액 맞추기", "Match the bet")
         case .aggressive: title == language.text("벳", "Bet")
             ? language.text("먼저 걸기", "Bet first") : language.text("더 올리기", "Increase")
         }
-        return GTActionButton(title: termsLead ? title : plain, price: termsLead ? price : "", role: role,
-                       freeTablePresentation: true, secondaryTitle: termsLead ? nil : title,
+        return GTActionButton(title: title, price: price, role: role,
+                       freeTablePresentation: true, secondaryTitle: meaning,
                        minHeight: 87, action: action)
             .disabled(!enabled).opacity(enabled ? 1 : 0.45)
             .accessibilityHint(enabled ? actionMeaning(role, price: price) : reason)

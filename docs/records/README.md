@@ -34,6 +34,8 @@ No images, base64, HTML, secrets or personal data.
 
 | Record | Title | Kind |
 | --- | --- | --- |
+| [2026-10-19-build36-release.md](2026-10-19-build36-release.md) | Build 36 full validation and TestFlight release | verification |
+| [2026-10-19-terminology-learning-help.md](2026-10-19-terminology-learning-help.md) | Poker terminology and learning reference | verification |
 | [2026-10-19-review-followups.md](2026-10-19-review-followups.md) | Independent review follow-ups and validation routine | verification |
 | [2026-10-18-independent-build-review.md](2026-10-18-independent-build-review.md) | Independent review of Claude updates, builds 24–35 | audit |
 | [2026-07-21-m1-plans.md](2026-07-21-m1-plans.md) | Milestone 1 scope and implementation plans | spec notes |

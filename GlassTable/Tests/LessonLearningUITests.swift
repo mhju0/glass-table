@@ -3,6 +3,41 @@ import GlassTableDrills
 @testable import GlassTable
 
 final class LessonLearningUITests: XCTestCase {
+    func testSkillNamesKeepTheTaskPlainAndIntroduceItsPokerTerm() {
+        let english = skillNames(.showdown, language: .english)
+        XCTAssertEqual(english.lead, "Who wins?")
+        XCTAssertEqual(english.tag, "Showdown")
+        let korean = skillNames(.showdown, language: .korean)
+        XCTAssertEqual(korean.tag, "쇼다운")
+        XCTAssertNotEqual(korean.lead, korean.tag)
+    }
+
+    func testPositionLabelsKeepABAttachedToOriginalAnswerIndexes() throws {
+        for language in [LearningLanguage.korean, .english] {
+            for a in Position.allCases {
+                for b in Position.allCases where a != b {
+                    let spot = PositionSpot(question: .whichIsLater(a, b))
+                    let zero = try XCTUnwrap(LessonSeatIdentity.answerLabels(spot: spot, input: .integer(0), language: language))
+                    let one = try XCTUnwrap(LessonSeatIdentity.answerLabels(spot: spot, input: .integer(1), language: language))
+                    XCTAssertEqual(zero.mine, LessonSeatIdentity.label(a, marker: "A", language: language))
+                    XCTAssertEqual(one.mine, LessonSeatIdentity.label(b, marker: "B", language: language))
+                    XCTAssertEqual(zero.correct, spot.correctAnswer == 0 ? zero.mine : one.mine)
+                    XCTAssertEqual(one.correct, zero.correct)
+                    XCTAssertTrue(zero.mine.contains(a.rawValue))
+                    XCTAssertTrue(one.mine.contains(b.rawValue))
+                }
+            }
+        }
+    }
+
+    func testEachSkillLinksToItsOwnGlossaryDefinition() {
+        let expected: [Concept: String] = [.showdown: "showdown", .position: "position", .evCall: "ev",
+            .evLoss: "ev-loss", .rangeNotation: "range-notation", .rfi: "rfi", .actionRead: "action-read",
+            .rangeAdvantage: "range-advantage", .defend: "defend-chart", .hitFrequency: "hit-frequency"]
+        for (concept, id) in expected { XCTAssertEqual(ConceptDrillView.glossaryTerm(for: concept), id) }
+        for concept in Concept.allCases { XCTAssertNotNil(ConceptDrillView.glossaryTerm(for: concept)) }
+    }
+
     func testPositionAndPotOrientationPreserveSavedBeatIndices() {
         for language in [LearningLanguage.korean, .english] {
             for seed: UInt64 in [0, 1, 0x7EAC, 0xBEEF] {

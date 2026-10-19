@@ -15,8 +15,11 @@ final class ReleaseSmokeTests: XCTestCase {
         let guide = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "공부 방법")).firstMatch
         XCTAssertTrue(guide.waitForExistence(timeout: 5))
         guide.tap()
-        XCTAssertTrue(app.staticTexts["한 번에 한 가지씩 배워요"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["다음 이야기"].isEnabled)
+        XCTAssertTrue(app.staticTexts["guide-topic-lessons"].waitForExistence(timeout: 5))
+        let next = app.buttons["guide-next"]
+        XCTAssertTrue(next.isEnabled)
+        next.tap()
+        XCTAssertTrue(app.staticTexts["guide-topic-steps"].waitForExistence(timeout: 5))
     }
 
     func testResponsiveLaunchMeasurement() {

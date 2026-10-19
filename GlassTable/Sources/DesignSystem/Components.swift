@@ -268,18 +268,23 @@ struct VerdictRow: View {
     }
 }
 
-/// "용어 · 팟 오즈" — opens the glossary from inside a reveal.
-/// Owns its own sheet state so a call site is one line.
+/// Opens a general definition without passing the current question or answer.
 struct GlossaryChip: View {
     @Environment(\.learningLanguage) private var language
     let term: String
     @State private var open = false
+    private var name: String { GlossaryView.displayName(for: term, language: language) }
+    private var otherName: String {
+        GlossaryView.displayName(for: term, language: language == .korean ? .english : .korean)
+    }
     var body: some View {
         Button { open = true } label: {
             HStack(spacing: 4) {
                 Image(systemName: "text.book.closed.fill").font(.system(size: 9.5))
-                Text("\(language.text("용어", "Term")) · \(GlossaryView.displayName(for: term, language: language))")
+                Text("\(language.text("용어", "Term")) · \(name) (\(otherName))")
                     .font(GT.semibold(11))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(GT.inkSecondary)
             .padding(.horizontal, 11).padding(.vertical, 6)
@@ -289,9 +294,9 @@ struct GlossaryChip: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
-        .accessibilityLabel(language.text("용어집에서 \(term) 보기",
-                                          "Open glossary entry for \(GlossaryView.displayName(for: term, language: language))"))
-        .sheet(isPresented: $open) { GlossaryView() }
+        .accessibilityLabel(language.text("용어집에서 \(name) (\(otherName)) 보기",
+                                          "Open glossary entry for \(name) (\(otherName))"))
+        .sheet(isPresented: $open) { GlossaryView(focus: term) }
     }
 }
 
