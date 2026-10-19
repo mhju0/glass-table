@@ -60,5 +60,11 @@
 ## Still open
 
 - No full nightly suite, minimum-iOS runtime, physical VoiceOver or novice session performed.
-- Remote CI is pending on the final PR head; the superseded first run was cancelled.
+- CI `39190901552` at `a61b9c2` passed tools, Drills, app unit and all 14 focused
+  UI tests; Release smoke failed because it still expected the old guide headline.
+  Device Release validation was skipped. Corrected smoke checks real topic IDs and
+  Next navigation without demo hooks. Both corrected Release smoke tests passed
+  locally on iPhone 12 mini/iOS 26.5 with fresh derived data and no demo hooks
+  (`/tmp/gt-terms-release-ci-fix.xcresult`). Replacement CI/device Release validation
+  are pending. No app source changed for this CI correction.
 - Branch work only: no merge, TestFlight upload or physical-device installation.

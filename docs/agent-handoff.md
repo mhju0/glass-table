@@ -21,6 +21,12 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   passed. KO/EN normal/AX5 search, both five-state AX dock checks and sampled layouts
   passed/inspected. Final hint copy `b8ff2cc` was rechecked; no scoring changes.
   Evidence: `docs/records/2026-10-19-terminology-learning-help.md`.
+- PR #56 CI at `a61b9c2` [ran and failed](https://github.com/mhju0/glass-table/actions/runs/39190901552):
+  tools, Drills, app unit and all 14 focused UI tests passed. Release smoke opened
+  the guide but still expected its old headline; device Release validation was
+  consequently skipped. The test now checks real topic IDs and Next navigation;
+  both local Release smoke tests passed with fresh derived data on iOS 26.5.
+  The corrected PR head still needs replacement CI, including device Release validation.
 - PR #55's exact `ebb0fae` passed [remote CI](https://github.com/mhju0/glass-table/actions/runs/39143752775),
   including focused UI, Release smoke and unsigned device bundle checks. It remains
   a draft, unmerged and unreleased; no new full nightly or phone checks are implied.
@@ -168,7 +174,9 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 Review follow-ups (2026-10-19):
 - PR #55 focused CI on iOS 26.2 passed at `ebb0fae`; its full UI suite remains
-  unverified. PR #56 local checks passed; its final-head remote CI is pending.
+  unverified. PR #56 `a61b9c2` CI failed its stale Release-guide headline assertion;
+  tools, packages, app unit and 14 focused UI tests passed. Both corrected Release
+  smoke tests passed locally; replacement CI/device Release validation are pending.
   Build-35 failure evidence was inspected: the Call tap
   was near the bottom viewport. The helper now scrolls targets inward, retains the
   Continue assertion and adds failure attachments; exact interception cause is unknown.
@@ -234,6 +242,17 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-19 (Codex · CI Release-guide assertion)
+
+- Checked exact PR #56 head `a61b9c2`: CI ran, but its Release smoke test still
+  expected the previous guide headline. Tools, packages, app unit and all 14 focused
+  UI tests passed; device Release validation was skipped after the smoke failure.
+- Updated the smoke test to require the real first topic and navigate to the next
+  topic without demo hooks. Added the relevant Release check to `docs/validation.md`.
+- Both Release smoke tests passed locally with fresh derived data and no demo hooks.
+  Replacement CI/device Release validation are pending; no app code changes, merge,
+  tag or installation. Evidence stays in the terminology verification record.
+
 ### 2026-10-19 (Codex · terminology and learning reference)
 
 - Removed both terminology controls; paired real terms with plain meanings and added
@@ -280,15 +299,3 @@ Tests:
   The final UI run failed 11 AX tests; cause was the Large Content Viewer on capped
   parts, removed (D54 updated); all 11 then passed locally, unit CI green.
 - Tagged `v1.0-35`. Next: owner installs from TestFlight and checks steps on the phone.
-
-### 2026-10-17 (Claude · TestFlight builds 31–34 and owner's phone feedback)
-
-- Shipped builds 31–34 to TestFlight by tag. Owner feedback from the phone, each with
-  exploration artifacts and owner picks: concentric bottom corners (iOS 26
-  `ConcentricRectangle`, PR #28); outs answer as hand-type rows with 1.5pt inset gold
-  strokes and no outer ring (1A + V1, PR #31); kicker as basics check 3 with a duel panel
-  (2A + K2, PR #32); Learn as list A2 with no question count and the marker = open lesson
-  else suggestion (D51, PR #33); lowercase English hand names (PR #27); a finished lesson
-  closed with ✕ no longer blocks others (PR #30); 원 페어/투 페어 spaced (PR #34).
-- One simulator job at a time throughout (owner's Mac-load rule).
-- Next: owner adds themselves as an internal tester and checks build 34 on the phone.
