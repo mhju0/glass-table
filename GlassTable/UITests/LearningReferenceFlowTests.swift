@@ -38,7 +38,7 @@ final class LearningReferenceFlowTests: XCTestCase {
             let bottom = min(visible.maxY, footer.frame.minY - 8)
             return CGRect(x: visible.minX, y: top, width: visible.width, height: max(0, bottom - top))
         }
-        for _ in 0..<12 {
+        for _ in 0..<24 {
             let visible = viewport()
             let target = button.frame
             if target.minY >= visible.minY, target.maxY <= visible.maxY, button.isHittable { return }
