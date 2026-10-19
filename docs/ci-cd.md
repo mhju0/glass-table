@@ -33,6 +33,14 @@ Its [full UI run](https://github.com/mhju0/glass-table/actions/runs/39126165724)
 had an unresolved AX postflop Continue-button failure in `GradedLearningFlowTests`.
 Passing an older full suite does not clear a later candidate's failure.
 
+Build 36 (`6ea894f`, tag `v1.0-36`) passed [main CI](https://github.com/mhju0/glass-table/actions/runs/39222312223)
+and [signed upload](https://github.com/mhju0/glass-table/actions/runs/39227091437).
+Its exact source tree matches `bb65365`, which passed [all four UI shards](https://github.com/mhju0/glass-table/actions/runs/39212298756)
+and the Engine release gate. That corrected suite clears the open follow-up validation
+from build 35; it does not change the historical failed run. Apple processing and
+internal Me group assignment were verified separately. See the
+[release record](records/2026-10-19-build36-release.md).
+
 The focused PR UI gate uses the same iPhone 17/iOS 26.2 destination as the nightly
 workflow. Local follow-up checks used iOS 26.5; they do not establish remote success.
 
@@ -100,8 +108,8 @@ A refused tag can be deleted and pushed again:
 
 ## Evidence boundaries
 
-The release workflow has run end to end for TestFlight builds 31–35; the build-35
-upload run is linked above. A successful upload is not an App Store submission or
+The release workflow has run end to end for TestFlight builds 31–36; build-35 and
+build-36 upload runs are linked above. A successful upload is not an App Store submission or
 proof of processing, installation or correct phone behavior. Keep those states in
 the build record. If signing fails, the archive and export logs are kept as a
 workflow artifact named `testflight-logs`.
