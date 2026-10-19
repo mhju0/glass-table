@@ -203,8 +203,10 @@ final class LearningReferenceFlowTests: XCTestCase {
             screenshot.lifetime = .keepAlways
             add(screenshot)
             if index > 0 { XCTAssertTrue(app.buttons["guide-previous"].isHittable) }
+            if index == topics.count - 1 { XCTAssertEqual(app.buttons["guide-next"].label, "Done") }
             app.buttons["guide-next"].tap()
         }
-        XCTAssertFalse(app.buttons["guide-next"].exists)
+        XCTAssertTrue(app.buttons["guide-next"].waitForNonExistence(timeout: 5), "Done must dismiss the guide")
+        XCTAssertTrue(app.staticTexts["Settings"].firstMatch.waitForExistence(timeout: 5))
     }
 }

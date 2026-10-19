@@ -20,6 +20,18 @@
 - Check App Store Connect processing/tester availability if the signed-in session permits it.
 - Validation and release are pending. Run links and actual outcomes will be recorded here.
 
+## Validation corrections
+
+- Candidate `605c8c2` passed Engine release tests (96 XCTest), but CI run
+  `39203624861` failed one of 14 focused UI tests: the AX5 guide test asserted
+  removal immediately after Done. All seven topic/lookup/reading-position checks
+  passed; the captured tap landed within the visible Done button. The unchanged
+  test passed locally on iPhone 17/iOS 26.1; CI used iOS 26.2.
+- The test now waits up to five seconds for dismissal and confirms Settings returns,
+  retaining all page and lookup assertions. This is test synchronization only;
+  the corrected exact test passed locally on iPhone 17/iOS 26.1 (241 seconds).
+  Replacement CI is required. The full UI run on `605c8c2` is still pending.
+
 ## Still open
 
 - No build 36 upload or Apple processing evidence yet. No phone installation is requested.

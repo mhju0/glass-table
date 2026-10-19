@@ -29,6 +29,12 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   consequently skipped. The test now checks real topic IDs and Next navigation;
   both local Release smoke tests passed with fresh derived data on iOS 26.5.
   The corrected PR head still needs replacement CI, including device Release validation.
+- Build-36 candidate `605c8c2` passed Engine release tests but CI `39203624861`
+  failed the AX5 guide's immediate post-Done removal assertion (13/14 focused
+  tests passed). All seven topics/lookups/offset checks passed. The unchanged
+  test passed locally on iOS 26.1; CI was iOS 26.2. A bounded dismissal wait and
+  positive Settings-return assertion passed locally on iOS 26.1; replacement CI and the
+  full UI suite must pass before merge. No product source change is indicated.
 - PR #55's exact `ebb0fae` passed [remote CI](https://github.com/mhju0/glass-table/actions/runs/39143752775),
   including focused UI, Release smoke and unsigned device bundle checks. It remains
   a draft, unmerged and unreleased; no new full nightly or phone checks are implied.
@@ -249,9 +255,11 @@ Tests:
 - Owner authorized full CI followed by merges and TestFlight upload. Prepared version
   1.0 (36) on #56 over #55; no product or progress-schema changes for the build bump.
 - Release gates include full CI, the four-shard UI suite and Engine release tests on
-  one frozen candidate, then main CI before the matching tag/upload. All are pending.
-- Release record: `docs/records/2026-10-19-build36-release.md`. Owner is signing into
-  App Store Connect so processing and tester availability can be checked separately.
+  one frozen candidate, then main CI before the matching tag/upload. `605c8c2` passed
+  Engine, but CI failed the immediate post-Done guide assertion. A test-only bounded
+  dismissal wait plus Settings-return check passed locally; replacement gates pending.
+- Release record: `docs/records/2026-10-19-build36-release.md`. App Store Connect is
+  signed in; existing internal group uses automatic builds. Build 36 is not uploaded.
 
 ### 2026-10-19 (Codex · CI Release-guide assertion)
 
