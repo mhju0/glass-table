@@ -139,14 +139,14 @@ This index is newly consolidated. Earlier records remain intact; missing install
 
 ## Build 36 — review corrections and self-directed reference learning, 2026-10-19
 
-- Owner authorized full CI, ordered merges and TestFlight upload. Candidate is PR #56
-  on top of #55; version remains 1.0 and build number is 36. Not uploaded yet.
+- Released 1.0 (36) from `6ea894f`, tag `v1.0-36`, after PRs #55 and #56. Full tree
+  equals tested `bb65365`. Complete CI, Engine release and all four UI shards passed;
+  main CI passed before the tag. Signed archive, bundle verification and upload passed.
 - Includes recoverable graded-table gating, scalable counts, explicit grading premises,
   corrected preflop closure, Casual / 캐주얼형 wording, real terms with explanations,
   searchable bilingual glossary and readable Settings learning guide. Reference lookup
   counts as independent learning; current-question coaching counts as assisted.
-- Progress schema and stored question identities are unchanged. Independent reviews and
-  local evidence are in the two October 19 records. Full CI, full UI suite and engine
-  release gate will validate the frozen candidate before merge; main CI precedes the tag.
-- Release, Apple processing and tester availability remain pending; no phone installation
-  or App Store review submission is included. Evidence: [release record](records/2026-10-19-build36-release.md).
+- Progress schema and stored question identities are unchanged. Apple processing and
+  assignment to existing internal group Me (one tester) verified; bilingual What to Test
+  notes saved. No phone installation or App Store review submission was requested.
+- Evidence: [release record](records/2026-10-19-build36-release.md).
