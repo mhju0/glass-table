@@ -7,6 +7,14 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-20)
 
+- Owner selected restrained Liquid Glass for navigation controls only. Scope 3 is on
+  `feat/liquid-glass-20261020` in `glass-table-glass`, stacked above unchanged PR #58
+  at `9d3bd633`. Static iOS 26 glass preserves 10-point shapes and existing geometry;
+  content controls stay opaque. Actual Reduce Transparency and increased contrast
+  select the existing opaque surface. Navigation text uses a gentler pressed fade
+  for contrast. No merge, build/version bump or TestFlight release is included.
+  Exact independent review and full CI are tracked in the scope-3 PR checks;
+  local evidence and limitations: `docs/records/2026-10-20-navigation-glass.md`.
 - Owner approved the next Apple-alignment scope before any merge/TestFlight release.
   On the same motion branch, free-table amount buttons now use native repeat behavior
   with existing press styling, active-scene guards and amount bounds. Removed the
@@ -246,7 +254,7 @@ Tests:
 
 ## Recent sessions
 
-### 2026-10-20 (Codex · motion alignment and native controls)
+### 2026-10-20 (Codex · motion, native controls and navigation glass)
 
 - Implemented the owner-approved first scope at `3dc9023`: missing Reduce Motion
   guards, immediate slider-grid updates and removal of the 1.2-second verdict shadow.
@@ -262,6 +270,13 @@ Tests:
   amount tests, five system Reduce Motion cases and actual active-hold interruption
   passed. Four control cases now gate PRs; independent review/cloud evidence lives
   in PR #58 and `docs/records/2026-10-20-native-control-behavior.md`.
+
+- Owner selected scope 3: restrained navigation glass, separately stacked above #58.
+  Preserved felt/cards/colors/10-point shapes and real press/cancel behavior. A native
+  container suppressed glyph feedback in controlled comparison, so it was omitted.
+  Small text pressed contrast was corrected with a navigation-only fade adjustment.
+  Native English/light and Korean/dark/AX5 flows passed; exact final checks and limits
+  are in `docs/records/2026-10-20-navigation-glass.md`. Merge/release remains on hold.
 
 ### 2026-10-19 (Codex · build 36 validation and release)
 

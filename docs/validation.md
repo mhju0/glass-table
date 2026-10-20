@@ -51,6 +51,19 @@ and its live content should follow direct manipulation without trailing animatio
   background or dismissal. Native repeat cadence belongs to the system; do not assert
   the removed custom timer's delay or interval as the expected platform behavior.
 
+## Navigation glass checks
+
+Keep glass on explicit navigation roles; content controls retain their existing opaque
+surface. Compare native baseline/candidate frames in light and dark, Korean and English,
+normal and accessibility text sizes. Verify the 40-point tile, 44-point tap reach,
+content alignment, labels, scroll reachability and close/back/menu cancellation.
+
+Exercise actual system Reduce Transparency and Increase Contrast independently and
+confirm the opaque fallback, with Reduce Motion checked separately. Inspect held
+feedback and small text contrast as well as idle appearance. Shared glass containers
+can change pressed rendering: verify real holds before introducing one. Pre-iOS-26
+availability guards are not evidence of runtime testing on an older OS.
+
 ## Before a TestFlight tag
 
 Freeze the candidate commit. Finish focused checks after the last relevant edit.

@@ -260,7 +260,7 @@ struct FreeTableView: View {
                     Button(language.text("게임 돌아보기", "Game review")) { showGameReview = true }
                 }
             } label: {
-                ChromeGlyph(symbol: "ellipsis")
+                ChromeGlyph(symbol: "ellipsis", role: .navigation)
             }
             .accessibilityLabel(language.text("게임 메뉴", "Game menu"))
             .accessibilityIdentifier("free-game-menu")

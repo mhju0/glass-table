@@ -37,6 +37,22 @@ Energy 1 / rhythm 2 / motion 1. Use strong hierarchy and purposeful spacing. Dif
 - Prefer native sheets/navigation over bespoke gestures. All primary paths work with visible taps. Sliders have tap alternatives.
 - Motion acknowledges a press or a changed relationship; no loops, timed waits or decorative pulses.
 
+### Navigation glass, approved 2026-10-20
+
+The owner chose restrained Liquid Glass on navigation controls. On iOS 26, Close,
+Back, top-bar text actions and the game-menu tile use regular glass within the
+existing 10-point shapes. Keep the current geometry, opaque bar strip and press
+feedback. Navigation text uses a gentler pressed fade to preserve small-text
+contrast. Select this treatment by navigation role so reused inline glyphs and
+amount controls retain their existing surfaces. Felt, cards, teaching choices and
+ordinary action controls keep their established appearance.
+
+Reduce Transparency, increased contrast and earlier iOS versions use the existing
+opaque treatment. Reduce Motion keeps the established opacity feedback without
+scale. Apply material once; avoid additional morphing or elastic gestures. Check
+light/dark appearance, Korean/English at normal and accessibility sizes, actual
+accessibility settings, and page/sheet transitions before accepting the candidate.
+
 ## Educational grounding
 
 See [research foundation](docs/specs/2026-09-13-revamp-research.md) and [baseline audit](docs/specs/2026-09-13-design-audit.md). Preserve independent retrieval before answers, gradual removal of support, delayed reviews, mixed checkpoints, explanatory feedback and honest measurements. The exact session lengths and tier thresholds are product heuristics, not validated professional-poker standards.

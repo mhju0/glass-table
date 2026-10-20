@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: macos-15
-    timeout-minutes: 50
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v5
       # The app compiles against iOS 26 API (sharedBackgroundVisibility in the nav
@@ -68,6 +68,9 @@ jobs:
             -only-testing:GlassTableUITests/FreeRaiseFlowTests/testRaiseAXPanFromAdjustmentCancelsStepAndScrolls \
             -only-testing:GlassTableUITests/FreeRaiseFlowTests/testDraggingAwayAfterRepeatStopsAndLowerLimitHolds \
             -only-testing:GlassTableUITests/FreeRaiseFlowTests/testBackgroundAndReopeningDoNotReviveReleasedRepeat \
+            -only-testing:GlassTableUITests/NavigationChromeTests/testEnglishLightNavigationControls \
+            -only-testing:GlassTableUITests/NavigationChromeTests/testKoreanDarkAXNavigationControls \
+            -only-testing:GlassTableUITests/LearningFlowTests/testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge \
             -only-testing:GlassTableUITests/GradedLearningFlowTests/testAXPostflopChartIsExplicitlyAStartingHandReference \
             -only-testing:GlassTableUITests/BeginnerReleaseTests/testLegacyTerminologyPreferencesUseOneLearningPolicy \
             -only-testing:GlassTableUITests/TerminologyLearningFlowTests/testKoreanAXComparisonKeepsBothSeatIdentitiesAfterRestore \
