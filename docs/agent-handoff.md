@@ -7,6 +7,13 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-20)
 
+- Owner explicitly requested a new TestFlight build after scope 4. Build 1.0 (37)
+  is being prepared on `release/build37-20261020`, integrating reviewed scopes 1–4
+  from `e9c8fb6`; only the build number and release records change afterward.
+  Earlier no-merge/no-release statements below describe the scope verification
+  phase and are superseded by this release request. Preserve the unresolved
+  material-sensitive strict audit warning; do not claim full accessibility clearance.
+  Release CI, merge, upload and Apple processing are pending, not completed.
 - Owner approved scope 4: device interaction/accessibility polish on
   `fix/interaction-accessibility-20261020` in `glass-table-interaction`, stacked above
   PR #59. Confirmed fixes hide the decorative glossary search icon from VoiceOver,
@@ -280,6 +287,8 @@ Tests:
 
 ### 2026-10-20 (Codex · motion, controls, glass and device accessibility)
 
+- Owner then requested a new TestFlight build. Preparing build 37 from the exact
+  reviewed scope-4 app source; release evidence belongs in the build-37 record.
 - Implemented the owner-approved first scope at `3dc9023`: missing Reduce Motion
   guards, immediate slider-grid updates and removal of the 1.2-second verdict shadow.
   Preserved the app's look, native presentations and instructional replay semantics.

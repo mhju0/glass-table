@@ -34,6 +34,7 @@ No images, base64, HTML, secrets or personal data.
 
 | Record | Title | Kind |
 | --- | --- | --- |
+| [2026-10-20-build37-release.md](2026-10-20-build37-release.md) | Build 37 release and TestFlight evidence | verification |
 | [2026-10-20-interaction-accessibility.md](2026-10-20-interaction-accessibility.md) | Device interaction and VoiceOver polish | verification |
 | [2026-10-20-accessibility-audit-followup.md](2026-10-20-accessibility-audit-followup.md) | Native accessibility audit findings and limits | audit |
 | [2026-10-20-navigation-glass.md](2026-10-20-navigation-glass.md) | Restrained navigation glass and accessible fallbacks | verification |
