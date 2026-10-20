@@ -11,6 +11,7 @@ import GlassTableDrills
 struct OutsRiverReveal: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let spot: OutsSpot
     @State private var picked: Card?
 
@@ -109,7 +110,7 @@ struct OutsRiverReveal: View {
 
     private func riverButton(_ card: Card, dead: Bool, picked isPicked: Bool) -> some View {
         Button {
-            withAnimation(GT.Motion.change) { picked = card }
+            withAnimation(reduceMotion ? nil : GT.Motion.change) { picked = card }
         } label: {
             PlayingCardView(card: card, size: Self.listCardSize, dead: dead)
                 .overlay {

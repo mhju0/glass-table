@@ -40,14 +40,15 @@ final class FreeRaiseFlowTests: XCTestCase {
         let before = amount.label
         plus.press(forDuration: 0.15, thenDragTo: app.buttons["free-table-help"])
         XCTAssertEqual(amount.label, before, "Leaving the adjustment target cancels")
-        plus.press(forDuration: 0.9)
-        XCTAssertGreaterThan(Int(amount.label.split(separator: " ").last ?? "0") ?? 0, 6, "Holding repeats after 400ms")
+        plus.press(forDuration: 2)
+        XCTAssertGreaterThan(Int(amount.label.split(separator: " ").last ?? "0") ?? 0, 6, "Holding repeats at system cadence")
         let held = amount.label
+        print("NATIVE_REPEAT hold2s before=\(before) held=\(held)")
         RunLoop.current.run(until: Date().addingTimeInterval(0.4))
         XCTAssertEqual(amount.label, held, "Release stops repeat")
         let heldValue = Int(held.split(separator: " ").last ?? "0") ?? 0
         plus.tap()
-        XCTAssertEqual(amount.label, "Raise to \(heldValue + 1)", "A new quick tap resets the repeat latch")
+        XCTAssertEqual(amount.label, "Raise to \(heldValue + 1)", "A new quick tap adjusts exactly once after a hold")
         app.buttons["free-raise-preset-4"].tap()
         XCTAssertEqual(app.buttons["free-raise-confirm"].label, "All in 100")
         XCTAssertEqual(dock.frame.height, height, accuracy: 0.5)
@@ -73,6 +74,76 @@ final class FreeRaiseFlowTests: XCTestCase {
         expectation(for: NSPredicate(format: "exists == true"), evaluatedWith: fold)
         waitForExpectations(timeout: 15)
         XCTAssertTrue(fold.exists || settled.exists)
+    }
+
+    func testDraggingAwayAfterRepeatStopsAndLowerLimitHolds() {
+        let app = app(phase: "raise-open")
+        let amount = app.staticTexts["free-raise-amount"]
+        let plus = app.buttons["free-raise-plus"]
+        let hero = app.otherElements["practice-0"]
+        let pot = app.descendants(matching: .any)["table-pot"]
+        XCTAssertTrue(hero.exists)
+        XCTAssertTrue(pot.exists)
+        let heroBefore = hero.label, potBefore = pot.label
+        XCTAssertFalse(heroBefore.isEmpty)
+        XCTAssertFalse(potBefore.isEmpty)
+        plus.press(forDuration: 2, thenDragTo: app.buttons["free-table-help"],
+                   withVelocity: .slow, thenHoldForDuration: 0.6)
+        let afterExit = amount.label
+        XCTAssertGreaterThan(Int(afterExit.split(separator: " ").last ?? "0") ?? 0, 5,
+                             "Repeat started before the finger left the adjustment")
+        print("NATIVE_REPEAT drag-away held=\(afterExit)")
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        XCTAssertEqual(amount.label, afterExit, "Leaving the button stops an active repeat")
+        XCTAssertFalse(app.buttons["free-table-back-close"].exists)
+        XCTAssertEqual(hero.label, heroBefore)
+        XCTAssertEqual(pot.label, potBefore)
+        app.buttons["free-raise-cancel"].tap()
+        app.buttons["free-raise"].tap()
+        XCTAssertEqual(amount.label, "Raise to 4")
+        plus.tap()
+        XCTAssertEqual(amount.label, "Raise to 5")
+        let minus = app.buttons["free-raise-minus"]
+        minus.press(forDuration: 2)
+        XCTAssertEqual(amount.label, "Raise to 4")
+        XCTAssertFalse(minus.isEnabled)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        XCTAssertEqual(amount.label, "Raise to 4", "The lower limit stops without another adjustment")
+        plus.tap()
+        XCTAssertEqual(amount.label, "Raise to 5", "A new tap still adjusts exactly once")
+        XCTAssertEqual(hero.label, heroBefore)
+        XCTAssertEqual(pot.label, potBefore)
+        capture(app, name: "native-repeat-drag-away-and-lower-limit")
+    }
+
+    func testBackgroundAndReopeningDoNotReviveReleasedRepeat() {
+        let app = app(phase: "raise-open")
+        let amount = app.staticTexts["free-raise-amount"]
+        let plus = app.buttons["free-raise-plus"]
+        plus.press(forDuration: 2)
+        let held = amount.label
+        XCTAssertGreaterThan(Int(held.split(separator: " ").last ?? "0") ?? 0, 5)
+        let hero = app.otherElements["practice-0"].label
+        let pot = app.descendants(matching: .any)["table-pot"].label
+        XCTAssertFalse(hero.isEmpty)
+        XCTAssertFalse(pot.isEmpty)
+        XCUIDevice.shared.press(.home)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        app.activate()
+        XCTAssertTrue(amount.waitForExistence(timeout: 10))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        XCTAssertEqual(amount.label, held)
+        let heldValue = Int(held.split(separator: " ").last ?? "0") ?? 0
+        plus.tap()
+        XCTAssertEqual(amount.label, "Raise to \(heldValue + 1)")
+        app.buttons["free-raise-cancel"].tap()
+        app.buttons["free-raise"].tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        XCTAssertEqual(amount.label, "Raise to 4", "Reopening does not revive an earlier hold")
+        XCTAssertEqual(app.otherElements["practice-0"].label, hero)
+        XCTAssertEqual(app.descendants(matching: .any)["table-pot"].label, pot)
+        XCTAssertFalse(app.buttons["free-next-hand"].exists)
+        capture(app, name: "native-repeat-background-and-reopened-amount")
     }
 
     func testFacingRaiseKeepsFiveAndDuplicatePresets() {

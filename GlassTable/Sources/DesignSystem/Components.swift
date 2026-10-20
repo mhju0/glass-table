@@ -438,31 +438,53 @@ struct GTControlBackground: View {
     }
 }
 
+enum GTControlRole {
+    case content, navigation
+}
+
+private struct GTControlSurface: ViewModifier {
+    let role: GTControlRole
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *), role == .navigation,
+           !reduceTransparency, contrast != .increased {
+            content.glassEffect(.regular, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+        } else {
+            content.background { GTControlBackground() }
+        }
+    }
+}
+
 /// A small text action on the outlined tile: 40pt drawn, 44pt tappable. For actions that
 /// were once bare text, so they read as controls before they are tapped.
 struct GTOutlinedAction: ButtonStyle {
     /// Stretches the tile across the row.
     var fills = false
+    var role: GTControlRole = .content
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
         let pressed = configuration.isPressed && isEnabled
-        configuration.label.gtOutlinedLabel(fills: fills)
+        let pressedOpacity = role == .navigation ? 0.95 : 0.78
+        configuration.label.gtOutlinedLabel(fills: fills, role: role)
             .scaleEffect(pressed && !reduceMotion ? 0.98 : 1)
-            .opacity(pressed ? 0.78 : isEnabled ? 1 : 0.5)
+            .opacity(pressed ? pressedOpacity : isEnabled ? 1 : 0.5)
             .animation(reduceMotion ? nil : GT.Motion.press, value: pressed)
     }
 }
 
 extension View {
     /// The outlined tile for a label the system draws itself, such as a `Link`.
-    func gtOutlinedLabel(fills: Bool = false) -> some View {
+    func gtOutlinedLabel(fills: Bool = false, role: GTControlRole = .content) -> some View {
         font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 14).padding(.vertical, 8)
             .frame(maxWidth: fills ? .infinity : nil, minHeight: ChromeGlyph.tile)
-            .background { GTControlBackground() }
+            .modifier(GTControlSurface(role: role))
             .frame(minHeight: ChromeGlyph.tile + 2 * ChromeGlyph.reach)
             .contentShape(Rectangle())
     }
@@ -473,6 +495,7 @@ extension View {
 struct ChromeGlyph: View {
     @Environment(\.chromeEdge) private var edge
     let symbol: String
+    var role: GTControlRole = .content
 
     /// The drawn tile, and how far the tap target reaches past it on each side.
     static let tile: CGFloat = 40
@@ -483,7 +506,7 @@ struct ChromeGlyph: View {
             .font(.system(size: 17, weight: .semibold))
             .foregroundStyle(GT.onFelt)
             .frame(width: Self.tile, height: Self.tile)
-            .background { GTControlBackground() }
+            .modifier(GTControlSurface(role: role))
             .frame(width: Self.tile + 2 * Self.reach, height: Self.tile + 2 * Self.reach)
             .contentShape(Rectangle())
             // The target reaches past the content edge; the tile stays on it.
@@ -493,10 +516,8 @@ struct ChromeGlyph: View {
 
 /// The one top-bar control, drawn by us rather than by the system.
 ///
-/// Under iOS 26 a toolbar item is handed a Liquid Glass capsule whose material samples
-/// whatever sits behind it. On a sheet that is the *outgoing* screen, so the button
-/// visibly changes shade while the sheet settles. Our tile is a flat fill with no
-/// material to resolve.
+/// Navigation tiles use static Liquid Glass on iOS 26, with the existing opaque
+/// surface for earlier systems, Reduce Transparency and increased contrast.
 ///
 /// The leading control leaves the screen: Close dismisses it, Back returns to the screen
 /// that pushed it. Stepping back inside a flow is a Previous button beside Next.
@@ -518,7 +539,7 @@ struct ChromeButton: View {
     }
 
     var body: some View {
-        Button(action: action) { ChromeGlyph(symbol: symbol) }
+        Button(action: action) { ChromeGlyph(symbol: symbol, role: .navigation) }
             .buttonStyle(GTPress())
             .accessibilityLabel(spoken == "닫기" ? language.text("닫기", "Close") : spoken)
     }
@@ -530,7 +551,7 @@ struct ChromeTextButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(title, action: action).buttonStyle(GTOutlinedAction())
+        Button(title, action: action).buttonStyle(GTOutlinedAction(role: .navigation))
     }
 }
 
@@ -959,6 +980,7 @@ private struct StepSplit: Layout {
 /// moves fill, border and weight together so it never leans on colour alone.
 struct GTChoiceButton: View {
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let title: String
     var selected: Bool = false
     var minHeight: CGFloat = 54
@@ -998,7 +1020,7 @@ struct GTChoiceButton: View {
             }
         }
         .buttonStyle(GTPress())
-        .animation(GT.Motion.change, value: isEnabled)
+        .animation(reduceMotion ? nil : GT.Motion.change, value: isEnabled)
     }
 }
 
@@ -1178,14 +1200,15 @@ struct EstimateStepper: View {
 /// Visible tap controls beside a slider. They are a full alternative input path,
 /// while the slider remains useful for quickly exploring a large numeric range.
 struct AdjustmentButtons: View {
+    @Environment(\.learningLanguage) private var language
     let label: String
     let decrement: () -> Void
     let increment: () -> Void
 
     var body: some View {
         HStack(spacing: 8) {
-            key("minus", spoken: "\(label) 줄이기", action: decrement)
-            key("plus", spoken: "\(label) 늘리기", action: increment)
+            key("minus", spoken: language.text("\(label) 줄이기", "Decrease \(label)"), action: decrement)
+            key("plus", spoken: language.text("\(label) 늘리기", "Increase \(label)"), action: increment)
         }
     }
 
@@ -1247,100 +1270,5 @@ struct GTAnchoredDockFaceLayout: Layout {
         let bodyHeight = scrollsBody ? max(0, bounds.height - headerHeight - 12) : nil
         subviews[1].place(at: CGPoint(x: bounds.minX, y: bounds.maxY), anchor: .bottomLeading,
                           proposal: ProposedViewSize(width: bounds.width, height: bodyHeight))
-    }
-}
-
-/// Native button presses allow the dock's scroll view to cancel an adjustment.
-struct GTHoldStepStyle: PrimitiveButtonStyle {
-    var enabled: Bool
-
-    func makeBody(configuration: Configuration) -> some View {
-        GTHoldStepBody(enabled: enabled, trigger: configuration.trigger) {
-            configuration.label
-        }
-    }
-}
-
-private struct GTHoldStepBody<Label: View>: View {
-    @Environment(\.isEnabled) private var parentEnabled
-    @Environment(\.scenePhase) private var scenePhase
-    let enabled: Bool
-    let trigger: () -> Void
-    @ViewBuilder let label: () -> Label
-    @State private var repeated = false
-
-    private var available: Bool { enabled && parentEnabled }
-
-    var body: some View {
-        Button {
-            guard available, scenePhase == .active, !repeated else { return }
-            trigger()
-        } label: {
-            label()
-        }
-        .buttonStyle(GTHoldStepPressStyle(available: available, repeated: $repeated, step: trigger))
-        .accessibilityAction {
-            guard available, scenePhase == .active else { return }
-            trigger()
-        }
-    }
-}
-
-private struct GTHoldStepPressStyle: ButtonStyle {
-    let available: Bool
-    @Binding var repeated: Bool
-    let step: () -> Void
-
-    func makeBody(configuration: Configuration) -> some View {
-        GTHoldStepPressBody(isPressed: configuration.isPressed, available: available,
-                            repeated: $repeated, step: step) {
-            configuration.label
-        }
-    }
-}
-
-private struct GTHoldStepPressBody<Label: View>: View {
-    @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    let isPressed: Bool
-    let available: Bool
-    @Binding var repeated: Bool
-    let step: () -> Void
-    @ViewBuilder let label: () -> Label
-    @State private var pressed = false
-    @State private var repeatTask: Task<Void, Never>?
-
-    var body: some View {
-        label()
-            .scaleEffect(pressed && !reduceMotion ? 0.97 : 1)
-            .animation(reduceMotion ? nil : GT.Motion.press, value: pressed)
-            .onChange(of: isPressed) { _, isPressed in
-                if isPressed { start() } else { stop() }
-            }
-            .onChange(of: available) { _, available in if !available { stop() } }
-            .onChange(of: scenePhase) { _, phase in if phase != .active { stop() } }
-            .onDisappear { stop() }
-    }
-
-    private func start() {
-        guard available, scenePhase == .active, !pressed else { return }
-        pressed = true
-        // Keep this latch through release: the native action can precede or follow it.
-        repeated = false
-        repeatTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(400))
-            guard !Task.isCancelled, pressed, available, scenePhase == .active else { return }
-            repeated = true
-            while !Task.isCancelled, pressed, available, scenePhase == .active {
-                step()
-                try? await Task.sleep(for: .milliseconds(100))
-            }
-        }
-    }
-
-    private func stop() {
-        repeatTask?.cancel()
-        repeatTask = nil
-        pressed = false
     }
 }

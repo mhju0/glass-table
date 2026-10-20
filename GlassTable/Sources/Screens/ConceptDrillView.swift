@@ -2102,8 +2102,6 @@ private struct RangeReadDrill: View {
                 RangeGridView(range: reveal?.truth ?? estimate.range,
                               outline: reveal?.guess)
                     .frame(maxWidth: 250)
-                    .animation(GT.Motion.change, value: width)
-                    .animation(GT.Motion.change, value: excludedTop)
                 }
                 if let reveal { RangeDifferenceList(truth: reveal.truth, guess: reveal.guess) }
             }

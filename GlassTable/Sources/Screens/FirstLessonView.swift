@@ -23,7 +23,6 @@ struct FirstLessonView: View {
 
     @State private var step: Step = .welcome
     @State private var answer: Int?
-    @State private var pulse = false
     @State private var history: [Step] = []
     @State private var returning = false
     @State private var submitted: [Step: Int] = [:]
@@ -1012,7 +1011,6 @@ struct FirstLessonView: View {
             let result = answerStepForCurrentQuestion
             if transition(to: result, response: .choice(value)) {
                 AppFeedback.answer(correct: value == spot.winner)
-                pulse = !reduceMotion
             }
         } label: {
             handLayout(label: handChoiceLabel(title), cards: cards)
@@ -1081,8 +1079,6 @@ struct FirstLessonView: View {
                 RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
                     .strokeBorder(mark?.band.ink ?? GT.border, lineWidth: mark == nil ? 1 : 2.5)
             }
-            .shadow(color: picked && pulse ? (mark?.band.ink ?? .clear).opacity(0.55) : .clear,
-                    radius: picked && pulse ? 12 : 0)
             .overlay(alignment: .topTrailing) {
                 if !inline, let mark { markBadge(mark.text, band: mark.band).offset(x: -12, y: -11) }
             }
@@ -1090,10 +1086,6 @@ struct FirstLessonView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel([title, spoken(cards), DrillTerms.hand(value == 0 ? spot.heroBest : spot.villainBest, in: language), mark?.spoken]
                 .compactMap { $0 }.joined(separator: ", "))
-            .onAppear {
-                guard picked, pulse else { return }
-                withAnimation(.easeOut(duration: 1.2)) { pulse = false }
-            }
     }
 
     private func markBadge(_ text: String, band: GradeBand) -> some View {

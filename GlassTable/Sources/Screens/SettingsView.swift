@@ -11,6 +11,7 @@ struct SettingsView: View {
     @AppStorage(AppFeedback.soundKey) private var soundOn = false
     @AppStorage(AppFeedback.hapticsKey) private var hapticsOn = true
     @State private var showGlossary = false
+    @AccessibilityFocusState(for: .voiceOver) private var glossaryButtonFocused: Bool
     @State private var showGuide = false
     @State private var showFirstLesson = false
     @State private var showLicense = false
@@ -82,11 +83,15 @@ struct SettingsView: View {
                     // A sheet, not a push — the same way the 용어 chip in a reveal opens
                     // it. Pushing gave the glossary a system back button, the one piece
                     // of chrome the app cannot draw itself.
-                    Button { showGlossary = true } label: {
+                    Button {
+                        glossaryButtonFocused = false
+                        showGlossary = true
+                    } label: {
                         row("book.fill", language.text("용어집", "Glossary"),
                             language.text("포커 용어 한국어·영어 정리", "Poker terms explained in Korean and English."), chevron: true)
                     }
                     .buttonStyle(GTPress())
+                    .accessibilityFocused($glossaryButtonFocused)
                     // 통계 and 첫 핸드 are gone. StatsView read the M1 per-drill stores
                     // that nothing writes any more, and 첫 핸드 is superseded by first
                     // run — 천천히 replays any concept's walkthrough on demand instead.
@@ -235,7 +240,7 @@ struct SettingsView: View {
         .background(FeltBackground())
         // Apply the saved choice to Settings and its presented detail sheets.
         .preferredColorScheme(appearance.colorScheme)
-        .sheet(isPresented: $showGlossary) { GlossaryView() }
+        .sheet(isPresented: $showGlossary, onDismiss: { glossaryButtonFocused = true }) { GlossaryView() }
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
         .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }
         .sheet(isPresented: $showResponsible) { NavigationStack { ResponsiblePlayView() } }

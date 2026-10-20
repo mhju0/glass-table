@@ -29,6 +29,64 @@ Run relevant package/app tests and the required CI gates. A fresh full UI workfl
 can run separately; inspect any failures on the exact candidate and record whether
 they are fixed, reproduced, or still unresolved. Do not silently call them flakes.
 
+## Motion checks
+
+Use Apple's [Motion HIG](https://developer.apple.com/design/human-interface-guidelines/motion)
+for purposeful, brief feedback, natural gesture response and cancellable interaction.
+Keep instructional card/chip sequencing distinct from decorative UI effects. A slider
+and its live content should follow direct manipulation without trailing animation.
+
+- Exercise repeated selections, reversals, dismissal and return. Verify that the final
+  visible state matches the last action, without committing an answer or losing work.
+- Check normal motion and the actual system Reduce Motion setting. The free-table
+  `GT_DEMO_REDUCE_MOTION` override covers only that path; it does not exercise SwiftUI's
+  environment in other screens. Use a disposable simulator for system-setting checks.
+- Inspect rendered feedback as well as final state. Screenshots establish content and
+  geometry; recordings or observed interactions are needed to judge timing/continuity.
+  Retain readable text, selection marks and accessible labels when movement is removed.
+- Include compact screens and relevant Korean/English normal/AX5 flows. Simulator
+  evidence does not establish physical-device feel, haptics or measured frame rate.
+- For repeating amount controls, verify one-step taps, multiple adjustments during a
+  hold, stopping on release/drag-away/scroll, both bounds and fresh input after a
+  background or dismissal. Native repeat cadence belongs to the system; do not assert
+  the removed custom timer's delay or interval as the expected platform behavior.
+
+## Navigation glass checks
+
+Keep glass on explicit navigation roles; content controls retain their existing opaque
+surface. Compare native baseline/candidate frames in light and dark, Korean and English,
+normal and accessibility text sizes. Verify the 40-point tile, 44-point tap reach,
+content alignment, labels, scroll reachability and close/back/menu cancellation.
+
+Exercise actual system Reduce Transparency and Increase Contrast independently and
+confirm the opaque fallback, with Reduce Motion checked separately. Inspect held
+feedback and small text contrast as well as idle appearance. Shared glass containers
+can change pressed rendering: verify real holds before introducing one. Pre-iOS-26
+availability guards are not evidence of runtime testing on an older OS.
+
+## Device accessibility and interaction checks
+
+An automated accessibility audit is diagnostic evidence, not a substitute for actual
+VoiceOver traversal. Inspect flags against settled pixels and spoken information;
+keep failures visible rather than suppressing them to make a gate green. Consolidated
+card/seat labels and deliberate D54 caps require checking the actual spoken meaning.
+
+- In actual VoiceOver, navigate Settings to Glossary, activate the focused button,
+  traverse search and entries, return to focused Close and activate it. Verify focus
+  returns to the invoker, reopen and dismiss again, then move onward without a later
+  focus jump. Include Korean AX5 and English normal text. Check native dismissal too;
+  synthetic Escape input alone does not establish a two-finger scrub result.
+- Traverse table seats, hero cards, pot and action controls. Opponent cards remain
+  face down before showdown, including spoken output. Check the actual menu items.
+- Record device OS, build configuration and binary/source identity separately for
+  Debug test-store flows and Release measurements. Run signed updates with the
+  owner's selected data policy; keep physical feel and haptics distinct from automation.
+- For performance, measure a bounded Release interaction with Instruments. Inspect
+  frame/hitch data and main-thread stacks; potential delays during XCTest snapshots
+  are not automatically user hangs. Do not infer FPS from frame-event counts or claim
+  an improvement without a comparable measurement. Prefer a narrow fix supported by
+  an observed app bottleneck over broad layout/concurrency changes.
+
 ## Before a TestFlight tag
 
 Freeze the candidate commit. Finish focused checks after the last relevant edit.

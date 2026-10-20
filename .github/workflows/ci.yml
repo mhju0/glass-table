@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v5
       # The app compiles against iOS 26 API (sharedBackgroundVisibility in the nav
@@ -36,7 +36,7 @@ jobs:
       - name: Drills package tests
         run: swift test --package-path GlassTableDrills
       # Testing builds the app as well; a separate Debug build repeats that work.
-      # The full UI suite stays nightly; a small teaching/recovery subset also gates PRs.
+      # The full UI suite stays nightly; teaching/recovery and native control checks gate PRs.
       - name: Build app and run unit tests
         run: |
           set -o pipefail
@@ -45,7 +45,7 @@ jobs:
             -destination "platform=iOS Simulator,id=$test_simulator" \
             -only-testing:GlassTableTests CODE_SIGNING_ALLOWED=NO test > app-tests.log 2>&1 || { cat app-tests.log; exit 1; }
           tail -30 app-tests.log
-      - name: Focused teaching and progress-recovery flows
+      - name: Focused teaching, recovery and control flows
         env:
           TEST_DEVICE: iPhone 17
           TEST_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-2
@@ -64,6 +64,13 @@ jobs:
             -destination "platform=iOS Simulator,id=$test_simulator" \
             -only-testing:GlassTableUITests/GradedTableRecoveryFlowTests \
             -only-testing:GlassTableUITests/ReviewTeachingFollowupTests \
+            -only-testing:GlassTableUITests/FreeRaiseFlowTests/testOneChipTapHoldLimitsCancelAndOddCommit \
+            -only-testing:GlassTableUITests/FreeRaiseFlowTests/testRaiseAXPanFromAdjustmentCancelsStepAndScrolls \
+            -only-testing:GlassTableUITests/FreeRaiseFlowTests/testDraggingAwayAfterRepeatStopsAndLowerLimitHolds \
+            -only-testing:GlassTableUITests/FreeRaiseFlowTests/testBackgroundAndReopeningDoNotReviveReleasedRepeat \
+            -only-testing:GlassTableUITests/NavigationChromeTests/testEnglishLightNavigationControls \
+            -only-testing:GlassTableUITests/NavigationChromeTests/testKoreanDarkAXNavigationControls \
+            -only-testing:GlassTableUITests/LearningFlowTests/testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge \
             -only-testing:GlassTableUITests/GradedLearningFlowTests/testAXPostflopChartIsExplicitlyAStartingHandReference \
             -only-testing:GlassTableUITests/BeginnerReleaseTests/testLegacyTerminologyPreferencesUseOneLearningPolicy \
             -only-testing:GlassTableUITests/TerminologyLearningFlowTests/testKoreanAXComparisonKeepsBothSeatIdentitiesAfterRestore \

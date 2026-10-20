@@ -26,6 +26,58 @@ final class ReviewTeachingFollowupTests: XCTestCase {
     func testSimpleSharpActionReadKeepsItsAssumptionAfterRelaunch() { actionAssumption(regular: false) }
     func testAdvancedSharpActionReadKeepsItsAssumptionAfterRelaunch() { actionAssumption(regular: true) }
 
+    func testRangeSliderReversesWithoutCommittingOrChangingTheQuestion() throws {
+        let app = launch(node: "u4-rangeRead", regular: true)
+        let slider = app.sliders["Range width"]
+        reach(slider, in: app)
+        let opponent = app.staticTexts["range-read-opponent"].label
+        let rows = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "Row "))
+        XCTAssertEqual(rows.count, 13)
+        let before = rows.allElementsBoundByIndex.map(\.label)
+        func widthValue() throws -> Int {
+            let text = try XCTUnwrap(slider.value as? String)
+            let number = try XCTUnwrap(text.split(separator: " ").first)
+            return try XCTUnwrap(Int(number))
+        }
+        let value = try XCTUnwrap(slider.value as? String)
+        let initialWidth = try widthValue()
+        print("MOTION_SLIDER frame=\(slider.frame) value=\(value)")
+        let start = slider.coordinate(withNormalizedOffset: CGVector(dx: 0.23, dy: 0.5))
+        let end = slider.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
+        start
+            .press(forDuration: 0.05,
+                   thenDragTo: end,
+                   withVelocity: .slow, thenHoldForDuration: 0)
+        print("MOTION_SLIDER dragged-value=\(slider.value as? String ?? "nil")")
+        let widerWidth = try widthValue()
+        let widerRows = rows.allElementsBoundByIndex.map(\.label)
+        XCTAssertGreaterThan(widerWidth, initialWidth)
+        XCTAssertNotEqual(widerRows, before,
+                          "The range grid follows the slider's changed estimate")
+        let returnPoint = slider.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5))
+        end.press(forDuration: 0.05, thenDragTo: returnPoint,
+                  withVelocity: .slow, thenHoldForDuration: 0)
+        print("MOTION_SLIDER reversed-value=\(try widthValue())")
+        XCTAssertLessThan(try widthValue(), widerWidth)
+        XCTAssertNotEqual(rows.allElementsBoundByIndex.map(\.label), widerRows,
+                          "The grid follows the reversed drag")
+        // A frame coordinate is not an exact stepped value on every iOS release.
+        // Restore with the same ±1 controls available to the learner.
+        for _ in 0..<77 {
+            let current = try widthValue()
+            if current == initialWidth { break }
+            app.buttons[current > initialWidth ? "Decrease Range width" : "Increase Range width"].tap()
+        }
+        XCTAssertEqual(slider.value as? String, value)
+        XCTAssertEqual(rows.allElementsBoundByIndex.map(\.label), before,
+                       "Restoring the original estimate restores the same range")
+        XCTAssertEqual(app.staticTexts["range-read-opponent"].label, opponent)
+        XCTAssertFalse(app.descendants(matching: .any)["range-difference-list"].exists,
+                       "Dragging is not an answer commitment")
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "drill-completion-")).firstMatch.exists)
+        attach(app, "range-slider-reversed-before-commit")
+    }
+
     func testSharpRangeReadKeepsItsAssumedOpponentAfterRelaunch() {
         let store = UUID().uuidString
         let app = launch(node: "u4-rangeRead.3", regular: false, store: store)

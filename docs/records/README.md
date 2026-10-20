@@ -34,6 +34,12 @@ No images, base64, HTML, secrets or personal data.
 
 | Record | Title | Kind |
 | --- | --- | --- |
+| [2026-10-20-build37-release.md](2026-10-20-build37-release.md) | Build 37 release and TestFlight evidence | verification |
+| [2026-10-20-interaction-accessibility.md](2026-10-20-interaction-accessibility.md) | Device interaction and VoiceOver polish | verification |
+| [2026-10-20-accessibility-audit-followup.md](2026-10-20-accessibility-audit-followup.md) | Native accessibility audit findings and limits | audit |
+| [2026-10-20-navigation-glass.md](2026-10-20-navigation-glass.md) | Restrained navigation glass and accessible fallbacks | verification |
+| [2026-10-20-native-control-behavior.md](2026-10-20-native-control-behavior.md) | Native amount-control behavior | verification |
+| [2026-10-20-existing-motion-alignment.md](2026-10-20-existing-motion-alignment.md) | Existing motion alignment with Apple's guidance | verification |
 | [2026-10-19-build36-release.md](2026-10-19-build36-release.md) | Build 36 full validation and TestFlight release | verification |
 | [2026-10-19-terminology-learning-help.md](2026-10-19-terminology-learning-help.md) | Poker terminology and learning reference | verification |
 | [2026-10-19-review-followups.md](2026-10-19-review-followups.md) | Independent review follow-ups and validation routine | verification |
