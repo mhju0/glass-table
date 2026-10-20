@@ -64,6 +64,29 @@ feedback and small text contrast as well as idle appearance. Shared glass contai
 can change pressed rendering: verify real holds before introducing one. Pre-iOS-26
 availability guards are not evidence of runtime testing on an older OS.
 
+## Device accessibility and interaction checks
+
+An automated accessibility audit is diagnostic evidence, not a substitute for actual
+VoiceOver traversal. Inspect flags against settled pixels and spoken information;
+keep failures visible rather than suppressing them to make a gate green. Consolidated
+card/seat labels and deliberate D54 caps require checking the actual spoken meaning.
+
+- In actual VoiceOver, navigate Settings to Glossary, activate the focused button,
+  traverse search and entries, return to focused Close and activate it. Verify focus
+  returns to the invoker, reopen and dismiss again, then move onward without a later
+  focus jump. Include Korean AX5 and English normal text. Check native dismissal too;
+  synthetic Escape input alone does not establish a two-finger scrub result.
+- Traverse table seats, hero cards, pot and action controls. Opponent cards remain
+  face down before showdown, including spoken output. Check the actual menu items.
+- Record device OS, build configuration and binary/source identity separately for
+  Debug test-store flows and Release measurements. Run signed updates with the
+  owner's selected data policy; keep physical feel and haptics distinct from automation.
+- For performance, measure a bounded Release interaction with Instruments. Inspect
+  frame/hitch data and main-thread stacks; potential delays during XCTest snapshots
+  are not automatically user hangs. Do not infer FPS from frame-event counts or claim
+  an improvement without a comparable measurement. Prefer a narrow fix supported by
+  an observed app bottleneck over broad layout/concurrency changes.
+
 ## Before a TestFlight tag
 
 Freeze the candidate commit. Finish focused checks after the last relevant edit.

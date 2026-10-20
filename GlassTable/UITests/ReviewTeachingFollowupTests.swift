@@ -66,7 +66,7 @@ final class ReviewTeachingFollowupTests: XCTestCase {
         for _ in 0..<77 {
             let current = try widthValue()
             if current == initialWidth { break }
-            app.buttons[current > initialWidth ? "Range width 줄이기" : "Range width 늘리기"].tap()
+            app.buttons[current > initialWidth ? "Decrease Range width" : "Increase Range width"].tap()
         }
         XCTAssertEqual(slider.value as? String, value)
         XCTAssertEqual(rows.allElementsBoundByIndex.map(\.label), before,

@@ -1200,14 +1200,15 @@ struct EstimateStepper: View {
 /// Visible tap controls beside a slider. They are a full alternative input path,
 /// while the slider remains useful for quickly exploring a large numeric range.
 struct AdjustmentButtons: View {
+    @Environment(\.learningLanguage) private var language
     let label: String
     let decrement: () -> Void
     let increment: () -> Void
 
     var body: some View {
         HStack(spacing: 8) {
-            key("minus", spoken: "\(label) 줄이기", action: decrement)
-            key("plus", spoken: "\(label) 늘리기", action: increment)
+            key("minus", spoken: language.text("\(label) 줄이기", "Decrease \(label)"), action: decrement)
+            key("plus", spoken: language.text("\(label) 늘리기", "Increase \(label)"), action: increment)
         }
     }
 

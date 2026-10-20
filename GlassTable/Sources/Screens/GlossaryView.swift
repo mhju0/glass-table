@@ -79,6 +79,7 @@ struct GlossaryView: View {
                     .accessibilityAddTraits(.isHeader)
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundStyle(GT.onFeltSecondary)
+                        .accessibilityHidden(true)
                     TextField(language.text("한국어·영어·약어 검색", "Search Korean, English or abbreviations"), text: $query,
                               prompt: Text(language.text("용어 검색", "Search terms"))
                                 .font(GT.body(16)).foregroundColor(GT.onFeltSecondary))

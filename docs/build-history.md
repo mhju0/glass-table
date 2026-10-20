@@ -150,3 +150,18 @@ This index is newly consolidated. Earlier records remain intact; missing install
   assignment to existing internal group Me (one tester) verified; bilingual What to Test
   notes saved. No phone installation or App Store review submission was requested.
 - Evidence: [release record](records/2026-10-19-build36-release.md).
+
+## Local scope-4 candidate — October 20 (no new build number)
+
+- Development-signed Release 1.0 (36), stacked above PR #59 (`c6ec416`), installed
+  on the connected iPhone 12 mini / iOS 27.0.1. The owner explicitly selected an
+  in-place update preserving progress. No uninstall or progress-file export/copy;
+  the original in-progress lesson remained visible in the settled final launch.
+- Three accessibility fixes: decorative glossary icon, VoiceOver focus return to
+  the Settings invoker and English adjustment labels. Local Release binary SHA256
+  `8ab27635cafefc1d5d0e947edaf335e0f837daa0e96faeb9915e185bc1254a0b`.
+- Ten physical Debug interaction/VoiceOver checks and real Release four-cycle
+  navigation passed. Full evidence and explicit audit/gesture/performance limits:
+  [scope-4 record](records/2026-10-20-interaction-accessibility.md).
+- This local artifact differs from distributed TestFlight build 36 at `6ea894f`.
+  No tag, build-number bump, merge, TestFlight upload or App Store submission.

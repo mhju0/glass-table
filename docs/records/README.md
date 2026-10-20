@@ -34,6 +34,8 @@ No images, base64, HTML, secrets or personal data.
 
 | Record | Title | Kind |
 | --- | --- | --- |
+| [2026-10-20-interaction-accessibility.md](2026-10-20-interaction-accessibility.md) | Device interaction and VoiceOver polish | verification |
+| [2026-10-20-accessibility-audit-followup.md](2026-10-20-accessibility-audit-followup.md) | Native accessibility audit findings and limits | audit |
 | [2026-10-20-navigation-glass.md](2026-10-20-navigation-glass.md) | Restrained navigation glass and accessible fallbacks | verification |
 | [2026-10-20-native-control-behavior.md](2026-10-20-native-control-behavior.md) | Native amount-control behavior | verification |
 | [2026-10-20-existing-motion-alignment.md](2026-10-20-existing-motion-alignment.md) | Existing motion alignment with Apple's guidance | verification |

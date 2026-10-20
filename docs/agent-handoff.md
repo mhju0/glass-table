@@ -7,13 +7,25 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-20)
 
+- Owner approved scope 4: device interaction/accessibility polish on
+  `fix/interaction-accessibility-20261020` in `glass-table-interaction`, stacked above
+  PR #59. Confirmed fixes hide the decorative glossary search icon from VoiceOver,
+  restore Settings glossary-invoker focus on dismissal and localize English adjustment
+  labels. VoiceOver focus is transient and scoped to that invoker; no new persisted key.
+  Physical iPhone 12 mini uses iOS 27.0.1 (Debug isolated-store VoiceOver/interaction
+  checks separately from signed Release profiling); compact simulator uses iOS 26.5.
+  Owner explicitly selected preserving phone progress for the update; no uninstall
+  or progress copy. Evidence, exact frozen review/CI tracking and remaining limits:
+  `docs/records/2026-10-20-interaction-accessibility.md`. No merge or TestFlight release.
+  Raw native-audit flags remain separate from verified defects; see Open issues.
 - Owner selected restrained Liquid Glass for navigation controls only. Scope 3 is on
   `feat/liquid-glass-20261020` in `glass-table-glass`, stacked above unchanged PR #58
   at `9d3bd633`. Static iOS 26 glass preserves 10-point shapes and existing geometry;
   content controls stay opaque. Actual Reduce Transparency and increased contrast
   select the existing opaque surface. Navigation text uses a gentler pressed fade
   for contrast. No merge, build/version bump or TestFlight release is included.
-  Exact independent review and full CI are tracked in the scope-3 PR checks;
+  Exact `c6ec416` independently cleared review and full CI `39349525136` passed
+  in open PR #59, stacked above #58;
   local evidence and limitations: `docs/records/2026-10-20-navigation-glass.md`.
 - Owner approved the next Apple-alignment scope before any merge/TestFlight release.
   On the same motion branch, free-table amount buttons now use native repeat behavior
@@ -194,17 +206,27 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
 
-Never verified with people or hardware:
-- Real novice comprehension; physical VoiceOver and haptics; minimum iOS 17 runtime;
-  AX5 full scroll reachability on every route.
+Still unverified beyond the recorded scope-4 subset:
+- Real novice comprehension; VoiceOver on every route and subjective haptic feel;
+  minimum iOS 17 runtime; AX5 full scroll reachability on every route.
+- Native-audit discrepancy: strict summary contrast flag reproduces with glass,
+  while the authentic pre-glass control passes; sampled contrast is 11.555:1. Four
+  isolated clean checks used different appearance coverage; exact KO/light checks
+  reproduce the warning for both contrast-only/all audits; same check passes with
+  actual Reduce Transparency enabled. No low-contrast defect demonstrated. Nine
+  unlocated diagnostic reports remain open.
+  Keep failures visible, separate from real-device spoken-label evidence:
+  `docs/records/2026-10-20-accessibility-audit-followup.md`.
 - (old) Store validation, metadata, rating, territories; system permission,
   notification, share and review flows; backup export/import; huge-history save latency.
 - GRAC: owner submitted 1.0(22), now awaiting processing, any corrections, rating and RCN. Reviewer installation is unverified: development IPA permits only two registered devices; reviewer TestFlight access/invite is unverified. Confirm delivery with GRAC if needed. Video/simulator acceptance and statutory Annex 2(8) final selection remain unverified; working answers are not a final portal export.
 
-Owner hardware checks remain open: try steps, Play and Progress on the phone.
-The current physical-device build was not verified in this session; App Store Connect
-tester data showed an installed build 35, without establishing which device. Whether
-the step content change needs a GRAC notice is unknown.
+Owner hardware acceptance remains open for full steps/Play/Progress daily use and
+subjective haptic feel. Scope 4 verifies the subset on the connected iPhone 12 mini
+recorded in `docs/records/2026-10-20-interaction-accessibility.md`; it does not cover
+every route. The earlier App Store Connect build-35 observation did not identify a
+phone and is not current installation proof. Whether the step content change needs
+a GRAC notice is unknown.
 - Build 35's full set of step screens (22 uisweep entries) was not screenshot-swept: owner asked
   for a lean finish. Only targeted UI classes and the merged suite's failures were run.
 
@@ -254,7 +276,7 @@ Tests:
 
 ## Recent sessions
 
-### 2026-10-20 (Codex · motion, native controls and navigation glass)
+### 2026-10-20 (Codex · motion, controls, glass and device accessibility)
 
 - Implemented the owner-approved first scope at `3dc9023`: missing Reduce Motion
   guards, immediate slider-grid updates and removal of the 1.2-second verdict shadow.
@@ -277,6 +299,14 @@ Tests:
   Small text pressed contrast was corrected with a navigation-only fade adjustment.
   Native English/light and Korean/dark/AX5 flows passed; exact final checks and limits
   are in `docs/records/2026-10-20-navigation-glass.md`. Merge/release remains on hold.
+
+- Scope 4 then exercised the compact simulator and connected iPhone, preserving
+  existing phone progress by the owner's explicit choice. Fixed actual VoiceOver
+  redundant search/focus-return defects and mixed English adjustment labels. Kept
+  original native-audit discrepancies visible and separated test snapshot overhead
+  from measured Release hitches; no speculative layout/performance rewrite.
+  Evidence/limits: `docs/records/2026-10-20-interaction-accessibility.md` and
+  `docs/records/2026-10-20-accessibility-audit-followup.md`. No merge/release.
 
 ### 2026-10-19 (Codex · build 36 validation and release)
 
