@@ -4,7 +4,7 @@ Four GitHub Actions workflows, all on `macos-15` runners (free minutes, since th
 
 | Workflow | Runs on | What it checks | Time |
 | --- | --- | --- | --- |
-| `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, focused teaching/recovery UI flows, Release launch smoke test, device Release build checked by `tools/verify_release.py` | varies; about 22 min before the focused UI subset |
+| `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, focused teaching/recovery/control UI flows, Release launch smoke test, device Release build checked by `tools/verify_release.py` | about 45–55 min with the focused UI subset |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
 | `ui-tests.yml` | nightly 03:00 KST, by hand | the full UI flow suite, split across four parallel shards | about 70–75 min per shard (runner speed varies) |
 | `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
@@ -108,8 +108,9 @@ A refused tag can be deleted and pushed again:
 
 ## Evidence boundaries
 
-The release workflow has run end to end for TestFlight builds 31–36; build-35 and
-build-36 upload runs are linked above. A successful upload is not an App Store submission or
+The release workflow has run end to end for TestFlight builds 31–37; build-35 and
+build-36 upload runs are linked above. Build 37 is recorded in
+[the build-37 release record](records/2026-10-20-build37-release.md). A successful upload is not an App Store submission or
 proof of processing, installation or correct phone behavior. Keep those states in
 the build record. If signing fails, the archive and export logs are kept as a
 workflow artifact named `testflight-logs`.

@@ -7,13 +7,20 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-20)
 
-- Owner explicitly requested a new TestFlight build after scope 4. Build 1.0 (37)
-  is being prepared on `release/build37-20261020`, integrating reviewed scopes 1–4
-  from `e9c8fb6`; only the build number and release records change afterward.
-  Earlier no-merge/no-release statements below describe the scope verification
-  phase and are superseded by this release request. Preserve the unresolved
-  material-sensitive strict audit warning; do not claim full accessibility clearance.
-  Release CI, merge, upload and Apple processing are pending, not completed.
+- Owner requested build 37 and then faster parallel delivery. Integration PR #61
+  merged to `be1c839769030c2ef1f6f129e4dcbea15bce50ca`; tag `v1.0-37` names that
+  exact merge. Its tree `313e2a07dbb018e9ea895601dd3a8d233f19e034` exactly matches
+  reviewed candidate `edd0daf`; candidate CI `39378993484` passed before merge.
+  Main CI `39383668606` and TestFlight `39383694571` ran concurrently by the owner's
+  request, with independent review of the sequencing. Signed archive, bundle checks
+  and upload passed in `39383694571`; Apple processing completed. Build 37 is
+  assigned to Me (Internal, one tester), verified in App Store Connect. Main CI
+  passed all configured gates. Build ID `1bd1947f-793f-4b1b-a265-dbebd0885be8`.
+  Bilingual What to Test notes saved, including the known audit limit. No new external review submitted.
+  Product source matches the phone-tested `e9c8fb6`; only build number 36→37 and
+  release records changed. PR #58 was included; stacked #59/#60 were closed as
+  superseded by #61. Earlier no-release statements below describe verification
+  before the new authorization. Keep unresolved native audit findings explicit.
 - Owner approved scope 4: device interaction/accessibility polish on
   `fix/interaction-accessibility-20261020` in `glass-table-interaction`, stacked above
   PR #59. Confirmed fixes hide the decorative glossary search icon from VoiceOver,
@@ -23,7 +30,7 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   checks separately from signed Release profiling); compact simulator uses iOS 26.5.
   Owner explicitly selected preserving phone progress for the update; no uninstall
   or progress copy. Evidence, exact frozen review/CI tracking and remaining limits:
-  `docs/records/2026-10-20-interaction-accessibility.md`. No merge or TestFlight release.
+  `docs/records/2026-10-20-interaction-accessibility.md`. Included in build 37.
   Owner subsequently confirmed manual two-finger scrub closed the glossary; this
   is owner-reported after the automated window, not a captured gesture/focus trace.
   Device VoiceOver readback is off. Raw audit flags remain open; see Open issues.
@@ -32,9 +39,9 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   at `9d3bd633`. Static iOS 26 glass preserves 10-point shapes and existing geometry;
   content controls stay opaque. Actual Reduce Transparency and increased contrast
   select the existing opaque surface. Navigation text uses a gentler pressed fade
-  for contrast. No merge, build/version bump or TestFlight release is included.
+  for contrast. This scope is now included in build 37.
   Exact `c6ec416` independently cleared review and full CI `39349525136` passed
-  in open PR #59, stacked above #58;
+  in PR #59, originally stacked above #58 and integrated through #61;
   local evidence and limitations: `docs/records/2026-10-20-navigation-glass.md`.
 - Owner approved the next Apple-alignment scope before any merge/TestFlight release.
   On the same motion branch, free-table amount buttons now use native repeat behavior
@@ -42,8 +49,8 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   custom repeat task/latch; existing native menus/dialogs/sheets remain. All ten amount
   tests, five actual-system Reduce Motion cases and an active-hold background
   interruption passed on iOS 26.5. Four critical amount tests join PR CI.
-  Final independent review and cloud results are tracked in PR #58; no merge,
-  build/version bump or release. Evidence: `docs/records/2026-10-20-native-control-behavior.md`.
+  Final independent review and cloud results are tracked in PR #58; included in
+  build 37 through #61. Evidence: `docs/records/2026-10-20-native-control-behavior.md`.
 - Owner approved the first Apple-motion scope. Candidate `3dc9023` on
   `fix/ios-motion-20261020` in `glass-table-motion` refines existing motion without
   changing layout, branding, native presentations, replay/cancellation, grades or progress.
@@ -287,8 +294,12 @@ Tests:
 
 ### 2026-10-20 (Codex · motion, controls, glass and device accessibility)
 
-- Owner then requested a new TestFlight build. Preparing build 37 from the exact
-  reviewed scope-4 app source; release evidence belongs in the build-37 record.
+- Owner then requested TestFlight build 37 and parallel delivery. Integrated all four
+  scopes through #61 after exact candidate CI; verified identical merged tree, then
+  started main CI and signed upload concurrently. Both passed; Apple processing
+  and Me internal-group availability were verified, with bilingual test notes saved.
+  Owner installation is not verified. Evidence belongs in
+  `docs/records/2026-10-20-build37-release.md`.
 - Implemented the owner-approved first scope at `3dc9023`: missing Reduce Motion
   guards, immediate slider-grid updates and removal of the 1.2-second verdict shadow.
   Preserved the app's look, native presentations and instructional replay semantics.
