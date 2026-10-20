@@ -55,8 +55,10 @@
   VoiceOver restored off. Loaded Debug image SHA256
   `0809f7de33536459cb80af2e0c2a6faad4f699e1b9f356778abad8a538bf26dd`.
   `/tmp/gt-interaction-device-final-interactions.{log,xcresult}` and attachments.
-- Manual scrub window timed out without a confirmed owner gesture/dismissal;
-  VoiceOver was restored off. Do not treat timeout as a product defect or gesture pass.
+- Automated manual-scrub window timed out and restored VoiceOver off. Owner later
+  replied “Yes closed right now,” confirming manual dismissal; this is owner-reported,
+  not a captured automation assertion or focus-return trace. Subsequent device
+  readback confirmed VoiceOver disabled. Preserve the original timeout separately.
 - Final Release four-cycle navigation passed (64.522s); settled Learn still showed
   the original in-progress lesson. Release binary SHA256
   `8ab27635cafefc1d5d0e947edaf335e0f837daa0e96faeb9915e185bc1254a0b`.

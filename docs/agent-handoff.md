@@ -17,7 +17,9 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   Owner explicitly selected preserving phone progress for the update; no uninstall
   or progress copy. Evidence, exact frozen review/CI tracking and remaining limits:
   `docs/records/2026-10-20-interaction-accessibility.md`. No merge or TestFlight release.
-  Raw native-audit flags remain separate from verified defects; see Open issues.
+  Owner subsequently confirmed manual two-finger scrub closed the glossary; this
+  is owner-reported after the automated window, not a captured gesture/focus trace.
+  Device VoiceOver readback is off. Raw audit flags remain open; see Open issues.
 - Owner selected restrained Liquid Glass for navigation controls only. Scope 3 is on
   `feat/liquid-glass-20261020` in `glass-table-glass`, stacked above unchanged PR #58
   at `9d3bd633`. Static iOS 26 glass preserves 10-point shapes and existing geometry;
