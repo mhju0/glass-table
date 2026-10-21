@@ -165,3 +165,16 @@ This index is newly consolidated. Earlier records remain intact; missing install
   [scope-4 record](records/2026-10-20-interaction-accessibility.md).
 - This local artifact differs from distributed TestFlight build 36 at `6ea894f`.
   No tag, build-number bump, merge, TestFlight upload or App Store submission.
+
+## 1.0 (37) — October 20
+
+- Owner requested a new TestFlight build, then parallel delivery. PR #61 integrates
+  scopes 1–4; build number is the only configuration change after reviewed `e9c8fb6`.
+- Exact candidate `edd0daf` passed CI `39378993484` and independent review. Merge
+  `be1c839` has the identical tree; `v1.0-37` tags that exact merge. Main CI and
+  signed upload ran concurrently; archive/bundle/upload passed in `39383694571`.
+  Apple processing completed; existing Me internal group (one tester) assignment
+  verified. Main CI `39383668606` passed all gates on the exact merge SHA;
+  owner installation is not yet verified. Bilingual What to Test notes saved.
+- Native strict audit limitation remains open. No new phone installation or App Store
+  review submission. [Release record](records/2026-10-20-build37-release.md).

@@ -5,15 +5,32 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-20)
+## Current state (2026-10-21)
 
-- Owner explicitly requested a new TestFlight build after scope 4. Build 1.0 (37)
-  is being prepared on `release/build37-20261020`, integrating reviewed scopes 1–4
-  from `e9c8fb6`; only the build number and release records change afterward.
-  Earlier no-merge/no-release statements below describe the scope verification
-  phase and are superseded by this release request. Preserve the unresolved
-  material-sensitive strict audit warning; do not claim full accessibility clearance.
-  Release CI, merge, upload and Apple processing are pending, not completed.
+- Owner requested immediate investigation of nightly run `39497368168` on released
+  `be1c839`. Corrected result: 135 passed / 2 failed in shard 3; three initial
+  launch-failure events included Equity, which recovered after XCTest restarted.
+  Local unchanged tests passed 3/3 twice; matched original four-test CI prefix
+  `39618848422` passed 4/4 on Xcode 26.3 / iOS 26.2. No app/test changes or new build.
+  Evidence favors a launch-control/session problem, but the initial reported exit code 0
+  and stalled transaction remain unattributed. Do not call this fixed or clear the
+  original nightly. Known summary contrast audit remains separately open.
+  Record: `docs/records/2026-10-21-nightly-launch-investigation.md`. Documentation
+  PR #62 carries release evidence and this investigation; no product merge requested.
+- Owner requested build 37 and then faster parallel delivery. Integration PR #61
+  merged to `be1c839769030c2ef1f6f129e4dcbea15bce50ca`; tag `v1.0-37` names that
+  exact merge. Its tree `313e2a07dbb018e9ea895601dd3a8d233f19e034` exactly matches
+  reviewed candidate `edd0daf`; candidate CI `39378993484` passed before merge.
+  Main CI `39383668606` and TestFlight `39383694571` ran concurrently by the owner's
+  request, with independent review of the sequencing. Signed archive, bundle checks
+  and upload passed in `39383694571`; Apple processing completed. Build 37 is
+  assigned to Me (Internal, one tester), verified in App Store Connect. Main CI
+  passed all configured gates. Build ID `1bd1947f-793f-4b1b-a265-dbebd0885be8`.
+  Bilingual What to Test notes saved, including the known audit limit. No new external review submitted.
+  Product source matches the phone-tested `e9c8fb6`; only build number 36→37 and
+  release records changed. PR #58 was included; stacked #59/#60 were closed as
+  superseded by #61. Earlier no-release statements below describe verification
+  before the new authorization. Keep unresolved native audit findings explicit.
 - Owner approved scope 4: device interaction/accessibility polish on
   `fix/interaction-accessibility-20261020` in `glass-table-interaction`, stacked above
   PR #59. Confirmed fixes hide the decorative glossary search icon from VoiceOver,
@@ -23,7 +40,7 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   checks separately from signed Release profiling); compact simulator uses iOS 26.5.
   Owner explicitly selected preserving phone progress for the update; no uninstall
   or progress copy. Evidence, exact frozen review/CI tracking and remaining limits:
-  `docs/records/2026-10-20-interaction-accessibility.md`. No merge or TestFlight release.
+  `docs/records/2026-10-20-interaction-accessibility.md`. Included in build 37.
   Owner subsequently confirmed manual two-finger scrub closed the glossary; this
   is owner-reported after the automated window, not a captured gesture/focus trace.
   Device VoiceOver readback is off. Raw audit flags remain open; see Open issues.
@@ -32,9 +49,9 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   at `9d3bd633`. Static iOS 26 glass preserves 10-point shapes and existing geometry;
   content controls stay opaque. Actual Reduce Transparency and increased contrast
   select the existing opaque surface. Navigation text uses a gentler pressed fade
-  for contrast. No merge, build/version bump or TestFlight release is included.
+  for contrast. This scope is now included in build 37.
   Exact `c6ec416` independently cleared review and full CI `39349525136` passed
-  in open PR #59, stacked above #58;
+  in PR #59, originally stacked above #58 and integrated through #61;
   local evidence and limitations: `docs/records/2026-10-20-navigation-glass.md`.
 - Owner approved the next Apple-alignment scope before any merge/TestFlight release.
   On the same motion branch, free-table amount buttons now use native repeat behavior
@@ -42,8 +59,8 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   custom repeat task/latch; existing native menus/dialogs/sheets remain. All ten amount
   tests, five actual-system Reduce Motion cases and an active-hold background
   interruption passed on iOS 26.5. Four critical amount tests join PR CI.
-  Final independent review and cloud results are tracked in PR #58; no merge,
-  build/version bump or release. Evidence: `docs/records/2026-10-20-native-control-behavior.md`.
+  Final independent review and cloud results are tracked in PR #58; included in
+  build 37 through #61. Evidence: `docs/records/2026-10-20-native-control-behavior.md`.
 - Owner approved the first Apple-motion scope. Candidate `3dc9023` on
   `fix/ios-motion-20261020` in `glass-table-motion` refines existing motion without
   changing layout, branding, native presentations, replay/cancellation, grades or progress.
@@ -216,6 +233,12 @@ Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
 
 Still unverified beyond the recorded scope-4 subset:
+- Nightly launch transaction cause remains unresolved after investigation. Count
+  and Defend remained failed; Equity recovered after a runner restart. Matched
+  four-case CI probe passed without source, assertion, timeout, preboot or retry
+  changes. Capture live app stacks and launch/exit transaction on recurrence rather
+  than adding speculative retries or startup changes. Exact evidence and limits:
+  `docs/records/2026-10-21-nightly-launch-investigation.md`.
 - Real novice comprehension; VoiceOver on every route and subjective haptic feel;
   minimum iOS 17 runtime; AX5 full scroll reachability on every route.
 - Native-audit discrepancy: strict summary contrast flag reproduces with glass,
@@ -285,10 +308,25 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-21 (Codex · nightly launch investigation)
+
+- Verified build-37 release/main CI success and green, open documentation PR #62.
+- Investigated retained shard-3 artifact: two final failures; Equity's initial launch
+  failure recovered after runner restart. Replacement app reached foreground and
+  reported ViewDidAppear while launch progress stalled; initial exit cause unknown.
+- Three tests passed twice locally; original four-case prefix passed in matched CI
+  `39618848422` without app/test changes. No speculative fix, audit waiver or new
+  release; unresolved launch cause retained. Local simulator/probe cleaned up.
+  Original checkout's unrelated dirty files preserved.
+
 ### 2026-10-20 (Codex · motion, controls, glass and device accessibility)
 
-- Owner then requested a new TestFlight build. Preparing build 37 from the exact
-  reviewed scope-4 app source; release evidence belongs in the build-37 record.
+- Owner then requested TestFlight build 37 and parallel delivery. Integrated all four
+  scopes through #61 after exact candidate CI; verified identical merged tree, then
+  started main CI and signed upload concurrently. Both passed; Apple processing
+  and Me internal-group availability were verified, with bilingual test notes saved.
+  Owner installation is not verified. Evidence belongs in
+  `docs/records/2026-10-20-build37-release.md`.
 - Implemented the owner-approved first scope at `3dc9023`: missing Reduce Motion
   guards, immediate slider-grid updates and removal of the 1.2-second verdict shadow.
   Preserved the app's look, native presentations and instructional replay semantics.
@@ -355,17 +393,3 @@ Tests:
   copy is `b8ff2cc`. PR #56 remote CI is pending. It is stacked on unmerged #55.
   Final evidence is in
   `docs/records/2026-10-19-terminology-learning-help.md`; no release or phone install.
-
-### 2026-10-19 (Codex · review corrections and validation routine)
-
-- Fixed R01 save-recovery gating, R02 scalable counts, R03 preflop street closure
-  and R04 visible grading assumptions; applied the same premise correction to Range
-  Read. Saved question indices, seeds, grades and progress schema stay unchanged.
-- Focused recovery/teaching UI flows now gate PR CI. Investigated the prior AX tap
-  failure instead of dismissing it as a flake; tightened scrolling and diagnostics.
-- Owner chose Casual / 캐주얼형; wording only. Added `docs/validation.md` with a
-  session guide for someone who knows the rules but rarely plays; no person tested yet.
-- Core `116187c` and copy candidate `66d9c22` passed independent review. Drills 671,
-  app unit 158, focused UI 23, separate Progress/AX checks and final setup flow passed.
-  R01–R04 and documentation drift are closed locally; PR #55 remote CI later passed
-  at `ebb0fae`. Full UI and physical checks remain open. Evidence: `docs/records/2026-10-19-review-followups.md`.
