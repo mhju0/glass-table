@@ -42,7 +42,7 @@ recorded reproductions or measurements. No confirmed P0/P1 defect was found.
 - P2: compact AX5 reminder time label wrapped one character per line. Give its label
   a full row above the native picker at accessibility sizes; retain normal layout,
   existing binding/identifier and localized spoken name. Final `57b1ec0` passed six
-  focused native tests; KO/EN normal/AX5 images and single spoken labels checked.
+  focused native tests; KO/EN normal/AX5 images and single localized accessibility labels checked.
 - P2: hosted observer capture failed despite passing process tests. Host command
   changes during exec invalidated identity; global inventory/deadlines discarded
   capture. PID/start identity and independent host capture corrected those paths;
@@ -63,8 +63,11 @@ recorded reproductions or measurements. No confirmed P0/P1 defect was found.
   Settings and Apply/Sharp Equity probes passed. Release smoke 2/2 passed without
   demo hooks; responsive launch mean 1.604s over three simulator iterations.
 - Independent source review accepted the app fixes; later AX layout source review
-  accepted `66b507f`; its duplicate-label follow-up is exercised at `57b1ec0`. Final
-  exact-candidate review, full CI, merge and cleanup are pending.
+  accepted `66b507f`; its duplicate-label follow-up is exercised at `57b1ec0`.
+- Independent final review accepted runtime `06e364e`. Standard CI `39653967706`
+  passed; full UI `39653967431` covers all four shards of that exact runtime.
+  Final checks/merge evidence: [PR #64](https://github.com/mhju0/glass-table/pull/64).
+  Later record updates change documentation only; use Actions for terminal results.
 
 ## Still open
 

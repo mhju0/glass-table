@@ -9,11 +9,14 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 - Owner authorized comprehensive code/performance review, all recommended strong/medium
   fixes, full validation, merge and safe branch cleanup. PRs #62/#63 merged; starting
-  main was `23f5383`. Current candidate is on `fix/comprehensive-review-20261022`:
+  main was `23f5383`. Review source `06e364e` contains:
   latest-intent reminder reconciliation, once-per-render Equity generation, contained
   navigation glass shadow, AX reminder reflow/single localized label, and repaired
   diagnostic capture. Native/package tests and measured performance checks passed;
-  final independent review, full CI and merge remain pending. No build bump/release.
+  independent review accepted the frozen runtime. Standard CI `39653967706` passed;
+  full UI `39653967431` covers its four shards. [PR #64](https://github.com/mhju0/glass-table/pull/64)
+  is the final merge/check record; subsequent notes change documentation only.
+  Original checkout has three unrelated dirty files; preserve them. No build bump/release.
   Record: `docs/records/2026-10-22-comprehensive-code-performance-review.md`.
 - Original nightly launch cause remains unattributed. Original run `39497368168`
   finished shard 3 with 135 passed / two failed; Equity recovered after restart.
@@ -248,12 +251,10 @@ Still unverified beyond the recorded scope-4 subset:
   `docs/records/2026-10-21-nightly-launch-investigation.md`.
 - Real novice comprehension; VoiceOver on every route and subjective haptic feel;
   minimum iOS 17 runtime; AX5 full scroll reachability on every route.
-- Native-audit discrepancy: strict summary contrast flag reproduces with glass,
-  while the authentic pre-glass control passes; sampled contrast is 11.555:1. Four
-  isolated clean checks used different appearance coverage; exact KO/light checks
-  reproduce the warning for both contrast-only/all audits; same check passes with
-  actual Reduce Transparency enabled. No low-contrast defect demonstrated. Nine
-  unlocated diagnostic reports remain open.
+- Nine unlocated native-audit reports remain open. The reproducible summary
+  warning was traced to glass shadow overdraw and corrected without a palette or
+  audit waiver; strict KO/light native regression and appearance checks passed.
+  Hosted coverage is the exact-runtime full UI run `39653967431` above.
   Keep failures visible, separate from real-device spoken-label evidence:
   `docs/records/2026-10-20-accessibility-audit-followup.md`.
 - (old) Store validation, metadata, rating, territories; system permission,
@@ -321,8 +322,10 @@ Tests:
   measurements, and implemented five P2 fixes. Rejected persistence rewrites after
   a sorted-key experiment saved only 2.22ms; kept progress/recovery/schema unchanged.
 - App/package and native checks passed, including strict summary audit and KO/EN AX
-  reminder layout. Authentic provider now retained host/runner stacks, with timeout
-  and capture-delay limits kept explicit. Full candidate CI/merge/cleanup pending.
+  reminder layout. Authentic provider retained host/runner stacks, with timeout
+  and capture-delay limits kept explicit. Standard CI passed; full UI and integration
+  evidence is linked through PR #64. The specific summary warning is resolved; the
+  nine unlocated audit reports and broader acceptance limits remain open.
 - Original launch cause, wider accessibility/minimum-OS and real novice acceptance
   remain open. Build 37 stays the latest release; no phone/progress changes.
 
