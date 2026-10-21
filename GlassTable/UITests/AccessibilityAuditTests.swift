@@ -17,13 +17,14 @@ final class AccessibilityAuditTests: XCTestCase {
     /// partial Dynamic Type support.
     private static let cappedAtAX3: Set<String> = ["free-table-title"]
 
-    private func audit(_ name: String, environment: [String: String], swipes: Int = 0,
+    private func audit(_ name: String, environment: [String: String], launchArguments: [String] = [], swipes: Int = 0,
                        ready: (XCUIApplication) -> XCUIElement) throws {
         let app = XCUIApplication()
         // The reminder and language preferences outlive the per-test store; pin both so each
         // screen has one layout.
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR",
                                 "-glassTable.language", "korean", "-reminder.enabled", "NO"]
+        app.launchArguments += launchArguments
         app.launchEnvironment = environment.merging(
             ["GT_TEST_STORE_ID": UUID().uuidString, "GT_DEMO_SEED": "1"]) { a, _ in a }
         app.launch()
@@ -108,7 +109,9 @@ final class AccessibilityAuditTests: XCTestCase {
     func testLessonSummaryWithMilestone() throws {
         try audit("summary", environment: ["GT_DEMO_NODE": "u2-potOdds",
                                            "GT_DEMO_SESSION_COMPLETE": "1",
-                                           "GT_DEMO_MILESTONE": "unit"]) {
+                                           "GT_DEMO_MILESTONE": "unit"],
+                  launchArguments: ["-appAppearance", "light", "-UIPreferredContentSizeCategoryName",
+                                    "UICTContentSizeCategoryL"]) {
             $0.buttons["milestone-share"]
         }
     }
