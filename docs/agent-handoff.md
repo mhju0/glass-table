@@ -5,8 +5,13 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-20)
+## Current state (2026-10-21)
 
+- Session-close check: build 37 delivery is complete; release/main CI passed.
+  Documentation PR #62 remains open with green CI. Subsequent nightly UI run
+  `39497368168` on released `be1c839` failed the known summary contrast audit and
+  three AccessibilityFlowTests launch/progress cases. Launch failures are untriaged,
+  not confirmed product regressions. No new release or product fix was started.
 - Owner requested build 37 and then faster parallel delivery. Integration PR #61
   merged to `be1c839769030c2ef1f6f129e4dcbea15bce50ca`; tag `v1.0-37` names that
   exact merge. Its tree `313e2a07dbb018e9ea895601dd3a8d233f19e034` exactly matches
@@ -223,6 +228,13 @@ Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
 
 Still unverified beyond the recorded scope-4 subset:
+- Nightly UI run `39497368168` (2026-10-21 KST) needs bounded triage of
+  `AccessibilityFlowTests/testCountKeypadCanOpenAndCollapseAtAccessibilityXXXL`,
+  `testDefendRevealExposesSelectedEvidenceAndChartRowsAtAccessibilityXXXL` and
+  `testEquityAnswerCanBeSubmittedAtAccessibilityXXXL`: app-launch timeout/progress
+  failures, not yet attributed to app versus runner. Same run also reproduced the
+  known `AccessibilityAuditTests/testLessonSummaryWithMilestone` contrast warning.
+  Logs: https://github.com/mhju0/glass-table/actions/runs/39497368168.
 - Real novice comprehension; VoiceOver on every route and subjective haptic feel;
   minimum iOS 17 runtime; AX5 full scroll reachability on every route.
 - Native-audit discrepancy: strict summary contrast flag reproduces with glass,
@@ -291,6 +303,13 @@ Tests:
   `FreeDockFlowTests/testResultProseScrollsWithoutMovingActionsAtNormalAndAXSizes`.
 
 ## Recent sessions
+
+### 2026-10-21 (Codex · session closure)
+
+- Verified build-37 release/main CI success and green, open documentation PR #62.
+- Found subsequent nightly UI failure: known summary contrast audit plus three AX
+  app-launch/progress failures. Recorded exact cases for next-session triage; no
+  speculative fix or new release. Original checkout's unrelated dirty files preserved.
 
 ### 2026-10-20 (Codex · motion, controls, glass and device accessibility)
 
@@ -366,17 +385,3 @@ Tests:
   copy is `b8ff2cc`. PR #56 remote CI is pending. It is stacked on unmerged #55.
   Final evidence is in
   `docs/records/2026-10-19-terminology-learning-help.md`; no release or phone install.
-
-### 2026-10-19 (Codex · review corrections and validation routine)
-
-- Fixed R01 save-recovery gating, R02 scalable counts, R03 preflop street closure
-  and R04 visible grading assumptions; applied the same premise correction to Range
-  Read. Saved question indices, seeds, grades and progress schema stay unchanged.
-- Focused recovery/teaching UI flows now gate PR CI. Investigated the prior AX tap
-  failure instead of dismissing it as a flake; tightened scrolling and diagnostics.
-- Owner chose Casual / 캐주얼형; wording only. Added `docs/validation.md` with a
-  session guide for someone who knows the rules but rarely plays; no person tested yet.
-- Core `116187c` and copy candidate `66d9c22` passed independent review. Drills 671,
-  app unit 158, focused UI 23, separate Progress/AX checks and final setup flow passed.
-  R01–R04 and documentation drift are closed locally; PR #55 remote CI later passed
-  at `ebb0fae`. Full UI and physical checks remain open. Evidence: `docs/records/2026-10-19-review-followups.md`.
