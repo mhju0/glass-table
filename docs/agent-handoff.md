@@ -7,11 +7,16 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-21)
 
-- Session-close check: build 37 delivery is complete; release/main CI passed.
-  Documentation PR #62 remains open with green CI. Subsequent nightly UI run
-  `39497368168` on released `be1c839` failed the known summary contrast audit and
-  three AccessibilityFlowTests launch/progress cases. Launch failures are untriaged,
-  not confirmed product regressions. No new release or product fix was started.
+- Owner requested immediate investigation of nightly run `39497368168` on released
+  `be1c839`. Corrected result: 135 passed / 2 failed in shard 3; three initial
+  launch-failure events included Equity, which recovered after XCTest restarted.
+  Local unchanged tests passed 3/3 twice; matched original four-test CI prefix
+  `39618848422` passed 4/4 on Xcode 26.3 / iOS 26.2. No app/test changes or new build.
+  Evidence favors a launch-control/session problem, but the initial reported exit code 0
+  and stalled transaction remain unattributed. Do not call this fixed or clear the
+  original nightly. Known summary contrast audit remains separately open.
+  Record: `docs/records/2026-10-21-nightly-launch-investigation.md`. Documentation
+  PR #62 carries release evidence and this investigation; no product merge requested.
 - Owner requested build 37 and then faster parallel delivery. Integration PR #61
   merged to `be1c839769030c2ef1f6f129e4dcbea15bce50ca`; tag `v1.0-37` names that
   exact merge. Its tree `313e2a07dbb018e9ea895601dd3a8d233f19e034` exactly matches
@@ -228,13 +233,12 @@ Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
 
 Still unverified beyond the recorded scope-4 subset:
-- Nightly UI run `39497368168` (2026-10-21 KST) needs bounded triage of
-  `AccessibilityFlowTests/testCountKeypadCanOpenAndCollapseAtAccessibilityXXXL`,
-  `testDefendRevealExposesSelectedEvidenceAndChartRowsAtAccessibilityXXXL` and
-  `testEquityAnswerCanBeSubmittedAtAccessibilityXXXL`: app-launch timeout/progress
-  failures, not yet attributed to app versus runner. Same run also reproduced the
-  known `AccessibilityAuditTests/testLessonSummaryWithMilestone` contrast warning.
-  Logs: https://github.com/mhju0/glass-table/actions/runs/39497368168.
+- Nightly launch transaction cause remains unresolved after investigation. Count
+  and Defend remained failed; Equity recovered after a runner restart. Matched
+  four-case CI probe passed without source, assertion, timeout, preboot or retry
+  changes. Capture live app stacks and launch/exit transaction on recurrence rather
+  than adding speculative retries or startup changes. Exact evidence and limits:
+  `docs/records/2026-10-21-nightly-launch-investigation.md`.
 - Real novice comprehension; VoiceOver on every route and subjective haptic feel;
   minimum iOS 17 runtime; AX5 full scroll reachability on every route.
 - Native-audit discrepancy: strict summary contrast flag reproduces with glass,
@@ -304,12 +308,16 @@ Tests:
 
 ## Recent sessions
 
-### 2026-10-21 (Codex · session closure)
+### 2026-10-21 (Codex · nightly launch investigation)
 
 - Verified build-37 release/main CI success and green, open documentation PR #62.
-- Found subsequent nightly UI failure: known summary contrast audit plus three AX
-  app-launch/progress failures. Recorded exact cases for next-session triage; no
-  speculative fix or new release. Original checkout's unrelated dirty files preserved.
+- Investigated retained shard-3 artifact: two final failures; Equity's initial launch
+  failure recovered after runner restart. Replacement app reached foreground and
+  reported ViewDidAppear while launch progress stalled; initial exit cause unknown.
+- Three tests passed twice locally; original four-case prefix passed in matched CI
+  `39618848422` without app/test changes. No speculative fix, audit waiver or new
+  release; unresolved launch cause retained. Local simulator/probe cleaned up.
+  Original checkout's unrelated dirty files preserved.
 
 ### 2026-10-20 (Codex · motion, controls, glass and device accessibility)
 
