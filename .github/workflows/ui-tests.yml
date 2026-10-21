@@ -41,6 +41,12 @@ jobs:
         run: brew install xcodegen
       - name: Generate project
         run: xcodegen generate
+      - name: Check UI observer process boundaries
+        run: |
+          status=0
+          python3 -m unittest discover -s tools/tests -p test_ci_ui_observer.py -v > ui-observer-tests.log 2>&1 || status=$?
+          cat ui-observer-tests.log || true
+          exit "$status"
       # Shards are balanced by measured minutes per class on a GitHub runner (runs
       # 38961587746 to 39054133933; BestFive, LearnList, OutsReveal and Bounds are local
       # times x1.4). A class not in the table is estimated from its test count, so a new
@@ -116,15 +122,20 @@ jobs:
             exit 1
           fi
           echo "Testing on $TEST_DEVICE ($TEST_RUNTIME) $test_simulator"
-          xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+          status=0
+          python3 tools/ci_ui_observer.py --simulator "$test_simulator" \
+            --log ui-tests.log --diagnostics ui-tests-observer -- \
+            xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
             -destination "platform=iOS Simulator,id=$test_simulator" \
             $(cat only-testing.txt) -resultBundlePath ui-tests.xcresult \
             -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
-            CODE_SIGNING_ALLOWED=NO test > ui-tests.log 2>&1 || {
-            tail -200 ui-tests.log
-            grep -E "error: -\[|^Test Case .* failed \(" ui-tests.log | sed 's/^/::error::/'
-            exit 1; }
-          tail -30 ui-tests.log
+            CODE_SIGNING_ALLOWED=NO test || status=$?
+          if [ "$status" -ne 0 ]; then
+            tail -200 ui-tests.log || true
+            grep -E "error: -\[|^Test Case .* failed \(" ui-tests.log | sed 's/^/::error::/' || true
+            exit "$status"
+          fi
+          tail -30 ui-tests.log || true
       - name: Retain failure evidence
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
@@ -133,3 +144,11 @@ jobs:
           path: |
             ui-tests.log
             ui-tests.xcresult
+      - name: Retain bounded observer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-observer-shard-${{ matrix.shard }}
+          path: |
+            ui-tests-observer
+            ui-observer-tests.log
