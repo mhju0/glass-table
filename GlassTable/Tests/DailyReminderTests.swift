@@ -155,6 +155,28 @@ struct DailyReminderTests {
         #expect(!defaults.bool(forKey: DailyReminder.enabledKey))
     }
 
+    @Test func enabledRescheduleReplacesTheRequestWithoutSubmittingRemoval() async throws {
+        let (settings, client, defaults) = makeSettings()
+        let first = settings.enable(minutes: 1200, language: .korean)
+        try await client.authorization(at: 0).resume(returning: true)
+        try await client.addition(at: 0).resume()
+        await first.value
+        checkLatestRequest(client.pending, minutes: 1200, language: .korean)
+        #expect(client.removals == 0)
+
+        let second = settings.enable(minutes: 450, language: .english)
+        try await client.authorization(at: 1).resume(returning: true)
+        let replacement = try await client.addition(at: 1)
+        #expect(client.removals == 0)
+        checkLatestRequest(client.pending, minutes: 1200, language: .korean)
+        replacement.resume()
+        await second.value
+        checkLatestRequest(client.pending, minutes: 450, language: .english)
+        #expect(client.removals == 0)
+        #expect(settings.isEnabled)
+        #expect(defaults.bool(forKey: DailyReminder.enabledKey))
+    }
+
     @Test func savedOptInAndTimeArePreservedUntilAnExplicitChange() {
         let defaults = UserDefaults(suiteName: "DailyReminderTests.\(UUID())")!
         defaults.set(true, forKey: DailyReminder.enabledKey)

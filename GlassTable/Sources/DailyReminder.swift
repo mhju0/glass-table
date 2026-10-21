@@ -102,7 +102,6 @@ final class DailyReminderSettings {
                 refuse()
                 return
             }
-            client.remove()
             let scheduled: Bool
             do {
                 try await client.add(DailyReminder.request(minutes: selection.minutes,
@@ -112,7 +111,8 @@ final class DailyReminderSettings {
                 scheduled = false
             }
             // Cancellation cannot retract an add already submitted to the system.
-            // No newer add starts until this one finishes and its stale result is removed.
+            // Submit stale-result cleanup before starting a newer add. System removal
+            // is asynchronous and offers no completion callback.
             guard expected == generation else {
                 client.remove()
                 continue
