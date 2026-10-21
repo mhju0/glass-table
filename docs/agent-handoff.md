@@ -5,8 +5,16 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-21)
+## Current state (2026-10-22)
 
+- Owner asked to fix the nightly launch problem. The original runner launch request
+  reached host xcodebuild about 67 seconds later, after the 60-second request timeout.
+  No causal app defect or matching Apple-confirmed remedy is established. Branch
+  `fix/ci-launch-observer-20261022` repairs missing diagnostic coverage only: bounded
+  host/selected-simulator process samples, unchanged tests/policy and preserved exit
+  status. All 37 tool tests and a real macOS sample passed. Independent exact-candidate
+  review accepted `13779ff`; authentic CI is pending; do not call the launch failure fixed.
+  Record: `docs/records/2026-10-22-ci-launch-observer.md`. No new build/release.
 - Owner requested immediate investigation of nightly run `39497368168` on released
   `be1c839`. Corrected result: 135 passed / 2 failed in shard 3; three initial
   launch-failure events included Equity, which recovered after XCTest restarted.
@@ -308,6 +316,14 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-22 (Codex · nightly diagnostic coverage)
+
+- Rejected speculative app, simulator, retry and timeout patches after reviewing the
+  original delayed host launch request. Added bounded diagnostic observation only.
+- Controlled process/cleanup/cancellation tests and real macOS sampling passed;
+  exact review accepted `13779ff`; authentic CI remains pending. Original launch cause and known
+  summary contrast audit remain open. Build 37 and owner progress unchanged.
+
 ### 2026-10-21 (Codex · nightly launch investigation)
 
 - Verified build-37 release/main CI success and green, open documentation PR #62.
@@ -379,17 +395,3 @@ Tests:
 - Both Release smoke tests passed locally with fresh derived data and no demo hooks.
   Replacement CI/device Release validation are pending; no app code changes, merge,
   tag or installation. Evidence stays in the terminology verification record.
-
-### 2026-10-19 (Codex · terminology and learning reference)
-
-- Removed both terminology controls; paired real terms with plain meanings and added
-  a 56-entry searchable bilingual glossary with focused lookup and seven readable
-  Settings guide topics. Owner explicitly chose self-directed lookup with no scoring
-  effect; only current-question coaching or calculated hints count as assistance (D55).
-- Independent review found and resolved ambiguous Position street labels and missing
-  LJ/UTG+1 lookup. Final product code `5522a12` passed its delta review. Saved progress,
-  question identities and grading remain unchanged.
-- Local guide/search/dock and normal/AX5 KO/EN render checks passed; final hint
-  copy is `b8ff2cc`. PR #56 remote CI is pending. It is stacked on unmerged #55.
-  Final evidence is in
-  `docs/records/2026-10-19-terminology-learning-help.md`; no release or phone install.
