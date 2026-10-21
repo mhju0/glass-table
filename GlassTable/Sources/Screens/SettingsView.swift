@@ -5,6 +5,7 @@ import GlassTableDrills
 
 struct SettingsView: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(ProgressionModel.self) private var model
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @Environment(LanguageSettings.self) private var languageSettings
@@ -356,10 +357,25 @@ struct SettingsView: View {
             .accessibilityIdentifier("settings-reminder")
             if reminder.isEnabled {
                 Divider()
-                DatePicker(language.text("알림 시간", "Time"), selection: reminderTime,
-                           displayedComponents: .hourAndMinute)
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(language.text("알림 시간", "Time"))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityHidden(true)
+                        DatePicker(language.text("알림 시간", "Time"), selection: reminderTime,
+                                   displayedComponents: .hourAndMinute)
+                            .labelsHidden()
+                            .accessibilityLabel(language.text("알림 시간", "Time"))
+                            .accessibilityIdentifier("settings-reminder-time")
+                    }
                     .font(GT.semibold(15)).foregroundStyle(GT.ink)
-                    .accessibilityIdentifier("settings-reminder-time")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    DatePicker(language.text("알림 시간", "Time"), selection: reminderTime,
+                               displayedComponents: .hourAndMinute)
+                        .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                        .accessibilityIdentifier("settings-reminder-time")
+                }
             }
             if reminder.isRefused {
                 Text(language.text("알림이 꺼져 있어요. 설정 앱에서 Glass Table 알림을 켜 주세요.",
