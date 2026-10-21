@@ -281,6 +281,25 @@ class Observer:
                 if self.fallback["round"] == 2:
                     self.fallback = None
 
+    def finalize_sample(self, helper, code, interrupted=False):
+        context = helper["context"]
+        path = context["path"]
+        retained_bytes = None
+        try:
+            if path.exists():
+                if path.stat().st_size > MAX_FILE:
+                    with path.open("r+b") as handle:
+                        handle.truncate(MAX_FILE)
+                retained_bytes = path.stat().st_size
+            output = helper["output"][:32768].decode("utf-8", errors="replace")
+            path.with_suffix(".command.txt").write_text(output)
+        except OSError as error:
+            self.event("sample_finalization_error", role=context["role"],
+                       round=context["round"], error=str(error))
+        self.event("sample_finish", role=context["role"], round=context["round"],
+                   returncode=code, timed_out=helper["stopped"], interrupted=interrupted,
+                   retained_bytes=retained_bytes)
+
     def poll_helpers(self):
         for helper in list(self.helpers):
             process = helper["process"]
@@ -303,14 +322,7 @@ class Observer:
             self.helpers.remove(helper)
             output = helper["output"][:MAX_FILE].decode("utf-8", errors="replace")
             if helper["kind"] == "sample":
-                context = helper["context"]
-                path = context["path"]
-                if path.exists() and path.stat().st_size > MAX_FILE:
-                    with path.open("r+b") as handle:
-                        handle.truncate(MAX_FILE)
-                path.with_suffix(".command.txt").write_text(output[:32768])
-                self.event("sample_finish", role=context["role"], round=context["round"],
-                           returncode=code, timed_out=helper["stopped"])
+                self.finalize_sample(helper, code)
             elif code == 0 and not helper["stopped"]:
                 if helper["kind"] == "inventory":
                     self.inventory(output, helper["context"])
@@ -340,6 +352,8 @@ class Observer:
             except subprocess.TimeoutExpired:
                 self.event("helper_reap_timeout", pid=helper["process"].pid, helper_kind=helper["kind"])
             helper["process"].stdout.close()
+            if helper["kind"] == "sample":
+                self.finalize_sample(helper, helper["process"].returncode, interrupted=True)
         self.helpers.clear()
         self.sample_queue.clear()
 

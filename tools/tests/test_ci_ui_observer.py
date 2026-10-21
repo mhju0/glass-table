@@ -89,11 +89,13 @@ pathlib.Path(sys.argv[-1]).write_text('sampled pid=' + sys.argv[1])
             return not result.stdout.strip() or result.stdout.strip().startswith("Z")
         self.wait_for(stopped)
 
-    def blocking_sampler(self):
+    def blocking_sampler(self, oversized=False):
         self.sampler = self.script("blocking-sampler", f"""
 import json, os, pathlib, signal, subprocess, sys, time
 signal.signal(signal.SIGTERM, signal.SIG_IGN)
 child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+if {oversized!r}:
+    pathlib.Path(sys.argv[-1]).write_bytes(b'x' * (2 * 1024 * 1024 + 4096))
 pathlib.Path({str(self.root / 'sample-pids.json')!r}).write_text(json.dumps([os.getpid(), child.pid]))
 time.sleep(60)
 """)
@@ -205,10 +207,25 @@ time.sleep(0.35)
         self.assertIsNone(unrelated.poll())
 
     def test_original_exit_during_sampling_cleans_sampler_and_preserves_code(self):
-        self.blocking_sampler()
+        self.exit_during_sample()
+
+    def test_original_exit_caps_interrupted_oversized_sample(self):
+        self.exit_during_sample(oversized=True)
+        self.assert_capped_sample()
+
+    def assert_capped_sample(self):
+        paths = list(self.diagnostics.rglob("*.sample.txt"))
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(paths[0].stat().st_size, 2 * 1024 * 1024)
+        with paths[0].open("rb") as handle:
+            self.assertEqual(handle.read(32), b"x" * 32)
+
+    def exit_during_sample(self, oversized=False):
+        self.blocking_sampler(oversized=oversized)
         expression = f"pathlib.Path({str(self.root / 'sample-pids.json')!r}).exists()"
         result = self.run_command(f"import sys\nprint({LAUNCH!r}, flush=True)\n" +
-                                  self.child_wait_for(expression) + "sys.exit(41)\n")
+                                  self.child_wait_for(expression) + "sys.exit(41)\n",
+                                  extra=("--helper-timeout", "2") if oversized else ())
         self.assertEqual(result.returncode, 41, result.stderr)
         for pid in json.loads((self.root / "sample-pids.json").read_text()):
             self.assert_not_running(pid)
@@ -238,7 +255,14 @@ sys.exit(observer.main(sys.argv[1:]))
             self.assert_not_running(pid)
 
     def test_cancellation_interrupts_blocked_sample_and_owned_command_group(self):
-        self.blocking_sampler()
+        self.cancel_during_sample()
+
+    def test_cancellation_caps_interrupted_oversized_sample(self):
+        self.cancel_during_sample(oversized=True)
+        self.assert_capped_sample()
+
+    def cancel_during_sample(self, oversized=False):
+        self.blocking_sampler(oversized=oversized)
         unrelated = self.external_runner(self.root / "OTHER-SIM")
         command = self.command(f"""
 import json, os, pathlib, signal, subprocess, sys, time
@@ -247,7 +271,7 @@ child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
 pathlib.Path({str(self.root / 'original-pids.json')!r}).write_text(json.dumps([os.getpid(), child.pid]))
 print({LAUNCH!r}, flush=True)
 time.sleep(60)
-""")
+""", extra=("--helper-timeout", "2") if oversized else ())
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.addCleanup(lambda: process.poll() is None and process.kill())
         self.wait_for(lambda: (self.root / "sample-pids.json").exists())
