@@ -7,24 +7,23 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-22)
 
-- Owner asked to fix the nightly launch problem. The original runner launch request
-  reached host xcodebuild about 67 seconds later, after the 60-second request timeout.
-  No causal app defect or matching Apple-confirmed remedy is established. Branch
-  `fix/ci-launch-observer-20261022` repairs missing diagnostic coverage only: bounded
-  host/selected-simulator process samples, unchanged tests/policy and preserved exit
-  status. All 37 tool tests and a real macOS sample passed. Independent exact-candidate
-  review accepted `13779ff`; authentic CI is pending; do not call the launch failure fixed.
-  Record: `docs/records/2026-10-22-ci-launch-observer.md`. No new build/release.
-- Owner requested immediate investigation of nightly run `39497368168` on released
-  `be1c839`. Corrected result: 135 passed / 2 failed in shard 3; three initial
-  launch-failure events included Equity, which recovered after XCTest restarted.
-  Local unchanged tests passed 3/3 twice; matched original four-test CI prefix
-  `39618848422` passed 4/4 on Xcode 26.3 / iOS 26.2. No app/test changes or new build.
-  Evidence favors a launch-control/session problem, but the initial reported exit code 0
-  and stalled transaction remain unattributed. Do not call this fixed or clear the
-  original nightly. Known summary contrast audit remains separately open.
-  Record: `docs/records/2026-10-21-nightly-launch-investigation.md`. Documentation
-  PR #62 carries release evidence and this investigation; no product merge requested.
+- Owner authorized comprehensive code/performance review, all recommended strong/medium
+  fixes, full validation, merge and safe branch cleanup. PRs #62/#63 merged; starting
+  main was `23f5383`. Current candidate is on `fix/comprehensive-review-20261022`:
+  latest-intent reminder reconciliation, once-per-render Equity generation, contained
+  navigation glass shadow, AX reminder reflow/single localized label, and repaired
+  diagnostic capture. Native/package tests and measured performance checks passed;
+  final independent review, full CI and merge remain pending. No build bump/release.
+  Record: `docs/records/2026-10-22-comprehensive-code-performance-review.md`.
+- Original nightly launch cause remains unattributed. Original run `39497368168`
+  finished shard 3 with 135 passed / two failed; Equity recovered after restart.
+  Matched four-test prefixes pass without assertion, launch-timeout or retry changes.
+  Initial observer CI exposed missing usable stacks despite local tests. Provider
+  probe `39651388113` retained real host and selected-runner stacks using a copy
+  removing only `sample -mayDie`; earlier rounds timed out and no app stack was
+  retained. Capture delays are recorded, not claimed as exact checkpoint snapshots.
+  Records: `docs/records/2026-10-21-nightly-launch-investigation.md` and
+  `docs/records/2026-10-22-ci-launch-observer.md`. Diagnostics are not a causal cure.
 - Owner requested build 37 and then faster parallel delivery. Integration PR #61
   merged to `be1c839769030c2ef1f6f129e4dcbea15bce50ca`; tag `v1.0-37` names that
   exact merge. Its tree `313e2a07dbb018e9ea895601dd3a8d233f19e034` exactly matches
@@ -316,6 +315,17 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-22 (Codex · comprehensive review and performance)
+
+- Reviewed standards and spec separately, checked findings with reproductions and
+  measurements, and implemented five P2 fixes. Rejected persistence rewrites after
+  a sorted-key experiment saved only 2.22ms; kept progress/recovery/schema unchanged.
+- App/package and native checks passed, including strict summary audit and KO/EN AX
+  reminder layout. Authentic provider now retained host/runner stacks, with timeout
+  and capture-delay limits kept explicit. Full candidate CI/merge/cleanup pending.
+- Original launch cause, wider accessibility/minimum-OS and real novice acceptance
+  remain open. Build 37 stays the latest release; no phone/progress changes.
+
 ### 2026-10-22 (Codex · nightly diagnostic coverage)
 
 - Rejected speculative app, simulator, retry and timeout patches after reviewing the
@@ -384,14 +394,3 @@ Tests:
 - App Store Connect is signed in; existing Me group has one tester and automatic
   builds. No phone reinstall or App Store review submission requested.
   Evidence: `docs/records/2026-10-19-build36-release.md`.
-
-### 2026-10-19 (Codex · CI Release-guide assertion)
-
-- Checked exact PR #56 head `a61b9c2`: CI ran, but its Release smoke test still
-  expected the previous guide headline. Tools, packages, app unit and all 14 focused
-  UI tests passed; device Release validation was skipped after the smoke failure.
-- Updated the smoke test to require the real first topic and navigate to the next
-  topic without demo hooks. Added the relevant Release check to `docs/validation.md`.
-- Both Release smoke tests passed locally with fresh derived data and no demo hooks.
-  Replacement CI/device Release validation are pending; no app code changes, merge,
-  tag or installation. Evidence stays in the terminology verification record.

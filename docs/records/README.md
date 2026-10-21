@@ -34,6 +34,7 @@ No images, base64, HTML, secrets or personal data.
 
 | Record | Title | Kind |
 | --- | --- | --- |
+| [2026-10-22-comprehensive-code-performance-review.md](2026-10-22-comprehensive-code-performance-review.md) | Comprehensive code and performance review | audit |
 | [2026-10-22-ci-launch-observer.md](2026-10-22-ci-launch-observer.md) | Nightly launch diagnostic coverage | verification |
 | [2026-10-21-nightly-launch-investigation.md](2026-10-21-nightly-launch-investigation.md) | Nightly launch failures and reproduction limits | audit |
 | [2026-10-20-build37-release.md](2026-10-20-build37-release.md) | Build 37 release and TestFlight evidence | verification |
