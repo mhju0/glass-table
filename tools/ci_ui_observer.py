@@ -230,7 +230,7 @@ class Observer:
                    round=task["directory"].name, owned=(task["role"] == "host"),
                    capture_delay=round(time.monotonic() - task["queued_at"], 3))
         self.helper([self.args.sampler, str(pid), str(self.args.sample_seconds), "10",
-                     "-mayDie", "-file", str(path)], "sample", self.args.helper_timeout,
+                     "-file", str(path)], "sample", self.args.helper_timeout,
                     dict(role=task["role"], path=path, round=task["directory"].name))
 
     def metadata(self, directory):
