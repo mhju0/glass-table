@@ -1,4 +1,5 @@
 """Run real child processes through the observer's stall and cancellation boundaries."""
+import io
 import json
 import os
 from pathlib import Path
@@ -8,9 +9,14 @@ import sys
 import tempfile
 import time
 import unittest
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 
 OBSERVER = Path(__file__).resolve().parents[1] / "ci_ui_observer.py"
+sys.path.insert(0, str(OBSERVER.parent))
+import ci_ui_observer as observer
+
 LAUNCH = "    t =     0.01s     Launch com.michaelju.glasstable"
 
 
@@ -100,6 +106,75 @@ pathlib.Path({str(self.root / 'sample-pids.json')!r}).write_text(json.dumps([os.
 time.sleep(60)
 """)
 
+    def run_instrumented(self, body, instrumentation, extra=()):
+        command = self.command(body, extra)
+        launcher = self.script("instrumented-observer.py", f"""
+import sys
+sys.path.insert(0, {str(OBSERVER.parent)!r})
+import ci_ui_observer as observer
+{instrumentation}
+sys.exit(observer.main(sys.argv[1:]))
+""")
+        command[1] = str(launcher)
+        return subprocess.run(command, capture_output=True, text=True, timeout=8)
+
+    def test_slow_global_inventory_retries_once_but_host_sample_survives(self):
+        slow = self.script("slow-inventory", "import time\ntime.sleep(2)\n")
+        body = f"print({LAUNCH!r}, flush=True)\n" + self.wait_event("capture_inventory_failed") + "import sys\nsys.exit(29)\n"
+        result = self.run_instrumented(body, f"""
+original_helper = observer.Observer.helper
+def slow_inventory(self, command, kind, timeout, context=None):
+    if kind == 'inventory':
+        command = [{str(slow)!r}]
+    return original_helper(self, command, kind, timeout, context)
+observer.Observer.helper = slow_inventory
+""", extra=("--control-timeout", "0.15"))
+        self.assertEqual(result.returncode, 29, result.stderr)
+        events = self.events()
+        self.assertEqual(len([e for e in events if e['event'] == 'capture_inventory_retry']), 1)
+        self.assertEqual(len([e for e in events if e['event'] == 'capture_inventory_failed']), 1)
+        self.assertLessEqual(len([e for e in events if e['event'] == 'helper_failure' and e['helper_kind'] == 'inventory']), 3)
+        sample = next(e for e in events if e['event'] == 'sample_finish')
+        self.assertEqual(sample['role'], 'host')
+        self.assertTrue(sample['usable'])
+        self.assertGreater(sample['retained_bytes'], 0)
+
+    def test_sampler_delayed_file_output_gets_distinct_completion_budget(self):
+        self.sampler = self.script("delayed-sampler", """
+import pathlib, sys, time
+assert sys.argv[2] == '2', 'sampling duration must remain two seconds'
+print('Sampling process ' + sys.argv[1] + ' for 2 seconds', flush=True)
+time.sleep(5.2)
+pathlib.Path(sys.argv[-1]).write_text('symbolicated stack after delayed output')
+""")
+        body = (f"print({LAUNCH!r}, flush=True)\n" + self.wait_event("sample_finish")).replace(
+            "end = time.monotonic() + 4", "end = time.monotonic() + 7")
+        command = self.command(body)
+        index = command.index("--helper-timeout")
+        del command[index:index + 2]  # Exercise the production completion deadline.
+        result = subprocess.run(command, capture_output=True, text=True, timeout=8)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        sample = next(e for e in self.events() if e['event'] == 'sample_finish')
+        self.assertGreater(sample['retained_bytes'] or 0, 0)
+        self.assertTrue(sample['usable'])
+        self.assertFalse(sample['timed_out'])
+        self.assertGreaterEqual(sample['duration'], 5.2)
+
+    def test_sample_bytes_and_nonzero_status_are_both_retained(self):
+        self.sampler = self.script("oversized-failing-sampler", """
+import pathlib, sys
+pathlib.Path(sys.argv[-1]).write_bytes(b'x' * (2 * 1024 * 1024 + 4096))
+sys.exit(19)
+""")
+        result = self.run_command(f"print({LAUNCH!r}, flush=True)\n" + self.wait_event("sample_finish") + "import sys\nsys.exit(31)\n")
+        self.assertEqual(result.returncode, 31, result.stderr)
+        sample = next(e for e in self.events() if e['event'] == 'sample_finish')
+        self.assertEqual(sample['returncode'], 19)
+        self.assertEqual(sample['retained_bytes'], 2 * 1024 * 1024)
+        self.assertFalse(sample['usable'])
+        self.assertFalse(sample['output_missing'])
+        self.assert_capped_sample()
+
     def test_normal_completion_preserves_original_output_and_zero(self):
         result = self.run_command("import sys\nprint('original stdout', flush=True)\nprint('original stderr', file=sys.stderr, flush=True)\n")
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -182,9 +257,9 @@ time.sleep(0.35)
         runner = self.external_runner()
         result = self.run_command(self.wait_event("capture") +
             f"import os,signal\nos.kill({runner.pid}, signal.SIGTERM)\n" +
-            self.wait_event("runner_no_progress_cancelled"))
+            self.wait_event("runner_no_progress_cancelled"), extra=("--second-checkpoint", "2"))
         runner.wait(timeout=1)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr + self.log.read_text() + repr(self.events()))
         self.assertEqual(len([e for e in self.events() if e["event"] == "capture"]), 1)
         self.assertTrue(any(e["event"] == "runner_no_progress_cancelled" for e in self.events()))
 
@@ -309,6 +384,73 @@ pathlib.Path({str(self.root / 'sample-pids.json')!r}).write_text(json.dumps([os.
         self.assertEqual(launch["offset"], 32769)
         self.assertTrue(any(e["event"] == "log_line_truncated" and e["retained_bytes"] == 16384
                             for e in self.events()))
+
+
+class ProviderCaptureTests(unittest.TestCase):
+    # The short launcher execs the selected Xcode binary without changing PID/start.
+    INITIAL = "2159 2158 Wed Oct 21 15:36:17 2026 xcodebuild -project GlassTable.xcodeproj"
+    EXECUTED = "2159 2158 Wed Oct 21 15:36:17 2026 /Applications/Xcode_26.3.0.app/Contents/Developer/usr/bin/xcodebuild -project GlassTable.xcodeproj"
+
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.device = self.root / "SELECTED-SIM"
+        self.observer = observer.Observer(SimpleNamespace(device_path=self.device, sampler="sample",
+            sample_seconds=2, helper_timeout=30, control_timeout=5, diagnostics=str(self.root)))
+        self.observer.timeline = io.StringIO()
+        self.observer.child = SimpleNamespace(pid=2159, poll=lambda: None)
+        self.observer.helper = Mock()
+        self.observer.metadata = Mock()
+
+    def test_provider_exec_transition_keeps_owned_host_capture(self):
+        self.observer.inventory(self.INITIAL, None)
+        self.observer.capture("pending-launch", time.monotonic())
+        self.observer.inventory(self.EXECUTED, self.root)
+        hosts = [t for t in self.observer.sample_queue if t["role"] == "host"]
+        self.assertEqual(len(hosts), 1, self.observer.timeline.getvalue())
+        self.observer.verify_sample(self.EXECUTED, hosts[0])
+        self.assertEqual(self.observer.helper.call_args.args[1], "sample")
+        self.assertIn("Xcode_26.3.0", json.loads(self.observer.timeline.getvalue().splitlines()[-1])["identity"]["command"])
+
+    def test_capture_queues_host_before_global_inventory_returns(self):
+        self.observer.capture("pending-launch", time.monotonic())
+        self.assertEqual([t["role"] for t in self.observer.sample_queue], ["host"])
+        self.assertEqual(self.observer.helper.call_args.args[1], "inventory")
+
+    def test_owned_host_disappearance_or_reused_pid_never_samples(self):
+        self.observer.inventory(self.INITIAL, None)
+        task = dict(role="host", identity=self.observer.host_identity, directory=self.root, queued_at=time.monotonic())
+        for output in ("", self.EXECUTED.replace("15:36:17", "15:36:18"),
+                       self.EXECUTED.replace("2159 2158", "2159 9999")):
+            with self.subTest(output=output):
+                self.observer.verify_sample(output, task)
+                self.observer.helper.assert_not_called()
+
+    def test_exited_owned_host_never_samples_even_if_ps_still_reports_it(self):
+        self.observer.inventory(self.INITIAL, None)
+        self.observer.child.poll = lambda: 0
+        self.observer.verify_sample(self.INITIAL, dict(role="host", identity=self.observer.host_identity,
+            directory=self.root, queued_at=time.monotonic()))
+        self.observer.helper.assert_not_called()
+
+    def test_default_sample_completion_and_control_budgets_are_separate(self):
+        with patch.object(observer, "Observer") as observer_type:
+            observer_type.return_value.run.return_value = 0
+            observer.main(["--simulator", "SIM", "--log", "log", "--diagnostics", "diagnostics", "--", "true"])
+        args = observer_type.call_args.args[0]
+        self.assertEqual((args.sample_seconds, args.helper_timeout, args.control_timeout), (2, 30, 5))
+
+    def test_external_process_still_requires_current_executable_and_simulator_scope(self):
+        command = str(self.device / "data/Containers/Bundle/Application/fixture/GlassTable.app/GlassTable")
+        line = "99 88 Wed Oct 21 15:36:17 2026 " + command
+        expected = observer.identities(line)[99]
+        task = dict(role="app", identity=expected, directory=self.root, queued_at=time.monotonic())
+        for output in ("", line.replace("15:36:17", "15:36:18"),
+                       line.replace("SELECTED-SIM", "OTHER-SIM"), line + " changed-arguments"):
+            with self.subTest(output=output):
+                self.observer.verify_sample(output, task)
+                self.observer.helper.assert_not_called()
 
 
 if __name__ == "__main__":
