@@ -365,7 +365,6 @@ struct SettingsView: View {
                         DatePicker(language.text("알림 시간", "Time"), selection: reminderTime,
                                    displayedComponents: .hourAndMinute)
                             .labelsHidden()
-                            .accessibilityLabel(language.text("알림 시간", "Time"))
                             .accessibilityIdentifier("settings-reminder-time")
                     }
                     .font(GT.semibold(15)).foregroundStyle(GT.ink)
