@@ -66,7 +66,8 @@ recorded reproductions or measurements. No confirmed P0/P1 defect was found.
   accepted `66b507f`; its duplicate-label follow-up is exercised at `57b1ec0`.
 - Independent final review accepted runtime `06e364e`. Standard CI `39653967706`
   passed; full UI `39653967431` covers all four shards of that exact runtime.
-  Final checks/merge evidence: [PR #64](https://github.com/mhju0/glass-table/pull/64).
+  Initial full UI had two failures; controlled verification and preserved evidence:
+  `2026-10-23-comprehensive-ci-closeout.md`. Final checks/merge: [PR #64](https://github.com/mhju0/glass-table/pull/64).
   Later record updates change documentation only; use Actions for terminal results.
 
 ## Still open

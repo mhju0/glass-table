@@ -5,7 +5,7 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-22)
+## Current state (2026-10-23)
 
 - Owner authorized comprehensive code/performance review, all recommended strong/medium
   fixes, full validation, merge and safe branch cleanup. PRs #62/#63 merged; starting
@@ -18,6 +18,14 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   is the final merge/check record; subsequent notes change documentation only.
   Original checkout has three unrelated dirty files; preserve them. No build bump/release.
   Record: `docs/records/2026-10-22-comprehensive-code-performance-review.md`.
+- Comprehensive full UI `39653967431` first attempt executed 381 tests with 11
+  optional skips and two failures: one post-Next reveal transition and one launch
+  timeout before chart assertions. Complete standard CI passed on both frozen heads.
+  Actual artifacts were retained; six unchanged local reveal passes do not establish
+  a CI cause. Independent review approved one unchanged rerun of both full failed
+  shards, with no policy/assertion/deadline changes. Exact results/integration live in
+  PR #64 and Actions; causes remain open. Record:
+  `docs/records/2026-10-23-comprehensive-ci-closeout.md`.
 - Original nightly launch cause remains unattributed. Original run `39497368168`
   finished shard 3 with 135 passed / two failed; Equity recovered after restart.
   Matched four-test prefixes pass without assertion, launch-timeout or retry changes.
@@ -243,6 +251,11 @@ Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
 
 Still unverified beyond the recorded scope-4 subset:
+- Isolated full-UI reveal activation failure: accurate synthetic Next tap left the
+  answered question unchanged. No handler/refusal cause established; local unchanged
+  case passed six times on a newer runtime. Preserve and correlate completion-handler
+  entry/identity/phase/refusal/save/render if it recurs; no automatic repeated reruns.
+  `docs/records/2026-10-23-comprehensive-ci-closeout.md`.
 - Nightly launch transaction cause remains unresolved after investigation. Count
   and Defend remained failed; Equity recovered after a runner restart. Matched
   four-case CI probe passed without source, assertion, timeout, preboot or retry
@@ -316,6 +329,16 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-23 (Codex · resumed CI closeout)
+
+- Owner resumed after usage reset. Full standard CI is green; first full UI retained
+  two distinct failures. Native/source/session evidence did not justify speculative
+  fixes. Independent review selected one unchanged whole-failed-shard verification
+  attempt; successful execution will not be described as repairing either cause.
+- All five confirmed review fixes remain accepted. Original dirty notes and separate
+  iPad work are protected. Follow exact run/PR #64 for integration and final checks;
+  no build bump, phone action or TestFlight release.
+
 ### 2026-10-22 (Codex · comprehensive review and performance)
 
 - Reviewed standards and spec separately, checked findings with reproductions and
@@ -385,15 +408,3 @@ Tests:
   from measured Release hitches; no speculative layout/performance rewrite.
   Evidence/limits: `docs/records/2026-10-20-interaction-accessibility.md` and
   `docs/records/2026-10-20-accessibility-audit-followup.md`. No merge/release.
-
-### 2026-10-19 (Codex · build 36 validation and release)
-
-- Completed full CI, Engine release tests and all four UI shards on `bb65365`.
-  Fixed stale Release/dock expectations and synchronized guide dismissal without
-  weakening behavior checks. Removed the resolved remote-CI/full-suite open issue.
-- Merged #55 then #56; release `6ea894f` has the exact tested tree and passed main CI.
-  Pushed `v1.0-36`; signed upload, Apple processing and internal Me group assignment
-  verified. Saved bilingual test notes; no App Store review submission or phone install.
-- App Store Connect is signed in; existing Me group has one tester and automatic
-  builds. No phone reinstall or App Store review submission requested.
-  Evidence: `docs/records/2026-10-19-build36-release.md`.
