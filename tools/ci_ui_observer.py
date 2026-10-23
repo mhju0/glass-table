@@ -66,7 +66,9 @@ class Observer:
         self.fallback = None
         self.fallback_used = False
         self.last_progress = self.started
-        self.last_inventory = 0
+        self.next_inventory = 0
+        self.capture_inventory_attempts = {}
+        self.capture_started = {}
         self.selected = {}
         self.host_identity = None
         self.offset = 0
@@ -98,7 +100,7 @@ class Observer:
                                    start_new_session=True)
         os.set_blocking(process.stdout.fileno(), False)
         self.helpers.append(dict(process=process, output=bytearray(), kind=kind,
-            deadline=time.monotonic() + timeout, context=context, stopped=False))
+            deadline=time.monotonic() + timeout, started=time.monotonic(), context=context, stopped=False))
 
     def kill_group(self, process, number):
         try:
@@ -152,7 +154,10 @@ class Observer:
             self.pending = None
 
     def snapshot(self, context=None):
-        self.helper(["/bin/ps", "-axww", "-o", "pid=,ppid=,lstart=,command="], "inventory", 2, context)
+        if context is not None:
+            self.capture_inventory_attempts[context] = self.capture_inventory_attempts.get(context, 0) + 1
+        self.helper(["/bin/ps", "-axww", "-o", "pid=,ppid=,lstart=,command="],
+                    "inventory", self.args.control_timeout, context)
 
     def inventory(self, output, context):
         current = identities(output)
@@ -182,29 +187,50 @@ class Observer:
             return
         self.event("capture_targets", round=context.name, host=host.__dict__ if host else None,
                    simulator_processes={k: [p.__dict__ for p in v] for k, v in selected.items()})
-        targets = [("host", self.host_identity)]
+        targets = []
         for role in ("runner", "app"):
             items = selected.get(role, [])
             # Ambiguous same-simulator processes are recorded but never guessed.
             if len(items) == 1:
                 targets.append((role, items[0]))
+            else:
+                self.event("sample_skipped", role=role, round=context.name,
+                           reason="identity absent" if not items else "ambiguous simulator identities")
         for role, expected in targets:
             if expected is None or current.get(expected.pid) != expected:
                 self.event("sample_skipped", role=role, reason="identity absent or changed", round=context.name)
                 continue
-            self.sample_queue.append(dict(role=role, identity=expected, directory=context))
+            self.sample_queue.append(dict(role=role, identity=expected, directory=context,
+                                          queued_at=self.capture_started.get(context, time.monotonic())))
 
     def verify_sample(self, output, task):
         expected = task["identity"]
-        if identities(output).get(expected.pid) != expected:
+        pid = self.child.pid if task["role"] == "host" else expected.pid
+        current = identities(output).get(pid)
+        if task["role"] == "host":
+            # An owned launcher may exec Xcode in place. PID/parent/start survive;
+            # command text is metadata, unlike the executable scope of an observed PID.
+            valid = (current is not None and self.child.poll() is None and
+                     (expected is None or (current.pid, current.parent, current.started) ==
+                      (expected.pid, expected.parent, expected.started)))
+        else:
+            valid = current == expected and simulator_role(current, self.args.device_path) == task["role"]
+        if not valid:
             self.event("sample_skipped", role=task["role"], reason="identity absent or changed",
                        round=task["directory"].name)
             return
-        path = task["directory"] / f"{task['role']}-{expected.pid}.sample.txt"
-        self.event("sample_start", role=task["role"], identity=expected.__dict__,
-                   round=task["directory"].name, owned=(task["role"] == "host"))
-        self.helper([self.args.sampler, str(expected.pid), str(self.args.sample_seconds), "10",
-                     "-mayDie", "-file", str(path)], "sample", self.args.helper_timeout,
+        if task["role"] == "host":
+            if self.host_identity is None:
+                self.event("host_identity", identity=current.__dict__, owned=True)
+            elif current.command != self.host_identity.command:
+                self.event("host_exec_observed", previous=self.host_identity.__dict__, identity=current.__dict__)
+            self.host_identity = current
+        path = task["directory"] / f"{task['role']}-{pid}.sample.txt"
+        self.event("sample_start", role=task["role"], identity=current.__dict__,
+                   round=task["directory"].name, owned=(task["role"] == "host"),
+                   capture_delay=round(time.monotonic() - task["queued_at"], 3))
+        self.helper([self.args.sampler, str(pid), str(self.args.sample_seconds), "10",
+                     "-file", str(path)], "sample", self.args.helper_timeout,
                     dict(role=task["role"], path=path, round=task["directory"].name))
 
     def metadata(self, directory):
@@ -228,7 +254,7 @@ class Observer:
             handle.seek(max(0, self.offset - 32768))
             (directory / "ui-tests-tail.txt").write_bytes(handle.read(32768))
         # Raw process/open-file inventories stay in memory; only attributed data survives.
-        self.helper(["/usr/sbin/lsof", "-p", str(self.child.pid), "-Fn"], "sessions", 2, directory)
+        self.helper(["/usr/sbin/lsof", "-p", str(self.child.pid), "-Fn"], "sessions", self.args.control_timeout, directory)
 
     def sessions(self, output, directory):
         records = []
@@ -256,17 +282,21 @@ class Observer:
         self.rounds += 1
         directory = Path(self.args.diagnostics) / f"capture-{self.rounds}-{reason}"
         directory.mkdir()
+        self.capture_started[directory] = time.monotonic()
         self.event("capture", reason=reason, trigger_elapsed=time.monotonic() - since,
                    offset=self.offset, current_test=self.last_test, origin=origin, round=directory.name)
-        self.snapshot(directory)  # Fresh identity check before every PID sample.
+        # A slow or failed global inventory must not consume the owned-host capture.
+        self.sample_queue.append(dict(role="host", identity=self.host_identity,
+                                      directory=directory, queued_at=time.monotonic()))
+        self.snapshot(directory)
         self.metadata(directory)
 
     def tick(self):
         self.read_log()
         now = time.monotonic()
-        if now - self.last_inventory >= self.args.inventory_seconds and not any(h["kind"] == "inventory" for h in self.helpers):
+        if now >= self.next_inventory and not any(h["kind"] == "inventory" for h in self.helpers):
             self.snapshot()
-            self.last_inventory = now
+            self.next_inventory = now + self.args.inventory_seconds
         if self.pending is not None:
             if not self.pending["sampled"] and self.explicit_rounds < 2 and now - self.pending["start"] >= self.args.launch_seconds:
                 self.pending["sampled"] = True
@@ -298,7 +328,10 @@ class Observer:
                        round=context["round"], error=str(error))
         self.event("sample_finish", role=context["role"], round=context["round"],
                    returncode=code, timed_out=helper["stopped"], interrupted=interrupted,
-                   retained_bytes=retained_bytes)
+                   retained_bytes=retained_bytes,
+                   duration=round(time.monotonic() - helper["started"], 3),
+                   usable=bool(retained_bytes) and code == 0 and not helper["stopped"] and not interrupted,
+                   output_missing=not bool(retained_bytes))
 
     def poll_helpers(self):
         for helper in list(self.helpers):
@@ -331,16 +364,29 @@ class Observer:
                 else:
                     self.sessions(output, helper["context"])
             else:
-                self.event("helper_failure", helper_kind=helper["kind"], returncode=code, timed_out=helper["stopped"])
+                self.event("helper_failure", helper_kind=helper["kind"], returncode=code,
+                           timed_out=helper["stopped"],
+                           duration=round(time.monotonic() - helper["started"], 3))
+                if helper["kind"] == "inventory":
+                    self.next_inventory = time.monotonic() + max(5, self.args.inventory_seconds)
+                    directory = helper["context"]
+                    if directory is not None:
+                        if self.capture_inventory_attempts[directory] < 2:
+                            self.event("capture_inventory_retry", round=directory.name)
+                            self.snapshot(directory)
+                        else:
+                            self.event("capture_inventory_failed", round=directory.name,
+                                       roles=["runner", "app"], reason="inventory unavailable after two attempts")
                 if helper["kind"] == "verify_sample":
                     task = helper["context"]
-                    self.event("sample_skipped", role=task["role"], identity=task["identity"].__dict__,
+                    self.event("sample_skipped", role=task["role"], identity=task["identity"].__dict__ if task["identity"] else None,
                                reason="identity verification unavailable", round=task["directory"].name)
         # Serial samples keep the host first and avoid three simultaneous samplers.
         if self.sample_queue and not any(h["kind"] in ("sample", "verify_sample") for h in self.helpers):
             task = self.sample_queue.pop(0)
-            self.helper(["/bin/ps", "-p", str(task["identity"].pid), "-o", "pid=,ppid=,lstart=,command="],
-                        "verify_sample", 2, task)
+            pid = self.child.pid if task["role"] == "host" else task["identity"].pid
+            self.helper(["/bin/ps", "-p", str(pid), "-o", "pid=,ppid=,lstart=,command="],
+                        "verify_sample", self.args.control_timeout, task)
 
     def clean_helpers(self):
         # Never signal observed simulator PIDs. Only these Popen-created groups are ours.
@@ -354,7 +400,14 @@ class Observer:
             helper["process"].stdout.close()
             if helper["kind"] == "sample":
                 self.finalize_sample(helper, helper["process"].returncode, interrupted=True)
+            elif helper["kind"] == "verify_sample":
+                task = helper["context"]
+                self.event("sample_skipped", role=task["role"], round=task["directory"].name,
+                           reason="observation stopped during identity verification")
         self.helpers.clear()
+        for task in self.sample_queue:
+            self.event("sample_skipped", role=task["role"], round=task["directory"].name,
+                       reason="observation stopped before sampling")
         self.sample_queue.clear()
 
     def run(self):
@@ -437,7 +490,9 @@ def main(argv=None):
     parser.add_argument("--launch-seconds", type=float, default=20)
     parser.add_argument("--second-checkpoint", type=float, default=50)
     parser.add_argument("--sample-seconds", type=int, default=2)
-    parser.add_argument("--helper-timeout", type=float, default=5)
+    # Sampling duration excludes symbolication/file output, which exceeded 5s on CI.
+    parser.add_argument("--helper-timeout", type=float, default=30)
+    parser.add_argument("--control-timeout", type=float, default=5)
     parser.add_argument("--cancel-grace", type=float, default=5)
     parser.add_argument("--poll-seconds", type=float, default=0.2)
     parser.add_argument("--inventory-seconds", type=float, default=2)

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import Foundation
+import Observation
 import UserNotifications
 import GlassTableDrills
 
@@ -11,6 +12,7 @@ enum DailyReminder {
     static let minutesKey = "reminder.minutes"
     /// 20:00, as minutes after midnight.
     static let defaultMinutes = 20 * 60
+    @MainActor static let shared = DailyReminderSettings()
 
     static func request(minutes: Int, language: LearningLanguage) -> UNNotificationRequest {
         let content = UNMutableNotificationContent()
@@ -23,23 +25,119 @@ enum DailyReminder {
         return UNNotificationRequest(identifier: identifier, content: content,
             trigger: UNCalendarNotificationTrigger(dateMatching: time, repeats: true))
     }
+}
 
-    /// Asks for permission when needed. Returns false when notifications are refused.
-    static func enable(minutes: Int, language: LearningLanguage) async -> Bool {
-        let center = UNUserNotificationCenter.current()
-        let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
-        guard granted else { return false }
-        center.removePendingNotificationRequests(withIdentifiers: [identifier])
-        do {
-            try await center.add(request(minutes: minutes, language: language))
-            return true
-        } catch {
-            return false
+@MainActor
+protocol DailyReminderClient {
+    func requestAuthorization() async throws -> Bool
+    func add(_ request: UNNotificationRequest) async throws
+    func remove()
+}
+
+@MainActor
+private struct SystemDailyReminderClient: DailyReminderClient {
+    func requestAuthorization() async throws -> Bool {
+        try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
+    }
+
+    func add(_ request: UNNotificationRequest) async throws {
+        try await UNUserNotificationCenter.current().add(request)
+    }
+
+    func remove() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: [DailyReminder.identifier])
+    }
+}
+
+/// Lives beyond Settings so an in-flight system add is reconciled even after navigation.
+@MainActor @Observable
+final class DailyReminderSettings {
+    private(set) var isEnabled: Bool
+    private(set) var isRefused = false
+    private let client: any DailyReminderClient
+    private let defaults: UserDefaults
+    private var generation = 0
+    private var selection: (minutes: Int, language: LearningLanguage)?
+    private var worker: Task<Void, Never>?
+
+    init(client: any DailyReminderClient, defaults: UserDefaults) {
+        self.client = client
+        self.defaults = defaults
+        isEnabled = defaults.bool(forKey: DailyReminder.enabledKey)
+    }
+
+    convenience init() {
+        self.init(client: SystemDailyReminderClient(), defaults: .standard)
+    }
+
+    @discardableResult
+    func enable(minutes: Int, language: LearningLanguage) -> Task<Void, Never> {
+        generation += 1
+        selection = (minutes, language)
+        isEnabled = true
+        isRefused = false
+        if let worker { return worker }
+        let task = Task { await reconcile() }
+        worker = task
+        return task
+    }
+
+    func disable() {
+        generation += 1
+        selection = nil
+        isEnabled = false
+        isRefused = false
+        defaults.set(false, forKey: DailyReminder.enabledKey)
+        client.remove()
+    }
+
+    private func reconcile() async {
+        defer { worker = nil }
+        while let selection {
+            let expected = generation
+            let granted = (try? await client.requestAuthorization()) ?? false
+            guard expected == generation else { continue }
+            guard granted else {
+                refuse()
+                return
+            }
+            let scheduled: Bool
+            do {
+                try await client.add(DailyReminder.request(minutes: selection.minutes,
+                                                          language: selection.language))
+                scheduled = true
+            } catch {
+                scheduled = false
+            }
+            // Cancellation cannot retract an add already submitted to the system.
+            // Submit stale-result cleanup before starting a newer add. System removal
+            // is asynchronous and offers no completion callback.
+            guard expected == generation else {
+                client.remove()
+                continue
+            }
+            if scheduled {
+                defaults.set(true, forKey: DailyReminder.enabledKey)
+            } else {
+                refuse()
+            }
+            return
         }
     }
 
-    static func disable() {
-        UNUserNotificationCenter.current()
-            .removePendingNotificationRequests(withIdentifiers: [identifier])
+    private func refuse() {
+        selection = nil
+        isEnabled = false
+        isRefused = true
+        defaults.set(false, forKey: DailyReminder.enabledKey)
+        client.remove()
     }
+
+    #if DEBUG
+    func showPreview(enabled: Bool, refused: Bool) {
+        isEnabled = enabled
+        isRefused = refused
+    }
+    #endif
 }

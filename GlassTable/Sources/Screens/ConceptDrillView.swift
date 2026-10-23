@@ -1323,10 +1323,9 @@ private struct EquitySenseDrill: View {
     @State private var halfWidth = 10.0
     @State private var reveal: EstimateReveal?
 
-    private var spot: EquitySenseSpot { EquitySenseSpotGenerator.spot(baseSeed: seed, index: index, level: level) }
-
     var body: some View {
-        DrillShell(title: "에퀴티 감각", progressText: progressText) {
+        let spot = EquitySenseSpotGenerator.spot(baseSeed: seed, index: index, level: level)
+        return DrillShell(title: "에퀴티 감각", progressText: progressText) {
             if dynamicTypeSize.isAccessibilitySize {
                 ThreeRegionCardTable(opponent: spot.villain, board: spot.board, hero: spot.hero)
             } else {

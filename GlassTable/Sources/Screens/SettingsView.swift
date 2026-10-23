@@ -5,6 +5,7 @@ import GlassTableDrills
 
 struct SettingsView: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(ProgressionModel.self) private var model
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
     @Environment(LanguageSettings.self) private var languageSettings
@@ -26,9 +27,8 @@ struct SettingsView: View {
     @State private var confirmingImport = false
     @State private var fileFailure: ProgressFileFailure?
     @State private var confirmingReset = false
-    @AppStorage(DailyReminder.enabledKey) private var reminderOn = false
+    @State private var reminder = DailyReminder.shared
     @AppStorage(DailyReminder.minutesKey) private var reminderMinutes = DailyReminder.defaultMinutes
-    @State private var reminderRefused = false
     private static let privacyURL =
         URL(string: "https://mhju0.github.io/glass-table/privacy-policy.html")!
     private static let feedbackURL =
@@ -296,8 +296,8 @@ struct SettingsView: View {
                 showResponsible = true
             }
             switch ProcessInfo.processInfo.environment["GT_DEMO_REMINDER"] {
-            case "on": reminderOn = true
-            case "refused": reminderRefused = true
+            case "on": reminder.showPreview(enabled: true, refused: false)
+            case "refused": reminder.showPreview(enabled: false, refused: true)
             default: break
             }
             #endif
@@ -336,15 +336,14 @@ struct SettingsView: View {
         } set: { date in
             let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
             reminderMinutes = (parts.hour ?? 20) * 60 + (parts.minute ?? 0)
-            if reminderOn { scheduleReminder() }
+            if reminder.isEnabled { scheduleReminder() }
         }
     }
 
     private var reminderCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle(isOn: Binding(get: { reminderOn }, set: { on in
-                reminderRefused = false
-                if on { scheduleReminder() } else { reminderOn = false; DailyReminder.disable() }
+            Toggle(isOn: Binding(get: { reminder.isEnabled }, set: { on in
+                if on { scheduleReminder() } else { reminder.disable() }
             })) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(language.text("매일 알림", "Daily reminder"))
@@ -356,14 +355,28 @@ struct SettingsView: View {
             }
             .tint(GT.cta)
             .accessibilityIdentifier("settings-reminder")
-            if reminderOn {
+            if reminder.isEnabled {
                 Divider()
-                DatePicker(language.text("알림 시간", "Time"), selection: reminderTime,
-                           displayedComponents: .hourAndMinute)
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(language.text("알림 시간", "Time"))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityHidden(true)
+                        DatePicker(language.text("알림 시간", "Time"), selection: reminderTime,
+                                   displayedComponents: .hourAndMinute)
+                            .labelsHidden()
+                            .accessibilityIdentifier("settings-reminder-time")
+                    }
                     .font(GT.semibold(15)).foregroundStyle(GT.ink)
-                    .accessibilityIdentifier("settings-reminder-time")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    DatePicker(language.text("알림 시간", "Time"), selection: reminderTime,
+                               displayedComponents: .hourAndMinute)
+                        .font(GT.semibold(15)).foregroundStyle(GT.ink)
+                        .accessibilityIdentifier("settings-reminder-time")
+                }
             }
-            if reminderRefused {
+            if reminder.isRefused {
                 Text(language.text("알림이 꺼져 있어요. 설정 앱에서 Glass Table 알림을 켜 주세요.",
                                    "Notifications are off. Allow them in the Settings app."))
                     .font(GT.body(12)).foregroundStyle(GT.inkMuted)
@@ -377,18 +390,12 @@ struct SettingsView: View {
         }
         .gtInset(GT.Space.card, firstText: .semibold(15))
         .gtCard(radius: 20)
-        .onChange(of: language) { _, _ in if reminderOn { scheduleReminder() } }
+        .onChange(of: language) { _, _ in if reminder.isEnabled { scheduleReminder() } }
     }
 
     /// The notification text is fixed when scheduled, so a language change reschedules.
     private func scheduleReminder() {
-        let minutes = reminderMinutes
-        let language = language
-        Task {
-            let scheduled = await DailyReminder.enable(minutes: minutes, language: language)
-            reminderOn = scheduled
-            reminderRefused = !scheduled
-        }
+        reminder.enable(minutes: reminderMinutes, language: language)
     }
 
     private func row(_ icon: String, _ title: String, _ sub: String?,

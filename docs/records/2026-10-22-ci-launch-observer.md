@@ -47,6 +47,9 @@
 ## Still open
 
 - Original launch cause and initial process exit remain unresolved.
-- Known material-sensitive summary contrast audit remains separate and visible.
-- Authentic CI execution remains pending. Independent acceptance covers diagnostic
-  behavior only; it does not clear the original nightly or launch cause.
+- Summary contrast follow-up is recorded in the comprehensive review below; wider
+  audit coverage remains separate and visible.
+- Initial authentic CI ran but retained no usable samples. The provider-tested repair
+  and successful host/runner sampling probe are recorded in
+  `2026-10-22-comprehensive-code-performance-review.md`. This does not clear the
+  original nightly or establish its launch cause.

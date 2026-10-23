@@ -449,9 +449,12 @@ private struct GTControlSurface: ViewModifier {
 
     @ViewBuilder
     func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
         if #available(iOS 26.0, *), role == .navigation,
            !reduceTransparency, contrast != .increased {
-            content.glassEffect(.regular, in: RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous))
+            content.glassEffect(.regular, in: shape)
+                // The native shadow otherwise draws over text just below the chrome.
+                .clipShape(shape)
         } else {
             content.background { GTControlBackground() }
         }

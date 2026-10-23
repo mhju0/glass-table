@@ -31,7 +31,7 @@ final class LearningReferenceFlowTests: XCTestCase {
         XCTAssertTrue(button.waitForExistence(timeout: 15))
         XCTAssertTrue(scroll.exists)
         XCTAssertTrue(footer.exists)
-        let close = app.buttons["Close"].firstMatch
+        let close = app.buttons["guide-close"].exists ? app.buttons["guide-close"] : app.buttons["Close"].firstMatch
         func viewport() -> CGRect {
             let visible = scroll.frame.intersection(app.windows.firstMatch.frame)
             let top = max(visible.minY, close.frame.maxY + 8)
@@ -55,6 +55,123 @@ final class LearningReferenceFlowTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(button.frame.minY, visible.minY, "Target \(button.frame), viewport \(visible)")
         XCTAssertLessThanOrEqual(button.frame.maxY, visible.maxY, "Target \(button.frame), viewport \(visible)")
         XCTAssertTrue(button.isHittable)
+    }
+
+    private struct GuideViewport: CustomStringConvertible {
+        let scroll: CGRect
+        let close: CGRect
+        let footer: CGRect
+
+        static func framesMatch(_ a: CGRect, _ b: CGRect, accuracy: CGFloat) -> Bool {
+            abs(a.minX - b.minX) <= accuracy && abs(a.minY - b.minY) <= accuracy
+                && abs(a.width - b.width) <= accuracy && abs(a.height - b.height) <= accuracy
+        }
+
+        func matches(_ other: Self, accuracy: CGFloat) -> Bool {
+            Self.framesMatch(scroll, other.scroll, accuracy: accuracy)
+                && Self.framesMatch(close, other.close, accuracy: accuracy)
+                && Self.framesMatch(footer, other.footer, accuracy: accuracy)
+        }
+
+        var description: String { "scroll=\(scroll), close=\(close), footer=\(footer)" }
+    }
+
+    private struct GuideReadingGeometry: CustomStringConvertible {
+        let viewport: GuideViewport
+        let contentAnchor: CGRect
+
+        func isStable(comparedTo other: Self) -> Bool {
+            viewport.matches(other.viewport, accuracy: 0.25)
+                && GuideViewport.framesMatch(contentAnchor, other.contentAnchor, accuracy: 0.25)
+        }
+
+        var description: String { "\(viewport), contentAnchor=\(contentAnchor)" }
+    }
+
+    // The tested term is deliberately absent: readiness must not wait for its expected position.
+    private func settledGuideGeometry(_ app: XCUIApplication, footerID: String,
+                                      contentAnchorID: String,
+                                      restoring viewport: GuideViewport? = nil) -> GuideReadingGeometry? {
+        var previous: GuideReadingGeometry?
+        var settled: GuideReadingGeometry?
+        var observations: [String] = []
+        let start = ProcessInfo.processInfo.systemUptime
+        let wanted: Set<String> = ["guide-content", "guide-close", footerID, contentAnchorID, "glossary-close"]
+        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let sampleStart = ProcessInfo.processInfo.systemUptime
+            guard let root = try? app.snapshot() else {
+                observations.append("\(sampleStart - start): snapshot failed; elapsed: \(ProcessInfo.processInfo.systemUptime - sampleStart)s")
+                previous = nil
+                return false
+            }
+            let snapshotCost = ProcessInfo.processInfo.systemUptime - sampleStart
+            var found: [String: [XCUIElementSnapshot]] = [:]
+            var pending: [XCUIElementSnapshot] = [root]
+            while let node = pending.popLast() {
+                if wanted.contains(node.identifier) { found[node.identifier, default: []].append(node) }
+                pending.append(contentsOf: node.children)
+            }
+            guard found["glossary-close"] == nil else {
+                observations.append("\(sampleStart - start): lookup still presented; snapshot: \(snapshotCost)s")
+                previous = nil
+                return false
+            }
+            func element(_ id: String, type: XCUIElement.ElementType) -> XCUIElementSnapshot? {
+                let matches = found[id, default: []].filter { $0.elementType == type }
+                return matches.count == 1 ? matches[0] : nil
+            }
+            guard let scroll = element("guide-content", type: .scrollView),
+                  let close = element("guide-close", type: .button),
+                  let footer = element(footerID, type: .button),
+                  let anchor = element(contentAnchorID, type: .staticText) else {
+                let counts = wanted.sorted().map { "\($0)=\(found[$0, default: []].count)" }.joined(separator: ", ")
+                observations.append("\(sampleStart - start): missing or ambiguous guide elements: \(counts); snapshot: \(snapshotCost)s")
+                previous = nil
+                return false
+            }
+            let current = GuideReadingGeometry(
+                viewport: GuideViewport(scroll: scroll.frame, close: close.frame, footer: footer.frame),
+                contentAnchor: anchor.frame)
+            let frames = [scroll.frame, close.frame, footer.frame, anchor.frame]
+            guard frames.allSatisfy({ !$0.isEmpty && !$0.isNull && !$0.isInfinite
+                && [$0.minX, $0.minY, $0.width, $0.height].allSatisfy(\.isFinite) }) else {
+                observations.append("\(sampleStart - start): invalid geometry: \(current); snapshot: \(snapshotCost)s")
+                previous = nil
+                return false
+            }
+            let stable = previous.map { current.isStable(comparedTo: $0) } ?? false
+            let restored = viewport.map { current.viewport.matches($0, accuracy: 1) } ?? true
+            observations.append("\(sampleStart - start): \(current); snapshot: \(snapshotCost)s; stable: \(stable); restored: \(restored)")
+            previous = current
+            guard stable, restored else { return false }
+            func hittable(_ name: String, element: XCUIElement) -> Bool {
+                let queryStart = ProcessInfo.processInfo.systemUptime
+                let result = element.isHittable
+                observations.append("\(ProcessInfo.processInfo.systemUptime - start): \(name).isHittable=\(result); query: \(ProcessInfo.processInfo.systemUptime - queryStart)s")
+                return result
+            }
+            let scrollHittable = hittable("guide-content", element: app.scrollViews["guide-content"])
+            let closeHittable = hittable("guide-close", element: app.buttons["guide-close"])
+            let footerHittable = hittable(footerID, element: app.buttons[footerID])
+            guard scrollHittable, closeHittable, footerHittable else { return false }
+            settled = current
+            return true
+        }, object: nil)
+        guard XCTWaiter.wait(for: [expectation], timeout: 5) == .completed else {
+            let elapsed = ProcessInfo.processInfo.systemUptime - start
+            let geometry = XCTAttachment(string: "Deadline: 5s; elapsed: \(elapsed)s; restoring: \(String(describing: viewport))\n"
+                + observations.joined(separator: "\n"))
+            geometry.name = "guide-readiness-geometry"; geometry.lifetime = .keepAlways; add(geometry)
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "guide-readiness-hierarchy"; hierarchy.lifetime = .keepAlways; add(hierarchy)
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "guide-readiness-screen"; screenshot.lifetime = .keepAlways; add(screenshot)
+            return nil
+        }
+        let geometry = XCTAttachment(string: "Settled within 5s; elapsed: \(ProcessInfo.processInfo.systemUptime - start)s; restoring: \(String(describing: viewport))\n"
+            + observations.joined(separator: "\n"))
+        geometry.name = "guide-readiness-geometry"; geometry.lifetime = .keepAlways; add(geometry)
+        return settled
     }
 
     func testGlossarySearchAliasesAndNoResults() {
@@ -172,9 +289,9 @@ final class LearningReferenceFlowTests: XCTestCase {
         for (index, topic) in topics.enumerated() {
             let heading = app.staticTexts["guide-topic-\(topic)"]
             XCTAssertTrue(heading.waitForExistence(timeout: 10))
-            let footer = app.buttons["guide-previous"].exists
-                ? app.buttons["guide-previous"] : app.buttons["guide-next"]
-            let close = app.buttons["Close"].firstMatch
+            let footerID = app.buttons["guide-previous"].exists ? "guide-previous" : "guide-next"
+            let footer = app.buttons[footerID]
+            let close = app.buttons["guide-close"]
             XCTAssertGreaterThanOrEqual(heading.frame.minY, max(scroll.frame.minY, close.frame.maxY) + 7,
                                        "A new topic must begin below the chrome: \(heading.frame)")
             XCTAssertLessThanOrEqual(heading.frame.maxY, min(scroll.frame.maxY, footer.frame.minY),
@@ -190,11 +307,24 @@ final class LearningReferenceFlowTests: XCTestCase {
             let link = links.element(boundBy: links.count - 1)
             reachLookup(link, app: app, scroll: scroll, footer: footer)
             XCTAssertLessThanOrEqual(link.frame.maxY, footer.frame.minY - 8)
+            let contentAnchorID = "guide-\(topic)-paragraph-0"
+            guard let before = settledGuideGeometry(app, footerID: footerID,
+                                                    contentAnchorID: contentAnchorID) else {
+                XCTFail("The guide must settle before recording its reading position")
+                return
+            }
             let linkBeforeLookup = link.frame
+            let linkLabelBeforeLookup = link.label
             link.tap()
             XCTAssertTrue(app.buttons["glossary-all"].waitForExistence(timeout: 5))
             app.buttons["glossary-close"].tap()
             XCTAssertTrue(app.staticTexts["guide-topic-\(topic)"].exists)
+            guard settledGuideGeometry(app, footerID: footerID, contentAnchorID: contentAnchorID,
+                                       restoring: before.viewport) != nil else {
+                XCTFail("The lookup must dismiss and the guide viewport must settle")
+                return
+            }
+            XCTAssertEqual(link.label, linkLabelBeforeLookup, "Lookup must return to the same term")
             XCTAssertEqual(link.frame.minY, linkBeforeLookup.minY, accuracy: 1,
                            "Closing a lookup must retain the current topic's reading position")
             XCTAssertTrue(app.buttons["guide-next"].isEnabled)

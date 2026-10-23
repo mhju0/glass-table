@@ -5,26 +5,45 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-22)
+## Current state (2026-10-23)
 
-- Owner asked to fix the nightly launch problem. The original runner launch request
-  reached host xcodebuild about 67 seconds later, after the 60-second request timeout.
-  No causal app defect or matching Apple-confirmed remedy is established. Branch
-  `fix/ci-launch-observer-20261022` repairs missing diagnostic coverage only: bounded
-  host/selected-simulator process samples, unchanged tests/policy and preserved exit
-  status. All 37 tool tests and a real macOS sample passed. Independent exact-candidate
-  review accepted `13779ff`; authentic CI is pending; do not call the launch failure fixed.
-  Record: `docs/records/2026-10-22-ci-launch-observer.md`. No new build/release.
-- Owner requested immediate investigation of nightly run `39497368168` on released
-  `be1c839`. Corrected result: 135 passed / 2 failed in shard 3; three initial
-  launch-failure events included Equity, which recovered after XCTest restarted.
-  Local unchanged tests passed 3/3 twice; matched original four-test CI prefix
-  `39618848422` passed 4/4 on Xcode 26.3 / iOS 26.2. No app/test changes or new build.
-  Evidence favors a launch-control/session problem, but the initial reported exit code 0
-  and stalled transaction remain unattributed. Do not call this fixed or clear the
-  original nightly. Known summary contrast audit remains separately open.
-  Record: `docs/records/2026-10-21-nightly-launch-investigation.md`. Documentation
-  PR #62 carries release evidence and this investigation; no product merge requested.
+- Owner authorized comprehensive code/performance review, recommended strong/medium
+  fixes, checks, main merge and safe cleanup. PRs #62/#63 merged; starting main was
+  `23f5383`. PR #64 contains five confirmed P2 fixes: latest-intent reminders,
+  once-per-render Equity generation, contained glass shadow, accessible reminder
+  row/label and repaired diagnostic capture. App/package/configuration/production
+  tool bytes remain accepted `06e364e`; subsequent code changes only test readiness
+  and observer fixtures. Progress, grades and release/build number are unchanged.
+- Guide test source SHA `941d9e94…` takes coherent accessibility snapshots, preserving
+  two observations, .25pt stability, 1pt restoration, all three hit tests, configured
+  5s wait and original strict term-position assertion. Native negative controls reject
+  open lookup and still detect a wrong settled offset. Six positives passed across
+  KO/EN normal/AX5 (28 cycles). Matched focused `39923661521` passed all seven topics
+  on Xcode26.3/iOS26.2; all14 readiness gates passed in2.439–2.712s.
+- Original full `39653967431` retained reveal activation and launch failures; one
+  unchanged failed-shard rerun passed both but exposed a separate38.713pt guide
+  lookup drift. First readiness helper passed complete standard CI `39912831403`
+  but failed in full `39910661098` before baseline: expensive serial AX reads and
+  one failed Close hit test left no second full observation. Original causes remain
+  unattributed; coherent snapshots improve test observation without an app patch.
+- Full coverage combines `39910661098` successful shards0/1/3 (36 entries/11 optional
+  skips,96,137) with exact-source complete affected shard `39925402380`, frozen probe
+  `84f09db`. Only private guide-test readiness differs; shared/executed source and
+  all four ordered production selector lists are unchanged. Original failed runs
+  remain failed. Current outcomes, latest standard CI, merge and main checks are
+  recorded in PR #64. Temporary workflow/diagnostics do not enter main.
+  Records: `docs/records/2026-10-22-comprehensive-code-performance-review.md` and
+  `docs/records/2026-10-23-comprehensive-ci-closeout.md`. Preserve original dirty notes
+  and separate iPad work. No phone action, build bump or TestFlight release.
+- Original nightly launch cause remains unattributed. Original run `39497368168`
+  finished shard 3 with 135 passed / two failed; Equity recovered after restart.
+  Matched four-test prefixes pass without assertion, launch-timeout or retry changes.
+  Initial observer CI exposed missing usable stacks despite local tests. Provider
+  probe `39651388113` retained real host and selected-runner stacks using a copy
+  removing only `sample -mayDie`; earlier rounds timed out and no app stack was
+  retained. Capture delays are recorded, not claimed as exact checkpoint snapshots.
+  Records: `docs/records/2026-10-21-nightly-launch-investigation.md` and
+  `docs/records/2026-10-22-ci-launch-observer.md`. Diagnostics are not a causal cure.
 - Owner requested build 37 and then faster parallel delivery. Integration PR #61
   merged to `be1c839769030c2ef1f6f129e4dcbea15bce50ca`; tag `v1.0-37` names that
   exact merge. Its tree `313e2a07dbb018e9ea895601dd3a8d233f19e034` exactly matches
@@ -241,6 +260,16 @@ Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
 
 Still unverified beyond the recorded scope-4 subset:
+- Isolated guide lookup reading-position drift: original one-point assertion failed
+  after dismissal, but matched diagnostic and local flows did not reproduce it.
+  Test readiness correction is not a demonstrated causal cure. Preserve settled
+  before/after geometry and sheet lifecycle on recurrence; do not loosen tolerance.
+  `docs/records/2026-10-23-comprehensive-ci-closeout.md`.
+- Isolated full-UI reveal activation failure: accurate synthetic Next tap left the
+  answered question unchanged. No handler/refusal cause established; local unchanged
+  case passed six times on a newer runtime. Preserve and correlate completion-handler
+  entry/identity/phase/refusal/save/render if it recurs; no automatic repeated reruns.
+  `docs/records/2026-10-23-comprehensive-ci-closeout.md`.
 - Nightly launch transaction cause remains unresolved after investigation. Count
   and Defend remained failed; Equity recovered after a runner restart. Matched
   four-case CI probe passed without source, assertion, timeout, preboot or retry
@@ -249,12 +278,10 @@ Still unverified beyond the recorded scope-4 subset:
   `docs/records/2026-10-21-nightly-launch-investigation.md`.
 - Real novice comprehension; VoiceOver on every route and subjective haptic feel;
   minimum iOS 17 runtime; AX5 full scroll reachability on every route.
-- Native-audit discrepancy: strict summary contrast flag reproduces with glass,
-  while the authentic pre-glass control passes; sampled contrast is 11.555:1. Four
-  isolated clean checks used different appearance coverage; exact KO/light checks
-  reproduce the warning for both contrast-only/all audits; same check passes with
-  actual Reduce Transparency enabled. No low-contrast defect demonstrated. Nine
-  unlocated diagnostic reports remain open.
+- Nine unlocated native-audit reports remain open. The reproducible summary
+  warning was traced to glass shadow overdraw and corrected without a palette or
+  audit waiver; strict KO/light native regression and appearance checks passed.
+  Hosted coverage is the exact-runtime full UI run `39653967431` above.
   Keep failures visible, separate from real-device spoken-label evidence:
   `docs/records/2026-10-20-accessibility-audit-followup.md`.
 - (old) Store validation, metadata, rating, territories; system permission,
@@ -316,6 +343,33 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-23 (Codex · resumed CI closeout)
+
+- Completed the five confirmed review fixes and corrected observer fixture setup,
+  keeping production policy unchanged. Retained original reveal/launch/lookup failures
+  and attribution limits; no speculative app patch or automatic retry policy.
+- The first guide readiness test passed standard CI but failed in full-suite context.
+  Coherent snapshot observation preserves all predicates/deadlines and original1pt
+  assertion. Exact-source negative controls, six native positives and matched focused
+  CI passed. Complete affected-shard verification reuses three unchanged successful
+  shards with explicit source/selector proof; outcomes and integration live in PR#64.
+- Original dirty notes and iPad work remain protected; useful screenshot evidence and
+  retired branch history are preserved before safe cleanup. Broader device/minimum-OS,
+  novice acceptance and three isolated app/UI causes remain open. No new release.
+
+### 2026-10-22 (Codex · comprehensive review and performance)
+
+- Reviewed standards and spec separately, checked findings with reproductions and
+  measurements, and implemented five P2 fixes. Rejected persistence rewrites after
+  a sorted-key experiment saved only 2.22ms; kept progress/recovery/schema unchanged.
+- App/package and native checks passed, including strict summary audit and KO/EN AX
+  reminder layout. Authentic provider retained host/runner stacks, with timeout
+  and capture-delay limits kept explicit. Standard CI passed; full UI and integration
+  evidence is linked through PR #64. The specific summary warning is resolved; the
+  nine unlocated audit reports and broader acceptance limits remain open.
+- Original launch cause, wider accessibility/minimum-OS and real novice acceptance
+  remain open. Build 37 stays the latest release; no phone/progress changes.
+
 ### 2026-10-22 (Codex · nightly diagnostic coverage)
 
 - Rejected speculative app, simulator, retry and timeout patches after reviewing the
@@ -372,26 +426,3 @@ Tests:
   from measured Release hitches; no speculative layout/performance rewrite.
   Evidence/limits: `docs/records/2026-10-20-interaction-accessibility.md` and
   `docs/records/2026-10-20-accessibility-audit-followup.md`. No merge/release.
-
-### 2026-10-19 (Codex · build 36 validation and release)
-
-- Completed full CI, Engine release tests and all four UI shards on `bb65365`.
-  Fixed stale Release/dock expectations and synchronized guide dismissal without
-  weakening behavior checks. Removed the resolved remote-CI/full-suite open issue.
-- Merged #55 then #56; release `6ea894f` has the exact tested tree and passed main CI.
-  Pushed `v1.0-36`; signed upload, Apple processing and internal Me group assignment
-  verified. Saved bilingual test notes; no App Store review submission or phone install.
-- App Store Connect is signed in; existing Me group has one tester and automatic
-  builds. No phone reinstall or App Store review submission requested.
-  Evidence: `docs/records/2026-10-19-build36-release.md`.
-
-### 2026-10-19 (Codex · CI Release-guide assertion)
-
-- Checked exact PR #56 head `a61b9c2`: CI ran, but its Release smoke test still
-  expected the previous guide headline. Tools, packages, app unit and all 14 focused
-  UI tests passed; device Release validation was skipped after the smoke failure.
-- Updated the smoke test to require the real first topic and navigate to the next
-  topic without demo hooks. Added the relevant Release check to `docs/validation.md`.
-- Both Release smoke tests passed locally with fresh derived data and no demo hooks.
-  Replacement CI/device Release validation are pending; no app code changes, merge,
-  tag or installation. Evidence stays in the terminology verification record.
