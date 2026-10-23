@@ -1,79 +1,77 @@
 # Comprehensive review: CI closeout and retained failures
 
 - **Date:** 2026-10-23 · **Kind:** verification
-- **Originals:** `/tmp/gt-fullui-39653967431-*`, `/tmp/gt-reveal-regression-*`;
-  metadata retained in `attempt1-provenance`; temporary evidence may not survive cleanup.
+- **Scope:** owner-authorized review, recommended fixes, checks, main merge and cleanup.
+- **Evidence:** `/tmp/gt-fullui-*`, `/tmp/gt-guide-*`; temporary originals may not persist.
+  [PR #64](https://github.com/mhju0/glass-table/pull/64) records current checks/integration.
 
-## Verified candidate
-- Runtime `06e364e`, documentation-only head `f1d5a50`: independent review accepted;
-  all non-documentation bytes match. Standard CI `39653967706` and `39662695264`
-  passed tools, packages, app/focused UI, Release smoke and device bundle checks.
-- Full UI `39653967431` first attempt: 381 executed, 11 optional UXAuditCrawl skips,
-  two failures. Shards 1 and 3 passed 96 and 137 tests respectively. The former
-  includes AccessibilityAuditTests; the latter includes AccessibilityFlowTests.
-- Production observer source hash `4e5f649c…` matches the provider-tested copy.
-  Shard 1 retained real host/runner call graphs in its second capture round, after
-  delays of 28.280/43.487s; its first round timed out. No app stack was retained.
+## Accepted implementation
 
-## Failures and judgment
+- Five P2 fixes and measured limits: `2026-10-22-comprehensive-code-performance-review.md`.
+  App/package/configuration and production tool bytes remain accepted `06e364e`;
+  subsequent implementation changes only guide UI-test readiness and observer fixtures.
+- Observer source SHA `4e5f649c…` is provider-tested. Real host/runner stacks were
+  retained, with earlier timeouts and capture delays; no app stack covers the failures.
+  Original nightly launch cause remains unattributed; diagnostics are not a causal cure.
+- Observer fixture correction separates readiness from its deliberately short timeout.
+  Controlled 350ms deadline races reproduce exit 1 instead of intended 41; production
+  faithfully preserves 1. Lifecycle fixtures now use the production completion budget;
+  dedicated 350ms timeout starts after atomic PID readiness. Interruption, exit codes,
+  output caps and descendant cleanup remain required. All 46 tools pass. The actual
+  hosted child trace was discarded, so unique attribution is unproven.
 
-- Shard 0: NumericalRevealFlowTests.testKoreanLightReveals line 53. After Next,
-  the original answered callFold/1706/2 (1/5) remained. Down/up was inside the
-  enabled completion button; no save-error UI appeared. This does not establish
-  handler execution or a refused transition. No definite causal code fix emerged.
-- The unchanged local case passed once plus five bounded repetitions on Xcode27.1 /
-  iOS26.5; hosted failure used Xcode26.3 / iOS26.2. Quiet video and no helper swipe
-  weaken the scroll-motion hypothesis. Green local execution does not cure the CI failure.
-- Shard 2: ChartFirstUseFlowTests.testBeginnerLessonQuestionStartsWithChartFoldedSoItCanBeAnsweredAlone
-  failed at app.launch() after 64.589s, before chart assertions. Later launches passed.
-  The launch activity reached observer output late; no app identity/stack covers
-  the failure window. Neither provider nor latent app startup cause is established.
-- Independent review recommended no speculative app, sleep, timeout or retry-policy
-  patch. Initial logs, both xcresults and bounded observer artifacts were retained.
-  One controlled rerun of both complete failed shards preserves the same source,
-  ordering, assertions and deadlines. A green attempt is verification, not a causal fix.
+## Original full UI evidence
 
-## Controlled rerun and guide readiness
+- Run `39653967431`, attempt 1: 381 entries, 11 optional UXAuditCrawl skips, two failures.
+  Reveal Next left answered callFold/1706/2 unchanged despite an accurate enabled-button
+  tap; no save-error UI. Six unchanged local passes do not establish the CI cause.
+- ChartFirstUse's first launch timed out after 64.589s before chart assertions. A later
+  pending launch crossed the test boundary; no app stack establishes the initial cause.
+- One independent-review-approved unchanged failed-shard rerun passed both original
+  cases but exposed guide lookup position y509.620 versus expected548.333 (1pt tolerance).
+  A matched unchanged diagnostic run `39905176112` did not reproduce that drift.
+  No speculative app patch, automatic retry, assertion waiver or launch-policy change.
 
-- Attempt 2 passed shard 0, including the original reveal case. Shard 2's original
-  chart launch passed, but LearningReferenceFlowTests' seven-topic EN/AX5 guide
-  case failed at its unchanged one-point reading-position assertion: expected
-  y548.333, observed y509.620 after closing a lookup. No second blind rerun.
-- The old precondition checked only an underlying heading's existence; native
-  controls confirmed that heading can exist while the lookup is still open.
-  A matched Xcode26.3/iOS26.2 diagnostic run `39905176112` passed the unchanged
-  original case and a separate geometry probe. All sampled positions were stable;
-  it did not reproduce or explain the original 38.713-point shift.
-- A UI-test-only candidate establishes child dismissal, interactive stable viewport
-  geometry and temporal stability of an independent paragraph before retaining
-  the same one-point term-position assertion. It never waits for the tested term
-  to regain its expected position. Native negative controls rejected an open
-  lookup and accepted a deliberately wrong settled offset, where the original
-  strict assertion still failed by 269 points. All six native checks passed, including
-  28 lookup cycles across KO/EN normal/AX5; final source matches the exercised code.
-  Hosted validation/integration are recorded in PR #64. No product scroll patch is justified.
+## Guide readiness correction and verification
 
-## Observer fixture boundary
+- First readiness test file `754dec69…` passed standard CI `39912831403` on `088d51c`,
+  including the complete LearningReferenceFlowTests class on Xcode26.3/iOS26.2.
+  Identical non-documentation source `c9c317c` full run `39910661098` failed before
+  baseline capture: only one full geometry observation fit; the next Close hit test
+  returned false. Later hierarchy geometry matched. This is run-context divergence,
+  not proof of an app movement, simulator defect or original offset cause.
+- Final test SHA `941d9e94c3f485f52db0e9ddbb6bfdb2eef4ca5847b58a1640f36548d0a41061`
+  reads one coherent accessibility tree per observation. It keeps two observations,
+  0.25pt stability, 1pt viewport restoration, all three live hit tests and configured
+  5s wait. Readiness excludes the tested term; its original 1pt position assertion,
+  seven topics, identity and navigation remain. Framework query time is also recorded.
+- Final native controls reject an open lookup despite the underlying heading existing;
+  a wrong settled offset passes readiness then fails the original assertion by268.667pt.
+  Six positives passed: 28 cycles across KO/EN normal/AX5, with D55 independent scoring
+  and glossary aliases preserved. All 56 readiness gates passed in2.320–2.449s.
+- Matched focused run `39923661521`, frozen probe `84f09db`, passed the original case
+  in439.969s on Xcode26.3/17C529, iPhone17/iOS26.2/23C54. All14 readiness gates passed
+  in2.439–2.712s; 28 snapshots took0.079–0.185s; all42 hit tests were true.
+  These results verify the candidate, not a unique cause for prior failures.
 
-- Full UI `39908564802` on `19b9da1` stopped shard 2 before UI execution: an
-  original-exit observer test expected 41 but got 1. A controlled reproduction
-  showed its 350ms sampler deadline expiring before readiness; the fixture then
-  failed its handshake. The observer preserved exit 1. The original CI child trace
-  was discarded, so this does not prove its unique failure mechanism.
-- Lifecycle fixtures use the production completion budget; the real 350ms timeout
-  is armed after atomic PID readiness. Interruption/timeout flags, exit codes and
-  descendant cleanup remain required. All 46 tools passed; exact review accepted
-  `c9c317c`; standard `39910659019` and full UI `39910661098` record verification. Production policy and earlier app launch causes are unchanged.
+## Full coverage and integration boundaries
 
-## Outcome and next evidence
-- Exact attempt outcomes and integration are recorded in
-  [run 39653967431](https://github.com/mhju0/glass-table/actions/runs/39653967431) and
-  [PR #64](https://github.com/mhju0/glass-table/pull/64). App/package/configuration/production tools are unchanged;
-  only guide readiness and observer fixtures changed. The five P2 fixes are described in
-  `2026-10-22-comprehensive-code-performance-review.md`.
-- If the reveal failure repeats, capture passive completion-handler entry, captured
-  versus current identity/phase, transition refusal/save outcome and rendered identity;
-  preserve guards and omit learner data. Repeated launch failure needs its actual
-  launch/exit transaction and app stack. Do not automatically rerun again.
-- All three isolated failure causes, wider accessibility/device/minimum-OS and novice
-  acceptance remain open. No build bump, TestFlight upload or phone action.
+- Original run `39910661098` remains failed: shard0 passed36 entries/11 optional skips,
+  shard1 passed96 (includes AccessibilityAuditTests), shard3 passed137; shard2 had
+  112 entries/one readiness failure. Earlier superseded `39908564802` stopped before
+  UI in an observer fixture; its other three shards and superseded standard were canceled.
+- Exact-source full affected-shard run `39925402380` uses frozen probe `84f09db`,
+  production's 13 ordered shard-two selectors, 900s case allowance, 165min step/180min
+  job, and unchanged observer/unit gate. Its result and latest standard CI are in PR#64.
+- Independent review accepts reusing successful shards0/1/3: all executed/shared app,
+  tests, packages, configuration and production workflow/tool bytes are unchanged.
+  The sole code delta from `088d51c` is private LearningReferenceFlowTests readiness.
+  All four production selector lists are byte-identical; proof:
+  `/tmp/gt-final-ui-shard-source-proof.json`. This is combined coverage across runs,
+  not a claim that the original failed workflow became green. No temporary workflow
+  or diagnostic test enters main. Exact merge and post-merge checks are recorded in PR#64.
+- All three isolated app/UI causes remain open. On recurrence capture actual launch/
+  exit transaction and app stack, or before/after settled geometry and sheet lifecycle;
+  reveal recurrence needs handler/identity/phase/refusal/save/render correlation.
+  Preserve guards and privacy; no blind reruns. Wider accessibility, minimum-iOS17,
+  physical-device and novice acceptance limits remain. No build bump or TestFlight release.

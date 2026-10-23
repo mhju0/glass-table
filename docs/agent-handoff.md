@@ -8,31 +8,33 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 ## Current state (2026-10-23)
 
 - Owner authorized comprehensive code/performance review, recommended strong/medium
-  fixes, full validation, merge and safe cleanup. PRs #62/#63 merged; starting main
-  was `23f5383`. Frozen candidate `c9c317c` in PR #64 contains five confirmed P2
-  fixes: latest-intent reminders, once-per-render Equity generation, contained glass
-  shadow, accessible reminder row/label and repaired diagnostic capture. Packages,
-  native app tests, measured workloads and independent review passed. Latest edits
-  change guide UI-test readiness and observer fixtures only; app/config/package and
-  production tool bytes remain unchanged from accepted `06e364e`.
-- Full UI `39653967431` initially executed 381 tests with 11 optional skips and two
-  failures (reveal Next activation and chart launch). One unchanged failed-shard
-  rerun passed both cases but exposed a distinct 38.713-point guide lookup offset.
-  Matched unchanged diagnostics did not reproduce it. The guide test now establishes
-  dismissal and independent stable geometry, retaining the strict one-point assertion.
-  Native controls reject open lookup and still catch wrong settled offsets; six
-  positive checks passed, including 28 KO/EN normal/AX5 lookup cycles.
-- Hosted `19b9da1` shard 2 then stopped before UI in an observer fixture. Controlled
-  reproduction proves its 350ms deadline can kill a sampler before readiness while
-  exit 1 is faithfully preserved; the discarded CI child trace prevents unique
-  attribution. Corrected lifecycle/timeout setup passes all 46 tools with production
-  policy unchanged. Superseded UI run `39908564802` was canceled after preserving
-  setup evidence. Fresh standard `39910659019` and full UI `39910661098` on `c9c317c`
-  record hosted verification; all three isolated app/UI causes remain open.
-  PR #64 records final integration; subsequent closeout edits are documentation only.
+  fixes, checks, main merge and safe cleanup. PRs #62/#63 merged; starting main was
+  `23f5383`. PR #64 contains five confirmed P2 fixes: latest-intent reminders,
+  once-per-render Equity generation, contained glass shadow, accessible reminder
+  row/label and repaired diagnostic capture. App/package/configuration/production
+  tool bytes remain accepted `06e364e`; subsequent code changes only test readiness
+  and observer fixtures. Progress, grades and release/build number are unchanged.
+- Guide test source SHA `941d9e94…` takes coherent accessibility snapshots, preserving
+  two observations, .25pt stability, 1pt restoration, all three hit tests, configured
+  5s wait and original strict term-position assertion. Native negative controls reject
+  open lookup and still detect a wrong settled offset. Six positives passed across
+  KO/EN normal/AX5 (28 cycles). Matched focused `39923661521` passed all seven topics
+  on Xcode26.3/iOS26.2; all14 readiness gates passed in2.439–2.712s.
+- Original full `39653967431` retained reveal activation and launch failures; one
+  unchanged failed-shard rerun passed both but exposed a separate38.713pt guide
+  lookup drift. First readiness helper passed complete standard CI `39912831403`
+  but failed in full `39910661098` before baseline: expensive serial AX reads and
+  one failed Close hit test left no second full observation. Original causes remain
+  unattributed; coherent snapshots improve test observation without an app patch.
+- Full coverage combines `39910661098` successful shards0/1/3 (36 entries/11 optional
+  skips,96,137) with exact-source complete affected shard `39925402380`, frozen probe
+  `84f09db`. Only private guide-test readiness differs; shared/executed source and
+  all four ordered production selector lists are unchanged. Original failed runs
+  remain failed. Current outcomes, latest standard CI, merge and main checks are
+  recorded in PR #64. Temporary workflow/diagnostics do not enter main.
   Records: `docs/records/2026-10-22-comprehensive-code-performance-review.md` and
-  `docs/records/2026-10-23-comprehensive-ci-closeout.md`. Preserve the original dirty
-  checkout and separate iPad work. No build bump, phone action or TestFlight release.
+  `docs/records/2026-10-23-comprehensive-ci-closeout.md`. Preserve original dirty notes
+  and separate iPad work. No phone action, build bump or TestFlight release.
 - Original nightly launch cause remains unattributed. Original run `39497368168`
   finished shard 3 with 135 passed / two failed; Equity recovered after restart.
   Matched four-test prefixes pass without assertion, launch-timeout or retry changes.
@@ -343,21 +345,17 @@ Tests:
 
 ### 2026-10-23 (Codex · resumed CI closeout)
 
-- Owner resumed after usage reset. Full standard CI is green; first full UI retained
-  two distinct failures. Native/source/session evidence did not justify speculative
-  fixes. Independent review selected one unchanged whole-failed-shard verification
-  attempt. That attempt passed both original failures and exposed a distinct guide
-  position assertion. Matched diagnostics passed without reproducing the shift.
-  Independent review selected explicit test readiness preconditions, retaining the
-  strict assertion; native negative controls prove wrong settled offsets still fail.
-  All six native checks passed, including 28 KO/EN normal/AX5 lookup cycles. Hosted
-  shard 2 then stopped before UI in an observer fixture: its 350ms deadline could kill
-  the sampler before readiness. Reproduction proves a fixture defect; the original
-  child trace is unavailable. The correction is implemented and all 46 tools pass;
-  hosted verification and final integration are recorded in PR #64 and its checks.
-- All five confirmed review fixes remain accepted. Original dirty notes and separate
-  iPad work are protected. Follow exact run/PR #64 for integration and final checks;
-  no build bump, phone action or TestFlight release.
+- Completed the five confirmed review fixes and corrected observer fixture setup,
+  keeping production policy unchanged. Retained original reveal/launch/lookup failures
+  and attribution limits; no speculative app patch or automatic retry policy.
+- The first guide readiness test passed standard CI but failed in full-suite context.
+  Coherent snapshot observation preserves all predicates/deadlines and original1pt
+  assertion. Exact-source negative controls, six native positives and matched focused
+  CI passed. Complete affected-shard verification reuses three unchanged successful
+  shards with explicit source/selector proof; outcomes and integration live in PR#64.
+- Original dirty notes and iPad work remain protected; useful screenshot evidence and
+  retired branch history are preserved before safe cleanup. Broader device/minimum-OS,
+  novice acceptance and three isolated app/UI causes remain open. No new release.
 
 ### 2026-10-22 (Codex · comprehensive review and performance)
 
