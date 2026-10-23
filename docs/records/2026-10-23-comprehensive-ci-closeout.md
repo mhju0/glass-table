@@ -51,7 +51,7 @@
   lookup and accepted a deliberately wrong settled offset, where the original
   strict assertion still failed by 269 points. All six native checks passed, including
   28 lookup cycles across KO/EN normal/AX5; final source matches the exercised code.
-  Hosted validation/integration remain pending. No product scroll patch is justified.
+  Hosted validation/integration are recorded in PR #64. No product scroll patch is justified.
 
 ## Observer fixture boundary
 
@@ -62,14 +62,14 @@
   was discarded, so this does not prove its unique failure mechanism.
 - Lifecycle fixtures use the production completion budget; the real 350ms timeout
   is armed after atomic PID readiness. Interruption/timeout flags, exit codes and
-  descendant cleanup remain required. All 46 tools passed; final review/hosted gates
-  remain pending. Production policy and earlier app launch causes are unchanged.
+  descendant cleanup remain required. All 46 tools passed; exact review accepted
+  `c9c317c`; standard `39910659019` and full UI `39910661098` record verification. Production policy and earlier app launch causes are unchanged.
 
 ## Outcome and next evidence
 - Exact attempt outcomes and integration are recorded in
   [run 39653967431](https://github.com/mhju0/glass-table/actions/runs/39653967431) and
-  [PR #64](https://github.com/mhju0/glass-table/pull/64). App/package/configuration/tool bytes remain frozen; the guide
-  readiness candidate changes UI-test preconditions only. The five confirmed P2 fixes are described in
+  [PR #64](https://github.com/mhju0/glass-table/pull/64). App/package/configuration/production tools are unchanged;
+  only guide readiness and observer fixtures changed. The five P2 fixes are described in
   `2026-10-22-comprehensive-code-performance-review.md`.
 - If the reveal failure repeats, capture passive completion-handler entry, captured
   versus current identity/phase, transition refusal/save outcome and rendered identity;

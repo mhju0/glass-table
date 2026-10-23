@@ -7,31 +7,32 @@ and the text records in `docs/records/`; neither needs reading for normal work.
 
 ## Current state (2026-10-23)
 
-- Owner authorized comprehensive code/performance review, all recommended strong/medium
-  fixes, full validation, merge and safe branch cleanup. PRs #62/#63 merged; starting
-  main was `23f5383`. Review source `06e364e` contains:
-  latest-intent reminder reconciliation, once-per-render Equity generation, contained
-  navigation glass shadow, AX reminder reflow/single localized label, and repaired
-  diagnostic capture. Native/package tests and measured performance checks passed;
-  independent review accepted the frozen runtime. Standard CI `39653967706` passed;
-  full UI `39653967431` covers its four shards. [PR #64](https://github.com/mhju0/glass-table/pull/64)
-  is the final merge/check record; the subsequent guide readiness candidate
-  changes UI-test preconditions only, preserving app/package/config/tool bytes.
-  Original checkout has three unrelated dirty files; preserve them. No build bump/release.
-  Record: `docs/records/2026-10-22-comprehensive-code-performance-review.md`.
-- Comprehensive full UI `39653967431` first attempt executed 381 tests with 11
-  optional skips and two failures: one post-Next reveal transition and one launch
-  timeout before chart assertions. Complete standard CI passed on both frozen heads.
-  Actual artifacts were retained; six unchanged local reveal passes do not establish
-  a CI cause. Independent review approved one unchanged rerun of both full failed
-  shards, with no policy/assertion/deadline changes. Exact results/integration live in
-  PR #64 and Actions. The rerun passed the original failures but exposed a distinct
-  guide lookup reading-position assertion (38.713-point shift). A matched unchanged
-  diagnostic run `39905176112` passed without reproducing it. UI-test readiness
-  preconditions are corrected; native controls reject an open lookup and still fail
-  a deliberately wrong settled offset. All six positive native checks passed; hosted
-  checks and integration remain pending; all isolated app/UI causes remain open. Record:
-  `docs/records/2026-10-23-comprehensive-ci-closeout.md`.
+- Owner authorized comprehensive code/performance review, recommended strong/medium
+  fixes, full validation, merge and safe cleanup. PRs #62/#63 merged; starting main
+  was `23f5383`. Frozen candidate `c9c317c` in PR #64 contains five confirmed P2
+  fixes: latest-intent reminders, once-per-render Equity generation, contained glass
+  shadow, accessible reminder row/label and repaired diagnostic capture. Packages,
+  native app tests, measured workloads and independent review passed. Latest edits
+  change guide UI-test readiness and observer fixtures only; app/config/package and
+  production tool bytes remain unchanged from accepted `06e364e`.
+- Full UI `39653967431` initially executed 381 tests with 11 optional skips and two
+  failures (reveal Next activation and chart launch). One unchanged failed-shard
+  rerun passed both cases but exposed a distinct 38.713-point guide lookup offset.
+  Matched unchanged diagnostics did not reproduce it. The guide test now establishes
+  dismissal and independent stable geometry, retaining the strict one-point assertion.
+  Native controls reject open lookup and still catch wrong settled offsets; six
+  positive checks passed, including 28 KO/EN normal/AX5 lookup cycles.
+- Hosted `19b9da1` shard 2 then stopped before UI in an observer fixture. Controlled
+  reproduction proves its 350ms deadline can kill a sampler before readiness while
+  exit 1 is faithfully preserved; the discarded CI child trace prevents unique
+  attribution. Corrected lifecycle/timeout setup passes all 46 tools with production
+  policy unchanged. Superseded UI run `39908564802` was canceled after preserving
+  setup evidence. Fresh standard `39910659019` and full UI `39910661098` on `c9c317c`
+  record hosted verification; all three isolated app/UI causes remain open.
+  PR #64 records final integration; subsequent closeout edits are documentation only.
+  Records: `docs/records/2026-10-22-comprehensive-code-performance-review.md` and
+  `docs/records/2026-10-23-comprehensive-ci-closeout.md`. Preserve the original dirty
+  checkout and separate iPad work. No build bump, phone action or TestFlight release.
 - Original nightly launch cause remains unattributed. Original run `39497368168`
   finished shard 3 with 135 passed / two failed; Equity recovered after restart.
   Matched four-test prefixes pass without assertion, launch-timeout or retry changes.
@@ -351,8 +352,9 @@ Tests:
   strict assertion; native negative controls prove wrong settled offsets still fail.
   All six native checks passed, including 28 KO/EN normal/AX5 lookup cycles. Hosted
   shard 2 then stopped before UI in an observer fixture: its 350ms deadline could kill
-  the sampler before readiness. Causal reproduction confirms faithful exit-code
-  preservation; a test-only sequencing correction and fresh gates remain pending.
+  the sampler before readiness. Reproduction proves a fixture defect; the original
+  child trace is unavailable. The correction is implemented and all 46 tools pass;
+  hosted verification and final integration are recorded in PR #64 and its checks.
 - All five confirmed review fixes remain accepted. Original dirty notes and separate
   iPad work are protected. Follow exact run/PR #64 for integration and final checks;
   no build bump, phone action or TestFlight release.
