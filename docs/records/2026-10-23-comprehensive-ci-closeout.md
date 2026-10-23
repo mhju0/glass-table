@@ -1,13 +1,10 @@
 # Comprehensive review: CI closeout and retained failures
 
 - **Date:** 2026-10-23 · **Kind:** verification
-- **Asked by / for:** owner resumed review, fixes, full checks, main merge and cleanup.
 - **Originals:** `/tmp/gt-fullui-39653967431-*`, `/tmp/gt-reveal-regression-*`;
-  run/attempt/job/artifact metadata retained in `attempt1-provenance`. Temporary
-  local evidence is not guaranteed to survive cleanup. No phone data is included.
+  metadata retained in `attempt1-provenance`; temporary evidence may not survive cleanup.
 
 ## Verified candidate
-
 - Runtime `06e364e`, documentation-only head `f1d5a50`: independent review accepted;
   all non-documentation bytes match. Standard CI `39653967706` and `39662695264`
   passed tools, packages, app/focused UI, Release smoke and device bundle checks.
@@ -52,11 +49,23 @@
   the same one-point term-position assertion. It never waits for the tested term
   to regain its expected position. Native negative controls rejected an open
   lookup and accepted a deliberately wrong settled offset, where the original
-  strict assertion still failed by 269 points. Final positive/provider checks and
-  exact integration remain pending in PR #64. No product scroll patch is justified.
+  strict assertion still failed by 269 points. All six native checks passed, including
+  28 lookup cycles across KO/EN normal/AX5; final source matches the exercised code.
+  Hosted validation/integration remain pending. No product scroll patch is justified.
+
+## Observer fixture boundary
+
+- Full UI `39908564802` on `19b9da1` stopped shard 2 before UI execution: an
+  original-exit observer test expected 41 but got 1. A controlled reproduction
+  showed its 350ms sampler deadline expiring before readiness; the fixture then
+  failed its handshake. The observer preserved exit 1. The original CI child trace
+  was discarded, so this does not prove its unique failure mechanism.
+- Lifecycle fixtures use the production completion budget; the real 350ms timeout
+  is armed after atomic PID readiness. Interruption/timeout flags, exit codes and
+  descendant cleanup remain required. All 46 tools passed; final review/hosted gates
+  remain pending. Production policy and earlier app launch causes are unchanged.
 
 ## Outcome and next evidence
-
 - Exact attempt outcomes and integration are recorded in
   [run 39653967431](https://github.com/mhju0/glass-table/actions/runs/39653967431) and
   [PR #64](https://github.com/mhju0/glass-table/pull/64). App/package/configuration/tool bytes remain frozen; the guide

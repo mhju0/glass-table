@@ -28,9 +28,9 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   PR #64 and Actions. The rerun passed the original failures but exposed a distinct
   guide lookup reading-position assertion (38.713-point shift). A matched unchanged
   diagnostic run `39905176112` passed without reproducing it. UI-test readiness
-  preconditions are being corrected; native negative controls reject an open lookup
-  and still fail a deliberately wrong settled offset. Final positive/provider checks
-  and integration remain pending; all isolated causes remain open. Record:
+  preconditions are corrected; native controls reject an open lookup and still fail
+  a deliberately wrong settled offset. All six positive native checks passed; hosted
+  checks and integration remain pending; all isolated app/UI causes remain open. Record:
   `docs/records/2026-10-23-comprehensive-ci-closeout.md`.
 - Original nightly launch cause remains unattributed. Original run `39497368168`
   finished shard 3 with 135 passed / two failed; Equity recovered after restart.
@@ -349,7 +349,10 @@ Tests:
   position assertion. Matched diagnostics passed without reproducing the shift.
   Independent review selected explicit test readiness preconditions, retaining the
   strict assertion; native negative controls prove wrong settled offsets still fail.
-  Positive native/provider gates and integration remain pending.
+  All six native checks passed, including 28 KO/EN normal/AX5 lookup cycles. Hosted
+  shard 2 then stopped before UI in an observer fixture: its 350ms deadline could kill
+  the sampler before readiness. Causal reproduction confirms faithful exit-code
+  preservation; a test-only sequencing correction and fresh gates remain pending.
 - All five confirmed review fixes remain accepted. Original dirty notes and separate
   iPad work are protected. Follow exact run/PR #64 for integration and final checks;
   no build bump, phone action or TestFlight release.
