@@ -15,7 +15,8 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   diagnostic capture. Native/package tests and measured performance checks passed;
   independent review accepted the frozen runtime. Standard CI `39653967706` passed;
   full UI `39653967431` covers its four shards. [PR #64](https://github.com/mhju0/glass-table/pull/64)
-  is the final merge/check record; subsequent notes change documentation only.
+  is the final merge/check record; the subsequent guide readiness candidate
+  changes UI-test preconditions only, preserving app/package/config/tool bytes.
   Original checkout has three unrelated dirty files; preserve them. No build bump/release.
   Record: `docs/records/2026-10-22-comprehensive-code-performance-review.md`.
 - Comprehensive full UI `39653967431` first attempt executed 381 tests with 11
@@ -24,7 +25,12 @@ and the text records in `docs/records/`; neither needs reading for normal work.
   Actual artifacts were retained; six unchanged local reveal passes do not establish
   a CI cause. Independent review approved one unchanged rerun of both full failed
   shards, with no policy/assertion/deadline changes. Exact results/integration live in
-  PR #64 and Actions; causes remain open. Record:
+  PR #64 and Actions. The rerun passed the original failures but exposed a distinct
+  guide lookup reading-position assertion (38.713-point shift). A matched unchanged
+  diagnostic run `39905176112` passed without reproducing it. UI-test readiness
+  preconditions are being corrected; native negative controls reject an open lookup
+  and still fail a deliberately wrong settled offset. Final positive/provider checks
+  and integration remain pending; all isolated causes remain open. Record:
   `docs/records/2026-10-23-comprehensive-ci-closeout.md`.
 - Original nightly launch cause remains unattributed. Original run `39497368168`
   finished shard 3 with 135 passed / two failed; Equity recovered after restart.
@@ -251,6 +257,11 @@ Remove a line when it is resolved and say so in the session entry. Lines marked
 (old) come from before 2026-10-05 and have not been re-checked since.
 
 Still unverified beyond the recorded scope-4 subset:
+- Isolated guide lookup reading-position drift: original one-point assertion failed
+  after dismissal, but matched diagnostic and local flows did not reproduce it.
+  Test readiness correction is not a demonstrated causal cure. Preserve settled
+  before/after geometry and sheet lifecycle on recurrence; do not loosen tolerance.
+  `docs/records/2026-10-23-comprehensive-ci-closeout.md`.
 - Isolated full-UI reveal activation failure: accurate synthetic Next tap left the
   answered question unchanged. No handler/refusal cause established; local unchanged
   case passed six times on a newer runtime. Preserve and correlate completion-handler
@@ -334,7 +345,11 @@ Tests:
 - Owner resumed after usage reset. Full standard CI is green; first full UI retained
   two distinct failures. Native/source/session evidence did not justify speculative
   fixes. Independent review selected one unchanged whole-failed-shard verification
-  attempt; successful execution will not be described as repairing either cause.
+  attempt. That attempt passed both original failures and exposed a distinct guide
+  position assertion. Matched diagnostics passed without reproducing the shift.
+  Independent review selected explicit test readiness preconditions, retaining the
+  strict assertion; native negative controls prove wrong settled offsets still fail.
+  Positive native/provider gates and integration remain pending.
 - All five confirmed review fixes remain accepted. Original dirty notes and separate
   iPad work are protected. Follow exact run/PR #64 for integration and final checks;
   no build bump, phone action or TestFlight release.
