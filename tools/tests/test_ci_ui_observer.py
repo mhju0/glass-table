@@ -46,7 +46,7 @@ pathlib.Path(sys.argv[-1]).write_text('sampled pid=' + sys.argv[1])
                 "--device-path", str(self.device), "--log", str(self.log),
                 "--diagnostics", str(self.diagnostics), "--sampler", str(self.sampler),
                 "--launch-seconds", "0.18", "--second-checkpoint", "0.48",
-                "--helper-timeout", "0.35", "--cancel-grace", "0.15",
+                "--helper-timeout", "30", "--cancel-grace", "0.15",
                 "--inventory-seconds", "0.05", "--poll-seconds", "0.01",
                 *extra, "--", sys.executable, str(child)]
 
@@ -56,6 +56,30 @@ pathlib.Path(sys.argv[-1]).write_text('sampled pid=' + sys.argv[1])
 
     def run_command(self, body, extra=()):
         return subprocess.run(self.command(body, extra), capture_output=True, text=True, timeout=8)
+
+    def failure_evidence(self, stderr=""):
+        parts = [stderr]
+        for label, path in (("Original command log", self.log),
+                            ("Observer events", self.diagnostics / "timeline.jsonl")):
+            try:
+                content = path.read_text()[-65536:]
+            except OSError as error:
+                content = str(error)
+            parts.append(label + ":\n" + content)
+        return "\n".join(parts)
+
+    def assert_interrupted_sample(self, evidence):
+        samples = [event for event in self.events() if event["event"] == "sample_finish"]
+        self.assertEqual(len(samples), 1, evidence)
+        self.assertTrue(samples[0]["interrupted"], evidence)
+        self.assertFalse(samples[0]["timed_out"], evidence)
+
+    def assert_recorded_processes_stopped(self, path, evidence):
+        try:
+            for pid in json.loads(path.read_text()):
+                self.assert_not_running(pid)
+        except (OSError, ValueError, AssertionError) as error:
+            self.fail(str(error) + "\n" + evidence)
 
     def external_runner(self, device=None, duration=5):
         device = device or self.device
@@ -95,14 +119,18 @@ pathlib.Path(sys.argv[-1]).write_text('sampled pid=' + sys.argv[1])
             return not result.stdout.strip() or result.stdout.strip().startswith("Z")
         self.wait_for(stopped)
 
-    def blocking_sampler(self, oversized=False):
+    def blocking_sampler(self, oversized=False, startup_delay=0):
         self.sampler = self.script("blocking-sampler", f"""
 import json, os, pathlib, signal, subprocess, sys, time
 signal.signal(signal.SIGTERM, signal.SIG_IGN)
+time.sleep({startup_delay!r})
 child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
 if {oversized!r}:
     pathlib.Path(sys.argv[-1]).write_bytes(b'x' * (2 * 1024 * 1024 + 4096))
-pathlib.Path({str(self.root / 'sample-pids.json')!r}).write_text(json.dumps([os.getpid(), child.pid]))
+record = pathlib.Path({str(self.root / 'sample-pids.json')!r})
+pending = record.with_suffix('.tmp')
+pending.write_text(json.dumps([os.getpid(), child.pid]))
+pending.replace(record)
 time.sleep(60)
 """)
 
@@ -272,14 +300,38 @@ time.sleep(0.35)
         self.assertTrue(any(e["event"] == "sample_finish" and e["returncode"] == 19 for e in self.events()))
 
     def test_sample_timeout_reaps_only_its_created_group(self):
-        self.blocking_sampler()
+        self.blocking_sampler(startup_delay=0.5)
         unrelated = self.external_runner(self.root / "OTHER-SIM")
-        result = self.run_command(f"print({LAUNCH!r}, flush=True)\n" + self.wait_event("sample_finish"))
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue(any(e["event"] == "sample_finish" and e["timed_out"] for e in self.events()))
-        for pid in json.loads((self.root / "sample-pids.json").read_text()):
-            self.assert_not_running(pid)
-        self.assertIsNone(unrelated.poll())
+        record = self.root / "sample-pids.json"
+        result = self.run_instrumented(f"print({LAUNCH!r}, flush=True)\n" + self.wait_event("sample_finish"), f"""
+original_poll = observer.Observer.poll_helpers
+def arm_ready_sample(self):
+    record = __import__('pathlib').Path({str(record)!r})
+    if record.exists() and not getattr(self, 'fixture_timeout_armed', False):
+        pid = __import__('json').loads(record.read_text())[0]
+        for helper in self.helpers:
+            if (helper['kind'] == 'sample' and helper['process'].pid == pid and
+                    not helper['stopped'] and helper['process'].poll() is None):
+                helper['deadline'] = observer.time.monotonic() + 0.35
+                self.fixture_timeout_armed = True
+                self.event('fixture_timeout_armed', pid=pid)
+                break
+    original_poll(self)
+observer.Observer.poll_helpers = arm_ready_sample
+""")
+        evidence = self.failure_evidence(result.stderr)
+        self.assertEqual(result.returncode, 0, evidence)
+        events = self.events()
+        armed = [event for event in events if event["event"] == "fixture_timeout_armed"]
+        samples = [event for event in events if event["event"] == "sample_finish"]
+        self.assertEqual(len(armed), 1, evidence)
+        self.assertEqual(len(samples), 1, evidence)
+        self.assertEqual(armed[0]["pid"], json.loads(record.read_text())[0], evidence)
+        self.assertGreaterEqual(samples[0]["elapsed"] - armed[0]["elapsed"], 0.35, evidence)
+        self.assertTrue(samples[0]["timed_out"], evidence)
+        self.assertFalse(samples[0]["interrupted"], evidence)
+        self.assert_recorded_processes_stopped(record, evidence)
+        self.assertIsNone(unrelated.poll(), evidence)
 
     def test_original_exit_during_sampling_cleans_sampler_and_preserves_code(self):
         self.exit_during_sample()
@@ -296,17 +348,19 @@ time.sleep(0.35)
             self.assertEqual(handle.read(32), b"x" * 32)
 
     def exit_during_sample(self, oversized=False):
-        self.blocking_sampler(oversized=oversized)
+        self.blocking_sampler(oversized=oversized, startup_delay=0.5)
         expression = f"pathlib.Path({str(self.root / 'sample-pids.json')!r}).exists()"
         result = self.run_command(f"import sys\nprint({LAUNCH!r}, flush=True)\n" +
-                                  self.child_wait_for(expression) + "sys.exit(41)\n",
-                                  extra=("--helper-timeout", "2") if oversized else ())
-        self.assertEqual(result.returncode, 41, result.stderr)
-        for pid in json.loads((self.root / "sample-pids.json").read_text()):
-            self.assert_not_running(pid)
+                                  self.child_wait_for(expression) + "sys.exit(41)\n")
+        evidence = self.failure_evidence(result.stderr)
+        self.assertEqual(result.returncode, 41, evidence)
+        self.assert_interrupted_sample(evidence)
+        self.assertTrue(any(event["event"] == "command_exit" and
+                            event["original_returncode"] == 41 for event in self.events()), evidence)
+        self.assert_recorded_processes_stopped(self.root / "sample-pids.json", evidence)
 
     def test_observer_exception_cleans_active_sampler_and_keeps_command_result(self):
-        self.blocking_sampler()
+        self.blocking_sampler(startup_delay=0.5)
         original = self.command(f"import sys\nprint({LAUNCH!r}, flush=True)\n" +
                                 self.wait_event("observer_error") + "sys.exit(43)\n")
         launcher = self.script("observer-fault.py", f"""
@@ -323,11 +377,12 @@ sys.exit(observer.main(sys.argv[1:]))
 """)
         original[1] = str(launcher)
         result = subprocess.run(original, capture_output=True, text=True, timeout=5)
-        self.assertEqual(result.returncode, 43, result.stderr)
-        self.assertIn("controlled observer exception", result.stderr)
-        self.assertTrue(any(e["event"] == "observer_error" for e in self.events()))
-        for pid in json.loads((self.root / "sample-pids.json").read_text()):
-            self.assert_not_running(pid)
+        evidence = self.failure_evidence(result.stderr)
+        self.assertEqual(result.returncode, 43, evidence)
+        self.assertIn("controlled observer exception", result.stderr, evidence)
+        self.assertTrue(any(e["event"] == "observer_error" for e in self.events()), evidence)
+        self.assert_interrupted_sample(evidence)
+        self.assert_recorded_processes_stopped(self.root / "sample-pids.json", evidence)
 
     def test_cancellation_interrupts_blocked_sample_and_owned_command_group(self):
         self.cancel_during_sample()
@@ -337,7 +392,7 @@ sys.exit(observer.main(sys.argv[1:]))
         self.assert_capped_sample()
 
     def cancel_during_sample(self, oversized=False):
-        self.blocking_sampler(oversized=oversized)
+        self.blocking_sampler(oversized=oversized, startup_delay=0.5)
         unrelated = self.external_runner(self.root / "OTHER-SIM")
         command = self.command(f"""
 import json, os, pathlib, signal, subprocess, sys, time
@@ -346,18 +401,19 @@ child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
 pathlib.Path({str(self.root / 'original-pids.json')!r}).write_text(json.dumps([os.getpid(), child.pid]))
 print({LAUNCH!r}, flush=True)
 time.sleep(60)
-""", extra=("--helper-timeout", "2") if oversized else ())
+""")
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.addCleanup(lambda: process.poll() is None and process.kill())
         self.wait_for(lambda: (self.root / "sample-pids.json").exists())
         process.send_signal(signal.SIGTERM)
         _, stderr = process.communicate(timeout=3)
-        self.assertEqual(process.returncode, 143, stderr)
-        self.assertTrue(any(e["event"] == "cancel" for e in self.events()))
+        evidence = self.failure_evidence(stderr)
+        self.assertEqual(process.returncode, 143, evidence)
+        self.assertTrue(any(e["event"] == "cancel" for e in self.events()), evidence)
+        self.assert_interrupted_sample(evidence)
         for name in ("sample-pids.json", "original-pids.json"):
-            for pid in json.loads((self.root / name).read_text()):
-                self.assert_not_running(pid)
-        self.assertIsNone(unrelated.poll())
+            self.assert_recorded_processes_stopped(self.root / name, evidence)
+        self.assertIsNone(unrelated.poll(), evidence)
 
     def test_completed_sampler_leader_cannot_leave_a_descendant_behind(self):
         self.sampler = self.script("exiting-sampler", f"""
