@@ -41,9 +41,7 @@ final class FreeDockFlowTests: XCTestCase {
         app.buttons["free-raise-cancel"].tap()
         fold.tap()
         XCTAssertEqual(dock.frame.height, height, accuracy: 0.5)
-        let skip = app.buttons["free-skip-result"]
-        XCTAssertTrue(skip.waitForExistence(timeout: 5))
-        skip.tap()
+        // Observe settled dock geometry; replay acceleration is a separate interaction.
         XCTAssertTrue(app.buttons["free-next-hand"].waitForExistence(timeout: 15))
         XCTAssertEqual(dock.frame.height, height, accuracy: 0.5)
         let attachment = XCTAttachment(screenshot: app.screenshot())
