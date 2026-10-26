@@ -5,8 +5,18 @@ appended), the open issues (a living list), and the last few sessions. Rules for
 keeping it are in `AGENTS.md`. Older history is in `git log -- docs/agent-handoff.md`
 and the text records in `docs/records/`; neither needs reading for normal work.
 
-## Current state (2026-10-23)
+## Current state (2026-10-26)
 
+- Owner requested fixes for the October 24–26 nightly UI failures on unchanged
+  `98cad09`. PR #65 replaces an ephemeral replay-control tap with the existing
+  natural-result wait in the dock geometry test, and waits for glossary dismissal
+  instead of asserting immediately. The dock test now also gates focused PR CI.
+  All geometry/cancellation/search assertions remain; no app/replay/persistence,
+  grading or release changes. Authentic latest failure hierarchy already shows
+  Next hand while XCTest targets the removed skip control. Exact candidate,
+  native positive/failure controls, hosted outcomes and integration status live in
+  [PR #65](https://github.com/mhju0/glass-table/pull/65); scope and limits:
+  `docs/records/2026-10-26-nightly-ui-timing.md`. Earlier open causes below remain.
 - Owner authorized comprehensive code/performance review, recommended strong/medium
   fixes, checks, main merge and safe cleanup. PRs #62/#63 merged; starting main was
   `23f5383`. PR #64 contains five confirmed P2 fixes: latest-intent reminders,
@@ -343,6 +353,16 @@ Tests:
 
 ## Recent sessions
 
+### 2026-10-26 (Codex · nightly UI timing)
+
+- Latest hosted failure contains the finished result while XCTest tries to tap
+  the expired skip control. Dock test now waits for natural completion without
+  changing its 15s deadline or geometry/cancellation assertions; glossary search
+  waits up to5s for dismissal. Added the dock case to focused PR CI.
+- Unchanged local baseline passed twice; hosted evidence establishes the race.
+  PR#65 records final-source positives, failure controls and pinned-runtime checks.
+  Production code/build37 and all earlier unresolved causes remain unchanged.
+
 ### 2026-10-23 (Codex · resumed CI closeout)
 
 - Completed the five confirmed review fixes and corrected observer fixture setup,
@@ -388,41 +408,3 @@ Tests:
   `39618848422` without app/test changes. No speculative fix, audit waiver or new
   release; unresolved launch cause retained. Local simulator/probe cleaned up.
   Original checkout's unrelated dirty files preserved.
-
-### 2026-10-20 (Codex · motion, controls, glass and device accessibility)
-
-- Owner then requested TestFlight build 37 and parallel delivery. Integrated all four
-  scopes through #61 after exact candidate CI; verified identical merged tree, then
-  started main CI and signed upload concurrently. Both passed; Apple processing
-  and Me internal-group availability were verified, with bilingual test notes saved.
-  Owner installation is not verified. Evidence belongs in
-  `docs/records/2026-10-20-build37-release.md`.
-- Implemented the owner-approved first scope at `3dc9023`: missing Reduce Motion
-  guards, immediate slider-grid updates and removal of the 1.2-second verdict shadow.
-  Preserved the app's look, native presentations and instructional replay semantics.
-- Fresh build, 165 app tests, ten normal-motion scenarios and nine actual-system
-  Reduce Motion scenarios passed. Temporary Settings automation is verification-only.
-  Added permanent behavior regressions and a motion section in the validation routine.
-- Root reviewed source and sampled recorded frames. Cloud results live in PR checks;
-  no physical-device/performance or iOS 17 claim. Latest released app remains 1.0 (36).
-  Evidence: `docs/records/2026-10-20-existing-motion-alignment.md`.
-- Owner then approved scope 2 before merge/release. Native amount repetition replaces
-  the custom scheduler; menus/dialogs/sheets already use system presentations. Ten
-  amount tests, five system Reduce Motion cases and actual active-hold interruption
-  passed. Four control cases now gate PRs; independent review/cloud evidence lives
-  in PR #58 and `docs/records/2026-10-20-native-control-behavior.md`.
-
-- Owner selected scope 3: restrained navigation glass, separately stacked above #58.
-  Preserved felt/cards/colors/10-point shapes and real press/cancel behavior. A native
-  container suppressed glyph feedback in controlled comparison, so it was omitted.
-  Small text pressed contrast was corrected with a navigation-only fade adjustment.
-  Native English/light and Korean/dark/AX5 flows passed; exact final checks and limits
-  are in `docs/records/2026-10-20-navigation-glass.md`. Merge/release remains on hold.
-
-- Scope 4 then exercised the compact simulator and connected iPhone, preserving
-  existing phone progress by the owner's explicit choice. Fixed actual VoiceOver
-  redundant search/focus-return defects and mixed English adjustment labels. Kept
-  original native-audit discrepancies visible and separated test snapshot overhead
-  from measured Release hitches; no speculative layout/performance rewrite.
-  Evidence/limits: `docs/records/2026-10-20-interaction-accessibility.md` and
-  `docs/records/2026-10-20-accessibility-audit-followup.md`. No merge/release.

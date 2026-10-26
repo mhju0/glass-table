@@ -199,7 +199,7 @@ final class LearningReferenceFlowTests: XCTestCase {
             search.tap(); search.typeText("EV\n")
             XCTAssertTrue(app.buttons["glossary-entry-ev"].waitForExistence(timeout: 5))
             app.buttons["glossary-close"].tap()
-            XCTAssertFalse(search.exists)
+            XCTAssertTrue(search.waitForNonExistence(timeout: 5), "Closing the glossary must dismiss search")
             app.terminate()
         }
     }

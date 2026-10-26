@@ -68,6 +68,7 @@ jobs:
             -only-testing:GlassTableUITests/FreeRaiseFlowTests/testRaiseAXPanFromAdjustmentCancelsStepAndScrolls \
             -only-testing:GlassTableUITests/FreeRaiseFlowTests/testDraggingAwayAfterRepeatStopsAndLowerLimitHolds \
             -only-testing:GlassTableUITests/FreeRaiseFlowTests/testBackgroundAndReopeningDoNotReviveReleasedRepeat \
+            -only-testing:GlassTableUITests/FreeDockFlowTests/testFixedSlotsCancelPressAndPreserveHeightThroughRaiseAndFold \
             -only-testing:GlassTableUITests/NavigationChromeTests/testEnglishLightNavigationControls \
             -only-testing:GlassTableUITests/NavigationChromeTests/testKoreanDarkAXNavigationControls \
             -only-testing:GlassTableUITests/LearningFlowTests/testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge \
