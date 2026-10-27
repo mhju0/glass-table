@@ -1,6 +1,6 @@
 # Glass Table
 
-**기초부터 레인지와 EV까지, 직접 판단하며 배우는 홀덤**
+**포커를 처음 배우는 사람을 위한, 직접 판단하며 배우는 홀덤**
 
 Glass Table is an offline iPhone learning app for No-Limit Hold'em, in Korean
 and English. It combines a recommended learning path, freely available practice,
@@ -11,9 +11,9 @@ probability, and the cost of a decision.
 [![Engine gate](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml/badge.svg)](https://github.com/mhju0/glass-table/actions/workflows/engine-gate.yml)
 ![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
 
-> Status: local native build under review. The app has not been released on the App Store.
+> Status: build 37 in TestFlight internal testing. The app has not been released on the App Store.
 
-| Follow a recommendation—or choose | Understand your opponent |
+| Follow a recommendation or choose | Understand your opponent |
 |---|---|
 | ![Learn tab with a recommended next activity](docs/readme-assets/readme-01-learn.png) | ![Opponent details with separate entry and raise habits](docs/readme-assets/readme-02-opponent.png) |
 | Four main learning tracks and an optional deeper track stay open; a starting-point check can suggest where to begin. | Everyday names lead; numbers and technical terms are optional detail. |
@@ -32,14 +32,14 @@ use three questions and pass with two answered alone and exactly right; track
 challenges mix at least six. One-skill practice uses five, and review uses up to five.
 Worked examples, delayed review, and mixed checkpoints support the learning path. It recommends a next activity without
 locking advanced lessons. The optional, untimed starting-point check changes
-the recommendation—not completed lessons or earned mastery.
+the recommendation, not completed lessons or earned mastery.
 
 Play defaults to a quick game for you and three computers, with 40 starting chips, ending after 10 hands; two or three players can also be chosen.
 A longer 100-chip table, carried stacks, and explicit refills are also available.
 Its review reports what happened. Optional beginner-chart coaching is separate
 from a calculated strategy grade. A separate heads-up exercise
 grades preflop choices against a published chart and postflop choices under a
-disclosed checkdown approximation—not universal poker advice.
+disclosed checkdown approximation, not universal poker advice.
 
 Progress leads with passed lessons, seven recent practice dates, and topics
 to revisit. Submitted lesson, practice, and review answers count regardless of
