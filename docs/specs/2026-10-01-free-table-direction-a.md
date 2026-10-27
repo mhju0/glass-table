@@ -19,7 +19,7 @@ either, stop and ask.
   `GlassTable/UITests/UXAuditCrawl.swift`, `docs/records/2026-09-30-uxaudit-codex-review.md`,
   `tools/line-parity/.build-ocr-lines`. Don't edit,
   stage or delete them.
-- `docs/agent-handoff.md` has uncommitted appended entries describing this design
+- The agent handoff has uncommitted appended entries describing this design
   work. Commit it together with this spec in step 0.
 
 ## 1. Spacing and corner rules (whole app)
@@ -285,7 +285,7 @@ why they're unavailable.
 
 ## 8. Build order (one commit per step, Conventional Commits, explicit paths)
 
-0. `docs:` commit this spec + `docs/agent-handoff.md`.
+0. `docs:` commit this spec + the agent handoff.
 1. Spacing foundation: per-font top correction, radius tokens, R4 helper; apply to
    `ActionSheet` and card containers. Measure the dock and two cards before/after.
 2. Table layout (§2).
@@ -294,7 +294,7 @@ why they're unavailable.
 5. Flip + back face + hand review (§4).
 6. Motion and haptics (§6).
 7. App-wide pass (§1 R5 literals, §5).
-8. Verify (§9) and update `docs/agent-handoff.md`.
+8. Verify (§9) and update the agent handoff.
 
 ## 9. Verification (from AGENTS.md)
 

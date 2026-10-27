@@ -61,5 +61,5 @@ Screenshots: native before frames (build 19 welcome, historical build 16 familia
 - Build 22 later removed the experience question and added a green brand welcome (owner chose option C; see `2026-10-11-brand-welcome.md`).
 
 ## Still open
-- The beginner study (A/B observation, teach-back, delayed retention) was never run; `docs/agent-handoff.md` lists real novice comprehension as never verified.
+- The beginner study (A/B observation, teach-back, delayed retention) was never run; the agent handoff lists real novice comprehension as never verified.
 - No tested claim that any palette, size, phrasing or animation improves retention.

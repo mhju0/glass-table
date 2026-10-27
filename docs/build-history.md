@@ -9,16 +9,16 @@ Reconciled October 10, 2026 from repository records. Entries distinguish plans, 
 |3|September 23|Pot replay, beginner pot explanation and appearance|Signed build installed in place; progress preserved|[Record](../docs/specs/2026-09-23-pot-appearance.md)|
 |4|September 23|Combined beginner release: lessons, placement and four-seat Play|Installed; metadata/process and progress verified|[Record](../docs/specs/2026-09-23-beginner-native-release.md)|
 |5|September 23|Settings as fourth tab, language settings and AX fixes|Installed in place; progress preserved|[Record](../docs/specs/2026-09-23-settings-navigation.md)|
-|6|September 24|Delivery checkpoint bb87591 + build bump d3982dc|Install recorded; detailed raw evidence subsequently lost|[Record](records/2026-09-04-session-history.md)|
-|7|September 24|Full-screen lessons and shared table surface|Installed in place; preserved progress|[Record](records/2026-09-04-session-history.md)|
-|8|September 24|Exact-combo explanation before counting|Fresh install recorded at 07f9a1e; historical backup existed|[Record](records/2026-09-04-session-history.md)|
-|9|September 25|Welcome/warm-up, Play modes and bottom answers checkpoint|Git build bump for intended install; outcome not located|[Record](records/2026-09-04-session-history.md)|
-|10|September 26|Help, large-text headers and practice layout checkpoint|Git build bump for intended install; outcome not located|[Record](records/2026-09-04-session-history.md)|
-|11|September 26|UI refinement checkpoint; detailed delta not enumerated|Device install recorded; progress preserved|[Record](records/2026-09-04-session-history.md)|
-|12|September 26|Contrast changes and CI type-check fix, PR7 merged|Install requested; result not located|[Record](records/2026-09-04-session-history.md)|
-|13|September 27|Question retained through reveals, foldable feedback|Branch/build checkpoint; phone install not located|[Record](records/2026-09-04-session-history.md)|
+|6|September 24|Delivery checkpoint bb87591 + build bump d3982dc|Install recorded; detailed raw evidence subsequently lost|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
+|7|September 24|Full-screen lessons and shared table surface|Installed in place; preserved progress|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
+|8|September 24|Exact-combo explanation before counting|Fresh install recorded at 07f9a1e; historical backup existed|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
+|9|September 25|Welcome/warm-up, Play modes and bottom answers checkpoint|Git build bump for intended install; outcome not located|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
+|10|September 26|Help, large-text headers and practice layout checkpoint|Git build bump for intended install; outcome not located|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
+|11|September 26|UI refinement checkpoint; detailed delta not enumerated|Device install recorded; progress preserved|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
+|12|September 26|Contrast changes and CI type-check fix, PR7 merged|Install requested; result not located|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
+|13|September 27|Question retained through reveals, foldable feedback|Branch/build checkpoint; phone install not located|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
 |14|October 2|Free Table Direction A; support/privacy delivery|Installed in place; preserved progress; observed Learn|[Record](records/2026-10-02-verification-reports.md)|
-|15|October 4–5|Casual direction, coaching and beginner tracks|In-place then owner-requested fresh reinstall; historical crawl evidence|[Record](records/2026-09-04-session-history.md)|
+|15|October 4–5|Casual direction, coaching and beginner tracks|In-place then owner-requested fresh reinstall; historical crawl evidence|[Handoff archive](https://github.com/mhju0/glass-table/tree/f5c5e22/docs/handoff-archive)|
 |16|October 6–7|Native spacing, feedback, encouragement and Records|Fresh12mini install; subsequent13mini owner feedback28 comments|[Record](records/2026-10-02-verification-reports.md)|
 |17|October 7|Welcome-first isolated candidate|Not a confirmed phone installation|[Record](records/2026-10-07-device-feedback-build16.md)|
 |18|October 8|28feedback changes plus graded1v1 revamp|Fresh install12mini/13mini; metadata/launch verified, screen not observed|[Record](../docs/specs/2026-10-07-graded-table-learning.md)|

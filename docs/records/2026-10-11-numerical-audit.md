@@ -40,7 +40,7 @@ Findings (5 teaching defects N01-N05, 2 display defects N06-N07, 5 qualification
 - N01-N07 fixed in `ce29a53`, verified in bilingual native flows in `21c3907`, shipped in build 21 (`3e219db`). Correction pass: Engine release 95, Drills 415 XCTest + 75 Swift Testing, app 87 XCTest + 46 Swift Testing on iPhone 12 mini sim iOS 26.5; Records UI passed EN/KO x light/dark; the combined call/fold+EV reveal job's result finalization stalled so it is not claimed as a completed invocation.
 
 ## Still open
-- N08-N12 qualifications (listed in `docs/agent-handoff.md` open issues).
+- N08-N12 qualifications (listed in the agent handoff's open issues).
 - Graded-flop sampling sensitivity: the graded flop uses 200 samples per opponent combo; the noise is not bounded against the 0.5bb/2bb grade thresholds. Needs comparison of near-threshold decisions against exact runouts or a larger-sample reference.
 - Latent M5 (weighted ranges) and M6 (raise continuation) must be revisited before adding partial-weight ranges or check-raising policies.
 - Product questions left in the primary-sources note: exact outs/44 vs rule-of-2 for the face-up turn spot; whether any chart label implies solver status; scoping tie equity to heads-up.

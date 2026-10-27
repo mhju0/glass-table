@@ -19,7 +19,7 @@ Codex tried to fix Xcode 26.3 type-check timeouts and make the full UI suite pas
 - Branch heads with unique experiment-only commits, for `git show` while GitHub still has them: 0b48fbb, 3c98d96, b528bde, 789b3d0, c2e0a21, 2085adb, c88abc9, a3b4b83, afe0cc1, 3ee0b68, 9cc7f4a, 17399af, b3fb202, 0fc2fc9, 83ab490, 9aa0ac4, 4a787f9, eefe640, 0b85a57, 3234f52, 599ff65, fc07a8f, 54a8f4b, afe4042, d64f43b, db4c8db, 6fb653c, ab36641, 1060c10, b015cdd, fa0de2f, d8ad8af. An uncommitted UI-archive revalidation workflow (`ui-revalidate.yml`, `ui_archive_revalidate.py`) existed only in a local archive and was discarded.
 
 ## Outcome
-PR #11 closed. Follow-up PR with the product fixes opened from `main` (see `docs/agent-handoff.md`).
+PR #11 closed. Follow-up PR with the product fixes opened from `main` (see the agent handoff).
 
 ## Still open
 - The settings AX5 language-menu viewport check from 811cbce, if wanted, needs its own fix.

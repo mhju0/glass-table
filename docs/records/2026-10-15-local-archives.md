@@ -22,7 +22,7 @@ Archived worktrees, 2026-10-11 (7.6 GB; 7 sibling worktrees, `git-history.bundle
   feat/free-table-direction-a `f3bb670`, feat/sheet-refresh `36d4c51`, feat/spacing-rules `e38914d`,
   main `79ce374`, tag v1.0.0-beta.1 `cad1c6e`: all ancestors of `main` now. Two
   `refs/codex/turn-diffs/checkpoints/*` point to trees (Codex checkpoints), not work.
-- `main-before.json`: main checkout then had ` M .gitignore`, ` M docs/agent-handoff.md` and
+- `main-before.json`: main checkout then had ` M .gitignore`, a modified agent handoff and
   untracked `.scratch/`, `.playwright-mcp/` files; no patch of those edits was saved. [Unknown] whether they were later committed verbatim.
 - `files/.build` per worktree: xcresults, XCUITest `.mp4` recordings, screenshots, HTML reports, logs
   and signed Release apps (embedded provisioning profiles inside the `.app`s; no standalone signing files).
@@ -43,7 +43,7 @@ Archived worktrees, 2026-10-15 (2.3 GB; 25 `/private/tmp/glass-table-*` worktree
     (19,421 B), `.github/scripts/tests/test_ui_archive_revalidate.py` (13,573 B).
     UNIQUE: the only copy is `*.uncommitted.diff` + `*.untracked.tar` in this archive. The owner
     later chose the lean CI over the Codex pipeline (handoff), so this is [Inferred] abandoned.
-  - `main-checkout-codex-handoff.diff`: Codex's uncommitted `docs/agent-handoff.md` edit for the
+  - `main-checkout-codex-handoff.diff`: Codex's uncommitted agent-handoff edit for the
     69-finding screenshot UX report; its substance is already in the handoff's 2026-10-15 Codex entry.
 - `*.build-evidence.tgz` (16 files): local and CI xcresults, CI artifact downloads, video frames,
   plus DerivedData module caches. `ui-archive-revalidate` tgz holds `.build/auth-replay/*.zip`:

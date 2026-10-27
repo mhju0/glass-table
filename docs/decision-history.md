@@ -6,8 +6,7 @@ autonomy), **what** was decided, **why**, and **where the evidence lives**.
 
 This file is for looking back: "what kind of decisions did I make, and what was I
 optimising for?" The engineering ledger with full technical reasoning is
-[`decisions.md`](decisions.md); design rules are in [`../DESIGN.md`](../DESIGN.md);
-session-by-session notes are in [`agent-handoff.md`](agent-handoff.md).
+[`decisions.md`](decisions.md); design rules are in [`../DESIGN.md`](../DESIGN.md).
 
 **How to add an entry:** date, a one-line decision, then *Decided by*, *Why*,
 *Evidence*. Record decisions, not tasks. If a later decision replaces an earlier
@@ -123,8 +122,8 @@ Read across the entries, a few preferences keep coming back:
   delaying launch.
 - **Replaces:** the "free forever / no money" and "separate onboarding" founding positions
   (the latter already replaced 2026-09-24).
-- **Evidence:** [`ROADMAP.md`](ROADMAP.md) (rewritten); the old roadmap is in
-  `docs/records/2026-09-04-session-history.md`.
+- **Evidence:** [`ROADMAP.md`](ROADMAP.md) (rewritten); the old roadmap is
+  `git show f5c5e22:docs/handoff-archive/2026-09-25-roadmap-before-release-plan.md`.
 
 ## 2026-09-25 — Autonomous session (owner away, delegated authority)
 

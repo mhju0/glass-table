@@ -39,5 +39,5 @@ Shipped in `ae06b8b` (2026-09-26). Later, `70d39d2` made the milestone card name
 track rather than the unit.
 
 ## Still open
-Per `docs/agent-handoff.md` open issues: the system notification, share and review flows
+Per the agent handoff's open issues: the system notification, share and review flows
 have never been verified on hardware.
