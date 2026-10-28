@@ -1132,3 +1132,15 @@ remain separate teaching decisions.
   from the separately graded table and states the practice model’s limits.
 - Keep existing visual language, Dynamic Type, offline behavior and recoverable
   progress. Do not add replacement preferences, account flows or telemetry.
+
+### D56 · Agent handoff moves to private memory
+**Status: ACTIVE — owner decided on 2026-10-28.**
+
+Agent session notes no longer live in the repository. `docs/agent-handoff.md` and the
+2026-09-04 session-history record moved to the private, git-ignored `.memory/` folder
+shared by Claude Code and Codex; current state and the next step are in
+`.memory/handoff.md`. This ledger, `decision-history.md`, `docs/records/` and the
+roadmap stay the public record. Dated records keep their original wording, so older
+mentions of the removed files are left as written; their last tracked copies are at
+`f5c5e22` and the commit before this decision.
+

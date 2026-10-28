@@ -223,4 +223,4 @@ limit, not permission to trim old records automatically.
 No GitHub push, external publishing, hosted privacy-policy change or App Store
 submission occurred in this task. Current-facing docs, tickets and README assets
 are updated at delivery; historical handoff text is preserved in
-`git show f5c5e22:docs/handoff-archive/`.
+`docs/records/2026-09-04-session-history.md`.

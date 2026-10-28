@@ -61,4 +61,4 @@ Built as Rule 1 + Look 2 (commit `43692c9`, shipped in build 27, source `10744ab
   `scrollUntilFullyVisible` now ends with short drags.
 
 ## Still open
-Nothing in this map. The rule is now a project convention (recorded in the agent handoff).
+Nothing in this map. The rule is now a project convention (see `docs/agent-handoff.md`).

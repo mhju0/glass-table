@@ -39,7 +39,7 @@ Agent recommendations (no new owner question was raised):
 ## Outcome
 - Report verification (browser only): 80 proposal + 32 retained native screenshots; 100/100 flow assertions across EN/KO x light/dark (taught rule, help return, wrong rows, neutral help, chart without highlight, leave/new game, three-state appearance, settings return, etc.); matched normal line groups across 18 states; 44 large-text renders at 200% with reachable actions; no overflow; targets >= 44 CSS px; 0 final console errors. Final refinements: Free Play suit glyphs keep card ink; help return labels name their source.
 - Implemented together with FFM01-08 in build 20 (2026-10-11; signed 1.0 (20), source `07054d0`, final production change `132c331`), per `docs/build-history.md` and `docs/specs/2026-10-11-consistent-experience-first-opening.md`.
-- Later superseded in part: one corner radius, 10, for cards, panels, seats, felt and controls (owner, 2026-10-13, per the agent handoff) replaced the 14/20 values above.
+- Later superseded in part: one corner radius, 10, for cards, panels, seats, felt and controls (owner, 2026-10-13, per `docs/agent-handoff.md`) replaced the 14/20 values above.
 
 ## Still open
 - Next evidence named by the study, not done: beginner teach-back and chart-match vs win distinction, cross-mode help/resume without coaching, physical 54 vs 60 pt comfort on the mini, interrupted-session definitions, and the full native matrix (iOS 17, VoiceOver, Reduce Motion/Transparency, Increased Contrast). Build history still lists novice comprehension, physical VoiceOver/thumb comfort and minimum-iOS 17 runtime as remaining after build 20.

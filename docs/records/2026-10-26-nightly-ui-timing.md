@@ -43,4 +43,4 @@
 
 - The full nightly suite is broader than focused CI. Do not treat targeted
   verification as an entire new nightly pass. Earlier isolated launch, reveal and
-  guide-position causes remain open (`2026-10-23-comprehensive-ci-closeout.md`).
+  guide-position causes remain under `docs/agent-handoff.md`.

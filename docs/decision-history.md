@@ -122,8 +122,8 @@ Read across the entries, a few preferences keep coming back:
   delaying launch.
 - **Replaces:** the "free forever / no money" and "separate onboarding" founding positions
   (the latter already replaced 2026-09-24).
-- **Evidence:** [`ROADMAP.md`](ROADMAP.md) (rewritten); the old roadmap is
-  `git show f5c5e22:docs/handoff-archive/2026-09-25-roadmap-before-release-plan.md`.
+- **Evidence:** [`ROADMAP.md`](ROADMAP.md) (rewritten); the old roadmap is in
+  `docs/records/2026-09-04-session-history.md`.
 
 ## 2026-09-25 — Autonomous session (owner away, delegated authority)
 
