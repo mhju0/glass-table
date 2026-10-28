@@ -52,7 +52,6 @@ No images, base64, HTML, secrets or personal data.
 | [2026-07-21-m1-plans.md](2026-07-21-m1-plans.md) | Milestone 1 scope and implementation plans | spec notes |
 | [2026-07-24-outs-reveal-legibility.md](2026-07-24-outs-reveal-legibility.md) | Outs drill: card legibility, full-table reveal and tap-to-explain | spec notes |
 | [2026-07-25-onboarding-first-hand.md](2026-07-25-onboarding-first-hand.md) | 첫 핸드: onboarding as a played hand, not a read document | spec notes |
-| [2026-09-04-session-history.md](2026-09-04-session-history.md) | Agent session history, 2026-09-04 to 2026-10-13 | session history |
 | [2026-09-04-tooling-and-workspace-history.md](2026-09-04-tooling-and-workspace-history.md) | Tooling and workspace history | audit |
 | [2026-09-19-card-display-benchmarks.md](2026-09-19-card-display-benchmarks.md) | Mobile poker card display benchmarks | research |
 | [2026-09-20-learner-trust-evidence.md](2026-09-20-learner-trust-evidence.md) | Learner-trust audit screenshot evidence | verification |

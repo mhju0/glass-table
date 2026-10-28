@@ -21,3 +21,7 @@ build-device-release/
 
 # Rating-board submission packages (videos, forms); kept locally only
 /docs/grac-submission/
+
+# Private agent memory and write locks (shared by Claude and Codex)
+.memory/
+.locks/

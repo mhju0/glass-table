@@ -3,7 +3,7 @@
 > Rewritten 2026-09-25 from the owner's answers on the
 > [release research page](https://claude.ai/artifact/5uBT6CLXkUkruLoYyxUgjN).
 > The previous roadmap (2026-09-04, NOW section dated 09-05) is archived at
-> [`docs/records/2026-09-04-session-history.md`](records/2026-09-04-session-history.md).
+> [`docs/handoff-archive/2026-09-25-roadmap-before-release-plan.md` at `f5c5e22`](https://github.com/mhju0/glass-table/blob/f5c5e22/docs/handoff-archive/2026-09-25-roadmap-before-release-plan.md).
 > Why each choice was made: [`decision-history.md`](decision-history.md).
 
 Goal: get 1.0 onto the App Store in Korea and the US **as soon as possible**. "Done" beats

@@ -72,14 +72,11 @@ Default canonical labels: `needs-triage`, `needs-info`, `ready-for-agent`, `read
 
 Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
-## Agent handoff
+## Agent memory
 
-- At session start, read `docs/agent-handoff.md`. Read `docs/records/` only when tracing
-  one specific past decision.
-- Before ending a session where you made decisions, changed architecture, or left work unfinished:
-  rewrite "Current state" so it is true now; add new open issues and remove resolved
-  ones; add one short dated entry under "Recent sessions" (what changed, decisions and
-  why, next step).
-- Keep at most five entries under "Recent sessions" and delete older ones; git history
-  is the archive. Do not create archive files. Never delete an unresolved open issue.
-- Durable rules belong in AGENTS.md, not in the handoff file.
+- At session start, read `.memory/README.md` (private, git-ignored). Read `docs/records/`
+  only when tracing one specific past decision.
+- Before ending a session that changed something or left work unfinished, update
+  `.memory/handoff.md`.
+- Product and engineering decisions go in `docs/decisions.md` (and `docs/adr/`); the
+  owner's preferences about agent work go in `.memory/decisions.md`.
