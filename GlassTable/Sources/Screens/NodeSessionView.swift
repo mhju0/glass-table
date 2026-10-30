@@ -107,6 +107,7 @@ struct NodeSessionView: View {
             else if stage != .solo { teaching }
             else { current }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(FeltBackground())
         .environment(\.lessonCallFoldNumbers, node.kind == .drill(.callFold))
         .gtChrome(leading: { ChromeButton.close { finished ? closeSummary() : dismiss() } }, trailing: {
@@ -203,6 +204,7 @@ struct NodeSessionView: View {
             }
         }
         .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     /// Starts a new session of this node. The seed follows the learner's answer counts,
@@ -1214,6 +1216,7 @@ struct ReviewSessionView: View {
                 ProgressView().tint(GT.onFelt)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(FeltBackground())
         .gtChrome(leading: { ChromeButton.close { dismiss() } })
         .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
