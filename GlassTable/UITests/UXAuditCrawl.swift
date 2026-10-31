@@ -899,7 +899,10 @@ final class UXAuditCrawl: XCTestCase {
             }
             // Session-level screens without a drill: start buttons, occupied-session gate.
             if button("그래도 이 레슨 시작").exists { tap(button("그래도 이 레슨 시작"), "그래도 이 레슨 시작"); continue }
-            if button("이 레슨 시작").exists { tap(button("이 레슨 시작"), "이 레슨 시작"); continue }
+            if button("이 레슨 시작").exists {
+                rec.shot("진행 중인 레슨", after: "다른 레슨을 열었을 때")
+                tap(button("이 레슨 시작"), "이 레슨 시작"); continue
+            }
             if button("문제 풀기").exists {
                 rec.shot("개념 소개", after: "따라 배우기를 마친 뒤")
                 tap(button("문제 풀기"), "문제 풀기"); continue
