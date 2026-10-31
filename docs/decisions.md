@@ -1144,3 +1144,15 @@ roadmap stay the public record. Dated records keep their original wording, so ol
 mentions of the removed files are left as written; their last tracked copies are at
 `f5c5e22` and the commit before this decision.
 
+
+### D57 · Full UI suite runs on change, not nightly
+**Status: ACTIVE — owner decided on 2026-10-31.**
+
+`ui-tests.yml` no longer runs on a schedule. It runs when app code (app, Engine/Drills
+sources, `project.yml`) reaches `main`, on pull requests that edit the workflow, and by
+hand on the release commit before a TestFlight tag. A failed test is retried once in a
+fresh runner process; a pass on retry is reported as a flaky warning. Why: the ten
+failed nights from 2026-10-18 to 2026-10-30 were simulator launch failures and timing
+flakes except one contrast regression that failed every night, and `46ede3b` failed,
+passed and failed on three unchanged nights. A test that fails on both attempts still
+fails the run. The `ci.yml` focused UI gate on every push and PR is unchanged.

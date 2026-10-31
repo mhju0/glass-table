@@ -6,15 +6,20 @@ Four GitHub Actions workflows, all on `macos-15` runners (free minutes, since th
 | --- | --- | --- | --- |
 | `ci.yml` | every push to `main`, every pull request, by hand | tool tests, Drills tests, app build + unit tests, focused teaching/recovery/control UI flows, Release launch smoke test, device Release build checked by `tools/verify_release.py` | about 45–55 min with the focused UI subset |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
-| `ui-tests.yml` | nightly 03:00 KST, by hand | the full UI flow suite, split across four parallel shards | about 70–75 min per shard (runner speed varies) |
+| `ui-tests.yml` | app code merged to `main`, pull requests that edit it, by hand | the full UI flow suite, split across four parallel shards; a failed test is retried once | about 70–75 min per shard (runner speed varies) |
 | `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
 
 `ci.yml` is the gate that has to pass before merging. It includes the focused
 `GradedTableRecoveryFlowTests`, `ReviewTeachingFollowupTests`, and AX postflop
 chart/Continue regression, with result bundles retained on failure. The full UI suite
-runs nightly. Its shards split test classes by the minutes each class took on
-a GitHub runner, listed in the workflow; `BilingualConsistencyB20Tests` alone takes about
-74 min, so it gets a shard to itself. A new UI test class runs without editing the
+runs when app code reaches `main` (app, Engine/Drills sources, `project.yml`), and by hand
+on the release commit before a TestFlight tag. It has no schedule: re-running an unchanged
+commit only measured simulator flakiness (same commit failed, passed, failed on
+2026-10-28/29/30). A test that fails is retried once in a fresh runner process; one that
+passes on the retry is listed as a `Flaky, passed on retry` warning instead of failing the run. Its shards split test classes by the minutes each class took on
+a GitHub runner, listed in the workflow; `BilingualConsistencyB20Tests` took about
+74 min before its 2026-10-31 trim (duplicate runs removed; review screenshots attach only
+with `TEST_RUNNER_GT_CAPTURE_EVIDENCE=1`); update its minutes after the next full run. A new UI test class runs without editing the
 workflow: it is estimated from its test count and flagged with a warning until its
 measured minutes are added. The shard step fails if any `XCTestCase` class in
 `GlassTable/UITests` is not assigned to a shard. To run the UI suite on a branch before merging:
@@ -41,7 +46,7 @@ from build 35; it does not change the historical failed run. Apple processing an
 internal Me group assignment were verified separately. See the
 [release record](records/2026-10-19-build36-release.md).
 
-The focused PR UI gate uses the same iPhone 17/iOS 26.2 destination as the nightly
+The focused PR UI gate uses the same iPhone 17/iOS 26.2 destination as the full
 workflow. Local follow-up checks used iOS 26.5; they do not establish remote success.
 
 ## One-time setup for TestFlight
