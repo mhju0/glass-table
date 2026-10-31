@@ -759,7 +759,7 @@ against 3:1. **Ink never flips.**
 # Open / unresolved
 
 ### D41 · The age-rating answer for a build that now contains a betting table
-**Status: UNKNOWN.** The combined release adds a four-seat chip table. Its final
+**Status: UNKNOWN. Superseded by D58.** The combined release adds a four-seat chip table. Its final
 questionnaire, regional path and the other distribution gates in
 `docs/submission.md` remain open.
 
@@ -1156,3 +1156,17 @@ failed nights from 2026-10-18 to 2026-10-30 were simulator launch failures and t
 flakes except one contrast regression that failed every night, and `46ede3b` failed,
 passed and failed on three unchanged nights. A test that fails on both attempts still
 fails the run. The `ci.yml` focused UI gate on every push and PR is unchanged.
+
+### D58 · Simulated Gambling answered Frequent; launch after the Korean rating
+**Status: ACTIVE — decided 2026-10-31 (owner delegated the call). Resolves D41.**
+
+The age-rating questionnaire answers Simulated Gambling = **Frequent**: the free table and
+the graded table depict betting on almost every screen, so Infrequent would understate it.
+That gives the global 18+ tier and Korea 19+, which needs a Korean Rating Classification
+Number (RCN). The GRAC application of 2026-10-13 already asks for 청소년이용불가, so the
+store answer and the Korean rating agree. The RCN is entered in App Store Connect
+(Age Rating → Add RCN, "Not permitted for use by juveniles") when GRAC issues it.
+All territories, Korea included, launch together after the RCN arrives: there is no
+submission date yet (D23), and one submission avoids a second metadata and territory pass.
+Launching other territories first stays possible if a date ever needs it. Educational
+purpose, play chips and the absence of real money do not lower the answer.
