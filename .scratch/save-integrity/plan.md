@@ -1,6 +1,6 @@
 # Save-integrity plan (archive, format, session ending)
 
-Status: needs-triage · Written 2026-10-31 · Plan only: no code until the owner approves.
+Status: in progress · Written 2026-10-31 · Owner approved steps 1, 2 and 4 (2026-10-31).
 
 ## What already holds (read 2026-10-31)
 
@@ -47,7 +47,27 @@ Status: needs-triage · Written 2026-10-31 · Plan only: no code until the owner
 5. Copy cleanup: leave as is unless the owner wants a "saved copies" row in Settings
    (that is a UI change, so mockups first).
 
+## Results (2026-10-31)
+
+- Step 1: `schema5-build37.json` added (PR #74). The golden test now regrades saved
+  answers at their stored step, as `ProgressionStore` does on load.
+- Step 2: `SaveLatencyMeasurementTests` (run with `GT_MEASURE_SAVE=1 swift test -c
+  release --package-path GlassTableDrills --filter SaveLatencyMeasurementTests`).
+  M1 Pro, release build, median of five:
+
+  | History | File | Save | Load |
+  |---|---|---|---|
+  | 1 heavy year: 10 summaries, 40 answers a day | 1.5 MB | 31 ms | 36 ms |
+  | 3 years: 20 summaries, 60 answers a day | 7.9 MB | 172 ms | 199 ms |
+  | 5 extreme years: 30 summaries, 100 answers a day | 20.5 MB | 468 ms | 529 ms |
+
+  `processedAttemptIDs` is also uncapped: one ID per graded answer, forever. A year of
+  heavy use saves fast, so step 3 is not needed now. Phones are slower than this Mac;
+  revisit when a real file passes about 5 MB.
+- Step 4: no gap. Round (`FreePlayView`), review and lesson views flush their debounced
+  draft whenever the scene leaves `.active`. The free table and graded table save each
+  action synchronously; the free-table replay task is visual only.
+
 ## Owner questions
 
-- Approve steps 1, 2 and 4 now (test-only or a small flush)?
 - Step 5: keep copies hidden forever, or show them in Settings?
