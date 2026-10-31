@@ -55,9 +55,9 @@ jobs:
           python3 -m unittest discover -s tools/tests -p test_ci_ui_observer.py -v > ui-observer-tests.log 2>&1 || status=$?
           cat ui-observer-tests.log || true
           exit "$status"
-      # Shards are balanced by measured minutes per class on a GitHub runner (runs
-      # 38961587746 to 39054133933; BestFive, LearnList, OutsReveal and Bounds are local
-      # times x1.4). A class not in the table is estimated from its test count, so a new
+      # Shards are balanced by measured minutes per class on a GitHub runner (single pass
+      # of run 41166542595, read from the ui-observer artifact's timeline.jsonl). A class
+      # not in the table is estimated from its test count, so a new
       # class still runs; add its measured minutes here once a run has shown them.
       - name: Pick this shard's test classes
         run: |
@@ -65,23 +65,29 @@ jobs:
           import pathlib, re, sys
           shard, shards = int(sys.argv[1]), 4
           minutes = {
-              'BilingualConsistencyB20Tests': 74, 'BestFiveComparisonTests': 26,
-              'FreeTableBackFlowTests': 23, 'BeginnerReleaseTests': 14,
-              'LearningFlowTests': 12, 'AccessibilityFlowTests': 12,
-              'WelcomeFirstFlowTests': 11, 'FinalPresentationVerificationTests': 10,
-              'FreeTableMotionFlowTests': 9, 'RestoredPresentationTests': 7,
-              'FreeDockFlowTests': 6, 'ChartFirstUseFlowTests': 6,
-              'FreeRaiseFlowTests': 4, 'BasicsGuidedHandInvitationTests': 4,
-              'GuidedHandFlowTests': 4, 'QuickPlayArchiveFlowTests': 4,
-              'NativeRefinementTests': 3, 'DeviceFeedbackLessonTests': 3,
-              'AccessibilityAuditTests': 3, 'BottomPanelB22Tests': 3,
-              'LearningOrderChenStepRowTests': 3, 'LearnListTests': 3,
-              'GradedLearningFlowTests': 2, 'AppearanceFlowTests': 2,
+              'BilingualConsistencyB20Tests': 55, 'FreeTableBackFlowTests': 26,
+              'BestFiveComparisonTests': 20, 'AccessibilityFlowTests': 11,
+              'BeginnerReleaseTests': 11, 'LearningFlowTests': 11,
+              'FinalPresentationVerificationTests': 10, 'WelcomeFirstFlowTests': 10,
+              'ChartFirstUseFlowTests': 8, 'FreeTableMotionFlowTests': 8,
+              'LearningReferenceFlowTests': 8, 'LearningOrderChenStepRowTests': 7,
+              'RestoredPresentationTests': 6, 'FreeDockFlowTests': 5,
+              'BasicsGuidedHandInvitationTests': 4, 'FreeRaiseFlowTests': 4,
+              'GuidedHandFlowTests': 4, 'StepLevelsReadingTests': 4,
+              'DeviceFeedbackLessonTests': 3, 'LearnListTests': 3,
+              'PlayListTests': 3, 'ProgressTabTests': 3,
+              'QuickPlayArchiveFlowTests': 3, 'AccessibilityAuditTests': 2,
+              'AppearanceFlowTests': 2, 'BottomPanelB22Tests': 2,
               'DeviceFeedbackSettingsTests': 2, 'FirstLessonFeedbackFlowTests': 2,
-              'RestoredLessonParityFlowTests': 2, 'NumericalRevealFlowTests': 2,
-              'OutsRevealTests': 2, 'GradedDockFlowTests': 1,
-              'NumericalRecordsFlowTests': 1, 'ReleaseSmokeTests': 1,
-              'DeviceFeedbackBoundsTests': 1, 'UXAuditCrawl': 0,
+              'GradedLearningFlowTests': 2, 'NativeRefinementTests': 2,
+              'NavigationChromeTests': 2, 'NumericalRevealFlowTests': 2,
+              'ReviewTeachingFollowupTests': 2, 'StepLevelsMathTests': 2,
+              'StepLevelsTests': 2, 'TerminologyLearningFlowTests': 2,
+              'DeviceFeedbackBoundsTests': 1, 'GradedDockFlowTests': 1,
+              'GradedTableRecoveryFlowTests': 1, 'LargestTextCapTests': 1,
+              'NumericalRecordsFlowTests': 1, 'OutsRevealTests': 1,
+              'ReleaseSmokeTests': 1, 'RestoredLessonParityFlowTests': 1,
+              'UXAuditCrawl': 0,
           }
           classes, declared = {}, 0
           for path in sorted(pathlib.Path('GlassTable/UITests').glob('*.swift')):
@@ -130,23 +136,38 @@ jobs:
             exit 1
           fi
           echo "Testing on $TEST_DEVICE ($TEST_RUNTIME) $test_simulator"
+          run() {  # $1 = name for log, observer and result bundle; then xcodebuild arguments
+            name=$1; shift
+            python3 tools/ci_ui_observer.py --simulator "$test_simulator" \
+              --log "$name.log" --diagnostics "$name-observer" -- \
+              xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
+              -destination "platform=iOS Simulator,id=$test_simulator" \
+              -resultBundlePath "$name.xcresult" \
+              -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
+              CODE_SIGNING_ALLOWED=NO "$@"
+          }
           status=0
-          python3 tools/ci_ui_observer.py --simulator "$test_simulator" \
-            --log ui-tests.log --diagnostics ui-tests-observer -- \
-            xcodebuild -project GlassTable.xcodeproj -scheme GlassTable \
-            -destination "platform=iOS Simulator,id=$test_simulator" \
-            $(cat only-testing.txt) -resultBundlePath ui-tests.xcresult \
-            -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
-            -retry-tests-on-failure -test-iterations 2 -test-repetition-relaunch-enabled YES \
-            CODE_SIGNING_ALLOWED=NO test || status=$?
-          if [ "$status" -ne 0 ]; then
+          run ui-tests $(cat only-testing.txt) test || status=$?
+          [ "$status" -eq 0 ] && { tail -30 ui-tests.log || true; exit 0; }
+          # One retry per failed test (D57), not of the whole shard: xcodebuild's own
+          # -retry-tests-on-failure re-ran every class in the shard (run 41166542595).
+          failed=$(sed -nE "s/^Test Case '-\[GlassTableUITests\.([A-Za-z0-9_]+) ([A-Za-z0-9_]+)\]' failed .*/\1\/\2/p" ui-tests.log | sort -u)
+          grep -E "error: -\[|^Test Case .* failed \(" ui-tests.log | sed 's/^/::warning::First attempt: /' || true
+          if [ -z "$failed" ]; then
             tail -200 ui-tests.log || true
-            grep -E "error: -\[|^Test Case .* failed \(" ui-tests.log | sed 's/^/::error::/' || true
+            echo "::error::xcodebuild failed ($status) before any test failed"
             exit "$status"
           fi
-          tail -30 ui-tests.log || true
+          status=0
+          run ui-tests-retry $(printf -- '-only-testing:GlassTableUITests/%s ' $failed) test-without-building || status=$?
+          if [ "$status" -ne 0 ]; then
+            tail -200 ui-tests-retry.log || true
+            grep -E "error: -\[|^Test Case .* failed \(" ui-tests-retry.log | sed 's/^/::error::/' || true
+            exit "$status"
+          fi
+          tail -30 ui-tests-retry.log || true
           # A test that failed once and passed on its retry is flaky: name it, don't fail.
-          grep -E "^Test Case .* failed \(" ui-tests.log | sed 's/^/::warning::Flaky, passed on retry: /' || true
+          printf '%s\n' $failed | sed 's/^/::warning::Flaky, passed on retry: /'
       - name: Retain failure evidence
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
@@ -155,6 +176,8 @@ jobs:
           path: |
             ui-tests.log
             ui-tests.xcresult
+            ui-tests-retry.log
+            ui-tests-retry.xcresult
       - name: Retain bounded observer evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -162,4 +185,5 @@ jobs:
           name: ui-observer-shard-${{ matrix.shard }}
           path: |
             ui-tests-observer
+            ui-tests-retry-observer
             ui-observer-tests.log
