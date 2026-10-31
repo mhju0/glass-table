@@ -25,7 +25,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
     }
 
     private static let fixtures = ["schema1-build3", "schema2-build16", "schema2-build22",
-                                   "schema2-build30", "schema3-build34", "schema4-build35"]
+                                   "schema2-build30", "schema3-build34", "schema4-build35",
+                                   "schema5-build37"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -73,21 +74,24 @@ final class ProgressionGoldenFileTests: XCTestCase {
 
             // Every saved answer still matches the spot its seed generates today.
             var regraded = 0
-            func regrade(_ answer: RoundAnswer, concept: String, seed: UInt64, index: Int) throws {
+            func regrade(_ answer: RoundAnswer, concept: String, seed: UInt64, index: Int,
+                         level: DrillLevel) throws {
                 let input = try JSONDecoder().decode(SavedDrillInput.self, from: answer.input)
                 let reveal = try JSONDecoder().decode(SavedDrillReveal.self, from: answer.reveal)
                 XCTAssertTrue(SavedDrillScore.matches(concept: try XCTUnwrap(Concept(rawValue: concept)),
-                    seed: seed, index: index, input: input, reveal: reveal), "\(name) \(answer.attemptID)")
+                    seed: seed, index: index, level: level, input: input, reveal: reveal), "\(name) \(answer.attemptID)")
                 regraded += 1
             }
             if let round = state.activeRound {
                 for (i, a) in round.answers.enumerated() {
-                    try regrade(a, concept: round.concept, seed: round.seed, index: i + 2)
+                    try regrade(a, concept: round.concept, seed: round.seed, index: i + 2,
+                                level: round.level(at: i))
                 }
             }
             if let session = state.activeNodeSession {
                 for (i, g) in session.answers.enumerated() {
-                    try regrade(g.answer, concept: g.concept, seed: session.seed, index: i + 2)
+                    try regrade(g.answer, concept: g.concept, seed: session.seed, index: i + 2,
+                                level: session.level(at: i))
                 }
             }
             XCTAssertEqual(regraded, name.hasPrefix("schema1") ? 0 : 3, name)
@@ -133,6 +137,13 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(b30.nodes["u1-showdown"]?.best, LessonScore(right: 3, questions: 3))
         XCTAssertEqual(b30.nodes["u1-potMath"]?.best, LessonScore(right: 1, questions: 3))
         XCTAssertEqual(b30.quickPlaySessions.count, 2)
+
+        let b37 = try loaded("schema5-build37")
+        XCTAssertEqual(b37.activeRound?.formatVersion, 2)
+        XCTAssertEqual(b37.activeRound?.level, 3)
+        XCTAssertEqual(b37.dailySummaries.filter { $0.key.level == 2 }.count, 1)
+        XCTAssertEqual(b37.lastNodeID, "u1-potMath")
+        XCTAssertEqual(b37.nodes["u1-showdown.2"]?.cleared, true)
 
         let b34 = try loaded("schema3-build34")
         XCTAssertEqual(b34.nodes["u1-showdown"]?.best, LessonScore(right: 3, questions: 3))
