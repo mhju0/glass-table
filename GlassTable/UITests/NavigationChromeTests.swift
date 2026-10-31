@@ -42,6 +42,9 @@ final class NavigationChromeTests: XCTestCase {
         skip.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
             .press(forDuration: 2, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.6)))
         XCTAssertTrue(skip.exists, "Dragging away cancels the navigation text action")
+        // Let the cancelled press settle first; a tap ~170ms later was dropped once on CI.
+        skip.waitForStableFrame()
+        XCTAssertTrue(skip.isHittable)
         skip.tap()
         expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: skip)
         waitForExpectations(timeout: 10)

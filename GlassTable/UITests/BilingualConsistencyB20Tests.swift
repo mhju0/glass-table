@@ -106,7 +106,8 @@ final class BilingualConsistencyB20Tests: XCTestCase {
                         XCTAssertTrue(app.descendants(matching: .any)["firstLesson.verdict"].waitForExistence(timeout: 5))
                         tap(app.buttons["firstLesson.next"], app: app)
                     }
-                    XCTAssertTrue(app.staticTexts[code == "ko" ? "내 차례의 행동" : "Actions on your turn"].exists)
+                    XCTAssertTrue(app.staticTexts[code == "ko" ? "내 차례의 행동" : "Actions on your turn"]
+                        .waitForExistence(timeout: 5))
                     app.terminate()
                 }
                 for (id, values) in heights {
@@ -372,6 +373,7 @@ final class BilingualConsistencyB20Tests: XCTestCase {
     private func tap(_ target: XCUIElement, app: XCUIApplication) {
         reveal(target, app: app)
         XCTAssertTrue(target.isEnabled)
+        target.waitForStableFrame()
         target.tap()
     }
 

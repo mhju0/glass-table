@@ -15,11 +15,15 @@ chart/Continue regression, with result bundles retained on failure. The full UI 
 runs when app code reaches `main` (app, Engine/Drills sources, `project.yml`), and by hand
 on the release commit before a TestFlight tag. It has no schedule: re-running an unchanged
 commit only measured simulator flakiness (same commit failed, passed, failed on
-2026-10-28/29/30). A test that fails is retried once in a fresh runner process; one that
-passes on the retry is listed as a `Flaky, passed on retry` warning instead of failing the run. Its shards split test classes by the minutes each class took on
-a GitHub runner, listed in the workflow; `BilingualConsistencyB20Tests` took about
-74 min before its 2026-10-31 trim (duplicate runs removed; review screenshots attach only
-with `TEST_RUNNER_GT_CAPTURE_EVIDENCE=1`); update its minutes after the next full run. A new UI test class runs without editing the
+2026-10-28/29/30). Only the tests that failed are run a second time, with
+`test-without-building` in a fresh runner process; one that passes then is listed as a
+`Flaky, passed on retry` warning instead of failing the run. (xcodebuild's own
+`-retry-tests-on-failure` re-ran every class in the shard, doubling it to 2h8m in run
+41166542595.) Its shards split test classes by the minutes each class took on a GitHub
+runner, listed in the workflow and read from the `ui-observer` artifact's
+`timeline.jsonl`; `BilingualConsistencyB20Tests` took about 55 min after its 2026-10-31
+trim (74 before; review screenshots attach only with `TEST_RUNNER_GT_CAPTURE_EVIDENCE=1`).
+A new UI test class runs without editing the
 workflow: it is estimated from its test count and flagged with a warning until its
 measured minutes are added. The shard step fails if any `XCTestCase` class in
 `GlassTable/UITests` is not assigned to a shard. To run the UI suite on a branch before merging:
