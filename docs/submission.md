@@ -130,7 +130,7 @@ The educational purpose does not remove the table's simulated betting content.
 | Question | Answer | Rationale |
 |---|---|---|
 | Violence (cartoon/realistic), horror, sexual content, nudity, profanity, drugs/alcohol/tobacco, medical info | None | Absent from the app |
-| Simulated Gambling | **Pending final-build assessment** | The table repeatedly depicts betting. The historic M1 Infrequent/Mild answer is obsolete. |
+| Simulated Gambling | **Frequent** (D58) | The free and graded tables depict betting on almost every screen. The historic M1 Infrequent/Mild answer is obsolete. |
 | Real-money gambling / contests | No | Free study tool, no money in or out |
 | Unrestricted web access | No | Only fixed policy/support destinations; no unrestricted browser |
 | User-generated content / communication | No | None |
@@ -139,6 +139,9 @@ The educational purpose does not remove the table's simulated betting content.
 For South Korea, Apple currently requires a **Rating Classification Number (RCN)**
 for frequent/intense simulated gambling. Confirm the final questionnaire and
 territories before scheduling release; education categorization does not waive this.
+GRAC application (2026-10-13) requests 청소년이용불가; enter the issued RCN under Age
+Rating → Add RCN ("Not permitted for use by juveniles"). All territories launch together
+once it is entered (D58).
 
 **Record after answering:** actual global rating = ____; Korean regional rating
 and any registration requirement = ____; approved distribution territories = ____.
