@@ -21,7 +21,8 @@ tools/uisweep.sh --screen today  # omit --screen for the full sweep; --list list
 ```
 
 Engine changes require the **release** test gate; debug is impractically slow.
-CI (`.github/workflows/`) gates pushes and PRs on unit tests; the UI suite runs nightly.
+CI (`.github/workflows/`) gates pushes and PRs on unit tests; the full UI suite runs
+when app code reaches `main`.
 Ship to TestFlight by raising `CFBundleVersion` and pushing a `v<version>-<build>` tag
 on `main`; see `docs/ci-cd.md`.
 No linter is configured. The screenshot sweep uses debug `GT_DEMO_*` hooks on a

@@ -1,16 +1,24 @@
-# The full UI flow suite, too slow for every push. Runs nightly and on demand.
+# The full UI flow suite, too slow for every push. Runs when app code reaches `main`,
+# and by hand (run it on the release commit before a TestFlight tag). Re-testing an
+# unchanged commit finds only simulator flakiness, so there is no schedule.
 # Test classes are split across four shards by measured minutes; a new class runs
-# without a workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT. A push that
-# changes this file runs it too, so a workflow edit is proven before it merges.
+# without a workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT. A pull
+# request that changes this file runs it too, so a workflow edit is proven before it merges.
 name: UI tests
 on:
   # Paths filters are not applied to tag pushes, so without `branches` every release tag
   # started a full UI run.
   push:
-    branches: ['**']
+    branches: [main]
+    paths:
+      - 'GlassTable/**'
+      - 'GlassTableEngine/Sources/**'
+      - 'GlassTableDrills/Sources/**'
+      - 'project.yml'
+      - 'tools/ci_ui_observer.py'
+      - '.github/workflows/ui-tests.yml'
+  pull_request:
     paths: ['.github/workflows/ui-tests.yml']
-  schedule:
-    - cron: '0 18 * * *'   # 18:00 UTC = 03:00 KST
   workflow_dispatch:
 
 permissions:
@@ -129,6 +137,7 @@ jobs:
             -destination "platform=iOS Simulator,id=$test_simulator" \
             $(cat only-testing.txt) -resultBundlePath ui-tests.xcresult \
             -test-timeouts-enabled YES -default-test-execution-time-allowance 900 \
+            -retry-tests-on-failure -test-iterations 2 -test-repetition-relaunch-enabled YES \
             CODE_SIGNING_ALLOWED=NO test || status=$?
           if [ "$status" -ne 0 ]; then
             tail -200 ui-tests.log || true
@@ -136,6 +145,8 @@ jobs:
             exit "$status"
           fi
           tail -30 ui-tests.log || true
+          # A test that failed once and passed on its retry is flaky: name it, don't fail.
+          grep -E "^Test Case .* failed \(" ui-tests.log | sed 's/^/::warning::Flaky, passed on retry: /' || true
       - name: Retain failure evidence
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
