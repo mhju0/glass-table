@@ -279,8 +279,14 @@ final class FreeTableBackFlowTests: XCTestCase {
                 let downward = difference < 0
                 let distance = abs(difference)
                 let amount = max(24, min(bottom - top - 60, distance + 2))
-                let startY = downward ? top + 30 : min(bottom - 30, window.maxY - 80)
-                let start = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: window.midX, dy: startY))
+                var startY = downward ? top + 30 : min(bottom - 30, window.maxY - 80)
+                // A drag that starts on the policy toggle moves nothing (CI run 39113342589).
+                let toggle = policy.frame
+                if startY >= toggle.minY - 10 && startY <= toggle.maxY + 10 {
+                    startY = downward ? min(toggle.maxY + 20, bottom - 10) : max(toggle.minY - 20, top + 10)
+                }
+                let start = app.coordinate(withNormalizedOffset: .zero)
+                    .withOffset(CGVector(dx: max(25, viewport.minX + 5), dy: startY))
                 let delta = downward ? amount : -amount
                 start.slowDrag(by: CGVector(dx: 0, dy: delta))
                 end.waitForStableFrame()

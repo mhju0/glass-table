@@ -23,7 +23,10 @@ final class LearningOrderChenStepRowTests: XCTestCase {
     }
 
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication, up: Bool = false) {
-        for _ in 0..<20 where !element.isHittable || underStepRow(element, in: app) {
+        // `while`, not `for … where`: the latter still evaluates all 20 conditions (~26s).
+        var swipes = 0
+        while swipes < 20, !element.isHittable || underStepRow(element, in: app) {
+            swipes += 1
             up ? app.swipeDown() : app.swipeUp()
             element.waitForStableFrame()
         }
@@ -110,8 +113,12 @@ final class LearningOrderChenStepRowTests: XCTestCase {
                 .slowDrag(by: CGVector(dx: 0, dy: close.frame.maxY - disclosure.frame.minY + 40))
             disclosure.waitForStableFrame()
         }
+        disclosure.waitForStableFrame()
+        XCTAssertTrue(disclosure.isHittable, disclosure.debugDescription)
         disclosure.tap()
-        XCTAssertTrue(card.waitForNonExistence(timeout: 5), "Closes on tap")
+        let closed = card.waitForNonExistence(timeout: 5)
+        if !closed { attach(app, "chen-after-tap") }
+        XCTAssertTrue(closed, "Closes on tap")
     }
 
     // MARK: Task 3 · step row
