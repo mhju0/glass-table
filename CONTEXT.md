@@ -18,7 +18,8 @@ before reopening their work. Older updates below retain their historical scope.
 
 - Navigation is Learn / Play / Progress / Settings, with Settings at the far right.
   Primary screens have no top-right gear or language shortcut. Learn recommends
-  unfinished work, review or a lesson while all 9 units / 18 concepts stay open.
+  unfinished work, review or a lesson while four tracks and optional Go deeper stay
+  open (D46, D48).
 - The optional offline starting-point check is untimed and skippable. It changes
   recommendations, never grants completion, mastery or review credit.
 - Korean and English can be switched inside Settings. Close a lesson, change
