@@ -22,11 +22,10 @@ final class BilingualConsistencyB20Tests: XCTestCase {
     func testNormalDarkCaptureMatrixAndPairedRootHeadings() { captureMatrix(appearance: "dark", ax: false) }
     func testAX5LightCaptureMatrix() { captureMatrix(appearance: "light", ax: true) }
     func testAX5DarkCaptureMatrix() { captureMatrix(appearance: "dark", ax: true) }
-    func testTeachPairSupplementaryCopyAllModes() {
-        for ax in [false, true] {
-            for appearance in ["light", "dark"] {
-                captureMatrix(appearance: appearance, ax: ax, fixtureName: "opening-pair")
-            }
+    /// The capture matrix already covers the teaching page itself; this adds its AX5 Next.
+    func testTeachPairAX5NextOpensQuestion() {
+        for appearance in ["light", "dark"] {
+            captureMatrix(appearance: appearance, ax: true, fixtureName: "opening-pair")
         }
     }
     func testExplanationAutomaticallyVisibleAllModes() {
@@ -51,28 +50,6 @@ final class BilingualConsistencyB20Tests: XCTestCase {
     func testKoreanLightAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "light") }
     func testEnglishDarkAX5BottomActionsAndHelpReturn() { interactions(code: "en", appearance: "dark") }
     func testKoreanDarkAX5BottomActionsAndHelpReturn() { interactions(code: "ko", appearance: "dark") }
-    func testEnglishLightAX5FreeHelpReturn() { freeHelp(code: "en", appearance: "light") }
-
-    func testOpeningB22AllModes() {
-        for ax in [false, true] {
-            for appearance in ["light", "dark"] {
-                for name in ["opening-welcome", "opening-pair", "opening-question", "opening-transfer", "opening-show-me", "opening-third", "settings", "learn"] {
-                    captureMatrix(appearance: appearance, ax: ax, fixtureName: name)
-                }
-            }
-        }
-    }
-
-    func testBrandLightAppearanceTrialB22() {
-        let app = launch(code: "en", appearance: "light", ax: false,
-                         environment: ["GT_TEST_FIRST_LESSON": "1"])
-        XCTAssertTrue(app.staticTexts["firstLesson.welcome"].waitForExistence(timeout: 15))
-        capture(app, "b22-trial-brand-en-light-normal")
-        tap(app.buttons["firstLesson.start"], app: app)
-        XCTAssertTrue(app.staticTexts["firstLesson.teachPair.heading"].waitForExistence(timeout: 5))
-        capture(app, "b22-trial-start-guide-en-light-normal")
-        app.terminate()
-    }
 
     func testBrandAppearanceTransitionB22AllModes() {
         for ax in [false, true] {
@@ -438,7 +415,10 @@ final class BilingualConsistencyB20Tests: XCTestCase {
         XCTFail("Action bounds do not clear the native viewport: \(target.identifier) \(target.frame)")
     }
 
+    /// Review evidence only, and slow: a full hierarchy dump and per-element geometry each
+    /// time. Set `TEST_RUNNER_GT_CAPTURE_EVIDENCE=1` on xcodebuild to attach it.
     private func capture(_ app: XCUIApplication, _ name: String) {
+        guard ProcessInfo.processInfo.environment["GT_CAPTURE_EVIDENCE"] == "1" else { return }
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = name; screenshot.lifetime = .keepAlways; add(screenshot)
         let hierarchy = XCTAttachment(string: app.debugDescription)

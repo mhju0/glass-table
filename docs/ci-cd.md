@@ -17,8 +17,9 @@ on the release commit before a TestFlight tag. It has no schedule: re-running an
 commit only measured simulator flakiness (same commit failed, passed, failed on
 2026-10-28/29/30). A test that fails is retried once in a fresh runner process; one that
 passes on the retry is listed as a `Flaky, passed on retry` warning instead of failing the run. Its shards split test classes by the minutes each class took on
-a GitHub runner, listed in the workflow; `BilingualConsistencyB20Tests` alone takes about
-74 min, so it gets a shard to itself. A new UI test class runs without editing the
+a GitHub runner, listed in the workflow; `BilingualConsistencyB20Tests` took about
+74 min before its 2026-10-31 trim (duplicate runs removed; review screenshots attach only
+with `TEST_RUNNER_GT_CAPTURE_EVIDENCE=1`); update its minutes after the next full run. A new UI test class runs without editing the
 workflow: it is estimated from its test count and flagged with a warning until its
 measured minutes are added. The shard step fails if any `XCTestCase` class in
 `GlassTable/UITests` is not assigned to a shard. To run the UI suite on a branch before merging:
