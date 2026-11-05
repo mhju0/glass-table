@@ -41,13 +41,11 @@ from a calculated strategy grade. A separate heads-up exercise
 grades preflop choices against a published chart and postflop choices under a
 disclosed checkdown approximation, not universal poker advice.
 
-Progress leads with passed lessons, seven recent practice dates, and topics
-to revisit. Submitted lesson, practice, and review answers count regardless of
-help use or result. The fourth consecutive recorded practice date adds a small
-flame in today’s date cell; missed dates carry no penalty. Free-table play does
-not count toward these dates. Detailed answer history, learning stages, and
-optional response times remain available below. These records describe activity
-in the app, not proven poker proficiency or measured learning effectiveness.
+Progress leads with two numbers that only grow, decisions studied and skills
+at Strong, then a line for this week that resets on Monday. Below them are a
+card for skills due for a refresh, a stage bar for each skill and a journal of
+milestones. Missed days carry no penalty. These records describe practice in
+the app, not proven poker proficiency or measured learning effectiveness.
 
 Glass Table is fully offline. It has no accounts, analytics, ads, purchases, or
 real-money wagering. Progress stays on device and can be exported or imported
