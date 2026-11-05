@@ -1,5 +1,13 @@
 # App Store preparation: v1.0 (4)
 
+> **2026-11-05: metadata below predates the current build.** `main` ships build 37
+> to TestFlight internal testing; nothing has been submitted for App Store review.
+> The descriptions, review notes and screenshot plan below still describe the
+> nine-unit, eighteen-concept path. The current app has four main learning tracks,
+> an optional deeper track and 14 active skills, and supports Korean and English.
+> Rewrite those sections against the build being submitted, and have the owner
+> approve the new store copy, before entering anything into App Store Connect.
+
 > **2026-09-23: local dogfood build, not submitted.** Release 1.0 (4) was installed
 > in place and launched on the owner's iPhone 12 mini. Schema-1 progress migrated
 > to schema 2 with its original nine answers, two concepts, one node and streak
