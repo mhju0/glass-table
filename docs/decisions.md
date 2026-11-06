@@ -1170,3 +1170,23 @@ All territories, Korea included, launch together after the RCN arrives: there is
 submission date yet (D23), and one submission avoids a second metadata and territory pass.
 Launching other territories first stays possible if a date ever needs it. Educational
 purpose, play chips and the absence of real money do not lower the answer.
+
+### D59 · Korean rating issued; notice and table for App Store Korea only
+**Status: ACTIVE — owner decided on 2026-11-05/06. Builds on D58.**
+
+GRAC rated Glass Table 청소년이용불가 with the content descriptor 사행성 on 2026-11-05
+(RCN `CC-NM-261105-006`). GRAC's display rules ask for the rating and descriptor marks
+at the top right of the launch screen (at least 15% of the screen, at least 3 seconds),
+the 19+ warning (recommended at least half the screen width) and an in-app table with
+title, trade name, rating, number, date and producer registration. The app shows them
+with the official GRAC marks on a white launch screen for three seconds on cold launch
+and in Settings → 등급 정보, in the app's language.
+
+There is one binary for every territory, so the notice is gated at run time: shown when
+StoreKit's storefront is Korea (`Storefront.current.countryCode == "KOR"`, cached for the
+next launch), and before StoreKit has answered once, when the device region is Korea. Other
+storefronts see neither the notice nor the Settings row; the owner did not want US users
+confused by a Korean rule. Trade name and producer registration show "-": the owner is an
+individual without either, and GRAC was not asked whether that is acceptable (the owner
+chose not to call). The owner files GRAC's content-change report for the reviewed build
+change themselves.

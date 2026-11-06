@@ -17,6 +17,8 @@ struct SettingsView: View {
     @State private var showFirstLesson = false
     @State private var showLicense = false
     @State private var showResponsible = false
+    @State private var showRatingInfo = false
+    private let isKorea = KoreanRating.isKorea()
     @State private var backup: BackupDocument?
     @State private var exportingBackup = false
     @State private var importingBackup = false
@@ -201,6 +203,16 @@ struct SettingsView: View {
                     .buttonStyle(GTPress())
                     .accessibilityIdentifier("settings-responsible")
                     Divider().padding(.leading, 56)
+                    if isKorea {
+                        Button { showRatingInfo = true } label: {
+                            row("info.square", language.text("등급 정보", "Rating information"),
+                                language.text("청소년이용불가 · ", "Rated 19 · ") + KoreanRating.classificationNumber,
+                                chevron: true)
+                        }
+                        .buttonStyle(GTPress())
+                        .accessibilityIdentifier("settings-rating")
+                        Divider().padding(.leading, 56)
+                    }
                     Link(destination: Self.feedbackURL) {
                         row("envelope.fill", language.text("피드백 보내기", "Send feedback"),
                             language.text("버그·아이디어를 메일로", "Email a bug or idea."),
@@ -244,6 +256,7 @@ struct SettingsView: View {
         .sheet(isPresented: $showGuide) { NavigationStack { LearningGuideView() } }
         .sheet(isPresented: $showLicense) { NavigationStack { OpenSourceLicenseView() } }
         .sheet(isPresented: $showResponsible) { NavigationStack { ResponsiblePlayView() } }
+        .sheet(isPresented: $showRatingInfo) { NavigationStack { RatingInfoView() } }
         .fullScreenCover(isPresented: $showFirstLesson) {
             FirstLessonView(context: .replay,
                             onFinish: { showFirstLesson = false },
@@ -294,6 +307,9 @@ struct SettingsView: View {
             }
             if ProcessInfo.processInfo.environment["GT_DEMO_RESPONSIBLE"] != nil {
                 showResponsible = true
+            }
+            if ProcessInfo.processInfo.environment["GT_DEMO_RATING_INFO"] != nil, isKorea {
+                showRatingInfo = true
             }
             switch ProcessInfo.processInfo.environment["GT_DEMO_REMINDER"] {
             case "on": reminder.showPreview(enabled: true, refused: false)

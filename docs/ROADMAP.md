@@ -25,14 +25,10 @@ phase can run in parallel.
 
 ## Phase 1 — Outside the code (start now; these take the longest)
 
-1. **GRAC rating for Korea.** The owner chose 18+ / frequent, so the Korean storefront needs a
-   GRAC Rating Classification Number (RCN): an application to the GRAC,
-   about 10–15 days, with a fee (use the GRAC fee calculator). The application goes
-   through grac.or.kr → 등급분류신청 and needs a content description, the build and a gameplay
-   video. It may also need a business registration certificate; confirm by calling GRAC.
-   From 2026-10-01, stores can self-rate adults-only mobile games, but gambling-like
-   games reportedly stay excluded, so plan on GRAC anyway. If the RCN is late, the US
-   launches first and Korea follows. The counsel consult (open question #11) is skipped.
+1. **GRAC rating for Korea.** Done: 청소년이용불가 · 사행성, RCN `CC-NM-261105-006`
+   (2026-11-05). The launch notice and rating table for App Store Korea are in the app
+   (D59). Left: enter the RCN in App Store Connect and file GRAC's content-change report
+   for the build change (the owner does both).
 2. **Support Gmail.** It goes in Settings' feedback link, the privacy policy, the
    support page and App Store Connect. In Korea, Apple shows this email on the product
    page for every individual developer, even for free apps.

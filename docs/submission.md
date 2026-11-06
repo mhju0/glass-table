@@ -147,9 +147,10 @@ The educational purpose does not remove the table's simulated betting content.
 For South Korea, Apple currently requires a **Rating Classification Number (RCN)**
 for frequent/intense simulated gambling. Confirm the final questionnaire and
 territories before scheduling release; education categorization does not waive this.
-GRAC application (2026-10-13) requests 청소년이용불가; enter the issued RCN under Age
-Rating → Add RCN ("Not permitted for use by juveniles"). All territories launch together
-once it is entered (D58).
+GRAC rated the app 청소년이용불가 · 사행성 on 2026-11-05: RCN **`CC-NM-261105-006`**.
+Enter it under Age Rating → Add RCN ("Not permitted for use by juveniles"). All
+territories launch together once it is entered (D58). App Store Korea users see the
+GRAC launch notice and Settings → 등급 정보 (D59).
 
 **Record after answering:** actual global rating = ____; Korean regional rating
 and any registration requirement = ____; approved distribution territories = ____.
