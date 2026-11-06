@@ -18,6 +18,9 @@ struct RootView: View {
     @State private var pendingOpeningFinishEpoch: UUID?
     @State private var pendingOpeningFinishResumed = false
     @State private var homeIndicatorInset: CGFloat = 0
+    /// Decided once per process, so the GRAC notice opens a cold launch only (D59).
+    @State private var showRatingNotice = KoreanRating.showsLaunchNotice()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Group {
@@ -35,6 +38,16 @@ struct RootView: View {
             if previous != nil, current == nil { routeSavedOpeningFinish() }
         }
         .onChange(of: model.epoch) { _, _ in pendingOpeningFinishEpoch = nil }
+        .overlay {
+            if showRatingNotice { RatingLaunchNotice().transition(.opacity) }
+        }
+        .task {
+            if showRatingNotice, !KoreanRating.holdsNotice {
+                try? await Task.sleep(for: .seconds(KoreanRating.noticeSeconds))
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { showRatingNotice = false }
+            }
+            await KoreanRating.refreshStorefront()
+        }
         .preferredColorScheme(model.isShowingBrandWelcome ? .dark : appearance.colorScheme)
         .environment(model)
         .environment(languageSettings)

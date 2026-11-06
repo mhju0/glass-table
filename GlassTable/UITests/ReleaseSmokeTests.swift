@@ -7,6 +7,12 @@ final class ReleaseSmokeTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launch()
+        // A Korean region opens with the GRAC notice for three seconds (D59).
+        let notice = app.descendants(matching: .any)["rating-notice"]
+        if notice.waitForExistence(timeout: 2) {
+            let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: notice)
+            wait(for: [gone], timeout: 8)
+        }
         if app.buttons["firstLesson.skip"].waitForExistence(timeout: 3) {
             app.buttons["firstLesson.skip"].tap()
         }
