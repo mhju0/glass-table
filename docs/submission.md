@@ -1,12 +1,9 @@
 # App Store preparation: v1.0 (4)
 
-> **2026-11-05: metadata below predates the current build.** `main` ships build 37
-> to TestFlight internal testing; nothing has been submitted for App Store review.
-> The descriptions, review notes and screenshot plan below still describe the
-> nine-unit, eighteen-concept path. The current app has four main learning tracks,
-> an optional deeper track and 14 active skills, and supports Korean and English.
-> Rewrite those sections against the build being submitted, and have the owner
-> approve the new store copy, before entering anything into App Store Connect.
+> **2026-11-06: store copy rewritten for build 38** (owner approved). The name is
+> "Glass Table" in both languages, matching the GRAC title. Review notes and the
+> screenshot plan below still describe the older nine-unit path; rewrite them before
+> entering anything into App Store Connect.
 
 > **2026-09-23: local dogfood build, not submitted.** Release 1.0 (4) was installed
 > in place and launched on the owner's iPhone 12 mini. Schema-1 progress migrated
@@ -26,8 +23,8 @@ description 4000 characters.
 
 | Field | Value |
 |---|---|
-| Name (Korean) | 포커 배우기 — Glass Table |
-| Name (English metadata) | Poker Lessons — Glass Table |
+| Name (Korean) | Glass Table |
+| Name (English metadata) | Glass Table |
 | Primary language | Korean |
 | Bundle ID | com.michaelju.glasstable |
 | SKU | glass-table-ios |
@@ -40,93 +37,59 @@ description 4000 characters.
 
 ## Korean (primary) metadata
 
-**부제 (subtitle):** 홀덤 기초부터 확률과 판단 연습까지
+**부제 (subtitle):** 처음 배우는 홀덤, 판단까지 연습
 
-**프로모션 텍스트:** 배우기에서 다음 연습을 추천받거나 원하는 주제를 골라요. 플레이에서는 컴퓨터 상대와 한 판씩 연습하고, 끝난 뒤 실제 결과를 살펴볼 수 있어요.
+**프로모션 텍스트:** 추천 레슨을 따라가거나 원하는 기술을 골라 연습하세요. 컴퓨터 셋과 가상 칩으로 한 판을 끝까지 치고, 무슨 일이 있었는지 돌아볼 수 있어요.
 
-**키워드 초안:** 홀덤,레인지,팟오즈,에퀴티,EV,아웃,MDF,수학,연습,훈련,차트
-
-업로드 전에 실제 키워드 필드의 바이트 제한과 중복을 확인하세요.
+**키워드:** 홀덤,포커,배우기,팟오즈,아웃,레인지,확률,시작패,연습,공부
 
 **설명:**
 
-포커 배우기 — Glass Table은 홀덤의 규칙과 판단을 연습하는 한국어 학습 앱입니다.
-카드를 읽는 기초부터 확률, 레인지, 콜과 폴드의 근거까지 차근차근 배워요.
+Glass Table은 홀덤을 처음 배우는 사람을 위한 학습 앱이에요. 누가 이기는지부터 시작해 시작 패, 상대 읽기, 팟과 확률까지 직접 판단하며 배워요.
 
-한 단계씩 배우기
+네 갈래로 배우기
+기본기, 시작 패, 상대 읽기, 가격과 확률의 네 트랙에 더 깊이 보고 싶을 때 여는 선택 트랙이 있어요. 다음 레슨을 추천해 드리지만 잠긴 레슨은 없어요. 어디서 시작할지 모르겠다면 시간 제한 없는 시작점 확인을 해 보세요.
 
-9개 단원에서 18개 개념을 다뤄요. 새 개념은 왜 배우는지와 풀이 예시부터
-살펴본 뒤, 도움을 받거나 혼자 연습할 수 있어요. 다음 단원을 추천해 드리지만
-원하는 주제는 언제든 열어 볼 수 있어요. 시작점을 모르겠다면 계정 없이 짧은
-선택형 확인을 해 볼 수 있어요. 이 결과가 숙달 기록을 대신하지는 않아요.
+짧은 레슨과 복습
+레슨은 세 문제, 기술 하나만 따로 연습할 때는 다섯 문제예요. 다시 볼 때가 된 기술은 복습으로 돌아오고, 트랙 끝 도전은 배운 기술을 섞어서 물어요.
 
-배운 내용 다시 풀기
+테이블에서 한 판씩
+나와 컴퓨터 셋이 가상 칩 40개로 10핸드를 치는 빠른 게임이 기본이에요. 두세 명 테이블과 100칩 긴 테이블도 고를 수 있어요. 끝난 핸드는 행동, 칩 이동과 결과를 그대로 보여 줘요. 별도의 일대일 연습은 공개된 차트와 계산 가정으로 선택을 채점해요.
 
-복습할 때가 된 개념을 배우기 화면에서 알려드려요. 한 번에 최대 5개 개념을
-한 문제씩 풀며 배운 내용을 확인해요. 자유 연습은 다섯 문제씩 진행돼요.
+내 기록
+공부한 판단 수와 능숙 단계에 이른 기술 수, 이번 주 기록을 보여 줘요. 쉬는 날이 있어도 불이익은 없어요. 기록은 기기에만 저장되고 파일로 내보내고 가져올 수 있어요.
 
-테이블에서 판단 연습하기
+설정에서 한국어와 영어를 바로 바꿀 수 있어요. 계정, 광고, 분석 도구, 인앱 결제가 없고 오프라인에서 모두 동작해요.
 
-플레이 탭에서는 나와 컴퓨터 셋이 가상 칩으로 연습해요. 끝난 핸드의 행동,
-칩 이동과 결과를 사실 그대로 확인할 수 있어요. 별도의 판단 연습에서는
-답을 고른 뒤 공개된 훈련 차트와 계산 가정에 따른 설명을 볼 수 있어요.
-네 명이 하는 칩 연습의 각 행동에 EV 점수를 붙이지는 않아요.
-
-내 기록 확인하기
-
-답한 문제 수와 복습 일정을 확인해요. 비슷한 문제끼리 최근 기록을 비교하고,
-충분한 연습 기록이 있을 때만 답변 시간이나 플레이 습관 요약을 보여줘요.
-기록은 기기에 저장되며 파일로 백업하고 다시 가져올 수 있어요.
-
-설정에서 한국어와 영어를 바로 바꿀 수 있어요. 두 언어 모두 같은 학습과
-연습을 제공해요.
-
-현재 버전은 광고, 계정, 인앱 결제 없이 이용할 수 있어요. 학습은 오프라인에서
-가능해요. 개인정보 처리방침이나 피드백 링크를 열면 외부 앱으로 이동해요.
-
-실제 돈이나 경품을 걸지 않아요. 테이블에는 학습을 위한 가상 베팅이 포함돼요.
-이 앱은 전문 선수 자격이나 수익을 보장하지 않아요.
+실제 돈이나 경품을 걸지 않아요. 연습 테이블에는 학습용 가상 베팅이 포함돼요. 이 앱은 실력이나 수익을 보장하지 않아요.
 
 ## English (U.S.) metadata
 
-**Subtitle:** Learn poker, one decision
+**Subtitle:** Learn Hold'em, decide for real
 
-The Korean/English native interface, all eighteen concepts, generated feedback
-and help are included in Release 1.0 (4). The Home Screen display name remains
-Glass Table. Store name availability has not been reserved or verified in App
-Store Connect.
+**Promotional text:** Follow a suggested lesson or pick any skill. Play a full hand with virtual chips against three computers, then look back at what happened.
 
-**Promotional text:** Follow a suggested lesson or choose your own. Practise hands against computers, then see the actions, chips and outcome.
-
-**Keywords draft:** holdem,texas,ranges,odds,equity,EV,outs,MDF,trainer,study,charts
+**Keywords:** holdem,poker,learn,lessons,pot odds,outs,ranges,starting hands,practice,trainer
 
 **Description:**
 
-Poker Lessons — Glass Table teaches Hold’em fundamentals and decision-making in
-English and Korean. Switch languages in Settings without losing your place.
+Glass Table teaches No-Limit Hold'em to people starting from zero. Begin with who wins a hand, then work up to starting hands, reading opponents, and the pot and your chances, making the decisions yourself.
 
-The open nine-unit path covers eighteen concepts, from reading a hand to
-probability, ranges and the reasoning behind a call or fold. New concepts begin
-with a short explanation and example. Take a suggested next lesson or choose any
-topic directly. An optional untimed starting-point check suggests where to begin.
+Four tracks
+The basics, Starting hands, Reading opponents, and Price and chance, plus an optional Go deeper track. The app suggests a next lesson, but nothing is locked. Not sure where to begin? Take the untimed starting-point check.
 
-Return to scheduled reviews from Learn. Each review session covers up to five due
-concepts, one question at a time. Free practice uses five-question rounds.
+Short lessons, spaced review
+A lesson is three questions; practising one skill is five. Skills come back for review when they are due, and each track ends with a challenge that mixes what you learned.
 
-Play four-seat chip practice against three computer opponents. A finished hand
-shows the actions, chip movement and result. A separate heads-up lesson grades
-decisions against disclosed charts and calculation assumptions. Four-seat actions
-do not receive an EV grade.
+A hand at a time
+The default quick game is you and three computers, 40 virtual chips, 10 hands. Two- and three-player tables and a longer 100-chip table are also available. A finished hand shows the actions, chip movement and result as they happened. A separate heads-up exercise grades choices against a published chart and stated calculation assumptions.
 
-See answer counts, review dates and comparable recent results. Optional response
-time and play-habit summaries appear only with enough suitable evidence. Progress
-stays on your device and can be exported and imported as a backup file.
+Your record
+See decisions studied, skills that reached Strong, and this week's practice. Missed days carry no penalty. Progress stays on your device and can be exported and imported as a file.
 
-This version has no ads, accounts or in-app purchases. Lessons work offline.
-Privacy-policy and feedback links open external apps.
+Switch between English and Korean in Settings. No accounts, ads, analytics or in-app purchases, and everything works offline.
 
-The practice table includes simulated betting. There is no real-money wagering or
-prize. This learning tool does not certify professional ability or guarantee profit.
+No real money or prizes. The practice table includes simulated betting for learning. The app does not certify skill or promise winnings.
 
 ## Age rating questionnaire (must be completed on the final build)
 
