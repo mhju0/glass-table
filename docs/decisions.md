@@ -1170,3 +1170,15 @@ All territories, Korea included, launch together after the RCN arrives: there is
 submission date yet (D23), and one submission avoids a second metadata and territory pass.
 Launching other territories first stays possible if a date ever needs it. Educational
 purpose, play chips and the absence of real money do not lower the answer.
+
+### D60 · CI skips documentation-only changes and runs its checks in parallel
+**Status: ACTIVE — owner decided on 2026-11-06.**
+
+`ci.yml` took 40–48 minutes on every pull request, documentation-only ones included
+(#76, #77), because one job ran every check in sequence and the focused UI flows alone
+took about 25 minutes. It now skips pushes and pull requests that only change `docs/**`,
+Markdown files or issue templates: those cannot change the app, and `main` has no required
+checks, so a skipped run does not hold a merge. The remaining checks run as three parallel
+jobs (`unit`, `focused-ui`, `release`); the repository is public, so the extra macOS
+runners cost nothing. What each job checks is unchanged. The full UI suite (`ui-tests.yml`)
+and its triggers (D57) are unchanged.
