@@ -1,9 +1,8 @@
 # App Store preparation: v1.0 (4)
 
 > **2026-11-06: store copy rewritten for build 38** (owner approved). The name is
-> "Glass Table" in both languages, matching the GRAC title. Review notes and the
-> screenshot plan below still describe the older nine-unit path; rewrite them before
-> entering anything into App Store Connect.
+> "Glass Table" in both languages, matching the GRAC title. Review notes and
+> screenshots were updated the same day.
 
 > **2026-09-23: local dogfood build, not submitted.** Release 1.0 (4) was installed
 > in place and launched on the owner's iPhone 12 mini. Schema-1 progress migrated
@@ -130,34 +129,35 @@ Validate the signed archive's privacy report before uploading.
 
 ## Review notes (entered at submission)
 
-Glass Table is a free educational study tool for No-Limit Hold'em poker
-mathematics, with complete Korean and English interfaces. Reading simplicity is
-for adult beginners; the app is not child-targeted.
+Glass Table is a free study tool for No-Limit Hold'em with complete Korean and
+English interfaces. It is written for adult beginners and is not child-targeted.
 
-- No real-money gambling, no purchasable currency, and nothing to win or lose
-  outside a study session. The app contains a guided curriculum of poker-math
-  drills, a four-seat practice table with whole virtual chips and 1/2-chip
-  blinds, and a separate graded heads-up exercise expressed in big blinds.
-  Both table modes depict simulated betting. Review this wording against the
-  final build before entering it into App Store Connect.
+- No real-money gambling, no purchasable currency, and no prizes. Learn has four
+  tracks plus an optional "Go deeper" track (14 skills) of short question
+  lessons. Play is a practice table with virtual chips against one to three
+  computer opponents, and a separate heads-up exercise grades decisions. Both
+  depict simulated betting, which is why the age rating answers Simulated
+  Gambling = Frequent.
 - Fully offline: no account, no login, no in-app purchases, no ads, no data
   collection.
-- No demo account is needed. All nine units and eighteen concepts are open;
-  Learn suggests a next step without granting credit for skipped lessons. The
-  optional offline check suggests a starting point without mastery credit.
-- Preflop grading uses declared training charts. Postflop EV uses the disclosed
-  checkdown approximation in the separate heads-up lesson. Four-seat table
-  practice gives a factual hand review, without per-action EV grades or FSRS
-  credit. This is not a full-game solver or live-play assistant.
+- No demo account is needed. Every lesson is open; Learn suggests a next one.
+  An optional starting-point check changes the suggestion only.
+- Korea: rated 청소년이용불가 (19+) by GRAC, RCN CC-NM-261105-006. On the Korean
+  storefront the app opens with GRAC's rating notice for three seconds and shows
+  the rating table in Settings → 등급 정보. Other storefronts see neither.
+- Preflop grading uses published training charts. Postflop EV in the heads-up
+  exercise uses a disclosed checkdown approximation. The practice table gives a
+  factual hand review without per-action EV grades. This is not a solver or a
+  live-play assistant.
 
 ## Screenshots
 
 The iPhone 6.9" set (1320×2868, iPhone 17 Pro Max simulator on iOS 26.5, light
-appearance, default text size), one per locale, **captured 2026-10-12** from
-`feat/audit-followups`: `docs/store-assets/{ko,en}-0[1-5]-*.png` — Learn, a
-pot-odds lesson question, a four-seat hand on your turn, the hand review with
-its action history, and Progress. It replaces the August set, which showed the
-old Today/Path navigation.
+appearance, default text size), one per locale, **captured 2026-11-06** from
+`main` at `0240a47` (owner approved): `docs/store-assets/{ko,en}-0[1-5]-*.png` —
+Learn with the four tracks, a pot-odds lesson question, a four-seat hand on your
+turn, the hand review with its action history, and Progress. The demo launch skips
+the Korean rating notice. It replaces the 2026-10-12 set.
 
 Capture recipe, run once per language:
 
