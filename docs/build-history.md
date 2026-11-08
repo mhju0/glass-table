@@ -178,3 +178,13 @@ This index is newly consolidated. Earlier records remain intact; missing install
   owner installation is not yet verified. Bilingual What to Test notes saved.
 - Native strict audit limitation remains open. No new phone installation or App Store
   review submission. [Release record](records/2026-10-20-build37-release.md).
+
+## 1.0 (38) — November 8
+
+- First build after the GRAC rating (청소년이용불가 · 사행성, RCN `CC-NM-261105-006`).
+  Adds the Korea-only launch rating notice and Settings → 등급 정보 table (D59, PR #78).
+  Build number is the only configuration change; CI was split into parallel jobs (D60).
+- Full UI suite passed on `adc0fb5` (the app tree since then is unchanged). Store copy,
+  screenshots and review notes for this build: PRs #80, #81.
+- Candidate for App Store review once the owner files GRAC's content-change report,
+  enters the RCN in App Store Connect and gives the go (D23).
