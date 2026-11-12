@@ -126,3 +126,5 @@ build-36 upload runs are linked above. Build 37 is recorded in
 proof of processing, installation or correct phone behavior. Keep those states in
 the build record. If signing fails, the archive and export logs are kept as a
 workflow artifact named `testflight-logs`.
+
+<!-- Throwaway docs-only proof for D61; PR is closed, never merged. -->
