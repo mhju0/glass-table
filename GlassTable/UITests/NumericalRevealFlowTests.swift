@@ -47,6 +47,7 @@ final class NumericalRevealFlowTests: XCTestCase {
         }
         // The swipe can still be decelerating when `next` first reads hittable; a tap then
         // can miss, and Call never returns (CI run 39653967431, line `call.waitForExistence`).
+        // Inferred cause, tracked in https://github.com/mhju0/glass-table/issues/88.
         next.waitForStableFrame()
         XCTAssertTrue(explanation.isHittable)
         XCTAssertTrue(next.isHittable)

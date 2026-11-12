@@ -1,6 +1,7 @@
 # Pushing a tag like v1.0-29 archives that commit and uploads it to TestFlight.
 # The tag must name the version and build in project.yml and point at a commit on
-# main. Setup and secrets: docs/ci-cd.md.
+# main, and the full UI suite (ui-tests.yml) must have passed on that commit. Setup and
+# secrets: docs/ci-cd.md.
 name: TestFlight
 on:
   push:
@@ -8,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: testflight
@@ -15,7 +17,7 @@ concurrency:
 
 jobs:
   testflight:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     env:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
@@ -40,14 +42,16 @@ jobs:
         run: |
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
             echo "::error::$GITHUB_REF_NAME does not point at a commit on main."; exit 1; }
-      - name: Select newest Xcode
+      - name: Require a passing UI suite on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
-          xcodebuild -version
-      - name: Install XcodeGen
-        run: brew install xcodegen
-      - name: Generate project
-        run: xcodegen generate
+          passed=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ui-tests.yml/runs?head_sha=$GITHUB_SHA&status=success" --jq '.total_count')
+          if [ "$passed" -eq 0 ]; then
+            echo "::error::No passing UI tests run on $GITHUB_SHA. Run 'UI tests' on this tag (gh workflow run ui-tests.yml --ref $GITHUB_REF_NAME), wait for it to pass, then re-run this TestFlight run."
+            exit 1
+          fi
+      - uses: ./.github/actions/prepare
       - name: Require the tag to match the version and build
         run: |
           version=$(plutil -extract CFBundleShortVersionString raw GlassTable/Info.plist)

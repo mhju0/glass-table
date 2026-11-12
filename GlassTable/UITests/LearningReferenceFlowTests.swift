@@ -199,10 +199,10 @@ final class LearningReferenceFlowTests: XCTestCase {
             search.tap(); search.typeText("EV\n")
             XCTAssertTrue(app.buttons["glossary-entry-ev"].waitForExistence(timeout: 5))
             app.buttons["glossary-close"].tap()
-            // QUARANTINED (.scratch/ci-flakes/issues/02-glossary-close-not-dismissed.md): once in CI
+            // QUARANTINED (https://github.com/mhju0/glass-table/issues/89): once in CI
             // the close tap reached the button and the sheet stayed open; not reproduced locally.
             // A failure here is recorded as expected, not hidden by a retry; everything above still gates.
-            XCTExpectFailure("Quarantined: glossary close sometimes does not dismiss (issue 02)", options: .nonStrict()) {
+            XCTExpectFailure("Quarantined: glossary close sometimes does not dismiss (#89)", options: .nonStrict()) {
                 XCTAssertTrue(search.waitForNonExistence(timeout: 5), "Closing the glossary must dismiss search")
             }
             app.terminate()

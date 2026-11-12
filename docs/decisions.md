@@ -1146,7 +1146,7 @@ mentions of the removed files are left as written; their last tracked copies are
 
 
 ### D57 · Full UI suite runs on change, not nightly
-**Status: ACTIVE — owner decided on 2026-10-31.**
+**Status: ACTIVE — owner decided on 2026-10-31.**  Superseded in part (triggers) by D62.
 
 `ui-tests.yml` no longer runs on a schedule. It runs when app code (app, Engine/Drills
 sources, `project.yml`) reaches `main`, on pull requests that edit the workflow, and by
@@ -1213,3 +1213,13 @@ duplicated each check. `ci.yml` now has no path filter: every push to `main` and
 pull request runs the three jobs, and a `changes` step in each job skips the build and
 tests when only `docs/**`, Markdown files or issue templates changed.
 What each job checks when code changes is unchanged.
+
+### D62 · Full UI suite nightly, not on every merge; required before TestFlight
+**Status: ACTIVE — owner decided on 2026-11-12.** Supersedes D57's trigger rule (UI suite on
+every app-code merge, no schedule); D57's one-retry rule is unchanged.
+
+The full UI suite (`ui-tests.yml`, four shards, about 80–95 min each) ran after every merge
+that touched app code. `focused-ui` in `ci.yml` stays the required pull-request check. The
+full suite now runs nightly on `main` (18:00 UTC), by hand, and on pull requests that edit
+its workflow. `release.yml` refuses a tag whose commit has no passing full-suite run, so a
+build reaches TestFlight only after the whole suite passed on it.
