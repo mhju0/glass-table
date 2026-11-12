@@ -1,0 +1,44 @@
+name: Detect code changes
+description: >
+  Sets `code` to "false" when every changed file is documentation (docs/**, any *.md,
+  .github/ISSUE_TEMPLATE/**), so the required jobs still run and report but skip the build.
+  Pull requests compare the merge commit with its base parent; pushes compare with the
+  previous head. Manual runs and anything it cannot compare count as code.
+outputs:
+  code:
+    description: '"true" when a non-documentation file changed'
+    value: ${{ steps.detect.outputs.code }}
+runs:
+  using: composite
+  steps:
+    - id: detect
+      shell: bash
+      env:
+        EVENT: ${{ github.event_name }}
+        BEFORE: ${{ github.event.before }}
+      run: |
+        set -euo pipefail
+        files=""
+        case "$EVENT" in
+          pull_request)
+            # actions/checkout checks out the merge commit; its first parent is the base tip.
+            git fetch --no-tags --depth=2 origin "$GITHUB_SHA" >/dev/null 2>&1 || true
+            files=$(git diff --name-only HEAD^1 HEAD) || { echo "code=true" >> "$GITHUB_OUTPUT"; exit 0; }
+            ;;
+          push)
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ] ||
+               ! git fetch --no-tags --depth=1 origin "$BEFORE" >/dev/null 2>&1; then
+              echo "code=true" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+            files=$(git diff --name-only "$BEFORE" "$GITHUB_SHA")
+            ;;
+          *) echo "code=true" >> "$GITHUB_OUTPUT"; exit 0 ;;
+        esac
+        echo "Changed files:"; printf '%s\n' "$files" | sed 's/^/  /'
+        other=$(printf '%s\n' "$files" | grep -Ev '^docs/|\.md$|^\.github/ISSUE_TEMPLATE/|^$' || true)
+        if [ -z "$other" ]; then
+          echo "Documentation only: skipping build and tests."
+          echo "code=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "code=true" >> "$GITHUB_OUTPUT"
+        fi

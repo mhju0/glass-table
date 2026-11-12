@@ -45,6 +45,9 @@ final class NumericalRevealFlowTests: XCTestCase {
             if next.isHittable && explanation.isHittable { break }
             app.swipeUp()
         }
+        // The swipe can still be decelerating when `next` first reads hittable; a tap then
+        // can miss, and Call never returns (CI run 39653967431, line `call.waitForExistence`).
+        next.waitForStableFrame()
         XCTAssertTrue(explanation.isHittable)
         XCTAssertTrue(next.isHittable)
         XCTAssertTrue(next.isEnabled)

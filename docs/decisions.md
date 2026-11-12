@@ -1192,7 +1192,7 @@ chose not to call). The owner files GRAC's content-change report for the reviewe
 change themselves.
 
 ### D60 · CI skips documentation-only changes and runs its checks in parallel
-**Status: ACTIVE — owner decided on 2026-11-06.**
+**Status: ACTIVE — owner decided on 2026-11-06.** Superseded in part (how documentation-only changes skip) by D61.
 
 `ci.yml` took 40–48 minutes on every pull request, documentation-only ones included
 (#76, #77), because one job ran every check in sequence and the focused UI flows alone
@@ -1202,3 +1202,14 @@ checks, so a skipped run does not hold a merge. The remaining checks run as thre
 jobs (`unit`, `focused-ui`, `release`); the repository is public, so the extra macOS
 runners cost nothing. What each job checks is unchanged. The full UI suite (`ui-tests.yml`)
 and its triggers (D57) are unchanged.
+
+### D61 · Required CI jobs always run; documentation-only changes skip inside the job
+**Status: ACTIVE — owner decided on 2026-11-12.**
+
+`unit`, `focused-ui` and `release` became required checks on `main` after D60, so a
+workflow skipped by a path filter left them missing and blocked documentation-only pull
+requests. A stand-in workflow that reported the same names (`ci-docs.yml`) worked but
+duplicated each check. `ci.yml` now has no path filter: every push to `main` and every
+pull request runs the three jobs, and a `changes` step in each job skips the build and
+tests when only `docs/**`, Markdown files or issue templates changed.
+What each job checks when code changes is unchanged.

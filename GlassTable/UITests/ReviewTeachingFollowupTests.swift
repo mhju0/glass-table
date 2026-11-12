@@ -55,8 +55,10 @@ final class ReviewTeachingFollowupTests: XCTestCase {
         XCTAssertNotEqual(widerRows, before,
                           "The range grid follows the slider's changed estimate")
         let returnPoint = slider.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5))
-        end.press(forDuration: 0.05, thenDragTo: returnPoint,
-                  withVelocity: .slow, thenHoldForDuration: 0)
+        // The first drag can release the thumb before `end` (CI saw 20 -> 33, not ~68), so
+        // start the reverse drag on the thumb where it is, not where the first drag aimed.
+        thumb(of: slider).press(forDuration: 0.05, thenDragTo: returnPoint,
+                                withVelocity: .slow, thenHoldForDuration: 0)
         print("MOTION_SLIDER reversed-value=\(try widthValue())")
         XCTAssertLessThan(try widthValue(), widerWidth)
         XCTAssertNotEqual(rows.allElementsBoundByIndex.map(\.label), widerRows,
@@ -147,6 +149,14 @@ final class ReviewTeachingFollowupTests: XCTestCase {
         XCTAssertTrue(element.waitForExistence(timeout: 15))
         for _ in 0..<16 where !element.isHittable { app.swipeUp() }
         XCTAssertTrue(element.isHittable, element.identifier)
+    }
+
+    /// The slider thumb's current centre. The thumb travels between half a frame-height from
+    /// each end of the frame, so its centre is that inset plus the position along the rest.
+    private func thumb(of slider: XCUIElement) -> XCUICoordinate {
+        let inset = slider.frame.height / 2
+        let x = inset + slider.normalizedSliderPosition * (slider.frame.width - 2 * inset)
+        return slider.coordinate(withNormalizedOffset: CGVector(dx: x / slider.frame.width, dy: 0.5))
     }
 
     private func attach(_ app: XCUIApplication, _ name: String) {

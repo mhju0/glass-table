@@ -16,9 +16,9 @@ permissions:
 
 jobs:
   engine-release-tests:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Engine tests (release)
         run: swift test -c release --package-path GlassTableEngine

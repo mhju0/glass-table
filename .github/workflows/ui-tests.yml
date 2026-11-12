@@ -26,11 +26,11 @@ permissions:
 
 concurrency:
   group: ui-tests-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ui-tests:
-    runs-on: macos-15
+    runs-on: macos-26
     # Runner speed varies about 2x: one four-shard run took 47 to 117 min per shard. A job
     # killed at its limit uploads no evidence, so the test step stops first and the upload
     # below still runs. A hung test is stopped after 15 min (the longest seen took under 6).
@@ -40,10 +40,10 @@ jobs:
       matrix:
         shard: [0, 1, 2, 3]
     steps:
-      - uses: actions/checkout@v5
-      - name: Select newest Xcode
+      - uses: actions/checkout@v7
+      - name: Select newest Xcode 26
         run: |
-          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_26.*.app | sort -V | tail -1)"
           xcodebuild -version
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -118,8 +118,8 @@ jobs:
           EOF
           cat only-testing.txt
       # Layout assertions depend on the screen size, so the device and OS are pinned
-      # rather than taking whichever iPhone is listed first. The macos-15 image lists
-      # iPhone 17 under iOS 26.0.1, 26.1 and 26.2; raise this when the image moves on.
+      # rather than taking whichever iPhone is listed first. The macos-26 image lists
+      # iPhone 17 under iOS 26.2, 26.4 and 26.5; raise this when the image moves on.
       - name: Run UI tests
         timeout-minutes: 165
         env:
@@ -170,7 +170,7 @@ jobs:
           printf '%s\n' $failed | sed 's/^/::warning::Flaky, passed on retry: /'
       - name: Retain failure evidence
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ui-tests-shard-${{ matrix.shard }}
           path: |
@@ -180,7 +180,7 @@ jobs:
             ui-tests-retry.xcresult
       - name: Retain bounded observer evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ui-observer-shard-${{ matrix.shard }}
           path: |
