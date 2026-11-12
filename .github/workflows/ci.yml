@@ -1,52 +1,65 @@
 name: CI
-# Documentation-only changes skip CI (D60): they cannot change the app. unit, focused-ui
-# and release are required on main, so ci-docs.yml reports them for those pull requests.
+# Every push to main and every pull request runs unit, focused-ui and release, so the
+# required checks always report. Documentation-only changes (docs/**, *.md,
+# .github/ISSUE_TEMPLATE/**) cannot change the app (D60): the changes step sees that and
+# each job skips its build and tests instead of the workflow being filtered out.
 on:
   push:
     branches: [main]
-    paths-ignore: ['docs/**', '**/*.md', '.github/ISSUE_TEMPLATE/**']
   pull_request:
-    paths-ignore: ['docs/**', '**/*.md', '.github/ISSUE_TEMPLATE/**']
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Superseded pull request runs are cancelled; runs on main always finish.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Three jobs run side by side (D60); the focused UI flows set the wall time.
 jobs:
   unit:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/prepare
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - id: changes
+        uses: ./.github/actions/changes
+      - if: steps.changes.outputs.code == 'true'
+        uses: ./.github/actions/prepare
       - name: Gate (unit)
+        if: steps.changes.outputs.code == 'true'
         run: scripts/check.sh --part unit
       - name: Retain failure evidence
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: unit-logs
           path: app-tests.log
 
   focused-ui:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/prepare
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - id: changes
+        uses: ./.github/actions/changes
+      - if: steps.changes.outputs.code == 'true'
+        uses: ./.github/actions/prepare
       - name: Gate (focused-ui)
+        if: steps.changes.outputs.code == 'true'
         env:
           TEST_DEVICE: iPhone 17
           TEST_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-2
         run: scripts/check.sh --part focused-ui
       - name: Retain failure evidence
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: focused-ui-logs
           path: |
@@ -54,16 +67,22 @@ jobs:
             focused-ui.xcresult
 
   release:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/prepare
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - id: changes
+        uses: ./.github/actions/changes
+      - if: steps.changes.outputs.code == 'true'
+        uses: ./.github/actions/prepare
       - name: Gate (release)
+        if: steps.changes.outputs.code == 'true'
         run: scripts/check.sh --part release
       - name: Retain failure evidence
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-logs
           path: |

@@ -1,16 +1,18 @@
 # CI and TestFlight
 
-Four GitHub Actions workflows, all on `macos-15` runners (free minutes, since the repo is public).
+Four GitHub Actions workflows on macOS runners (free minutes, since the repo is public): `macos-26`
+with the newest Xcode 26 for CI, `macos-15` for `release.yml`.
 
 | Workflow | Runs on | What it checks | Time |
 | --- | --- | --- | --- |
-| `ci.yml` | pushes to `main` and pull requests that change more than documentation, by hand | three parallel jobs: `unit` (tool tests, Drills tests, app build + unit tests), `focused-ui` (focused teaching/recovery/control UI flows), `release` (Release launch smoke test, device Release build checked by `tools/verify_release.py`) | about 30 min, set by `focused-ui` (was 45–55 min in one job) |
+| `ci.yml` | pushes to `main`, pull requests, by hand | three parallel jobs: `unit` (tool tests, Drills tests, app build + unit tests), `focused-ui` (focused teaching/recovery/control UI flows), `release` (Release launch smoke test, device Release build checked by `tools/verify_release.py`) | about 30 min, set by `focused-ui` (was 45–55 min in one job) |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
 | `ui-tests.yml` | app code merged to `main`, pull requests that edit it, by hand | the full UI flow suite, split across four parallel shards; a failed test is retried once | about 70–75 min per shard (runner speed varies) |
 | `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
 
-`ci.yml` is the gate that has to pass before merging. Changes only under `docs/`, to
-Markdown files or to issue templates skip it (D60); merge those once reviewed. It includes the focused
+`ci.yml` is the gate that has to pass before merging. Its jobs always run and report, so the
+required checks never go missing; when only `docs/`, Markdown files or issue templates
+changed, each job's `changes` step (`.github/actions/changes`) skips the build and tests (D60). It includes the focused
 `GradedTableRecoveryFlowTests`, `ReviewTeachingFollowupTests`, and AX postflop
 chart/Continue regression, with result bundles retained on failure. The full UI suite
 runs when app code reaches `main` (app, Engine/Drills sources, `project.yml`), and by hand
