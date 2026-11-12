@@ -1,6 +1,7 @@
 # Issue tracker: Local Markdown
 
 Issues and specs (you may know a spec as a PRD) for this repo live as markdown files in `.scratch/`.
+Exception: flaky tests are GitHub issues labelled `flaky-test`; link the issue from the test.
 
 ## Conventions
 

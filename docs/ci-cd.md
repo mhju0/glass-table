@@ -1,24 +1,23 @@
 # CI and TestFlight
 
-Four GitHub Actions workflows on macOS runners (free minutes, since the repo is public): `macos-26`
-with the newest Xcode 26 for CI, `macos-15` for `release.yml`.
+Four GitHub Actions workflows on `macos-26` runners (free minutes, since the repo is public).
+`ci.yml`, `ui-tests.yml` and `release.yml` all build with one pinned Xcode, 26.6, set in
+`.github/actions/prepare`; raise it there.
 
 | Workflow | Runs on | What it checks | Time |
 | --- | --- | --- | --- |
 | `ci.yml` | pushes to `main`, pull requests, by hand | three parallel jobs: `unit` (tool tests, Drills tests, app build + unit tests), `focused-ui` (focused teaching/recovery/control UI flows), `release` (Release launch smoke test, device Release build checked by `tools/verify_release.py`) | about 30 min, set by `focused-ui` (was 45–55 min in one job) |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
-| `ui-tests.yml` | app code merged to `main`, pull requests that edit it, by hand | the full UI flow suite, split across four parallel shards; a failed test is retried once | about 70–75 min per shard (runner speed varies) |
-| `release.yml` | a pushed `v*` tag | archive, sign and upload to TestFlight | about 20 min |
+| `ui-tests.yml` | nightly on `main` (03:00 KST), pull requests that edit it, by hand | the full UI flow suite, split across four parallel shards; a failed test is retried once | about 80–95 min per shard on `macos-26` (runner speed varies) |
+| `release.yml` | a pushed `v*` tag | requires a passing `ui-tests.yml` run on the tagged commit, then archives, signs and uploads to TestFlight | about 20 min |
 
 `ci.yml` is the gate that has to pass before merging. Its jobs always run and report, so the
 required checks never go missing; when only `docs/`, Markdown files or issue templates
 changed, each job's `changes` step (`.github/actions/changes`) skips the build and tests (D60). It includes the focused
 `GradedTableRecoveryFlowTests`, `ReviewTeachingFollowupTests`, and AX postflop
 chart/Continue regression, with result bundles retained on failure. The full UI suite
-runs when app code reaches `main` (app, Engine/Drills sources, `project.yml`), and by hand
-on the release commit before a TestFlight tag. It has no schedule: re-running an unchanged
-commit only measured simulator flakiness (same commit failed, passed, failed on
-2026-10-28/29/30). Only the tests that failed are run a second time, with
+runs nightly on `main` and by hand, not on every merge (D62); `release.yml` refuses a tag
+whose commit has no passing run. Only the tests that failed are run a second time, with
 `test-without-building` in a fresh runner process; one that passes then is listed as a
 `Flaky, passed on retry` warning instead of failing the run. (xcodebuild's own
 `-retry-tests-on-failure` re-ran every class in the shard, doubling it to 2h8m in run
@@ -96,7 +95,10 @@ Keep one frozen candidate for the checks; record any unresolved failures explici
 1. Raise `CFBundleVersion` in `project.yml` (TestFlight refuses a build number it has
    seen). Change `CFBundleShortVersionString` only for a new public version.
 2. Merge to `main` and wait for CI to pass.
-3. Tag that commit as `v<version>-<build>` and push the tag:
+3. Make sure the full UI suite passed on that commit: the nightly run covers the `main`
+   head of that night; otherwise run it by hand and wait (about 95 min):
+   `gh workflow run ui-tests.yml --ref main`.
+4. Tag that commit as `v<version>-<build>` and push the tag:
 
    ```sh
    git switch main && git pull
@@ -104,7 +106,7 @@ Keep one frozen candidate for the checks; record any unresolved failures explici
    git push origin v1.0-36
    ```
 
-4. Watch Actions → TestFlight and record its run link. Then check the build's
+5. Watch Actions → TestFlight and record its run link. Then check the build's
    processing status and tester availability in App Store Connect → TestFlight.
    Record the installed build and an actual phone flow separately from upload success.
 
@@ -112,6 +114,7 @@ The workflow refuses to upload when:
 
 - a secret is missing;
 - the tag is not on `main`;
+- no `ui-tests.yml` run passed on the tagged commit (pass it, then re-run the TestFlight run);
 - the tag does not equal `v` + version + `-` + build from `project.yml`;
 - `tools/verify_release.py` rejects the archived app.
 

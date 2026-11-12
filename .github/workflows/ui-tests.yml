@@ -1,22 +1,12 @@
-# The full UI flow suite, too slow for every push. Runs when app code reaches `main`,
-# and by hand (run it on the release commit before a TestFlight tag). Re-testing an
-# unchanged commit finds only simulator flakiness, so there is no schedule.
+# The full UI flow suite, too slow for every push (D62). Runs nightly on `main` and by
+# hand; a TestFlight tag needs a passing run on its commit (release.yml checks).
 # Test classes are split across four shards by measured minutes; a new class runs
 # without a workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT. A pull
 # request that changes this file runs it too, so a workflow edit is proven before it merges.
 name: UI tests
 on:
-  # Paths filters are not applied to tag pushes, so without `branches` every release tag
-  # started a full UI run.
-  push:
-    branches: [main]
-    paths:
-      - 'GlassTable/**'
-      - 'GlassTableEngine/Sources/**'
-      - 'GlassTableDrills/Sources/**'
-      - 'project.yml'
-      - 'tools/ci_ui_observer.py'
-      - '.github/workflows/ui-tests.yml'
+  schedule:
+    - cron: '0 18 * * *'   # daily 18:00 UTC = 03:00 KST
   pull_request:
     paths: ['.github/workflows/ui-tests.yml']
   workflow_dispatch:
@@ -41,14 +31,7 @@ jobs:
         shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v7
-      - name: Select newest Xcode 26
-        run: |
-          sudo xcode-select -s "$(ls -d /Applications/Xcode_26.*.app | sort -V | tail -1)"
-          xcodebuild -version
-      - name: Install XcodeGen
-        run: brew install xcodegen
-      - name: Generate project
-        run: xcodegen generate
+      - uses: ./.github/actions/prepare
       - name: Check UI observer process boundaries
         run: |
           status=0

@@ -1,18 +1,18 @@
 name: Prepare Xcode project
-description: Select the newest Xcode 26, install XcodeGen and generate the project.
+description: Select the pinned Xcode, install XcodeGen and generate the project.
 runs:
   using: composite
   steps:
     # The app compiles against iOS 26 API (sharedBackgroundVisibility in the nav
     # chrome), and #available guards runtime, not compile — the runner's default
-    # Xcode builds with an older SDK and fails on the symbol. Pick the newest
-    # installed Xcode 26 and say which, so the next SDK mismatch is one log line away.
-    # Only 26.x: a new major on the image must not switch CI on its own.
-    - name: Select newest Xcode 26
+    # Xcode builds with an older SDK and fails on the symbol. CI, the UI suite and the
+    # TestFlight build all use this one exact Xcode (macos-26 image: 26.6, 17F113), so an
+    # image update cannot change the toolchain. If the image drops it, this step fails;
+    # raise the pin here and in docs/ci-cd.md.
+    - name: Select Xcode 26.6
       shell: bash
       run: |
-        xcode_candidates=(/Applications/Xcode_26.*.app)
-        sudo xcode-select -s "$(printf '%s\n' "${xcode_candidates[@]}" | sort -V | tail -1)"
+        sudo xcode-select -s /Applications/Xcode_26.6.app
         xcodebuild -version
     - name: Install XcodeGen
       shell: bash
