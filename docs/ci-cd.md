@@ -96,8 +96,9 @@ Keep one frozen candidate for the checks; record any unresolved failures explici
    seen). Change `CFBundleShortVersionString` only for a new public version.
 2. Merge to `main` and wait for CI to pass.
 3. Make sure the full UI suite passed on that commit: the nightly run covers the `main`
-   head of that night; otherwise run it by hand and wait (about 95 min):
-   `gh workflow run ui-tests.yml --ref main`.
+   head of that night; otherwise run it by hand on the commit and wait (about 95 min):
+   `gh workflow run ui-tests.yml --ref main` while `main` is still that commit, or after
+   tagging, `gh workflow run ui-tests.yml --ref v1.0-36`.
 4. Tag that commit as `v<version>-<build>` and push the tag:
 
    ```sh

@@ -48,7 +48,7 @@ jobs:
         run: |
           passed=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ui-tests.yml/runs?head_sha=$GITHUB_SHA&status=success" --jq '.total_count')
           if [ "$passed" -eq 0 ]; then
-            echo "::error::No passing UI tests run on $GITHUB_SHA. Run 'UI tests' on main (gh workflow run ui-tests.yml --ref main), wait for it to pass, then re-run this TestFlight run."
+            echo "::error::No passing UI tests run on $GITHUB_SHA. Run 'UI tests' on this tag (gh workflow run ui-tests.yml --ref $GITHUB_REF_NAME), wait for it to pass, then re-run this TestFlight run."
             exit 1
           fi
       - uses: ./.github/actions/prepare
