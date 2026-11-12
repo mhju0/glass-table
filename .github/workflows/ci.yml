@@ -1,6 +1,6 @@
 name: CI
-# Documentation-only changes skip CI (D60): they cannot change the app, and main has
-# no required checks, so a skipped run does not hold a pull request.
+# Documentation-only changes skip CI (D60): they cannot change the app. unit, focused-ui
+# and release are required on main, so ci-docs.yml reports them for those pull requests.
 on:
   push:
     branches: [main]
