@@ -3,7 +3,7 @@ import XCTest
 final class DeviceFeedbackLessonTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
     func testEnglishLightPositionExampleFinishes() { example("en", "light", false) }
-    // Flaky at AX5: a walkthrough button was not hittable after the swipes (the isHittable assert in tap).
+    // Flaky at AX5: a walkthrough button did not appear within 10 s (the waitForExistence assert in tap).
     // Tracked in https://github.com/mhju0/glass-table/issues/92.
     func testKoreanDarkPositionExampleFinishesAX5() { example("ko", "dark", true) }
     private func example(_ code: String, _ appearance: String, _ ax: Bool) {
