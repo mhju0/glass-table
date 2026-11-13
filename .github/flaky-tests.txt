@@ -7,3 +7,4 @@ NumericalRevealFlowTests/testKoreanLightReveals #88
 LearningReferenceFlowTests/testGlossarySearchAliasesAndNoResults #89
 AccessibilityAuditTests/testSettingsScrolled #90
 DeviceFeedbackLessonTests/testKoreanDarkPositionExampleFinishesAX5 #92
+FreeTableBackFlowTests/testMathFlipRulesAndAllFacesKeepHeight #95
