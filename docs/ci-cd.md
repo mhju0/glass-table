@@ -8,7 +8,7 @@ Four GitHub Actions workflows on `macos-26` runners (free minutes, since the rep
 | --- | --- | --- | --- |
 | `ci.yml` | pushes to `main`, pull requests, by hand | three parallel jobs: `unit` (tool tests, Drills tests, app build + unit tests), `focused-ui` (focused teaching/recovery/control UI flows), `release` (Release launch smoke test, device Release build checked by `tools/verify_release.py`) | about 30 min, set by `focused-ui` (was 45–55 min in one job) |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
-| `ui-tests.yml` | nightly on `main` (03:00 KST), pull requests that edit it, by hand | the full UI flow suite, split across four parallel shards; a failed test is retried once | about 80–95 min per shard on `macos-26` (runner speed varies) |
+| `ui-tests.yml` | nightly on `main` (03:00 KST), pull requests that edit it, by hand | the full UI flow suite, split across four parallel shards; a failed test is retried once only if `.github/flaky-tests.txt` lists it with an open `flaky-test` issue (D63) | about 80–95 min per shard on `macos-26` (runner speed varies) |
 | `release.yml` | a pushed `v*` tag | requires a passing `ui-tests.yml` run on the tagged commit, then archives, signs and uploads to TestFlight | about 20 min |
 
 `ci.yml` is the gate that has to pass before merging. Its jobs always run and report, so the
@@ -17,9 +17,12 @@ changed, each job's `changes` step (`.github/actions/changes`) skips the build a
 `GradedTableRecoveryFlowTests`, `ReviewTeachingFollowupTests`, and AX postflop
 chart/Continue regression, with result bundles retained on failure. The full UI suite
 runs nightly on `main` and by hand, not on every merge (D62); `release.yml` refuses a tag
-whose commit has no passing run. Only the tests that failed are run a second time, with
-`test-without-building` in a fresh runner process; one that passes then is listed as a
-`Flaky, passed on retry` warning instead of failing the run. (xcodebuild's own
+whose commit has no passing run. A failed test is run a second time only if
+`.github/flaky-tests.txt` lists it with an open `flaky-test` issue (D63); any other failure
+fails the shard on its first attempt. The retry uses `test-without-building` in a fresh
+runner process; a listed test that passes then is named in a `Flaky, passed on retry`
+warning instead of failing the run. The list is checked against open issues before the
+shards start, so a closed issue still on the list fails the run. (xcodebuild's own
 `-retry-tests-on-failure` re-ran every class in the shard, doubling it to 2h8m in run
 41166542595.) Its shards split test classes by the minutes each class took on a GitHub
 runner, listed in the workflow and read from the `ui-observer` artifact's

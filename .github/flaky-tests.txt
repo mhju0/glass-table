@@ -1,0 +1,9 @@
+# Full UI suite retry allowlist (D63). One test per line: Class/testMethod #issue.
+# ui-tests.yml retries a failed test once only if it is listed here and its issue is open
+# with the flaky-test label; any other failure fails on its first attempt. The run fails
+# before testing if an entry's test no longer exists or its issue is not open with that
+# label, so remove the line when the flake is fixed and its issue closed.
+NumericalRevealFlowTests/testKoreanLightReveals #88
+LearningReferenceFlowTests/testGlossarySearchAliasesAndNoResults #89
+AccessibilityAuditTests/testSettingsScrolled #90
+DeviceFeedbackLessonTests/testKoreanDarkPositionExampleFinishesAX5 #92
