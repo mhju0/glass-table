@@ -1146,7 +1146,7 @@ mentions of the removed files are left as written; their last tracked copies are
 
 
 ### D57 · Full UI suite runs on change, not nightly
-**Status: ACTIVE — owner decided on 2026-10-31.**  Superseded in part (triggers) by D62.
+**Status: ACTIVE — owner decided on 2026-10-31.**  Superseded in part (triggers) by D62; superseded in part (retry) by D63.
 
 `ui-tests.yml` no longer runs on a schedule. It runs when app code (app, Engine/Drills
 sources, `project.yml`) reaches `main`, on pull requests that edit the workflow, and by
@@ -1223,3 +1223,15 @@ that touched app code. `focused-ui` in `ci.yml` stays the required pull-request 
 full suite now runs nightly on `main` (18:00 UTC), by hand, and on pull requests that edit
 its workflow. `release.yml` refuses a tag whose commit has no passing full-suite run, so a
 build reaches TestFlight only after the whole suite passed on it.
+
+### D63 · The UI suite retries only tests with an open flaky-test issue
+**Status: ACTIVE — owner decided on 2026-11-13.** Supersedes D57's retry rule (any failed
+test retried once).
+
+D57 retried any failed test once, and a pass on retry only left a warning. Two new flakes
+passed that way unnoticed (#90, #92). Now `.github/flaky-tests.txt` lists the tests that
+may be retried, one `Class/testMethod #issue` per line. A failed test not on the list fails
+its shard on the first attempt. Before any macOS runner starts, `ui-tests.yml` checks the
+list (`tools/ci_flaky_allowlist.py`): every listed test must exist and every listed issue
+must be open with the `flaky-test` label, or the run fails. A fixed flake leaves the list
+when its issue is closed.

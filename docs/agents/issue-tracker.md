@@ -2,6 +2,8 @@
 
 Issues and specs (you may know a spec as a PRD) for this repo live as markdown files in `.scratch/`.
 Exception: flaky tests are GitHub issues labelled `flaky-test`; link the issue from the test.
+To let the UI suite retry it once, add `Class/testMethod #issue` to `.github/flaky-tests.txt`
+(D63); remove the line when the issue is closed.
 
 ## Conventions
 

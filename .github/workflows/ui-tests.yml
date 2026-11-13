@@ -13,13 +13,34 @@ on:
 
 permissions:
   contents: read
+  issues: read   # the retry allowlist is checked against open flaky-test issues (D63)
 
 concurrency:
   group: ui-tests-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # A failed test is retried only if .github/flaky-tests.txt lists it with an open
+  # flaky-test issue (D63). Checked once, before any macOS runner starts: a listed test that
+  # no longer exists, or an issue that is closed or unlabelled, fails the run.
+  flaky-allowlist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tests: ${{ steps.check.outputs.tests }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check the retry allowlist against open flaky-test issues
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tests=$(python3 tools/ci_flaky_allowlist.py check --repo "$GITHUB_REPOSITORY")
+          echo "Retry-eligible: ${tests:-none}"
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+
   ui-tests:
+    needs: flaky-allowlist
     runs-on: macos-26
     # Runner speed varies about 2x: one four-shard run took 47 to 117 min per shard. A job
     # killed at its limit uploads no evidence, so the test step stops first and the upload
@@ -108,6 +129,7 @@ jobs:
         env:
           TEST_DEVICE: iPhone 17
           TEST_RUNTIME: com.apple.CoreSimulator.SimRuntime.iOS-26-2
+          FLAKY_ALLOWED: ${{ needs.flaky-allowlist.outputs.tests }}
         run: |
           test_simulator=$(xcrun simctl list devices available -j | python3 -c '
           import json, os, sys
@@ -132,13 +154,20 @@ jobs:
           status=0
           run ui-tests $(cat only-testing.txt) test || status=$?
           [ "$status" -eq 0 ] && { tail -30 ui-tests.log || true; exit 0; }
-          # One retry per failed test (D57), not of the whole shard: xcodebuild's own
+          # One retry per failed test, not of the whole shard (D57): xcodebuild's own
           # -retry-tests-on-failure re-ran every class in the shard (run 41166542595).
+          # Only tests on the flaky-test allowlist are retried (D63).
           failed=$(sed -nE "s/^Test Case '-\[GlassTableUITests\.([A-Za-z0-9_]+) ([A-Za-z0-9_]+)\]' failed .*/\1\/\2/p" ui-tests.log | sort -u)
           grep -E "error: -\[|^Test Case .* failed \(" ui-tests.log | sed 's/^/::warning::First attempt: /' || true
           if [ -z "$failed" ]; then
             tail -200 ui-tests.log || true
             echo "::error::xcodebuild failed ($status) before any test failed"
+            exit "$status"
+          fi
+          not_retried=$(printf '%s\n' $failed | python3 tools/ci_flaky_allowlist.py split)
+          if [ -n "$not_retried" ]; then
+            tail -200 ui-tests.log || true
+            printf '%s\n' $not_retried | sed 's/^/::error::Failed; not retried because .github\/flaky-tests.txt does not list it with an open flaky-test issue: /'
             exit "$status"
           fi
           status=0
