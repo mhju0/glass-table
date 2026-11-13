@@ -33,6 +33,8 @@ final class FreeTableBackFlowTests: XCTestCase {
         XCTAssertFalse(show.exists)
     }
 
+    // Flaky: the math tiles did not appear within 5 s after tapping help (first assert after the tap).
+    // Tracked in https://github.com/mhju0/glass-table/issues/95.
     func testMathFlipRulesAndAllFacesKeepHeight() {
         let app = launch()
         app.buttons["free-raise-cancel"].tap()
