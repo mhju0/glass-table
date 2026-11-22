@@ -31,7 +31,7 @@ public struct PairLessonProgress: Codable, Equatable, Sendable {
     private static let activityTotal = 1 + answerTotal
 
     private let contentVersion: Int
-    private let seed: UInt64
+    let seed: UInt64
     private let excludedSoloIDs: [String]?
     private let schedule: [PairLessonCardTokens]
     private var activityIndex: Int
@@ -234,7 +234,7 @@ public struct PairLessonProgress: Codable, Equatable, Sendable {
     }
 }
 
-private struct PairLessonCardTokens: Codable, Equatable, Sendable {
+struct PairLessonCardTokens: Codable, Equatable, Sendable {
     let id: String
     let board: String
     let learner: String

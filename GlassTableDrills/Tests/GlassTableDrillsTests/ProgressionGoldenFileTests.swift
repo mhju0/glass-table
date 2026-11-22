@@ -26,7 +26,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
 
     private static let fixtures = ["schema1-build3", "schema2-build16", "schema2-build22",
                                    "schema2-build30", "schema3-build34", "schema4-build35",
-                                   "schema5-build37", "schema6-pair-retry"]
+                                   "schema5-build37", "schema6-pair-retry",
+                                   "schema7-pair-follow-up"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -45,8 +46,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsSix() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 6)
+    func testCurrentSchemaVersionIsSeven() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 7)
     }
 
     func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
@@ -94,7 +95,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
                                 level: session.level(at: i))
                 }
             }
-            let expectedRegrades = ["schema1-build3", "schema6-pair-retry"].contains(name) ? 0 : 3
+            let expectedRegrades = ["schema1-build3", "schema6-pair-retry",
+                                    "schema7-pair-follow-up"].contains(name) ? 0 : 3
             XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
@@ -277,7 +279,14 @@ final class ProgressionGoldenFileTests: XCTestCase {
         let original = try fixture("schema6-pair-retry")
         let s = try store(with: original)
         guard case let .loaded(state) = s.load() else { return XCTFail("retry draft must load") }
-        XCTAssertEqual(try s.exportData(state), original)
+        var migrated = try JSONDecoder().decode(ProgressState.self, from: original)
+        migrated.schemaVersion = ProgressState.currentSchemaVersion
+        XCTAssertEqual(state, migrated)
+        XCTAssertEqual(try s.importData(original), migrated)
+        XCTAssertNil(state.pairLessonFollowUp)
+        let backups = try files(containing: "schema-6-")
+        XCTAssertEqual(backups.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), original)
         var pair = try XCTUnwrap(state.pairLesson)
         let question = try XCTUnwrap(pair.currentQuestion)
         XCTAssertEqual(question.id, "solo-01")
@@ -302,6 +311,146 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(reveal.firstRight, 7)
         XCTAssertEqual(reveal.retryRight, 1)
         XCTAssertTrue(reveal.revealed)
+        XCTAssertEqual(try files(containing: "schema-"), backups)
+    }
+
+    func testFinishedSchemaSixLessonUpgradesWithoutSchedulingAFollowUp() throws {
+        let original = try fixture("schema6-pair-retry")
+        var legacy = try JSONDecoder().decode(ProgressState.self, from: original)
+        var lesson = try XCTUnwrap(legacy.pairLesson)
+        XCTAssertTrue(lesson.apply(.submit))
+        XCTAssertTrue(lesson.apply(.advance))
+        XCTAssertEqual(lesson.phase, .finished)
+        legacy.pairLesson = lesson
+
+        let s = try store(with: original)
+        try s.save(legacy)
+        let legacyBytes = try s.exportData()
+        guard case let .loaded(migrated) = s.load() else {
+            return XCTFail("completed schema 6 pilot must upgrade")
+        }
+        legacy.schemaVersion = ProgressState.currentSchemaVersion
+        XCTAssertEqual(migrated, legacy)
+        XCTAssertNil(migrated.pairLessonFollowUp)
+        let backups = try files(containing: "schema-6-")
+        XCTAssertEqual(backups.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), legacyBytes)
+    }
+
+    func testSchemaSevenFollowUpsResumeBothExactHands() throws {
+        let original = try fixture("schema7-pair-follow-up")
+        let s = try store(with: original)
+        guard case let .loaded(state) = s.load() else {
+            return XCTFail("schema 7 follow-up file must load")
+        }
+        XCTAssertEqual(try s.exportData(state), original)
+        XCTAssertEqual(try s.importData(original), state)
+        XCTAssertEqual(state.pairLesson?.phase, .finished)
+        XCTAssertEqual(state.pairLesson?.firstRight, 7)
+        XCTAssertEqual(state.pairLesson?.assistedSoloCount, 1)
+
+        var followUp = try XCTUnwrap(state.pairLessonFollowUp)
+        let fresh = try XCTUnwrap(followUp.attempt(for: .fresh))
+        let review = try XCTUnwrap(followUp.attempt(for: .review))
+        XCTAssertTrue(fresh.revealed)
+        XCTAssertFalse(fresh.finished)
+        XCTAssertNotEqual(fresh.selection, fresh.question.winner)
+        XCTAssertFalse(review.revealed)
+        XCTAssertFalse(review.finished)
+        XCTAssertEqual(review.selection, review.question.winner)
+        XCTAssertNotEqual(review.question, fresh.question)
+        XCTAssertEqual(followUp.reviewDueDay.raw, "2026-11-24")
+
+        XCTAssertTrue(followUp.apply(.submit, to: .review, today: followUp.reviewDueDay))
+        var updated = state
+        updated.pairLessonFollowUp = followUp
+        try s.save(updated)
+        guard case let .loaded(restored) = s.load() else {
+            return XCTFail("review reveal must survive a save and reload")
+        }
+        XCTAssertEqual(restored, updated)
+        let restoredFollowUp = try XCTUnwrap(restored.pairLessonFollowUp)
+        XCTAssertEqual(restoredFollowUp.attempt(for: .fresh), fresh)
+        XCTAssertEqual(restoredFollowUp.attempt(for: .review)?.question, review.question)
+        XCTAssertEqual(restoredFollowUp.attempt(for: .review)?.selection, review.selection)
+        XCTAssertEqual(restoredFollowUp.attempt(for: .review)?.revealed, true)
+        XCTAssertTrue(try files(containing: "schema-").isEmpty)
+    }
+
+    func testSchemaSixFileWithFollowUpRequiresRecovery() throws {
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema7-pair-follow-up")) as? [String: Any])
+        let followUp = try XCTUnwrap(json["pairLessonFollowUp"])
+        json["schemaVersion"] = 6
+        for value in [followUp, NSNull()] {
+            try freshDirectory()
+            json["pairLessonFollowUp"] = value
+            try assertRecovery(for: json, error: .notDecodable)
+        }
+    }
+
+    func testInvalidOrOrphanedFollowUpRequiresRecovery() throws {
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema7-pair-follow-up")) as? [String: Any])
+        var orphan = json
+        orphan.removeValue(forKey: "pairLesson")
+        try assertRecovery(for: orphan, error: .invalidProgress)
+
+        try freshDirectory()
+        var corrupted = json
+        var followUp = try XCTUnwrap(json["pairLessonFollowUp"] as? [String: Any])
+        followUp["contentVersion"] = 2
+        corrupted["pairLessonFollowUp"] = followUp
+        try assertRecovery(for: corrupted, error: .invalidProgress)
+    }
+
+    func testStoreRefusesSavingFollowUpWithoutItsLessonOrUnderSchemaSix() throws {
+        let original = try fixture("schema7-pair-follow-up")
+        let s = try store(with: original)
+        let state = try s.importData(original)
+
+        var invalid = state
+        invalid.schemaVersion = 6
+        XCTAssertThrowsError(try s.save(invalid)) { error in
+            XCTAssertEqual(error as? StoreError, .invalidProgress)
+        }
+        for lesson in [nil, PairLessonProgress(seed: 1)] {
+            invalid = state
+            invalid.pairLesson = lesson
+            XCTAssertThrowsError(try s.save(invalid)) { error in
+                XCTAssertEqual(error as? StoreError, .invalidProgress)
+            }
+        }
+        XCTAssertEqual(try s.exportData(), original)
+    }
+
+    func testFollowUpRemainsValidDuringReplay() throws {
+        let original = try fixture("schema7-pair-follow-up")
+        let s = try store(with: original)
+        var state = try s.importData(original)
+        let existingFollowUp = state.pairLessonFollowUp
+        var lesson = try XCTUnwrap(state.pairLesson)
+        XCTAssertTrue(lesson.restart(seed: 1))
+        XCTAssertEqual(lesson.phase, .example)
+        state.pairLesson = lesson
+        try s.save(state)
+
+        guard case .loaded(let restored) = s.load() else {
+            return XCTFail("unfinished replay must keep its earlier follow-up")
+        }
+        XCTAssertEqual(restored, state)
+        XCTAssertEqual(restored.pairLessonFollowUp, existingFollowUp)
+    }
+
+    private func assertRecovery(for json: [String: Any], error expected: StoreError) throws {
+        let original = try JSONSerialization.data(withJSONObject: json)
+        let s = try store(with: original)
+
+        guard case .unreadable = s.load() else { return XCTFail("invalid follow-up must require recovery") }
+        XCTAssertThrowsError(try s.importData(original)) { error in
+            XCTAssertEqual(error as? StoreError, expected)
+        }
+        XCTAssertEqual(try s.exportData(), original)
         XCTAssertTrue(try files(containing: "schema-").isEmpty)
     }
 

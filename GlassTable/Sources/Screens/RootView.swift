@@ -119,6 +119,16 @@ struct RootView: View {
                 set: { if !$0, let shown = journey.presented, matches(shown) { journey.close(ifShowing: shown) } })
     }
 
+    private var shownPairFollowUp: Binding<PairLessonFollowUpKind?> {
+        Binding(get: {
+            if case let .pairLessonFollowUp(kind)? = journey.presented { kind } else { nil }
+        }, set: { value in
+            if value == nil, case let .pairLessonFollowUp(kind)? = journey.presented {
+                journey.close(ifShowing: .pairLessonFollowUp(kind))
+            }
+        })
+    }
+
     private var shownLesson: Binding<CurriculumNode?> {
         Binding(get: { if case let .lesson(node)? = journey.presented { node } else { nil } },
                 set: { if $0 == nil, case let .lesson(node)? = journey.presented { journey.close(ifShowing: .lesson(node)) } })
@@ -140,6 +150,12 @@ struct RootView: View {
         }
     }
 
+    private func openPairFollowUp(_ kind: PairLessonFollowUpKind) {
+        let today = PairLessonFollowUpProgress.localDay(at: model.pairLessonNow)
+        guard model.state.pairLessonFollowUp?.isAvailable(kind, on: today) == true else { return }
+        journey.present(.pairLessonFollowUp(kind))
+    }
+
     private var tabs: some View {
         TabView(selection: $tab) {
             NavigationStack {
@@ -149,6 +165,7 @@ struct RootView: View {
                           onChoosePractice: { showFreePlay = true },
                           onOpenBasics: { journey.present(.basics) },
                           onOpenPairLesson: openPairLesson,
+                          onOpenPairFollowUp: openPairFollowUp,
                           onOpenGuidedHand: { journey.present(.guidedHand) },
                           onResumeOpening: { journey.present(.opening) })
                     .modifier(ProgressSaveNotice())
@@ -196,6 +213,11 @@ struct RootView: View {
         .fullScreenCover(isPresented: showing { $0 == .pairLesson }, onDismiss: afterDismiss) {
             NavigationStack {
                 PairLessonView().modifier(ProgressSaveNotice())
+            }.environment(model)
+        }
+        .fullScreenCover(item: shownPairFollowUp, onDismiss: afterDismiss) { kind in
+            NavigationStack {
+                PairLessonView(followUpKind: kind).modifier(ProgressSaveNotice())
             }.environment(model)
         }
         .fullScreenCover(isPresented: showing { $0 == .basics }, onDismiss: afterDismiss) {

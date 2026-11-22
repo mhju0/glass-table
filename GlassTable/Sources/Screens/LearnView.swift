@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import GlassTableDrills
 
 /// Learn is the lesson list (owner, 2026-10-17, variant A2): the tracks in path order,
@@ -7,6 +8,7 @@ struct LearnView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.scenePhase) private var scenePhase
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenReview: () -> Void
     /// Five questions on one skill, the round the practice screen runs.
@@ -15,10 +17,12 @@ struct LearnView: View {
     let onChoosePractice: () -> Void
     let onOpenBasics: () -> Void
     let onOpenPairLesson: () -> Void
+    let onOpenPairFollowUp: (PairLessonFollowUpKind) -> Void
     let onOpenGuidedHand: () -> Void
     var onResumeOpening: () -> Void = {}
     /// A lesson opened ahead of the suggested order, awaiting the learner's choice.
     @State private var early: CurriculumNode?
+    @State private var pairReviewDay: DayKey?
 
     private var due: [Concept] { model.dueConcepts() }
     private var marked: MarkedLesson? { model.markedLesson }
@@ -43,6 +47,7 @@ struct LearnView: View {
                 }
                 recommendationForMarkedLesson
                 reviewLine
+                pairFollowUps
                 if marked == nil { allDoneLine }
                 // A lesson kept from an older path has no track row.
                 if case .inProgress(let node)? = marked, Curriculum.track(containing: node) == nil {
@@ -58,6 +63,13 @@ struct LearnView: View {
         }
         .gtTabBarClearance()
         .background(FeltBackground())
+        .onAppear(perform: refreshPairReviewDay)
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { refreshPairReviewDay() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            refreshPairReviewDay()
+        }
         .confirmationDialog(language.text("앞 레슨부터 해 볼까요?", "Start with an earlier lesson?"),
                             isPresented: Binding(get: { early != nil }, set: { if !$0 { early = nil } }),
                             titleVisibility: .visible, presenting: early) { node in
@@ -151,6 +163,41 @@ struct LearnView: View {
             .accessibilityAddTraits(.isButton)
             .accessibilityIdentifier("learn-review")
         }
+    }
+
+    @ViewBuilder private var pairFollowUps: some View {
+        if let followUp = model.state.pairLessonFollowUp {
+            let today = pairReviewDay ?? PairLessonFollowUpProgress.localDay(at: model.pairLessonNow)
+            if followUp.isAvailable(.fresh, on: today) {
+                let resumed = followUp.attempt(for: .fresh)?.selection != nil
+                recommendation(title: language.text("새 패로 연습", "Try a fresh hand"),
+                               detail: language.text("힌트 없이 원 페어를 비교해요.", "Find the higher pair on a new deal."),
+                               status: nil,
+                               action: resumed ? language.text("이어서", "Continue") : language.text("풀기", "Try it"),
+                               id: "learn-pair-fresh", emphasized: false) { onOpenPairFollowUp(.fresh) }
+            }
+            if followUp.isAvailable(.review, on: today) {
+                let resumed = followUp.attempt(for: .review)?.selection != nil
+                recommendation(title: language.text("원 페어 복습", "Review one pair"),
+                               detail: language.text("새 카드로 배운 내용을 확인해요.", "Recall the rule on a new deal."),
+                               status: nil,
+                               action: resumed ? language.text("이어서", "Continue") : language.text("복습", "Review"),
+                               id: "learn-pair-review", emphasized: false) { onOpenPairFollowUp(.review) }
+            } else if today < followUp.reviewDueDay, followUp.attempt(for: .review)?.finished == false {
+                Label(language.text("원 페어 복습은 레슨 다음 날 열려요.",
+                                    "One-pair review opens the next day."),
+                      systemImage: "calendar")
+                    .font(GT.body(14))
+                    .foregroundStyle(GT.onFeltSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.vertical, GT.Space.compact)
+                    .accessibilityIdentifier("learn-pair-review-upcoming")
+            }
+        }
+    }
+
+    private func refreshPairReviewDay() {
+        pairReviewDay = PairLessonFollowUpProgress.localDay(at: model.pairLessonNow)
     }
 
     /// Nothing left to mark: say so, and still lead somewhere (D38).

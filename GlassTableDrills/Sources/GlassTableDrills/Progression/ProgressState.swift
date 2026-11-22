@@ -218,9 +218,10 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
 /// (D53): step node ids (`<id>.2`, `<id>.3`), `PracticeRound.level` (format 2),
 /// `NodeSessionSnapshot.levels`, `ReviewSessionSnapshot.levels`,
 /// `DailyPracticeKey.level` and the table's "table" summaries. Schema 6 adds
-/// `pairLesson`. Any new key or new meaning bumps the schema (ADR 0001).
+/// `pairLesson`. Schema 7 adds `pairLessonFollowUp`. Any new key or new meaning
+/// bumps the schema (ADR 0001).
 public struct ProgressState: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 6
+    public static let currentSchemaVersion = 7
     /// Ring-buffer cap for the answer log. Bounded on purpose — an unbounded history
     /// is the one thing that would make a single-file store the wrong choice.
     public static let answerLogCap = 500
@@ -263,6 +264,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
     /// no record: Learn then marks the suggested lesson as before.
     public var lastNodeID: String?
     public var pairLesson: PairLessonProgress?
+    public var pairLessonFollowUp: PairLessonFollowUpProgress?
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
@@ -285,7 +287,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
                 basicsLessonCompleted: Bool? = nil,
                 openingDismissed: Bool? = nil,
                 pendingFirstLesson: FirstLessonSnapshot? = nil,
-                pairLesson: PairLessonProgress? = nil) {
+                pairLesson: PairLessonProgress? = nil,
+                pairLessonFollowUp: PairLessonFollowUpProgress? = nil) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
         self.nodes = nodes; self.streak = streak; self.answers = answers
         self.firstLessonCompleted = firstLessonCompleted
@@ -304,6 +307,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         self.processedAttemptIDs = processedAttemptIDs
         self.basicsLessonCompleted = basicsLessonCompleted
         self.pairLesson = pairLesson
+        self.pairLessonFollowUp = pairLessonFollowUp
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -312,7 +316,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands, quickPlaySessions, activeQuickPlaySessionID
         case processedAttemptIDs, basicsLessonCompleted, lessonTrend, openingDismissed, pendingFirstLesson
-        case lastNodeID, pairLesson
+        case lastNodeID, pairLesson, pairLessonFollowUp
     }
 
     public init(from decoder: Decoder) throws {
@@ -321,6 +325,10 @@ public struct ProgressState: Codable, Equatable, Sendable {
         if schemaVersion < 6, c.contains(.pairLesson) {
             throw DecodingError.dataCorruptedError(forKey: .pairLesson, in: c,
                 debugDescription: "Pair lesson progress requires schema 6 or newer")
+        }
+        if schemaVersion < 7, c.contains(.pairLessonFollowUp) {
+            throw DecodingError.dataCorruptedError(forKey: .pairLessonFollowUp, in: c,
+                debugDescription: "Pair lesson follow-up requires schema 7 or newer")
         }
         concepts = try c.decode([String: ConceptRecord].self, forKey: .concepts)
         nodes = try c.decode([String: NodeRecord].self, forKey: .nodes)
@@ -355,6 +363,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
         lessonTrend = try c.decodeIfPresent(Int.self, forKey: .lessonTrend)
         lastNodeID = try c.decodeIfPresent(String.self, forKey: .lastNodeID)
         pairLesson = try c.decodeIfPresent(PairLessonProgress.self, forKey: .pairLesson)
+        pairLessonFollowUp = try c.decodeIfPresent(PairLessonFollowUpProgress.self,
+                                                   forKey: .pairLessonFollowUp)
     }
 
     public func record(for concept: Concept) -> ConceptRecord {

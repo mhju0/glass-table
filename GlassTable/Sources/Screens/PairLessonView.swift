@@ -1,26 +1,36 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import SwiftUI
+import UIKit
 import GlassTableEngine
 import GlassTableDrills
 
 struct PairLessonView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.learningLanguage) private var language
     @AccessibilityFocusState(for: .voiceOver) private var focus: Focus?
     @State private var openingEpoch: UUID?
+    @State private var followUpKind: PairLessonFollowUpKind?
 
     private enum Focus: Hashable { case heading, feedback }
-    private enum ScrollTarget: Hashable { case start, table }
+    private enum ScrollTarget: Hashable { case start, table, feedback }
 
     private let plannedCount = 11
     private let soloCount = 8
     private let passMark = 6
 
+    init(followUpKind: PairLessonFollowUpKind? = nil) {
+        _followUpKind = State(initialValue: followUpKind)
+    }
+
     var body: some View {
         Group {
-            if let lesson = model.state.pairLesson {
+            if let kind = followUpKind, let progress = model.state.pairLessonFollowUp,
+               let attempt = progress.attempt(for: kind) {
+                followUpPage(kind, attempt: attempt, progress: progress)
+            } else if let lesson = model.state.pairLesson {
                 lessonPage(lesson)
             }
         }
@@ -30,39 +40,113 @@ struct PairLessonView: View {
             ChromeButton.close { dismiss() }
                 .accessibilityIdentifier("pair-lesson-close")
         })
-        .onAppear { openingEpoch = model.epoch }
+        .onAppear {
+            openingEpoch = model.epoch
+            dismissIfReviewLocked()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { dismissIfReviewLocked() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            dismissIfReviewLocked()
+        }
         .onChange(of: model.epoch) { _, _ in dismiss() }
     }
 
     private func lessonPage(_ lesson: PairLessonProgress) -> some View {
+        activityPage(phaseTitle(lesson), revealed: lesson.revealed) {
+            progress(lesson).id(ScrollTarget.start)
+            if let question = lesson.currentQuestion {
+                questionContent(question, in: lesson)
+            } else if lesson.phase == .finished {
+                result(lesson)
+            }
+        } dock: {
+            actionButtons(lesson)
+        }
+    }
+
+    private func activityPage<Content: View, Dock: View>(
+        _ phase: String, revealed: Bool, revealTarget: ScrollTarget = .table,
+        @ViewBuilder content: @escaping () -> Content, @ViewBuilder dock: @escaping () -> Dock
+    ) -> some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: GT.Space.section) {
-                    progress(lesson)
-                        .id(ScrollTarget.start)
-                    if let question = lesson.currentQuestion {
-                        questionContent(question, in: lesson)
-                    } else if lesson.phase == .finished {
-                        result(lesson)
-                    }
-                }
+                VStack(alignment: .leading, spacing: GT.Space.section, content: content)
                 .padding(.horizontal, GT.Space.edge)
                 .padding(.vertical, GT.Space.related)
                 .frame(maxWidth: 580)
                 .frame(maxWidth: .infinity)
             }
             .accessibilityIdentifier("pair-lesson-scroll")
-            .onChange(of: phaseTitle(lesson)) { _, _ in
+            .onChange(of: phase) { _, _ in
                 proxy.scrollTo(ScrollTarget.start, anchor: .top)
                 focus = .heading
             }
-            .onChange(of: lesson.revealed) { _, revealed in
+            .onChange(of: revealed) { _, revealed in
                 guard revealed else { return }
-                proxy.scrollTo(ScrollTarget.table, anchor: .top)
+                proxy.scrollTo(revealTarget, anchor: .top)
                 focus = .feedback
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) { actionDock(lesson) }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            dock()
+                .padding(.horizontal, GT.Space.edge)
+                .padding(.vertical, GT.Space.compact)
+                .frame(maxWidth: 580)
+                .frame(maxWidth: .infinity)
+                .background {
+                    GT.glass.ignoresSafeArea(edges: .bottom)
+                        .overlay(alignment: .top) { Rectangle().fill(GT.border).frame(height: 1) }
+                }
+        }
+    }
+
+    private func followUpPage(_ kind: PairLessonFollowUpKind, attempt: PairLessonFollowUpAttempt,
+                              progress: PairLessonFollowUpProgress) -> some View {
+        let fresh = kind == .fresh
+        let title = fresh ? language.text("새 패로 연습", "Fresh hand")
+            : language.text("원 페어 복습", "One-pair review")
+        let revealed = attempt.revealed || attempt.finished
+        return activityPage(title, revealed: revealed, revealTarget: textSize.isAccessibilitySize ? .feedback : .table) {
+            VStack(alignment: .leading, spacing: GT.Space.compact) {
+                HStack(spacing: GT.Space.compact) {
+                    Image(systemName: fresh ? "sparkles" : "arrow.clockwise")
+                        .accessibilityHidden(true)
+                    Text(title)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("pair-lesson-follow-up-title")
+                }
+                .font(GT.semibold(14))
+                .foregroundStyle(GT.inkSecondary)
+                heading(language.text("어느 페어가 이길까요?",
+                                      textSize.isAccessibilitySize ? "Higher pair?" : "Which pair wins?"))
+            }
+            .id(ScrollTarget.start)
+            table(attempt.question, showsPairs: revealed).id(ScrollTarget.table)
+            if revealed {
+                evidence(attempt.question, selection: attempt.selection, example: false)
+                    .id(ScrollTarget.feedback)
+            } else {
+                choices(selection: attempt.selection) { side in
+                    apply(.select(side), to: kind, from: progress)
+                }
+            }
+        } dock: {
+            if revealed {
+                PrimaryCTAButton(title: language.text("완료", "Done")) {
+                    apply(.advance, to: kind, from: progress)
+                }
+                .disabled(attempt.finished || model.saveError != nil)
+                .accessibilityIdentifier("pair-lesson-done")
+            } else {
+                submitButton(selection: attempt.selection) { apply(.submit, to: kind, from: progress) }
+            }
+        }
+        .onAppear { focus = revealed ? .feedback : .heading }
+        .onChange(of: attempt.finished) { _, finished in
+            if finished { dismiss() }
+        }
     }
 
     private func progress(_ lesson: PairLessonProgress) -> some View {
@@ -120,9 +204,11 @@ struct PairLessonView: View {
         table(question, showsPairs: example || lesson.revealed)
             .id(ScrollTarget.table)
         if example || lesson.revealed {
-            evidence(question, in: lesson, example: example)
+            evidence(question, selection: lesson.selection, example: example)
         } else {
-            choices(lesson)
+            choices(selection: lesson.selection) { side in
+                apply(.select(side), to: lesson)
+            }
             if lesson.phase == .guided || lesson.phase == .solo { help(lesson) }
         }
     }
@@ -183,23 +269,23 @@ struct PairLessonView: View {
             .joined(separator: ", "))
     }
 
-    private func choices(_ lesson: PairLessonProgress) -> some View {
+    private func choices(selection: PairLessonSide?, onSelect: @escaping (PairLessonSide) -> Void) -> some View {
         let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: GT.Space.compact))
             : AnyLayout(HStackLayout(spacing: GT.Space.compact))
         return layout {
-            choice(.learner, identifier: "pair-lesson-choose-learner", in: lesson)
-            choice(.opponent, identifier: "pair-lesson-choose-opponent", in: lesson)
+            choice(.learner, selected: selection == .learner, onSelect: onSelect)
+            choice(.opponent, selected: selection == .opponent, onSelect: onSelect)
         }
         .disabled(model.saveError != nil)
     }
 
-    private func choice(_ side: PairLessonSide, identifier: String, in lesson: PairLessonProgress) -> some View {
-        let selected = lesson.selection == side
-        return GTChoiceButton(title: sideTitle(side), selected: selected) {
-            apply(.select(side), to: lesson)
+    private func choice(_ side: PairLessonSide, selected: Bool,
+                        onSelect: @escaping (PairLessonSide) -> Void) -> some View {
+        GTChoiceButton(title: sideTitle(side), selected: selected) {
+            onSelect(side)
         }
         .accessibilityAddTraits(selected ? .isSelected : [])
-        .accessibilityIdentifier(identifier)
+        .accessibilityIdentifier("pair-lesson-choose-\(side.rawValue)")
     }
 
     private func help(_ lesson: PairLessonProgress) -> some View {
@@ -227,12 +313,12 @@ struct PairLessonView: View {
     }
 
     @ViewBuilder
-    private func evidence(_ question: PairLessonQuestion, in lesson: PairLessonProgress, example: Bool) -> some View {
+    private func evidence(_ question: PairLessonQuestion, selection: PairLessonSide?, example: Bool) -> some View {
         if let yours = question.learner.first, let other = question.opponent.first {
             let learnerWon = question.winner == .learner
             let higher = learnerWon ? yours : other
             let lower = learnerWon ? other : yours
-            let correct = lesson.selection == question.winner
+            let correct = selection == question.winner
             let line = language.text("\(KO.subject(rankSymbol(higher))) 더 높아요.",
                                      "A pair of \(rankName(higher)) beats a pair of \(rankName(lower)).")
             let winner = learnerWon ? language.text("내가 이겨요", "You win")
@@ -247,7 +333,7 @@ struct PairLessonView: View {
                     .accessibilityIdentifier("pair-lesson-feedback")
                 prose(example ? line : "\(winner).\n\(line)")
                     .accessibilityIdentifier("pair-lesson-explanation")
-                if let selected = lesson.selection {
+                if let selected = selection {
                     prose(language.text("고른 답 · \(sideTitle(selected))", "Your answer · \(sideTitle(selected))"),
                           secondary: true)
                         .accessibilityIdentifier("pair-lesson-submitted-choice")
@@ -292,6 +378,11 @@ struct PairLessonView: View {
             .buttonStyle(GTOutlinedAction(fills: true))
             .disabled(model.saveError != nil)
             .accessibilityIdentifier("pair-lesson-replay")
+            if freshPending {
+                Button(language.text("나중에 풀기", "Finish for now")) { dismiss() }
+                    .buttonStyle(GTOutlinedAction(fills: true))
+                    .accessibilityIdentifier("pair-lesson-finish-later")
+            }
         }
     }
 
@@ -312,36 +403,60 @@ struct PairLessonView: View {
         .overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
     }
 
-    private func actionDock(_ lesson: PairLessonProgress) -> some View {
-        Group {
-            if lesson.phase == .finished {
+    private var freshPending: Bool {
+        model.state.pairLessonFollowUp?.attempt(for: .fresh)?.finished == false
+    }
+
+    @ViewBuilder
+    private func actionButtons(_ lesson: PairLessonProgress) -> some View {
+        if lesson.phase == .finished {
+            if freshPending {
+                PrimaryCTAButton(title: language.text("새 패로 연습", textSize.isAccessibilitySize
+                                                     ? "Fresh hand" : "Try a fresh hand")) {
+                    followUpKind = .fresh
+                }
+                .disabled(model.saveError != nil)
+                .accessibilityIdentifier("pair-lesson-start-fresh")
+            } else {
                 PrimaryCTAButton(title: language.text("완료", "Done")) { dismiss() }
                     .accessibilityIdentifier("pair-lesson-done")
-            } else if lesson.revealed || lesson.phase == .example {
-                let label = lesson.phase == .example && !textSize.isAccessibilitySize
-                    ? language.text("안내 연습 시작", "Start guided practice") : language.text("다음", "Next")
-                PrimaryCTAButton(title: label) { apply(.advance, to: lesson) }
-                    .disabled(model.saveError != nil)
-                    .accessibilityIdentifier("pair-lesson-next")
-            } else {
-                PrimaryCTAButton(title: language.text("답 확인", "Check answer")) { apply(.submit, to: lesson) }
-                    .disabled(lesson.selection == nil || model.saveError != nil)
-                    .accessibilityIdentifier("pair-lesson-submit")
             }
+        } else if lesson.revealed || lesson.phase == .example {
+            let label = lesson.phase == .example && !textSize.isAccessibilitySize
+                ? language.text("안내 연습 시작", "Start guided practice") : language.text("다음", "Next")
+            PrimaryCTAButton(title: label) { apply(.advance, to: lesson) }
+                .disabled(model.saveError != nil)
+                .accessibilityIdentifier("pair-lesson-next")
+        } else {
+            submitButton(selection: lesson.selection) { apply(.submit, to: lesson) }
         }
-        .padding(.horizontal, GT.Space.edge)
-        .padding(.vertical, GT.Space.compact)
-        .frame(maxWidth: 580)
-        .frame(maxWidth: .infinity)
-        .background {
-            GT.glass.ignoresSafeArea(edges: .bottom)
-                .overlay(alignment: .top) { Rectangle().fill(GT.border).frame(height: 1) }
-        }
+    }
+
+    private func submitButton(selection: PairLessonSide?, action: @escaping () -> Void) -> some View {
+        PrimaryCTAButton(title: language.text("답 확인", "Check answer"), action: action)
+            .disabled(selection == nil || model.saveError != nil)
+            .accessibilityIdentifier("pair-lesson-submit")
     }
 
     private func apply(_ action: PairLessonAction, to lesson: PairLessonProgress) {
         guard let openingEpoch else { return }
         _ = model.applyPairLesson(action, from: lesson, expectedEpoch: openingEpoch)
+    }
+
+    private func apply(_ action: PairLessonAction, to kind: PairLessonFollowUpKind,
+                       from progress: PairLessonFollowUpProgress) {
+        guard let openingEpoch else { return }
+        if !model.applyPairLessonFollowUp(action, to: kind, from: progress, expectedEpoch: openingEpoch) {
+            dismissIfReviewLocked()
+        }
+    }
+
+    private func dismissIfReviewLocked() {
+        guard followUpKind == .review,
+              let progress = model.state.pairLessonFollowUp,
+              progress.attempt(for: .review)?.selection == nil else { return }
+        let today = PairLessonFollowUpProgress.localDay(at: model.pairLessonNow)
+        if today < progress.reviewDueDay { dismiss() }
     }
 
     private func heading(_ title: String) -> some View {

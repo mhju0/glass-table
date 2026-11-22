@@ -10,6 +10,7 @@ final class PairLessonFlowTests: XCTestCase {
         XCTAssertEqual(element("phase", app).label, "Worked example")
         XCTAssertTrue(element("explanation", app).exists)
         XCTAssertFalse(button("submit", app).exists)
+        let exampleDeal = try deal(in: app)
         tap("next", app)
 
         let firstGuidedDeal = try deal(in: app)
@@ -37,12 +38,15 @@ final class PairLessonFlowTests: XCTestCase {
         XCTAssertEqual(element("submitted-choice", app).label, submittedChoice)
         XCTAssertFalse(button("submit", app).exists)
         tap("next", app)
-        try answer(winner(of: deal(in: app)), in: app)
+        let secondGuidedDeal = try deal(in: app)
+        try answer(winner(of: secondGuidedDeal), in: app)
 
+        var lessonDeals = [exampleDeal, firstGuidedDeal, secondGuidedDeal]
         var missedSoloDeal: Deal?
         for index in 1...8 {
             XCTAssertEqual(element("phase", app).label, "Independent \(index) of 8")
             let current = try deal(in: app)
+            lessonDeals.append(current)
             let correct = try winner(of: current)
             if index == 1 {
                 tap("hint", app)
@@ -62,6 +66,7 @@ final class PairLessonFlowTests: XCTestCase {
         XCTAssertEqual(try deal(in: app), firstGuidedDeal)
         XCTAssertFalse(button("hint", app).exists)
         XCTAssertFalse(button("submit", app).isEnabled)
+        attach(app, "pair-lesson-en-exact-retry")
         try answer(winner(of: firstGuidedDeal), in: app)
 
         let secondMiss = try XCTUnwrap(missedSoloDeal)
@@ -73,9 +78,93 @@ final class PairLessonFlowTests: XCTestCase {
         XCTAssertEqual(element("first-score", app).label, "6 of 8 correct")
         XCTAssertEqual(element("assisted-count", app).label, "Hints used on 1 of 8 hands")
         XCTAssertEqual(element("retry-score", app).label, "1 of 2 correct on the second try")
-        attach(app, "pair-lesson-en-results")
+        attach(app, "pair-lesson-en-assisted-results")
+
+        tap("start-fresh", app)
+        XCTAssertEqual(element("follow-up-title", app).label, "Fresh hand")
+        let freshDeal = try deal(in: app)
+        XCTAssertFalse(lessonDeals.contains(freshDeal))
+        XCTAssertFalse(button("hint", app).exists)
+        XCTAssertFalse(element("explanation", app).exists)
+        XCTAssertFalse(button("submit", app).isEnabled)
+        attach(app, "pair-lesson-en-fresh-hand")
+        try tap(winner(of: freshDeal).button, app)
+        tap("close", app)
+        openFromLearn("learn-pair-fresh", app, towardsTop: true)
+        XCTAssertEqual(try deal(in: app), freshDeal)
+        XCTAssertTrue(button("submit", app).isEnabled)
+        tap("submit", app)
+        XCTAssertEqual(element("feedback", app).label, "Correct")
+        attach(app, "pair-lesson-en-fresh-feedback")
         tap("done", app)
-        XCTAssertTrue(button("done", app).waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["learn-pair-fresh"].waitForNonExistence(timeout: 5))
+
+        openLesson(app)
+        XCTAssertEqual(element("first-score", app).label, "6 of 8 correct")
+        XCTAssertEqual(element("retry-score", app).label, "1 of 2 correct on the second try")
+        tap("done", app)
+        let upcoming = app.descendants(matching: .any).matching(identifier: "learn-pair-review-upcoming").firstMatch
+        reachLearn(upcoming, in: app, towardsTop: true)
+        XCTAssertFalse(app.buttons["learn-pair-review"].exists)
+        attach(app, "pair-lesson-en-review-upcoming")
+
+        app.terminate()
+        app.launchEnvironment["GT_TEST_PAIR_DAY_OFFSET"] = "1"
+        app.launch()
+        let ready = app.buttons["learn-pair-review"]
+        reachLearn(ready, in: app, towardsTop: true)
+        XCTAssertFalse(upcoming.exists)
+        attach(app, "pair-lesson-en-review-ready")
+        openFromLearn("learn-pair-review", app, towardsTop: true)
+        XCTAssertEqual(element("follow-up-title", app).label, "One-pair review")
+        let reviewDeal = try deal(in: app)
+        XCTAssertFalse(lessonDeals.contains(reviewDeal))
+        XCTAssertNotEqual(reviewDeal, freshDeal)
+        XCTAssertFalse(button("hint", app).exists)
+        XCTAssertFalse(element("explanation", app).exists)
+        XCTAssertFalse(button("submit", app).isEnabled)
+        attach(app, "pair-lesson-en-review-hand")
+        try tap(winner(of: reviewDeal).other.button, app)
+
+        app.terminate()
+        app.launch()
+        openFromLearn("learn-pair-review", app, towardsTop: true)
+        XCTAssertEqual(try deal(in: app), reviewDeal)
+        XCTAssertFalse(element("explanation", app).exists)
+        XCTAssertTrue(button("submit", app).isEnabled)
+        tap("submit", app)
+        XCTAssertEqual(element("feedback", app).label, "Incorrect")
+
+        app.terminate()
+        app.launchEnvironment["GT_DEMO_LANGUAGE"] = "ko"
+        app.launchArguments = ["-appAppearance", "dark", "-UIPreferredContentSizeCategoryName",
+                               "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        openFromLearn("learn-pair-review", app, towardsTop: true)
+        XCTAssertEqual(element("follow-up-title", app).label, "원 페어 복습")
+        XCTAssertEqual(element("feedback", app).label, "틀렸어요")
+        XCTAssertTrue(button("done", app).isHittable)
+        XCTAssertFalse(button("submit", app).exists)
+        reveal(element("explanation", app), in: app)
+        attach(app, "pair-lesson-ko-dark-ax5-review-feedback")
+        tap("done", app)
+        XCTAssertTrue(ready.waitForNonExistence(timeout: 5))
+    }
+
+    func testCleanPassSchedulesReviewWithoutOfferingFreshPractice() throws {
+        let app = launch(english: true, accessibility: false)
+        openLesson(app)
+        tap("next", app)
+        for _ in 0..<10 { try answer(winner(of: deal(in: app)), in: app) }
+        XCTAssertTrue(element("first-score", app).waitForExistence(timeout: 5))
+        XCTAssertEqual(element("first-score", app).label, "8 of 8 correct")
+        XCTAssertEqual(element("retry-score", app).label, "No missed hands to retry.")
+        XCTAssertFalse(button("start-fresh", app).exists)
+        attach(app, "pair-lesson-en-clean-results")
+        tap("done", app)
+        let upcoming = app.descendants(matching: .any).matching(identifier: "learn-pair-review-upcoming").firstMatch
+        XCTAssertTrue(upcoming.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["learn-pair-review"].exists)
     }
 
     func testKoreanAX5OptionsAndPinnedNextAreReachable() {
@@ -106,22 +195,34 @@ final class PairLessonFlowTests: XCTestCase {
         let app = XCUIApplication()
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
                                  "GT_DEMO_LANGUAGE": english ? "en" : "ko"]
-        app.launchArguments = ["-UIPreferredContentSizeCategoryName",
+        app.launchArguments = ["-appAppearance", english ? "light" : "dark", "-UIPreferredContentSizeCategoryName",
                                accessibility ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launch()
         return app
     }
 
     private func openLesson(_ app: XCUIApplication) {
-        let row = app.buttons["learn-pair-lesson"]
-        XCTAssertTrue(row.waitForExistence(timeout: 15))
-        for _ in 0..<8 {
-            if row.isHittable { break }
-            app.swipeUp()
-        }
-        XCTAssertTrue(row.isHittable)
+        openFromLearn("learn-pair-lesson", app)
+    }
+
+    private func openFromLearn(_ identifier: String, _ app: XCUIApplication, towardsTop: Bool = false) {
+        let row = app.buttons[identifier]
+        reachLearn(row, in: app, towardsTop: towardsTop)
         row.tap()
         XCTAssertTrue(button("close", app).waitForExistence(timeout: 10))
+    }
+
+    private func reachLearn(_ row: XCUIElement, in app: XCUIApplication, towardsTop: Bool) {
+        XCTAssertTrue(row.waitForExistence(timeout: 15), row.identifier)
+        let scroll = app.scrollViews.firstMatch
+        for direction in [towardsTop, !towardsTop] {
+            for _ in 0..<8 {
+                if row.isHittable { return }
+                if direction { scroll.swipeDown() }
+                else { scroll.swipeUp() }
+            }
+        }
+        XCTAssertTrue(row.isHittable, row.debugDescription)
     }
 
     private func element(_ name: String, _ app: XCUIApplication) -> XCUIElement {
@@ -143,8 +244,8 @@ final class PairLessonFlowTests: XCTestCase {
         let scroll = app.scrollViews["pair-lesson-scroll"]
         func reachable() -> Bool {
             guard target.isHittable else { return false }
-            let dock = button("next", app).exists ? button("next", app) : button("submit", app)
-            if !dock.exists || [dock.identifier, "pair-lesson-close"].contains(target.identifier) { return true }
+            let dock = ["next", "submit", "done", "start-fresh"].map { button($0, app) }.first { $0.exists }
+            guard let dock, ![dock.identifier, "pair-lesson-close"].contains(target.identifier) else { return true }
             return target.frame.midY < dock.frame.minY && target.frame.midY > button("close", app).frame.maxY
         }
         for _ in 0..<8 {
@@ -171,9 +272,14 @@ final class PairLessonFlowTests: XCTestCase {
     private func deal(in app: XCUIApplication) throws -> Deal {
         let board = element("board", app)
         XCTAssertTrue(board.waitForExistence(timeout: 5))
-        return try Deal(board: XCTUnwrap(board.value as? String),
-                        learner: XCTUnwrap(element("learner-cards", app).value as? String),
-                        opponent: XCTUnwrap(element("opponent-cards", app).value as? String))
+        func cards(_ element: XCUIElement, count: Int) throws -> String {
+            let descriptions = try XCTUnwrap(element.value as? String).components(separatedBy: ", ")
+            XCTAssertGreaterThanOrEqual(descriptions.count, count)
+            return descriptions.prefix(count).joined(separator: ", ")
+        }
+        return try Deal(board: cards(board, count: 5),
+                        learner: cards(element("learner-cards", app), count: 2),
+                        opponent: cards(element("opponent-cards", app), count: 2))
     }
 
     private func winner(of deal: Deal) throws -> Side {

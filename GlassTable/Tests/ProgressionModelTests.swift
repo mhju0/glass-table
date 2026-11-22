@@ -95,6 +95,90 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.state.pairLesson?.phase, .example)
     }
 
+    func testPairLessonCompletionAndFollowUpsCommitTogetherAcrossSaveFailure() throws {
+        let model = ProgressionModel(store: store)
+        var legacy = model.state
+        legacy.updateRecord(for: .showdown) {
+            $0.total = 1
+            $0.correct = 1
+            $0.review = ReviewState(stability: 4, difficulty: 4, lastReview: .distantPast,
+                                    due: .distantPast, reps: 1)
+        }
+        try store.save(legacy)
+        let lessonModel = ProgressionModel(store: store)
+        XCTAssertTrue(lessonModel.beginReviewSession(seed: 21, expectedEpoch: lessonModel.epoch))
+        let legacyReview = try XCTUnwrap(lessonModel.state.activeReviewSession)
+        XCTAssertTrue(lessonModel.beginPairLesson(seed: 42, expectedEpoch: lessonModel.epoch))
+
+        // Arrive at the final reveal. Finishing the lesson is the single write
+        // that also opens the fresh hand and assigns the due date.
+        var lesson = try XCTUnwrap(lessonModel.state.pairLesson)
+        while lesson.phase != .solo || lesson.soloNumber < 8 || !lesson.revealed {
+            let action: PairLessonAction
+            if lesson.phase == .example || lesson.revealed {
+                action = .advance
+            } else if lesson.phase == .solo && lesson.soloNumber == 1 && !lesson.currentHelpUsed {
+                action = .hint
+            } else if lesson.selection == nil {
+                action = .select(try XCTUnwrap(lesson.currentQuestion).winner)
+            } else {
+                action = .submit
+            }
+            guard lessonModel.applyPairLesson(action, from: lesson, expectedEpoch: lessonModel.epoch) else {
+                return XCTFail("Failed to advance the pilot with \(action)")
+            }
+            lesson = try XCTUnwrap(lessonModel.state.pairLesson)
+        }
+        XCTAssertNil(lessonModel.state.pairLessonFollowUp)
+        let completionDate = Date(timeIntervalSince1970: 1_790_000_000)
+        let nextLocalDay = try XCTUnwrap(Calendar.current.date(byAdding: .day, value: 1, to: completionDate))
+        let source = try Data(contentsOf: store.url)
+        try FileManager.default.removeItem(at: store.url)
+        try FileManager.default.createDirectory(at: store.url, withIntermediateDirectories: false)
+        let epoch = lessonModel.epoch
+        XCTAssertFalse(lessonModel.applyPairLesson(.advance, from: lesson, expectedEpoch: epoch,
+                                                 now: completionDate))
+        XCTAssertNotNil(lessonModel.saveError)
+        XCTAssertEqual(lessonModel.state.pairLesson, lesson)
+        XCTAssertNil(lessonModel.state.pairLessonFollowUp)
+
+        try FileManager.default.removeItem(at: store.url)
+        try source.write(to: store.url)
+        lessonModel.retrySave()
+        XCTAssertNil(lessonModel.saveError)
+        let restored = ProgressionModel(store: store)
+        let finished = try XCTUnwrap(restored.state.pairLesson)
+        let followUp = try XCTUnwrap(restored.state.pairLessonFollowUp)
+        XCTAssertEqual(finished.phase, .finished)
+        XCTAssertEqual(finished.firstRight, 7)
+        XCTAssertTrue(finished.passed)
+        XCTAssertEqual(restored.state.activeReviewSession, legacyReview)
+        XCTAssertEqual(restored.state.concepts, legacy.concepts)
+        XCTAssertEqual(followUp.reviewDueDay, PairLessonFollowUpProgress.localDay(at: nextLocalDay))
+        XCTAssertFalse(restored.applyPairLesson(.advance, from: lesson, expectedEpoch: restored.epoch,
+                                               now: nextLocalDay))
+        XCTAssertFalse(restored.applyPairLessonFollowUp(.select(.learner), to: .review,
+                       from: followUp, expectedEpoch: restored.epoch, now: completionDate))
+        XCTAssertTrue(restored.applyPairLessonFollowUp(.select(.learner), to: .review,
+                      from: followUp, expectedEpoch: restored.epoch, now: nextLocalDay))
+        let resumed = ProgressionModel(store: store)
+        let draft = try XCTUnwrap(resumed.state.pairLessonFollowUp)
+        XCTAssertEqual(draft.attempt(for: .review)?.selection, .learner)
+        XCTAssertEqual(draft.attempt(for: .review)?.question, followUp.attempt(for: .review)?.question)
+        XCTAssertEqual(draft.attempt(for: .fresh), followUp.attempt(for: .fresh))
+        XCTAssertTrue(resumed.applyPairLessonFollowUp(.submit, to: .review, from: draft,
+                                                     expectedEpoch: resumed.epoch, now: completionDate))
+        let reveal = try XCTUnwrap(ProgressionModel(store: store).state.pairLessonFollowUp)
+        XCTAssertEqual(reveal.attempt(for: .review)?.revealed, true)
+        XCTAssertEqual(resumed.state.pairLesson, finished)
+        XCTAssertEqual(resumed.state.activeReviewSession, legacyReview)
+        let staleEpoch = resumed.epoch
+        try resumed.resetProgress()
+        XCTAssertFalse(resumed.applyPairLessonFollowUp(.advance, to: .review, from: reveal,
+                                                      expectedEpoch: staleEpoch, now: nextLocalDay))
+        XCTAssertNil(resumed.state.pairLessonFollowUp)
+    }
+
     private func prepareFinishedOpening(_ model: ProgressionModel) {
         XCTAssertTrue(model.beginFirstLesson(seed: 17, expectedEpoch: model.epoch))
         XCTAssertTrue(model.saveFirstLesson(FirstLessonSnapshot(variationSeed: 17,

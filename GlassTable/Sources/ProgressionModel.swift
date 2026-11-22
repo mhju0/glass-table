@@ -365,13 +365,43 @@ final class ProgressionModel {
         return commit { $0.pairLesson = lesson }
     }
 
+    /// Use the same clock for scheduling and checking availability.
+    var pairLessonNow: Date {
+        let now = Date()
+        #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        if environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+           environment["GT_TEST_PAIR_DAY_OFFSET"] == "1" {
+            return Calendar.current.date(byAdding: .day, value: 1, to: now) ?? now
+        }
+        #endif
+        return now
+    }
+
     @discardableResult
     func applyPairLesson(_ action: PairLessonAction, from previous: PairLessonProgress,
-                         expectedEpoch: UUID) -> Bool {
+                         expectedEpoch: UUID, now: Date? = nil) -> Bool {
         guard expectedEpoch == epoch, state.pairLesson == previous else { return false }
         var updated = previous
         guard updated.apply(action) else { return false }
-        return commit { $0.pairLesson = updated }
+        return commit {
+            $0.pairLesson = updated
+            if updated.phase == .finished {
+                $0.pairLessonFollowUp = .recordingCompletion(
+                    of: updated, previous: $0.pairLessonFollowUp, at: now ?? pairLessonNow)
+            }
+        }
+    }
+
+    @discardableResult
+    func applyPairLessonFollowUp(_ action: PairLessonAction, to kind: PairLessonFollowUpKind,
+                                 from previous: PairLessonFollowUpProgress, expectedEpoch: UUID,
+                                 now: Date? = nil) -> Bool {
+        guard expectedEpoch == epoch, state.pairLessonFollowUp == previous else { return false }
+        var updated = previous
+        let today = PairLessonFollowUpProgress.localDay(at: now ?? pairLessonNow)
+        guard updated.apply(action, to: kind, today: today) else { return false }
+        return commit { $0.pairLessonFollowUp = updated }
     }
 
     @discardableResult
