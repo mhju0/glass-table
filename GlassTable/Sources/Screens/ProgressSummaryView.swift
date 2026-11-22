@@ -2,9 +2,8 @@
 import SwiftUI
 import GlassTableDrills
 
-/// The top of Progress (owner's pick R3·G, 2026-10-18): two numbers that only grow,
-/// the week so far, one refresh card, stage bars and the journal. Every value is read
-/// from `ProgressOverview`; nothing here saves.
+/// Progress leads with an available review, followed by lifetime counts, the week,
+/// skill stages and the journal.
 struct ProgressSummaryView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
@@ -22,9 +21,10 @@ struct ProgressSummaryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if overview.hasHistory {
+                if hasReview || overview.isReturning { nextAction }
                 hero
                 weekLine
-                if overview.isReturning { welcomeBack } else { refreshCard }
+                if !hasReview && !overview.isReturning { refreshCard }
                 skills
                 Text(language.text("능숙·숙달은 앱 안에서 쌓인 학습 단계예요. 실력 인증은 아니에요.",
                                    "Stages describe practice in this app, not proven skill."))
@@ -152,27 +152,30 @@ struct ProgressSummaryView: View {
     // MARK: Refresh
 
     private var reviewOpen: Bool { model.state.activeReviewSession != nil }
+    private var hasReview: Bool { reviewOpen || !overview.due.isEmpty }
+
+    @ViewBuilder private var nextAction: some View {
+        if overview.isReturning { welcomeBack } else { refreshCard }
+    }
 
     @ViewBuilder private var refreshCard: some View {
-        if reviewOpen || !overview.due.isEmpty {
+        if hasReview {
             let due = overview.due
-            let title = due.count == 1 ? skillName(due[0]) : language.text("기술 \(due.count)개", "\(due.count) skills")
-            let detail = reviewOpen
-                ? language.text("멈춘 문제부터 이어서 풀어요.", "Pick up the question you stopped on.")
-                : due.count == 1
-                ? stageWord(model.record(for: due[0]).tier)
+            let title = reviewOpen ? language.text("복습 진행 중", "Review in progress")
+                : due.count == 1 ? skillName(due[0]) : language.text("기술 \(due.count)개", "\(due.count) skills")
+            let detail = reviewOpen ? language.text("멈춘 문제부터 이어서 풀어요.", "Pick up the question you stopped on.")
+                : due.count == 1 ? stageWord(model.record(for: due[0]).tier)
                 : due.prefix(3).map(skillName).joined(separator: " · ") + (due.count > 3 ? " …" : "")
-            card(highlighted: true, kicker: reviewOpen ? language.text("복습 진행 중", "Review in progress")
-                                                        : language.text("다시 볼 때예요", "Ready for a refresh"),
-                 title: title, detail: detail,
-                 action: reviewOpen ? language.text("이어서", "Continue") : language.text("시작", "Start"),
-                 filled: true, actionID: "progress-refresh-start", perform: onOpenReview)
+            card(highlighted: true, kicker: reviewOpen ? nil : language.text("다시 볼 때예요", "Ready for a refresh"),
+                 title: title, detail: detail, action: reviewOpen ? language.text("이어서", "Continue")
+                                                                  : language.text("시작", "Start"),
+                 actionID: "progress-refresh-start", perform: onOpenReview)
                 .accessibilityIdentifier("progress-refresh")
         } else {
             card(highlighted: false, kicker: nil, title: language.text("모두 복습했어요", "All caught up"),
                  detail: language.text("오늘 다시 볼 기술은 없어요.", "No skill needs a refresh today."),
                  action: language.text("이어서 배우기", "Continue learning"),
-                 filled: false, actionID: "records-continue", perform: onContinue)
+                 actionID: "records-continue", perform: onContinue)
                 .accessibilityIdentifier("progress-caught-up")
         }
     }
@@ -189,14 +192,14 @@ struct ProgressSummaryView: View {
                                     due == 1 ? "1 skill is ready for a quick refresh."
                                              : "\(due) skills are ready for a quick refresh."),
                  action: reviewOpen ? language.text("이어서", "Continue") : language.text("복습 시작", "Start a refresh"),
-                 filled: true, actionID: "progress-refresh-start", perform: onOpenReview)
+                 actionID: "progress-refresh-start", perform: onOpenReview)
                 .accessibilityIdentifier("progress-welcome-back")
         } else {
             card(highlighted: true, kicker: nil,
                  title: language.text("다시 오셨네요. 기록은 그대로예요.", "Welcome back. Your progress is kept."),
                  detail: language.text("멈춘 곳부터 이어가요.", "Pick up where you left off."),
                  action: language.text("이어서 배우기", "Continue learning"),
-                 filled: true, actionID: "records-continue", perform: onContinue)
+                 actionID: "records-continue", perform: onContinue)
                 .accessibilityIdentifier("progress-welcome-back")
         }
     }
@@ -207,38 +210,38 @@ struct ProgressSummaryView: View {
              detail: language.text("공부한 결정과 능숙 단계에 오른 기술이 여기에 보여요.",
                                    "Decisions studied and skills at Strong collect here."),
              action: language.text("배우기 시작", "Start learning"),
-             filled: true, actionID: "records-continue", perform: onContinue)
-            .padding(.top, 12)
+             actionID: "records-continue", perform: onContinue)
             .accessibilityIdentifier("progress-start")
     }
 
     private func card(highlighted: Bool, kicker: String?, title: String, detail: String,
-                      action: String, filled: Bool, actionID: String,
+                      action: String, actionID: String,
                       perform: @escaping () -> Void) -> some View {
         let shape = RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
-        let layout = stacks ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
-                            : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
-        return layout {
+        return VStack(alignment: .leading, spacing: GT.Space.compact) {
             VStack(alignment: .leading, spacing: 3) {
                 if let kicker {
-                    Text(kicker).font(GT.semibold(12)).foregroundStyle(GT.cta)
+                    Text(kicker).font(GT.semibold(12)).foregroundStyle(GT.tableAccent)
                 }
-                Text(title).font(GT.title(16)).foregroundStyle(GT.ink)
-                Text(detail).font(GT.body(13)).foregroundStyle(GT.inkSecondary)
+                Text(title).font(GT.title(highlighted ? 22 : 16))
+                    .foregroundStyle(highlighted ? GT.onTable : GT.ink)
+                Text(detail).font(GT.body(14))
+                    .foregroundStyle(highlighted ? GT.onTableSecondary : GT.inkSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
             }
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
-            Button(action: perform) { pill(action, filled: filled) }
+            Button(action: perform) { pill(action, filled: highlighted) }
                 .buttonStyle(GTPress())
                 .accessibilityIdentifier(actionID)
         }
-        .padding(12)
+        .padding(GT.Space.card)
         .background {
-            shape.fill(GT.glass)
-                .overlay(shape.strokeBorder(highlighted ? GT.cta : GT.border, lineWidth: highlighted ? 1.5 : 1))
+            shape.fill(highlighted ? GT.tableFelt : GT.glass)
+                .overlay(shape.strokeBorder(highlighted ? GT.tableHairline : GT.border, lineWidth: 1))
         }
-        .padding(.top, 12)
+        .padding(.top, highlighted ? 0 : GT.Space.related)
         .accessibilityElement(children: .contain)
     }
 
@@ -246,13 +249,13 @@ struct ProgressSummaryView: View {
     private func pill(_ title: String, filled: Bool) -> some View {
         let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
         return Text(title).font(GT.semibold(14))
-            .foregroundStyle(filled ? GT.onCTA : GT.onFelt)
+            .foregroundStyle(filled ? GT.actionInk : GT.onFelt)
             .fixedSize(horizontal: !stacks, vertical: true)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 14).padding(.vertical, 7)
             .frame(maxWidth: stacks ? .infinity : nil, minHeight: 36)
             .background {
-                if filled { shape.fill(GT.cta) }
+                if filled { shape.fill(GT.actionFill) }
                 else { shape.fill(GT.surface).overlay(shape.strokeBorder(GT.border, lineWidth: 1)) }
             }
             .frame(minHeight: 44)
@@ -360,7 +363,7 @@ struct ProgressSummaryView: View {
         return HStack(alignment: .top, spacing: 8) {
             if !stacks {
                 Text(date).font(GT.semibold(12).monospacedDigit()).foregroundStyle(GT.onFeltSecondary)
-                    .frame(width: 56, alignment: .leading)
+                    .fixedSize()
             }
             ZStack(alignment: .top) {
                 if !isLast { Rectangle().fill(GT.border).frame(width: 2).padding(.top, 12) }

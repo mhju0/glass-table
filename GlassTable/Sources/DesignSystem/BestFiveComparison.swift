@@ -9,13 +9,16 @@ import GlassTableDrills
 /// the card, so it never reaches a neighbour.
 struct SevenCardRow: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let hole: [Card]
     let board: [Card]
     let used: [Card]
     var deciding: [Card] = []
+    var comparisonCards: [Card] = []
     let size: CGFloat
     /// Sets the last shared card apart as the river, as the outs answer deals it.
     var separatesRiver = false
+    @State private var showsCue = false
 
     /// The row's fixed width: card faces never follow Dynamic Type.
     static func width(size: CGFloat) -> CGFloat { 7 * size * 0.72 + 6 * 5 + 8 }
@@ -26,22 +29,49 @@ struct SevenCardRow: View {
                 cell(card, plays: used.contains(card), decides: deciding.contains(card), index: index)
             }
         }
+        .onAppear {
+            guard !comparisonCards.isEmpty || !deciding.isEmpty else { return }
+            withAnimation(reduceMotion ? nil : GT.Motion.fade) { showsCue = true }
+        }
     }
 
     private func cell(_ card: Card, plays: Bool, decides: Bool, index: Int) -> some View {
-        let radius = PlayingCardView.cornerRadius(for: size)
+        let shape = RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: size))
+        let isEvidence = decides || comparisonCards.contains(card)
         let note = !plays ? language.text(", 쓰지 않음", ", not used")
-            : decides ? language.text(", 승부를 가른 카드", ", decided it") : ""
+            : decides ? language.text(", 승부를 가른 카드", ", decided it")
+            : isEvidence ? language.text(", 비교할 카드", ", comparison card") : ""
         return PlayingCardView(card: card, size: size)
             .overlay {
-                if plays {
-                    RoundedRectangle(cornerRadius: radius)
-                        .strokeBorder(GT.cta, lineWidth: decides ? 2.5 : 1.5)
+                if isEvidence {
+                    shape.strokeBorder(GT.cardInk, lineWidth: 2)
+                    shape.inset(by: 2).strokeBorder(GT.tableAccent, lineWidth: 2)
+                        .opacity(showsCue || reduceMotion ? 1 : 0)
+                } else if plays {
+                    shape.strokeBorder(GT.cardInk, lineWidth: 1)
                 }
             }
             .opacity(plays ? 1 : 0.55)
             .padding(.leading, index == 2 || (separatesRiver && index == 6) ? 8 : 0)
             .accessibilityLabel(card.spoken(in: language) + note)
+    }
+}
+
+extension BestFiveHand {
+    /// Emphasize the cards that form this hand type using the evaluator's five.
+    var comparisonCards: [Card] {
+        guard deciding.isEmpty else { return deciding }
+        switch brief.category {
+        case 1, 3, 7: // Pair, trips, quads
+            return used.filter { $0.rank == brief.topRank }
+        case 2: // Two pair
+            let pairs = Dictionary(grouping: used, by: \.rank)
+            return used.filter { pairs[$0.rank]?.count == 2 }
+        case 4, 5, 6, 8: // Straight, flush, full house, straight flush
+            return used
+        default:
+            return []
+        }
     }
 }
 
@@ -87,7 +117,8 @@ struct BestFiveComparison: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("best-five-label-\(index)")
             SevenCardRow(hole: hand.hole, board: hand.board, used: hand.used,
-                         deciding: hand.deciding, size: Self.cardSize)
+                         deciding: hand.deciding, comparisonCards: hand.comparisonCards,
+                         size: Self.cardSize)
                 .fixedSize()
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("best-five-cards-\(index)")

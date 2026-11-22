@@ -85,81 +85,97 @@ enum GT {
 
     // MARK: Adaptive app surfaces
 
-    /// Compatibility names used throughout the app. These now describe the page,
-    /// not the poker table; new table UI uses the explicit fixed roles below.
-    /// Light is a step deeper than the white surfaces on it so cards, panels and sheets
-    /// lift off the page; muted text still clears 4.5:1 on it.
-    static let felt = Color.adaptive(light: 0xEBE6DB, dark: 0x17191C)
-    static let onFelt = Color.adaptive(light: 0x222C29, dark: 0xF4F0E6)
-    static let onFeltSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8, lightHigh: 0x3F4A45)
-    static let onFeltMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8, lightHigh: 0x414A45, darkHigh: 0xC4C8CD)
-    static let hairlineFelt = Color.adaptive(light: 0xC4BCB0, dark: 0x4A4F55, lightHigh: 0x838077, darkHigh: 0x6C7075)
+    static let felt = Color.adaptive(light: 0xF4E8D1, dark: 0x19271E)
+    static let paper = Color.adaptive(light: 0xFFF3DA, dark: 0x25392C)
+    static let glass = Color.adaptive(light: 0xFFFAF0, dark: 0x2B4234)
+    static let sheet = Color.adaptive(light: 0xFFFBF1, dark: 0x294133)
+    static let surface = paper
+    static let progressTrack = Color.adaptive(light: 0xEADBB7, dark: 0x50614B, darkHigh: 0x425440)
 
-    static let glass = Color.adaptive(light: 0xFFFDF7, dark: 0x24272B)
-    static let glassEdge = Color.adaptive(light: 0x817A70, dark: 0x757A81)
-    static let surface = Color.adaptive(light: 0xE7E1D6, dark: 0x1D2024)
+    static let ink = Color.adaptive(light: 0x23382E, dark: 0xFFF2D7, darkHigh: 0xFFF9E7)
+    static let inkSecondary = Color.adaptive(light: 0x4D6052, dark: 0xD5DFC6,
+                                             lightHigh: 0x354638, darkHigh: 0xF5F8E9)
+    static let inkMuted = inkSecondary
 
-    static let ink = Color.adaptive(light: 0x222C29, dark: 0xF4F0E6)
-    static let inkSecondary = Color.adaptive(light: 0x515E58, dark: 0xBFC3C8, lightHigh: 0x3F4A45)
-    static let inkMuted = Color.adaptive(light: 0x5A6660, dark: 0xADB2B8, lightHigh: 0x414A45, darkHigh: 0xC4C8CD)
+    static let border = Color.adaptive(light: 0x8E8065, dark: 0x8B987A,
+                                       lightHigh: 0x6C604B, darkHigh: 0xBFCBAA)
+    static let glassEdge = border
+    static let borderStrong = Color.adaptive(light: 0x796D56, dark: 0xA3AE8D,
+                                             lightHigh: 0x5A5040, darkHigh: 0xD0DCBD)
 
-    static let border = Color.adaptive(light: 0xC4BCB0, dark: 0x4A4F55, lightHigh: 0x838077, darkHigh: 0x6C7075)
-    static let borderStrong = Color.adaptive(light: 0x746E65, dark: 0x989DA4, lightHigh: 0x57524B, darkHigh: 0xB8BDC3)
+    // Existing page-ink names. Table objects use the fixed tokens below.
+    static let onFelt = ink
+    static let onFeltSecondary = inkSecondary
+    static let onFeltMuted = inkMuted
+    static let hairlineFelt = border
 
     // MARK: Fixed poker-table object
 
-    static let tableFelt = Color(hex: 0x153D33)
-    static let tableFeltDeep = Color(hex: 0x102A23)
-    static let tableHairline = Color(hex: 0x547A70)
-    static let onTable = Color(hex: 0xF4F0E6)
-    static let onTableSecondary = Color(hex: 0xC8D6D0)
-    static let onTableMuted = Color.adaptive(light: 0xA8BBB4, dark: 0xA8BBB4, lightHigh: 0xC0CFC9, darkHigh: 0xC0CFC9)
-    static let tableAccent = Color(hex: 0xEDC17F)
-    static let onTableAccent = Color(hex: 0x241B0E)
-    /// The shared table's material: a rail darker than the felt, seats as darker
-    /// areas of it, and ivory chips. Only cards, chips and the dealer disc cast shadows.
-    static let tableRail = Color(hex: 0x0D2A20)
-    static let tableSeat = Color(hex: 0x123A2D)
-    static let tableSeatLine = Color(hex: 0x2A5646)
-    static let tableSeatActive = Color(hex: 0xF3CA87)
-    static let tableStatus = Color(hex: 0xCFDAD2)
+    static let tableFelt = Color(hex: 0x16694F)
+    static let tableFeltLight = Color(hex: 0x20785B)
+    static let tableFeltDeep = Color(hex: 0x104E3A)
+    static let tableHairline = Color(hex: 0x759E86)
+    static let onTable = Color(hex: 0xFFF7E5)
+    static let onTableSecondary = Color(hex: 0xEFF7E8)
+    static let onTableMuted = Color.adaptive(light: 0xE4F2DC, dark: 0xE4F2DC,
+                                             lightHigh: 0xFFF7E5, darkHigh: 0xFFF7E5)
+    static let tableAccent = Color(hex: 0xFFEDBA)
+    static let onTableAccent = Color(hex: 0x38250F)
+    static let tableRail = Color(hex: 0x14523E)
+    static let tableSeat = Color(hex: 0x104E3A)
+    static let tableSeatLine = Color(hex: 0x487A64)
+    static let tableSeatActive = tableAccent
+    static let tableStatus = onTableSecondary
     static let chipTop = Color(hex: 0xF2ECDD)
     static let chipSide = Color(hex: 0xD6CCB4)
     static let chipEdge = Color(hex: 0x2F3B40)
     static let cardBack = Color(hex: 0x2C3A42)
     static let cardBackLine = Color(hex: 0xE9E2CF)
-
-    /// Existing card backs remain part of the fixed table object.
     static let feltDeep = tableFeltDeep
 
     // MARK: Action and feedback
 
-    /// Amber marks the action or selection under the user's control. The light
-    /// appearance uses a deeper amber so the token remains legible as text.
-    static let cta = Color.adaptive(light: 0x8A5500, dark: 0xEDC17F, lightHigh: 0x644106)
+    /// Amber ink and its existing inverse for compact indicators, links and charts.
+    static let cta = Color.adaptive(light: 0x664215, dark: 0xFCE2AD, lightHigh: 0x573610)
     static let onCTA = Color.adaptive(light: 0xFFFFFF, dark: 0x241B0E)
     static let mint = cta
 
-    /// Green is a result/status color, not the primary action color.
-    static let green = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4, lightHigh: 0x1C513B)
+    /// A raised action face uses dark ink in both appearances.
+    static let actionFill = Color(hex: 0xFFC86D)
+    static let actionInk = onTableAccent
+    static let actionEdge = Color.adaptive(light: 0x846137, dark: 0xAC824D,
+                                           lightHigh: 0x67491F, darkHigh: 0xD5AA73)
+
+    static let supportFill = Color.adaptive(light: 0xD7ECCE, dark: 0x375940)
+    static let supportInk = Color.adaptive(light: 0x284D37, dark: 0xF0F7DC,
+                                           lightHigh: 0x1C3827, darkHigh: 0xF5F8E9)
+    static let supportEdge = Color.adaptive(light: 0x698663, dark: 0x8EAD80,
+                                            lightHigh: 0x4C6848, darkHigh: 0xB6CEA4)
+    static let retryFill = Color.adaptive(light: 0xF8DFCF, dark: 0x533D35)
+    static let retryInk = Color.adaptive(light: 0x593B30, dark: 0xFFECE1,
+                                         lightHigh: 0x462B21, darkHigh: 0xFFF5EC)
+    static let retryEdge = Color.adaptive(light: 0xAB735D, dark: 0xCA9983,
+                                          lightHigh: 0x8C523F, darkHigh: 0xEDBDA5)
+
+    static let green = Color.adaptive(light: 0x16694F, dark: 0xBFE4AE,
+                                      lightHigh: 0x13513E, darkHigh: 0xD0EFAB)
 
     /// Price-bar colors retain their poker meaning on the fixed table.
     static let segPot = Color(hex: 0x24593F)
     static let segBet = Color(hex: 0x2F7352)
     static let segCall = Color(hex: 0x7A5C18)
-    static let actionBet = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4, lightHigh: 0x1C513B)
-    static let actionCall = Color.adaptive(light: 0x8A5500, dark: 0xEDC17F, lightHigh: 0x644106)
+    static let actionBet = green
+    static let actionCall = cta
 
-    static let suitRed = Color.adaptive(light: 0x9B332D, dark: 0xF0A39A, lightHigh: 0x7E2C27)
+    static let suitRed = Color.adaptive(light: 0x9E263A, dark: 0xF0A39A, lightHigh: 0x7E2435)
 
     // MARK: Playing cards
 
-    /// White in light mode so a card stands off the page; dark mode keeps the warmer face.
-    static let cardFace = Color.adaptive(light: 0xFFFFFF, dark: 0xEFEBE0)
-    /// The card's outline, opaque: card ink at 32% on the light face, 18% on the dark one.
-    static let cardEdge = Color.adaptive(light: 0xB6BAB8, dark: 0xC9C8BE)
-    static let cardInk = Color(hex: 0x1A2621)
-    static let cardSuitRed = Color.adaptive(light: 0xB5352A, dark: 0xB5352A, lightHigh: 0x8F2920, darkHigh: 0x8F2920)
+    static let cardFace = Color(hex: 0xFFF8E6)
+    static let cardEdge = Color(hex: 0x8E8065)
+    static let cardInk = Color(hex: 0x23382E)
+    static let cardSuitRed = Color.adaptive(light: 0x9E263A, dark: 0x9E263A,
+                                            lightHigh: 0x7E2435, darkHigh: 0x7E2435)
 
     // relativeTo: .body makes ordinary text follow Dynamic Type. Titles follow Apple's
     // title styles, which grow less at accessibility sizes, so a long word stays whole.
@@ -234,12 +250,13 @@ enum GT {
 
 /// Grade feedback remains text-first and changes tone with the app appearance.
 enum GTBand {
-    static let spotOnInk = Color.adaptive(light: 0x216B4D, dark: 0x83C9A4, lightHigh: 0x1C513B)
-    static let closeInk = Color.adaptive(light: 0x805000, dark: 0xE8C089, lightHigh: 0x644105)
-    static let offInk = Color.adaptive(light: 0x9B332D, dark: 0xF0A39A, lightHigh: 0x7E2C27)
-    static let spotOnTint = Color.adaptive(light: 0xDCEDE4, dark: 0x263D34)
-    static let closeTint = Color.adaptive(light: 0xF1E4CC, dark: 0x3B3325)
-    static let offTint = Color.adaptive(light: 0xF2DEDB, dark: 0x3D2929)
+    static let spotOnInk = GT.supportInk
+    static let closeInk = Color.adaptive(light: 0x664215, dark: 0xFCE2AD,
+                                         lightHigh: 0x573610, darkHigh: 0xFFF0D1)
+    static let offInk = GT.retryInk
+    static let spotOnTint = GT.supportFill
+    static let closeTint = Color.adaptive(light: 0xF4E6C9, dark: 0x483B27)
+    static let offTint = GT.retryFill
 }
 
 /// App backdrop. The subtle spade keeps the Glass Table identity in both appearances
@@ -268,7 +285,6 @@ extension Color {
     }
 
     /// Light and dark values, plus optional stronger values for Increase Contrast.
-    /// Text reaches 7:1 and borders 3:1 on every page surface with the setting on.
     static func adaptive(light: UInt32, dark: UInt32,
                          lightHigh: UInt32? = nil, darkHigh: UInt32? = nil) -> Color {
         Color(uiColor: UIColor { traits in

@@ -36,13 +36,30 @@ struct SettingsView: View {
     private static let feedbackURL =
         URL(string: "mailto:mj.apps.support@gmail.com?subject=Glass%20Table%20%ED%94%BC%EB%93%9C%EB%B0%B1")!
     private func preferenceRow(_ title: String, _ value: String) -> some View {
-        HStack(spacing: 12) {
-            Text(title).font(GT.semibold(15))
-            Spacer(minLength: 12)
-            Text(value).foregroundStyle(GT.inkSecondary)
-            Image(systemName: "chevron.up.chevron.down").font(.system(size: 12, weight: .semibold))
+        let name = Text(title).font(GT.semibold(15))
+        let selection = Text(value).foregroundStyle(GT.inkSecondary)
+        let chevron = Image(systemName: "chevron.up.chevron.down")
+            .font(.system(size: 12, weight: .semibold))
+            .accessibilityHidden(true)
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: GT.Space.related) {
+                name.fixedSize()
+                Spacer(minLength: GT.Space.compact)
+                selection.fixedSize()
+                chevron
+            }
+            HStack(spacing: GT.Space.related) {
+                VStack(alignment: .leading, spacing: 3) {
+                    name
+                    selection
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                chevron
+            }
         }
         .frame(maxWidth: .infinity, minHeight: 44)
+        .multilineTextAlignment(.leading)
         .contentShape(Rectangle())
     }
 
@@ -55,8 +72,9 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text(language.text("설정", "Settings")).font(GT.title(26)).foregroundStyle(GT.onFelt)
-                    .padding(.top, 20)
+                Text(language.text("설정", "Settings")).font(GT.title(30)).foregroundStyle(GT.onFelt)
+                    .accessibilityAddTraits(.isHeader)
+                    .padding(.top, GT.Space.edge)
                 VStack(alignment: .leading, spacing: 12) {
                     Text(language.text("플레이와 피드백", "Play & feedback"))
                         .font(GT.semibold(15)).foregroundStyle(GT.ink)
@@ -67,7 +85,7 @@ struct SettingsView: View {
                         .accessibilityIdentifier("settings-haptics")
                 }
                 .font(GT.body(15)).tint(GT.cta)
-                .gtInset(GT.Space.card).gtCard(radius: 20)
+                .gtInset(GT.Space.card).gtCard()
                 reminderCard
                 VStack(spacing: 0) {
                     Button { showFirstLesson = true } label: {
@@ -90,7 +108,7 @@ struct SettingsView: View {
                         showGlossary = true
                     } label: {
                         row("book.fill", language.text("용어집", "Glossary"),
-                            language.text("포커 용어 한국어·영어 정리", "Poker terms explained in Korean and English."), chevron: true)
+                            language.text("포커 용어 한국어·영어 정리", "Korean and English poker terms."), chevron: true)
                     }
                     .buttonStyle(GTPress())
                     .accessibilityFocused($glossaryButtonFocused)
@@ -98,7 +116,7 @@ struct SettingsView: View {
                     // that nothing writes any more, and 첫 핸드 is superseded by first
                     // run — 천천히 replays any concept's walkthrough on demand instead.
                 }
-                .gtCard(radius: 20)
+                .gtCard()
                 VStack(spacing: 0) {
                     // The store file *is* the export format (spec §8.1). Without this
                     // row the recovery screen's 백업 불러오기 asks for a file the user
@@ -167,7 +185,7 @@ struct SettingsView: View {
                     .buttonStyle(GTPress())
                     .disabled(isReadingImport)
                 }
-                .gtCard(radius: 20)
+                .gtCard()
                 VStack(spacing: 0) {
                     Menu {
                         ForEach(AppLanguage.allCases) { option in
@@ -194,7 +212,7 @@ struct SettingsView: View {
                     }.accessibilityIdentifier("settings-appearance")
                 }
                 .font(GT.body(15)).foregroundStyle(GT.ink).tint(GT.ink)
-                .gtInset(GT.Space.card).gtCard(radius: 20)
+                .gtInset(GT.Space.card).gtCard()
                 VStack(spacing: 0) {
                     Button { showResponsible = true } label: {
                         row("heart.text.square", language.text("책임감 있게 이용하기", "Play responsibly"),
@@ -244,9 +262,9 @@ struct SettingsView: View {
                     }
                     .padding(GT.Space.card)
                 }
-                .gtCard(radius: 20)
+                .gtCard()
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, GT.Space.edge)
         }
         .gtTabBarClearance()
         .background(FeltBackground())
@@ -405,7 +423,7 @@ struct SettingsView: View {
             }
         }
         .gtInset(GT.Space.card, firstText: .semibold(15))
-        .gtCard(radius: 20)
+        .gtCard()
         .onChange(of: language) { _, _ in if reminder.isEnabled { scheduleReminder() } }
     }
 
@@ -422,13 +440,14 @@ struct SettingsView: View {
                 .foregroundStyle(destructive ? GT.suitRed : GT.green).frame(width: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(GT.semibold(15)).foregroundStyle(GT.ink)
+                    .fixedSize(horizontal: false, vertical: true)
                 if let sub {
                     Text(sub).font(GT.body(12)).foregroundStyle(GT.inkMuted)
                         .lineSpacing(GT.Typography.bodyLineSpacing)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            Spacer()
+            Spacer(minLength: 0)
             if chevron || external {
                 Image(systemName: external ? "arrow.up.right" : "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
@@ -498,7 +517,7 @@ private struct ResponsiblePlayView: View {
                         .accessibilityIdentifier("helpline-\(line.id)")
                     }
                 }
-                .gtCard(radius: 20)
+                .gtCard()
             }
             .gtContentEdge()
         }

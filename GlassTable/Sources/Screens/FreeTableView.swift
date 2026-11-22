@@ -443,7 +443,7 @@ struct FreeTableView: View {
                                       showHelp = false
                                       continueAfterHand(table)
                                   }) { showHelp = false }
-                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 16)))
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 7)))
             }
         }
         .animation(reduceMotion ? nil : GT.Motion.fade, value: showHelp)
@@ -503,7 +503,7 @@ struct FreeTableView: View {
                 raiseHeader(FreeRaisePresentation(table: table), amount: raiseAmount,
                             onCancel: { raising = false }, onMath: { helpTab = .hint; showHelp = true })
             } else if !isReplaying(table), table.review == nil, table.currentSeat == 0 {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: GT.Space.related) {
                     statusRow(table)
                     turnFacts(table)
                 }
@@ -588,6 +588,11 @@ struct FreeTableView: View {
             turnFact(language.text("팟", "Pot"),
                      language.text("\(frame.pot)칩", "\(frame.pot) \(frame.pot == 1 ? "chip" : "chips")"))
         }
+        .padding(.horizontal, GT.Space.related)
+        .padding(.vertical, GT.Space.compact)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(GT.supportFill, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+        .overlay(RoundedRectangle(cornerRadius: GT.Radius.panel).strokeBorder(GT.supportEdge, lineWidth: 1))
         .gtTablePartTextCap()
         .accessibilityIdentifier("free-turn-facts")
     }
@@ -598,8 +603,10 @@ struct FreeTableView: View {
             ? AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
             : AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
         return layout {
-            Text(label).font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
-            Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.ink)
+            Text(label).font(GT.semibold(13)).foregroundStyle(GT.supportInk)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(value).font(GT.title(22).monospacedDigit()).foregroundStyle(GT.supportInk)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)
     }
@@ -703,7 +710,7 @@ struct FreeTableView: View {
                             enabled: Bool, reason: String,
                             action: @escaping () -> Void) -> some View {
         let meaning: String = switch role {
-        case .fold: language.text("이번 판 포기", "Give up this hand")
+        case .fold: language.text("이번 판 포기", "Give up")
         case .passive: title == language.text("올인", "All in")
             ? language.text("남은 칩 모두", "All remaining chips")
             : price.isEmpty ? language.text("칩 없이 넘기기", "Pass without chips") : language.text("금액 맞추기", "Match the bet")
@@ -731,10 +738,10 @@ struct FreeTableView: View {
         Button(action: onMath) {
             Label(language.text("선택 도움말", "Decision help"), systemImage: "lightbulb")
                 .fixedSize(horizontal: true, vertical: false)
-                .font(GT.semibold(14)).foregroundStyle(GT.ink)
-                .padding(.horizontal, 12).frame(minHeight: 36)
-                .background(GT.surface, in: Capsule())
-                .overlay(Capsule().strokeBorder(GT.borderStrong, lineWidth: 1))
+                .font(GT.semibold(14)).foregroundStyle(GT.supportInk)
+                .padding(.horizontal, GT.Space.related).frame(minHeight: 36)
+                .background(GT.supportFill, in: RoundedRectangle(cornerRadius: GT.Radius.control))
+                .overlay(RoundedRectangle(cornerRadius: GT.Radius.control).strokeBorder(GT.supportEdge, lineWidth: 1))
                 .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(GTPress())
@@ -1272,6 +1279,9 @@ struct FreeTableView: View {
         demoTable = fixture
         shownHandID = fixture.handID
         shownSteps = count
+        if ProcessInfo.processInfo.environment["GT_DEMO_FREE_COACH"] == "1", fixture.review != nil {
+            showCoach = true
+        }
         return true
     }
     #endif
@@ -1341,8 +1351,8 @@ enum FreeTableWords {
         switch strength {
         case .premium: language.text("가장 좋은 시작 패(상위 \(PracticeHandCoach.premiumPercent)%)는 레이즈해요.",
                                      "Raise your best starting hands (the top \(PracticeHandCoach.premiumPercent)%).")
-        case .playable: language.text("괜찮은 시작 패는 싸게 들어가요. 콜이나 체크가 기본이에요.",
-                                      "Play decent starting hands cheaply. Calling or checking is the default.")
+        case .playable: language.text("괜찮은 시작 패는 싸게 콜하거나 체크해요.",
+                                      "Call cheaply or check decent hands.")
         case .weak: language.text("약한 시작 패는 칩이 들면 포기해요. 공짜면 체크해요.",
                                   "Fold weak starting hands when they cost chips. Check when it's free.")
         case .strong, .topPair: language.text("탑 페어 이상이면 벳하거나 레이즈해서 팟을 키워요.",

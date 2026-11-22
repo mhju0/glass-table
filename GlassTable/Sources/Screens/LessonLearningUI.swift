@@ -2,6 +2,30 @@ import SwiftUI
 import GlassTableEngine
 import GlassTableDrills
 
+struct LessonProgressSegments: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let total: Int
+    let current: Int
+    let completed: Set<Int>
+
+    var body: some View {
+        HStack(spacing: 5) {
+            ForEach(0..<total, id: \.self) { index in
+                let isComplete = completed.contains(index)
+                Capsule()
+                    .fill(isComplete ? GT.green : GT.progressTrack)
+                    .overlay {
+                        Capsule().strokeBorder(index == current ? GT.ink : GT.borderStrong,
+                                               lineWidth: isComplete && index != current ? 0 : 1)
+                    }
+            }
+        }
+        .frame(height: 5)
+        .animation(reduceMotion ? nil : GT.Motion.fade, value: completed)
+        .accessibilityHidden(true)
+    }
+}
+
 struct LessonPairedText: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var textSize
@@ -68,6 +92,7 @@ struct LessonAnswerVerdict<Detail: View>: View {
                     .accessibilityIdentifier("lesson-answer-verdict")
                 detail().foregroundStyle(GT.ink)
             }
+            .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

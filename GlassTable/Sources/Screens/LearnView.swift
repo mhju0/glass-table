@@ -2,8 +2,7 @@ import SwiftUI
 import GlassTableDrills
 
 /// Learn is the lesson list (owner, 2026-10-17, variant A2): the tracks in path order,
-/// every lesson a diagram, a title and one line on what it practises. One row is marked
-/// in amber (`MarkedLesson`); passed rows get a green ✓ and a "연습" round.
+/// the next activity leads, and every lesson stays in its track.
 struct LearnView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
@@ -17,7 +16,6 @@ struct LearnView: View {
     let onOpenBasics: () -> Void
     let onOpenGuidedHand: () -> Void
     var onResumeOpening: () -> Void = {}
-    @State private var didScrollToMarkedRow = false
     /// A lesson opened ahead of the suggested order, awaiting the learner's choice.
     @State private var early: CurriculumNode?
 
@@ -27,36 +25,38 @@ struct LearnView: View {
     private static let basicsRowID = "learn-basics-row"
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(language.text("배우기", "Learn")).font(GT.title(30))
-                        .padding(.bottom, 12)
-                    if let opening = model.state.pendingFirstLesson {
-                        Button(action: onResumeOpening) {
-                            learningRow(language.text("시작 안내 이어서 보기", "Continue the opening guide"),
-                                        language.text("예시 \(opening.exploredCount)/5개를 살펴봤어요. 저장한 카드에서 이어가요.", "\(opening.exploredCount)/5 examples explored. Resume with your saved cards."), icon: "rectangle.stack")
-                        }.buttonStyle(GTPress()).accessibilityIdentifier("learn-resume-opening")
-                    }
-                    reviewLine
-                    if marked == nil { allDoneLine }
-                    // A lesson kept from an older path has no row below, so its resume leads here.
-                    if case .inProgress(let node)? = marked, Curriculum.track(containing: node) == nil {
-                        lessonRow(node)
-                    }
-                    if case .basics? = marked { basicsRow }
-                    ForEach(Curriculum.tracks.filter { !$0.isOptional }) { trackSection($0) }
-                    sectionHeader(language.text("더 해보기", "More to try"), count: nil)
-                    if marked != .basics { basicsRow }
-                    guidedHandRow
-                    ForEach(Curriculum.tracks.filter(\.isOptional)) { trackSection($0) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(language.text("배우기", "Learn")).font(GT.title(30))
+                    .foregroundStyle(GT.onFelt)
+                    .accessibilityAddTraits(.isHeader)
+                    .padding(.bottom, GT.Space.related)
+                if let opening = model.state.pendingFirstLesson {
+                    let title = language.text("시작 안내 이어서 보기", "Continue the opening guide")
+                    let detail = language.text("예시 \(opening.exploredCount)/5개를 살펴봤어요. 저장한 카드에서 이어가요.",
+                                               "\(opening.exploredCount)/5 examples explored. Resume with your saved cards.")
+                    recommendation(title: title, detail: detail, status: nil,
+                                   action: language.text("이어서", "Continue"),
+                                   id: "learn-resume-opening", emphasized: true,
+                                   perform: onResumeOpening)
                 }
-                .padding(18)
+                recommendationForMarkedLesson
+                reviewLine
+                if marked == nil { allDoneLine }
+                // A lesson kept from an older path has no track row.
+                if case .inProgress(let node)? = marked, Curriculum.track(containing: node) == nil {
+                    lessonRow(node)
+                }
+                ForEach(Curriculum.tracks.filter { !$0.isOptional }) { trackSection($0) }
+                sectionHeader(language.text("더 해보기", "More to try"), count: nil)
+                if marked != .basics { basicsRow }
+                guidedHandRow
+                ForEach(Curriculum.tracks.filter(\.isOptional)) { trackSection($0) }
             }
-            .gtTabBarClearance()
-            .background(FeltBackground())
-            .onAppear { scrollToMarkedRowOnce(using: proxy) }
+            .padding(GT.Space.edge)
         }
+        .gtTabBarClearance()
+        .background(FeltBackground())
         .confirmationDialog(language.text("앞 레슨부터 해 볼까요?", "Start with an earlier lesson?"),
                             isPresented: Binding(get: { early != nil }, set: { if !$0 { early = nil } }),
                             titleVisibility: .visible, presenting: early) { node in
@@ -75,6 +75,55 @@ struct LearnView: View {
 
     // MARK: Top
 
+    @ViewBuilder private var recommendationForMarkedLesson: some View {
+        let emphasized = model.state.pendingFirstLesson == nil
+        switch marked {
+        case .basics:
+            recommendation(title: basicsTitle, detail: basicsDetail, status: RowMark.basics.tag(language),
+                           action: RowMark.basics.action(language), id: "learn-basics-start",
+                           emphasized: emphasized, perform: onOpenBasics)
+        case .inProgress(let node), .next(let node):
+            if let mark = mark(for: node) {
+                let challenge = Curriculum.track(containing: node)?.challenge?.baseID == node.baseID
+                recommendation(title: learningNodeTitle(node, language: language, asChallenge: challenge),
+                               detail: learningNodeDescription(node, language: language, asChallenge: challenge),
+                               status: mark.tag(language, step: node.level), action: mark.action(language),
+                               id: mark.actionID, emphasized: emphasized) { open(node) }
+            }
+        case nil:
+            EmptyView()
+        }
+    }
+
+    private func recommendation(title: String, detail: String, status: String?, action: String,
+                                id: String, emphasized: Bool, perform: @escaping () -> Void) -> some View {
+        Button(action: perform) {
+            VStack(alignment: .leading, spacing: GT.Space.compact) {
+                if let status {
+                    Text(status).font(GT.semibold(12))
+                        .foregroundStyle(emphasized ? GT.tableAccent : GT.inkSecondary)
+                }
+                Text(title).font(GT.title(22))
+                    .foregroundStyle(emphasized ? GT.onTable : GT.ink)
+                Text(detail).font(GT.body(14))
+                    .foregroundStyle(emphasized ? GT.onTableSecondary : GT.inkSecondary)
+                    .lineSpacing(GT.Typography.bodyLineSpacing)
+                pill(action, filled: emphasized)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(GT.Space.card)
+            .background(emphasized ? GT.tableFelt : GT.glass,
+                        in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(GTPress())
+        .accessibilityLabel("\(action), \(title)")
+        .accessibilityHint(detail)
+        .accessibilityIdentifier(id)
+        .padding(.bottom, GT.Space.compact)
+    }
+
     /// One line, only when there is a review to start or to finish.
     @ViewBuilder private var reviewLine: some View {
         let open = model.state.activeReviewSession != nil
@@ -87,7 +136,7 @@ struct LearnView: View {
                     Text(text).font(GT.semibold(15)).foregroundStyle(GT.onFelt)
                         .fixedSize(horizontal: false, vertical: true)
                     if !stacks { Spacer(minLength: 8) }
-                    pill(action, filled: false)
+                    pill(action, filled: marked == nil && model.state.pendingFirstLesson == nil)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 8)
@@ -116,7 +165,9 @@ struct LearnView: View {
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 if !stacks { Spacer(minLength: 8) }
-                pill(language.text("연습", "Practice"), filled: false)
+                pill(language.text("연습", "Practice"),
+                     filled: model.state.pendingFirstLesson == nil &&
+                         model.state.activeReviewSession == nil && due.isEmpty)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 8)
@@ -242,15 +293,15 @@ struct LearnView: View {
 
     // MARK: More to try
 
-    /// Ungraded and outside the tracks. A new player starts here, so it is listed first
-    /// while it is the marked row.
+    private var basicsTitle: String { language.text("홀덤 기초", "Hold'em basics") }
+    private var basicsDetail: String { language.text("족보와 확인 문제", "Hand ranks and a quick check") }
+
+    /// Ungraded and outside the tracks. The active recommendation shows it at the top.
     private var basicsRow: some View {
-        let isMarked = marked == .basics
-        return row(id: Self.basicsRowID, title: language.text("홀덤 기초", "Hold'em basics"),
-                   detail: language.text("족보와 확인 문제", "Hand ranks and a quick check"),
+        row(id: Self.basicsRowID, title: basicsTitle, detail: basicsDetail,
                    passed: model.state.basicsLessonCompleted == true, best: nil,
-                   mark: isMarked ? .basics : nil, practice: nil, open: onOpenBasics,
-                   buttonID: "path-basics", actionID: "learn-basics-start") {
+                   mark: nil, practice: nil, open: onOpenBasics,
+                   buttonID: "path-basics") {
             tile("suit.spade.fill")
         }
     }
@@ -309,7 +360,7 @@ struct LearnView: View {
     private func row<Glyph: View>(id: String, title: String, detail: String, passed: Bool,
                                   best: String?, mark: RowMark?, markedStep: DrillLevel = .learn,
                                   steps: (passed: Int, of: Int)? = nil, practice: Concept?,
-                                  open: @escaping () -> Void, buttonID: String, actionID: String? = nil,
+                                  open: @escaping () -> Void, buttonID: String,
                                   @ViewBuilder glyph: () -> Glyph) -> some View {
         let round = practice.flatMap { concept in
             model.state.activeRound.map { $0.concept == concept.rawValue && $0.phase != .finished }
@@ -340,7 +391,7 @@ struct LearnView: View {
                 .fixedSize(horizontal: false, vertical: true)
             if let steps { stepPips(steps) }
             if let mark {
-                Text(mark.tag(language, step: markedStep)).font(GT.semibold(12)).foregroundStyle(GT.cta)
+                Text(mark.tag(language, step: markedStep)).font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
             }
             if let best {
                 Text(best).font(GT.semibold(12)).foregroundStyle(GT.onFeltSecondary)
@@ -352,7 +403,7 @@ struct LearnView: View {
                 text
                 if !stacks {
                     Spacer(minLength: 0)
-                    if mark == nil, !showsPractice {
+                    if !showsPractice {
                         Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(GT.onFeltSecondary)
                     }
@@ -367,35 +418,20 @@ struct LearnView: View {
         .accessibilityAddTraits(.isButton)
         .accessibilityIdentifier(buttonID)
 
-        return layoutStack(spacing: 10) {
+        let layout = stacks || round ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+                                     : AnyLayout(HStackLayout(alignment: .center, spacing: 10))
+        return layout {
             main
-            if let mark {
-                Button(action: open) { pill(mark.action(language), filled: true) }
-                    .buttonStyle(GTPress())
-                    .accessibilityLabel("\(mark.action(language)), \(title)")
-                    .accessibilityIdentifier(actionID ?? mark.actionID)
-            } else if showsPractice, let practice {
+            if showsPractice, let practice {
                 Button { onOpenPractice(practice) } label: { pill(practiceTitle, filled: false) }
                     .buttonStyle(GTPress())
                     .accessibilityLabel("\(practiceTitle), \(title)")
                     .accessibilityIdentifier("practice-\(practice.rawValue)")
             }
         }
-        .padding(.vertical, mark == nil ? 10 : 8)
-        .padding(.horizontal, mark == nil ? 0 : 8)
-        .background {
-            if mark != nil {
-                let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
-                // The same inset amber outline as a deciding card: drawn inside the shape.
-                shape.fill(GT.glass).overlay(shape.strokeBorder(GT.cta, lineWidth: 1.5))
-            }
-        }
-        .padding(.horizontal, mark == nil ? 0 : -8)
-        .padding(.vertical, mark == nil ? 0 : 2)
+        .padding(.vertical, 10)
         .overlay(alignment: .bottom) {
-            if mark == nil {
-                Rectangle().fill(GT.border).frame(height: 1).padding(.leading, stacks ? 0 : 76)
-            }
+            Rectangle().fill(GT.border).frame(height: 1).padding(.leading, stacks ? 0 : 76)
         }
         .accessibilityElement(children: .contain)
         .id(id)
@@ -423,17 +459,17 @@ struct LearnView: View {
         return layout(content)
     }
 
-    /// The filled action belongs to the marked row only; everything else is outlined.
+    /// A filled action marks the recommendation; secondary actions use an outline.
     private func pill(_ title: String, filled: Bool) -> some View {
         let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
         return Text(title).font(GT.semibold(14))
-            .foregroundStyle(filled ? GT.onCTA : GT.onFelt)
+            .foregroundStyle(filled ? GT.actionInk : GT.onFelt)
             .fixedSize(horizontal: !stacks, vertical: true)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 12).padding(.vertical, 7)
             .frame(maxWidth: stacks ? .infinity : nil, minHeight: 36)
             .background {
-                if filled { shape.fill(GT.cta) }
+                if filled { shape.fill(GT.actionFill) }
                 else { shape.fill(GT.surface).overlay(shape.strokeBorder(GT.border, lineWidth: 1)) }
             }
             .frame(minHeight: 44)
@@ -461,37 +497,6 @@ struct LearnView: View {
         }
     }
 
-    private func scrollToMarkedRowOnce(using proxy: ScrollViewProxy) {
-        guard !didScrollToMarkedRow, let marked else { return }
-        didScrollToMarkedRow = true
-        let id: String = switch marked {
-        case .inProgress(let node), .next(let node): node.baseID
-        case .basics: Self.basicsRowID
-        }
-        // Defer the one initial scroll until layout has produced the row; later
-        // renders do not move the learner away from where they scrolled. The bottom
-        // anchor moves only a row below the fold, so the review line stays in view.
-        DispatchQueue.main.async { proxy.scrollTo(id, anchor: .bottom) }
-    }
-
-    private func learningRow(_ title: String, _ detail: String, icon: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon).font(.system(size: 18)).foregroundStyle(GT.inkSecondary)
-                .frame(width: 24).padding(.top, 2).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title).font(GT.semibold(17)).foregroundStyle(GT.onFelt)
-                Text(detail).font(GT.body(15)).foregroundStyle(GT.onFeltSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
-            Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(GT.onFeltSecondary).accessibilityHidden(true)
-        }
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-        .padding(.vertical, 12)
-        .overlay(alignment: .bottom) { Rectangle().fill(GT.border).frame(height: 1) }
-        .contentShape(Rectangle())
-    }
 }
 
 func learningNodeTitle(_ node: CurriculumNode, language: LearningLanguage,

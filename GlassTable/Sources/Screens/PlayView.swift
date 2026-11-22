@@ -45,7 +45,7 @@ struct PlayView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 Text(language.text("플레이", "Play")).font(GT.title(30))
-                    .padding(.bottom, 12)
+                    .padding(.bottom, GT.Space.related)
                 if let table = model.state.tableState {
                     sectionHeader(language.text("이어하기", "Continue"))
                     continueRow(table)
@@ -55,10 +55,10 @@ struct PlayView: View {
                     row(title: language.text("빠른 게임", "Quick game"),
                         detail: language.text("각자 \(TableSetupView.quickStack)칩. \(TableSetupView.quickHands)핸드 뒤에 끝나요.",
                                               "\(TableSetupView.quickStack) chips each. Ends after \(TableSetupView.quickHands) hands."),
-                        id: "play-quick", open: { startNewTable(quick: true) }) { PlayGlyph(kind: .quick) }
+                        id: "play-quick", featured: model.state.tableState == nil, open: { startNewTable(quick: true) }) { PlayGlyph(kind: .quick) }
                         .disabled(model.saveError != nil)
                     row(title: language.text("긴 테이블", "Long table"),
-                        detail: language.text("각자 100칩. 그만할 때까지 계속해요.", "100 chips each. Keeps going until you stop."),
+                        detail: language.text("각자 100칩. 그만할 때까지 계속해요.", "100 chips each. Play until you stop."),
                         id: "play-long", open: { startNewTable(quick: false) }) { PlayGlyph(kind: .long) }
                         .disabled(model.saveError != nil)
                 }
@@ -80,8 +80,8 @@ struct PlayView: View {
                                          "The unfinished hand will be discarded. Settled Quick Game hands stay in history."))
                 }
                 row(title: language.text("1:1 채점 연습", "Graded 1:1 practice"),
-                    detail: language.text("상대 한 명. 고른 행동이 얼마나 좋았는지 봐요.",
-                                          "One opponent. See how good each choice was."),
+                    detail: language.text("선택마다 평가를 받아요.",
+                                          "Get feedback on each choice."),
                     id: "play-graded", open: { showGraded = true }) { PlayGlyph(kind: .graded) }
                 if !savedGames.isEmpty {
                     sectionHeader(language.text("돌아보기", "Look back"))
@@ -92,7 +92,7 @@ struct PlayView: View {
                 }
                 styleLink
             }
-            .padding(18)
+            .padding(GT.Space.edge)
         }
         .background(FeltBackground())
         // Page ground behind the status bar, so nothing scrolls under the clock bare.
@@ -247,12 +247,15 @@ struct PlayView: View {
     /// Picture, title and description, then a chevron; the marked row has its action
     /// instead. At the accessibility sizes everything stacks and the action spans the row.
     private func row<Glyph: View>(title: String, detail: String, id: String, spoken: String? = nil,
-                                  marked: Bool = false, open: @escaping () -> Void,
+                                  marked: Bool = false, featured: Bool = false, open: @escaping () -> Void,
                                   @ViewBuilder glyph: () -> Glyph) -> some View {
+        let leadingActivity = marked || featured
         let text = VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(GT.title(15)).foregroundStyle(GT.onFelt)
+            Text(title).font(GT.title(leadingActivity ? 18 : 15))
+                .foregroundStyle(leadingActivity ? GT.onTable : GT.onFelt)
                 .fixedSize(horizontal: false, vertical: true)
-            Text(detail).font(GT.body(13)).foregroundStyle(GT.onFeltSecondary)
+            Text(detail).font(GT.body(13))
+                .foregroundStyle(leadingActivity ? GT.onTableSecondary : GT.onFeltSecondary)
                 .lineSpacing(GT.Typography.bodyLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -264,7 +267,7 @@ struct PlayView: View {
                     Spacer(minLength: 0)
                     if !marked {
                         Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(GT.onFeltSecondary)
+                            .foregroundStyle(leadingActivity ? GT.tableAccent : GT.onFeltSecondary)
                     }
                 }
             }
@@ -282,23 +285,22 @@ struct PlayView: View {
             if marked {
                 let action = language.text("이어서", "Continue")
                 Button(action: open) { pill(action) }
-                    .buttonStyle(GTPress())
+                    .buttonStyle(GTPress(raised: true))
                     .accessibilityLabel("\(action), \(title)")
                     .accessibilityIdentifier("\(id)-action")
             }
         }
-        .padding(.vertical, marked ? 8 : 10)
-        .padding(.horizontal, marked ? 8 : 0)
+        .padding(.vertical, leadingActivity ? GT.Space.related : 10)
+        .padding(.horizontal, leadingActivity ? GT.Space.related : 0)
         .background {
-            if marked {
-                let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
-                shape.fill(GT.glass).overlay(shape.strokeBorder(GT.cta, lineWidth: 1.5))
+            if leadingActivity {
+                let shape = RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
+                shape.fill(GT.tableFelt).overlay(shape.strokeBorder(GT.tableHairline, lineWidth: 1))
             }
         }
-        .padding(.horizontal, marked ? -8 : 0)
-        .padding(.vertical, marked ? 2 : 0)
+        .padding(.vertical, leadingActivity ? GT.Space.compact : 0)
         .overlay(alignment: .bottom) {
-            if !marked {
+            if !leadingActivity {
                 Rectangle().fill(GT.border).frame(height: 1).padding(.leading, stacks ? 0 : 76)
             }
         }
@@ -316,12 +318,13 @@ struct PlayView: View {
     private func pill(_ title: String) -> some View {
         let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
         return Text(title).font(GT.semibold(14))
-            .foregroundStyle(GT.onCTA)
+            .foregroundStyle(GT.actionInk)
             .fixedSize(horizontal: !stacks, vertical: true)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 12).padding(.vertical, 7)
             .frame(maxWidth: stacks ? .infinity : nil, minHeight: 36)
-            .background { shape.fill(GT.cta) }
+            .background { shape.fill(GT.actionFill) }
+            .overlay(shape.strokeBorder(GT.actionEdge, lineWidth: 1))
             .frame(minHeight: 44)
             .contentShape(Rectangle())
     }

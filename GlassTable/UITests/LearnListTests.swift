@@ -1,9 +1,8 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
 import XCTest
 
-/// Learn is the lesson list (owner, 2026-10-17, variant A2): one marked row, no
-/// suggestion card, "All lessons" or "Practice one skill" entries, and a passed
-/// lesson's "연습" opens that skill's five-question round.
+/// Learn leads with one recommendation and keeps the track rows in path order.
+/// A passed lesson's "연습" opens that skill's five-question round.
 final class LearnListTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
 
@@ -27,10 +26,8 @@ final class LearnListTests: XCTestCase {
         XCTAssertTrue(start.waitForExistence(timeout: 15))
         XCTAssertTrue(start.isHittable)
         XCTAssertEqual(start.label, ko ? "시작, 홀덤 기초" : "Start, Hold'em basics")
-        let row = app.buttons["path-basics"]
-        XCTAssertTrue(row.label.contains(ko ? "여기서 시작" : "Start here"), row.label)
-        // Hold'em basics leads the list while it is the marked row.
-        XCTAssertLessThan(row.frame.maxY, app.buttons["lesson-u1-showdown"].frame.minY)
+        XCTAssertFalse(app.buttons["path-basics"].exists, "The recommendation is the only Basics entry while marked")
+        XCTAssertLessThan(start.frame.maxY, app.buttons["lesson-u1-showdown"].frame.minY)
         assertOneMark(app)
         assertNoRemovedEntries(app, ko: ko)
         attach(app, "\(language)-large-learn-new")
@@ -42,7 +39,7 @@ final class LearnListTests: XCTestCase {
         let review = app.buttons["learn-review"]
         XCTAssertTrue(review.waitForExistence(timeout: 15))
         if !ax {
-            // The marked row is on the first screen, so the list does not scroll past the reviews.
+            // An available review stays reachable below the lesson recommendation.
             XCTAssertTrue(review.isHittable)
         }
         // The due count follows the clock, so only the wording is pinned.
@@ -54,15 +51,14 @@ final class LearnListTests: XCTestCase {
         let start = app.buttons["learn-start"]
         reach(start, app: app)
         XCTAssertTrue(start.label.hasPrefix(ko ? "시작, " : "Start, "), start.label)
-        XCTAssertGreaterThanOrEqual(start.frame.minY, next.frame.minY, "The filled action belongs to the marked row")
+        XCTAssertLessThan(start.frame.minY, next.frame.minY, "The recommendation leads the lesson list")
         // D47 stays on a lesson tried but not passed.
         XCTAssertTrue(app.buttons["lesson-u2-equitySense"].label.contains(ko ? "통과 전 · 최고 1/3" : "Not passed · best 1/3"))
         assertNoRemovedEntries(app, ko: ko)
         attach(app, "\(language)-\(ax ? "AX5" : "large")-learn-seeded")
 
         let practice = app.buttons["practice-position"]
-        for _ in 0..<12 where !practice.isHittable { app.swipeDown() }
-        XCTAssertTrue(practice.isHittable)
+        reach(practice, app: app)
         XCTAssertTrue(practice.label.hasPrefix(ko ? "연습, " : "Practice, "), practice.label)
         practice.tap()
         XCTAssertTrue(app.staticTexts["1/5"].waitForExistence(timeout: 10), "Straight into a five-question round")
@@ -94,6 +90,7 @@ final class LearnListTests: XCTestCase {
         XCTAssertTrue(resume.label.hasPrefix(ko ? "이어서, " : "Continue, "), resume.label)
         let row = app.buttons["lesson-u1-showdown"]
         XCTAssertTrue(row.label.contains(ko ? "진행 중" : "In progress"), row.label)
+        XCTAssertLessThan(resume.frame.minY, row.frame.minY, "The saved lesson leads the list")
         XCTAssertFalse(app.buttons["learn-basics-start"].exists, "The open lesson outranks the basics suggestion")
         assertOneMark(app)
         XCTAssertNil(row.label.range(of: #"\d+/\d+"#, options: .regularExpression), "No question count on a row")
@@ -130,8 +127,7 @@ final class LearnListTests: XCTestCase {
         reach(start, app: app)
         let marked = app.buttons[passed ? "lesson-u2-callFold" : "lesson-u2-potOdds"]
         XCTAssertTrue(marked.label.contains(ko ? "다음" : "Next"), "passed: \(passed), \(marked.label)")
-        XCTAssertGreaterThanOrEqual(start.frame.minY, marked.frame.minY, "The filled action belongs to the marked row")
-        XCTAssertLessThanOrEqual(start.frame.minY, marked.frame.maxY, "The filled action belongs to the marked row")
+        XCTAssertLessThan(start.frame.minY, marked.frame.minY, "The recommendation leads even for a late lesson")
         XCTAssertFalse(app.buttons["learn-basics-start"].exists, "Not sent back to Hold'em basics")
         assertOneMark(app)
         attach(app, "\(language)-large-learn-out-of-order-\(passed ? "passed" : "not-passed")")

@@ -32,10 +32,10 @@ final class PlayListTests: XCTestCase {
                                        : "Quick game, 40 chips each. Ends after 10 hands.")
         let long = app.buttons["play-long"]
         XCTAssertEqual(long.label, ko ? "긴 테이블, 각자 100칩. 그만할 때까지 계속해요."
-                                      : "Long table, 100 chips each. Keeps going until you stop.")
+                                      : "Long table, 100 chips each. Play until you stop.")
         let graded = app.buttons["play-graded"]
-        XCTAssertEqual(graded.label, ko ? "1:1 채점 연습, 상대 한 명. 고른 행동이 얼마나 좋았는지 봐요."
-                                        : "Graded 1:1 practice, One opponent. See how good each choice was.")
+        XCTAssertEqual(graded.label, ko ? "1:1 채점 연습, 선택마다 평가를 받아요."
+                                        : "Graded 1:1 practice, Get feedback on each choice.")
         XCTAssertLessThan(quick.frame.maxY, long.frame.minY + 1)
         XCTAssertLessThan(long.frame.maxY, graded.frame.minY + 1)
         XCTAssertFalse(app.buttons["play-quick-history"].exists, "Nothing saved, nothing to look back on")

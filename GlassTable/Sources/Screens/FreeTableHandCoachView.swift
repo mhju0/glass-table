@@ -22,7 +22,10 @@ struct FreeTableHandCoachView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     Text(language.text("\(page + 1) / \(steps.count + 1)", "Step \(page + 1) of \(steps.count + 1)"))
-                        .font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
+                        .font(GT.semibold(13).monospacedDigit()).foregroundStyle(GT.supportInk)
+                        .padding(.horizontal, GT.Space.related)
+                        .padding(.vertical, GT.Space.compact)
+                        .background(GT.supportFill, in: RoundedRectangle(cornerRadius: GT.Radius.control))
                         .accessibilityIdentifier("coach-progress")
                     if last { summary } else { decision(steps[page]) }
                 }
@@ -59,7 +62,7 @@ struct FreeTableHandCoachView: View {
     private func decision(_ step: PracticeCoachStep) -> some View {
         let board = Array((table.review?.board ?? []).prefix(table.frame(after: step.stepIndex).boardCount))
         Text(FreeTableWords.street(step.street, language: language)).font(GT.title(28))
-        section(language.text("선택 당시 카드", "What you had")) {
+        section(language.text("선택 당시 카드", "What you had"), onTable: true) {
             cards(table.learnerHole.highCardFirst, size: 54)
             if !board.isEmpty {
                 cards(board, size: 40)
@@ -67,8 +70,9 @@ struct FreeTableHandCoachView: View {
             }
             Text(strengthLine(step)).font(GT.body(15))
             if step.facts.startingHandTopPercent != nil {
-                Text(language.text("시작 패 순위는 이길 확률이 아니에요.", "Starting-hand rank is separate from winning probability."))
-                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                Text(language.text("시작 패 순위는 승률과 달라요.", "Hand rank isn’t win probability."))
+                    .font(GT.body(14)).foregroundStyle(GT.onTableSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         if !step.pressure.isEmpty {
@@ -157,7 +161,7 @@ struct FreeTableHandCoachView: View {
 
     private func verdictLine(_ verdict: PracticeCoachStep.Verdict) -> String {
         switch verdict {
-        case .good: language.text("초보자 차트와 같은 선택이에요.", "Good: this choice matches the beginner chart.")
+        case .good: language.text("초보자 차트와 같은 선택이에요.", "Good: matches the chart.")
         case .fine: language.text("초보자 차트에서 괜찮은 선택으로 봐요.", "Fine: the beginner chart accepts this choice.")
         case .risky: language.text("초보자 차트는 다른 선택을 권해요.", "Risky: the beginner chart recommends another choice.")
         }
@@ -232,16 +236,19 @@ struct FreeTableHandCoachView: View {
 
     // MARK: Pieces
 
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(GT.semibold(13)).foregroundStyle(GT.inkSecondary)
+    private func section<Content: View>(_ title: String, onTable: Bool = false,
+                                        @ViewBuilder content: () -> Content) -> some View {
+        let panel = RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
+        return VStack(alignment: .leading, spacing: GT.Space.compact) {
+            Text(title).font(GT.semibold(13)).foregroundStyle(onTable ? GT.onTableSecondary : GT.inkSecondary)
             content()
         }
-        .foregroundStyle(GT.ink)
+        .foregroundStyle(onTable ? GT.onTable : GT.ink)
         .fixedSize(horizontal: false, vertical: true)
         .gtInset(GT.Space.card, firstText: .semibold(13))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .gtPanel()
+        .background(onTable ? GT.tableFelt : GT.glass, in: panel)
+        .overlay(panel.strokeBorder(onTable ? GT.tableHairline : GT.border, lineWidth: 1))
     }
 
     private func cards(_ raw: [String], size: CGFloat) -> some View {

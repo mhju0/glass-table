@@ -420,6 +420,13 @@ struct NodeSessionView: View {
             }
             restore(updated)
         })
+        .safeAreaInset(edge: .top, spacing: 0) {
+            LessonProgressSegments(total: itemCount, current: index,
+                                   completed: Set(0..<(savedSession?.answers.count ?? 0)))
+                .padding(.horizontal, GT.Space.edge)
+                .padding(.vertical, GT.Space.compact)
+                .background(GT.felt)
+        }
         .task(id: "\(savedSession?.id ?? ""):\(index):\(savedSession?.phase.rawValue ?? "")") {
             guard questionReadyAt == nil else { return }
             await Task.yield()
@@ -463,10 +470,11 @@ struct NodeSessionView: View {
                 if missed * 2 > itemCount - helped, onOpenLesson != nil,
                    let easier = Curriculum.easierLesson(than: node) {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(language.text("이번 레슨이 어려웠다면 앞 레슨을 먼저 해 봐도 좋아요. 이 레슨은 언제든 다시 열 수 있어요.",
-                                           "If this one felt hard, the lesson before it may help. You can come back to this one anytime."))
-                            .font(GT.body(15)).foregroundStyle(GT.onFelt)
-                            .fixedSize(horizontal: false, vertical: true)
+                        LessonPairedText(
+                            korean: ["앞 레슨을 먼저 해 봐도 좋아요.", "지금 레슨은 언제든 다시 열 수 있어요."],
+                            english: ["Try an earlier lesson first.", "You can come back here anytime."]
+                        )
+                        .font(GT.body(15)).foregroundStyle(GT.onFelt)
                         SecondaryCTAButton(title: language.text("‘\(learningNodeTitle(easier, language: language))’ 해 보기",
                                                                 "Try “\(learningNodeTitle(easier, language: language))”")) {
                             leaveSummary(for: easier)
