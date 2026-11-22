@@ -152,6 +152,7 @@ public struct ProgressionStore {
         // no record of the last lesson.
         // 4 → 5 adds steps (D53): the steps a tier already shows are marked passed.
         if state.schemaVersion < 5 { markStepsReached(&upgraded) }
+        // 5 → 6 adds `pairLesson`; an older file starts without pair lesson progress.
         return upgraded
     }
 
@@ -240,6 +241,7 @@ public struct ProgressionStore {
               state.placement.map(validate) ?? true,
               ProgressState.lessonTrendRange.contains(state.lessonTrend ?? 0),
               state.lastNodeID.map({ !$0.isEmpty }) ?? true,
+              state.pairLesson.map({ state.schemaVersion >= 6 && $0.isValid }) ?? true,
               state.recentHands.count <= 200,
               Set(state.recentHands.map(\.handID)).count == state.recentHands.count,
               state.recentHands.allSatisfy({ DayKey(raw: $0.day) != nil }),

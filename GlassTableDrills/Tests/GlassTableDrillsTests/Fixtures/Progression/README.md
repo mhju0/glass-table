@@ -1,8 +1,7 @@
 # progression.json golden fixtures
 
-Each file was written by the shipped build's own `ProgressionStore.save`, not by
-today's code. Content is synthetic: fixed dates around 2026-09-13 / 2026-09-25,
-seeds and `fixture-*` IDs. No real phone progress is included.
+Each file was written by the corresponding build's `ProgressionStore.save`.
+Content is synthetic and uses fixed dates, seeds and IDs.
 
 | File | Build | Source commit | Shape |
 |---|---|---|---|
@@ -13,6 +12,7 @@ seeds and `fixture-*` IDs. No real phone progress is included.
 | `schema3-build34.json` | 1.0 (34) | `v1.0-34` | schema 3, the last shape before `lastNodeID` (schema 4): build 34 loaded `schema2-build30.json`, upgraded it and saved it |
 | `schema5-build37.json` | 1.0 (37) | `v1.0-37` | schema 5, steps (D53): `schema4-build35.json` upgraded, plus a pot-counting practice round at step 3 (format 2) with one answer and a step-2 daily summary |
 | `schema4-build35.json` | 1.0 (35), not shipped | `ceb0ea8` (PR #43 branch) | schema 4, the last shape before steps (schema 5): `schema3-build34.json` upgraded, with showdown at 능숙, potOdds at 숙달 and `lastNodeID` `u1-potMath` |
+| `schema6-pair-retry.json` | B2 pilot, not shipped | `feat/warm-native-ui` pilot | schema 6, with pair lesson seed 0, one guided and one solo miss, the first retry answered and the second retry's draft saved |
 
 Build commits come from `docs/build-history.md` and the `CFBundleVersion` bumps in
 `project.yml`.
@@ -45,6 +45,10 @@ For `schema5-build37.json` (2026-10-31) `GlassTableDrills/Sources` was unchanged
 (which upgrades to schema 5), added the round and summary above, saved, and checked the
 reload was equal. Schema 5 shipped in builds 35–37 to TestFlight.
 
-The generator was not committed; only its output was. Do not hand-edit these files.
-When the schema changes, add a fixture written by the last build of the old schema
-in the same way, and add it to `ProgressionGoldenFileTests.fixtures`.
+For `schema6-pair-retry.json` a one-off XCTest advanced the seeded pair lesson
+through the worked example and ten questions, then saved the second retry draft
+through `ProgressionStore.save`.
+
+Keep the fixtures as written by their respective encoders. When the schema
+changes, capture any missing shape from the preceding schema and add a current
+fixture to `ProgressionGoldenFileTests.fixtures`.

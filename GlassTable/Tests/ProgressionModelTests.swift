@@ -19,6 +19,82 @@ final class ProgressionModelTests: XCTestCase {
         try? FileManager.default.removeItem(at: dir)
     }
 
+    func testPairLessonPreservesTheOpenLegacySessionAndResumesItsReveal() throws {
+        let model = ProgressionModel(store: store)
+        let legacyNode = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertTrue(model.beginNodeSession(legacyNode, seed: 31, expectedEpoch: model.epoch))
+        let legacy = model.state
+        XCTAssertTrue(model.beginPairLesson(seed: 42, expectedEpoch: model.epoch))
+        let example = try XCTUnwrap(model.state.pairLesson)
+        XCTAssertEqual(example.phase, .example)
+        XCTAssertTrue(model.applyPairLesson(.advance, from: example, expectedEpoch: model.epoch))
+
+        let guided = try XCTUnwrap(model.state.pairLesson)
+        let question = try XCTUnwrap(guided.currentQuestion)
+        XCTAssertFalse(model.applyPairLesson(.advance, from: example, expectedEpoch: model.epoch))
+        XCTAssertTrue(model.applyPairLesson(.select(question.winner), from: guided, expectedEpoch: model.epoch))
+        let selected = try XCTUnwrap(model.state.pairLesson)
+        let restored = ProgressionModel(store: store)
+        XCTAssertEqual(restored.state.pairLesson, selected)
+        XCTAssertTrue(restored.applyPairLesson(.submit, from: selected, expectedEpoch: restored.epoch))
+        XCTAssertFalse(restored.applyPairLesson(.submit, from: selected, expectedEpoch: restored.epoch))
+
+        let after = ProgressionModel(store: store).state
+        XCTAssertEqual(after.pairLesson?.currentQuestion, question)
+        XCTAssertEqual(after.pairLesson?.revealed, true)
+        XCTAssertEqual(after.activeNodeSession, legacy.activeNodeSession)
+        XCTAssertEqual(after.activeReviewSession, legacy.activeReviewSession)
+        XCTAssertEqual(after.nodes, legacy.nodes)
+        XCTAssertEqual(after.concepts, legacy.concepts)
+        XCTAssertEqual(after.answers, legacy.answers)
+        XCTAssertEqual(after.lastNodeID, legacy.lastNodeID)
+    }
+
+    func testPairLessonSaveFailureKeepsSelectionAndRetryPublishesOnce() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.beginPairLesson(seed: 19, expectedEpoch: model.epoch))
+        let initial = try XCTUnwrap(model.state.pairLesson)
+        XCTAssertTrue(model.applyPairLesson(.advance, from: initial, expectedEpoch: model.epoch))
+        let question = try XCTUnwrap(model.state.pairLesson)
+        XCTAssertTrue(model.applyPairLesson(.select(.learner), from: question, expectedEpoch: model.epoch))
+        let selected = try XCTUnwrap(model.state.pairLesson)
+        let previousState = model.state
+        let previousBytes = try Data(contentsOf: store.url)
+        try FileManager.default.removeItem(at: store.url)
+        try FileManager.default.createDirectory(at: store.url, withIntermediateDirectories: false)
+
+        XCTAssertFalse(model.applyPairLesson(.submit, from: selected, expectedEpoch: model.epoch))
+        XCTAssertNotNil(model.saveError)
+        XCTAssertEqual(model.state, previousState)
+        XCTAssertFalse(model.applyPairLesson(.select(.opponent), from: selected, expectedEpoch: model.epoch))
+
+        try FileManager.default.removeItem(at: store.url)
+        try previousBytes.write(to: store.url)
+        model.retrySave()
+        XCTAssertNil(model.saveError)
+        XCTAssertEqual(model.state.revision, previousState.revision + 1)
+        XCTAssertEqual(model.state.pairLesson?.selection, .learner)
+        XCTAssertEqual(model.state.pairLesson?.revealed, true)
+        XCTAssertEqual(ProgressionModel(store: store).state, model.state)
+        XCTAssertFalse(model.applyPairLesson(.submit, from: selected, expectedEpoch: model.epoch))
+    }
+
+    func testPairLessonRejectsOldEpochAndReusesACompletedOpeningExample() throws {
+        let model = ProgressionModel(store: store)
+        prepareFinishedOpening(model)
+        XCTAssertTrue(model.completeFirstLesson(expectedEpoch: model.epoch))
+        XCTAssertTrue(model.beginPairLesson(seed: 42, expectedEpoch: model.epoch))
+        let initial = try XCTUnwrap(model.state.pairLesson)
+        XCTAssertEqual(initial.phase, .guided)
+        XCTAssertEqual(initial.completedActivities, 1)
+
+        let oldEpoch = model.epoch
+        try model.resetProgress()
+        XCTAssertTrue(model.beginPairLesson(seed: 42, expectedEpoch: model.epoch))
+        XCTAssertFalse(model.applyPairLesson(.select(.learner), from: initial, expectedEpoch: oldEpoch))
+        XCTAssertEqual(model.state.pairLesson?.phase, .example)
+    }
+
     private func prepareFinishedOpening(_ model: ProgressionModel) {
         XCTAssertTrue(model.beginFirstLesson(seed: 17, expectedEpoch: model.epoch))
         XCTAssertTrue(model.saveFirstLesson(FirstLessonSnapshot(variationSeed: 17,

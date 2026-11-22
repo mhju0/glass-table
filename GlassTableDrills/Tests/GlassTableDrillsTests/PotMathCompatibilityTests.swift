@@ -28,14 +28,15 @@ final class PotMathCompatibilityTests: XCTestCase {
         for name in ["build35-sharp-potmath-draft", "build35-sharp-potmath-reveal"] {
             let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures"))
             let bytes = try Data(contentsOf: url)
-            let old = try JSONDecoder().decode(ProgressState.self, from: bytes)
+            var expected = try JSONDecoder().decode(ProgressState.self, from: bytes)
+            expected.schemaVersion = ProgressState.currentSchemaVersion
             try bytes.write(to: store.url)
             guard case let .loaded(state) = store.load() else { return XCTFail("must load \(name)") }
-            XCTAssertEqual(state, old)
-            XCTAssertEqual(try store.importData(bytes), old, "imports regrade the old answer")
+            XCTAssertEqual(state, expected)
+            XCTAssertEqual(try store.importData(bytes), expected, "imports regrade the old answer")
             try store.save(state)
             guard case let .loaded(back) = store.load() else { return XCTFail("must reload \(name)") }
-            XCTAssertEqual(back, old)
+            XCTAssertEqual(back, expected)
             if let round = back.activeRound {
                 XCTAssertEqual(round.ordinal, 1)
                 XCTAssertEqual(round.draft?.input, .potReplay(stepIndex: 6))

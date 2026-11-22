@@ -14,6 +14,7 @@ struct LearnView: View {
     /// The practice screen's skill picker, the way on once every lesson is passed (D38).
     let onChoosePractice: () -> Void
     let onOpenBasics: () -> Void
+    let onOpenPairLesson: () -> Void
     let onOpenGuidedHand: () -> Void
     var onResumeOpening: () -> Void = {}
     /// A lesson opened ahead of the suggested order, awaiting the learner's choice.
@@ -187,7 +188,12 @@ struct LearnView: View {
         return VStack(alignment: .leading, spacing: 0) {
             sectionHeader(track.id.title(in: language), count: (cleared, steps.count),
                           countsSteps: steps.count > track.lessons.count)
-            ForEach(track.lessons, id: \.id) { lessonRow($0) }
+            ForEach(track.lessons, id: \.id) { lesson in
+                lessonRow(lesson)
+                if track.id == .basics, Curriculum.taughtConcept(of: lesson) == .showdown {
+                    pairLessonRow
+                }
+            }
             if let challenge = track.challenge { challengeLine(challenge) }
         }
         .accessibilityElement(children: .contain)
@@ -211,6 +217,21 @@ struct LearnView: View {
             }
         }
         .padding(.top, 22).padding(.bottom, 4)
+    }
+
+    private var pairLessonRow: some View {
+        let progress = model.state.pairLesson
+        let score = progress?.bestFirstRight.map {
+            language.text("혼자 풀기 최고 \($0)/8", "Best solo score \($0)/8")
+        }
+        return row(id: "pair-lesson", title: language.text("원 페어 비교하기", "Compare one-pair hands"),
+                   detail: language.text("카드를 바꿔 가며 더 높은 페어를 찾아요.",
+                                         "Find the higher pair on different deals."),
+                   passed: (progress?.bestFirstRight ?? 0) >= PassMark.required(questions: 8),
+                   best: score, mark: progress.map { $0.phase != .finished } == true ? .inProgress : nil,
+                   practice: nil, open: onOpenPairLesson, buttonID: "learn-pair-lesson") {
+            SkillGlyph(concept: .showdown)
+        }
     }
 
     private func lessonRow(_ node: CurriculumNode) -> some View {

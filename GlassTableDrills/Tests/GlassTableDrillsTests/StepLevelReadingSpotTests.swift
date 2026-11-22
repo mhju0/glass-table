@@ -9,7 +9,7 @@ import GlassTableEngine
 final class StepLevelReadingSpotTests: XCTestCase {
     private let seeds: [UInt64] = [0, 7, 0x9E37_79B9_7F4A_7C15, 123_456_789]
 
-    /// Schema 5 has not shipped, so these skills join the same 4 → 5 upgrade: a
+    /// The 4 → 5 upgrade includes the reading skills: a
     /// cleared lesson is its first step, 능숙 the first two, 숙달 all three.
     func testUpgradeFromSchemaFourMarksTheReadingSkillsSteps() throws {
         let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("gt-reading-\(UUID().uuidString)")
@@ -32,7 +32,7 @@ final class StepLevelReadingSpotTests: XCTestCase {
         let store = ProgressionStore(url: dir.appendingPathComponent("progress.json"))
         try JSONSerialization.data(withJSONObject: json).write(to: store.url)
         guard case let .loaded(state) = store.load() else { return XCTFail("schema 4 must upgrade") }
-        XCTAssertEqual(state.schemaVersion, 5)
+        XCTAssertEqual(state.schemaVersion, ProgressState.currentSchemaVersion)
         XCTAssertNil(state.nodes["u1-position.2"])
         for id in ["u3-rfi", "u3-rfi.2"] {
             XCTAssertEqual(state.nodes[id], NodeRecord(cleared: true, clearedAt: proficientAt, attempts: 0), id)

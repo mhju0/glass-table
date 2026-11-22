@@ -1,8 +1,8 @@
 import XCTest
 @testable import GlassTableDrills
 
-/// Every shipped `progression.json` shape must load, validate, re-grade and survive a
-/// save without losing a key. Fixtures were written by the old builds themselves; see
+/// Each `progression.json` shape must load, validate, re-grade and survive a
+/// save without losing a key. Fixtures were written by their corresponding builds. See
 /// `Fixtures/Progression/README.md`.
 final class ProgressionGoldenFileTests: XCTestCase {
     private var root: URL!
@@ -26,7 +26,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
 
     private static let fixtures = ["schema1-build3", "schema2-build16", "schema2-build22",
                                    "schema2-build30", "schema3-build34", "schema4-build35",
-                                   "schema5-build37"]
+                                   "schema5-build37", "schema6-pair-retry"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -45,11 +45,11 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsFive() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 5)
+    func testCurrentSchemaVersionIsSix() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 6)
     }
 
-    func testEveryShippedShapeLoadsValidatesRoundTripsAndRegrades() throws {
+    func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
         for name in Self.fixtures {
             try freshDirectory()
             let original = try fixture(name)
@@ -94,7 +94,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
                                 level: session.level(at: i))
                 }
             }
-            XCTAssertEqual(regraded, name.hasPrefix("schema1") ? 0 : 3, name)
+            let expectedRegrades = ["schema1-build3", "schema6-pair-retry"].contains(name) ? 0 : 3
+            XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
             let saved = try JSONSerialization.jsonObject(with: Data(contentsOf: s.url))
@@ -170,7 +171,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
         let original = try fixture("schema2-build30")
         let s = try store(with: original)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 2 must upgrade") }
-        XCTAssertEqual(state.schemaVersion, 5)
+        XCTAssertEqual(state.schemaVersion, ProgressState.currentSchemaVersion)
 
         let backups = try files(containing: "schema-2-")
         XCTAssertEqual(backups.count, 1)
@@ -178,19 +179,18 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertTrue(try XCTUnwrap(backups.first).lastPathComponent.hasPrefix("progress.schema-2-"))
 
         let header = try JSONSerialization.jsonObject(with: Data(contentsOf: s.url)) as? [String: Any]
-        XCTAssertEqual(header?["schemaVersion"] as? Int, 5)
+        XCTAssertEqual(header?["schemaVersion"] as? Int, ProgressState.currentSchemaVersion)
         guard case let .loaded(reloaded) = s.load() else { return XCTFail("upgraded file must load") }
         XCTAssertEqual(reloaded, state)
         XCTAssertEqual(try files(containing: "schema-").count, 1, "a current file is not copied again")
     }
 
-    /// Schema 4 adds `lastNodeID`; a schema-3 file is copied as written, then upgraded
-    /// with the key still absent.
+    /// The upgrade copies the schema-3 file and leaves `lastNodeID` absent.
     func testSchemaThreeIsCopiedByteForByteBeforeUpgrade() throws {
         let original = try fixture("schema3-build34")
         let s = try store(with: original)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 3 must upgrade") }
-        XCTAssertEqual(state.schemaVersion, 5)
+        XCTAssertEqual(state.schemaVersion, ProgressState.currentSchemaVersion)
         XCTAssertNil(state.lastNodeID)
 
         let backups = try files(containing: "schema-3-")
@@ -198,8 +198,111 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), original)
 
         let header = try JSONSerialization.jsonObject(with: Data(contentsOf: s.url)) as? [String: Any]
-        XCTAssertEqual(header?["schemaVersion"] as? Int, 5)
+        XCTAssertEqual(header?["schemaVersion"] as? Int, ProgressState.currentSchemaVersion)
         XCTAssertNil(header?["lastNodeID"])
+    }
+
+    func testSchemaFiveUpgradePreservesSnapshotsAndCopiesTheOriginalBytes() throws {
+        let original = try fixture("schema5-build37")
+        var expected = try JSONDecoder().decode(ProgressState.self, from: original)
+        expected.schemaVersion = ProgressState.currentSchemaVersion
+        let s = try store(with: original)
+
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 5 must upgrade") }
+        XCTAssertEqual(state, expected)
+        XCTAssertNil(state.pairLesson)
+        XCTAssertEqual(try s.importData(original), expected)
+
+        let backups = try files(containing: "schema-5-")
+        XCTAssertEqual(backups.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), original)
+        let header = try JSONSerialization.jsonObject(with: Data(contentsOf: s.url)) as? [String: Any]
+        XCTAssertEqual(header?["schemaVersion"] as? Int, ProgressState.currentSchemaVersion)
+        XCTAssertNil(header?["pairLesson"])
+        guard case let .loaded(reloaded) = s.load() else { return XCTFail("upgraded file must load") }
+        XCTAssertEqual(reloaded, state)
+        XCTAssertEqual(try files(containing: "schema-5-"), backups)
+    }
+
+    func testSchemaFiveFileWithPairLessonRequiresRecovery() throws {
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema6-pair-retry")) as? [String: Any])
+        let pair = try XCTUnwrap(json["pairLesson"])
+        json["schemaVersion"] = 5
+        for value in [pair, NSNull()] {
+            try freshDirectory()
+            json["pairLesson"] = value
+            let original = try JSONSerialization.data(withJSONObject: json)
+            let s = try store(with: original)
+
+            guard case .unreadable = s.load() else { return XCTFail("schema 5 cannot carry pair progress") }
+            XCTAssertThrowsError(try s.importData(original)) { error in
+                XCTAssertEqual(error as? StoreError, .notDecodable)
+            }
+            XCTAssertEqual(try Data(contentsOf: s.url), original)
+            XCTAssertTrue(try files(containing: "schema-").isEmpty)
+        }
+    }
+
+    func testInvalidSavedRetryCursorRequiresRecovery() throws {
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema6-pair-retry")) as? [String: Any])
+        var pair = try XCTUnwrap(json["pairLesson"] as? [String: Any])
+        pair["retryIndex"] = Int.max
+        json["pairLesson"] = pair
+        let original = try JSONSerialization.data(withJSONObject: json)
+        let s = try store(with: original)
+
+        guard case .unreadable = s.load() else { return XCTFail("invalid retry cursor must require recovery") }
+        XCTAssertThrowsError(try s.importData(original)) { error in
+            XCTAssertEqual(error as? StoreError, .invalidProgress)
+        }
+        XCTAssertEqual(try Data(contentsOf: s.url), original)
+        XCTAssertTrue(try files(containing: "schema-").isEmpty)
+    }
+
+    func testStoreRefusesSavingPairLessonUnderSchemaFive() throws {
+        let original = try fixture("schema6-pair-retry")
+        let s = try store(with: original)
+        var state = try s.importData(original)
+        state.schemaVersion = 5
+
+        XCTAssertThrowsError(try s.save(state)) { error in
+            XCTAssertEqual(error as? StoreError, .invalidProgress)
+        }
+        XCTAssertEqual(try Data(contentsOf: s.url), original)
+    }
+
+    func testSavedSecondRetryResumesItsDraftAndReveal() throws {
+        let original = try fixture("schema6-pair-retry")
+        let s = try store(with: original)
+        guard case let .loaded(state) = s.load() else { return XCTFail("retry draft must load") }
+        XCTAssertEqual(try s.exportData(state), original)
+        var pair = try XCTUnwrap(state.pairLesson)
+        let question = try XCTUnwrap(pair.currentQuestion)
+        XCTAssertEqual(question.id, "solo-01")
+        XCTAssertEqual(pair.phase, .retry)
+        XCTAssertEqual(pair.retryNumber, 2)
+        XCTAssertEqual(pair.retryCount, 2)
+        XCTAssertEqual(pair.firstRight, 7)
+        XCTAssertEqual(pair.retryRight, 0)
+        XCTAssertEqual(pair.selection, .opponent)
+        XCTAssertFalse(pair.hintVisible)
+        XCTAssertFalse(pair.revealed)
+        XCTAssertTrue(pair.apply(.submit))
+
+        var expected = state
+        expected.pairLesson = pair
+        try s.save(expected)
+        guard case let .loaded(reloaded) = s.load() else { return XCTFail("retry reveal must load") }
+        let reveal = try XCTUnwrap(reloaded.pairLesson)
+        XCTAssertEqual(reloaded, expected)
+        XCTAssertEqual(reveal.currentQuestion, question)
+        XCTAssertEqual(reveal.retryNumber, 2)
+        XCTAssertEqual(reveal.firstRight, 7)
+        XCTAssertEqual(reveal.retryRight, 1)
+        XCTAssertTrue(reveal.revealed)
+        XCTAssertTrue(try files(containing: "schema-").isEmpty)
     }
 
     func testSchemaOneBackupKeepsItsVersionInTheName() throws {
@@ -222,18 +325,19 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: dir.path), ["progress.json"])
     }
 
-    func testSchemaSixIsRefusedAsUnsupported() throws {
+    func testNewerSchemaIsRefusedAsUnsupported() throws {
         var json = try XCTUnwrap(JSONSerialization.jsonObject(
             with: fixture("schema2-build30")) as? [String: Any])
-        json["schemaVersion"] = 6
+        let current = ProgressState.currentSchemaVersion
+        json["schemaVersion"] = current + 1
         let future = try JSONSerialization.data(withJSONObject: json)
         let s = try store(with: future)
 
-        guard case .unreadable = s.load() else { return XCTFail("schema 6 is newer than this build") }
+        guard case .unreadable = s.load() else { return XCTFail("future schema must require recovery") }
         XCTAssertEqual(try Data(contentsOf: s.url), future)
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: dir.path), ["progress.json"])
         XCTAssertThrowsError(try s.importData(future)) { error in
-            XCTAssertEqual(error as? StoreError, .unsupportedSchemaVersion(found: 6, supported: 5))
+            XCTAssertEqual(error as? StoreError, .unsupportedSchemaVersion(found: current + 1, supported: current))
         }
     }
 

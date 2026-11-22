@@ -350,6 +350,40 @@ final class ProgressionModel {
         _ = commit { $0.basicsLessonCompleted = true }
     }
 
+    // MARK: - One-pair lesson
+
+    @discardableResult
+    func beginPairLesson(seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max),
+                         expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
+        if state.pairLesson != nil { return true }
+        let sawCompletedGuide = state.firstLessonCompleted == true && state.openingDismissed == true
+        let sawHigherPair = FirstLesson.Rule.allCases.firstIndex(of: .higherPair).map { index in
+            state.pendingFirstLesson?.responses[index] != nil
+        } ?? false
+        let lesson = PairLessonProgress(seed: seed, exampleAlreadySeen: sawCompletedGuide || sawHigherPair)
+        return commit { $0.pairLesson = lesson }
+    }
+
+    @discardableResult
+    func applyPairLesson(_ action: PairLessonAction, from previous: PairLessonProgress,
+                         expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.pairLesson == previous else { return false }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit { $0.pairLesson = updated }
+    }
+
+    @discardableResult
+    func restartPairLesson(from previous: PairLessonProgress,
+                           seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max),
+                           expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.pairLesson == previous else { return false }
+        var updated = previous
+        guard updated.restart(seed: seed) else { return false }
+        return commit { $0.pairLesson = updated }
+    }
+
     // MARK: - beginner sessions and durable summaries
 
     /// A new round never replaces an unfinished round by accident.

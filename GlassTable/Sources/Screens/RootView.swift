@@ -134,6 +134,12 @@ struct RootView: View {
         if journey.didDismiss() == .play { tab = .play }
     }
 
+    private func openPairLesson() {
+        if model.beginPairLesson(expectedEpoch: model.epoch) {
+            journey.present(.pairLesson)
+        }
+    }
+
     private var tabs: some View {
         TabView(selection: $tab) {
             NavigationStack {
@@ -142,6 +148,7 @@ struct RootView: View {
                           onOpenPractice: { practiceConcept = $0 },
                           onChoosePractice: { showFreePlay = true },
                           onOpenBasics: { journey.present(.basics) },
+                          onOpenPairLesson: openPairLesson,
                           onOpenGuidedHand: { journey.present(.guidedHand) },
                           onResumeOpening: { journey.present(.opening) })
                     .modifier(ProgressSaveNotice())
@@ -184,6 +191,11 @@ struct RootView: View {
         .fullScreenCover(item: shownLesson, onDismiss: afterDismiss) { node in
             NavigationStack {
                 NodeSessionView(node: node, onOpenLesson: { journey.present(.lesson($0)) }).modifier(ProgressSaveNotice())
+            }.environment(model)
+        }
+        .fullScreenCover(isPresented: showing { $0 == .pairLesson }, onDismiss: afterDismiss) {
+            NavigationStack {
+                PairLessonView().modifier(ProgressSaveNotice())
             }.environment(model)
         }
         .fullScreenCover(isPresented: showing { $0 == .basics }, onDismiss: afterDismiss) {
@@ -245,6 +257,10 @@ struct RootView: View {
             if env["GT_DEMO_TABLE"] != nil { tab = .play }
             if env["GT_DEMO_REPLAY"] != nil { tab = .progress }
             if let id = env["GT_DEMO_NODE"], let node = Curriculum.node(id: id) { journey.present(.lesson(node)) }
+            if env["GT_DEMO_PAIR_LESSON"] != nil,
+               model.beginPairLesson(seed: 42, expectedEpoch: model.epoch) {
+                journey.present(.pairLesson)
+            }
             if env["GT_DEMO_FREEPLAY"] != nil { showFreePlay = true }
             if let raw = env["GT_DEMO_CONCEPT"], let concept = Concept(rawValue: raw) {
                 if model.state.activeRound == nil {

@@ -43,8 +43,9 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (5); newer is refused | `ProgressionStore.decodeAndValidate` (header read before full decode) and `validate(_ ProgressState)`; upgrade in `ProgressionStore.load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (6). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
+| Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Practice round format | `activeRound.formatVersion` | 1 (no `level`) or 2 (optional `level` 2…the skill's highest step, D53), with `questionCount` 5 | `ProgressionStore.validate(_ PracticeRound)` |
 | Review session format | `activeReviewSession.formatVersion` | exactly 1; optional `levels`, one step (1…3, within the skill's highest) per question (D53) | `ProgressionStore.validate(_ ReviewSessionSnapshot)` |
 | Daily-summary format | `dailySummaries[].key.formatVersion`, `recentEvidence[].key.formatVersion` | 1…1,000,000, kept as written; Records compares only equal versions. Optional `key.level` 2…3 (D53); mode and concept "table" for table decisions | `ProgressionStore.validate(_ DailyPracticeSummary)`; `RecordsView` |
@@ -56,3 +57,11 @@ described below for files written by builds 30 and later.
 A new inner version value is a new meaning for an existing key, so it bumps the
 schema too. The inner checks stay: they are what rejects an impossible combination
 inside an otherwise valid file.
+
+## Schema 6 · Pair lesson pilot
+
+The optional `pairLesson` stores the pilot lesson's question schedule, answers,
+draft and retry position. Schema 5 files upgrade with this field absent. A file
+that carries the key under an older schema is refused before migration.
+Existing format-1 and format-2 lesson sessions keep their saved questions and
+grading. The standard pre-upgrade byte copy also applies to schema 5.
