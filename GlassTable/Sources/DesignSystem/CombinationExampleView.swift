@@ -30,7 +30,9 @@ struct CombinationExampleView: View {
         }
         .gtInset(GT.Space.card, firstText: .title(18))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .gtPanel()
+        .background(GT.diagramHoney, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+        .overlay(RoundedRectangle(cornerRadius: GT.Radius.panel)
+            .strokeBorder(GT.actionEdge, lineWidth: 1))
         .accessibilityIdentifier("combination-physical-example")
     }
 

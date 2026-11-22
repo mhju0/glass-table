@@ -19,15 +19,14 @@ struct BucketBarView: View {
     /// Off where another percentage is the answer, so the reveal has one headline number.
     var showsHeadline = true
 
-    /// Weakest to strongest: dim felt-ink through to full mint. A single hue ramp, so
-    /// "further right is stronger" is legible to any form of colour blindness.
+    /// An olive-to-felt ramp keeps the five buckets ordered in either appearance.
     private func fill(_ b: MadeHand) -> Color {
         switch b {
-        case .air:      return GT.onFelt.opacity(0.14)
-        case .draw:     return GT.onFelt.opacity(0.28)
-        case .weakPair: return GT.mint.opacity(0.34)
-        case .topPair:  return GT.mint.opacity(0.62)
-        case .strong:   return GT.mint
+        case .air:      return Color.adaptive(light: 0xCDD9B2, dark: 0x586A50)
+        case .draw:     return Color.adaptive(light: 0xACBF8E, dark: 0x70865F)
+        case .weakPair: return Color.adaptive(light: 0x82A374, dark: 0x8BA679)
+        case .topPair:  return Color.adaptive(light: 0x548362, dark: 0xABC991)
+        case .strong:   return Color.adaptive(light: 0x22664D, dark: 0xD4E9AC)
         }
     }
 

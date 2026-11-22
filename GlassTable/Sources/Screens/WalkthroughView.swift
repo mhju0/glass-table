@@ -337,7 +337,9 @@ struct WalkthroughView: View {
             }
             .gtInset(GT.Space.card, firstText: .semibold(13))
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+            .background(GT.diagramHoney, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+            .overlay(RoundedRectangle(cornerRadius: GT.Radius.panel)
+                .strokeBorder(GT.actionEdge, lineWidth: 1))
         case let .buckets(bars):
             VStack(alignment: .leading, spacing: 18) {
                 ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
@@ -398,7 +400,7 @@ struct WalkthroughView: View {
             .overlay {
                 if lit {
                     RoundedRectangle(cornerRadius: PlayingCardView.cornerRadius(for: size))
-                        .strokeBorder(GT.mint, lineWidth: 3)
+                        .strokeBorder(GT.diagramCardEdge, lineWidth: 3)
                 }
             }
             .animation(reduceMotion ? nil : GT.Motion.change, value: lit)

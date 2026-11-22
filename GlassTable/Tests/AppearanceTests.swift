@@ -65,7 +65,7 @@ struct AppearanceTests {
             (GT.onTableMuted, GT.tableFelt, "table muted"),
             (GT.onTable, GT.segPot, "pot segment"),
             (GT.onTable, GT.segBet, "bet segment"),
-            (GT.onTable, GT.segCall, "call segment"),
+            (GT.actionInk, GT.segCall, "call segment"),
             (GT.tableAccent, GT.tableFelt, "table selection"),
             (GT.tableAccent, GT.tableFeltLight, "table selection on lit felt"),
             (GT.onTableAccent, GT.tableAccent, "filled table selection"),
@@ -93,12 +93,32 @@ struct AppearanceTests {
 
     @Test(arguments: [UIUserInterfaceStyle.light, .dark])
     func defendChartLabelsUseOpaqueContrastSafeBands(style: UIUserInterfaceStyle) throws {
-        for action in [DefendAction.call, .threeBet] {
+        for action in DefendAction.allCases {
             let fill = DefendGridView.bandFill(action)
             let resolved = UIColor(fill).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
             #expect(resolved.cgColor.alpha == 1,
                     "Translucent chart bands must not wash out their small labels")
-            #expect(try contrast(GT.onCTA, fill, style: style) >= 4.5)
+            #expect(try contrast(DefendGridView.bandInk(action), fill, style: style) >= 4.5)
+        }
+        #expect(try contrast(DefendGridView.bandFill(.threeBet), DefendGridView.bandFill(.call), style: style) >= 3)
+    }
+
+    @Test(arguments: [UIUserInterfaceStyle.light, .dark])
+    func lessonDiagramInkStaysLegible(style: UIUserInterfaceStyle) throws {
+        let pairs: [(Color, Color, String)] = [
+            (GT.inkSecondary, GT.diagramHoney, "diagram notes"),
+            (GT.cta, GT.diagramHoney, "honey glyph"),
+            (GT.supportInk, GT.supportFill, "mint glyph"),
+            (GT.retryInk, GT.retryFill, "peach glyph"),
+            (GT.ink, GT.diagramRangeFill, "filled range cell"),
+            (GT.ink, GT.surface, "unfilled range cell"),
+            (GT.supportInk, GT.surface, "range fill boundary"),
+            (GT.diagramCardEdge, GT.cardFace, "highlighted card edge"),
+        ]
+
+        for (ink, fill, name) in pairs {
+            let ratio = try contrast(ink, fill, style: style)
+            #expect(ratio >= 4.5, "\(name) contrast was \(ratio):1")
         }
     }
 

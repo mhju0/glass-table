@@ -67,15 +67,19 @@ struct RangeGridView: View {
                 GeometryReader { g in
                     VStack(spacing: 0) {
                         Spacer(minLength: 0)
-                        Rectangle().fill(GT.mint.opacity(0.85))
+                        Rectangle().fill(GT.diagramRangeFill)
+                            .overlay(alignment: .top) {
+                                Rectangle().fill(GT.supportInk).frame(height: 1)
+                            }
                             .frame(height: g.size.height * w)
+                            .clipped()
                     }
                 }
             }
             Text(h.description)
                 .font(.system(size: max(6, side * 0.30), weight: .semibold))
                 .lineLimit(1)
-                .foregroundStyle(w > 0 ? GT.onCTA : GT.inkMuted)
+                .foregroundStyle(GT.ink)
         }
         .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: max(1.5, side * 0.14)))

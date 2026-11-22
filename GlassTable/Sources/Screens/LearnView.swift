@@ -478,10 +478,12 @@ struct LearnView: View {
 
     /// A diagram tile for the rows that teach no single skill.
     private func tile(_ symbol: String) -> some View {
-        Image(systemName: symbol).font(.system(size: 18, weight: .semibold))
-            .foregroundStyle(GT.onFeltSecondary)
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.tile, style: .continuous)
+        return Image(systemName: symbol).font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(GT.cta)
             .frame(width: 64, height: 48)
-            .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.tile, style: .continuous))
+            .background(GT.diagramHoney, in: shape)
+            .overlay(shape.strokeBorder(GT.actionEdge, lineWidth: 1))
             .accessibilityHidden(true)
     }
 

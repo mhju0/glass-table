@@ -160,10 +160,15 @@ enum GT {
     static let green = Color.adaptive(light: 0x16694F, dark: 0xBFE4AE,
                                       lightHigh: 0x13513E, darkHigh: 0xD0EFAB)
 
-    /// Price-bar colors retain their poker meaning on the fixed table.
+    // MARK: Lesson diagrams
+
+    static let diagramHoney = Color.adaptive(light: 0xF4E6C9, dark: 0x483B27)
+    static let diagramRangeFill = Color.adaptive(light: 0xB7CFA3, dark: 0x4B7055,
+                                                 lightHigh: 0xB0C99A, darkHigh: 0x45694D)
+    static let diagramCardEdge = Color(hex: 0x956021)
     static let segPot = Color(hex: 0x24593F)
-    static let segBet = Color(hex: 0x2F7352)
-    static let segCall = Color(hex: 0x7A5C18)
+    static let segBet = Color(hex: 0x5B6E43)
+    static let segCall = actionFill
     static let actionBet = green
     static let actionCall = cta
 
@@ -255,7 +260,7 @@ enum GTBand {
                                          lightHigh: 0x573610, darkHigh: 0xFFF0D1)
     static let offInk = GT.retryInk
     static let spotOnTint = GT.supportFill
-    static let closeTint = Color.adaptive(light: 0xF4E6C9, dark: 0x483B27)
+    static let closeTint = GT.diagramHoney
     static let offTint = GT.retryFill
 }
 
