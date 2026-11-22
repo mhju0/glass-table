@@ -67,6 +67,6 @@ final class FirstLessonFeedbackFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["firstLesson.finish"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["firstLesson.moreComparisons"].exists)
         tap(app.buttons["firstLesson.finish"])
-        XCTAssertTrue(app.buttons["basics.close"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["unit-a-close"].waitForExistence(timeout: 5))
     }
 }

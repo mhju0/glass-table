@@ -61,6 +61,30 @@ struct RootView: View {
         }
     }
 
+    #if DEBUG
+    private static func unitADemo(_ start: String) -> UnitAProgress {
+        let lesson: UnitALesson
+        switch start {
+        case "rankAndSuit": lesson = .rankAndSuit
+        case "findPair": lesson = .findPair
+        case "streets": lesson = .streets
+        case "endings": lesson = .endings
+        default: lesson = .privateCards
+        }
+        var progress = UnitAProgress()
+        while progress.lesson != lesson {
+            let action: UnitAAction
+            if let activity = progress.activity, activity.kind != .example, !progress.revealed {
+                action = progress.selection == nil ? .select(0) : .submit
+            } else {
+                action = .advance
+            }
+            guard progress.apply(action) else { break }
+        }
+        return progress
+    }
+    #endif
+
     private var language: LearningLanguage { languageSettings.resolved }
 
     private var level: PlacementSelfReport {
@@ -106,8 +130,12 @@ struct RootView: View {
               model.state.firstLessonCompleted == true,
               model.state.pendingFirstLesson == nil else { return }
         pendingOpeningFinishEpoch = nil
-        let next: BeginnerJourney.Step? = model.state.basicsLessonCompleted == true
-            ? model.nextNode.map { .lesson($0) } : .basics
+        let next: BeginnerJourney.Step?
+        if model.openingContinuesToUnitA, model.state.unitA != nil {
+            next = .unitA
+        } else {
+            next = model.state.basicsLessonCompleted == true ? model.nextNode.map { .lesson($0) } : .basics
+        }
         if pendingOpeningFinishResumed { journey.close(then: next) }
         else if let next { journey.present(next) }
     }
@@ -144,6 +172,10 @@ struct RootView: View {
         if journey.didDismiss() == .play { tab = .play }
     }
 
+    private func openUnitA() {
+        if model.beginUnitA(expectedEpoch: model.epoch) { journey.present(.unitA) }
+    }
+
     private func openPairLesson() {
         if model.beginPairLesson(expectedEpoch: model.epoch) {
             journey.present(.pairLesson)
@@ -164,6 +196,7 @@ struct RootView: View {
                           onOpenPractice: { practiceConcept = $0 },
                           onChoosePractice: { showFreePlay = true },
                           onOpenBasics: { journey.present(.basics) },
+                          onOpenUnitA: openUnitA,
                           onOpenPairLesson: openPairLesson,
                           onOpenPairFollowUp: openPairFollowUp,
                           onOpenGuidedHand: { journey.present(.guidedHand) },
@@ -208,6 +241,11 @@ struct RootView: View {
         .fullScreenCover(item: shownLesson, onDismiss: afterDismiss) { node in
             NavigationStack {
                 NodeSessionView(node: node, onOpenLesson: { journey.present(.lesson($0)) }).modifier(ProgressSaveNotice())
+            }.environment(model)
+        }
+        .fullScreenCover(isPresented: showing { $0 == .unitA }, onDismiss: afterDismiss) {
+            NavigationStack {
+                UnitAView().modifier(ProgressSaveNotice())
             }.environment(model)
         }
         .fullScreenCover(isPresented: showing { $0 == .pairLesson }, onDismiss: afterDismiss) {
@@ -279,6 +317,11 @@ struct RootView: View {
             if env["GT_DEMO_TABLE"] != nil { tab = .play }
             if env["GT_DEMO_REPLAY"] != nil { tab = .progress }
             if let id = env["GT_DEMO_NODE"], let node = Curriculum.node(id: id) { journey.present(.lesson(node)) }
+            if env["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+               let start = env["GT_DEMO_UNIT_A"],
+               model.beginUnitA(expectedEpoch: model.epoch, initial: Self.unitADemo(start)) {
+                journey.present(.unitA)
+            }
             if env["GT_DEMO_PAIR_LESSON"] != nil,
                model.beginPairLesson(seed: 42, expectedEpoch: model.epoch) {
                 journey.present(.pairLesson)

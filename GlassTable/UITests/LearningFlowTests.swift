@@ -37,10 +37,13 @@ final class LearningFlowTests: XCTestCase {
             XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 5), title)
             tap("firstLesson.next")
         }
-        XCTAssertEqual(app.buttons["firstLesson.finish"].label, "족보 보기")
+        XCTAssertEqual(app.buttons["firstLesson.finish"].label, "한 판 따라가기")
         tap("firstLesson.finish")
+        XCTAssertTrue(app.buttons["unit-a-close"].waitForExistence(timeout: 10))
+        tap("unit-a-close")
 
-        // The hand-ranks lesson comes before the course's first node.
+        // The original hand-ranks lesson remains reachable from Learn.
+        tap("learn-basics-start")
         XCTAssertTrue(app.descendants(matching: .any)["basics.rank.pair"].waitForExistence(timeout: 10))
         let royal = app.staticTexts.matching(NSPredicate(
             format: "label BEGINSWITH %@", "1, 로열 플러시,"

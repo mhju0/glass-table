@@ -547,7 +547,7 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(reloaded, demo)
     }
 
-    func testCompletingFirstLessonPersistsOnlyItsMarker() throws {
+    func testCompletingFirstLessonStartsUnitAWithoutAwardingLessonCredit() throws {
         let model = ProgressionModel(store: store)
         prepareFinishedOpening(model)
         let before = model.state
@@ -560,7 +560,51 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.state.nodes, before.nodes)
         XCTAssertEqual(model.state.answers, before.answers)
         XCTAssertEqual(model.state.streak, before.streak)
-        XCTAssertEqual(ProgressionModel(store: store).state.firstLessonCompleted, true)
+        let restored = ProgressionModel(store: store)
+        XCTAssertEqual(restored.state.firstLessonCompleted, true)
+        XCTAssertEqual(restored.state.unitA, UnitAProgress())
+        XCTAssertEqual(restored.state.unitA?.completedLessons, 0)
+    }
+
+    func testCompletingOpeningDoesNotReplaceAnExistingLegacySession() throws {
+        let model = ProgressionModel(store: store)
+        prepareFinishedOpening(model)
+        let node = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
+        XCTAssertTrue(model.beginNodeSession(node, seed: 31, expectedEpoch: model.epoch))
+        let originalSession = try XCTUnwrap(model.state.activeNodeSession)
+
+        XCTAssertFalse(model.openingContinuesToUnitA)
+        XCTAssertTrue(model.completeFirstLesson(expectedEpoch: model.epoch))
+        XCTAssertNil(model.state.unitA)
+        XCTAssertEqual(ProgressionModel(store: store).state.activeNodeSession, originalSession)
+    }
+
+    func testUnitASaveFailureAndStaleEventsPreserveTheDurableActivity() throws {
+        let model = ProgressionModel(store: store)
+        let epoch = model.epoch
+        XCTAssertTrue(model.beginUnitA(expectedEpoch: epoch))
+        let initial = try XCTUnwrap(model.state.unitA)
+        let previousBytes = try Data(contentsOf: store.url)
+        try FileManager.default.removeItem(at: store.url)
+        try FileManager.default.createDirectory(at: store.url, withIntermediateDirectories: false)
+
+        XCTAssertFalse(model.applyUnitA(.advance, from: initial, expectedEpoch: epoch))
+        XCTAssertNotNil(model.saveError)
+        XCTAssertEqual(model.state.unitA, initial)
+
+        try FileManager.default.removeItem(at: store.url)
+        try previousBytes.write(to: store.url)
+        model.retrySave()
+        XCTAssertNil(model.saveError)
+        let updated = try XCTUnwrap(model.state.unitA)
+        XCTAssertNotEqual(initial.activity?.id, updated.activity?.id)
+        XCTAssertEqual(ProgressionModel(store: store).state.unitA, updated)
+        XCTAssertFalse(model.applyUnitA(.advance, from: initial, expectedEpoch: epoch))
+
+        try model.resetProgress()
+        XCTAssertTrue(model.beginUnitA(expectedEpoch: model.epoch))
+        XCTAssertFalse(model.applyUnitA(.advance, from: initial, expectedEpoch: epoch))
+        XCTAssertEqual(model.state.unitA, initial)
     }
 
     func testBasicsLessonIsSuggestedUntilFinishedAndWritesOnlyItsMarker() throws {

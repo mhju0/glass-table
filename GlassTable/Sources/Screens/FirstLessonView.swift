@@ -871,9 +871,12 @@ struct FirstLessonView: View {
             }
             .gtInset(GT.Space.card, firstText: .semibold(15)).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
-            if opensBasics {
-                Text(language.text("다음은 족보예요. 어떤 5장이 더 강한지 알아봐요.",
-                                   "Next: hand ranks, and which five beats which."))
+            if opensUnitA || opensBasics {
+                Text(opensUnitA
+                     ? language.text("이제 내 카드와 공용 카드를 구분해 볼까요?",
+                                     "Next, spot which cards are yours and which are shared.")
+                     : language.text("다음은 족보예요. 어떤 5장이 더 강한지 알아봐요.",
+                                     "Next, see which hands rank highest."))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
@@ -895,13 +898,18 @@ struct FirstLessonView: View {
         }
     }
 
-    /// The first run goes on to the hand-ranks lesson unless it is already done.
+    private var opensUnitA: Bool {
+        context != .replay && model.openingContinuesToUnitA
+    }
+
+    /// The legacy path still leads into hand ranks when those are unfinished.
     private var opensBasics: Bool {
-        context != .replay && model.state.basicsLessonCompleted != true
+        context != .replay && !opensUnitA && model.state.basicsLessonCompleted != true
     }
 
     private var finishTitle: String {
         if context == .replay { return copy(.returnToLearning) }
+        if opensUnitA { return language.text("한 판 따라가기", "Follow a hand") }
         return opensBasics ? language.text("족보 보기", "See the hand ranks") : copy(.beginCourse)
     }
 

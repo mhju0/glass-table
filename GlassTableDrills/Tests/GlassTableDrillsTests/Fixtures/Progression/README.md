@@ -14,6 +14,7 @@ Content is synthetic and uses fixed dates, seeds and IDs.
 | `schema4-build35.json` | 1.0 (35), not shipped | `ceb0ea8` (PR #43 branch) | schema 4, the last shape before steps (schema 5): `schema3-build34.json` upgraded, with showdown at 능숙, potOdds at 숙달 and `lastNodeID` `u1-potMath` |
 | `schema6-pair-retry.json` | B2 pilot, not shipped | `feat/warm-native-ui` pilot | schema 6, with pair lesson seed 0, one guided and one solo miss, the first retry answered and the second retry's draft saved |
 | `schema7-pair-follow-up.json` | B2 follow-up, not shipped | `feat/warm-native-ui` Phase 01 | schema 7, with a completed pair lesson, fresh hand at feedback and the scheduled review hand with a draft selection |
+| `schema8-unit-a-reveal.json` | Unit A, not shipped | `feat/warm-native-ui` Phase 03 | schema 8, with the schema 7 pair follow-up and Unit A's first retrieval at feedback |
 
 Build commits come from `docs/build-history.md` and the `CFBundleVersion` bumps in
 `project.yml`.
@@ -55,6 +56,11 @@ with a hint on the first solo hand, then captured follow-up scheduled at
 2026-11-23 23:00 UTC. It submitted an incorrect answer on the fresh hand and
 selected the correct side of the review hand on its due day. The test saved
 with `ProgressionStore.save` and checked that the readback was equal.
+
+For `schema8-unit-a-reveal.json` a one-off XCTest loaded the schema 7 fixture,
+advanced Unit A to its first question, selected the second answer and
+submitted it. It saved both progress records through `ProgressionStore.save`
+and checked that the readback was equal.
 
 Keep the fixtures as written by their respective encoders. When the schema
 changes, capture any missing shape from the preceding schema and add a current

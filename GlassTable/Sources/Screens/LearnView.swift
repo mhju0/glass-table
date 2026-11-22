@@ -16,6 +16,7 @@ struct LearnView: View {
     /// The practice screen's skill picker, the way on once every lesson is passed (D38).
     let onChoosePractice: () -> Void
     let onOpenBasics: () -> Void
+    let onOpenUnitA: () -> Void
     let onOpenPairLesson: () -> Void
     let onOpenPairFollowUp: (PairLessonFollowUpKind) -> Void
     let onOpenGuidedHand: () -> Void
@@ -45,7 +46,9 @@ struct LearnView: View {
                                    id: "learn-resume-opening", emphasized: true,
                                    perform: onResumeOpening)
                 }
+                if highlightsUnitA { unitARecommendation }
                 recommendationForMarkedLesson
+                if !highlightsUnitA { unitARecommendation }
                 reviewLine
                 pairFollowUps
                 if marked == nil { allDoneLine }
@@ -88,13 +91,31 @@ struct LearnView: View {
 
     // MARK: Top
 
+    private var highlightsUnitA: Bool {
+        model.state.pendingFirstLesson == nil && model.openingContinuesToUnitA
+    }
+
+    private var unitARecommendation: some View {
+        let progress = model.state.unitA
+        let finished = progress?.phase == .finished
+        let title = language.text("한 판 따라가기", "Follow a hand")
+        let detail = finished
+            ? language.text("기초 레슨 5개를 마쳤어요.", "All five introductory lessons complete.")
+            : (progress?.lesson ?? .privateCards).title(in: language)
+        let action = finished ? language.text("결과 보기", "View results")
+            : progress == nil ? language.text("시작", "Start") : language.text("이어서", "Continue")
+        return recommendation(title: title, detail: detail, status: nil, action: action,
+                              id: "learn-unit-a", emphasized: highlightsUnitA, perform: onOpenUnitA)
+    }
+
     @ViewBuilder private var recommendationForMarkedLesson: some View {
-        let emphasized = model.state.pendingFirstLesson == nil
+        let emphasized = model.state.pendingFirstLesson == nil && !highlightsUnitA
         switch marked {
         case .basics:
-            recommendation(title: basicsTitle, detail: basicsDetail, status: RowMark.basics.tag(language),
-                           action: RowMark.basics.action(language), id: "learn-basics-start",
-                           emphasized: emphasized, perform: onOpenBasics)
+            recommendation(title: basicsTitle, detail: basicsDetail,
+                           status: highlightsUnitA ? nil : RowMark.basics.tag(language),
+                           action: highlightsUnitA ? language.text("열기", "Open") : RowMark.basics.action(language),
+                           id: "learn-basics-start", emphasized: emphasized, perform: onOpenBasics)
         case .inProgress(let node), .next(let node):
             if let mark = mark(for: node) {
                 let challenge = Curriculum.track(containing: node)?.challenge?.baseID == node.baseID

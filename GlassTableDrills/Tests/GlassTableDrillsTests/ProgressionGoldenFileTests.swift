@@ -27,7 +27,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
     private static let fixtures = ["schema1-build3", "schema2-build16", "schema2-build22",
                                    "schema2-build30", "schema3-build34", "schema4-build35",
                                    "schema5-build37", "schema6-pair-retry",
-                                   "schema7-pair-follow-up"]
+                                   "schema7-pair-follow-up", "schema8-unit-a-reveal"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -46,8 +46,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsSeven() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 7)
+    func testCurrentSchemaVersionIsEight() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 8)
     }
 
     func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
@@ -96,7 +96,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
                 }
             }
             let expectedRegrades = ["schema1-build3", "schema6-pair-retry",
-                                    "schema7-pair-follow-up"].contains(name) ? 0 : 3
+                                    "schema7-pair-follow-up", "schema8-unit-a-reveal"].contains(name) ? 0 : 3
             XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
@@ -337,13 +337,20 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), legacyBytes)
     }
 
-    func testSchemaSevenFollowUpsResumeBothExactHands() throws {
+    func testSchemaSevenMigrationPreservesBothExactFollowUpHands() throws {
         let original = try fixture("schema7-pair-follow-up")
         let s = try store(with: original)
         guard case let .loaded(state) = s.load() else {
             return XCTFail("schema 7 follow-up file must load")
         }
-        XCTAssertEqual(try s.exportData(state), original)
+        var expected = try JSONDecoder().decode(ProgressState.self, from: original)
+        expected.schemaVersion = ProgressState.currentSchemaVersion
+        let backups = try files(containing: "schema-7-")
+        XCTAssertEqual(backups.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(backups.first)), original)
+        XCTAssertNil(state.unitA)
+        XCTAssertEqual(state, expected)
+        XCTAssertEqual(try s.exportData(), try s.exportData(expected))
         XCTAssertEqual(try s.importData(original), state)
         XCTAssertEqual(state.pairLesson?.phase, .finished)
         XCTAssertEqual(state.pairLesson?.firstRight, 7)
@@ -374,7 +381,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(restoredFollowUp.attempt(for: .review)?.question, review.question)
         XCTAssertEqual(restoredFollowUp.attempt(for: .review)?.selection, review.selection)
         XCTAssertEqual(restoredFollowUp.attempt(for: .review)?.revealed, true)
-        XCTAssertTrue(try files(containing: "schema-").isEmpty)
+        XCTAssertEqual(try files(containing: "schema-"), backups)
     }
 
     func testSchemaSixFileWithFollowUpRequiresRecovery() throws {
@@ -442,11 +449,82 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(restored.pairLessonFollowUp, existingFollowUp)
     }
 
+    func testSchemaEightResumesAUnitARevealAlongsidePairFollowUps() throws {
+        let original = try fixture("schema8-unit-a-reveal")
+        let s = try store(with: original)
+        guard case let .loaded(state) = s.load() else {
+            return XCTFail("schema 8 Unit A reveal must load")
+        }
+        XCTAssertEqual(try s.exportData(state), original)
+        XCTAssertEqual(try s.importData(original), state)
+        let legacy = try s.importData(fixture("schema7-pair-follow-up"))
+        var unit = try XCTUnwrap(state.unitA)
+        var expected = legacy
+        expected.unitA = unit
+        XCTAssertEqual(state, expected)
+        XCTAssertTrue(unit.isValid)
+        XCTAssertEqual(unit.lesson, .privateCards)
+        XCTAssertEqual(unit.activity?.id, "A1-01")
+        XCTAssertEqual(unit.selection, 1)
+        XCTAssertTrue(unit.revealed)
+        XCTAssertEqual(unit.answeredCorrectly, false)
+        XCTAssertFalse(unit.apply(.submit), "A revealed answer cannot be submitted twice.")
+        XCTAssertTrue(unit.apply(.advance))
+
+        expected.unitA = unit
+        try s.save(expected)
+        guard case let .loaded(restored) = s.load() else {
+            return XCTFail("Unit A must resume at the next activity")
+        }
+        XCTAssertEqual(restored, expected)
+        XCTAssertNotEqual(restored.unitA?.activity?.id, state.unitA?.activity?.id)
+        XCTAssertTrue(try files(containing: "schema-").isEmpty)
+    }
+
+    func testOlderFileWithUnitARequiresRecovery() throws {
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema8-unit-a-reveal")) as? [String: Any])
+        let unit = try XCTUnwrap(json["unitA"])
+        json["schemaVersion"] = 7
+        for value in [unit, NSNull()] {
+            try freshDirectory()
+            json["unitA"] = value
+            try assertRecovery(for: json, error: .notDecodable)
+        }
+    }
+
+    func testMalformedUnitARequiresRecovery() throws {
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema8-unit-a-reveal")) as? [String: Any])
+        json["unitA"] = true
+        try assertRecovery(for: json, error: .notDecodable)
+    }
+
+    func testInvalidUnitAContentVersionRequiresRecovery() throws {
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema8-unit-a-reveal")) as? [String: Any])
+        var unit = try XCTUnwrap(json["unitA"] as? [String: Any])
+        unit["contentVersion"] = 2
+        json["unitA"] = unit
+        try assertRecovery(for: json, error: .invalidProgress)
+    }
+
+    func testStoreRefusesSavingUnitAUnderSchemaSeven() throws {
+        let original = try fixture("schema7-pair-follow-up")
+        let s = try store(with: original)
+        var invalid = try s.importData(fixture("schema8-unit-a-reveal"))
+        invalid.schemaVersion = 7
+        XCTAssertThrowsError(try s.save(invalid)) { error in
+            XCTAssertEqual(error as? StoreError, .invalidProgress)
+        }
+        XCTAssertEqual(try s.exportData(), original)
+    }
+
     private func assertRecovery(for json: [String: Any], error expected: StoreError) throws {
         let original = try JSONSerialization.data(withJSONObject: json)
         let s = try store(with: original)
 
-        guard case .unreadable = s.load() else { return XCTFail("invalid follow-up must require recovery") }
+        guard case .unreadable = s.load() else { return XCTFail("invalid save must require recovery") }
         XCTAssertThrowsError(try s.importData(original)) { error in
             XCTAssertEqual(error as? StoreError, expected)
         }

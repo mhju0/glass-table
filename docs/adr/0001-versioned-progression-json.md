@@ -43,10 +43,11 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (7). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (8). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
+| Unit A content | `unitA.contentVersion` | Exactly 1 when `unitA` is present | `ProgressionStore.validate(_ ProgressState)` via `UnitAProgress.isValid` |
 | Practice round format | `activeRound.formatVersion` | 1 (no `level`) or 2 (optional `level` 2…the skill's highest step, D53), with `questionCount` 5 | `ProgressionStore.validate(_ PracticeRound)` |
 | Review session format | `activeReviewSession.formatVersion` | exactly 1; optional `levels`, one step (1…3, within the skill's highest) per question (D53) | `ProgressionStore.validate(_ ReviewSessionSnapshot)` |
 | Daily-summary format | `dailySummaries[].key.formatVersion`, `recentEvidence[].key.formatVersion` | 1…1,000,000, kept as written; Records compares only equal versions. Optional `key.level` 2…3 (D53); mode and concept "table" for table decisions | `ProgressionStore.validate(_ DailyPracticeSummary)`; `RecordsView` |
@@ -76,3 +77,11 @@ lesson and upgrade with no follow-up state. A finished schema 6 lesson has no
 completion date, so follow-up begins with the next completed run. The standard
 pre-upgrade copy preserves the schema 6 file byte-for-byte. A file carrying the
 new key under an older schema is refused.
+
+## Schema 8 · Unit A
+
+The optional `unitA` stores progress through the five introductory lessons,
+including the mixed checkpoint. Old saves upgrade with no Unit A activity and
+retain earlier lesson, review and table state. The standard pre-upgrade copy
+preserves the schema 7 file byte-for-byte. A file carrying `unitA` under an
+older schema is refused.

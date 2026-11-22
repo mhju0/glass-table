@@ -16,6 +16,7 @@ public struct BeginnerJourney: Equatable, Sendable {
         case invitation(lessonAfter: CurriculumNode?)
         case guidedHand
         case lesson(CurriculumNode)
+        case unitA
         case pairLesson
         case pairLessonFollowUp(PairLessonFollowUpKind)
         /// Switch to the Play tab. Never presented.

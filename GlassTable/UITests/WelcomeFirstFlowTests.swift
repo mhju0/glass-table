@@ -134,7 +134,7 @@ final class WelcomeFirstFlowTests: XCTestCase {
         }
         tap("firstLesson.next", in: app)
         tap("firstLesson.finish", in: app)
-        XCTAssertTrue(app.buttons["basics.close"].waitForExistence(timeout: 5), "Resume completion follows the promised hand-ranks destination.")
+        XCTAssertTrue(app.buttons["unit-a-close"].waitForExistence(timeout: 5), "Resume completion opens the promised first unit.")
     }
 
     func testWrongAnswerAndBackSurviveInterruption() {
@@ -297,8 +297,8 @@ final class WelcomeFirstFlowTests: XCTestCase {
         XCTAssertFalse(verdict.exists)
     }
 
-    func testFailedResumedCompletionRetryOpensPromisedBasics() { failedCompletion(resumed: true) }
-    func testFailedFirstRunCompletionRetryOpensPromisedBasics() { failedCompletion(resumed: false) }
+    func testFailedResumedCompletionRetryOpensPromisedUnitA() { failedCompletion(resumed: true) }
+    func testFailedFirstRunCompletionRetryOpensPromisedUnitA() { failedCompletion(resumed: false) }
 
     private func failedCompletion(resumed: Bool) {
         let app = app()
@@ -315,10 +315,10 @@ final class WelcomeFirstFlowTests: XCTestCase {
         }
         tap("firstLesson.finish", in: app)
         XCTAssertTrue(app.staticTexts["Progress was not saved"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["basics.close"].exists)
+        XCTAssertFalse(app.buttons["unit-a-close"].exists)
         retrySave(in: app)
-        XCTAssertTrue(app.buttons["basics.close"].waitForExistence(timeout: 10))
-        tap("basics.close", in: app)
+        XCTAssertTrue(app.buttons["unit-a-close"].waitForExistence(timeout: 10))
+        tap("unit-a-close", in: app)
         XCTAssertTrue(app.buttons["lesson-u1-showdown"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["learn-resume-opening"].exists)
     }

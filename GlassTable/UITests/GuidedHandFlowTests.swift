@@ -147,6 +147,8 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
         }
         tap(app.buttons["firstLesson.next"])
         tap(app.buttons["firstLesson.finish"])
+        tap(app.buttons["unit-a-close"])
+        tap(app.buttons["learn-basics-start"])
         XCTAssertTrue(app.buttons["basics.close"].waitForExistence(timeout: 10))
         tap(app.buttons["basics.next"])
         let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "basics.choice.")).firstMatch

@@ -322,6 +322,13 @@ final class ProgressionModel {
         return commit { $0.openingDismissed = true }
     }
 
+    var openingContinuesToUnitA: Bool {
+        !hasHistoricalActivity && state.basicsLessonCompleted != true
+            && state.activeNodeSession == nil && state.activeRound == nil
+            && state.activeReviewSession == nil && state.pairLesson == nil
+            && state.unitA?.phase != .finished
+    }
+
     /// All five comparisons must have been answered or demonstrated. This writes no
     /// graded answer, review, streak, node, or mastery evidence.
     @discardableResult
@@ -330,11 +337,28 @@ final class ProgressionModel {
               let snapshot = state.pendingFirstLesson,
               snapshot.isValid, snapshot.hasExploredAllComparisons,
               snapshot.step == .wrapUp else { return false }
+        let continuesToUnitA = openingContinuesToUnitA
         return commit {
             $0.firstLessonCompleted = true
             $0.openingDismissed = true
             $0.pendingFirstLesson = nil
+            if continuesToUnitA && $0.unitA == nil { $0.unitA = UnitAProgress() }
         }
+    }
+
+    @discardableResult
+    func beginUnitA(expectedEpoch: UUID, initial: UnitAProgress = UnitAProgress()) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
+        if state.unitA != nil { return true }
+        return commit { $0.unitA = initial }
+    }
+
+    @discardableResult
+    func applyUnitA(_ action: UnitAAction, from previous: UnitAProgress, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.unitA == previous else { return false }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit { $0.unitA = updated }
     }
 
     /// Learn leads with the basics lesson only for someone who has not started the
