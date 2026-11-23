@@ -1,6 +1,6 @@
 # The full UI flow suite, too slow for every push (D62). Runs nightly on `main` and by
 # hand; a TestFlight tag needs a passing run on its commit (release.yml checks).
-# Test classes are split across four shards by measured minutes; a new class runs
+# Test classes are split across five shards by measured minutes; a new class runs
 # without a workflow edit. UXAuditCrawl skips itself without GT_AUDIT_OUT. A pull
 # request that changes this file runs it too, so a workflow edit is proven before it merges.
 name: UI tests
@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        shard: [0, 1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/prepare
@@ -59,39 +59,38 @@ jobs:
           python3 -m unittest discover -s tools/tests -p test_ci_ui_observer.py -v > ui-observer-tests.log 2>&1 || status=$?
           cat ui-observer-tests.log || true
           exit "$status"
-      # Shards are balanced by measured minutes per class on a GitHub runner (single pass
-      # of run 41166542595, read from the ui-observer artifact's timeline.jsonl). A class
+      # Weights are the summed test-case minutes from run 45156656980
+      # (first attempts in the ui-observer timelines). A class
       # not in the table is estimated from its test count, so a new
       # class still runs; add its measured minutes here once a run has shown them.
       - name: Pick this shard's test classes
         run: |
-          python3 - "${{ matrix.shard }}" > only-testing.txt <<'EOF'
+          python3 - "${{ strategy.job-index }}" "${{ strategy.job-total }}" > only-testing.txt <<'EOF'
           import pathlib, re, sys
-          shard, shards = int(sys.argv[1]), 4
+          shard, shards = map(int, sys.argv[1:])
           minutes = {
-              'BilingualConsistencyB20Tests': 55, 'FreeTableBackFlowTests': 26,
-              'BestFiveComparisonTests': 20, 'AccessibilityFlowTests': 11,
-              'BeginnerReleaseTests': 11, 'LearningFlowTests': 11,
-              'FinalPresentationVerificationTests': 10, 'WelcomeFirstFlowTests': 10,
-              'ChartFirstUseFlowTests': 8, 'FreeTableMotionFlowTests': 8,
-              'LearningReferenceFlowTests': 8, 'LearningOrderChenStepRowTests': 7,
-              'RestoredPresentationTests': 6, 'FreeDockFlowTests': 5,
-              'BasicsGuidedHandInvitationTests': 4, 'FreeRaiseFlowTests': 4,
-              'GuidedHandFlowTests': 4, 'StepLevelsReadingTests': 4,
-              'DeviceFeedbackLessonTests': 3, 'LearnListTests': 3,
-              'PlayListTests': 3, 'ProgressTabTests': 3,
-              'QuickPlayArchiveFlowTests': 3, 'AccessibilityAuditTests': 2,
-              'AppearanceFlowTests': 2, 'BottomPanelB22Tests': 2,
-              'DeviceFeedbackSettingsTests': 2, 'FirstLessonFeedbackFlowTests': 2,
-              'GradedLearningFlowTests': 2, 'NativeRefinementTests': 2,
-              'NavigationChromeTests': 2, 'NumericalRevealFlowTests': 2,
-              'ReviewTeachingFollowupTests': 2, 'StepLevelsMathTests': 2,
-              'StepLevelsTests': 2, 'TerminologyLearningFlowTests': 2,
-              'DeviceFeedbackBoundsTests': 1, 'GradedDockFlowTests': 1,
-              'GradedTableRecoveryFlowTests': 1, 'LargestTextCapTests': 1,
-              'NumericalRecordsFlowTests': 1, 'OutsRevealTests': 1,
-              'ReleaseSmokeTests': 1, 'RestoredLessonParityFlowTests': 1,
-              'UXAuditCrawl': 0,
+              'BilingualConsistencyB20Tests': 71.8, 'BestFiveComparisonTests': 45.3,
+              'FreeTableBackFlowTests': 31.2, 'LearningFlowTests': 18.3, 'BeginnerReleaseTests': 16.8,
+              'AccessibilityFlowTests': 16.0, 'FinalPresentationVerificationTests': 16.0,
+              'WelcomeFirstFlowTests': 14.7, 'BasicsGuidedHandInvitationTests': 11.6,
+              'PairLessonFlowTests': 11.3, 'ChartFirstUseFlowTests': 10.1,
+              'RestoredPresentationTests': 10.0, 'LearningReferenceFlowTests': 9.9,
+              'FreeTableMotionFlowTests': 9.6, 'TableCourseFlowTests': 8.3, 'FreeDockFlowTests': 7.6,
+              'LearningOrderChenStepRowTests': 6.5, 'StepLevelsReadingTests': 6.1,
+              'UnitAFlowTests': 5.7, 'LearnListTests': 5.6, 'GuidedHandFlowTests': 5.4,
+              'FreeRaiseFlowTests': 5.3, 'BottomPanelB22Tests': 4.9, 'CourseReviewFlowTests': 4.6,
+              'ExpandedCourseFlowTests': 4.5, 'ReviewTeachingFollowupTests': 4.4,
+              'ProgressTabTests': 4.3, 'QuickPlayArchiveFlowTests': 4.3, 'AccessibilityAuditTests': 4.2,
+              'DeviceFeedbackLessonTests': 4.0, 'StepLevelsMathTests': 3.8, 'PlayListTests': 3.7,
+              'AppearanceFlowTests': 3.7, 'StepLevelsTests': 3.5, 'OutsRevealTests': 3.4,
+              'UnitBFlowTests': 3.4, 'TerminologyLearningFlowTests': 3.1, 'NativeRefinementTests': 2.9,
+              'FirstLessonFeedbackFlowTests': 2.8, 'GradedLearningFlowTests': 2.7,
+              'AdvancedElectiveFlowTests': 2.5, 'RestoredLessonParityFlowTests': 2.4,
+              'NavigationChromeTests': 2.4, 'DeviceFeedbackSettingsTests': 2.3,
+              'NumericalRevealFlowTests': 2.0, 'LargestTextCapTests': 1.7,
+              'GradedTableRecoveryFlowTests': 1.3, 'GradedDockFlowTests': 1.2,
+              'DeviceFeedbackBoundsTests': 1.1, 'NumericalRecordsFlowTests': 1.1,
+              'RatingNoticeFlowTests': 0.8, 'ReleaseSmokeTests': 0.8, 'UXAuditCrawl': 0.0,
           }
           classes, declared = {}, 0
           for path in sorted(pathlib.Path('GlassTable/UITests').glob('*.swift')):
@@ -107,6 +106,8 @@ jobs:
               picked[i].append(name)
           # Every class must land in exactly one shard, or it would silently never run.
           assigned = [name for names in picked for name in names]
+          if not all(picked):
+              sys.exit("::error::A UI shard has no test classes assigned.")
           if declared != len(classes) or sorted(assigned) != sorted(classes):
               print(f'::error::{declared} XCTestCase classes declared, {len(classes)} found, '
                     f'{len(assigned)} assigned; fix the class pattern above', file=sys.stderr)
@@ -184,7 +185,7 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v7
         with:
-          name: ui-tests-shard-${{ matrix.shard }}
+          name: ui-tests-shard-${{ strategy.job-index }}
           path: |
             ui-tests.log
             ui-tests.xcresult
@@ -194,7 +195,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ui-observer-shard-${{ matrix.shard }}
+          name: ui-observer-shard-${{ strategy.job-index }}
           path: |
             ui-tests-observer
             ui-tests-retry-observer

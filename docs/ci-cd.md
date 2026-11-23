@@ -8,7 +8,7 @@ Four GitHub Actions workflows on `macos-26` runners (free minutes, since the rep
 | --- | --- | --- | --- |
 | `ci.yml` | pushes to `main`, pull requests, by hand | three parallel jobs: `unit` (tool tests, Drills tests, app build + unit tests), `focused-ui` (focused teaching/recovery/control UI flows), `release` (Release launch smoke test, device Release build checked by `tools/verify_release.py`) | about 30 min, set by `focused-ui` (was 45–55 min in one job) |
 | `engine-gate.yml` | Engine changes, Sundays, by hand | `swift test -c release` for GlassTableEngine | — |
-| `ui-tests.yml` | nightly on `main` (03:00 KST), pull requests that edit it, by hand | the full UI flow suite, split across four parallel shards; a failed test is retried once only if `.github/flaky-tests.txt` lists it with an open `flaky-test` issue (D63) | about 80–95 min per shard on `macos-26` (runner speed varies) |
+| `ui-tests.yml` | nightly on `main` (03:00 KST), pull requests that edit it, by hand | the full UI flow suite, split across five balanced shards; a failed test is retried once only if `.github/flaky-tests.txt` lists it with an open `flaky-test` issue (D63) | about 87 min for the slowest shard in a timing replay (plus runner queue and setup) |
 | `release.yml` | a pushed `v*` tag | requires a passing `ui-tests.yml` run on the tagged commit, then archives, signs and uploads to TestFlight | about 20 min |
 
 `ci.yml` is the gate that has to pass before merging. Its jobs always run and report, so the
@@ -22,12 +22,14 @@ whose commit has no passing run. A failed test is run a second time only if
 fails the shard on its first attempt. The retry uses `test-without-building` in a fresh
 runner process; a listed test that passes then is named in a `Flaky, passed on retry`
 warning instead of failing the run. The list is checked against open issues before the
-shards start, so a closed issue still on the list fails the run. (xcodebuild's own
-`-retry-tests-on-failure` re-ran every class in the shard, doubling it to 2h8m in run
-41166542595.) Its shards split test classes by the minutes each class took on a GitHub
-runner, listed in the workflow and read from the `ui-observer` artifact's
-`timeline.jsonl`; `BilingualConsistencyB20Tests` took about 55 min after its 2026-10-31
-trim (74 before; review screenshots attach only with `TEST_RUNNER_GT_CAPTURE_EVIDENCE=1`).
+shards start, so a closed issue still on the list fails the run. Xcode’s automatic retry
+re-ran every class in the shard in run 41166542595, doubling the run to 2h8m. Review
+screenshots attach only with `TEST_RUNNER_GT_CAPTURE_EVIDENCE=1`. The five shards use
+class durations from [run 45156656980](https://github.com/mhju0/glass-table/actions/runs/45156656980),
+summing first-attempt test cases in the `ui-observer` artifacts. Replaying those
+durations across the new assignments brings the slowest shard from 131 to about 87
+test minutes. Runner queue time, setup, and test timing variations can change the
+actual wall time.
 A new UI test class runs without editing the
 workflow: it is estimated from its test count and flagged with a warning until its
 measured minutes are added. The shard step fails if any `XCTestCase` class in
