@@ -253,7 +253,7 @@ enum BoardPatternsUnitContent {
                          TableCourseRow(Copy("보드 B에서 팟 몫", "Pot share on Board B"), same(b.shareText))],
             distributions: outcomes, questionDistributions: outcomes,
             answer: worked ? nil : ([boardA, boardB, equal], bestBoard),
-            explanation: Copy("레인지별로 페어가 얼마나 많은지 보는 것과 달리, 팟 몫은 두 레인지가 직접 맞붙었을 때의 승리와 무승부로 구해요.",
+            explanation: Copy("레인지 맞대결\n이기면 팟 전체,\n비기면 팟 절반.",
                               "Pot share comes from comparing the two ranges directly. Count each win as a whole pot and each tie as half.")
         )
     }
