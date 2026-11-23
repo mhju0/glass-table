@@ -27,7 +27,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
     private static let fixtures = ["schema1-build3", "schema2-build16", "schema2-build22",
                                    "schema2-build30", "schema3-build34", "schema4-build35",
                                    "schema5-build37", "schema6-pair-retry",
-                                   "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft"]
+                                   "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
+                                   "schema10-course-review-correction"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -46,8 +47,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsNine() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 9)
+    func testCurrentSchemaVersionIsTen() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 10)
     }
 
     func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
@@ -96,7 +97,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
                 }
             }
             let expectedRegrades = ["schema1-build3", "schema6-pair-retry",
-                                    "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft"].contains(name) ? 0 : 3
+                                    "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
+                                   "schema10-course-review-correction"].contains(name) ? 0 : 3
             XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
@@ -487,7 +489,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
         let original = try fixture("schema9-unit-b-draft")
         let s = try store(with: original)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 9 must load") }
-        XCTAssertEqual(try s.exportData(state), original)
+        let backup = try XCTUnwrap(files(containing: "schema-9-").first)
+        XCTAssertEqual(try Data(contentsOf: backup), original)
         var expected = try s.importData(fixture("schema8-unit-a-reveal"))
         let unit = try XCTUnwrap(state.unitB)
         expected.unitB = unit
@@ -497,6 +500,40 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertFalse(unit.canSubmit)
         XCTAssertFalse(unit.revealed)
         XCTAssertEqual(unit.pairBestFirstRight, expected.pairLesson?.bestFirstRight)
+    }
+
+    func testSchemaTenRestoresAReviewCorrectionWithoutReplacingCourseDrafts() throws {
+        let original = try fixture("schema10-course-review-correction")
+        let s = try store(with: original)
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 10 must load") }
+        XCTAssertEqual(try s.exportData(state), original)
+        var expected = try s.importData(fixture("schema9-unit-b-draft"))
+        let review = try XCTUnwrap(state.courseReview)
+        XCTAssertEqual(review.scope, .all)
+        XCTAssertEqual(review.phase, .retry)
+        XCTAssertTrue(review.revealed)
+        XCTAssertEqual(review.coveredCount, 5)
+        XCTAssertEqual(review.retryCount, 1)
+        XCTAssertEqual(review.setCount, 2)
+        expected.courseReview = review
+        XCTAssertEqual(state, expected)
+    }
+
+    func testCourseReviewRequiresSchemaTenAndStudiedSkills() throws {
+        let original = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema10-course-review-correction")) as? [String: Any])
+        var downgraded = original
+        downgraded["schemaVersion"] = 9
+        try assertRecovery(for: downgraded, error: .notDecodable)
+
+        try freshDirectory()
+        downgraded["courseReview"] = NSNull()
+        try assertRecovery(for: downgraded, error: .notDecodable)
+
+        try freshDirectory()
+        var unsupported = original
+        unsupported.removeValue(forKey: "unitB")
+        try assertRecovery(for: unsupported, error: .invalidProgress)
     }
 
     func testUnitBRequiresSchemaNineAndVerifiedPairResult() throws {

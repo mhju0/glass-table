@@ -69,6 +69,7 @@ targets:
     dependencies:
       - target: GlassTable
       - package: GlassTableDrills
+      - package: GlassTableEngine
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

@@ -215,6 +215,58 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(ProgressionModel(store: store).state.unitB?.lesson, .twoPair)
     }
 
+    func testOptionalReviewCommitsOnlyItsSnapshotAndPreservesDueWork() throws {
+        let setup = ProgressionModel(store: store)
+        XCTAssertFalse(setup.beginCourseReview(.all, expectedEpoch: setup.epoch, seed: 42))
+        XCTAssertTrue(setup.beginUnitBDemo(at: .twoPair, expectedEpoch: setup.epoch))
+        var saved = setup.state
+        saved.unitA = UnitAProgress()
+        saved.pairLessonFollowUp = .recordingCompletion(
+            of: try XCTUnwrap(saved.pairLesson), previous: nil, at: Date())
+        saved.updateRecord(for: .showdown) {
+            $0.total = 1
+            $0.correct = 1
+            $0.review = ReviewState(stability: 4, difficulty: 4, lastReview: .distantPast,
+                                    due: .distantPast, reps: 1)
+        }
+        try store.save(saved)
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(model.beginReviewSession(seed: 21, expectedEpoch: model.epoch))
+        let before = model.state
+        let epoch = model.epoch
+        XCTAssertTrue(model.beginCourseReview(.all, expectedEpoch: epoch, seed: 42))
+        let initial = try XCTUnwrap(model.state.courseReview)
+        XCTAssertEqual(initial.skills, [.pairBeatsHighCard, .pairComparison])
+        XCTAssertFalse(model.beginCourseReview(.unitB, expectedEpoch: epoch, seed: 19))
+        XCTAssertFalse(model.closeFinishedCourseReview(from: initial, expectedEpoch: epoch))
+
+        let source = try Data(contentsOf: store.url)
+        try FileManager.default.removeItem(at: store.url)
+        try FileManager.default.createDirectory(at: store.url, withIntermediateDirectories: false)
+        XCTAssertFalse(model.applyCourseReview(.select(0), from: initial, expectedEpoch: epoch))
+        XCTAssertNotNil(model.saveError)
+        XCTAssertEqual(model.state.courseReview, initial)
+        try FileManager.default.removeItem(at: store.url)
+        try source.write(to: store.url)
+        model.retrySave()
+
+        let draft = try XCTUnwrap(model.state.courseReview)
+        XCTAssertEqual(draft.selection, 0)
+        XCTAssertEqual(draft.coveredCount, 0)
+        XCTAssertFalse(model.applyCourseReview(.submit, from: initial, expectedEpoch: epoch))
+        XCTAssertTrue(model.applyCourseReview(.submit, from: draft, expectedEpoch: epoch))
+        XCTAssertEqual(model.state.courseReview?.coveredCount, 1)
+        XCTAssertEqual(ProgressionModel(store: store).state, model.state)
+        var equivalent = model.state
+        equivalent.courseReview = nil
+        equivalent.revision = before.revision
+        XCTAssertEqual(equivalent, before)
+
+        try model.resetProgress()
+        XCTAssertFalse(model.applyCourseReview(.submit, from: draft, expectedEpoch: epoch))
+        XCTAssertNil(model.state.courseReview)
+    }
+
     private func prepareFinishedOpening(_ model: ProgressionModel) {
         XCTAssertTrue(model.beginFirstLesson(seed: 17, expectedEpoch: model.epoch))
         XCTAssertTrue(model.saveFirstLesson(FirstLessonSnapshot(variationSeed: 17,

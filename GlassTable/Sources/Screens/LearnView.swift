@@ -11,6 +11,7 @@ struct LearnView: View {
     @Environment(\.scenePhase) private var scenePhase
     let onOpenNode: (CurriculumNode) -> Void
     let onOpenReview: () -> Void
+    let onOpenCourseReview: () -> Void
     /// Five questions on one skill, the round the practice screen runs.
     let onOpenPractice: (Concept) -> Void
     /// The practice screen's skill picker, the way on once every lesson is passed (D38).
@@ -54,6 +55,7 @@ struct LearnView: View {
                 if !highlightsUnitB { unitBRecommendation }
                 reviewLine
                 pairFollowUps
+                courseReviewEntry
                 if marked == nil { allDoneLine }
                 // A lesson kept from an older path has no track row.
                 if case .inProgress(let node)? = marked, Curriculum.track(containing: node) == nil {
@@ -248,6 +250,22 @@ struct LearnView: View {
 
     private func refreshPairReviewDay() {
         pairReviewDay = PairLessonFollowUpProgress.localDay(at: model.pairLessonNow)
+    }
+
+    private var courseReviewEntry: some View {
+        let saved = model.state.courseReview
+        let action: String
+        if let saved {
+            action = saved.phase == .finished ? language.text("결과 보기", "View results")
+                : language.text("이어서", "Continue")
+        } else {
+            action = language.text("열기", "Open")
+        }
+        return recommendation(title: language.text("레슨 복습", "Review lessons"),
+                              detail: language.text("레슨, 단원 또는 지금까지 배운 내용을 복습해요.",
+                                                    "Review a lesson, a unit, or everything studied."),
+                              status: nil, action: action, id: "learn-course-review",
+                              emphasized: false, perform: onOpenCourseReview)
     }
 
     /// Nothing left to mark: say so, and still lead somewhere (D38).

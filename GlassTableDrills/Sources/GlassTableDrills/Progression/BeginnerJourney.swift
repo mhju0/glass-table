@@ -18,6 +18,7 @@ public struct BeginnerJourney: Equatable, Sendable {
         case lesson(CurriculumNode)
         case unitA
         case unitB
+        case courseReview(CourseReviewScope?)
         case unitBPairLesson
         case pairLesson
         case pairLessonFollowUp(PairLessonFollowUpKind)

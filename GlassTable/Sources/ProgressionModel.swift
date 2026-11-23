@@ -436,6 +436,34 @@ final class ProgressionModel {
     }
     #endif
 
+    @discardableResult
+    func beginCourseReview(_ scope: CourseReviewScope, expectedEpoch: UUID,
+                           seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max)) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
+        if let current = state.courseReview { return current.scope == scope }
+        let eligible = CourseReviewSession.eligibleSkills(in: state, scope: scope)
+        guard let review = CourseReviewSession(scope: scope, eligibleSkills: eligible, seed: seed) else {
+            return false
+        }
+        return commit(startsDetailedTracking: false) { $0.courseReview = review }
+    }
+
+    @discardableResult
+    func applyCourseReview(_ action: CourseReviewAction, from previous: CourseReviewSession,
+                           expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.courseReview == previous else { return false }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit(startsDetailedTracking: false) { $0.courseReview = updated }
+    }
+
+    @discardableResult
+    func closeFinishedCourseReview(from previous: CourseReviewSession, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.courseReview == previous,
+              previous.phase == .finished else { return false }
+        return commit(startsDetailedTracking: false) { $0.courseReview = nil }
+    }
+
     /// Learn leads with the basics lesson only for someone who has not started the
     /// course: nothing cleared, no starting-point recommendation, lesson unfinished.
     var shouldSuggestBasicsLesson: Bool { Curriculum.suggestsBasicsLesson(in: state) }
@@ -1134,12 +1162,12 @@ final class ProgressionModel {
     }
 
     @discardableResult
-    private func commit(_ mutate: (inout ProgressState) -> Void) -> Bool {
+    private func commit(startsDetailedTracking: Bool = true, _ mutate: (inout ProgressState) -> Void) -> Bool {
         guard unreadable == nil, saveError == nil else { return false }
         var candidate = state
         mutate(&candidate)
         candidate.revision += 1
-        if candidate.detailedTrackingStartedAt == nil {
+        if startsDetailedTracking && candidate.detailedTrackingStartedAt == nil {
             candidate.detailedTrackingStartedAt = Date()
         }
         do {

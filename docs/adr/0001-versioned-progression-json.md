@@ -43,12 +43,13 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (9). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (10). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
 | Unit A content | `unitA.contentVersion` | Exactly 1 when `unitA` is present | `ProgressionStore.validate(_ ProgressState)` via `UnitAProgress.isValid` |
 | Unit B content | `unitB.contentVersion` | Exactly 1 when `unitB` is present | `ProgressionStore.validate(_ ProgressState)` via `UnitBProgress.isValid` |
+| On-demand course review | `courseReview.contentVersion` | Exactly 1 when present | `CourseReviewSession.isValid(in:)` |
 | Practice round format | `activeRound.formatVersion` | 1 (no `level`) or 2 (optional `level` 2…the skill's highest step, D53), with `questionCount` 5 | `ProgressionStore.validate(_ PracticeRound)` |
 | Review session format | `activeReviewSession.formatVersion` | exactly 1; optional `levels`, one step (1…3, within the skill's highest) per question (D53) | `ProgressionStore.validate(_ ReviewSessionSnapshot)` |
 | Daily-summary format | `dailySummaries[].key.formatVersion`, `recentEvidence[].key.formatVersion` | 1…1,000,000, kept as written; Records compares only equal versions. Optional `key.level` 2…3 (D53); mode and concept "table" for table decisions | `ProgressionStore.validate(_ DailyPracticeSummary)`; `RecordsView` |
@@ -96,3 +97,13 @@ without Unit B activity. The standard pre-upgrade copy preserves their original
 bytes. Passing the existing one-pair lesson can advance B2, and the stored B2
 score must be supported by the original lesson record. Fresh practice and due
 review stay in the original pair follow-up state.
+
+
+## Schema 10 · On-demand course review
+
+The optional `courseReview` stores one active lesson, unit or cumulative review.
+It holds the scope, seeded activity identities, set cursor, draft, first answers
+and exact correction progress. Answer coverage is frozen for the current pass.
+Schema 9 upgrades preserve the original bytes before writing the new format.
+New review commits use the same atomic save path as lessons and do not update
+course clears, mastery or due-review timing.

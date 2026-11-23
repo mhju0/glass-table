@@ -172,6 +172,17 @@ struct RootView: View {
         if journey.didDismiss() == .play { tab = .play }
     }
 
+    private func openCourseReview(_ scope: CourseReviewScope?) {
+        let step = BeginnerJourney.Step.courseReview(scope)
+        if journey.presented == nil { journey.present(step) }
+        else { journey.close(then: step) }
+    }
+
+    private func startLessonFromCourseReview() {
+        guard model.beginUnitA(expectedEpoch: model.epoch) else { return }
+        journey.close(then: .unitA)
+    }
+
     private func openUnitA() {
         if model.beginUnitA(expectedEpoch: model.epoch) { journey.present(.unitA) }
     }
@@ -207,6 +218,7 @@ struct RootView: View {
             NavigationStack {
                 LearnView(onOpenNode: { journey.present(.lesson($0)) },
                           onOpenReview: { showReview = true },
+                          onOpenCourseReview: { openCourseReview(nil) },
                           onOpenPractice: { practiceConcept = $0 },
                           onChoosePractice: { showFreePlay = true },
                           onOpenBasics: { journey.present(.basics) },
@@ -258,14 +270,26 @@ struct RootView: View {
                 NodeSessionView(node: node, onOpenLesson: { journey.present(.lesson($0)) }).modifier(ProgressSaveNotice())
             }.environment(model)
         }
+        .fullScreenCover(isPresented: showing {
+            if case .courseReview = $0 { return true }
+            return false
+        }, onDismiss: afterDismiss) {
+            NavigationStack {
+                if case let .courseReview(scope)? = journey.presented {
+                    CourseReviewView(initialScope: scope, onStartLesson: startLessonFromCourseReview)
+                        .modifier(ProgressSaveNotice())
+                }
+            }.environment(model)
+        }
         .fullScreenCover(isPresented: showing { $0 == .unitA }, onDismiss: afterDismiss) {
             NavigationStack {
-                UnitAView().modifier(ProgressSaveNotice())
+                UnitAView(onReview: openCourseReview).modifier(ProgressSaveNotice())
             }.environment(model)
         }
         .fullScreenCover(isPresented: showing { $0 == .unitB }, onDismiss: afterDismiss) {
             NavigationStack {
-                UnitBView(onOpenPair: openPairLessonForUnitB).modifier(ProgressSaveNotice())
+                UnitBView(onOpenPair: openPairLessonForUnitB, onReview: openCourseReview)
+                    .modifier(ProgressSaveNotice())
             }.environment(model)
         }
         .fullScreenCover(isPresented: showing { $0 == .unitBPairLesson }, onDismiss: afterDismiss) {
@@ -351,6 +375,15 @@ struct RootView: View {
                let start = env["GT_DEMO_UNIT_B"], let lesson = UnitBLesson(rawValue: start),
                model.beginUnitBDemo(at: lesson, expectedEpoch: model.epoch) {
                 journey.present(.unitB)
+            }
+            if env["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+               let sample = env["GT_DEMO_COURSE_REVIEW"] {
+                if sample == "partial" || sample == "all" {
+                    _ = model.beginUnitA(expectedEpoch: model.epoch,
+                                         initial: Self.unitADemo(sample == "partial" ? "findPair" : "streets"))
+                }
+                if sample == "all" { _ = model.beginUnitBDemo(at: .twoPair, expectedEpoch: model.epoch) }
+                journey.present(.courseReview(nil))
             }
             if env["GT_DEMO_PAIR_LESSON"] != nil,
                model.beginPairLesson(seed: 42, expectedEpoch: model.epoch) {

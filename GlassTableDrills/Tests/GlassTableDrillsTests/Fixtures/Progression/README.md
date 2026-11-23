@@ -70,3 +70,8 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
   schema 8 fixture with completed showdown lessons B1–B9 and a two-card draft in
   the first independent best-five comparison. Its copied B2 result comes from
   the existing PairLesson record.
+
+- `schema10-course-review-correction.json` is a schema 10 encoder export. It
+  extends the schema 9 draft with a cumulative review after five answers and
+  one revealed exact correction. Both paused lesson states and the existing
+  scheduled one-pair follow-up are preserved.

@@ -125,6 +125,11 @@ final class UnitBFlowTests: XCTestCase {
         XCTAssertEqual(element("title", app).label, "Unit complete")
         XCTAssertTrue(element("earlier-b2", app).label.contains("Previous best"))
         attach(app, "unit-b-complete-en-light")
+        tap("review", app)
+        let scope = app.staticTexts["course-review-scope"]
+        XCTAssertTrue(scope.waitForExistence(timeout: 10))
+        XCTAssertEqual(scope.label, "Unit B review")
+        XCTAssertEqual(app.staticTexts["course-review-set"].label, "Set 1 of 3")
     }
 
     private func launch(lesson: String, english: Bool = true, largeText: Bool = false) -> XCUIApplication {

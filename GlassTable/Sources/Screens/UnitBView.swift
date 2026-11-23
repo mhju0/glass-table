@@ -12,6 +12,7 @@ struct UnitBView: View {
     @State private var openingEpoch: UUID?
 
     let onOpenPair: () -> Void
+    let onReview: (CourseReviewScope) -> Void
 
     private enum Focus: Hashable { case heading, feedback }
     private enum ScrollTarget: Hashable { case start, feedback }
@@ -356,10 +357,24 @@ struct UnitBView: View {
                                         "\(progress.retryRight) of \(progress.retryCount) correct"),
                           id: "unit-b-retry-score")
             }
+            if checkpoint {
+                reviewButton(.unitB, unit: true)
+            } else if let skill = CourseReviewSkill(rawValue: progress.lesson.rawValue) {
+                reviewButton(.lesson(skill), unit: false)
+            }
             if finished {
                 earlierResults(progress.completedResults.filter { $0.lesson != .checkpoint })
             }
         }
+    }
+
+    private func reviewButton(_ scope: CourseReviewScope, unit: Bool) -> some View {
+        Button(unit ? language.text("단원 복습", "Review this unit")
+                    : language.text("레슨 복습", "Review this lesson")) {
+            onReview(scope)
+        }
+        .buttonStyle(GTOutlinedAction(fills: true))
+        .accessibilityIdentifier("unit-b-review")
     }
 
     private func earlierResults(_ results: [UnitBLessonResult]) -> some View {
@@ -368,23 +383,40 @@ struct UnitBView: View {
                 .font(GT.title(19)).foregroundStyle(GT.ink)
                 .accessibilityAddTraits(.isHeader)
             ForEach(results, id: \.lesson) { result in
-                VStack(alignment: .leading, spacing: GT.Space.compact) {
-                    Text(result.lesson.title(in: language))
-                        .font(GT.semibold(16)).foregroundStyle(GT.ink)
-                    Text(result.lesson == .pairComparison
-                         ? language.text("이전 최고 기록 \(result.firstRight)/\(result.questionCount)",
-                                         "Previous best \(result.firstRight)/\(result.questionCount)")
-                         : language.text("첫 답변 \(result.firstRight)/\(result.questionCount)",
-                                         "First answers \(result.firstRight)/\(result.questionCount)"))
-                        .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.inkSecondary)
-                    if result.retryCount > 0 {
-                        Text(language.text("다시 풀기 \(result.retryRight)/\(result.retryCount)",
-                                           "Corrections \(result.retryRight)/\(result.retryCount)"))
-                            .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.inkSecondary)
+                Button {
+                    if let skill = CourseReviewSkill(rawValue: result.lesson.rawValue) {
+                        onReview(.lesson(skill))
                     }
+                } label: {
+                    HStack(alignment: .top, spacing: GT.Space.related) {
+                        VStack(alignment: .leading, spacing: GT.Space.compact) {
+                            Text(result.lesson.title(in: language))
+                                .font(GT.semibold(16)).foregroundStyle(GT.ink)
+                            Text(result.lesson == .pairComparison
+                                 ? language.text("이전 최고 기록 \(result.firstRight)/\(result.questionCount)",
+                                                 "Previous best \(result.firstRight)/\(result.questionCount)")
+                                 : language.text("첫 답변 \(result.firstRight)/\(result.questionCount)",
+                                                 "First answers \(result.firstRight)/\(result.questionCount)"))
+                                .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.inkSecondary)
+                            if result.retryCount > 0 {
+                                Text(language.text("다시 풀기 \(result.retryRight)/\(result.retryCount)",
+                                                   "Corrections \(result.retryRight)/\(result.retryCount)"))
+                                    .font(GT.body(14).monospacedDigit()).foregroundStyle(GT.inkSecondary)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "arrow.clockwise")
+                            .font(GT.semibold(14))
+                            .foregroundStyle(GT.inkSecondary)
+                            .accessibilityHidden(true)
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
                 }
-                .fixedSize(horizontal: false, vertical: true)
+                .buttonStyle(GTPress())
                 .accessibilityElement(children: .combine)
+                .accessibilityHint(language.text("이 레슨을 복습해요.", "Review this lesson."))
                 .accessibilityIdentifier("unit-b-earlier-\(result.lesson.rawValue)")
                 Divider().overlay(GT.border)
             }

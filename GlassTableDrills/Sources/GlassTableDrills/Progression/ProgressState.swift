@@ -221,7 +221,7 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
 /// `pairLesson`. Schema 7 adds `pairLessonFollowUp`. Schema 8 adds `unitA` and schema 9 adds `unitB`.
 /// Any new key or new meaning bumps the schema (ADR 0001).
 public struct ProgressState: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 9
+    public static let currentSchemaVersion = 10
     /// Ring-buffer cap for the answer log. Bounded on purpose — an unbounded history
     /// is the one thing that would make a single-file store the wrong choice.
     public static let answerLogCap = 500
@@ -267,6 +267,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
     public var pairLessonFollowUp: PairLessonFollowUpProgress?
     public var unitA: UnitAProgress?
     public var unitB: UnitBProgress?
+    public var courseReview: CourseReviewSession?
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
@@ -292,7 +293,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
                 pairLesson: PairLessonProgress? = nil,
                 pairLessonFollowUp: PairLessonFollowUpProgress? = nil,
                 unitA: UnitAProgress? = nil,
-                unitB: UnitBProgress? = nil) {
+                unitB: UnitBProgress? = nil,
+                courseReview: CourseReviewSession? = nil) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
         self.nodes = nodes; self.streak = streak; self.answers = answers
         self.firstLessonCompleted = firstLessonCompleted
@@ -314,6 +316,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         self.pairLessonFollowUp = pairLessonFollowUp
         self.unitA = unitA
         self.unitB = unitB
+        self.courseReview = courseReview
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -322,7 +325,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands, quickPlaySessions, activeQuickPlaySessionID
         case processedAttemptIDs, basicsLessonCompleted, lessonTrend, openingDismissed, pendingFirstLesson
-        case lastNodeID, pairLesson, pairLessonFollowUp, unitA, unitB
+        case lastNodeID, pairLesson, pairLessonFollowUp, unitA, unitB, courseReview
     }
 
     public init(from decoder: Decoder) throws {
@@ -343,6 +346,10 @@ public struct ProgressState: Codable, Equatable, Sendable {
         if schemaVersion < 9, c.contains(.unitB) {
             throw DecodingError.dataCorruptedError(forKey: .unitB, in: c,
                 debugDescription: "Unit B progress requires schema 9 or newer")
+        }
+        if schemaVersion < 10, c.contains(.courseReview) {
+            throw DecodingError.dataCorruptedError(forKey: .courseReview, in: c,
+                debugDescription: "On-demand review requires schema 10 or newer")
         }
         concepts = try c.decode([String: ConceptRecord].self, forKey: .concepts)
         nodes = try c.decode([String: NodeRecord].self, forKey: .nodes)
@@ -381,6 +388,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
                                                    forKey: .pairLessonFollowUp)
         unitA = try c.decodeIfPresent(UnitAProgress.self, forKey: .unitA)
         unitB = try c.decodeIfPresent(UnitBProgress.self, forKey: .unitB)
+        courseReview = try c.decodeIfPresent(CourseReviewSession.self, forKey: .courseReview)
     }
 
     public func record(for concept: Concept) -> ConceptRecord {
