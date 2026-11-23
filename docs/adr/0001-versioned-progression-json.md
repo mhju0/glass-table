@@ -43,7 +43,7 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (11). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (12). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
@@ -118,3 +118,12 @@ unit. The guided hand requires a finished chip unit. Each save uses the existing
 atomic write path. Files from schema 10 retain their original review state and
 receive a byte-for-byte pre-upgrade backup. The new held-out exercises extend the
 review catalog while preserving every existing question and seed.
+
+
+## Schema 12 · Expanded core course and combinations
+
+Schema 12 extends the accepted `tableCourse` units through the capstone and the
+combinations elective. It also admits review scopes and skills for those units.
+The existing fields and content IDs retain their meaning. The normal upgrade
+backs up the schema 11 bytes before writing schema 12, preserving prior unit
+drafts and the frozen review. Older schemas cannot contain a new unit or scope.

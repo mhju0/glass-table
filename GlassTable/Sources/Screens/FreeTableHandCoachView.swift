@@ -115,6 +115,7 @@ struct FreeTableHandCoachView: View {
     private func strengthLine(_ step: PracticeCoachStep) -> String {
         let top = PracticeDecisionFacts.startingHandRank(step.facts.startingHandTopPercent ?? 0, language: language)
         let made = step.facts.madeHand.map { DrillTerms.hand($0, in: language) } ?? ""
+        if isExample { return step.facts.startingHandTopPercent != nil ? top : made }
         return switch step.strength {
         case .premium: language.text("\(top). 아주 좋은 패예요.", "\(top). A very good hand.")
         case .playable: language.text("\(top). 해 볼 만한 패예요.", "\(top). Worth playing.")
@@ -163,7 +164,7 @@ struct FreeTableHandCoachView: View {
     }
 
     private func priceLine(_ step: PracticeCoachStep) -> String {
-        guard let need = step.facts.requiredEquityPercent else {
+        guard !isExample, let need = step.facts.requiredEquityPercent else {
             return language.text("팟 \(step.facts.pot)칩 · 콜 \(step.facts.toCall)칩",
                                  "Pot \(step.facts.pot) · \(step.facts.toCall) to call")
         }

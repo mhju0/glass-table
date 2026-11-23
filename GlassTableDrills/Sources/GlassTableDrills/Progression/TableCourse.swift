@@ -6,6 +6,23 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     case chips
     case milestone
     case startingHands
+    case possibleHands
+    case winningCards
+    case priceChance
+    case capstone
+    case combinations
+
+    /// Keep the lesson path order independent of the optional guided hand and electives.
+    public static let corePath: [Self] = [
+        .turns, .chips, .startingHands, .possibleHands, .winningCards, .priceChance, .capstone,
+    ]
+
+    var minimumSchemaVersion: Int {
+        switch self {
+        case .turns, .chips, .milestone, .startingHands: 11
+        case .possibleHands, .winningCards, .priceChance, .capstone, .combinations: 12
+        }
+    }
 
     public var id: String { rawValue }
 
@@ -19,6 +36,11 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
         case .chips: language.text("칩 세기", "Count chips")
         case .milestone: language.text("한 판 따라가기", "Follow a practice hand")
         case .startingHands: language.text("시작 핸드", "Choose starting hands")
+        case .possibleHands: language.text("상대의 가능한 핸드", "Read possible hands")
+        case .winningCards: language.text("이기는 카드", "Count ways to win")
+        case .priceChance: language.text("가격과 확률", "Compare price and chance")
+        case .capstone: language.text("한 판에 적용하기", "Put it together")
+        case .combinations: language.text("콤보와 레인지", "Combinations and ranges")
         }
     }
 
@@ -29,6 +51,11 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
         case .chips: return Self.chipActivities[lesson, default: []]
         case .milestone: return ChipUnitContent.milestone
         case .startingHands: return Self.startingHandActivities[lesson, default: []]
+        case .possibleHands: return Self.possibleHandActivities[lesson, default: []]
+        case .winningCards: return Self.winningCardActivities[lesson, default: []]
+        case .priceChance: return Self.priceChanceActivities[lesson, default: []]
+        case .capstone: return Self.capstoneActivities[lesson, default: []]
+        case .combinations: return Self.combinationActivities[lesson, default: []]
         }
     }
 
@@ -36,6 +63,17 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     private static let chipActivities = TableCourseUnit.chips.catalog(using: ChipUnitContent.activities(for:))
     private static let startingHandActivities =
         TableCourseUnit.startingHands.catalog(using: StartingHandUnitContent.activities(for:))
+
+    private static let possibleHandActivities =
+        TableCourseUnit.possibleHands.catalog(using: PossibleHandsUnitContent.activities(for:))
+    private static let winningCardActivities =
+        TableCourseUnit.winningCards.catalog(using: WinningCardsUnitContent.activities(for:))
+    private static let priceChanceActivities =
+        TableCourseUnit.priceChance.catalog(using: PriceChanceUnitContent.activities(for:))
+    private static let capstoneActivities =
+        TableCourseUnit.capstone.catalog(using: CapstoneUnitContent.activities(for:))
+    private static let combinationActivities =
+        TableCourseUnit.combinations.catalog(using: CombinationUnitContent.activities(for:))
 
     private func catalog(using content: (TableCourseLesson) -> [TableCourseActivity])
         -> [TableCourseLesson: [TableCourseActivity]] {
@@ -48,6 +86,11 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
     case d1, d2, d3, d4, d5, d6
     case tableMilestone = "d-table"
     case e1, e2, e3, e4, e5, e6, e7
+    case f1, f2, f3, f4, f5, f6
+    case g1, g2, g3, g4, g5, g6, g7
+    case h1, h2, h3, h4, h5, h6, h7
+    case i1, i2, i3, i4, i5, i6
+    case j1, j2, j3, j4, j5
 
     public var id: String { rawValue }
 
@@ -57,6 +100,11 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
         case .d1, .d2, .d3, .d4, .d5, .d6: .chips
         case .tableMilestone: .milestone
         case .e1, .e2, .e3, .e4, .e5, .e6, .e7: .startingHands
+        case .f1, .f2, .f3, .f4, .f5, .f6: .possibleHands
+        case .g1, .g2, .g3, .g4, .g5, .g6, .g7: .winningCards
+        case .h1, .h2, .h3, .h4, .h5, .h6, .h7: .priceChance
+        case .i1, .i2, .i3, .i4, .i5, .i6: .capstone
+        case .j1, .j2, .j3, .j4, .j5: .combinations
         }
     }
 
@@ -85,6 +133,37 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
         case .e5: language.text("자리가 바뀌면 차트도 바뀌어요", "Change seats, change the chart")
         case .e6: language.text("레이즈를 마주했을 때", "Someone already raised")
         case .e7: language.text("맞는 차트 고르기", "Choose the right chart")
+        case .f1: language.text("보이는 카드와 추측", "Known cards and guesses")
+        case .f2: language.text("불가능한 조합 빼기", "Rule out impossible hands")
+        case .f3: language.text("완성된 패와 드로우", "Made hands and draws")
+        case .f4: language.text("공용 카드 읽기", "Read the board")
+        case .f5: language.text("상대의 행동 규칙", "Use an opponent’s rule")
+        case .f6: language.text("가능한 설명 비교하기", "Compare possible hands")
+        case .g1: language.text("이기는 리버 카드", "Find winning river cards")
+        case .g2: language.text("좋아져도 질 수 있어요", "Improving can still lose")
+        case .g3: language.text("카드는 한 번씩", "Count each card once")
+        case .g4: language.text("무승부와 팟 나누기", "Ties split the pot")
+        case .g5: language.text("남은 카드 중 몇 장?", "How many cards are left?")
+        case .g6: language.text("레인지와 승산", "Equity against a range")
+        case .g7: language.text("리버 카드 종합 연습", "One card left")
+        case .h1: language.text("콜 가격", "Find the call price")
+        case .h2: language.text("콜한 뒤의 팟", "Pot after calling")
+        case .h3: language.text("본전에 필요한 몫", "Find the break-even share")
+        case .h4: language.text("확률과 가격 비교", "Compare chance to price")
+        case .h5: language.text("같은 카드, 다른 가격", "Same cards, different price")
+        case .h6: language.text("같은 가격, 다른 확률", "Same price, different chance")
+        case .h7: language.text("콜할까요, 폴드할까요?", "Call or fold?")
+        case .i1: language.text("첫 참여 결정하기", "Decide whether to open")
+        case .i2: language.text("처음 나온 레이즈에 대응", "Respond to the first raise")
+        case .i3: language.text("플랍에서 다시 보기", "Read a new flop")
+        case .i4: language.text("리버에서 가격 판단", "Decide at the river price")
+        case .i5: language.text("쇼다운 설명하기", "Explain a showdown")
+        case .i6: language.text("한 판 끝까지", "Play a whole hand")
+        case .j1: language.text("시작 핸드별 콤보", "Count starting-hand combos")
+        case .j2: language.text("보이는 카드 빼기", "Remove visible cards")
+        case .j3: language.text("레인지의 콤보 세기", "Count a written range")
+        case .j4: language.text("가중치가 있는 레인지", "Compare weighted ranges")
+        case .j5: language.text("빠지거나 더한 콤보", "Find a missing or extra combo")
         }
     }
 
@@ -171,14 +250,16 @@ public struct TableCourseEvidence: Equatable, Sendable {
     public let seats: [TableCourseSeat]
     public let cards: [Card]
     public let board: [Card]
+    public let opponent: [Card]
     public let rows: [TableCourseRow]
     public let chart: TableCourseChart?
 
     public init(seats: [TableCourseSeat] = [], cards: [Card] = [], board: [Card] = [],
-                rows: [TableCourseRow] = [], chart: TableCourseChart? = nil) {
+                opponent: [Card] = [], rows: [TableCourseRow] = [], chart: TableCourseChart? = nil) {
         self.seats = seats
         self.cards = cards
         self.board = board
+        self.opponent = opponent
         self.rows = rows
         self.chart = chart
     }

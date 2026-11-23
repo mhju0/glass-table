@@ -256,7 +256,10 @@ public struct ProgressionStore {
               state.unitB?.pairBestFirstRight.map({ $0 <= (state.pairLesson?.bestFirstRight ?? 0) }) ?? true,
               state.tableCourse.map({
                   state.schemaVersion >= 11 && !$0.isEmpty
-                      && $0.allSatisfy { $0.key == $0.value.unit.rawValue && $0.value.isValid }
+                      && $0.allSatisfy {
+                          $0.key == $0.value.unit.rawValue
+                              && state.schemaVersion >= $0.value.unit.minimumSchemaVersion && $0.value.isValid
+                      }
               }) ?? true,
               state.progress(in: .milestone) == nil || state.progress(in: .chips)?.phase == .finished,
               state.courseReview.map({ state.schemaVersion >= 10 && $0.isValid(in: state) }) ?? true,

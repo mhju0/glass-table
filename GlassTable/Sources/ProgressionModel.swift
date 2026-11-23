@@ -381,12 +381,12 @@ final class ProgressionModel {
 
     #if DEBUG
     /// Navigate a fresh simulator test store using the same transitions as a learner.
-    func beginUnitBDemo(at lesson: UnitBLesson, expectedEpoch: UUID) -> Bool {
+    func beginUnitBDemo(at lesson: UnitBLesson?, expectedEpoch: UUID) -> Bool {
         guard expectedEpoch == epoch else { return false }
         if state.unitB != nil { return true }
         var unit = UnitBProgress()
         var pair = state.pairLesson
-        while unit.lesson != lesson {
+        while unit.phase != .finished && unit.lesson != lesson {
             let action: UnitBAction
             if unit.phase == .pairLesson {
                 if pair == nil { pair = Self.passedPairLessonDemo() }
@@ -470,6 +470,17 @@ final class ProgressionModel {
             units[lesson.unit.rawValue] = sample
             $0.tableCourse = units
         }
+    }
+
+    func completeEarlierCoreDemo(before unit: TableCourseUnit, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch,
+              let index = TableCourseUnit.corePath.firstIndex(of: unit) else { return false }
+        var earlier: [String: TableCourseProgress] = state.tableCourse ?? [:]
+        for prior in TableCourseUnit.corePath.prefix(index) where earlier[prior.rawValue] == nil {
+            guard let sample = Self.tableCourseSample(prior, stopAt: nil) else { return false }
+            earlier[prior.rawValue] = sample
+        }
+        return earlier.isEmpty || commit { $0.tableCourse = earlier }
     }
 
     private static func tableCourseSample(_ unit: TableCourseUnit, stopAt lesson: TableCourseLesson?)

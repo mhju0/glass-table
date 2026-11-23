@@ -72,7 +72,7 @@ struct RootView: View {
         default: lesson = .privateCards
         }
         var progress = UnitAProgress()
-        while progress.lesson != lesson {
+        while progress.phase != .finished && (start == "finished" || progress.lesson != lesson) {
             let action: UnitAAction
             if let activity = progress.activity, activity.kind != .example, !progress.revealed {
                 action = progress.selection == nil ? .select(0) : .submit
@@ -306,7 +306,8 @@ struct RootView: View {
         }, onDismiss: afterDismiss) {
             NavigationStack {
                 if case let .tableCourse(unit)? = journey.presented {
-                    TableCourseView(unit: unit, onContinue: openTableCourse, onReview: openCourseReview)
+                    TableCourseView(unit: unit, onContinue: openTableCourse, onReview: openCourseReview,
+                                    onFreePlay: { journey.close(then: .play) })
                         .modifier(ProgressSaveNotice())
                 }
             }.environment(model)
@@ -403,6 +404,12 @@ struct RootView: View {
                 }
                 if sample == "all" { _ = model.beginUnitBDemo(at: .twoPair, expectedEpoch: model.epoch) }
                 journey.present(.courseReview(nil))
+            }
+            if env["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+               let raw = env["GT_DEMO_CORE_PATH"], let unit = TableCourseUnit(rawValue: raw) {
+                _ = model.beginUnitA(expectedEpoch: model.epoch, initial: Self.unitADemo("finished"))
+                _ = model.beginUnitBDemo(at: nil, expectedEpoch: model.epoch)
+                _ = model.completeEarlierCoreDemo(before: unit, expectedEpoch: model.epoch)
             }
             if env["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
                let raw = env["GT_DEMO_TABLE_COURSE"], let lesson = TableCourseLesson(rawValue: raw),

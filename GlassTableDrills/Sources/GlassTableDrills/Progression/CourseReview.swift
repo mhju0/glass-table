@@ -29,6 +29,10 @@ public enum CourseReviewSkill: String, CaseIterable, Codable, Identifiable, Send
     case c1, c2, c3, c4, c5, c6, c7, c8, c9
     case d1, d2, d3, d4, d5
     case e1, e2, e3, e4, e5, e6
+    case f1, f2, f3, f4, f5
+    case g1, g2, g3, g4, g5, g6
+    case h2, h3, h4, h5, h6
+    case j1, j2, j3, j4, j5
 
     public var id: String { rawValue }
     public var isUnitA: Bool { rawValue.hasPrefix("a") }
@@ -72,6 +76,21 @@ public enum CourseReviewSkill: String, CaseIterable, Codable, Identifiable, Send
     }
 }
 
+public extension TableCourseLesson {
+    /// The capstone revisits existing objectives. It does not add duplicates to cumulative review.
+    var reviewSkill: CourseReviewSkill? {
+        switch self {
+        case .h1: .d5
+        case .i1: .e4
+        case .i2: .e6
+        case .i3: .f4
+        case .i4: .h4
+        case .i5: .bestFive
+        default: CourseReviewSkill(rawValue: rawValue)
+        }
+    }
+}
+
 public enum CourseReviewScope: Codable, Equatable, Hashable, Sendable {
     case all
     case unitA
@@ -94,6 +113,8 @@ public enum CourseReviewScope: Codable, Equatable, Hashable, Sendable {
         case .all: true
         case .unitA: skill.isUnitA
         case .unitB: skill.rawValue.hasPrefix("b")
+        case .tableUnit(.capstone): TableCourseUnit.capstone.lessons.contains { $0.reviewSkill == skill }
+        case .tableUnit(.priceChance): skill == .d5 || skill.tableLesson?.unit == .priceChance
         case .tableUnit(let unit): skill.tableLesson?.unit == unit
         case .lesson(let entry): entry.lessonObjectives.contains(skill)
         }
@@ -191,13 +212,25 @@ public struct CourseReviewSession: Codable, Equatable, Sendable {
             studied.insert(CourseReviewSkill.pairComparison.rawValue)
         }
         for progress in state.tableCourse?.values ?? [:].values {
-            studied.formUnion(progress.completedResults.map { $0.lesson.rawValue })
-            if progress.hasAnsweredLessonQuestions { studied.insert(progress.lesson.rawValue) }
+            studied.formUnion(studiedSkills(in: progress).map(\.rawValue))
+        }
+        if case .tableUnit(let unit) = scope, unit == .capstone || unit == .priceChance {
+            guard let progress = state.progress(in: unit) else { return [] }
+            return studiedSkills(in: progress).filter(scope.contains)
         }
         let taught = CourseReviewSkill.allCases.filter {
             $0.isLessonEntry && studied.contains($0.rawValue)
         }.flatMap(\.lessonObjectives)
         return taught.filter(scope.contains)
+    }
+
+    private static func studiedSkills(in progress: TableCourseProgress) -> [CourseReviewSkill] {
+        var skills = progress.completedResults.compactMap { $0.lesson.reviewSkill }
+        if progress.hasAnsweredLessonQuestions, let skill = progress.lesson.reviewSkill,
+           !skills.contains(skill) {
+            skills.append(skill)
+        }
+        return skills
     }
 
     public static func studiedLessons(in state: ProgressState, scope: CourseReviewScope = .all) -> [CourseReviewSkill] {
@@ -413,7 +446,10 @@ public struct CourseReviewSession: Codable, Equatable, Sendable {
     }
 
     public func isValid(in state: ProgressState) -> Bool {
-        isValid && Set(skills).isSubset(of: Set(Self.eligibleSkills(in: state)))
+        if case .tableUnit(let unit) = scope, state.schemaVersion < unit.minimumSchemaVersion {
+            return false
+        }
+        return isValid && Set(skills).isSubset(of: Set(Self.eligibleSkills(in: state, scope: scope)))
     }
 
     private static func answersAreValid<Items: Collection>(_ answers: [CourseReviewAnswer], for items: Items)

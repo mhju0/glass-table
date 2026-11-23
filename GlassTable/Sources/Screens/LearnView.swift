@@ -52,7 +52,7 @@ struct LearnView: View {
                 if highlightsUnitA { unitARecommendation }
                 if highlightsUnitB { unitBRecommendation }
                 if let unit = recommendedTableCourse { tableCourseRow(unit, primary: true) }
-                recommendationForMarkedLesson
+                if !canRecommendCourse { recommendationForMarkedLesson }
                 if !highlightsUnitA { unitARecommendation }
                 if !highlightsUnitB { unitBRecommendation }
                 reviewLine
@@ -61,13 +61,17 @@ struct LearnView: View {
                 ForEach(tableCourseUnits.filter { $0 != recommendedTableCourse }) { unit in
                     tableCourseRow(unit, primary: false)
                 }
-                if marked == nil { allDoneLine }
+                if coreComplete { coreCompleteLine }
+                sectionHeader(language.text("기존 연습", "Other practice"), count: nil)
+                if canRecommendCourse { recommendationForMarkedLesson }
+                if marked == nil && !coreComplete { allDoneLine }
                 // A lesson kept from an older path has no track row.
                 if case .inProgress(let node)? = marked, Curriculum.track(containing: node) == nil {
                     lessonRow(node)
                 }
                 ForEach(Curriculum.tracks.filter { !$0.isOptional }) { trackSection($0) }
                 sectionHeader(language.text("더 해보기", "More to try"), count: nil)
+                tableCourseRow(.combinations, primary: false)
                 if marked != .basics { basicsRow }
                 guidedHandRow
                 ForEach(Curriculum.tracks.filter(\.isOptional)) { trackSection($0) }
@@ -101,27 +105,43 @@ struct LearnView: View {
 
     // MARK: Top
 
-    private var highlightsUnitA: Bool {
-        model.state.pendingFirstLesson == nil && model.openingContinuesToUnitA
-    }
-
-    private var highlightsUnitB: Bool {
-        model.state.pendingFirstLesson == nil && model.state.unitA?.phase == .finished
-            && model.state.unitB?.phase != .finished && model.state.activeNodeSession == nil
+    private var canRecommendCourse: Bool {
+        model.state.pendingFirstLesson == nil && model.state.activeNodeSession == nil
             && model.state.activeRound == nil && model.state.activeReviewSession == nil
     }
 
+    private var highlightsUnitA: Bool {
+        canRecommendCourse && model.state.unitA?.phase != .finished
+    }
+
+    private var highlightsUnitB: Bool {
+        canRecommendCourse && model.state.unitA?.phase == .finished && model.state.unitB?.phase != .finished
+    }
+
+    private var coreComplete: Bool {
+        model.state.unitA?.phase == .finished && model.state.unitB?.phase == .finished
+            && TableCourseUnit.corePath.allSatisfy { model.state.progress(in: $0)?.phase == .finished }
+    }
+
+    private var coreCompleteLine: some View {
+        Label(language.text("기본 과정 완료", "Core lessons complete"), systemImage: "checkmark.circle.fill")
+            .font(GT.semibold(16))
+            .foregroundStyle(GT.onFelt)
+            .padding(.vertical, GT.Space.related)
+            .accessibilityIdentifier("learn-course-complete")
+    }
+
     private var tableCourseUnits: [TableCourseUnit] {
+        var units = TableCourseUnit.corePath
         if model.state.progress(in: .chips)?.phase == .finished {
-            return [.turns, .chips, .milestone, .startingHands]
+            units.insert(.milestone, at: 2)
         }
-        return [.turns, .chips, .startingHands]
+        return units
     }
 
     private var recommendedTableCourse: TableCourseUnit? {
-        guard model.state.pendingFirstLesson == nil, model.state.unitB?.phase == .finished,
-              model.state.activeNodeSession == nil, model.state.activeRound == nil,
-              model.state.activeReviewSession == nil else { return nil }
+        guard canRecommendCourse, model.state.unitB?.phase == .finished,
+              model.state.unitA?.phase == .finished else { return nil }
         return tableCourseUnits.first { unit in
             if unit == .milestone && model.state.progress(in: .startingHands) != nil { return false }
             return model.state.progress(in: unit)?.phase != .finished
@@ -180,7 +200,7 @@ struct LearnView: View {
     }
 
     @ViewBuilder private var recommendationForMarkedLesson: some View {
-        let emphasizesNewUnit = highlightsUnitA || highlightsUnitB || recommendedTableCourse != nil
+        let emphasizesNewUnit = highlightsUnitA || highlightsUnitB || recommendedTableCourse != nil || coreComplete
         let emphasized = model.state.pendingFirstLesson == nil && !emphasizesNewUnit
         switch marked {
         case .basics:

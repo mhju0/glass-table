@@ -28,7 +28,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
                                    "schema2-build30", "schema3-build34", "schema4-build35",
                                    "schema5-build37", "schema6-pair-retry",
                                    "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
-                                   "schema10-course-review-correction", "schema11-table-course-drafts"]
+                                   "schema10-course-review-correction", "schema11-table-course-drafts",
+                                   "schema12-expanded-course"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -47,8 +48,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsEleven() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 11)
+    func testCurrentSchemaVersionIsTwelve() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 12)
     }
 
     func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
@@ -98,7 +99,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             }
             let expectedRegrades = ["schema1-build3", "schema6-pair-retry",
                                     "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
-                                   "schema10-course-review-correction", "schema11-table-course-drafts"].contains(name) ? 0 : 3
+                                   "schema10-course-review-correction", "schema11-table-course-drafts",
+                                   "schema12-expanded-course"].contains(name) ? 0 : 3
             XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
@@ -525,7 +527,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
         let original = try fixture("schema11-table-course-drafts")
         let s = try store(with: original)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 11 must load") }
-        XCTAssertEqual(try s.exportData(state), original)
+        let backup = try XCTUnwrap(files(containing: "schema-11-").first)
+        XCTAssertEqual(try Data(contentsOf: backup), original)
         let earlier = try s.importData(fixture("schema10-course-review-correction"))
         XCTAssertEqual(state.courseReview, earlier.courseReview)
         for (unit, lesson) in [(TableCourseUnit.turns, TableCourseLesson.c1), (.chips, .d1), (.startingHands, .e1)] {
@@ -535,6 +538,31 @@ final class ProgressionGoldenFileTests: XCTestCase {
             XCTAssertTrue(progress.canSubmit)
             XCTAssertFalse(progress.revealed)
         }
+    }
+
+    func testSchemaTwelveRoundTripsNewCourseAndRetainsEarlierDrafts() throws {
+        let bytes = try fixture("schema12-expanded-course")
+        let s = try store(with: bytes)
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 12 must load") }
+        XCTAssertEqual(try s.exportData(state), bytes)
+        let earlier = try s.importData(fixture("schema11-table-course-drafts"))
+        XCTAssertEqual(state.courseReview, earlier.courseReview)
+        for unit in [TableCourseUnit.turns, .chips, .startingHands] {
+            XCTAssertEqual(state.progress(in: unit), earlier.progress(in: unit))
+        }
+        XCTAssertEqual(state.progress(in: .capstone)?.lesson, .i1)
+        XCTAssertEqual(state.progress(in: .capstone)?.selection, 0)
+        XCTAssertEqual(state.progress(in: .capstone)?.canSubmit, true)
+        XCTAssertEqual(state.progress(in: .combinations)?.lesson, .j1)
+        XCTAssertEqual(state.progress(in: .combinations)?.selection, 1)
+        XCTAssertEqual(state.progress(in: .combinations)?.revealed, true)
+    }
+
+    func testExpandedUnitsRequireSchemaTwelve() throws {
+        let bytes = try fixture("schema12-expanded-course")
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+        json["schemaVersion"] = 11
+        try assertRecovery(for: json, error: .invalidProgress)
     }
 
     func testTableCourseRejectsOlderSchemaAndMismatchedUnitOrOrphanedMilestone() throws {

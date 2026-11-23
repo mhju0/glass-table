@@ -11,10 +11,13 @@ struct TableCourseEvidenceView: View {
 
     var body: some View {
         if !evidence.seats.isEmpty || !evidence.cards.isEmpty || !evidence.board.isEmpty
-            || !evidence.rows.isEmpty || evidence.chart != nil {
+            || !evidence.opponent.isEmpty || !evidence.rows.isEmpty || evidence.chart != nil {
             VStack(alignment: .leading, spacing: GT.Space.related) {
                 if !evidence.seats.isEmpty { diagram(evidence.seats) }
                 if !evidence.cards.isEmpty { cards(evidence.cards, title: language.text("내 카드", "My cards")) }
+                if !evidence.opponent.isEmpty {
+                    cards(evidence.opponent, title: language.text("상대 카드", "Opponent’s cards"))
+                }
                 if !evidence.board.isEmpty { cards(evidence.board, title: language.text("공용 카드", "Shared cards")) }
                 ForEach(Array(evidence.rows.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: GT.Space.compact) {

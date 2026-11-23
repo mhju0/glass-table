@@ -195,7 +195,7 @@ enum StartingHandUnitContent {
         )
     }
 
-    private static func opening(
+    static func opening(
         _ id: String, _ deal: String, from seat: Position, compare other: Position? = nil, worked: Bool = false
     ) -> TableCourseActivity {
         let cards = Card.parse(deal)!
@@ -256,7 +256,7 @@ enum StartingHandUnitContent {
                    "\(name) is uncolored on the \(position) chart. Fold.")
     }
 
-    private static func defending(
+    static func defending(
         _ id: String, _ deal: String, learner: Position, opener: Position, worked: Bool = false
     ) -> TableCourseActivity {
         let cards = Card.parse(deal)!

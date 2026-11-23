@@ -78,3 +78,6 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
 - `schema11-table-course-drafts.json` is a schema 11 encoder export. It keeps the
   schema 10 review correction and adds one unsubmitted first-question selection
   in each of the turns, chips and starting-hands units.
+- `schema12-expanded-course.json` is an encoder export. It adds an unsubmitted
+  Capstone choice and a revealed elective answer to the schema 11 table-course
+  drafts and retains the existing frozen review correction.

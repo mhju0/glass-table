@@ -7,6 +7,7 @@ struct TableCourseView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var textSize
     @AccessibilityFocusState(for: .voiceOver) private var focus: Focus?
     @State private var epoch: UUID?
     @State private var showCoach = false
@@ -14,6 +15,7 @@ struct TableCourseView: View {
     let unit: TableCourseUnit
     let onContinue: (TableCourseUnit) -> Void
     let onReview: (CourseReviewScope) -> Void
+    let onFreePlay: () -> Void
 
     private enum Focus: Hashable { case prompt, feedback }
     private enum Anchor: Hashable { case top, feedback }
@@ -30,7 +32,8 @@ struct TableCourseView: View {
         .onAppear { epoch = model.epoch }
         .onChange(of: model.epoch) { _, _ in dismiss() }
         .fullScreenCover(isPresented: $showCoach) {
-            FreeTableHandCoachView(table: ChipUnitContent.coachHand, isExample: true) { showCoach = false }
+            FreeTableHandCoachView(table: unit == .capstone ? CapstoneUnitContent.coachHand : ChipUnitContent.coachHand,
+                                   isExample: true) { showCoach = false }
         }
     }
 
@@ -54,7 +57,7 @@ struct TableCourseView: View {
             }
             .accessibilityIdentifier("table-course-scroll")
             .onAppear {
-                if progress.revealed { proxy.scrollTo(Anchor.feedback, anchor: .bottom) }
+                if progress.revealed { proxy.scrollTo(Anchor.feedback, anchor: feedbackAnchor) }
                 focus = progress.revealed ? .feedback : .prompt
             }
             .onChange(of: progress.activity?.id) { _, _ in
@@ -63,7 +66,7 @@ struct TableCourseView: View {
             }
             .onChange(of: progress.revealed) { _, revealed in
                 if revealed {
-                    proxy.scrollTo(Anchor.feedback, anchor: .bottom)
+                    proxy.scrollTo(Anchor.feedback, anchor: feedbackAnchor)
                     focus = .feedback
                 }
             }
@@ -79,6 +82,10 @@ struct TableCourseView: View {
                         .overlay(alignment: .top) { Rectangle().fill(GT.border).frame(height: 1) }
                 }
         }
+    }
+
+    private var feedbackAnchor: UnitPoint {
+        textSize.isAccessibilitySize ? .top : .bottom
     }
 
     private func indicator(_ progress: TableCourseProgress) -> some View {
@@ -149,22 +156,30 @@ struct TableCourseView: View {
                     onContinue(.startingHands)
                 }
             }
-            if finished && unit == .milestone {
+            if finished && (unit == .milestone || unit == .capstone) {
                 link(language.text("코치와 예시 보기", "Review with the coach"), id: "table-course-coach") {
                     showCoach = true
                 }
             }
-            if unit != .milestone, let scope = reviewScope(progress) {
-                link(scope == .all ? language.text("전체 복습", "Review everything so far")
-                                   : progress.phase == .finished ? language.text("단원 복습", "Review this unit")
-                                                                 : language.text("레슨 복습", "Review this lesson"),
-                     id: "table-course-review") { onReview(scope) }
+            if finished && [.turns, .possibleHands, .capstone].contains(unit) {
+                link(language.text("전체 복습", "Review everything so far"), id: "table-course-review") {
+                    onReview(.all)
+                }
+                link(language.text("단원 복습", "Review this unit"), id: "table-course-review-unit") {
+                    onReview(.tableUnit(unit))
+                }
+            } else if unit != .milestone, let scope = reviewScope(progress) {
+                let reviewLabel: String = switch scope {
+                case .tableUnit: language.text("단원 복습", "Review this unit")
+                default: language.text("레슨 복습", "Review this lesson")
+                }
+                link(reviewLabel, id: "table-course-review") { onReview(scope) }
             }
             if finished && progress.completedResults.count > 1 {
                 Text(language.text("앞 레슨", "Earlier lessons")).font(GT.title(19))
                     .foregroundStyle(GT.ink).accessibilityAddTraits(.isHeader)
                 ForEach(progress.completedResults.dropLast(), id: \.lesson) { result in
-                    if let skill = CourseReviewSkill(rawValue: result.lesson.rawValue) {
+                    if let skill = result.lesson.reviewSkill {
                         link(result.lesson.title(in: language), id: "table-course-review-\(skill.rawValue)") {
                             onReview(.lesson(skill))
                         }
@@ -175,10 +190,10 @@ struct TableCourseView: View {
     }
 
     private func reviewScope(_ progress: TableCourseProgress) -> CourseReviewScope? {
-        if progress.phase == .finished || progress.lesson == .d6 || progress.lesson == .e7 {
-            return unit == .turns ? .all : .tableUnit(unit)
+        if progress.phase == .finished || progress.lesson.reviewSkill == nil {
+            return .tableUnit(unit)
         }
-        return CourseReviewSkill(rawValue: progress.lesson.rawValue).map { .lesson($0) }
+        return progress.lesson.reviewSkill.map(CourseReviewScope.lesson)
     }
 
     private func score(_ title: String, right: Int, total: Int, id: String) -> some View {
@@ -206,12 +221,21 @@ struct TableCourseView: View {
             case .turns: .chips
             case .chips: .milestone
             case .milestone: .startingHands
-            case .startingHands: nil
+            case .startingHands: .possibleHands
+            case .possibleHands: .winningCards
+            case .winningCards: .priceChance
+            case .priceChance: .capstone
+            case .capstone, .combinations: nil
             }
-            let title = unit == .chips ? language.text("안내 핸드 연습", "Try the guided hand")
-                : next == nil ? language.text("완료", "Done") : language.text("계속", "Continue")
+            let title = switch unit {
+            case .chips: language.text("안내 핸드 연습", "Try the guided hand")
+            case .capstone: language.text("자유 플레이", "Free Play")
+            default: next == nil ? language.text("완료", "Done") : language.text("계속", "Continue")
+            }
             PrimaryCTAButton(title: title) {
-                if let next { onContinue(next) } else { dismiss() }
+                if unit == .capstone { onFreePlay() }
+                else if let next { onContinue(next) }
+                else { dismiss() }
             }
             .accessibilityIdentifier("table-course-done")
         } else if let activity = progress.activity, !activity.isExample, !progress.revealed {
@@ -257,6 +281,7 @@ struct TableCourseFeedback: View {
         VStack(alignment: .leading, spacing: GT.Space.compact) {
             Text(correct ? language.text("맞았어요", "Correct") : language.text("다시 볼까요?", "Take another look"))
                 .font(GT.title(20)).accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("table-course-feedback-title")
             Text(note).font(GT.body(16))
         }
         .fixedSize(horizontal: false, vertical: true)
@@ -265,6 +290,7 @@ struct TableCourseFeedback: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(correct ? GT.supportFill : GT.retryFill, in: shape)
         .overlay(shape.strokeBorder(correct ? GT.supportEdge : GT.retryEdge, lineWidth: 1))
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("table-course-feedback")
     }
 }
