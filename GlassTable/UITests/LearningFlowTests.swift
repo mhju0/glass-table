@@ -281,7 +281,7 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(choices.firstMatch.isEnabled)
         choices.firstMatch.tap()
 
-        let calculation = app.buttons["계산 보기"]
+        let calculation = potCalculationDisclosure(in: app)
         XCTAssertTrue(calculation.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(
             format: "label CONTAINS %@", "블라인드: 1 + 2"
@@ -349,10 +349,15 @@ final class LearningFlowTests: XCTestCase {
         XCTAssertTrue(choice.isHittable, "AX5 must be able to scroll from the full seat list to an answer.")
         choice.tap()
 
-        let calculation = app.buttons["계산 보기"]
+        let calculation = potCalculationDisclosure(in: app)
         for _ in 0..<8 where !calculation.isHittable { app.swipeUp() }
         XCTAssertTrue(calculation.isHittable)
         calculation.tap()
+
+        let arithmetic = app.staticTexts.matching(NSPredicate(
+            format: "label CONTAINS %@", "블라인드: 1 + 2 = 3칩"
+        )).firstMatch
+        XCTAssertTrue(arithmetic.waitForExistence(timeout: 5))
         let next = app.buttons["다음 문제"]
         for _ in 0..<8 where !next.isHittable { app.swipeUp() }
         XCTAssertTrue(next.isHittable, "The expanded arithmetic must not trap the next action below the viewport.")
@@ -913,6 +918,12 @@ final class LearningFlowTests: XCTestCase {
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
                                  "GT_TEST_FIRST_LESSON": "1"]
         return app
+    }
+
+    private func potCalculationDisclosure(in app: XCUIApplication) -> XCUIElement {
+        // iOS 17 exposes the expanded-content control as a disclosure triangle.
+        let disclosure = app.disclosureTriangles["계산 보기"]
+        return disclosure.exists ? disclosure : app.buttons["계산 보기"]
     }
 
     private func firstButton(prefix: String, in app: XCUIApplication) -> XCUIElement {
