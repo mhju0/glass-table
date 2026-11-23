@@ -401,7 +401,7 @@ final class LearningFlowTests: XCTestCase {
                                  "A floating sheet keeps 8 pt margin + 20 pt padding under its content")
     }
 
-    func testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge() {
+    func testLessonTitleAlignsWithCloseAndClearsTheProgressStrip() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
@@ -416,8 +416,9 @@ final class LearningFlowTests: XCTestCase {
         // The 44 pt target reaches 2 pt past the edge the 40 pt tile and the title share.
         XCTAssertEqual(title.frame.minX - close.frame.minX, 2, accuracy: 1,
                        "The close tile lines up with the title's left edge")
-        XCTAssertEqual(title.frame.minY - close.frame.maxY, 6, accuracy: 3,
-                       "The title starts a short gap under the close tile, clear of it")
+        // The 6 pt chrome gap is followed by a 5 pt strip with 8 pt padding on each side.
+        XCTAssertEqual(title.frame.minY - close.frame.maxY, 27, accuracy: 3,
+                       "The title clears the progress strip below the close tile")
     }
 
     func testPotMathKeepsItsInstructionAndHeightAtTheLastAction() {
