@@ -15,9 +15,14 @@ final class TableCourseProgressTests: XCTestCase {
             (.priceChance, ["h1", "h2", "h3", "h4", "h5", "h6", "h7"]),
             (.capstone, ["i1", "i2", "i3", "i4", "i5", "i6"]),
             (.combinations, ["j1", "j2", "j3", "j4", "j5"]),
+            (.expectedValue, ["k1", "k2", "k3", "k4", "k5"]),
+            (.boardPatterns, ["l1", "l2", "l3", "l4", "l5"]),
         ]
         XCTAssertEqual(TableCourseUnit.corePath.flatMap(\.lessons).count
                        + UnitALesson.allCases.count + UnitBLesson.allCases.count, 66)
+        XCTAssertEqual(TableCourseUnit.electives.flatMap(\.lessons).count, 15)
+        XCTAssertTrue(Set(TableCourseUnit.corePath).isDisjoint(with: TableCourseUnit.electives))
+        XCTAssertEqual(Set(expected.map { $0.0 }), Set(TableCourseUnit.allCases))
         var activityIDs: Set<String> = []
         for (unit, lessonIDs) in expected {
             XCTAssertEqual(unit.lessons.map(\.id), lessonIDs)

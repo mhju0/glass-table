@@ -43,7 +43,7 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (12). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (13). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
@@ -127,3 +127,11 @@ combinations elective. It also admits review scopes and skills for those units.
 The existing fields and content IDs retain their meaning. The normal upgrade
 backs up the schema 11 bytes before writing schema 12, preserving prior unit
 drafts and the frozen review. Older schemas cannot contain a new unit or scope.
+
+
+## Schema 13 · Expected value and board patterns
+
+Schema 13 admits two more `tableCourse` units and their review scopes and
+skills. Earlier unit cursors and frozen review activities keep their exact
+meaning. An upgrade copies the schema 12 bytes before writing the new
+schema. A file with a new elective under an older schema is rejected.

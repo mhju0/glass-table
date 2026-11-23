@@ -29,7 +29,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
                                    "schema5-build37", "schema6-pair-retry",
                                    "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
                                    "schema10-course-review-correction", "schema11-table-course-drafts",
-                                   "schema12-expanded-course"]
+                                   "schema12-expanded-course", "schema13-elective-drafts"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -48,8 +48,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsTwelve() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 12)
+    func testCurrentSchemaVersionIsThirteen() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 13)
     }
 
     func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
@@ -100,7 +100,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
             let expectedRegrades = ["schema1-build3", "schema6-pair-retry",
                                     "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
                                    "schema10-course-review-correction", "schema11-table-course-drafts",
-                                   "schema12-expanded-course"].contains(name) ? 0 : 3
+                                   "schema12-expanded-course", "schema13-elective-drafts"].contains(name) ? 0 : 3
             XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
@@ -544,7 +544,10 @@ final class ProgressionGoldenFileTests: XCTestCase {
         let bytes = try fixture("schema12-expanded-course")
         let s = try store(with: bytes)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 12 must load") }
-        XCTAssertEqual(try s.exportData(state), bytes)
+        let backup = try XCTUnwrap(files(containing: "schema-12-").first)
+        XCTAssertEqual(try Data(contentsOf: backup), bytes)
+        XCTAssertNil(state.progress(in: .expectedValue))
+        XCTAssertNil(state.progress(in: .boardPatterns))
         let earlier = try s.importData(fixture("schema11-table-course-drafts"))
         XCTAssertEqual(state.courseReview, earlier.courseReview)
         for unit in [TableCourseUnit.turns, .chips, .startingHands] {
@@ -556,6 +559,34 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertEqual(state.progress(in: .combinations)?.lesson, .j1)
         XCTAssertEqual(state.progress(in: .combinations)?.selection, 1)
         XCTAssertEqual(state.progress(in: .combinations)?.revealed, true)
+    }
+
+    func testSchemaThirteenRetainsPriorDraftsAndEachElectiveState() throws {
+        let bytes = try fixture("schema13-elective-drafts")
+        let s = try store(with: bytes)
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 13 must load") }
+        XCTAssertEqual(try s.exportData(state), bytes)
+        let older = try s.importData(fixture("schema12-expanded-course"))
+        var withoutNewElectives = state
+        withoutNewElectives.tableCourse?.removeValue(forKey: TableCourseUnit.expectedValue.rawValue)
+        withoutNewElectives.tableCourse?.removeValue(forKey: TableCourseUnit.boardPatterns.rawValue)
+        XCTAssertEqual(withoutNewElectives, older)
+        let ev = try XCTUnwrap(state.progress(in: .expectedValue))
+        XCTAssertEqual(ev.lesson, .k1)
+        XCTAssertEqual(ev.selection, 0)
+        XCTAssertTrue(ev.canSubmit)
+        XCTAssertFalse(ev.revealed)
+        let boards = try XCTUnwrap(state.progress(in: .boardPatterns))
+        XCTAssertEqual(boards.lesson, .l1)
+        XCTAssertEqual(boards.selection, 1)
+        XCTAssertTrue(boards.revealed)
+    }
+
+    func testNewElectivesCannotAppearInAnOlderStoreVersion() throws {
+        let bytes = try fixture("schema13-elective-drafts")
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+        json["schemaVersion"] = 12
+        try assertRecovery(for: json, error: .invalidProgress)
     }
 
     func testExpandedUnitsRequireSchemaTwelve() throws {

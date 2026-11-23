@@ -11,14 +11,22 @@ struct TableCourseEvidenceView: View {
 
     var body: some View {
         if !evidence.seats.isEmpty || !evidence.cards.isEmpty || !evidence.board.isEmpty
-            || !evidence.opponent.isEmpty || !evidence.rows.isEmpty || evidence.chart != nil {
+            || !evidence.opponent.isEmpty || !evidence.rows.isEmpty || evidence.chart != nil
+            || !evidence.comparisonBoard.isEmpty || !evidence.distributions.isEmpty {
             VStack(alignment: .leading, spacing: GT.Space.related) {
                 if !evidence.seats.isEmpty { diagram(evidence.seats) }
                 if !evidence.cards.isEmpty { cards(evidence.cards, title: language.text("내 카드", "My cards")) }
                 if !evidence.opponent.isEmpty {
                     cards(evidence.opponent, title: language.text("상대 카드", "Opponent’s cards"))
                 }
-                if !evidence.board.isEmpty { cards(evidence.board, title: language.text("공용 카드", "Shared cards")) }
+                if !evidence.board.isEmpty {
+                    cards(evidence.board, title: evidence.comparisonBoard.isEmpty
+                          ? language.text("공용 카드", "Shared cards") : language.text("보드 A", "Board A"))
+                }
+                if !evidence.comparisonBoard.isEmpty {
+                    cards(evidence.comparisonBoard, title: language.text("보드 B", "Board B"))
+                    distributions
+                }
                 ForEach(Array(evidence.rows.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: GT.Space.compact) {
                         Text(row.label.text(in: language)).font(GT.semibold(14)).foregroundStyle(GT.onTable)
@@ -28,6 +36,7 @@ struct TableCourseEvidenceView: View {
                     .accessibilityElement(children: .combine)
                 }
                 if let chart = evidence.chart { chartGrid(chart) }
+                if evidence.comparisonBoard.isEmpty { distributions }
             }
             .padding(GT.Space.related)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -106,6 +115,54 @@ struct TableCourseEvidenceView: View {
                 ForEach(cards, id: \.self) { PlayingCardView(card: $0, size: 44) }
             }
         }
+    }
+
+    private var distributions: some View {
+        ForEach(Array(evidence.distributions.enumerated()), id: \.offset) { _, distribution in
+            distributionPanel(distribution)
+        }
+    }
+
+    private func distributionPanel(_ distribution: TableCourseDistribution) -> some View {
+        VStack(alignment: .leading, spacing: GT.Space.related) {
+            Text(distribution.title.text(in: language))
+                .font(GT.semibold(16)).foregroundStyle(GT.onTable).accessibilityAddTraits(.isHeader)
+                .fixedSize(horizontal: false, vertical: true)
+            ForEach(Array(distribution.bands.enumerated()), id: \.offset) { _, band in
+                let label = band.label.text(in: language)
+                let share = band.share.formatted(.percent.precision(.fractionLength(0...1)))
+                VStack(alignment: .leading, spacing: GT.Space.compact) {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: GT.Space.related) {
+                            Text(label).fixedSize()
+                            Spacer(minLength: 0)
+                            Text(share).monospacedDigit().fixedSize()
+                        }
+                        VStack(alignment: .leading, spacing: GT.Space.compact) {
+                            Text(label)
+                            Text(share).monospacedDigit()
+                        }
+                    }
+                    .font(GT.body(14))
+                    .foregroundStyle(GT.onTable)
+                    GeometryReader { geometry in
+                        Capsule().fill(GT.tableHairline)
+                            .overlay(alignment: .leading) {
+                                Capsule().fill(GT.actionFill)
+                                    .frame(width: geometry.size.width * band.share)
+                            }
+                    }
+                    .frame(height: 7)
+                    .accessibilityHidden(true)
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(label)
+                .accessibilityValue(share)
+            }
+        }
+        .padding(.top, GT.Space.compact)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("table-course-distribution")
     }
 
     private func chartGrid(_ chart: TableCourseChart) -> some View {

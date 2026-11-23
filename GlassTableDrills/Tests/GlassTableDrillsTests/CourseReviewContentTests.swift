@@ -4,6 +4,12 @@ import XCTest
 @testable import GlassTableDrills
 
 final class CourseReviewContentTests: XCTestCase {
+    func testCompleteReviewRosterHasStableCoverage() {
+        XCTAssertEqual(CourseReviewSkill.allCases.count, 75)
+        let variants = CourseReviewSkill.allCases.map(CourseReviewContent.variantCount(for:))
+        XCTAssertEqual(variants.reduce(0, +), 219)
+    }
+
     func testEveryReviewObjectiveHasDistinctLocalizedQuestions() throws {
         var ids: Set<String> = []
         var deals: Set<String> = []

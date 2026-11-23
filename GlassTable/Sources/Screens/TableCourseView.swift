@@ -225,7 +225,7 @@ struct TableCourseView: View {
             case .possibleHands: .winningCards
             case .winningCards: .priceChance
             case .priceChance: .capstone
-            case .capstone, .combinations: nil
+            case .capstone, .combinations, .expectedValue, .boardPatterns: nil
             }
             let title = switch unit {
             case .chips: language.text("안내 핸드 연습", "Try the guided hand")

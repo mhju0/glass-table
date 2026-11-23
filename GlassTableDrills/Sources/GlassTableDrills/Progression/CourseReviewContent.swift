@@ -225,6 +225,8 @@ public enum CourseReviewContent {
             case .winningCards: WinningCardsUnitContent.reviewActivities(for: lesson)
             case .priceChance: PriceChanceUnitContent.reviewActivities(for: lesson)
             case .combinations: CombinationUnitContent.reviewActivities(for: lesson)
+            case .expectedValue: ExpectedValueUnitContent.reviewActivities(for: lesson)
+            case .boardPatterns: BoardPatternsUnitContent.reviewActivities(for: lesson)
             case .capstone, .milestone: []
             }
             result[skill] = heldOut.map(tableQuestion)

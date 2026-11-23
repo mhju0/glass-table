@@ -11,6 +11,10 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     case priceChance
     case capstone
     case combinations
+    case expectedValue
+    case boardPatterns
+
+    public static let electives: [Self] = [.combinations, .expectedValue, .boardPatterns]
 
     /// Keep the lesson path order independent of the optional guided hand and electives.
     public static let corePath: [Self] = [
@@ -21,6 +25,7 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
         switch self {
         case .turns, .chips, .milestone, .startingHands: 11
         case .possibleHands, .winningCards, .priceChance, .capstone, .combinations: 12
+        case .expectedValue, .boardPatterns: 13
         }
     }
 
@@ -41,6 +46,8 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
         case .priceChance: language.text("가격과 확률", "Compare price and chance")
         case .capstone: language.text("한 판에 적용하기", "Put it together")
         case .combinations: language.text("콤보와 레인지", "Combinations and ranges")
+        case .expectedValue: language.text("기댓값과 방어 빈도", "Expected value and defense")
+        case .boardPatterns: language.text("보드와 베팅 패턴", "Boards and betting patterns")
         }
     }
 
@@ -56,6 +63,8 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
         case .priceChance: return Self.priceChanceActivities[lesson, default: []]
         case .capstone: return Self.capstoneActivities[lesson, default: []]
         case .combinations: return Self.combinationActivities[lesson, default: []]
+        case .expectedValue: return Self.expectedValueActivities[lesson, default: []]
+        case .boardPatterns: return Self.boardPatternActivities[lesson, default: []]
         }
     }
 
@@ -75,6 +84,11 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     private static let combinationActivities =
         TableCourseUnit.combinations.catalog(using: CombinationUnitContent.activities(for:))
 
+    private static let expectedValueActivities =
+        TableCourseUnit.expectedValue.catalog(using: ExpectedValueUnitContent.activities(for:))
+    private static let boardPatternActivities =
+        TableCourseUnit.boardPatterns.catalog(using: BoardPatternsUnitContent.activities(for:))
+
     private func catalog(using content: (TableCourseLesson) -> [TableCourseActivity])
         -> [TableCourseLesson: [TableCourseActivity]] {
         Dictionary(uniqueKeysWithValues: lessons.map { ($0, content($0)) })
@@ -91,6 +105,8 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
     case h1, h2, h3, h4, h5, h6, h7
     case i1, i2, i3, i4, i5, i6
     case j1, j2, j3, j4, j5
+    case k1, k2, k3, k4, k5
+    case l1, l2, l3, l4, l5
 
     public var id: String { rawValue }
 
@@ -105,6 +121,8 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
         case .h1, .h2, .h3, .h4, .h5, .h6, .h7: .priceChance
         case .i1, .i2, .i3, .i4, .i5, .i6: .capstone
         case .j1, .j2, .j3, .j4, .j5: .combinations
+        case .k1, .k2, .k3, .k4, .k5: .expectedValue
+        case .l1, .l2, .l3, .l4, .l5: .boardPatterns
         }
     }
 
@@ -164,6 +182,16 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
         case .j3: language.text("레인지의 콤보 세기", "Count a written range")
         case .j4: language.text("가중치가 있는 레인지", "Compare weighted ranges")
         case .j5: language.text("빠지거나 더한 콤보", "Find a missing or extra combo")
+        case .k1: language.text("지금부터의 손익", "Net chips from this decision")
+        case .k2: language.text("이길 때, 질 때, 비길 때", "Weight wins, losses, and ties")
+        case .k3: language.text("두 선택의 기댓값", "Compare two actions")
+        case .k4: language.text("기댓값 차이", "Find the EV gap")
+        case .k5: language.text("최소 방어 빈도", "Minimum defense frequency")
+        case .l1: language.text("완성된 패의 비율", "Share of made hands")
+        case .l2: language.text("드로우와 빗나간 패", "Draws and misses")
+        case .l3: language.text("두 보드의 레인지 우위", "Range advantage on two boards")
+        case .l4: language.text("베팅 크기와 연습 규칙", "Read a bet size")
+        case .l5: language.text("규칙이 바뀌면", "Compare two betting rules")
         }
     }
 
@@ -245,6 +273,27 @@ public struct TableCourseChart: Equatable, Sendable {
     }
 }
 
+public struct TableCourseDistributionBand: Equatable, Sendable {
+    public let label: TableCourseText
+    public let share: Double
+
+    public init(_ label: TableCourseText, share: Double) {
+        precondition((0...1).contains(share))
+        self.label = label
+        self.share = share
+    }
+}
+
+public struct TableCourseDistribution: Equatable, Sendable {
+    public let title: TableCourseText
+    public let bands: [TableCourseDistributionBand]
+
+    public init(_ title: TableCourseText, bands: [TableCourseDistributionBand]) {
+        self.title = title
+        self.bands = bands
+    }
+}
+
 public struct TableCourseEvidence: Equatable, Sendable {
     /// Seats are in clockwise order.
     public let seats: [TableCourseSeat]
@@ -253,15 +302,20 @@ public struct TableCourseEvidence: Equatable, Sendable {
     public let opponent: [Card]
     public let rows: [TableCourseRow]
     public let chart: TableCourseChart?
+    public let comparisonBoard: [Card]
+    public let distributions: [TableCourseDistribution]
 
     public init(seats: [TableCourseSeat] = [], cards: [Card] = [], board: [Card] = [],
-                opponent: [Card] = [], rows: [TableCourseRow] = [], chart: TableCourseChart? = nil) {
+                opponent: [Card] = [], rows: [TableCourseRow] = [], chart: TableCourseChart? = nil,
+                comparisonBoard: [Card] = [], distributions: [TableCourseDistribution] = []) {
         self.seats = seats
         self.cards = cards
         self.board = board
         self.opponent = opponent
         self.rows = rows
         self.chart = chart
+        self.comparisonBoard = comparisonBoard
+        self.distributions = distributions
     }
 }
 

@@ -81,3 +81,5 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
 - `schema12-expanded-course.json` is an encoder export. It adds an unsubmitted
   Capstone choice and a revealed elective answer to the schema 11 table-course
   drafts and retains the existing frozen review correction.
+- `schema13-elective-drafts.json` is an encoder export. It preserves the schema
+  12 contents and adds a staged EV choice and a revealed board-pattern answer.

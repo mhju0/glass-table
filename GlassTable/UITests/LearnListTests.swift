@@ -6,8 +6,8 @@ import XCTest
 final class LearnListTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
 
-    func testKONewLearnerIsMarkedOnHoldemBasics() { newLearner("ko") }
-    func testENNewLearnerIsMarkedOnHoldemBasics() { newLearner("en") }
+    func testKONewLearnerStartsTheCorePath() { newLearner("ko") }
+    func testENNewLearnerStartsTheCorePath() { newLearner("en") }
     func testKOSeededListMarksNextAndPracticesAPassedLesson() { seeded("ko", ax: false) }
     func testENSeededListMarksNextAndPracticesAPassedLesson() { seeded("en", ax: false) }
     func testKOAXSeededListMarksNextAndPracticesAPassedLesson() { seeded("ko", ax: true) }
@@ -22,13 +22,14 @@ final class LearnListTests: XCTestCase {
         let ko = language == "ko"
         let app = launch(language, ax: false, ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
                                                "GT_TEST_FIRST_PLACEMENT": "0"])
-        let start = app.buttons["learn-basics-start"]
-        XCTAssertTrue(start.waitForExistence(timeout: 15))
-        XCTAssertTrue(start.isHittable)
-        XCTAssertEqual(start.label, ko ? "시작, 홀덤 기초" : "Start, Hold'em basics")
-        XCTAssertFalse(app.buttons["path-basics"].exists, "The recommendation is the only Basics entry while marked")
-        XCTAssertLessThan(start.frame.maxY, app.buttons["lesson-u1-showdown"].frame.minY)
-        assertOneMark(app)
+        let course = app.buttons["learn-unit-a"]
+        XCTAssertTrue(course.waitForExistence(timeout: 15))
+        XCTAssertTrue(course.isHittable)
+        XCTAssertEqual(course.label, ko ? "시작, 한 판 따라가기" : "Start, Follow a hand")
+        let basics = app.buttons["learn-basics-start"]
+        XCTAssertTrue(basics.exists)
+        XCTAssertEqual(basics.label, ko ? "열기, 홀덤 기초" : "Open, Hold'em basics")
+        XCTAssertLessThan(course.frame.minY, basics.frame.minY, "The core path leads")
         assertNoRemovedEntries(app, ko: ko)
         attach(app, "\(language)-large-learn-new")
     }
@@ -139,9 +140,11 @@ final class LearnListTests: XCTestCase {
         // Every node before u9-mdf passed: all track lessons, the optional track included.
         let app = launch(language, ax: false, ["GT_TEST_STORE_ID": UUID().uuidString, "GT_TEST_FIRST_LESSON": "0",
                                                "GT_TEST_PATH_CURRENT_NODE": "u9-mdf"])
+        let course = app.buttons["learn-unit-a"]
+        XCTAssertTrue(course.waitForExistence(timeout: 15))
+        XCTAssertTrue(course.isHittable)
         let done = app.buttons["learn-all-done"]
-        XCTAssertTrue(done.waitForExistence(timeout: 15))
-        XCTAssertTrue(done.isHittable)
+        reach(done, app: app)
         XCTAssertTrue(done.label.hasPrefix(ko ? "연습 레슨을 마쳤어요" : "Practice lessons complete"), done.label)
         XCTAssertTrue(["learn-continue", "learn-start", "learn-basics-start"].allSatisfy { !app.buttons[$0].exists },
                       "Nothing is marked")
@@ -163,7 +166,7 @@ final class LearnListTests: XCTestCase {
         return app
     }
 
-    /// Exactly one filled action on the list.
+    /// The legacy path has only one current lesson marker.
     private func assertOneMark(_ app: XCUIApplication) {
         let marks = ["learn-continue", "learn-start", "learn-basics-start"].filter { app.buttons[$0].exists }
         XCTAssertEqual(marks.count, 1, "\(marks)")

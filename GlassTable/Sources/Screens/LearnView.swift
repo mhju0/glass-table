@@ -64,14 +64,16 @@ struct LearnView: View {
                 if coreComplete { coreCompleteLine }
                 sectionHeader(language.text("기존 연습", "Other practice"), count: nil)
                 if canRecommendCourse { recommendationForMarkedLesson }
-                if marked == nil && !coreComplete { allDoneLine }
+                if marked == nil { allDoneLine }
                 // A lesson kept from an older path has no track row.
                 if case .inProgress(let node)? = marked, Curriculum.track(containing: node) == nil {
                     lessonRow(node)
                 }
                 ForEach(Curriculum.tracks.filter { !$0.isOptional }) { trackSection($0) }
                 sectionHeader(language.text("더 해보기", "More to try"), count: nil)
-                tableCourseRow(.combinations, primary: false)
+                ForEach(TableCourseUnit.electives) { unit in
+                    tableCourseRow(unit, primary: false)
+                }
                 if marked != .basics { basicsRow }
                 guidedHandRow
                 ForEach(Curriculum.tracks.filter(\.isOptional)) { trackSection($0) }
