@@ -470,10 +470,13 @@ struct DrillShell<Content: View, Sheet: View>: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: GT.Space.related) {
+                            let revealFirst = foldsOnReveal && gradedBand != nil
                             header
-                            if let hintConcept { CompactLessonCue(concept: hintConcept) }
+                            if let hintConcept, !revealFirst { CompactLessonCue(concept: hintConcept) }
                             content()
-                            Color.clear.frame(height: 1).id(Self.contentEnd)
+                            // A new river can wrap the comparison onto another line.
+                            Color.clear.frame(height: revealFirst ? GT.Space.section : 1).id(Self.contentEnd)
+                            if let hintConcept, revealFirst { CompactLessonCue(concept: hintConcept) }
                         }.padding(.horizontal, 18).padding(.bottom, 24)
                     }
                     .accessibilityIdentifier("drill-content-scroll")
@@ -2210,7 +2213,9 @@ private struct RangeReadDrill: View {
         }
         .gtInset(GT.Space.card, firstText: .semibold(13))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(GT.onFelt.opacity(0.10), in: RoundedRectangle(cornerRadius: GT.Radius.control))
+        .background(GT.diagramHoney, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+        .overlay(RoundedRectangle(cornerRadius: GT.Radius.panel)
+            .strokeBorder(GT.actionEdge, lineWidth: 1))
     }
 
     /// Fill = truth, ring = your guess. Spelled out, because an unexplained two-channel
@@ -2226,11 +2231,15 @@ private struct RangeReadDrill: View {
 
     private func key(filled: Bool, ringed: Bool, _ label: String) -> some View {
         HStack(spacing: 5) {
-            RoundedRectangle(cornerRadius: 3)
-                .fill(filled ? GT.mint.opacity(0.85) : GT.surface)
+            let shape = RoundedRectangle(cornerRadius: 3)
+            shape.fill(filled ? GT.diagramRangeFill : GT.surface)
                 .frame(width: 15, height: 15)
+                .overlay(alignment: .top) {
+                    if filled { Rectangle().fill(GT.supportInk).frame(height: 1) }
+                }
+                .clipShape(shape)
                 .overlay {
-                    if ringed { RoundedRectangle(cornerRadius: 3).strokeBorder(GT.ink, lineWidth: 2) }
+                    if ringed { shape.strokeBorder(GT.ink, lineWidth: 2) }
                 }
             Text(label).font(GT.semibold(11)).foregroundStyle(GT.onFeltSecondary)
         }

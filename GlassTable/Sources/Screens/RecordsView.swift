@@ -3,12 +3,10 @@ import SwiftUI
 import UIKit
 import GlassTableDrills
 
-/// Two numbers that only grow lead (owner, R3·G); the numbers that can drop wait
-/// under "Where to look next".
+/// Progress summary and optional details about practice and table habits.
 struct RecordsView: View {
     @Environment(ProgressionModel.self) private var model
     @Environment(\.learningLanguage) private var language
-    @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.scenePhase) private var scenePhase
     @State private var clockRefresh = 0
     @State private var detailsExpanded = false
@@ -31,9 +29,10 @@ struct RecordsView: View {
                 let now = Date()
                 VStack(alignment: .leading, spacing: GT.Space.section) {
                     Text(language.text("학습 기록", "Progress"))
-                        .font(GT.title(textSize.isAccessibilitySize ? 22 : 30))
+                        .font(GT.title(30))
                         .foregroundStyle(GT.onFelt)
-                        .padding(.top, 14)
+                        .accessibilityAddTraits(.isHeader)
+                        .padding(.top, GT.Space.edge)
                     ProgressSummaryView(overview: ProgressOverview(state: model.state, now: now, calendar: .current),
                                         onContinue: onContinue, onOpenReview: onOpenReview)
                     DisclosureGroup(isExpanded: $detailsExpanded) {
@@ -50,6 +49,7 @@ struct RecordsView: View {
                             Text(language.text("목표 안 비율, 테이블 습관", "On target, table habits"))
                                 .font(GT.body(12)).foregroundStyle(GT.onFeltSecondary)
                         }
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                     .font(GT.semibold(16)).tint(GT.onFelt)
                     .accessibilityIdentifier("records-details")
@@ -232,12 +232,21 @@ struct RecordsView: View {
     }
 
     private func practiceRow(_ period: String, _ totals: PracticeTotals) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(period).font(GT.semibold(14)).foregroundStyle(GT.ink)
-                Spacer(minLength: 8)
-                Text(language.text("\(totals.total)문제", "\(totals.total) answers"))
-                    .font(GT.semibold(13).monospacedDigit()).foregroundStyle(GT.inkSecondary)
+        let title = Text(period).font(GT.semibold(14)).foregroundStyle(GT.ink)
+        let count = Text(language.text("\(totals.total)문제", "\(totals.total) answers"))
+            .font(GT.semibold(13).monospacedDigit()).foregroundStyle(GT.inkSecondary)
+        return VStack(alignment: .leading, spacing: 5) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline) {
+                    title.fixedSize()
+                    Spacer(minLength: GT.Space.compact)
+                    count.fixedSize()
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    title
+                    count
+                }
+                .fixedSize(horizontal: false, vertical: true)
             }
             Text(language.text("목표 안 \(totals.exact) · 근접 \(totals.near) · 놓침 \(totals.miss)",
                                "On target \(totals.exact) · Near \(totals.near) · Missed \(totals.miss)"))
@@ -396,12 +405,21 @@ struct RecordsView: View {
                 Text(language.text("최근 저장된 결정의 평균 EV 손실",
                                    "Average value lost on recent saved decisions"))
                     .font(GT.semibold(14)).foregroundStyle(GT.inkSecondary)
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("\(bbText(mean))bb")
-                        .font(GT.title(28).monospacedDigit()).foregroundStyle(GT.ink)
-                    Text(language.text("\(count)개 결정 · 낮을수록 좋아요",
-                                       "\(count) decisions · lower is better"))
-                        .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
+                let value = Text("\(bbText(mean))bb")
+                    .font(GT.title(28).monospacedDigit()).foregroundStyle(GT.ink)
+                let sample = Text(language.text("\(count)개 결정 · 낮을수록 좋아요",
+                                                "\(count) decisions · lower is better"))
+                    .font(GT.semibold(12)).foregroundStyle(GT.inkMuted)
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        value.fixedSize()
+                        sample.fixedSize()
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        value
+                        sample
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
                 }
                 Text(language.text("이 값은 공개된 체크다운 가정으로 채점한 연습 기록이에요.",
                                    "This practice result uses the app's disclosed checkdown assumption."))

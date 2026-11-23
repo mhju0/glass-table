@@ -135,9 +135,11 @@ final class UXAuditCrawl: XCTestCase {
         rec.shot("워밍업 2/2 · 정답", after: "‘상대 카드’ 선택 (정답)", group: "warm2", branch: "right")
         tap(next, "다음")
         rec.shot("6/6 마무리", after: "‘다음’ 탭")
-        tap(app.buttons["firstLesson.finish"], "족보 보기")
-        pause(1)
-        rec.shot("홀덤 기초 1/3 족보 사다리", after: "‘족보 보기’ 탭")
+        tap(app.buttons["firstLesson.finish"], "한 판 따라가기")
+        rec.shot("첫 레슨 · 내 카드와 공용 카드", after: "‘한 판 따라가기’ 탭")
+        tap(app.buttons["unit-a-close"], "첫 레슨 닫기")
+        tap(app.buttons["learn-basics-start"], "홀덤 기초 열기")
+        rec.shot("홀덤 기초 1/3 족보 사다리", after: "‘홀덤 기초’ 탭")
         tap(app.buttons["basics.next"], "basics next")
         rec.shot("홀덤 기초 2/3 확인 문제", after: "‘다음’ 탭", group: "basics", branch: "question")
         tap(app.buttons["basics.choice.flush"], "플러시 선택")
@@ -177,7 +179,9 @@ final class UXAuditCrawl: XCTestCase {
         }
         if app.buttons["firstLesson.next"].exists { tap(next, "다음") }
         if app.buttons["firstLesson.finish"].waitForExistence(timeout: 5) {
-            tap(app.buttons["firstLesson.finish"], "족보 보기")
+            tap(app.buttons["firstLesson.finish"], "한 판 따라가기")
+            tap(app.buttons["unit-a-close"], "첫 레슨 닫기")
+            tap(app.buttons["learn-basics-start"], "홀덤 기초 열기")
             tap(app.buttons["basics.next"], "basics next")
             tap(app.buttons["basics.choice.straight"], "스트레이트 선택")
             rec.shot("확인 문제 · 오답", after: "‘스트레이트’ 선택 (오답)", group: "basics", branch: "wrong")

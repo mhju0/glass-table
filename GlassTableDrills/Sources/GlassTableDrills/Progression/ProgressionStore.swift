@@ -152,6 +152,13 @@ public struct ProgressionStore {
         // no record of the last lesson.
         // 4 → 5 adds steps (D53): the steps a tier already shows are marked passed.
         if state.schemaVersion < 5 { markStepsReached(&upgraded) }
+        // 5 → 6 adds `pairLesson`; an older file starts without pair lesson progress.
+        // 6 → 7 adds `pairLessonFollowUp`. Old results have no completion day, so
+        // keep the lesson as saved and schedule follow-up on the next completion.
+        // 7 → 8 adds `unitA`; old saves start this unit from its first activity.
+        // 8 → 9 adds `unitB`. The existing pair lesson can satisfy B2 when reached.
+        // 9 → 10 adds the optional on-demand `courseReview` snapshot.
+        // 10 → 11 adds resumable C–E units and a separate guided hand.
         return upgraded
     }
 
@@ -240,6 +247,22 @@ public struct ProgressionStore {
               state.placement.map(validate) ?? true,
               ProgressState.lessonTrendRange.contains(state.lessonTrend ?? 0),
               state.lastNodeID.map({ !$0.isEmpty }) ?? true,
+              state.pairLesson.map({ state.schemaVersion >= 6 && $0.isValid }) ?? true,
+              state.pairLessonFollowUp.map({
+                  state.schemaVersion >= 7 && state.pairLesson?.bestFirstRight != nil && $0.isValid
+              }) ?? true,
+              state.unitA.map({ state.schemaVersion >= 8 && $0.isValid }) ?? true,
+              state.unitB.map({ state.schemaVersion >= 9 && $0.isValid }) ?? true,
+              state.unitB?.pairBestFirstRight.map({ $0 <= (state.pairLesson?.bestFirstRight ?? 0) }) ?? true,
+              state.tableCourse.map({
+                  state.schemaVersion >= 11 && !$0.isEmpty
+                      && $0.allSatisfy {
+                          $0.key == $0.value.unit.rawValue
+                              && state.schemaVersion >= $0.value.unit.minimumSchemaVersion && $0.value.isValid
+                      }
+              }) ?? true,
+              state.progress(in: .milestone) == nil || state.progress(in: .chips)?.phase == .finished,
+              state.courseReview.map({ state.schemaVersion >= 10 && $0.isValid(in: state) }) ?? true,
               state.recentHands.count <= 200,
               Set(state.recentHands.map(\.handID)).count == state.recentHands.count,
               state.recentHands.allSatisfy({ DayKey(raw: $0.day) != nil }),

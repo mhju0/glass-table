@@ -2,6 +2,30 @@ import SwiftUI
 import GlassTableEngine
 import GlassTableDrills
 
+struct LessonProgressSegments: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let total: Int
+    let current: Int
+    let completed: Set<Int>
+
+    var body: some View {
+        HStack(spacing: 5) {
+            ForEach(0..<total, id: \.self) { index in
+                let isComplete = completed.contains(index)
+                Capsule()
+                    .fill(isComplete ? GT.green : GT.progressTrack)
+                    .overlay {
+                        Capsule().strokeBorder(index == current ? GT.ink : GT.borderStrong,
+                                               lineWidth: isComplete && index != current ? 0 : 1)
+                    }
+            }
+        }
+        .frame(height: 5)
+        .animation(reduceMotion ? nil : GT.Motion.fade, value: completed)
+        .accessibilityHidden(true)
+    }
+}
+
 struct LessonPairedText: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.dynamicTypeSize) private var textSize
@@ -68,6 +92,7 @@ struct LessonAnswerVerdict<Detail: View>: View {
                     .accessibilityIdentifier("lesson-answer-verdict")
                 detail().foregroundStyle(GT.ink)
             }
+            .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -284,9 +309,12 @@ struct LessonSeatLoop: View {
             Text(position.rawValue).font(GT.body(10))
         }
         .frame(maxWidth: .infinity).frame(minHeight: 80)
-        .foregroundStyle(active == position ? GT.onCTA : GT.ink)
-        .background(active == position ? GT.cta : GT.surface, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(GT.borderStrong, lineWidth: 1))
+        .foregroundStyle(active == position ? GT.actionInk : (markers[position] == nil ? GT.ink : GT.supportInk))
+        .background(active == position ? GT.actionFill : (markers[position] == nil ? GT.surface : GT.supportFill),
+                    in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+        .overlay(RoundedRectangle(cornerRadius: GT.Radius.panel)
+            .strokeBorder(active == position ? GT.actionEdge : (markers[position] == nil ? GT.borderStrong : GT.supportEdge),
+                          lineWidth: 1))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(LessonSeatIdentity.label(position, marker: markers[position], language: language))
         .accessibilityIdentifier("position-seat-\(position.rawValue)")
@@ -436,7 +464,12 @@ struct LessonHandNotation: View {
                                     english: ["s means suited; o means different suits.", "s does not mean spades specifically."])
                         .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
                 }
-            }.padding(14).gtPanel().accessibilityIdentifier("lesson-hand-notation")
+            }
+            .padding(14)
+            .background(GT.diagramHoney, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+            .overlay(RoundedRectangle(cornerRadius: GT.Radius.panel)
+                .strokeBorder(GT.actionEdge, lineWidth: 1))
+            .accessibilityIdentifier("lesson-hand-notation")
         }
     }
 }

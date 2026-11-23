@@ -217,10 +217,11 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
 /// Schema 3 has schema 2's shape; schema 4 adds `lastNodeID`. Schema 5 adds steps
 /// (D53): step node ids (`<id>.2`, `<id>.3`), `PracticeRound.level` (format 2),
 /// `NodeSessionSnapshot.levels`, `ReviewSessionSnapshot.levels`,
-/// `DailyPracticeKey.level` and the table's "table" summaries. Any new key or new
-/// meaning bumps it (ADR 0001).
+/// `DailyPracticeKey.level` and the table's "table" summaries. Schema 6 adds
+/// `pairLesson`. Schema 7 adds `pairLessonFollowUp`. Schema 8 adds `unitA` and schema 9 adds `unitB`.
+/// Any new key or new meaning bumps the schema (ADR 0001).
 public struct ProgressState: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 5
+    public static let currentSchemaVersion = 13
     /// Ring-buffer cap for the answer log. Bounded on purpose — an unbounded history
     /// is the one thing that would make a single-file store the wrong choice.
     public static let answerLogCap = 500
@@ -262,6 +263,12 @@ public struct ProgressState: Codable, Equatable, Sendable {
     /// goes out of order (D52). `nil` in every file before schema 4, which reads as
     /// no record: Learn then marks the suggested lesson as before.
     public var lastNodeID: String?
+    public var pairLesson: PairLessonProgress?
+    public var pairLessonFollowUp: PairLessonFollowUpProgress?
+    public var unitA: UnitAProgress?
+    public var unitB: UnitBProgress?
+    public var courseReview: CourseReviewSession?
+    public var tableCourse: [String: TableCourseProgress]?
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
@@ -283,7 +290,13 @@ public struct ProgressState: Codable, Equatable, Sendable {
                 processedAttemptIDs: Set<String> = [],
                 basicsLessonCompleted: Bool? = nil,
                 openingDismissed: Bool? = nil,
-                pendingFirstLesson: FirstLessonSnapshot? = nil) {
+                pendingFirstLesson: FirstLessonSnapshot? = nil,
+                pairLesson: PairLessonProgress? = nil,
+                pairLessonFollowUp: PairLessonFollowUpProgress? = nil,
+                unitA: UnitAProgress? = nil,
+                unitB: UnitBProgress? = nil,
+                courseReview: CourseReviewSession? = nil,
+                tableCourse: [String: TableCourseProgress]? = nil) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
         self.nodes = nodes; self.streak = streak; self.answers = answers
         self.firstLessonCompleted = firstLessonCompleted
@@ -301,6 +314,12 @@ public struct ProgressState: Codable, Equatable, Sendable {
         self.activeQuickPlaySessionID = activeQuickPlaySessionID
         self.processedAttemptIDs = processedAttemptIDs
         self.basicsLessonCompleted = basicsLessonCompleted
+        self.pairLesson = pairLesson
+        self.pairLessonFollowUp = pairLessonFollowUp
+        self.unitA = unitA
+        self.unitB = unitB
+        self.courseReview = courseReview
+        self.tableCourse = tableCourse
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -309,12 +328,36 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands, quickPlaySessions, activeQuickPlaySessionID
         case processedAttemptIDs, basicsLessonCompleted, lessonTrend, openingDismissed, pendingFirstLesson
-        case lastNodeID
+        case lastNodeID, pairLesson, pairLessonFollowUp, unitA, unitB, courseReview, tableCourse
     }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         schemaVersion = try c.decode(Int.self, forKey: .schemaVersion)
+        if schemaVersion < 6, c.contains(.pairLesson) {
+            throw DecodingError.dataCorruptedError(forKey: .pairLesson, in: c,
+                debugDescription: "Pair lesson progress requires schema 6 or newer")
+        }
+        if schemaVersion < 7, c.contains(.pairLessonFollowUp) {
+            throw DecodingError.dataCorruptedError(forKey: .pairLessonFollowUp, in: c,
+                debugDescription: "Pair lesson follow-up requires schema 7 or newer")
+        }
+        if schemaVersion < 8, c.contains(.unitA) {
+            throw DecodingError.dataCorruptedError(forKey: .unitA, in: c,
+                debugDescription: "Unit A progress requires schema 8 or newer")
+        }
+        if schemaVersion < 9, c.contains(.unitB) {
+            throw DecodingError.dataCorruptedError(forKey: .unitB, in: c,
+                debugDescription: "Unit B progress requires schema 9 or newer")
+        }
+        if schemaVersion < 10, c.contains(.courseReview) {
+            throw DecodingError.dataCorruptedError(forKey: .courseReview, in: c,
+                debugDescription: "On-demand review requires schema 10 or newer")
+        }
+        if schemaVersion < 11, c.contains(.tableCourse) {
+            throw DecodingError.dataCorruptedError(forKey: .tableCourse, in: c,
+                debugDescription: "Table course progress requires schema 11 or newer")
+        }
         concepts = try c.decode([String: ConceptRecord].self, forKey: .concepts)
         nodes = try c.decode([String: NodeRecord].self, forKey: .nodes)
         streak = try c.decode(StreakRecord.self, forKey: .streak)
@@ -347,6 +390,13 @@ public struct ProgressState: Codable, Equatable, Sendable {
         basicsLessonCompleted = try c.decodeIfPresent(Bool.self, forKey: .basicsLessonCompleted)
         lessonTrend = try c.decodeIfPresent(Int.self, forKey: .lessonTrend)
         lastNodeID = try c.decodeIfPresent(String.self, forKey: .lastNodeID)
+        pairLesson = try c.decodeIfPresent(PairLessonProgress.self, forKey: .pairLesson)
+        pairLessonFollowUp = try c.decodeIfPresent(PairLessonFollowUpProgress.self,
+                                                   forKey: .pairLessonFollowUp)
+        unitA = try c.decodeIfPresent(UnitAProgress.self, forKey: .unitA)
+        unitB = try c.decodeIfPresent(UnitBProgress.self, forKey: .unitB)
+        courseReview = try c.decodeIfPresent(CourseReviewSession.self, forKey: .courseReview)
+        tableCourse = try c.decodeIfPresent([String: TableCourseProgress].self, forKey: .tableCourse)
     }
 
     public func record(for concept: Concept) -> ConceptRecord {
@@ -367,5 +417,12 @@ public struct ProgressState: Codable, Equatable, Sendable {
         if answers.count > Self.answerLogCap {
             answers.removeFirst(answers.count - Self.answerLogCap)
         }
+    }
+}
+
+
+public extension ProgressState {
+    func progress(in unit: TableCourseUnit) -> TableCourseProgress? {
+        tableCourse?[unit.rawValue]
     }
 }

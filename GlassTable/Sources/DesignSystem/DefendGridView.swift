@@ -4,7 +4,7 @@ import GlassTableEngine
 import GlassTableDrills
 
 /// The defending chart as a 13×13 grid, decisions.md §B convention: colour = action,
-/// red 3벳, amber 콜, grey 폴드. Bands come straight from `DefendChart`, so the grid
+/// rose 3벳, honey 콜, paper 폴드. Bands come straight from `DefendChart`, so the grid
 /// can never drift from what the table actually graded against.
 struct DefendGridView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -24,9 +24,25 @@ struct DefendGridView: View {
 
     static func bandFill(_ a: DefendAction) -> Color {
         switch a {
-        case .threeBet: return GT.suitRed
-        case .call: return GT.cta
+        case .threeBet: return Color(hex: 0xA24C39)
+        case .call: return GT.actionFill
         case .fold: return GT.surface
+        }
+    }
+
+    static func bandInk(_ action: DefendAction) -> Color {
+        switch action {
+        case .threeBet: GT.onTable
+        case .call: GT.actionInk
+        case .fold: GT.ink
+        }
+    }
+
+    private static func bandEdge(_ action: DefendAction) -> Color {
+        switch action {
+        case .threeBet: GT.retryEdge
+        case .call: GT.actionEdge
+        case .fold: GT.border
         }
     }
 
@@ -63,6 +79,8 @@ struct DefendGridView: View {
                 ForEach(DefendAction.allCases, id: \.self) { a in
                     HStack(spacing: 4) {
                         RoundedRectangle(cornerRadius: 2).fill(Self.bandFill(a))
+                            .overlay(RoundedRectangle(cornerRadius: 2)
+                                .strokeBorder(Self.bandEdge(a), lineWidth: 1))
                             .frame(width: 9, height: 9)
                         Text(language.text(a.rawValue, a.englishTitle)).font(GT.body(10)).foregroundStyle(GT.inkSecondary)
                     }
@@ -106,7 +124,7 @@ struct DefendGridView: View {
                     RoundedRectangle(cornerRadius: 8).fill(Self.bandFill(verdict))
                     Text(hand.description)
                         .font(GT.title(17))
-                        .foregroundStyle(verdict == .fold ? GT.ink : GT.onCTA)
+                        .foregroundStyle(DefendGridView.bandInk(verdict))
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
                 }
@@ -155,14 +173,16 @@ struct DefendGridView: View {
             Text(h.description)
                 .font(.system(size: max(6, side * 0.30), weight: .semibold))
                 .lineLimit(1)
-                .foregroundStyle(a == .fold ? GT.inkMuted : GT.onCTA)
+                .foregroundStyle(Self.bandInk(a))
         }
         .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: max(1.5, side * 0.14)))
         .overlay {
-            if highlight == h {
+            let isHighlighted = highlight == h
+            if isHighlighted || a != .fold {
                 RoundedRectangle(cornerRadius: max(1.5, side * 0.14))
-                    .strokeBorder(GT.ink, lineWidth: 2)
+                    .strokeBorder(isHighlighted ? Self.bandInk(a) : Self.bandEdge(a),
+                                  lineWidth: isHighlighted ? 2 : 0.75)
             }
         }
         .accessibilityHidden(true)
@@ -218,6 +238,7 @@ private struct DefendChartExplorer: View {
                                     ForEach(RangeGrid.ranks, id: \.self) { col in
                                         let hand = RangeGrid.classAt(row: row, col: col)
                                         let verdict = action(hand)
+                                        let ink = DefendGridView.bandInk(verdict)
                                         let isOwn = hand == ownHand
                                         let isInspected = hand == (selected ?? ownHand)
                                         Button { selected = hand } label: {
@@ -234,16 +255,16 @@ private struct DefendChartExplorer: View {
                                             }
                                             .frame(width: typeSize.isAccessibilitySize ? 150 : 78)
                                             .frame(minHeight: typeSize.isAccessibilitySize ? 140 : 60)
-                                            .foregroundStyle(verdict == .fold ? GT.ink : GT.onCTA)
+                                            .foregroundStyle(ink)
                                             .background(DefendGridView.bandFill(verdict), in: RoundedRectangle(cornerRadius: 8))
                                             .overlay {
                                                 // Solid marks the cell being read; dashed keeps the
                                                 // learner's own hand findable while another is inspected.
                                                 if isInspected {
-                                                    RoundedRectangle(cornerRadius: 8).strokeBorder(GT.ink, lineWidth: 3)
+                                                    RoundedRectangle(cornerRadius: 8).strokeBorder(ink, lineWidth: 3)
                                                 } else if isOwn {
                                                     RoundedRectangle(cornerRadius: 8)
-                                                        .strokeBorder(GT.ink, style: StrokeStyle(lineWidth: 2, dash: [5, 3]))
+                                                        .strokeBorder(ink, style: StrokeStyle(lineWidth: 2, dash: [5, 3]))
                                                 }
                                             }
                                         }

@@ -2,6 +2,24 @@
 
 Approved 2026-09-14: Warm temperature, autonomous revamp decisions, relevant skills applied throughout implementation and verification.
 
+## Warmer native treatment (approved direction, 2026-11-22)
+
+Use warm paper and lighter green felt in Light appearance and pine-toned
+surfaces in Dark. One strong recommendation leads on Learn and Play. Progress
+leads with due review when available. Settings shares the same content edge,
+panel borders, and 10-point panel and control radii.
+
+Amber raised controls identify the next action or a selected answer. Mint and
+peach give feedback its own surfaces. Pair highlights appear only after the
+learner commits and point to the evidence. Keep the coach in Play. Deal and
+review transitions follow the existing hand state, with reduced-motion feedback
+that leaves the same cards, values and text available.
+
+Use the bundled Pretendard roles in Korean and English. Keep card glyphs fixed,
+allow ordinary text to wrap at word boundaries, and use flexible rows or vertical
+stacks when the two languages need different space. Verify both appearances and
+AX5 before approving a screen.
+
 ## Purpose
 
 Help a learner make one poker decision, understand its reason, and retrieve that skill again later. This is a Korean-first offline study product. Its visual identity comes from a quiet felt table and readable playing cards, not casino rewards or artificial competition.

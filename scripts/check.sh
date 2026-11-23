@@ -85,7 +85,7 @@ print(next((d["udid"] for d in devices if d["name"] == os.environ["TEST_DEVICE"]
     -only-testing:GlassTableUITests/FreeDockFlowTests/testFixedSlotsCancelPressAndPreserveHeightThroughRaiseAndFold \
     -only-testing:GlassTableUITests/NavigationChromeTests/testEnglishLightNavigationControls \
     -only-testing:GlassTableUITests/NavigationChromeTests/testKoreanDarkAXNavigationControls \
-    -only-testing:GlassTableUITests/LearningFlowTests/testLessonTitleStartsJustUnderTheCloseChevronOnTheContentEdge \
+    -only-testing:GlassTableUITests/LearningFlowTests/testLessonTitleAlignsWithCloseAndClearsTheProgressStrip \
     -only-testing:GlassTableUITests/GradedLearningFlowTests/testAXPostflopChartIsExplicitlyAStartingHandReference \
     -only-testing:GlassTableUITests/BeginnerReleaseTests/testLegacyTerminologyPreferencesUseOneLearningPolicy \
     -only-testing:GlassTableUITests/TerminologyLearningFlowTests/testKoreanAXComparisonKeepsBothSeatIdentitiesAfterRestore \

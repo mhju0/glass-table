@@ -271,9 +271,9 @@ struct PotMathIntroView: View {
                 }
                 .gtInset(GT.Space.card, firstText: .semibold(14))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(GT.surface,
-                            in: RoundedRectangle(cornerRadius: GT.Radius.panel,
-                                                 style: .continuous))
+                .background(GT.diagramHoney, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+                .overlay(RoundedRectangle(cornerRadius: GT.Radius.panel)
+                    .strokeBorder(GT.actionEdge, lineWidth: 1))
 
 
             }

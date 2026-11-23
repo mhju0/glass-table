@@ -23,7 +23,7 @@ final class FreeDockFlowTests: XCTestCase {
         let fold = app.buttons["free-fold"]
         let call = app.buttons["free-call"]
         let raise = app.buttons["free-raise"]
-        XCTAssertEqual(fold.label, "Fold, Give up this hand")
+        XCTAssertEqual(fold.label, "Fold, Give up")
         XCTAssertEqual(call.label, "Call, Match the bet, 2")
         XCTAssertEqual(raise.label, "Raise, Increase")
         XCTAssertEqual(fold.frame.height, 87, accuracy: 0.5)

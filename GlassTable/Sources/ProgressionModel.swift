@@ -322,6 +322,13 @@ final class ProgressionModel {
         return commit { $0.openingDismissed = true }
     }
 
+    var openingContinuesToUnitA: Bool {
+        !hasHistoricalActivity && state.basicsLessonCompleted != true
+            && state.activeNodeSession == nil && state.activeRound == nil
+            && state.activeReviewSession == nil && state.pairLesson == nil
+            && state.unitA?.phase != .finished
+    }
+
     /// All five comparisons must have been answered or demonstrated. This writes no
     /// graded answer, review, streak, node, or mastery evidence.
     @discardableResult
@@ -330,11 +337,195 @@ final class ProgressionModel {
               let snapshot = state.pendingFirstLesson,
               snapshot.isValid, snapshot.hasExploredAllComparisons,
               snapshot.step == .wrapUp else { return false }
+        let continuesToUnitA = openingContinuesToUnitA
         return commit {
             $0.firstLessonCompleted = true
             $0.openingDismissed = true
             $0.pendingFirstLesson = nil
+            if continuesToUnitA && $0.unitA == nil { $0.unitA = UnitAProgress() }
         }
+    }
+
+    @discardableResult
+    func beginUnitA(expectedEpoch: UUID, initial: UnitAProgress = UnitAProgress()) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
+        if state.unitA != nil { return true }
+        return commit { $0.unitA = initial }
+    }
+
+    @discardableResult
+    func applyUnitA(_ action: UnitAAction, from previous: UnitAProgress, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.unitA == previous else { return false }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit { $0.unitA = updated }
+    }
+
+    @discardableResult
+    func beginUnitB(expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
+        if state.unitB != nil { return true }
+        return commit { $0.unitB = UnitBProgress() }
+    }
+
+    @discardableResult
+    func applyUnitB(_ action: UnitBAction, from previous: UnitBProgress, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.unitB == previous else { return false }
+        if case let .completePairLesson(score) = action {
+            guard state.pairLesson?.bestFirstRight == score else { return false }
+        }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit { $0.unitB = updated }
+    }
+
+    #if DEBUG
+    /// Navigate a fresh simulator test store using the same transitions as a learner.
+    func beginUnitBDemo(at lesson: UnitBLesson?, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch else { return false }
+        if state.unitB != nil { return true }
+        var unit = UnitBProgress()
+        var pair = state.pairLesson
+        while unit.phase != .finished && unit.lesson != lesson {
+            let action: UnitBAction
+            if unit.phase == .pairLesson {
+                if pair == nil { pair = Self.passedPairLessonDemo() }
+                guard let score = pair?.bestFirstRight else { return false }
+                action = .completePairLesson(bestFirstRight: score)
+            } else if let activity = unit.activity, !unit.revealed {
+                switch activity.kind {
+                case .example:
+                    action = .advance
+                case .choice:
+                    guard let correct = activity.correctChoice else { return false }
+                    action = unit.selection == nil ? .select(correct) : .submit
+                case .bestFive:
+                    for (index, card) in (activity.learner + activity.board).enumerated()
+                        where activity.correctFive.contains(card) {
+                        guard unit.apply(.toggleCard(index)) else { return false }
+                    }
+                    action = .submit
+                }
+            } else {
+                action = .advance
+            }
+            guard unit.apply(action) else { return false }
+        }
+        return commit {
+            $0.unitB = unit
+            $0.pairLesson = pair
+        }
+    }
+
+    private static func passedPairLessonDemo() -> PairLessonProgress? {
+        var pair = PairLessonProgress(seed: 42)
+        while pair.phase != .finished {
+            let action: PairLessonAction
+            if pair.phase == .example || pair.revealed {
+                action = .advance
+            } else if pair.selection != nil {
+                action = .submit
+            } else if let question = pair.currentQuestion {
+                action = .select(question.winner)
+            } else {
+                return nil
+            }
+            guard pair.apply(action) else { return nil }
+        }
+        return pair
+    }
+    #endif
+
+    @discardableResult
+    func beginTableCourse(_ unit: TableCourseUnit, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil,
+              unit != .milestone || state.progress(in: .chips)?.phase == .finished else { return false }
+        if state.progress(in: unit) != nil { return true }
+        return commit {
+            var units = $0.tableCourse ?? [:]
+            units[unit.rawValue] = TableCourseProgress(unit: unit)
+            $0.tableCourse = units
+        }
+    }
+
+    @discardableResult
+    func applyTableCourse(_ action: TableCourseAction, from previous: TableCourseProgress,
+                          expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.progress(in: previous.unit) == previous else { return false }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit { $0.tableCourse?[updated.unit.rawValue] = updated }
+    }
+
+    #if DEBUG
+    func beginTableCourseDemo(_ lesson: TableCourseLesson, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch else { return false }
+        if state.progress(in: lesson.unit) != nil { return true }
+        guard let sample = Self.tableCourseSample(lesson.unit, stopAt: lesson) else { return false }
+        let chipPrerequisite = lesson.unit == .milestone && state.progress(in: .chips) == nil
+            ? Self.tableCourseSample(.chips, stopAt: nil) : nil
+        return commit {
+            var units = $0.tableCourse ?? [:]
+            if let chipPrerequisite { units[TableCourseUnit.chips.rawValue] = chipPrerequisite }
+            units[lesson.unit.rawValue] = sample
+            $0.tableCourse = units
+        }
+    }
+
+    func completeEarlierCoreDemo(before unit: TableCourseUnit, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch,
+              let index = TableCourseUnit.corePath.firstIndex(of: unit) else { return false }
+        var earlier: [String: TableCourseProgress] = state.tableCourse ?? [:]
+        for prior in TableCourseUnit.corePath.prefix(index) where earlier[prior.rawValue] == nil {
+            guard let sample = Self.tableCourseSample(prior, stopAt: nil) else { return false }
+            earlier[prior.rawValue] = sample
+        }
+        return earlier.isEmpty || commit { $0.tableCourse = earlier }
+    }
+
+    private static func tableCourseSample(_ unit: TableCourseUnit, stopAt lesson: TableCourseLesson?)
+        -> TableCourseProgress? {
+        var sample = TableCourseProgress(unit: unit)
+        while sample.phase != .finished && sample.lesson != lesson {
+            let action: TableCourseAction
+            if let activity = sample.activity, !activity.isExample, !sample.revealed {
+                guard let answer = activity.correctChoice else { return nil }
+                action = sample.selection == nil ? .select(answer) : .submit
+            } else {
+                action = .advance
+            }
+            guard sample.apply(action) else { return nil }
+        }
+        return sample
+    }
+    #endif
+
+    @discardableResult
+    func beginCourseReview(_ scope: CourseReviewScope, expectedEpoch: UUID,
+                           seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max)) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
+        if let current = state.courseReview { return current.scope == scope }
+        let eligible = CourseReviewSession.eligibleSkills(in: state, scope: scope)
+        guard let review = CourseReviewSession(scope: scope, eligibleSkills: eligible, seed: seed) else {
+            return false
+        }
+        return commit(startsDetailedTracking: false) { $0.courseReview = review }
+    }
+
+    @discardableResult
+    func applyCourseReview(_ action: CourseReviewAction, from previous: CourseReviewSession,
+                           expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.courseReview == previous else { return false }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit(startsDetailedTracking: false) { $0.courseReview = updated }
+    }
+
+    @discardableResult
+    func closeFinishedCourseReview(from previous: CourseReviewSession, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.courseReview == previous,
+              previous.phase == .finished else { return false }
+        return commit(startsDetailedTracking: false) { $0.courseReview = nil }
     }
 
     /// Learn leads with the basics lesson only for someone who has not started the
@@ -348,6 +539,74 @@ final class ProgressionModel {
     /// its marker.
     func completeBasicsLesson() {
         _ = commit { $0.basicsLessonCompleted = true }
+    }
+
+    // MARK: - One-pair lesson
+
+    @discardableResult
+    func beginPairLesson(seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max),
+                         expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
+        if state.pairLesson != nil { return true }
+        let sawCompletedGuide = state.firstLessonCompleted == true && state.openingDismissed == true
+        let sawHigherPair = FirstLesson.Rule.allCases.firstIndex(of: .higherPair).map { index in
+            state.pendingFirstLesson?.responses[index] != nil
+        } ?? false
+        let lesson = PairLessonProgress(seed: seed, exampleAlreadySeen: sawCompletedGuide || sawHigherPair)
+        return commit { $0.pairLesson = lesson }
+    }
+
+    /// Use the same clock for scheduling and checking availability.
+    var pairLessonNow: Date {
+        let now = Date()
+        #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        if environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+           environment["GT_TEST_PAIR_DAY_OFFSET"] == "1" {
+            return Calendar.current.date(byAdding: .day, value: 1, to: now) ?? now
+        }
+        #endif
+        return now
+    }
+
+    @discardableResult
+    func applyPairLesson(_ action: PairLessonAction, from previous: PairLessonProgress,
+                         expectedEpoch: UUID, now: Date? = nil) -> Bool {
+        guard expectedEpoch == epoch, state.pairLesson == previous else { return false }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit {
+            $0.pairLesson = updated
+            if updated.phase == .finished {
+                $0.pairLessonFollowUp = .recordingCompletion(
+                    of: updated, previous: $0.pairLessonFollowUp, at: now ?? pairLessonNow)
+                if updated.passed, let score = updated.bestFirstRight, var unit = $0.unitB,
+                   unit.apply(.completePairLesson(bestFirstRight: score)) {
+                    $0.unitB = unit
+                }
+            }
+        }
+    }
+
+    @discardableResult
+    func applyPairLessonFollowUp(_ action: PairLessonAction, to kind: PairLessonFollowUpKind,
+                                 from previous: PairLessonFollowUpProgress, expectedEpoch: UUID,
+                                 now: Date? = nil) -> Bool {
+        guard expectedEpoch == epoch, state.pairLessonFollowUp == previous else { return false }
+        var updated = previous
+        let today = PairLessonFollowUpProgress.localDay(at: now ?? pairLessonNow)
+        guard updated.apply(action, to: kind, today: today) else { return false }
+        return commit { $0.pairLessonFollowUp = updated }
+    }
+
+    @discardableResult
+    func restartPairLesson(from previous: PairLessonProgress,
+                           seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max),
+                           expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.pairLesson == previous else { return false }
+        var updated = previous
+        guard updated.restart(seed: seed) else { return false }
+        return commit { $0.pairLesson = updated }
     }
 
     // MARK: - beginner sessions and durable summaries
@@ -967,12 +1226,12 @@ final class ProgressionModel {
     }
 
     @discardableResult
-    private func commit(_ mutate: (inout ProgressState) -> Void) -> Bool {
+    private func commit(startsDetailedTracking: Bool = true, _ mutate: (inout ProgressState) -> Void) -> Bool {
         guard unreadable == nil, saveError == nil else { return false }
         var candidate = state
         mutate(&candidate)
         candidate.revision += 1
-        if candidate.detailedTrackingStartedAt == nil {
+        if startsDetailedTracking && candidate.detailedTrackingStartedAt == nil {
             candidate.detailedTrackingStartedAt = Date()
         }
         do {

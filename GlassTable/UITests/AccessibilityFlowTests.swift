@@ -577,6 +577,8 @@ final class AccessibilityFlowTests: XCTestCase {
         }
         tap("firstLesson.next")
         tap("firstLesson.finish")
+        tap("unit-a-close")
+        tap("learn-basics-start")
 
         let basicsNext = app.buttons["basics.next"]
         XCTAssertTrue(basicsNext.waitForExistence(timeout: 10))

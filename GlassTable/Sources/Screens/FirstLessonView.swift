@@ -53,6 +53,7 @@ struct FirstLessonView: View {
     }
 
     var body: some View {
+        let inlinePanel = dynamicTypeSize.isAccessibilitySize && responseIndex(step) == nil
         VStack(spacing: 0) {
             // The brand screen has no bar; its Skip sits under Start.
             if step == .welcome { Color.clear.frame(height: 44) }
@@ -61,8 +62,8 @@ struct FirstLessonView: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: GT.Space.section) {
-                            content
-                            if dynamicTypeSize.isAccessibilitySize, step != .welcome {
+                            content.id(Self.lessonTop)
+                            if inlinePanel, step != .welcome {
                                 ActionSheet(band: panelBand) { panel }
                             }
                         }
@@ -70,18 +71,17 @@ struct FirstLessonView: View {
                             .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: step == .welcome ? .center : .top)
                     }
                     .scrollBounceBehavior(.basedOnSize)
-                    // Every answer includes a reveal, including the neutral demonstration.
-                    .onChange(of: step) { _, nextStep in
-                        guard responseIndex(nextStep) != nil else { return }
+                    .onChange(of: step) { previousStep, nextStep in
+                        guard responseIndex(previousStep) != nil || responseIndex(nextStep) != nil else { return }
                         withAnimation(reduceMotion ? nil : GT.Motion.change) {
-                            proxy.scrollTo(Self.resultEnd, anchor: .bottom)
+                            proxy.scrollTo(Self.lessonTop, anchor: .top)
                         }
                     }
                 }
             }
             if step == .welcome {
                 brandStart
-            } else if !dynamicTypeSize.isAccessibilitySize {
+            } else if !inlinePanel {
                 ActionSheet(band: panelBand) {
                     VStack(alignment: .leading, spacing: GT.Space.related) { panel }
                 }
@@ -168,7 +168,7 @@ struct FirstLessonView: View {
     // MARK: Header
 
     private var header: some View {
-        Group {
+        VStack(alignment: .leading, spacing: GT.Space.compact) {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 10) {
                     headerTitle
@@ -180,6 +180,11 @@ struct FirstLessonView: View {
                     Spacer(minLength: 12)
                     headerAction
                 }
+            }
+            if let comparisonIndex {
+                LessonProgressSegments(total: requiredComparisons.count,
+                                       current: comparisonIndex,
+                                       completed: viewedComparisons)
             }
         }
         .padding(.horizontal, 18).padding(.vertical, 10)
@@ -421,6 +426,22 @@ struct FirstLessonView: View {
         rulePage.map { language.text("추가 안내 4단계 중 \($0)단계", "Optional step \($0) of 4") }
     }
 
+    private var comparisonIndex: Int? {
+        switch step {
+        case .example, .exampleAnswer: 0
+        case .transfer, .transferAnswer: 1
+        case .comparison(let index), .comparisonAnswer(let index): index + 2
+        default: nil
+        }
+    }
+
+    private var viewedComparisons: Set<Int> {
+        Set(requiredComparisons.indices.filter { index in
+            let reveal = answerStep(index)
+            return reveal == step || submitted[reveal] != nil || helped.contains(reveal)
+        })
+    }
+
     // MARK: Steps
 
     @ViewBuilder
@@ -434,12 +455,12 @@ struct FirstLessonView: View {
         case .flow: flowPage
         case .bestFive: bestFivePage
         case .wrapUp: wrapUpPage
-        case .example: question(spot: exampleSpot, guided: true)
-        case .exampleAnswer: answerContent(spot: exampleSpot, guided: true)
-        case .transfer: question(spot: transferSpot, guided: false)
-        case .transferAnswer: answerContent(spot: transferSpot, guided: false)
-        case .comparison(let i): question(spot: comparisons[i], guided: false)
-        case .comparisonAnswer(let i): answerContent(spot: comparisons[i], guided: false)
+        case .example: question(spot: exampleSpot)
+        case .exampleAnswer: answerContent(spot: exampleSpot)
+        case .transfer: question(spot: transferSpot)
+        case .transferAnswer: answerContent(spot: transferSpot)
+        case .comparison(let i): question(spot: comparisons[i])
+        case .comparisonAnswer(let i): answerContent(spot: comparisons[i])
         }
     }
 
@@ -850,9 +871,12 @@ struct FirstLessonView: View {
             }
             .gtInset(GT.Space.card, firstText: .semibold(15)).frame(maxWidth: .infinity, alignment: .leading)
             .gtCard(radius: GT.Radius.panel)
-            if opensBasics {
-                Text(language.text("다음은 족보예요. 어떤 5장이 더 강한지 알아봐요.",
-                                   "Next: hand ranks, and which five beats which."))
+            if opensUnitA || opensBasics {
+                Text(opensUnitA
+                     ? language.text("이제 내 카드와 공용 카드를 구분해 볼까요?",
+                                     "Next, spot which cards are yours and which are shared.")
+                     : language.text("다음은 족보예요. 어떤 5장이 더 강한지 알아봐요.",
+                                     "Next, see which hands rank highest."))
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
                     .fixedSize(horizontal: false, vertical: true)
@@ -874,13 +898,18 @@ struct FirstLessonView: View {
         }
     }
 
-    /// The first run goes on to the hand-ranks lesson unless it is already done.
+    private var opensUnitA: Bool {
+        context != .replay && model.openingContinuesToUnitA
+    }
+
+    /// The legacy path still leads into hand ranks when those are unfinished.
     private var opensBasics: Bool {
-        context != .replay && model.state.basicsLessonCompleted != true
+        context != .replay && !opensUnitA && model.state.basicsLessonCompleted != true
     }
 
     private var finishTitle: String {
         if context == .replay { return copy(.returnToLearning) }
+        if opensUnitA { return language.text("한 판 따라가기", "Follow a hand") }
         return opensBasics ? language.text("족보 보기", "See the hand ranks") : copy(.beginCourse)
     }
 
@@ -913,8 +942,11 @@ struct FirstLessonView: View {
     private var comparisonRuleText: String {
         switch comparisonRule {
         case .pairOverHighCard:
-            return language.text("숫자나 글자가 같은 두 장이 페어예요. 페어는 한 쌍이 없는 패보다 강해요.",
-                                 "Two matching numbers or letters make a pair. A pair beats a hand with no pair.")
+            let first = language.text("숫자나 글자가 같은 두 장이 페어예요.",
+                                      "Two matching numbers or letters make a pair.")
+            let second = language.text("페어는 한 쌍이 없는 패보다 강해요.",
+                                       "A pair beats a hand with no pair.")
+            return [first, second].joined(separator: dynamicTypeSize.isAccessibilitySize ? " " : "\n")
         case .higherPair:
             return language.text("둘 다 페어이면 높은 페어가 이겨요. A가 가장 높고, K, Q, J, 10, 9부터 2까지 차례로 낮아져요.",
                                  "When both hands have a pair, the higher pair wins. Ace is highest, then K, Q, J, 10, 9 and so on down to 2.")
@@ -947,14 +979,15 @@ struct FirstLessonView: View {
         }
     }
 
-    private func question(spot: ShowdownSpot, guided: Bool) -> some View {
-        VStack(alignment: .leading, spacing: GT.Space.section) {
+    private func question(spot: ShowdownSpot) -> some View {
+        VStack(alignment: .leading, spacing: GT.Space.related) {
+            Text(comparisonTitle)
+                .accessibilityIdentifier("firstLesson.heading")
+                .font(GT.title(28)).foregroundStyle(GT.onFelt)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            board(spot.board)
             VStack(alignment: .leading, spacing: 7) {
-                Text(comparisonTitle)
-                    .accessibilityIdentifier("firstLesson.heading")
-                    .font(GT.title(28)).foregroundStyle(GT.onFelt)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
                 Text(comparisonRuleText)
                     .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.onFeltSecondary)
                     .lineSpacing(GT.Typography.bodyLineSpacing)
@@ -969,17 +1002,24 @@ struct FirstLessonView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("firstLesson.question")
             }
-            board(spot.board)
-
         }
     }
 
     private func board(_ cards: [Card]) -> some View {
         VStack(alignment: .center, spacing: 9) {
-            SectionLabel(text: copy(.sharedCards))
+            Text(copy(.sharedCards))
+                .font(GT.semibold(14)).foregroundStyle(GT.onTable)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
             CardRow(cards: cards)
         }
+        .padding(.vertical, GT.Space.related)
         .frame(maxWidth: .infinity)
+        .background(GT.tableFelt, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+        .overlay {
+            RoundedRectangle(cornerRadius: GT.Radius.panel)
+                .strokeBorder(GT.tableHairline)
+        }
         .accessibilityElement(children: .contain)
     }
 
@@ -1027,73 +1067,58 @@ struct FirstLessonView: View {
     }
 
     private func handChoiceLabel(_ title: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(title).font(GT.title(17)).foregroundStyle(GT.ink)
-            Text(copy(.choiceHint))
-                .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
-        }
+        Text(title).font(GT.title(17)).foregroundStyle(GT.ink)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: Result
 
-    private static var resultEnd: String { "first-lesson-result-end" }
+    private static let lessonTop = "first-lesson-top"
 
-    /// The question stays where it was; the two hands, now marked, are added below it.
-    /// The explanation sits with the verdict in the sheet, as in every lesson.
-    private func answerContent(spot: ShowdownSpot, guided: Bool) -> some View {
-        VStack(alignment: .leading, spacing: GT.Space.section) {
-            question(spot: spot, guided: guided)
+    private func answerContent(spot: ShowdownSpot) -> some View {
+        let pair = BestFivePair(spot)
+        return VStack(alignment: .leading, spacing: GT.Space.related) {
+            verdict(spot: spot)
+            explanation(spot: spot)
             VStack(spacing: 12) {
-                resultHand(title: language.text("내 카드", "Your cards"), cards: spot.hero, value: 0, spot: spot)
-                resultHand(title: copy(.villainCards), cards: spot.villain, value: 1, spot: spot)
+                resultHand(title: copy(.heroCards), hand: pair.first, value: 0, winner: spot.winner)
+                resultHand(title: copy(.villainCards), hand: pair.second, value: 1, winner: spot.winner)
             }
-            verdict(spot: spot, isTransfer: !guided)
-                .gtInset(GT.Space.card, firstText: .title(GT.Typography.resultSize))
-                .gtCard(radius: GT.Radius.panel)
-                .id(Self.resultEnd)
         }
     }
 
     /// The pick carries its verdict: green ✓ when right, red ✗ when wrong, and the
     /// winning hand is marked ✓ 정답 after a miss. Shape and words back the colour.
-    private func resultHand(title: String, cards: [Card], value: Int, spot: ShowdownSpot) -> some View {
-        // The row shows all seven with the five that play outlined, so the answer
-        // reads as the rule it tests.
+    private func resultHand(title: String, hand: BestFiveHand, value: Int, winner: Int) -> some View {
         let picked = answer == value
-        let wins = spot.winner == value
+        let wins = winner == value
         let mark: (text: String, spoken: String, band: GradeBand)? =
             showsHelp ? nil : picked ? (copy(.myPick), wins ? copy(.pickCorrect) : copy(.pickWrong), wins ? .spotOn : .off)
                    : (wins ? (copy(.rightAnswer), copy(.rightAnswer), .spotOn) : nil)
-        // At accessibility sizes the badge would cover the title, so it sits above it.
-        let inline = dynamicTypeSize.isAccessibilitySize
         return VStack(alignment: .leading, spacing: 10) {
-            if inline, let mark { markBadge(mark.text, band: mark.band) }
-            resultLabel(title: title, hand: value == 0 ? spot.heroBest : spot.villainBest)
-            sevenCards(hole: cards, board: spot.board, size: 44)
-                .frame(maxWidth: .infinity)
+            let labels = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+            labels {
+                resultLabel(title: title, hand: hand.brief)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let mark {
+                    Label(mark.text, systemImage: mark.band.glyph)
+                        .font(GT.semibold(12)).foregroundStyle(mark.band.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityLabel(mark.spoken)
+                }
+            }
+            SevenCardRow(hole: hand.hole, board: hand.board, used: hand.used,
+                         deciding: hand.deciding, comparisonCards: hand.comparisonCards, size: 44)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: .contain)
         }
-            .gtInset(GT.Space.card, firstText: inline && mark != nil ? .semibold(12) : .title(16)).frame(maxWidth: .infinity, alignment: .leading)
-            .background(mark?.band.tint ?? GT.glass,
-                        in: RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: GT.Radius.panel, style: .continuous)
-                    .strokeBorder(mark?.band.ink ?? GT.border, lineWidth: mark == nil ? 1 : 2.5)
-            }
-            .overlay(alignment: .topTrailing) {
-                if !inline, let mark { markBadge(mark.text, band: mark.band).offset(x: -12, y: -11) }
-            }
-            .padding(.top, mark == nil || inline ? 0 : 6)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel([title, spoken(cards), DrillTerms.hand(value == 0 ? spot.heroBest : spot.villainBest, in: language), mark?.spoken]
-                .compactMap { $0 }.joined(separator: ", "))
-    }
-
-    private func markBadge(_ text: String, band: GradeBand) -> some View {
-        Label(text, systemImage: band.glyph)
-            .font(GT.semibold(12)).foregroundStyle(band.ink)
-            .padding(.horizontal, 9).padding(.vertical, 3)
-            .background(GT.felt, in: Capsule())
-            .overlay(Capsule().strokeBorder(band.ink, lineWidth: 1.5))
+        .gtInset(GT.Space.card, firstText: .title(16))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .gtCard(radius: GT.Radius.panel, band: mark?.band)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("firstLesson.resultHand.\(value)")
     }
 
     private func resultLabel(title: String, hand: HandBrief) -> some View {
@@ -1102,9 +1127,11 @@ struct FirstLessonView: View {
             Text(DrillTerms.hand(hand, in: language))
                 .font(GT.body(13)).foregroundStyle(GT.inkSecondary)
         }
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
     }
 
-    private func verdict(spot: ShowdownSpot, isTransfer: Bool) -> some View {
+    private func verdict(spot: ShowdownSpot) -> some View {
         let usedHelp = showsHelp
         let correct = isCorrect(spot)
         let band: GradeBand = correct ? .spotOn : .off
@@ -1116,38 +1143,35 @@ struct FirstLessonView: View {
             }
         }
         let headline = usedHelp ? language.text("함께 살펴볼게요", "Let’s look together") : correct ? copy(.correctTitle) + " · " + outcome(spot.winner) : copy(.retryTitle)
-        let detail: String
-        switch step {
-        case .comparisonAnswer:
-            detail = language.text("7장 중 가장 좋은 5장의 족보와 숫자를 비교해요.",
-                                   "Compare the hand types and ranks of each best five.")
-        default:
-            detail = [comparisonRuleText, comparisonSideFact].compactMap { $0 }.joined(separator: " ")
+        return HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Image(systemName: usedHelp ? "info.circle" : band.glyph)
+                .font(GT.semibold(20)).foregroundStyle(usedHelp ? GT.onFeltSecondary : band.ink)
+                .accessibilityHidden(true)
+            Text(headline)
+                .font(GT.title(GT.Typography.resultSize)).foregroundStyle(GT.onFelt)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        return VStack(alignment: .leading, spacing: GT.Space.related) {
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: usedHelp ? "info.circle" : band.glyph)
-                    .font(.system(size: 26, weight: .semibold)).foregroundStyle(usedHelp ? GT.inkSecondary : band.ink)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(headline)
-                        .font(GT.title(GT.Typography.resultSize)).foregroundStyle(usedHelp ? GT.ink : band.ink)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(detail)
-                        .font(GT.body(15)).foregroundStyle(GT.ink)
-                        .lineSpacing(GT.Typography.bodyLineSpacing)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("firstLesson.verdict")
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+        .accessibilityIdentifier("firstLesson.verdict")
+    }
+
+    private func explanation(spot: ShowdownSpot) -> some View {
+        VStack(alignment: .leading, spacing: GT.Space.compact) {
             comparisonReason(spot)
-                .font(GT.body(GT.Typography.explanationSize)).foregroundStyle(GT.inkSecondary)
+                .font(GT.semibold(GT.Typography.explanationSize)).foregroundStyle(GT.ink)
                 .lineSpacing(GT.Typography.explanationLineSpacing)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("firstLesson.reason")
+            Text([comparisonRuleText, comparisonSideFact].compactMap { $0 }.joined(separator: " "))
+                .font(GT.body(15)).foregroundStyle(GT.inkSecondary)
+                .lineSpacing(GT.Typography.bodyLineSpacing)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .gtInset(GT.Space.card, firstText: .semibold(GT.Typography.explanationSize))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .gtCard(radius: GT.Radius.panel)
     }
 
     @ViewBuilder
@@ -1174,9 +1198,12 @@ struct FirstLessonView: View {
                 }
                 .accessibilityIdentifier("firstLesson.next")
             } else {
-                PrimaryCTAButton(title: language.text("다음 비교", "Next comparison")) {
+                let fullTitle = language.text("다음 비교", "Next comparison")
+                let title = dynamicTypeSize.isAccessibilitySize ? language.text("다음", "Next") : fullTitle
+                PrimaryCTAButton(title: title) {
                     transition(to: .transfer)
                 }
+                .accessibilityLabel(fullTitle)
                 .accessibilityIdentifier("firstLesson.next")
             }
         }

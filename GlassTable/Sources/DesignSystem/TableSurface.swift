@@ -157,14 +157,15 @@ struct TableSurface: View {
 
     private var felt: some View {
         RoundedRectangle(cornerRadius: Self.radius, style: .continuous)
-            .fill(GT.tableFelt)
+            .fill(LinearGradient(colors: [GT.tableFeltLight, GT.tableFelt, GT.tableFeltDeep],
+                                 startPoint: .topLeading, endPoint: .bottomTrailing))
             .overlay {
                 RoundedRectangle(cornerRadius: Self.radius, style: .continuous)
                     .strokeBorder(GT.tableRail, lineWidth: Self.rail)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: Self.radius - Self.rail, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.07), lineWidth: 1)
+                    .strokeBorder(GT.onTable.opacity(0.20), lineWidth: 1)
                     .padding(Self.rail)
             }
             .accessibilityHidden(true)

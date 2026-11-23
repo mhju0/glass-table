@@ -63,6 +63,14 @@ final class OutsRevealTests: XCTestCase {
         XCTAssertTrue(nine.isSelected)
         XCTAssertFalse(app.buttons["outs-river-As"].isSelected)
         assertOnScreen(app)
+
+        let help = app.buttons.matching(NSPredicate(format: "label == %@",
+            ko ? "푸는 방법" : "How to work it out")).firstMatch
+        let reveal = app.scrollViews["drill-content-scroll"]
+        for _ in 0..<4 where !help.isHittable { reveal.swipeUp() }
+        XCTAssertTrue(help.isHittable, "The lesson hint remains reachable after the answer.")
+        help.tap()
+        XCTAssertEqual(help.value as? String, ko ? "펼침" : "Expanded")
     }
 
     private func why(_ app: XCUIApplication) -> XCUIElement { app.staticTexts["outs-why"] }

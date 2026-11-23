@@ -3,17 +3,28 @@ import SwiftUI
 import GlassTableEngine
 import GlassTableDrills
 
-/// Immediate press feedback. Reduced Motion keeps the highlight and removes scale.
+/// Immediate press feedback. Raised action faces press into their edge.
 struct GTPress: ButtonStyle {
     var pressedScale: CGFloat = 0.98
+    var raised = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         let pressed = configuration.isPressed && isEnabled
+        let travels = pressed && !reduceMotion
         configuration.label
-            .scaleEffect(pressed && !reduceMotion ? pressedScale : 1)
-            .opacity(pressed ? 0.78 : 1)
+            .background {
+                if raised && isEnabled {
+                    RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
+                        .fill(GT.actionEdge)
+                        .offset(y: travels ? 1 : 3)
+                        .allowsHitTesting(false)
+                }
+            }
+            .offset(y: raised && travels ? 2 : 0)
+            .scaleEffect(!raised && travels ? pressedScale : 1)
+            .opacity(pressed ? (raised ? (reduceMotion ? 0.9 : 1) : 0.78) : 1)
             .animation(reduceMotion ? nil : GT.Motion.press, value: pressed)
     }
 }
@@ -138,8 +149,6 @@ extension GradeBand {
         case .off:    return "xmark.circle.fill"
         }
     }
-    /// Darkened from the original trio, which measured 3.08–4.17:1 on their own tints —
-    /// all below AA. These are 4.95–5.12:1, so the verdict is legible at any size.
     var ink: Color {
         switch self {
         case .spotOn: return GTBand.spotOnInk
@@ -154,6 +163,13 @@ extension GradeBand {
         case .off:    return GTBand.offTint
         }
     }
+    var edge: Color {
+        switch self {
+        case .spotOn: return GT.supportEdge
+        case .close:  return GT.borderStrong
+        case .off:    return GT.retryEdge
+        }
+    }
 }
 
 /// The verdict, at the top of every reveal. The old version put a small pill next to a flat
@@ -164,7 +180,6 @@ extension GradeBand {
 ///   2. **shape** — ✓ / ± / ✕
 ///   3. **text** — 정확 / 근접 / 빗나감, plus the gap named (`2 차이`)
 ///   4. **color** — additive only, never load-bearing.
-/// Numbers stay near-black (14.9:1 on the tint) because the band inks only reach ~5:1.
 struct VerdictRow: View {
     @Environment(\.learningLanguage) private var language
     let band: GradeBand
@@ -213,7 +228,7 @@ struct VerdictRow: View {
                 HStack(spacing: 7) {
                     Text(heading).font(GT.title(18)).foregroundStyle(band.ink)
                     if let delta {
-                        Text(localizedDelta(delta)).font(GT.semibold(12)).foregroundStyle(band.ink.opacity(0.85))
+                        Text(localizedDelta(delta)).font(GT.semibold(12)).foregroundStyle(band.ink)
                     }
                 }
                 answers
@@ -222,7 +237,10 @@ struct VerdictRow: View {
         }
         .gtInset(GT.Space.card, firstText: .title(18))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(band.tint, in: RoundedRectangle(cornerRadius: GT.Radius.panel))
+        .background {
+            let shape = RoundedRectangle(cornerRadius: GT.Radius.panel)
+            shape.fill(band.tint).overlay(shape.strokeBorder(band.edge, lineWidth: 1))
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(band == .spotOn
             ? "\(heading). \(correct)."
@@ -306,9 +324,10 @@ struct GlossaryChip: View {
 private struct GlassBackground<S: InsettableShape>: View {
     let shape: S
     var litEdge: Bool = true
+    var fill = GT.glass
 
     var body: some View {
-        shape.fill(GT.glass)
+        shape.fill(fill)
             .overlay {
                 shape.strokeBorder(litEdge ? GT.glassEdge : GT.borderStrong, lineWidth: 1)
             }
@@ -383,7 +402,7 @@ private struct GTInkInset: ViewModifier {
 struct GTDockControlBackground: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
-        shape.fill(GT.surface).overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
+        shape.fill(GT.glass).overlay(shape.strokeBorder(GT.borderStrong, lineWidth: 1))
     }
 }
 
@@ -434,7 +453,7 @@ private struct GTContentEdge: ViewModifier {
 struct GTControlBackground: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
-        shape.fill(GT.surface).overlay(shape.strokeBorder(GT.border, lineWidth: 1))
+        shape.fill(GT.glass).overlay(shape.strokeBorder(GT.border, lineWidth: 1))
     }
 }
 
@@ -665,7 +684,8 @@ struct ActionSheet<Content: View>: View {
     /// the home indicator alone. A tab bar below the sheet adds its height to the inset,
     /// and the card then floats above the bar instead of sliding under it.
     private var reach: CGFloat {
-        bottomInset <= indicator + 0.5 ? bottomInset : 0
+        guard !dynamicTypeSize.isAccessibilitySize else { return 0 }
+        return bottomInset <= indicator + 0.5 ? bottomInset : 0
     }
 
     private var folds: Bool { band != nil && collapsible }
@@ -722,7 +742,7 @@ struct ActionSheet<Content: View>: View {
             if let band {
                 shape.fill(band.tint).overlay(shape.stroke(band.ink, lineWidth: 2))
             } else {
-                shape.fill(GT.glass).overlay(shape.stroke(GT.glassEdge, lineWidth: 1))
+                shape.fill(GT.sheet).overlay(shape.stroke(GT.glassEdge, lineWidth: 1))
             }
         } else {
             let shape = UnevenRoundedRectangle(topLeadingRadius: GT.Radius.control,
@@ -733,7 +753,7 @@ struct ActionSheet<Content: View>: View {
                     .overlay(shape.stroke(band.ink, lineWidth: 2))
                     .ignoresSafeArea(edges: .bottom)
             } else {
-                GlassBackground(shape: shape)
+                GlassBackground(shape: shape, fill: GT.sheet)
                     .ignoresSafeArea(edges: .bottom)
             }
         }
@@ -797,24 +817,22 @@ struct RevealDetail<Content: View>: View {
     }
 }
 
-/// Primary action: mint fill, dark lettering. The one visually dominant control in
-/// any sheet — three equal rectangles is what made the old answer sheets read flat.
-/// The same button serves directly on felt, where there is no glass beneath it.
+/// The raised amber button leads to the next step.
 struct PrimaryCTAButton: View {
     @Environment(\.isEnabled) private var isEnabled
     let title: String
     let action: () -> Void
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
         Button(action: action) {
             Text(title).font(GT.title(GT.Typography.buttonSize))
-                .foregroundStyle(isEnabled ? GT.onCTA : GT.inkMuted)
+                .foregroundStyle(isEnabled ? GT.actionInk : GT.inkMuted)
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, minHeight: 54)
-                .background(isEnabled ? GT.cta : GT.surface,
-                            in: RoundedRectangle(cornerRadius: GT.Radius.control,
-                                                 style: .continuous))
+                .background(isEnabled ? GT.actionFill : GT.progressTrack, in: shape)
+                .overlay(shape.strokeBorder(isEnabled ? GT.actionEdge : Color.clear, lineWidth: 1))
         }
-        .buttonStyle(GTPress())
+        .buttonStyle(GTPress(raised: true))
     }
 }
 
@@ -916,7 +934,7 @@ struct SecondaryCTAButton: View {
             Text(title).font(GT.semibold(GT.Typography.buttonSize)).foregroundStyle(GT.inkSecondary)
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, minHeight: 54)
-                .background(GT.surface, in: RoundedRectangle(cornerRadius: GT.Radius.control,
+                .background(GT.glass, in: RoundedRectangle(cornerRadius: GT.Radius.control,
                                                             style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: GT.Radius.control, style: .continuous)
                     .strokeBorder(GT.border, lineWidth: 1))
@@ -1012,17 +1030,16 @@ struct GTChoiceButton: View {
                 Text(title)
                     .font(selected ? GT.title(GT.Typography.buttonSize)
                                    : GT.semibold(GT.Typography.buttonSize))
-                    .foregroundStyle(selected ? GT.onCTA : (isEnabled ? GT.ink : GT.inkMuted))
+                    .foregroundStyle(selected ? GT.actionInk : (isEnabled ? GT.ink : GT.inkMuted))
                     .frame(maxWidth: .infinity, minHeight: minHeight)
-                    .background(selected ? AnyShapeStyle(GT.cta)
-                                         : AnyShapeStyle(GT.surface.opacity(isEnabled ? 1 : 0.35)),
+                    .background(selected ? GT.actionFill : GT.glass.opacity(isEnabled ? 1 : 0.35),
                                 in: shape)
                     .overlay(shape
-                        .strokeBorder(selected ? Color.clear : GT.borderStrong.opacity(isEnabled ? 1 : 0.6),
+                        .strokeBorder(selected ? GT.actionEdge : GT.borderStrong.opacity(isEnabled ? 1 : 0.6),
                                       style: StrokeStyle(lineWidth: 1, dash: isEnabled ? [] : [4, 3])))
             }
         }
-        .buttonStyle(GTPress())
+        .buttonStyle(GTPress(raised: selected && verdict == nil))
         .animation(reduceMotion ? nil : GT.Motion.change, value: isEnabled)
     }
 }

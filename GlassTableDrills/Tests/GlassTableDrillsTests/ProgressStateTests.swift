@@ -6,11 +6,11 @@ final class ProgressStateTests: XCTestCase {
     func testEmptyStateHasCurrentSchemaVersionAndNoRecords() {
         let s = ProgressState()
         XCTAssertEqual(s.schemaVersion, ProgressState.currentSchemaVersion)
-        XCTAssertEqual(s.schemaVersion, 5)
         XCTAssertTrue(s.concepts.isEmpty)
         XCTAssertTrue(s.nodes.isEmpty)
         XCTAssertTrue(s.answers.isEmpty)
         XCTAssertNil(s.firstLessonCompleted)
+        XCTAssertNil(s.pairLesson)
         XCTAssertEqual(s.streak.current, 0)
         XCTAssertEqual(s.streak.freezesRemaining, 2)   // spec §7.1: two auto freezes
     }
@@ -100,7 +100,7 @@ final class ProgressStateTests: XCTestCase {
         let decoded = try JSONDecoder().decode(ProgressState.self, from: JSONEncoder().encode(state))
         XCTAssertEqual(decoded, state)
         XCTAssertNil(decoded.firstLessonCompleted)
-        XCTAssertEqual(decoded.schemaVersion, 5)
+        XCTAssertEqual(decoded.schemaVersion, ProgressState.currentSchemaVersion)
     }
 
     func testUnversionedGuideKeepsLegacyCardsAndAnswersAcrossRoundTrip() throws {

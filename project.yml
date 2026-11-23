@@ -26,8 +26,8 @@ targets:
         CFBundleDevelopmentRegion: ko
         CFBundleLocalizations: [ko, en]
         CFBundleDisplayName: Glass Table
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "38"
+        CFBundleShortVersionString: "1.1"
+        CFBundleVersion: "39"
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
@@ -69,6 +69,7 @@ targets:
     dependencies:
       - target: GlassTable
       - package: GlassTableDrills
+      - package: GlassTableEngine
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

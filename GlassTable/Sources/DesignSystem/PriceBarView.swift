@@ -89,18 +89,19 @@ private struct PriceBarSegments: View {
     }
 
     private func segmentView(_ seg: PriceBarView.Segment, width: CGFloat) -> some View {
-        VStack(spacing: 2) {
-            Text(label(seg.label)).font(GT.semibold(11)).foregroundStyle(GT.onTable)
-            Text("\(seg.bb)").font(GT.title(17).monospacedDigit()).foregroundStyle(GT.onTable)
+        let ink = seg.hypothetical ? GT.actionInk : GT.onTable
+        return VStack(spacing: 2) {
+            Text(label(seg.label)).font(GT.semibold(11))
+            Text("\(seg.bb)").font(GT.title(17).monospacedDigit())
         }
+        .foregroundStyle(ink)
         .frame(width: width, height: height)
         .background(seg.fill,
-                    in: RoundedRectangle(cornerRadius: 10))
+                    in: RoundedRectangle(cornerRadius: GT.Radius.panel))
         .overlay {
             if seg.hypothetical {
-                RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(GT.onTable,
-                                  style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                RoundedRectangle(cornerRadius: GT.Radius.panel)
+                    .strokeBorder(ink, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
             }
         }
     }

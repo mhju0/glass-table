@@ -31,10 +31,6 @@ final class StepPersistenceTests: XCTestCase {
         (try? store().importData(JSONEncoder().encode(state))) != nil
     }
 
-    func testTheSchemaIsFive() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 5)
-    }
-
     // MARK: Saved answers regrade at their step
 
     func testAPracticeRoundAtAStepSavesItsLevelInFormatTwo() throws {
@@ -183,7 +179,7 @@ final class StepPersistenceTests: XCTestCase {
         let s = store()
         try bytes.write(to: s.url)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 4 must upgrade") }
-        XCTAssertEqual(state.schemaVersion, 5)
+        XCTAssertEqual(state.schemaVersion, ProgressState.currentSchemaVersion)
 
         // Cleared: the first step only.
         XCTAssertEqual(state.nodes["u1-showdown"]?.attempts, 2, "an existing record is kept as it was")

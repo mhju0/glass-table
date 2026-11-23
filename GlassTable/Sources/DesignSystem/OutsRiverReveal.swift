@@ -52,6 +52,12 @@ struct OutsRiverReveal: View {
     private func rows(_ river: Card) -> some View {
         let pair = BestFivePair(first: spot.villain, firstOwner: .opponent,
                                 second: spot.hero, secondOwner: .learner, board: spot.board + [river])
+        let reason = pair.why(in: language)
+        let visualReason = language == .english && !typeSize.isAccessibilitySize
+            ? reason.replacingOccurrences(of: #"two pair, (\S+) high\.$"#,
+                                          with: "two\u{00A0}pair,\u{00A0}$1\u{00A0}high.",
+                                          options: .regularExpression)
+            : reason
         return VStack(alignment: .leading, spacing: 6) {
             ForEach(Array(pair.rows.enumerated()), id: \.offset) { index, hand in
                 VStack(alignment: .leading, spacing: 4) {
@@ -71,10 +77,11 @@ struct OutsRiverReveal: View {
                         .accessibilityIdentifier("outs-row-cards-\(index)")
                 }
             }
-            Text(pair.why(in: language))
+            Text(visualReason)
                 .font(GT.body(15)).foregroundStyle(GT.onFelt)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityLabel(reason)
                 .accessibilityIdentifier("outs-why")
         }
     }
