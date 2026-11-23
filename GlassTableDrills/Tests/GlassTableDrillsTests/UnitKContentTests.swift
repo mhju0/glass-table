@@ -134,8 +134,10 @@ final class UnitKContentTests: XCTestCase {
             XCTAssertEqual(try selected(activity), choices[activity.id], activity.id)
             _ = try evidence(for: activity, hiding: "Minimum defense frequency (MDF)")
             let model = try XCTUnwrap(activity.prompt(in: .english))
-            XCTAssertTrue(model.contains("one fixed size"), activity.id)
-            XCTAssertTrue(model.contains("always loses when called"), activity.id)
+            XCTAssertTrue(model.contains("Checking earns 0"), activity.id)
+            XCTAssertTrue(model.contains("fixed-size bluff loses when called"), activity.id)
+            XCTAssertTrue(model.contains("Call or fold"), activity.id)
+            XCTAssertTrue(model.contains("No later bets or fees"), activity.id)
         }
         let exactShare = try XCTUnwrap(activities(.k5).first { $0.id == "K5-03" })
         XCTAssertEqual(row("Minimum defense in this model", in: exactShare.evidence), "40/60")
