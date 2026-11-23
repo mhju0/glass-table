@@ -17,6 +17,7 @@ struct LearnView: View {
     let onChoosePractice: () -> Void
     let onOpenBasics: () -> Void
     let onOpenUnitA: () -> Void
+    let onOpenUnitB: () -> Void
     let onOpenPairLesson: () -> Void
     let onOpenPairFollowUp: (PairLessonFollowUpKind) -> Void
     let onOpenGuidedHand: () -> Void
@@ -47,8 +48,10 @@ struct LearnView: View {
                                    perform: onResumeOpening)
                 }
                 if highlightsUnitA { unitARecommendation }
+                if highlightsUnitB { unitBRecommendation }
                 recommendationForMarkedLesson
                 if !highlightsUnitA { unitARecommendation }
+                if !highlightsUnitB { unitBRecommendation }
                 reviewLine
                 pairFollowUps
                 if marked == nil { allDoneLine }
@@ -95,6 +98,31 @@ struct LearnView: View {
         model.state.pendingFirstLesson == nil && model.openingContinuesToUnitA
     }
 
+    private var highlightsUnitB: Bool {
+        model.state.pendingFirstLesson == nil && model.state.unitA?.phase == .finished
+            && model.state.unitB?.phase != .finished && model.state.activeNodeSession == nil
+            && model.state.activeRound == nil && model.state.activeReviewSession == nil
+    }
+
+    private var unitBRecommendation: some View {
+        let progress = model.state.unitB
+        let finished = progress?.phase == .finished
+        let detail = finished
+            ? language.text("쇼다운 레슨 13개를 마쳤어요.", "All 13 showdown lessons complete.")
+            : (progress?.lesson ?? .pairBeatsHighCard).title(in: language)
+        let action: String
+        if finished {
+            action = language.text("결과 보기", "View results")
+        } else if progress != nil {
+            action = language.text("이어서", "Continue")
+        } else {
+            action = highlightsUnitB ? language.text("시작", "Start") : language.text("열기", "Open")
+        }
+        return recommendation(title: language.text("누가 이길까요?", "Decide who wins"),
+                              detail: detail, status: nil, action: action, id: "learn-unit-b",
+                              emphasized: highlightsUnitB, perform: onOpenUnitB)
+    }
+
     private var unitARecommendation: some View {
         let progress = model.state.unitA
         let finished = progress?.phase == .finished
@@ -109,12 +137,13 @@ struct LearnView: View {
     }
 
     @ViewBuilder private var recommendationForMarkedLesson: some View {
-        let emphasized = model.state.pendingFirstLesson == nil && !highlightsUnitA
+        let emphasizesNewUnit = highlightsUnitA || highlightsUnitB
+        let emphasized = model.state.pendingFirstLesson == nil && !emphasizesNewUnit
         switch marked {
         case .basics:
             recommendation(title: basicsTitle, detail: basicsDetail,
-                           status: highlightsUnitA ? nil : RowMark.basics.tag(language),
-                           action: highlightsUnitA ? language.text("열기", "Open") : RowMark.basics.action(language),
+                           status: emphasizesNewUnit ? nil : RowMark.basics.tag(language),
+                           action: emphasizesNewUnit ? language.text("열기", "Open") : RowMark.basics.action(language),
                            id: "learn-basics-start", emphasized: emphasized, perform: onOpenBasics)
         case .inProgress(let node), .next(let node):
             if let mark = mark(for: node) {
@@ -226,7 +255,7 @@ struct LearnView: View {
         Button(action: onChoosePractice) {
             layoutStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(language.text("모든 레슨을 마쳤어요", "You've passed every lesson"))
+                    Text(language.text("연습 레슨을 마쳤어요", "Practice lessons complete"))
                         .font(GT.semibold(15)).foregroundStyle(GT.onFelt)
                     Text(language.text("궁금한 주제를 다시 연습하거나 복습이 생길 때 돌아와요.",
                                        "Practise a topic again, or come back when a review is ready."))
@@ -236,7 +265,8 @@ struct LearnView: View {
                 if !stacks { Spacer(minLength: 8) }
                 pill(language.text("연습", "Practice"),
                      filled: model.state.pendingFirstLesson == nil &&
-                         model.state.activeReviewSession == nil && due.isEmpty)
+                         model.state.activeReviewSession == nil && due.isEmpty
+                         && !highlightsUnitA && !highlightsUnitB)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 8)

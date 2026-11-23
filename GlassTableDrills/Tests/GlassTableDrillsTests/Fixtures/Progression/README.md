@@ -65,3 +65,8 @@ and checked that the readback was equal.
 Keep the fixtures as written by their respective encoders. When the schema
 changes, capture any missing shape from the preceding schema and add a current
 fixture to `ProgressionGoldenFileTests.fixtures`.
+
+- `schema9-unit-b-draft.json` was written by the schema 9 encoder. It extends the
+  schema 8 fixture with completed showdown lessons B1–B9 and a two-card draft in
+  the first independent best-five comparison. Its copied B2 result comes from
+  the existing PairLesson record.

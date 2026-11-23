@@ -156,6 +156,7 @@ public struct ProgressionStore {
         // 6 → 7 adds `pairLessonFollowUp`. Old results have no completion day, so
         // keep the lesson as saved and schedule follow-up on the next completion.
         // 7 → 8 adds `unitA`; old saves start this unit from its first activity.
+        // 8 → 9 adds `unitB`. The existing pair lesson can satisfy B2 when reached.
         return upgraded
     }
 
@@ -249,6 +250,8 @@ public struct ProgressionStore {
                   state.schemaVersion >= 7 && state.pairLesson?.bestFirstRight != nil && $0.isValid
               }) ?? true,
               state.unitA.map({ state.schemaVersion >= 8 && $0.isValid }) ?? true,
+              state.unitB.map({ state.schemaVersion >= 9 && $0.isValid }) ?? true,
+              state.unitB?.pairBestFirstRight.map({ $0 <= (state.pairLesson?.bestFirstRight ?? 0) }) ?? true,
               state.recentHands.count <= 200,
               Set(state.recentHands.map(\.handID)).count == state.recentHands.count,
               state.recentHands.allSatisfy({ DayKey(raw: $0.day) != nil }),

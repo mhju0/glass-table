@@ -176,6 +176,20 @@ struct RootView: View {
         if model.beginUnitA(expectedEpoch: model.epoch) { journey.present(.unitA) }
     }
 
+    private func openUnitB() {
+        if model.beginUnitB(expectedEpoch: model.epoch) { journey.present(.unitB) }
+    }
+
+    private func openPairLessonForUnitB() {
+        guard journey.presented == .unitB, model.state.unitB?.phase == .pairLesson,
+              model.beginPairLesson(expectedEpoch: model.epoch) else { return }
+        journey.close(then: .unitBPairLesson)
+    }
+
+    private func returnFromUnitBPairLesson() {
+        if journey.presented == .unitBPairLesson { journey.close(then: .unitB) }
+    }
+
     private func openPairLesson() {
         if model.beginPairLesson(expectedEpoch: model.epoch) {
             journey.present(.pairLesson)
@@ -197,6 +211,7 @@ struct RootView: View {
                           onChoosePractice: { showFreePlay = true },
                           onOpenBasics: { journey.present(.basics) },
                           onOpenUnitA: openUnitA,
+                          onOpenUnitB: openUnitB,
                           onOpenPairLesson: openPairLesson,
                           onOpenPairFollowUp: openPairFollowUp,
                           onOpenGuidedHand: { journey.present(.guidedHand) },
@@ -246,6 +261,16 @@ struct RootView: View {
         .fullScreenCover(isPresented: showing { $0 == .unitA }, onDismiss: afterDismiss) {
             NavigationStack {
                 UnitAView().modifier(ProgressSaveNotice())
+            }.environment(model)
+        }
+        .fullScreenCover(isPresented: showing { $0 == .unitB }, onDismiss: afterDismiss) {
+            NavigationStack {
+                UnitBView(onOpenPair: openPairLessonForUnitB).modifier(ProgressSaveNotice())
+            }.environment(model)
+        }
+        .fullScreenCover(isPresented: showing { $0 == .unitBPairLesson }, onDismiss: afterDismiss) {
+            NavigationStack {
+                PairLessonView(onClose: returnFromUnitBPairLesson).modifier(ProgressSaveNotice())
             }.environment(model)
         }
         .fullScreenCover(isPresented: showing { $0 == .pairLesson }, onDismiss: afterDismiss) {
@@ -321,6 +346,11 @@ struct RootView: View {
                let start = env["GT_DEMO_UNIT_A"],
                model.beginUnitA(expectedEpoch: model.epoch, initial: Self.unitADemo(start)) {
                 journey.present(.unitA)
+            }
+            if env["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+               let start = env["GT_DEMO_UNIT_B"], let lesson = UnitBLesson(rawValue: start),
+               model.beginUnitBDemo(at: lesson, expectedEpoch: model.epoch) {
+                journey.present(.unitB)
             }
             if env["GT_DEMO_PAIR_LESSON"] != nil,
                model.beginPairLesson(seed: 42, expectedEpoch: model.epoch) {

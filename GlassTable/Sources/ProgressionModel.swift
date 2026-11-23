@@ -361,6 +361,81 @@ final class ProgressionModel {
         return commit { $0.unitA = updated }
     }
 
+    @discardableResult
+    func beginUnitB(expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
+        if state.unitB != nil { return true }
+        return commit { $0.unitB = UnitBProgress() }
+    }
+
+    @discardableResult
+    func applyUnitB(_ action: UnitBAction, from previous: UnitBProgress, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.unitB == previous else { return false }
+        if case let .completePairLesson(score) = action {
+            guard state.pairLesson?.bestFirstRight == score else { return false }
+        }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit { $0.unitB = updated }
+    }
+
+    #if DEBUG
+    /// Navigate a fresh simulator test store using the same transitions as a learner.
+    func beginUnitBDemo(at lesson: UnitBLesson, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch else { return false }
+        if state.unitB != nil { return true }
+        var unit = UnitBProgress()
+        var pair = state.pairLesson
+        while unit.lesson != lesson {
+            let action: UnitBAction
+            if unit.phase == .pairLesson {
+                if pair == nil { pair = Self.passedPairLessonDemo() }
+                guard let score = pair?.bestFirstRight else { return false }
+                action = .completePairLesson(bestFirstRight: score)
+            } else if let activity = unit.activity, !unit.revealed {
+                switch activity.kind {
+                case .example:
+                    action = .advance
+                case .choice:
+                    guard let correct = activity.correctChoice else { return false }
+                    action = unit.selection == nil ? .select(correct) : .submit
+                case .bestFive:
+                    for (index, card) in (activity.learner + activity.board).enumerated()
+                        where activity.correctFive.contains(card) {
+                        guard unit.apply(.toggleCard(index)) else { return false }
+                    }
+                    action = .submit
+                }
+            } else {
+                action = .advance
+            }
+            guard unit.apply(action) else { return false }
+        }
+        return commit {
+            $0.unitB = unit
+            $0.pairLesson = pair
+        }
+    }
+
+    private static func passedPairLessonDemo() -> PairLessonProgress? {
+        var pair = PairLessonProgress(seed: 42)
+        while pair.phase != .finished {
+            let action: PairLessonAction
+            if pair.phase == .example || pair.revealed {
+                action = .advance
+            } else if pair.selection != nil {
+                action = .submit
+            } else if let question = pair.currentQuestion {
+                action = .select(question.winner)
+            } else {
+                return nil
+            }
+            guard pair.apply(action) else { return nil }
+        }
+        return pair
+    }
+    #endif
+
     /// Learn leads with the basics lesson only for someone who has not started the
     /// course: nothing cleared, no starting-point recommendation, lesson unfinished.
     var shouldSuggestBasicsLesson: Bool { Curriculum.suggestsBasicsLesson(in: state) }
@@ -413,6 +488,10 @@ final class ProgressionModel {
             if updated.phase == .finished {
                 $0.pairLessonFollowUp = .recordingCompletion(
                     of: updated, previous: $0.pairLessonFollowUp, at: now ?? pairLessonNow)
+                if updated.passed, let score = updated.bestFirstRight, var unit = $0.unitB,
+                   unit.apply(.completePairLesson(bestFirstRight: score)) {
+                    $0.unitB = unit
+                }
             }
         }
     }

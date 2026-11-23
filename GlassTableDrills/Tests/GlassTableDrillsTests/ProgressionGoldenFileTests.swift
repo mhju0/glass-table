@@ -27,7 +27,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
     private static let fixtures = ["schema1-build3", "schema2-build16", "schema2-build22",
                                    "schema2-build30", "schema3-build34", "schema4-build35",
                                    "schema5-build37", "schema6-pair-retry",
-                                   "schema7-pair-follow-up", "schema8-unit-a-reveal"]
+                                   "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -46,8 +46,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsEight() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 8)
+    func testCurrentSchemaVersionIsNine() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 9)
     }
 
     func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
@@ -96,7 +96,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
                 }
             }
             let expectedRegrades = ["schema1-build3", "schema6-pair-retry",
-                                    "schema7-pair-follow-up", "schema8-unit-a-reveal"].contains(name) ? 0 : 3
+                                    "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft"].contains(name) ? 0 : 3
             XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
@@ -455,8 +455,10 @@ final class ProgressionGoldenFileTests: XCTestCase {
         guard case let .loaded(state) = s.load() else {
             return XCTFail("schema 8 Unit A reveal must load")
         }
-        XCTAssertEqual(try s.exportData(state), original)
+        let backup = try XCTUnwrap(files(containing: "schema-8-").first)
+        XCTAssertEqual(try Data(contentsOf: backup), original)
         XCTAssertEqual(try s.importData(original), state)
+        XCTAssertNil(state.unitB)
         let legacy = try s.importData(fixture("schema7-pair-follow-up"))
         var unit = try XCTUnwrap(state.unitA)
         var expected = legacy
@@ -478,7 +480,52 @@ final class ProgressionGoldenFileTests: XCTestCase {
         }
         XCTAssertEqual(restored, expected)
         XCTAssertNotEqual(restored.unitA?.activity?.id, state.unitA?.activity?.id)
-        XCTAssertTrue(try files(containing: "schema-").isEmpty)
+        XCTAssertEqual(try files(containing: "schema-"), [backup])
+    }
+
+    func testSchemaNineKeepsTheUnitBBestFiveDraftAndEarlierProgress() throws {
+        let original = try fixture("schema9-unit-b-draft")
+        let s = try store(with: original)
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 9 must load") }
+        XCTAssertEqual(try s.exportData(state), original)
+        var expected = try s.importData(fixture("schema8-unit-a-reveal"))
+        let unit = try XCTUnwrap(state.unitB)
+        expected.unitB = unit
+        XCTAssertEqual(state, expected)
+        XCTAssertEqual(unit.lesson, .bestFive)
+        XCTAssertEqual(unit.selectedCardIndices, [0, 2])
+        XCTAssertFalse(unit.canSubmit)
+        XCTAssertFalse(unit.revealed)
+        XCTAssertEqual(unit.pairBestFirstRight, expected.pairLesson?.bestFirstRight)
+    }
+
+    func testUnitBRequiresSchemaNineAndVerifiedPairResult() throws {
+        let original = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: fixture("schema9-unit-b-draft")) as? [String: Any])
+        var mismatched = original
+        mismatched["schemaVersion"] = 8
+        try assertRecovery(for: mismatched, error: .notDecodable)
+
+        try freshDirectory()
+        mismatched["unitB"] = NSNull()
+        try assertRecovery(for: mismatched, error: .notDecodable)
+
+        try freshDirectory()
+        var orphan = original
+        orphan.removeValue(forKey: "pairLesson")
+        orphan.removeValue(forKey: "pairLessonFollowUp")
+        try assertRecovery(for: orphan, error: .invalidProgress)
+
+        try freshDirectory()
+        var unsupportedScore = original
+        var unit = try XCTUnwrap(original["unitB"] as? [String: Any])
+        var results = try XCTUnwrap(unit["priorResults"] as? [[String: Any]])
+        let pairResult = try XCTUnwrap(results.firstIndex { $0["lesson"] as? String == "b2" })
+        XCTAssertEqual(results[pairResult]["firstRight"] as? Int, 7)
+        results[pairResult]["firstRight"] = 8
+        unit["priorResults"] = results
+        unsupportedScore["unitB"] = unit
+        try assertRecovery(for: unsupportedScore, error: .invalidProgress)
     }
 
     func testOlderFileWithUnitARequiresRecovery() throws {

@@ -21,8 +21,15 @@ struct PairLessonView: View {
     private let soloCount = 8
     private let passMark = 6
 
-    init(followUpKind: PairLessonFollowUpKind? = nil) {
+    private let onClose: (() -> Void)?
+
+    init(followUpKind: PairLessonFollowUpKind? = nil, onClose: (() -> Void)? = nil) {
         _followUpKind = State(initialValue: followUpKind)
+        self.onClose = onClose
+    }
+
+    private func close() {
+        if let onClose { onClose() } else { dismiss() }
     }
 
     var body: some View {
@@ -37,7 +44,7 @@ struct PairLessonView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background { GT.felt.ignoresSafeArea() }
         .gtChrome(leading: {
-            ChromeButton.close { dismiss() }
+            ChromeButton.close { close() }
                 .accessibilityIdentifier("pair-lesson-close")
         })
         .onAppear {
@@ -145,7 +152,7 @@ struct PairLessonView: View {
         }
         .onAppear { focus = revealed ? .feedback : .heading }
         .onChange(of: attempt.finished) { _, finished in
-            if finished { dismiss() }
+            if finished { close() }
         }
     }
 
@@ -379,7 +386,7 @@ struct PairLessonView: View {
             .disabled(model.saveError != nil)
             .accessibilityIdentifier("pair-lesson-replay")
             if freshPending {
-                Button(language.text("나중에 풀기", "Finish for now")) { dismiss() }
+                Button(language.text("나중에 풀기", "Finish for now")) { close() }
                     .buttonStyle(GTOutlinedAction(fills: true))
                     .accessibilityIdentifier("pair-lesson-finish-later")
             }
@@ -418,7 +425,7 @@ struct PairLessonView: View {
                 .disabled(model.saveError != nil)
                 .accessibilityIdentifier("pair-lesson-start-fresh")
             } else {
-                PrimaryCTAButton(title: language.text("완료", "Done")) { dismiss() }
+                PrimaryCTAButton(title: language.text("완료", "Done")) { close() }
                     .accessibilityIdentifier("pair-lesson-done")
             }
         } else if lesson.revealed || lesson.phase == .example {

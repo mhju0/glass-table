@@ -142,7 +142,7 @@ final class LearnListTests: XCTestCase {
         let done = app.buttons["learn-all-done"]
         XCTAssertTrue(done.waitForExistence(timeout: 15))
         XCTAssertTrue(done.isHittable)
-        XCTAssertTrue(done.label.hasPrefix(ko ? "모든 레슨을 마쳤어요" : "You've passed every lesson"), done.label)
+        XCTAssertTrue(done.label.hasPrefix(ko ? "연습 레슨을 마쳤어요" : "Practice lessons complete"), done.label)
         XCTAssertTrue(["learn-continue", "learn-start", "learn-basics-start"].allSatisfy { !app.buttons[$0].exists },
                       "Nothing is marked")
         attach(app, "\(language)-large-learn-all-done")
