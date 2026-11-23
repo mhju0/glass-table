@@ -73,7 +73,11 @@ final class TableCourseFlowTests: XCTestCase {
 
         let guide = launch("d-table")
         attach(guide, "guided-flop-en-light")
-        for index in [0, 2, 1] { tap("choice-\(index)", guide) }
+        for index in [0, 2, 1] {
+            tap("choice-\(index)", guide)
+            XCTAssertTrue(guide.buttons["table-course-choice-\(index)"].isSelected)
+            XCTAssertFalse(element("feedback", guide).exists, "Selecting a seat must wait for Check answer.")
+        }
         attach(guide, "guided-choices-en-light")
         tap("submit", guide)
         tap("next", guide)
@@ -155,9 +159,11 @@ final class TableCourseFlowTests: XCTestCase {
         let chrome = app.buttons["table-course-close"]
         let dock = ["submit", "next", "done"].map { app.buttons["table-course-\($0)"] }.first { $0.exists }
         for _ in 0..<10 {
-            let middle = target.frame.midY
-            if target.isHittable && middle > chrome.frame.maxY && middle < (dock?.frame.minY ?? .infinity) { return }
-            if middle < chrome.frame.maxY { scroll.swipeDown() } else { scroll.swipeUp() }
+            let frame = target.frame
+            let top = chrome.frame.maxY
+            let bottom = dock.map { $0.frame.minY - 8 } ?? app.frame.maxY
+            if target.isHittable && frame.minY >= top && frame.maxY <= bottom { return }
+            if frame.minY < top { scroll.swipeDown() } else { scroll.swipeUp() }
         }
         XCTFail("Control never entered the lesson viewport: \(target.debugDescription)")
     }

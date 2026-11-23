@@ -189,7 +189,10 @@ final class BasicsGuidedHandInvitationTests: XCTestCase {
             XCTAssertTrue(secondStep.waitForExistence(timeout: 5))
             tap(app.buttons[korean ? "닫기" : "Close"])
             let resume = app.buttons["learn-continue"]
-            tap(resume)
+            XCTAssertTrue(resume.waitForExistence(timeout: 10))
+            for _ in 0..<8 where !resume.isHittable { app.swipeDown() }
+            XCTAssertTrue(resume.isHittable, "The saved practice lesson should be reachable above Basics.")
+            resume.tap()
             XCTAssertTrue(secondStep.waitForExistence(timeout: 10),
                           "Continue lessons opened a real node session and saved its walkthrough position.")
             XCTAssertFalse(app.buttons["guided-hand-close"].exists)

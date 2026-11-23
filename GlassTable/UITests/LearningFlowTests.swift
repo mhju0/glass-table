@@ -102,8 +102,12 @@ final class LearningFlowTests: XCTestCase {
         let verdict = app.descendants(matching: .any)["firstLesson.verdict"]
         XCTAssertTrue(verdict.waitForExistence(timeout: 5))
         XCTAssertTrue(verdict.label.contains("다시"))
-        XCTAssertTrue(firstElement(prefix: "내 카드", in: app).label.contains("선택한 답, 틀렸어요"))
-        XCTAssertTrue(firstElement(prefix: "상대 카드", in: app).label.contains("정답"))
+        let picked = app.descendants(matching: .any)["firstLesson.resultHand.0"]
+        let winner = app.descendants(matching: .any)["firstLesson.resultHand.1"]
+        XCTAssertTrue(picked.descendants(matching: .any).matching(
+            NSPredicate(format: "label == %@", "선택한 답, 틀렸어요")).firstMatch.exists)
+        XCTAssertTrue(winner.descendants(matching: .any).matching(
+            NSPredicate(format: "label == %@", "정답")).firstMatch.exists)
     }
 
     func testSkippingFirstLessonDoesNotShowItAgain() {
@@ -771,7 +775,7 @@ final class LearningFlowTests: XCTestCase {
         add(attachment)
     }
 
-    func testPathOpensAtRequestedLateCurrentNode() {
+    func testCourseLeadsAndLatePracticeNodeRemainsReachable() {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(ko)", "-AppleLocale", "ko_KR", "-glassTable.language", "korean"]
         app.launchEnvironment = ["GT_TEST_STORE_ID": UUID().uuidString,
@@ -780,16 +784,18 @@ final class LearningFlowTests: XCTestCase {
                                  "GT_TEST_PATH_CURRENT_NODE": "u8-defend"]
         app.launch()
 
-        let node = app.buttons["lesson-u8-defend"]
-        XCTAssertTrue(node.waitForExistence(timeout: 15))
-        XCTAssertTrue(node.isHittable,
-                      "Opening the list should scroll to a late suggested lesson once.")
-        for _ in 0..<10 { app.swipeDown() }
-        XCTAssertTrue(app.staticTexts["배우기"].isHittable)
+        let core = app.buttons["learn-unit-a"]
+        XCTAssertTrue(core.waitForExistence(timeout: 15))
+        XCTAssertTrue(core.isHittable)
         app.tabBars.buttons["플레이"].tap()
         app.tabBars.buttons["배우기"].tap()
-        XCTAssertTrue(app.staticTexts["배우기"].firstMatch.isHittable,
-                      "Returning to the path must preserve the learner's scroll position instead of jumping again.")
+        XCTAssertTrue(core.isHittable, "Returning to Learn should keep the core course in view.")
+
+        let node = app.buttons["lesson-u8-defend"]
+        for _ in 0..<16 where !node.isHittable { app.swipeUp() }
+        XCTAssertTrue(node.isHittable, "The late lesson remains accessible through Other practice.")
+        node.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["walkthrough-step-0"].waitForExistence(timeout: 10))
     }
 
     func testExactAnswerSurvivesRelaunchBeforeNext() {
@@ -928,10 +934,5 @@ final class LearningFlowTests: XCTestCase {
 
     private func firstButton(prefix: String, in app: XCUIApplication) -> XCUIElement {
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
-    }
-
-    private func firstElement(prefix: String, in app: XCUIApplication) -> XCUIElement {
-        app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
     }
 }

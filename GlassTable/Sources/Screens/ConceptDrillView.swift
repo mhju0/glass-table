@@ -470,10 +470,13 @@ struct DrillShell<Content: View, Sheet: View>: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: GT.Space.related) {
+                            let revealFirst = foldsOnReveal && gradedBand != nil
                             header
-                            if let hintConcept { CompactLessonCue(concept: hintConcept) }
+                            if let hintConcept, !revealFirst { CompactLessonCue(concept: hintConcept) }
                             content()
-                            Color.clear.frame(height: 1).id(Self.contentEnd)
+                            // A new river can wrap the comparison onto another line.
+                            Color.clear.frame(height: revealFirst ? GT.Space.section : 1).id(Self.contentEnd)
+                            if let hintConcept, revealFirst { CompactLessonCue(concept: hintConcept) }
                         }.padding(.horizontal, 18).padding(.bottom, 24)
                     }
                     .accessibilityIdentifier("drill-content-scroll")
