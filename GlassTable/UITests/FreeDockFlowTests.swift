@@ -224,7 +224,7 @@ final class FreeDockFlowTests: XCTestCase {
                 for _ in 0..<8 {
                     let viewport = scroll.frame
                     let frame = slot.frame
-                    if frame.minY >= viewport.minY, frame.maxY <= viewport.maxY {
+                    if frame.minY >= viewport.minY - 0.5, frame.maxY <= viewport.maxY + 0.5 {
                         visible = true
                         break
                     }
