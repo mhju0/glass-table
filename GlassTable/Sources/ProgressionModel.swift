@@ -437,6 +437,59 @@ final class ProgressionModel {
     #endif
 
     @discardableResult
+    func beginTableCourse(_ unit: TableCourseUnit, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, unreadable == nil, saveError == nil,
+              unit != .milestone || state.progress(in: .chips)?.phase == .finished else { return false }
+        if state.progress(in: unit) != nil { return true }
+        return commit {
+            var units = $0.tableCourse ?? [:]
+            units[unit.rawValue] = TableCourseProgress(unit: unit)
+            $0.tableCourse = units
+        }
+    }
+
+    @discardableResult
+    func applyTableCourse(_ action: TableCourseAction, from previous: TableCourseProgress,
+                          expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, state.progress(in: previous.unit) == previous else { return false }
+        var updated = previous
+        guard updated.apply(action) else { return false }
+        return commit { $0.tableCourse?[updated.unit.rawValue] = updated }
+    }
+
+    #if DEBUG
+    func beginTableCourseDemo(_ lesson: TableCourseLesson, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch else { return false }
+        if state.progress(in: lesson.unit) != nil { return true }
+        guard let sample = Self.tableCourseSample(lesson.unit, stopAt: lesson) else { return false }
+        let chipPrerequisite = lesson.unit == .milestone && state.progress(in: .chips) == nil
+            ? Self.tableCourseSample(.chips, stopAt: nil) : nil
+        return commit {
+            var units = $0.tableCourse ?? [:]
+            if let chipPrerequisite { units[TableCourseUnit.chips.rawValue] = chipPrerequisite }
+            units[lesson.unit.rawValue] = sample
+            $0.tableCourse = units
+        }
+    }
+
+    private static func tableCourseSample(_ unit: TableCourseUnit, stopAt lesson: TableCourseLesson?)
+        -> TableCourseProgress? {
+        var sample = TableCourseProgress(unit: unit)
+        while sample.phase != .finished && sample.lesson != lesson {
+            let action: TableCourseAction
+            if let activity = sample.activity, !activity.isExample, !sample.revealed {
+                guard let answer = activity.correctChoice else { return nil }
+                action = sample.selection == nil ? .select(answer) : .submit
+            } else {
+                action = .advance
+            }
+            guard sample.apply(action) else { return nil }
+        }
+        return sample
+    }
+    #endif
+
+    @discardableResult
     func beginCourseReview(_ scope: CourseReviewScope, expectedEpoch: UUID,
                            seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max)) -> Bool {
         guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }

@@ -183,6 +183,13 @@ struct RootView: View {
         journey.close(then: .unitA)
     }
 
+    private func openTableCourse(_ unit: TableCourseUnit) {
+        guard model.beginTableCourse(unit, expectedEpoch: model.epoch) else { return }
+        let step = BeginnerJourney.Step.tableCourse(unit)
+        if journey.presented == nil { journey.present(step) }
+        else { journey.close(then: step) }
+    }
+
     private func openUnitA() {
         if model.beginUnitA(expectedEpoch: model.epoch) { journey.present(.unitA) }
     }
@@ -224,6 +231,7 @@ struct RootView: View {
                           onOpenBasics: { journey.present(.basics) },
                           onOpenUnitA: openUnitA,
                           onOpenUnitB: openUnitB,
+                          onOpenTableCourse: openTableCourse,
                           onOpenPairLesson: openPairLesson,
                           onOpenPairFollowUp: openPairFollowUp,
                           onOpenGuidedHand: { journey.present(.guidedHand) },
@@ -290,6 +298,17 @@ struct RootView: View {
             NavigationStack {
                 UnitBView(onOpenPair: openPairLessonForUnitB, onReview: openCourseReview)
                     .modifier(ProgressSaveNotice())
+            }.environment(model)
+        }
+        .fullScreenCover(isPresented: showing {
+            if case .tableCourse = $0 { return true }
+            return false
+        }, onDismiss: afterDismiss) {
+            NavigationStack {
+                if case let .tableCourse(unit)? = journey.presented {
+                    TableCourseView(unit: unit, onContinue: openTableCourse, onReview: openCourseReview)
+                        .modifier(ProgressSaveNotice())
+                }
             }.environment(model)
         }
         .fullScreenCover(isPresented: showing { $0 == .unitBPairLesson }, onDismiss: afterDismiss) {
@@ -384,6 +403,11 @@ struct RootView: View {
                 }
                 if sample == "all" { _ = model.beginUnitBDemo(at: .twoPair, expectedEpoch: model.epoch) }
                 journey.present(.courseReview(nil))
+            }
+            if env["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+               let raw = env["GT_DEMO_TABLE_COURSE"], let lesson = TableCourseLesson(rawValue: raw),
+               model.beginTableCourseDemo(lesson, expectedEpoch: model.epoch) {
+                journey.present(.tableCourse(lesson.unit))
             }
             if env["GT_DEMO_PAIR_LESSON"] != nil,
                model.beginPairLesson(seed: 42, expectedEpoch: model.epoch) {

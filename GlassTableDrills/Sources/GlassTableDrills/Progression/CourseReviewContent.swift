@@ -12,6 +12,8 @@ public struct CourseReviewActivity: Identifiable, Equatable, Sendable {
     public let correctChoice: Int?
     public let correctFive: [Card]
     public let opponentFive: [Card]
+    public internal(set) var tableEvidence: TableCourseEvidence?
+    public internal(set) var revealedTableEvidence: TableCourseEvidence?
 
     fileprivate let heading: UnitACopy
     fileprivate let instruction: UnitACopy
@@ -213,8 +215,31 @@ public enum CourseReviewContent {
             result[skill] = deals.enumerated().map { index, deal in compare(skill, index + 1, deal) }
         }
         result[.bestFive] = bestFive
+        for skill in CourseReviewSkill.allCases {
+            guard let lesson = skill.tableLesson else { continue }
+            let heldOut: [TableCourseActivity] = switch lesson.unit {
+            case .turns: BettingUnitContent.reviewQuestions(for: lesson)
+            case .chips: ChipUnitContent.reviewActivities(for: lesson)
+            case .startingHands: StartingHandUnitContent.reviewActivities(for: lesson)
+            case .milestone: []
+            }
+            result[skill] = heldOut.map(tableQuestion)
+        }
         return result
     }()
+
+    private static func tableQuestion(_ activity: TableCourseActivity) -> CourseReviewActivity {
+        let options = zip(activity.choices(in: .korean), activity.choices(in: .english)).map { Copy($0, $1) }
+        return CourseReviewActivity(
+            id: activity.id, kind: .choice, learner: [], board: [], opponent: [],
+            correctChoice: activity.correctChoice, correctFive: [], opponentFive: [],
+            tableEvidence: activity.evidence, revealedTableEvidence: activity.revealedEvidence,
+            heading: Copy(activity.title(in: .korean), activity.title(in: .english)),
+            instruction: Copy(activity.prompt(in: .korean) ?? "", activity.prompt(in: .english) ?? ""),
+            options: options,
+            reason: Copy(activity.explanation(in: .korean) ?? "", activity.explanation(in: .english) ?? "")
+        )
+    }
 
     private static func id(_ skill: CourseReviewSkill, _ number: Int) -> String {
         "review-\(skill.rawValue)-\(number)"

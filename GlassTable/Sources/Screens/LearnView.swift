@@ -19,6 +19,7 @@ struct LearnView: View {
     let onOpenBasics: () -> Void
     let onOpenUnitA: () -> Void
     let onOpenUnitB: () -> Void
+    let onOpenTableCourse: (TableCourseUnit) -> Void
     let onOpenPairLesson: () -> Void
     let onOpenPairFollowUp: (PairLessonFollowUpKind) -> Void
     let onOpenGuidedHand: () -> Void
@@ -50,12 +51,16 @@ struct LearnView: View {
                 }
                 if highlightsUnitA { unitARecommendation }
                 if highlightsUnitB { unitBRecommendation }
+                if let unit = recommendedTableCourse { tableCourseRow(unit, primary: true) }
                 recommendationForMarkedLesson
                 if !highlightsUnitA { unitARecommendation }
                 if !highlightsUnitB { unitBRecommendation }
                 reviewLine
                 pairFollowUps
                 courseReviewEntry
+                ForEach(tableCourseUnits.filter { $0 != recommendedTableCourse }) { unit in
+                    tableCourseRow(unit, primary: false)
+                }
                 if marked == nil { allDoneLine }
                 // A lesson kept from an older path has no track row.
                 if case .inProgress(let node)? = marked, Curriculum.track(containing: node) == nil {
@@ -106,6 +111,42 @@ struct LearnView: View {
             && model.state.activeRound == nil && model.state.activeReviewSession == nil
     }
 
+    private var tableCourseUnits: [TableCourseUnit] {
+        if model.state.progress(in: .chips)?.phase == .finished {
+            return [.turns, .chips, .milestone, .startingHands]
+        }
+        return [.turns, .chips, .startingHands]
+    }
+
+    private var recommendedTableCourse: TableCourseUnit? {
+        guard model.state.pendingFirstLesson == nil, model.state.unitB?.phase == .finished,
+              model.state.activeNodeSession == nil, model.state.activeRound == nil,
+              model.state.activeReviewSession == nil else { return nil }
+        return tableCourseUnits.first { unit in
+            if unit == .milestone && model.state.progress(in: .startingHands) != nil { return false }
+            return model.state.progress(in: unit)?.phase != .finished
+        }
+    }
+
+    private func tableCourseRow(_ unit: TableCourseUnit, primary: Bool) -> some View {
+        let progress = model.state.progress(in: unit)
+        let label = unit.title(in: language)
+        let detail: String
+        let action: String
+        if progress?.phase == .finished {
+            detail = language.text("레슨 완료", "Lessons complete")
+            action = language.text("결과 보기", "View results")
+        } else {
+            detail = (progress?.lesson ?? unit.lessons[0]).title(in: language)
+            action = progress != nil ? language.text("이어서", "Continue")
+                : primary ? language.text("시작", "Start") : language.text("열기", "Open")
+        }
+        return recommendation(title: label, detail: detail, status: nil, action: action,
+                              id: "learn-table-\(unit.rawValue)", emphasized: primary) {
+            onOpenTableCourse(unit)
+        }
+    }
+
     private var unitBRecommendation: some View {
         let progress = model.state.unitB
         let finished = progress?.phase == .finished
@@ -139,7 +180,7 @@ struct LearnView: View {
     }
 
     @ViewBuilder private var recommendationForMarkedLesson: some View {
-        let emphasizesNewUnit = highlightsUnitA || highlightsUnitB
+        let emphasizesNewUnit = highlightsUnitA || highlightsUnitB || recommendedTableCourse != nil
         let emphasized = model.state.pendingFirstLesson == nil && !emphasizesNewUnit
         switch marked {
         case .basics:
@@ -284,7 +325,7 @@ struct LearnView: View {
                 pill(language.text("연습", "Practice"),
                      filled: model.state.pendingFirstLesson == nil &&
                          model.state.activeReviewSession == nil && due.isEmpty
-                         && !highlightsUnitA && !highlightsUnitB)
+                         && !highlightsUnitA && !highlightsUnitB && recommendedTableCourse == nil)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 8)

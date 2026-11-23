@@ -75,3 +75,6 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
   extends the schema 9 draft with a cumulative review after five answers and
   one revealed exact correction. Both paused lesson states and the existing
   scheduled one-pair follow-up are preserved.
+- `schema11-table-course-drafts.json` is a schema 11 encoder export. It keeps the
+  schema 10 review correction and adds one unsubmitted first-question selection
+  in each of the turns, chips and starting-hands units.

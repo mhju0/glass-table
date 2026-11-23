@@ -14,7 +14,12 @@ final class CourseReviewContentTests: XCTestCase {
             XCTAssertNil(CourseReviewContent.activity(for: skill, variant: count))
             for item in try items(skill) {
                 XCTAssertTrue(ids.insert(item.id).inserted, item.id)
-                XCTAssertTrue(deals.insert(signature([item.learner, item.board, item.opponent])).inserted, item.id)
+                if skill.tableLesson == nil {
+                    XCTAssertTrue(deals.insert(signature([item.learner, item.board, item.opponent])).inserted, item.id)
+                } else {
+                    XCTAssertEqual(count, 3, skill.rawValue)
+                    XCTAssertNotNil(item.tableEvidence)
+                }
                 let cards = item.learner + item.board + item.opponent
                 XCTAssertEqual(Set(cards).count, cards.count, item.id)
                 for language in LearningLanguage.allCases {
@@ -71,7 +76,7 @@ final class CourseReviewContentTests: XCTestCase {
         XCTAssertEqual(pairDeals.count, 35)
         taught.formUnion(pairDeals)
 
-        for item in try CourseReviewSkill.allCases.flatMap(items) {
+        for item in try CourseReviewSkill.allCases.filter({ $0.tableLesson == nil }).flatMap(items) {
             XCTAssertFalse(taught.contains(signature([item.learner, item.board, item.opponent])), item.id)
         }
     }

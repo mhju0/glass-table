@@ -158,6 +158,7 @@ public struct ProgressionStore {
         // 7 → 8 adds `unitA`; old saves start this unit from its first activity.
         // 8 → 9 adds `unitB`. The existing pair lesson can satisfy B2 when reached.
         // 9 → 10 adds the optional on-demand `courseReview` snapshot.
+        // 10 → 11 adds resumable C–E units and a separate guided hand.
         return upgraded
     }
 
@@ -253,6 +254,11 @@ public struct ProgressionStore {
               state.unitA.map({ state.schemaVersion >= 8 && $0.isValid }) ?? true,
               state.unitB.map({ state.schemaVersion >= 9 && $0.isValid }) ?? true,
               state.unitB?.pairBestFirstRight.map({ $0 <= (state.pairLesson?.bestFirstRight ?? 0) }) ?? true,
+              state.tableCourse.map({
+                  state.schemaVersion >= 11 && !$0.isEmpty
+                      && $0.allSatisfy { $0.key == $0.value.unit.rawValue && $0.value.isValid }
+              }) ?? true,
+              state.progress(in: .milestone) == nil || state.progress(in: .chips)?.phase == .finished,
               state.courseReview.map({ state.schemaVersion >= 10 && $0.isValid(in: state) }) ?? true,
               state.recentHands.count <= 200,
               Set(state.recentHands.map(\.handID)).count == state.recentHands.count,

@@ -43,13 +43,14 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (10). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (11). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
 | Unit A content | `unitA.contentVersion` | Exactly 1 when `unitA` is present | `ProgressionStore.validate(_ ProgressState)` via `UnitAProgress.isValid` |
 | Unit B content | `unitB.contentVersion` | Exactly 1 when `unitB` is present | `ProgressionStore.validate(_ ProgressState)` via `UnitBProgress.isValid` |
 | On-demand course review | `courseReview.contentVersion` | Exactly 1 when present | `CourseReviewSession.isValid(in:)` |
+| Table course content | `tableCourse.*.contentVersion` | Exactly 1 for each present unit | `TableCourseProgress.isValid` |
 | Practice round format | `activeRound.formatVersion` | 1 (no `level`) or 2 (optional `level` 2…the skill's highest step, D53), with `questionCount` 5 | `ProgressionStore.validate(_ PracticeRound)` |
 | Review session format | `activeReviewSession.formatVersion` | exactly 1; optional `levels`, one step (1…3, within the skill's highest) per question (D53) | `ProgressionStore.validate(_ ReviewSessionSnapshot)` |
 | Daily-summary format | `dailySummaries[].key.formatVersion`, `recentEvidence[].key.formatVersion` | 1…1,000,000, kept as written; Records compares only equal versions. Optional `key.level` 2…3 (D53); mode and concept "table" for table decisions | `ProgressionStore.validate(_ DailyPracticeSummary)`; `RecordsView` |
@@ -107,3 +108,13 @@ and exact correction progress. Answer coverage is frozen for the current pass.
 Schema 9 upgrades preserve the original bytes before writing the new format.
 New review commits use the same atomic save path as lessons and do not update
 course clears, mastery or due-review timing.
+
+
+## Schema 11 · Turns, chips and starting hands
+
+The optional `tableCourse` records a separate cursor, draft, answers and
+corrections for each new unit and the guided practice hand. Keys must match their
+unit. The guided hand requires a finished chip unit. Each save uses the existing
+atomic write path. Files from schema 10 retain their original review state and
+receive a byte-for-byte pre-upgrade backup. The new held-out exercises extend the
+review catalog while preserving every existing question and seed.

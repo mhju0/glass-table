@@ -221,7 +221,7 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
 /// `pairLesson`. Schema 7 adds `pairLessonFollowUp`. Schema 8 adds `unitA` and schema 9 adds `unitB`.
 /// Any new key or new meaning bumps the schema (ADR 0001).
 public struct ProgressState: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 10
+    public static let currentSchemaVersion = 11
     /// Ring-buffer cap for the answer log. Bounded on purpose — an unbounded history
     /// is the one thing that would make a single-file store the wrong choice.
     public static let answerLogCap = 500
@@ -268,6 +268,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
     public var unitA: UnitAProgress?
     public var unitB: UnitBProgress?
     public var courseReview: CourseReviewSession?
+    public var tableCourse: [String: TableCourseProgress]?
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
@@ -294,7 +295,8 @@ public struct ProgressState: Codable, Equatable, Sendable {
                 pairLessonFollowUp: PairLessonFollowUpProgress? = nil,
                 unitA: UnitAProgress? = nil,
                 unitB: UnitBProgress? = nil,
-                courseReview: CourseReviewSession? = nil) {
+                courseReview: CourseReviewSession? = nil,
+                tableCourse: [String: TableCourseProgress]? = nil) {
         self.schemaVersion = schemaVersion; self.concepts = concepts
         self.nodes = nodes; self.streak = streak; self.answers = answers
         self.firstLessonCompleted = firstLessonCompleted
@@ -317,6 +319,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         self.unitA = unitA
         self.unitB = unitB
         self.courseReview = courseReview
+        self.tableCourse = tableCourse
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -325,7 +328,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands, quickPlaySessions, activeQuickPlaySessionID
         case processedAttemptIDs, basicsLessonCompleted, lessonTrend, openingDismissed, pendingFirstLesson
-        case lastNodeID, pairLesson, pairLessonFollowUp, unitA, unitB, courseReview
+        case lastNodeID, pairLesson, pairLessonFollowUp, unitA, unitB, courseReview, tableCourse
     }
 
     public init(from decoder: Decoder) throws {
@@ -350,6 +353,10 @@ public struct ProgressState: Codable, Equatable, Sendable {
         if schemaVersion < 10, c.contains(.courseReview) {
             throw DecodingError.dataCorruptedError(forKey: .courseReview, in: c,
                 debugDescription: "On-demand review requires schema 10 or newer")
+        }
+        if schemaVersion < 11, c.contains(.tableCourse) {
+            throw DecodingError.dataCorruptedError(forKey: .tableCourse, in: c,
+                debugDescription: "Table course progress requires schema 11 or newer")
         }
         concepts = try c.decode([String: ConceptRecord].self, forKey: .concepts)
         nodes = try c.decode([String: NodeRecord].self, forKey: .nodes)
@@ -389,6 +396,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         unitA = try c.decodeIfPresent(UnitAProgress.self, forKey: .unitA)
         unitB = try c.decodeIfPresent(UnitBProgress.self, forKey: .unitB)
         courseReview = try c.decodeIfPresent(CourseReviewSession.self, forKey: .courseReview)
+        tableCourse = try c.decodeIfPresent([String: TableCourseProgress].self, forKey: .tableCourse)
     }
 
     public func record(for concept: Concept) -> ConceptRecord {
@@ -409,5 +417,12 @@ public struct ProgressState: Codable, Equatable, Sendable {
         if answers.count > Self.answerLogCap {
             answers.removeFirst(answers.count - Self.answerLogCap)
         }
+    }
+}
+
+
+public extension ProgressState {
+    func progress(in unit: TableCourseUnit) -> TableCourseProgress? {
+        tableCourse?[unit.rawValue]
     }
 }

@@ -10,6 +10,7 @@ struct FreeTableHandCoachView: View {
     @Environment(\.learningLanguage) private var language
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let table: PracticeTableState
+    var isExample = false
     let onClose: () -> Void
     @State private var page = 0
 
@@ -62,7 +63,14 @@ struct FreeTableHandCoachView: View {
     private func decision(_ step: PracticeCoachStep) -> some View {
         let board = Array((table.review?.board ?? []).prefix(table.frame(after: step.stepIndex).boardCount))
         Text(FreeTableWords.street(step.street, language: language)).font(GT.title(28))
-        section(language.text("선택 당시 카드", "What you had"), onTable: true) {
+        if isExample {
+            Text(language.text("A 자리로 다시 보는 연습 핸드", "Example hand from seat A"))
+                .font(GT.body(15))
+                .foregroundStyle(GT.inkSecondary)
+                .accessibilityIdentifier("coach-example")
+        }
+        section(isExample ? language.text("A의 카드", "Seat A’s cards")
+                          : language.text("선택 당시 카드", "What you had"), onTable: true) {
             cards(table.learnerHole.highCardFirst, size: 54)
             if !board.isEmpty {
                 cards(board, size: 40)
@@ -76,7 +84,8 @@ struct FreeTableHandCoachView: View {
             }
         }
         if !step.pressure.isEmpty {
-            section(language.text("차례 전에", "Before your turn")) {
+            section(isExample ? language.text("A의 차례 전", "Before seat A acts")
+                              : language.text("차례 전에", "Before your turn")) {
                 ForEach(step.pressure, id: \.seat) { pressure in
                     Text(pressureLine(pressure, street: step.street)).font(GT.body(15))
                 }
@@ -87,14 +96,19 @@ struct FreeTableHandCoachView: View {
                 Text(priceLine(step)).font(GT.body(15)).monospacedDigit()
             }
         }
-        section(language.text("초보자 차트", "The beginner chart says")) {
-            Text(FreeTableWords.chartAdvice(step.strength, language: language)).font(GT.body(15))
+        if !isExample {
+            section(language.text("초보자 차트", "The beginner chart says")) {
+                Text(FreeTableWords.chartAdvice(step.strength, language: language)).font(GT.body(15))
+            }
         }
-        section(language.text("선택한 행동", "You chose")) {
+        section(isExample ? language.text("A의 행동", "Seat A’s move")
+                          : language.text("선택한 행동", "You chose")) {
             Text(actionLine(step)).font(GT.semibold(17))
-            Text(verdictLine(step.verdict)).font(GT.semibold(15))
-                .foregroundStyle(step.verdict == .risky ? GT.cta : GT.ink)
-                .accessibilityIdentifier("coach-verdict")
+            if !isExample {
+                Text(verdictLine(step.verdict)).font(GT.semibold(15))
+                    .foregroundStyle(step.verdict == .risky ? GT.cta : GT.ink)
+                    .accessibilityIdentifier("coach-verdict")
+            }
         }
     }
 
@@ -115,7 +129,17 @@ struct FreeTableHandCoachView: View {
 
     /// What a bet from this player usually means, read from the habits it publishes.
     private func pressureLine(_ pressure: PracticeCoachStep.Pressure, street: PracticeStreet) -> String {
-        let name = FreeTableWords.seatName(pressure.seat, language: language)
+        let name = seatName(pressure.seat, in: language)
+        if isExample {
+            switch pressure.label {
+            case "fold": return language.text("\(KO.topic(name)) 폴드했어요.", "\(name) folded.")
+            case "check": return language.text("\(KO.topic(name)) 체크했어요.", "\(name) checked.")
+            case "call": return language.text("\(KO.topic(name)) \(pressure.chips)칩을 콜했어요.",
+                                               "\(name) called for \(pressure.chips) chips.")
+            default: return language.text("\(KO.topic(name)) \(pressure.chips)칩을 냈어요.",
+                                          "\(name) put in \(pressure.chips) chips.")
+            }
+        }
         let style = table.computerSeats.first { $0.seat == pressure.seat }?.style
         switch pressure.label {
         case "fold": return language.text("\(KO.topic(name)) 포기했어요.", "\(name) folded.")
@@ -173,13 +197,15 @@ struct FreeTableHandCoachView: View {
         Text(language.text("결과", "How it ended")).font(GT.title(28))
         if let review = table.review {
             let net = review.endingStacks[0] - review.startingStacks[0]
-            section(language.text("칩", "Chips")) {
+            section(isExample ? language.text("A의 칩", "Seat A’s chips") : language.text("칩", "Chips")) {
                 Text(net > 0 ? language.text("+\(net)칩", "+\(net) chips")
                      : net < 0 ? language.text("−\(-net)칩", "−\(-net) chips") : language.text("±0칩", "±0 chips"))
                     .font(GT.title(24).monospacedDigit())
-                Text(language.text("칩 결과와 초보자 차트의 평가는 달라요. 이 차트는 몇 가지 단순한 규칙이며, 최적의 선택을 계산한 것은 아니에요.",
+                if !isExample {
+                    Text(language.text("칩 결과와 초보자 차트의 평가는 달라요. 이 차트는 몇 가지 단순한 규칙이며, 최적의 선택을 계산한 것은 아니에요.",
                                    "Chip results and beginner-chart reviews measure different things. This chart uses a few simple rules and does not calculate optimal play."))
-                    .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                        .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
+                }
             }
             if let showdown = review.bestFiveShowdownPair,
                let pair = bestFivePair(review, winner: showdown.winner, rival: showdown.rival) {
@@ -190,7 +216,7 @@ struct FreeTableHandCoachView: View {
             let shown = (1..<table.seatCount).filter { seat in
                 review.pots.contains { $0.eligibleSeats.count > 1 && $0.eligibleSeats.contains(seat) }
             }
-            let reveals = PracticeHandCoach.reveals(for: table)
+            let reveals = isExample ? [] : PracticeHandCoach.reveals(for: table)
             if shown.isEmpty {
                 section(language.text("상대 카드", "Their cards")) {
                     Text(language.text("쇼다운까지 가지 않아서 상대 카드는 공개되지 않았어요.",
@@ -199,7 +225,7 @@ struct FreeTableHandCoachView: View {
                 }
             }
             ForEach(shown, id: \.self) { seat in
-                section(FreeTableWords.seatName(seat, language: language)) {
+                section(seatName(seat, in: language)) {
                     cards(review.holeCards[seat], size: 54)
                     if review.board.count == 5,
                        let all = Card.parse((review.holeCards[seat] + review.board).joined()) {
@@ -222,11 +248,17 @@ struct FreeTableHandCoachView: View {
               let first = Card.parse(review.holeCards[winner].joined()),
               let second = Card.parse(review.holeCards[rival].joined()) else { return nil }
         func owner(_ seat: Int) -> BestFiveOwner {
-            seat == 0 ? .learner : .seat(korean: FreeTableWords.seatName(seat, language: .korean),
-                                         english: FreeTableWords.seatName(seat, language: .english))
+            seat == 0 && !isExample ? .learner : .seat(korean: seatName(seat, in: .korean),
+                                                       english: seatName(seat, in: .english))
         }
         return BestFivePair(first: first, firstOwner: owner(winner),
                             second: second, secondOwner: owner(rival), board: board)
+    }
+
+    private func seatName(_ seat: Int, in language: LearningLanguage) -> String {
+        guard isExample else { return FreeTableWords.seatName(seat, language: language) }
+        let letter = ["A", "B", "C", "D"][seat]
+        return language.text(letter, "Seat \(letter)")
     }
 
     private func revealLine(_ reveal: PracticeCoachReveal) -> String {

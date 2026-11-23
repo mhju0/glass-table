@@ -102,6 +102,9 @@ struct CourseReviewView: View {
             sectionTitle(language.text("단원 복습", "Review a unit"))
             unitOption(.unitA, id: "course-review-unit-a")
             unitOption(.unitB, id: "course-review-unit-b")
+            ForEach(TableCourseUnit.allCases) { unit in
+                unitOption(.tableUnit(unit), id: "course-review-unit-\(unit.rawValue)")
+            }
         }
     }
 
@@ -255,7 +258,9 @@ struct CourseReviewView: View {
                     .accessibilityIdentifier("course-review-selection-count")
             }
         }
-        if !activity.learner.isEmpty || !activity.board.isEmpty {
+        if let evidence = session.revealed ? activity.revealedTableEvidence ?? activity.tableEvidence : activity.tableEvidence {
+            TableCourseEvidenceView(evidence: evidence)
+        } else if !activity.learner.isEmpty || !activity.board.isEmpty {
             cardPanel(activity, session: session)
         }
         if session.revealed {

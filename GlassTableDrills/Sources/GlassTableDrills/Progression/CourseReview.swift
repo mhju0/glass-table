@@ -26,9 +26,13 @@ public enum CourseReviewSkill: String, CaseIterable, Codable, Identifiable, Send
     case twoPairRanks = "b11-two-pair"
     case fullHouseRanks = "b11-full-house"
     case boardPlays = "b12"
+    case c1, c2, c3, c4, c5, c6, c7, c8, c9
+    case d1, d2, d3, d4, d5
+    case e1, e2, e3, e4, e5, e6
 
     public var id: String { rawValue }
     public var isUnitA: Bool { rawValue.hasPrefix("a") }
+    public var tableLesson: TableCourseLesson? { TableCourseLesson(rawValue: rawValue) }
     public var isLessonEntry: Bool { self == lessonEntry }
 
     private var lessonEntry: Self {
@@ -44,6 +48,7 @@ public enum CourseReviewSkill: String, CaseIterable, Codable, Identifiable, Send
         let lessonID = lessonEntry.rawValue
         return UnitALesson(rawValue: lessonID)?.title(in: language)
             ?? UnitBLesson(rawValue: lessonID)?.title(in: language)
+            ?? tableLesson?.title(in: language)
             ?? lessonID
     }
 
@@ -71,6 +76,7 @@ public enum CourseReviewScope: Codable, Equatable, Hashable, Sendable {
     case all
     case unitA
     case unitB
+    case tableUnit(TableCourseUnit)
     case lesson(CourseReviewSkill)
 
     public func title(in language: LearningLanguage) -> String {
@@ -78,6 +84,7 @@ public enum CourseReviewScope: Codable, Equatable, Hashable, Sendable {
         case .all: language.text("지금까지 배운 내용 복습", "Review everything so far")
         case .unitA: language.text("A단원 복습", "Unit A review")
         case .unitB: language.text("B단원 복습", "Unit B review")
+        case .tableUnit(let unit): unit.title(in: language)
         case .lesson(let skill): skill.lessonTitle(in: language)
         }
     }
@@ -86,7 +93,8 @@ public enum CourseReviewScope: Codable, Equatable, Hashable, Sendable {
         switch self {
         case .all: true
         case .unitA: skill.isUnitA
-        case .unitB: !skill.isUnitA
+        case .unitB: skill.rawValue.hasPrefix("b")
+        case .tableUnit(let unit): skill.tableLesson?.unit == unit
         case .lesson(let entry): entry.lessonObjectives.contains(skill)
         }
     }
@@ -182,6 +190,10 @@ public struct CourseReviewSession: Codable, Equatable, Sendable {
         if let pair = state.pairLesson, pair.bestFirstRight != nil || pair.completedActivities == 11 {
             studied.insert(CourseReviewSkill.pairComparison.rawValue)
         }
+        for progress in state.tableCourse?.values ?? [:].values {
+            studied.formUnion(progress.completedResults.map { $0.lesson.rawValue })
+            if progress.hasAnsweredLessonQuestions { studied.insert(progress.lesson.rawValue) }
+        }
         let taught = CourseReviewSkill.allCases.filter {
             $0.isLessonEntry && studied.contains($0.rawValue)
         }.flatMap(\.lessonObjectives)
@@ -230,7 +242,7 @@ public struct CourseReviewSession: Codable, Equatable, Sendable {
         switch scope {
         case .lesson:
             return skills
-        case .unitA, .unitB:
+        case .unitA, .unitB, .tableUnit:
             return shuffledSkills(skills, rng: &rng)
         case .all:
             var first = shuffledSkills(skills.filter(\.isUnitA), rng: &rng)

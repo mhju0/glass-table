@@ -81,6 +81,41 @@ final class CourseReviewTests: XCTestCase {
                                         eligibleSkills: CourseReviewSkill.allCases, seed: 1))
     }
 
+    func testTableReviewsUseStudiedSkillsAndFreezeTheirCoverage() throws {
+        var state = try cumulativeFixture()
+        let legacy = CourseReviewSession.eligibleSkills(in: state)
+        var course = [String: TableCourseProgress]()
+        for unit in [TableCourseUnit.turns, .chips, .startingHands] {
+            var progress = TableCourseProgress(unit: unit)
+            while let activity = progress.activity {
+                if !activity.isExample {
+                    XCTAssertTrue(progress.apply(.select(try XCTUnwrap(activity.correctChoice))))
+                    XCTAssertTrue(progress.apply(.submit))
+                }
+                XCTAssertTrue(progress.apply(.advance))
+            }
+            course[unit.rawValue] = progress
+        }
+        state.tableCourse = course
+
+        let mixed = CourseReviewSession.eligibleSkills(in: state)
+        XCTAssertEqual(mixed, legacy + [.c1, .d1, .e1])
+        XCTAssertEqual(CourseReviewSession.eligibleSkills(in: state, scope: .unitB),
+                       legacy.filter { !$0.isUnitA })
+        XCTAssertEqual(CourseReviewSession.eligibleSkills(in: state, scope: .tableUnit(.startingHands)), [.e1])
+        let review = try XCTUnwrap(CourseReviewSession(scope: .all, eligibleSkills: mixed, seed: 6))
+        XCTAssertTrue(review.isValid(in: state))
+        XCTAssertEqual(review.itemCount, mixed.count)
+
+        let lesson = try XCTUnwrap(CourseReviewSession(scope: .lesson(.c1), eligibleSkills: mixed, seed: 7))
+        XCTAssertEqual(lesson.itemCount, 3)
+        XCTAssertNotNil(lesson.activity?.tableEvidence)
+        XCTAssertTrue(lesson.isValid(in: state))
+        XCTAssertNil(CourseReviewSession(scope: .lesson(.c2), eligibleSkills: mixed, seed: 7))
+        state.tableCourse?.removeValue(forKey: TableCourseUnit.turns.rawValue)
+        XCTAssertFalse(review.isValid(in: state))
+    }
+
     func testCumulativeReviewFreezesBothUnitsAndRestoresDraftAndExactRetry() throws {
         var state = try cumulativeFixture()
         let eligible = CourseReviewSession.eligibleSkills(in: state)
