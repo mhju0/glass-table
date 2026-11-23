@@ -684,7 +684,8 @@ struct ActionSheet<Content: View>: View {
     /// the home indicator alone. A tab bar below the sheet adds its height to the inset,
     /// and the card then floats above the bar instead of sliding under it.
     private var reach: CGFloat {
-        bottomInset <= indicator + 0.5 ? bottomInset : 0
+        guard !dynamicTypeSize.isAccessibilitySize else { return 0 }
+        return bottomInset <= indicator + 0.5 ? bottomInset : 0
     }
 
     private var folds: Bool { band != nil && collapsible }

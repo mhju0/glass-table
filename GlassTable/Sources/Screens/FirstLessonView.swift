@@ -1079,11 +1079,11 @@ struct FirstLessonView: View {
         let pair = BestFivePair(spot)
         return VStack(alignment: .leading, spacing: GT.Space.related) {
             verdict(spot: spot)
+            explanation(spot: spot)
             VStack(spacing: 12) {
                 resultHand(title: copy(.heroCards), hand: pair.first, value: 0, winner: spot.winner)
                 resultHand(title: copy(.villainCards), hand: pair.second, value: 1, winner: spot.winner)
             }
-            explanation(spot: spot)
         }
     }
 
@@ -1198,9 +1198,12 @@ struct FirstLessonView: View {
                 }
                 .accessibilityIdentifier("firstLesson.next")
             } else {
-                PrimaryCTAButton(title: language.text("다음 비교", "Next comparison")) {
+                let fullTitle = language.text("다음 비교", "Next comparison")
+                let title = dynamicTypeSize.isAccessibilitySize ? language.text("다음", "Next") : fullTitle
+                PrimaryCTAButton(title: title) {
                     transition(to: .transfer)
                 }
+                .accessibilityLabel(fullTitle)
                 .accessibilityIdentifier("firstLesson.next")
             }
         }

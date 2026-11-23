@@ -847,6 +847,7 @@ struct FreeTableView: View {
                     .accessibilityIdentifier("free-raise-plus")
             }
             .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, typeSize.isAccessibilitySize ? GT.Space.compact : 0)
         }
     }
 
