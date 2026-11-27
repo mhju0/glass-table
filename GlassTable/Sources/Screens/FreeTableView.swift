@@ -46,6 +46,7 @@ struct FreeTableView: View {
     @State private var showCoach = false
     @State private var showCoachAfterSheet = false
     @State private var progressSheet: ProgressSheet?
+    @State private var pendingReview: (handID: String, destination: ReviewDestination)?
     @State private var failure = false
     @State private var replaySpeed = 1.0
     @State private var lastActionCommit = -Double.infinity
@@ -65,6 +66,8 @@ struct FreeTableView: View {
         case quest, review
         var id: Self { self }
     }
+
+    private enum ReviewDestination { case recap, help }
 
     private var presentationTable: PracticeTableState? {
         #if DEBUG
@@ -107,7 +110,7 @@ struct FreeTableView: View {
             shownSteps = replayFromStart ? 0 : table.replaySteps.count
             resetPlan(table, shown: shownSteps)
             startReplay()
-            if !PlayTableGuide.seen {
+            if !PlayTableGuide.seen, !awaitsQuestAnswer(table) {
                 #if DEBUG
                 let env = ProcessInfo.processInfo.environment
                 if env["GT_DEMO_PRACTICE"] != nil, env["GT_DEMO_PLAY_GUIDE"] == nil { return }
@@ -118,12 +121,13 @@ struct FreeTableView: View {
             }
         }
         .onDisappear {
+            pendingReview = nil
             stopReplay()
             cancelFeedback()
         }
         .simultaneousGesture(DragGesture(minimumDistance: 45).onEnded { gesture in
             if gesture.startLocation.x < 24, gesture.translation.width > 80,
-               abs(gesture.translation.height) < 60 { onClose() }
+               abs(gesture.translation.height) < 60 { closeTable() }
         })
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
@@ -151,6 +155,7 @@ struct FreeTableView: View {
         .onChange(of: replayKey) { _, _ in
             guard let table = presentationTable else { return }
             if table.handID != shownHandID {
+                pendingReview = nil
                 shownHandID = table.handID
                 shownSteps = 0
                 revealFolded = false
@@ -159,7 +164,11 @@ struct FreeTableView: View {
             }
             startReplay()
         }
-        .onChange(of: model.epoch) { _, _ in onClose() }
+        .onChange(of: model.epoch) { _, _ in closeTable() }
+        .onChange(of: model.saveError != nil) { _, failed in
+            guard !failed, let pendingReview else { return }
+            openReview(pendingReview.destination, handID: pendingReview.handID)
+        }
         .sheet(item: $progressSheet, onDismiss: {
             if showCoachAfterSheet {
                 showCoachAfterSheet = false
@@ -194,7 +203,7 @@ struct FreeTableView: View {
             }
         }
         .fullScreenCover(isPresented: $showGameReview) {
-            QuickPlayArchiveView(sessions: currentReviewSessions) { showGameReview = false }
+            QuickPlayArchiveView(sessions: currentReviewSessions, epoch: epoch) { showGameReview = false }
         }
         .confirmationDialog(language.text("게임을 마칠까요?", "End this game?"),
                             isPresented: $confirmEndGame, titleVisibility: .visible) {
@@ -288,7 +297,7 @@ struct FreeTableView: View {
         }
         .gtChrome(leading: {
             HStack(alignment: typeSize.isAccessibilitySize ? .top : .center, spacing: 10) {
-                ChromeButton.close(onClose)
+                ChromeButton.close(closeTable)
                 GTActionCaption(text: title(table), weight: .semibold, baseSize: 15, ink: GT.onFeltSecondary,
                                 identifier: "free-table-title")
                     .fixedSize(horizontal: false, vertical: true)
@@ -300,7 +309,7 @@ struct FreeTableView: View {
                 Button(language.text("새 게임 시작", "Start new game")) { confirmNewTable = true }
                 if !currentReviewSessions.isEmpty {
                     Button(language.text("게임 돌아보기", "Game review")) {
-                        if prepareForReview(table) { showGameReview = true }
+                        openGameArchive()
                     }
                 }
             } label: {
@@ -341,6 +350,7 @@ struct FreeTableView: View {
 
     private func tableSurface(_ table: PracticeTableState, fillsHeight: Bool = false) -> some View {
         let projection = visualProjection(table)
+        let visuals = projection?.visuals.withholdingWinnerEmphasis(awaitsQuestAnswer(table))
         let frame = projection?.frame ?? table.frame(after: shownCount(table))
         let board = projection?.visibleBoard ?? Array((table.review?.board ?? table.visibleBoard).prefix(frame.boardCount))
         let pot = projection?.pot ?? frame.pot
@@ -359,13 +369,13 @@ struct FreeTableView: View {
             seats: (0..<table.seatCount).map { seat($0, table: table, frame: frame) },
             center: TableCenter(board: board.compactMap(Card.init), reservesBoard: true,
                                 potTotal: potText, potSpoken: potSpoken),
-            freeVisuals: projection?.visuals,
+            freeVisuals: visuals,
             freeReduceMotion: reduceMotion,
             freeHoles: (projection?.transitioning == true ? projection!.visibleHole : table.review?.holeCards ?? [table.learnerHole]).map(\.highCardFirst),
             freeBoard: projection?.transitioning == true ? projection!.visibleBoard : table.review?.board ?? table.visibleBoard,
             fillsHeight: fillsHeight)
             .accessibilityIdentifier("practice-table")
-            .accessibilityValue(replayDebugValue)
+            .accessibilityValue(replayDebugValue(visuals))
     }
 
     private func shownCount(_ table: PracticeTableState) -> Int {
@@ -625,9 +635,7 @@ struct FreeTableView: View {
 
     private func statusRow(_ table: PracticeTableState) -> some View {
         dockHeader(dockTitle(table), warning: warning(table)) {
-            guard prepareForReview(table) else { return }
-            helpTab = .hint
-            showHelp = true
+            openReview(.help, handID: table.handID)
         }
     }
 
@@ -984,13 +992,35 @@ struct FreeTableView: View {
     }
 
     private func awaitsQuestAnswer(_ table: PracticeTableState) -> Bool {
-        guard let quest = model.state.freePlayQuest, !quest.isComplete, quest.response == nil else { return false }
-        return FreePlayQuestQuestion(table) != nil
+        model.freePlayQuestAwaitsAnswer(handID: table.handID)
     }
 
-    private func prepareForReview(_ table: PracticeTableState) -> Bool {
-        guard awaitsQuestAnswer(table) else { return true }
-        return !isReplaying(table) && model.resolveFreePlayQuest(nil, handID: table.handID, expectedEpoch: epoch)
+    private func openReview(_ destination: ReviewDestination, handID: String) {
+        guard scenePhase == .active, epoch == model.epoch,
+              let table = presentationTable, table.handID == handID else { return }
+        let awaiting = awaitsQuestAnswer(table)
+        if awaiting && (isReplaying(table) || model.saveError != nil) { return }
+        pendingReview = nil
+        guard model.prepareFreePlayReview(handID: handID, expectedEpoch: epoch) else {
+            if awaiting && model.saveError != nil { pendingReview = (handID, destination) }
+            return
+        }
+        switch destination {
+        case .recap: progressSheet = .review
+        case .help:
+            helpTab = .hint
+            showHelp = true
+        }
+    }
+
+    private func openGameArchive() {
+        pendingReview = nil
+        showGameReview = true
+    }
+
+    private func closeTable() {
+        pendingReview = nil
+        onClose()
     }
 
     private func result(_ review: PracticeTableReview, table: PracticeTableState) -> some View {
@@ -1001,8 +1031,7 @@ struct FreeTableView: View {
         return resultBody(netText: text, positive: net > 0, gameOver: table.isGameOver, onNext: {
             continueAfterHand(table)
         }, onReview: {
-            guard prepareForReview(table) else { return }
-            progressSheet = .review
+            openReview(.recap, handID: table.handID)
         }, onChange: { confirmNewTable = true }) {
             ForEach(winners, id: \.self) { seat in
                 let name = seatName(seat)
@@ -1018,7 +1047,7 @@ struct FreeTableView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("free-game-over")
                 Button(language.text("전체 게임 돌아보기", "Review the whole game")) {
-                    if prepareForReview(table) { showGameReview = true }
+                    openGameArchive()
                 }
                     .buttonStyle(GTOutlinedAction())
                     .accessibilityIdentifier("free-review-game")
@@ -1402,8 +1431,13 @@ struct FreeTableView: View {
         return ""
     }
 
-    private var replayDebugValue: String {
+    private func replayDebugValue(_ visuals: FreeTableVisuals?) -> String {
         #if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        if environment["GT_TEST_FREE_PLAY_REVIEW"] != nil,
+           environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil {
+            return "winnerCards=\(visuals?.winnerCards.count ?? 0)"
+        }
         if ProcessInfo.processInfo.environment["GT_DEMO_FREE_MOTION"] != nil {
             return replaySnapshot + "#paused=" + pausedSnapshot + "#resumed=" + resumedSnapshot
                 + "#feedback=\(feedbackPulse?.sequence ?? 0):\(String(describing: feedbackPulse?.kind))"

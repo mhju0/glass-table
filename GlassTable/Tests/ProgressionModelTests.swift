@@ -63,6 +63,47 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertNil(reopened.state.freePlayQuest)
     }
 
+    func testFailedImplicitQuestSkipIsOnlyCommittedByALiveReviewRequest() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(try model.startTable(seed: 97, styles: [.tag], startingStack: 40, handLimit: 10,
+                                           expectedEpoch: model.epoch))
+        let first = try XCTUnwrap(model.state.tableState)
+        XCTAssertTrue(model.joinFreePlayQuest(handID: first.handID, expectedEpoch: model.epoch))
+        for index in 0..<16 {
+            let current = try XCTUnwrap(model.state.tableState)
+            if current.review != nil { break }
+            let action: PracticeAction = current.legalActions.contains(.check) ? .check : .call
+            XCTAssertTrue(try model.applyTableAction(action, actionID: "review-\(index)",
+                                                    handID: first.handID, expectedEpoch: model.epoch))
+        }
+        let before = model.state
+        XCTAssertTrue(model.freePlayQuestAwaitsAnswer(handID: first.handID))
+        XCTAssertTrue(model.prepareFreePlayReview(handID: "earlier-hand", expectedEpoch: model.epoch))
+        XCTAssertFalse(model.prepareFreePlayReview(handID: first.handID, expectedEpoch: UUID()))
+        XCTAssertEqual(model.state, before)
+
+        let files = FileManager.default
+        try files.setAttributes([.immutable: true], ofItemAtPath: store.url.path)
+        defer { try? files.setAttributes([.immutable: false], ofItemAtPath: store.url.path) }
+        XCTAssertFalse(model.prepareFreePlayReview(handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertNotNil(model.saveError)
+        XCTAssertEqual(model.state, before)
+
+        try files.setAttributes([.immutable: false], ofItemAtPath: store.url.path)
+        model.retrySave()
+        XCTAssertNil(model.saveError)
+        XCTAssertEqual(model.state, before)
+        XCTAssertEqual(ProgressionModel(store: store).state, before)
+
+        XCTAssertTrue(model.prepareFreePlayReview(handID: first.handID, expectedEpoch: model.epoch))
+        let response = try XCTUnwrap(model.state.freePlayQuest?.response)
+        XCTAssertEqual(response.handID, first.handID)
+        XCTAssertNil(response.category)
+        XCTAssertEqual(model.state.freePlayQuest?.correct, 0)
+        XCTAssertEqual(model.state.quickPlaySessions, before.quickPlaySessions)
+        XCTAssertEqual(model.state.tableState, before.tableState)
+    }
+
     func testPairLessonPreservesTheOpenLegacySessionAndResumesItsReveal() throws {
         let model = ProgressionModel(store: store)
         let legacyNode = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))

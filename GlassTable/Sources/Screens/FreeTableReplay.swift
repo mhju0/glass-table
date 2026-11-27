@@ -26,6 +26,14 @@ struct FreeTableVisuals: Equatable {
     var winnerProgress = 0.0
     var clearProgress = 0.0
     var dealerMoving = false
+
+    func withholdingWinnerEmphasis(_ withheld: Bool) -> Self {
+        guard withheld else { return self }
+        var publicVisuals = self
+        publicVisuals.winnerCards = []
+        publicVisuals.winnerProgress = 0
+        return publicVisuals
+    }
 }
 
 struct FreeTableReplayProjection {

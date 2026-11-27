@@ -1105,6 +1105,21 @@ final class ProgressionModel {
         return commit(startsDetailedTracking: false) { $0.freePlayQuest = quest }
     }
 
+    func freePlayQuestAwaitsAnswer(handID: String) -> Bool {
+        guard let table = state.tableState, table.handID == handID, let quest = state.freePlayQuest,
+              !quest.isComplete, quest.response == nil else { return false }
+        return FreePlayQuestQuestion(table) != nil
+    }
+
+    func prepareFreePlayReview(handID: String, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch else { return false }
+        guard freePlayQuestAwaitsAnswer(handID: handID) else { return true }
+        guard let table = state.tableState, var quest = state.freePlayQuest,
+              quest.resolve(nil, table: table) else { return false }
+        // The view may retry this request while it still owns the review route.
+        return commit(startsDetailedTracking: false, keepFailedCandidate: false) { $0.freePlayQuest = quest }
+    }
+
     /// Explicit ending discards an unfinished hand and retains settled archive evidence.
     @discardableResult
     func endTable(handID: String, expectedEpoch: UUID) -> Bool {
@@ -1185,10 +1200,14 @@ final class ProgressionModel {
     private func injectTableSaveFailureIfRequested(candidate: ProgressState) throws {
         let environment = ProcessInfo.processInfo.environment
         guard !tableSaveFailureConsumed,
-              environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
-              environment["GT_TEST_TABLE_SAVE_FAILURE"] == "1",
-              candidate.recentEvidence.filter({ $0.key.mode == "table" }).count
-                > state.recentEvidence.filter({ $0.key.mode == "table" }).count else { return }
+              environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil else { return }
+        let gradedDecision = environment["GT_TEST_TABLE_SAVE_FAILURE"] == "1"
+            && candidate.recentEvidence.filter({ $0.key.mode == "table" }).count
+                > state.recentEvidence.filter({ $0.key.mode == "table" }).count
+        let questSkip = environment["GT_TEST_FREE_PLAY_REVIEW_SAVE_FAILURE"] == "1"
+            && state.freePlayQuest?.response == nil
+            && candidate.freePlayQuest?.response.map { $0.category == nil } == true
+        guard gradedDecision || questSkip else { return }
         tableSaveFailureConsumed = true
         throw CocoaError(.fileWriteUnknown)
     }
@@ -1272,7 +1291,8 @@ final class ProgressionModel {
     }
 
     @discardableResult
-    private func commit(startsDetailedTracking: Bool = true, _ mutate: (inout ProgressState) -> Void) -> Bool {
+    private func commit(startsDetailedTracking: Bool = true, keepFailedCandidate: Bool = true,
+                        _ mutate: (inout ProgressState) -> Void) -> Bool {
         guard unreadable == nil, saveError == nil else { return false }
         var candidate = state
         mutate(&candidate)
@@ -1289,7 +1309,7 @@ final class ProgressionModel {
             state = candidate
             return true
         } catch {
-            pendingState = candidate
+            if keepFailedCandidate { pendingState = candidate }
             saveError = String(describing: error)
             return false
         }
