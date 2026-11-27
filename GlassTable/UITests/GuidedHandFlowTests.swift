@@ -22,7 +22,15 @@ final class GuidedHandFlowTests: XCTestCase {
         func stage(_ name: String) {
             XCTAssertTrue(app.staticTexts["guided-hand-stage-\(name)"].waitForExistence(timeout: 5), name)
         }
-        tap("learn-guided-hand")
+        let guidedHand = app.buttons["learn-guided-hand"]
+        XCTAssertTrue(guidedHand.waitForExistence(timeout: 15))
+        let learnScroll = app.scrollViews.firstMatch
+        for _ in 0..<24 {
+            if guidedHand.isHittable { break }
+            learnScroll.swipeUp()
+        }
+        XCTAssertTrue(guidedHand.isHittable, "A hand together must be reachable from Learn")
+        guidedHand.tap()
         stage("seats"); tap("guided-hand-next")
         stage("blinds"); tap("guided-hand-next")
         stage("preflop")
