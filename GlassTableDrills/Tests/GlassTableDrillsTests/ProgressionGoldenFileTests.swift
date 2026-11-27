@@ -30,7 +30,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
                                    "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
                                    "schema10-course-review-correction", "schema11-table-course-drafts",
                                    "schema12-expanded-course", "schema13-elective-drafts",
-                                   "schema14-mastery-review-draft", "schema15-spaced-review-draft", "schema16-journey-review-draft"]
+                                   "schema14-mastery-review-draft", "schema15-spaced-review-draft",
+                                   "schema16-journey-review-draft", "schema17-free-play-quest"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -49,8 +50,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsSixteen() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 16)
+    func testCurrentSchemaVersionIsSeventeen() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 17)
     }
 
     func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
@@ -102,7 +103,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
                                     "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
                                    "schema10-course-review-correction", "schema11-table-course-drafts",
                                    "schema12-expanded-course", "schema13-elective-drafts",
-                                   "schema14-mastery-review-draft", "schema15-spaced-review-draft", "schema16-journey-review-draft"].contains(name) ? 0 : 3
+                                   "schema14-mastery-review-draft", "schema15-spaced-review-draft", "schema16-journey-review-draft",
+                                   "schema17-free-play-quest"].contains(name) ? 0 : 3
             XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
@@ -569,7 +571,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 13 must load") }
         let backup = try XCTUnwrap(files(containing: "schema-13-").first)
         XCTAssertEqual(try Data(contentsOf: backup), bytes)
-        XCTAssertEqual(state.schemaVersion, 16)
+        XCTAssertEqual(state.schemaVersion, ProgressState.currentSchemaVersion)
         XCTAssertNil(state.progress(in: .allIns))
         XCTAssertNil(state.progress(in: .tableContexts))
         XCTAssertNil(state.progress(in: .independentHands))
@@ -595,7 +597,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 14 must load") }
         let backup = try XCTUnwrap(files(containing: "schema-14-").first)
         XCTAssertEqual(try Data(contentsOf: backup), bytes)
-        XCTAssertEqual(state.schemaVersion, 16)
+        XCTAssertEqual(state.schemaVersion, ProgressState.currentSchemaVersion)
         XCTAssertEqual(state.masteryReview?.keys.sorted(), ["d7", "d8"])
         XCTAssertTrue(state.masteryReviewDue(on: DayKey(Date())).isEmpty)
         XCTAssertEqual(state.progress(in: .allIns)?.phase, .finished)
@@ -662,7 +664,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 15 must load") }
         let original = try XCTUnwrap(files(containing: "schema-15-").first)
         XCTAssertEqual(try Data(contentsOf: original), bytes)
-        XCTAssertEqual(state.schemaVersion, 16)
+        XCTAssertEqual(state.schemaVersion, ProgressState.currentSchemaVersion)
         XCTAssertNil(state.progress(in: .readHands))
         XCTAssertNil(state.progress(in: .decideHands))
         XCTAssertEqual(state.progress(in: .allIns)?.contentVersion, 2)
@@ -684,7 +686,11 @@ final class ProgressionGoldenFileTests: XCTestCase {
         let bytes = try fixture("schema16-journey-review-draft")
         let s = try store(with: bytes)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 16 must load") }
-        XCTAssertEqual(try s.exportData(state), bytes)
+        var expected = try JSONDecoder().decode(ProgressState.self, from: bytes)
+        expected.schemaVersion = ProgressState.currentSchemaVersion
+        XCTAssertEqual(state, expected)
+        XCTAssertEqual(try files(containing: "schema-16-").map { try Data(contentsOf: $0) }, [bytes])
+        XCTAssertNil(state.freePlayQuest)
         let path = try XCTUnwrap(state.progress(in: .readHands))
         XCTAssertEqual(path.lesson, .r2)
         XCTAssertEqual(path.completedResults.first?.firstRight, 5)
@@ -700,6 +706,30 @@ final class ProgressionGoldenFileTests: XCTestCase {
         old["schemaVersion"] = 15
         try freshDirectory()
         try assertRecovery(for: old, error: .invalidProgress)
+    }
+
+    func testSchemaSeventeenRestoresQuestWithUnrelatedDraftsAndAppointments() throws {
+        let bytes = try fixture("schema17-free-play-quest")
+        let s = try store(with: bytes)
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 17 must load") }
+        XCTAssertEqual(try s.exportData(state), bytes)
+        XCTAssertEqual(state.freePlayQuest?.correct, 1)
+        XCTAssertEqual(state.freePlayQuest?.response?.handID, state.tableState?.handID)
+        XCTAssertEqual(state.freePlayQuest?.response?.category, 1)
+        let previous = try JSONDecoder().decode(ProgressState.self, from: fixture("schema16-journey-review-draft"))
+        XCTAssertEqual(state.progress(in: .readHands), previous.progress(in: .readHands))
+        XCTAssertEqual(state.courseReview, previous.courseReview)
+        XCTAssertEqual(state.masteryReview?.keys.sorted(), ["d7", "d8"])
+
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+        json["schemaVersion"] = 16
+        try freshDirectory()
+        try assertRecovery(for: json, error: .notDecodable)
+
+        json["schemaVersion"] = 17
+        json.removeValue(forKey: "tableState")
+        try freshDirectory()
+        try assertRecovery(for: json, error: .invalidProgress)
     }
 
     func testNewElectivesCannotAppearInAnOlderStoreVersion() throws {

@@ -43,7 +43,7 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (16). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (17). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
@@ -169,3 +169,15 @@ attempts. That list feeds a separate review scope with two reserve hands for
 each topic. Earlier cumulative and next-day snapshots keep their existing
 sequence and grading. Migration copies the original schema 15 bytes and
 introduces no case completion or review marks.
+
+## Schema 17 · Free Play showdown quest
+
+The optional `freePlayQuest` belongs to the open Free Play table. It records
+the number of correct recognitions, capped at two, and the answer or skip for
+the current settled hand. The next deal clears that hand response in the same
+save as the new table. Ending the table clears the quest. The session meter
+uses the existing hand number and settlement, so it adds no saved counter.
+
+The schema 16 bytes are copied before migration. The existing course results,
+drafts, scheduled reviews, and table snapshot retain their values. Files
+carrying the quest under an earlier schema are rejected.

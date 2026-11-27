@@ -19,6 +19,50 @@ final class ProgressionModelTests: XCTestCase {
         try? FileManager.default.removeItem(at: dir)
     }
 
+    func testFreePlayQuestResumesAndCountsAnAnswerOnlyOnce() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(try model.startTable(seed: 97, styles: [.station], expectedEpoch: model.epoch))
+        let first = try XCTUnwrap(model.state.tableState)
+        XCTAssertTrue(model.joinFreePlayQuest(handID: first.handID, expectedEpoch: model.epoch))
+        let joinedRevision = model.state.revision
+        XCTAssertTrue(model.joinFreePlayQuest(handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.revision, joinedRevision)
+        XCTAssertFalse(model.resolveFreePlayQuest(1, handID: first.handID, expectedEpoch: model.epoch))
+
+        for index in 0..<16 {
+            let current = try XCTUnwrap(model.state.tableState)
+            if current.review != nil { break }
+            let action: PracticeAction = current.legalActions.contains(.check) ? .check : .call
+            XCTAssertTrue(try model.applyTableAction(action, actionID: "quest-\(index)",
+                                                    handID: first.handID, expectedEpoch: model.epoch))
+        }
+        let settled = try XCTUnwrap(model.state.tableState)
+        let question = try XCTUnwrap(FreePlayQuestQuestion(settled))
+        let answer = question.hand.category
+        XCTAssertTrue(model.resolveFreePlayQuest(answer, handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.freePlayQuest?.correct, 1)
+        XCTAssertEqual(model.state.tableState, settled)
+        let acceptedRevision = model.state.revision
+        XCTAssertTrue(model.resolveFreePlayQuest(answer, handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertFalse(model.resolveFreePlayQuest(nil, handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.revision, acceptedRevision)
+
+        let reopened = ProgressionModel(store: store)
+        XCTAssertEqual(reopened.state.freePlayQuest, model.state.freePlayQuest)
+        XCTAssertEqual(reopened.state.tableState, settled)
+        XCTAssertTrue(try reopened.nextTableHand(handID: "quest-next", after: first.handID, expectedEpoch: reopened.epoch))
+        let next = try XCTUnwrap(reopened.state.tableState)
+        XCTAssertEqual(next.handNumber, 1)
+        XCTAssertEqual(reopened.state.freePlayQuest?.correct, 1)
+        XCTAssertNil(reopened.state.freePlayQuest?.response)
+        XCTAssertFalse(reopened.resolveFreePlayQuest(answer, handID: first.handID, expectedEpoch: reopened.epoch))
+        XCTAssertFalse(try reopened.nextTableHand(handID: "quest-duplicate", after: first.handID,
+                                                   expectedEpoch: reopened.epoch))
+        XCTAssertEqual(reopened.state.tableState, next)
+        XCTAssertTrue(reopened.endTable(handID: next.handID, expectedEpoch: reopened.epoch))
+        XCTAssertNil(reopened.state.freePlayQuest)
+    }
+
     func testPairLessonPreservesTheOpenLegacySessionAndResumesItsReveal() throws {
         let model = ProgressionModel(store: store)
         let legacyNode = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))

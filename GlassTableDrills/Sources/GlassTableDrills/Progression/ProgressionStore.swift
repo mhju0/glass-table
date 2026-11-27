@@ -166,6 +166,7 @@ public struct ProgressionStore {
                 upgraded.scheduleMasteryReview(for: progress, now: now)
             }
         }
+        // 16 → 17 adds the optional quest for the open Free Play table.
         return upgraded
     }
 
@@ -275,7 +276,10 @@ public struct ProgressionStore {
               state.recentHands.count <= 200,
               Set(state.recentHands.map(\.handID)).count == state.recentHands.count,
               state.recentHands.allSatisfy({ DayKey(raw: $0.day) != nil }),
-              (try? state.tableState?.validate()) != nil || state.tableState == nil
+              (try? state.tableState?.validate()) != nil || state.tableState == nil,
+              state.freePlayQuest.map({ quest in
+                  state.schemaVersion >= 17 && state.tableState.map { quest.isValid(for: $0) } == true
+              }) ?? true
         else { throw StoreError.invalidProgress }
         do { try state.validateQuickPlayArchive() } catch { throw StoreError.invalidProgress }
     }

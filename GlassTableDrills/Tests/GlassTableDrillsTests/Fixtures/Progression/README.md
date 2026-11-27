@@ -89,3 +89,4 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
 - `schema15-spaced-review-draft.json` is an encoder export of completed version 2 D7/D8
   and a mixed spaced review with a selected but unsubmitted exact retry.
 - `schema16-journey-review-draft.json` is an encoder export with R1 completed, its range correction scored, R2 open, and a separate unsubmitted reserve-hand review draft.
+- `schema17-free-play-quest.json` combines that course draft, the completed all-in unit and appointments from schema 15, and the settled Long Table hand from the schema 2 build 16 fixture. The learner answered “one pair” once. The golden test checks the combined fixture against the store encoder.

@@ -50,6 +50,9 @@ struct FreeTableReplayProjection {
 /// Local visual work reads model facts and never applies a game action.
 struct FreeTableReplayPlan {
     static let dealerSpring = Spring(response: 0.4, dampingRatio: 1)
+    private static let streetStagger = 45.0
+    private static let streetFlight = 135.0
+    private static let streetFlip = 85.0
 
     enum Work: Equatable {
         case clear, refill([Int]), dealer, blinds([Int]), holes
@@ -129,7 +132,7 @@ struct FreeTableReplayPlan {
         phases.append(Phase(start: self.duration, duration: duration, work: work, reduced: reduceMotion))
     }
     private mutating func reveal(_ seat: Int) {
-        add(.reveal(seat), 350)
+        add(.reveal(seat), 200)
         cues.append(Cue(time: phases.last!.end, feedback: .card, phase: phases.count - 1))
     }
     private mutating func build() {
@@ -170,11 +173,15 @@ struct FreeTableReplayPlan {
                     for seat in Self.showdownOrder(table: table) where !exposed.contains(seat) { reveal(seat); exposed.insert(seat) }
                 }
                 if runout { add(.wait, 200, pause: true) }
-                else { add(.sweep, 300); add(.wait, 150, pause: true); add(.wait, 300, pause: true) }
-                let count = street == .flop ? 3 : 1, stagger = runout ? 600.0 : 90
-                add(.deal(index, street, runout), Double(count - 1) * stagger + 400)
+                else { add(.sweep, 300); add(.wait, 150, pause: true) }
+                let count = street == .flop ? 3 : 1
+                let stagger = runout ? 600.0 : Self.streetStagger
+                let flight = runout ? 220.0 : Self.streetFlight
+                let flip = runout ? 180.0 : Self.streetFlip
+                add(.deal(index, street, runout), Double(count - 1) * stagger + flight + flip)
                 for card in 0..<count {
-                    cues.append(Cue(time: reduceMotion ? phases.last!.end : phases.last!.start + Double(card) * stagger + 220, feedback: .card, phase: phases.count - 1))
+                    cues.append(Cue(time: reduceMotion ? phases.last!.end : phases.last!.start + Double(card) * stagger + flight,
+                                    feedback: .card, phase: phases.count - 1))
                 }
             case .settle:
                 add(.sweep, 300); add(.wait, 150, pause: true)
@@ -305,20 +312,22 @@ struct FreeTableReplayPlan {
         case let .deal(step, street, runout):
             let base = street == .flop ? 0 : street == .turn ? 3 : 4, count = street == .flop ? 3 : 1
             let board = table.review?.board ?? table.visibleBoard
+            let flightDuration = runout ? 220.0 : Self.streetFlight
+            let flipDuration = runout ? 180.0 : Self.streetFlip
             p.frame.street = street; p.frame.lastEvent = Array(repeating: nil, count: table.seatCount)
             for offset in 0..<count {
-                let index = base + offset, start = Double(offset) * (runout ? 600 : 90)
-                let arrived = reduced ? complete : local >= start + 220
-                let flip = reduced ? progress : min(1, max(0, (local - start - 220) / 180))
+                let index = base + offset, start = Double(offset) * (runout ? 600 : Self.streetStagger)
+                let arrived = reduced ? complete : local >= start + flightDuration
+                let flip = reduced ? progress : min(1, max(0, (local - start - flightDuration) / flipDuration))
                 if arrived { p.visuals.boardArrived = max(p.visuals.boardArrived, index + 1) }
                 if flip >= 1 { p.frame.boardCount = index + 1; p.visibleBoard = Array(board.prefix(index + 1)) }
                 else if arrived { p.visuals.boardFlips[index] = flip }
-                else if local >= start { flight("board-\(index)", .pot, .board(index), .card, min(1, (local - start) / 220)) }
+                else if local >= start { flight("board-\(index)", .pot, .board(index), .card, min(1, (local - start) / flightDuration)) }
             }
             if complete { p.shownSteps = step + 1; p.frame = table.frame(after: p.shownSteps) }
         case let .reveal(seat):
             if complete { p.visuals.exposed.insert(seat); p.visibleHole[seat] = table.review?.holeCards[seat] ?? [] }
-            else { p.visuals.flipping[seat] = reduced ? progress : min(1, local / 180) }
+            else { p.visuals.flipping[seat] = progress }
         case .winners:
             p.visuals.winnerProgress = reduced ? 0 : progress
             if let review = table.review, p.visibleBoard.count == 5 {

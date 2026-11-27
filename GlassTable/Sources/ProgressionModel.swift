@@ -1078,9 +1078,31 @@ final class ProgressionModel {
         return commit { candidate in
             candidate.captureQuickPlay(previous)
             candidate.tableState = table
+            candidate.freePlayQuest?.beginNextHand()
             candidate.captureQuickPlay(table)
             if let observation { candidate.appendHandObservation(observation) }
         }
+    }
+
+    @discardableResult
+    func joinFreePlayQuest(handID: String, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, let table = state.tableState, table.handID == handID else { return false }
+        if state.freePlayQuest != nil { return true }
+        var quest = FreePlayQuest()
+        // A result already on screen may have shown its rank before the player joined.
+        quest.resolve(nil, table: table)
+        return commit(startsDetailedTracking: false) { $0.freePlayQuest = quest }
+    }
+
+    @discardableResult
+    func resolveFreePlayQuest(_ category: Int?, handID: String, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, let table = state.tableState, table.handID == handID,
+              var quest = state.freePlayQuest else { return false }
+        if let response = quest.response {
+            return response.handID == handID && response.category == category
+        }
+        guard quest.resolve(category, table: table) else { return false }
+        return commit(startsDetailedTracking: false) { $0.freePlayQuest = quest }
     }
 
     /// Explicit ending discards an unfinished hand and retains settled archive evidence.
@@ -1091,6 +1113,7 @@ final class ProgressionModel {
         return commit {
             $0.finishQuickPlay(table)
             $0.tableState = nil
+            $0.freePlayQuest = nil
         }
     }
 
