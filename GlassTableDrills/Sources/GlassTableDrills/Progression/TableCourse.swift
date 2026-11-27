@@ -17,6 +17,10 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     case tableContexts
     case independentHands
 
+    public var usesSpacedReview: Bool {
+        self == .allIns || self == .tableContexts || self == .independentHands
+    }
+
     public static let electives: [Self] = [.combinations, .expectedValue, .boardPatterns]
 
     /// Keep the lesson path order independent of the optional guided hand and electives.
@@ -60,9 +64,13 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     }
 
     public func activities(for lesson: TableCourseLesson) -> [TableCourseActivity] {
+        activities(for: lesson, version: usesSpacedReview ? 2 : 1)
+    }
+
+    fileprivate func activities(for lesson: TableCourseLesson, version: Int) -> [TableCourseActivity] {
         guard lesson.unit == self else { return [] }
         switch self {
-        case .allIns, .tableContexts, .independentHands: return MasteryCourseContent.activities(for: lesson)
+        case .allIns, .tableContexts, .independentHands: return MasteryCourseContent.activities(for: lesson, revised: version == 2)
         case .turns: return Self.turnsActivities[lesson, default: []]
         case .chips: return Self.chipActivities[lesson, default: []]
         case .milestone: return ChipUnitContent.milestone
@@ -400,9 +408,7 @@ public struct TableCourseLessonResult: Codable, Equatable, Sendable {
 /// Saved indices refer to the authored activity and option order for this version.
 /// Staged examples and retries use the same cursor contract as ordinary questions.
 public struct TableCourseProgress: Codable, Equatable, Sendable {
-    private static let currentContentVersion = 1
-
-    private let contentVersion: Int
+    let contentVersion: Int
     public let unit: TableCourseUnit
     public private(set) var lesson: TableCourseLesson
     private var activityIndex = 0
@@ -414,12 +420,12 @@ public struct TableCourseProgress: Codable, Equatable, Sendable {
     private var priorResults: [TableCourseLessonResult] = []
 
     public init(unit: TableCourseUnit) {
-        contentVersion = Self.currentContentVersion
+        contentVersion = unit.usesSpacedReview ? 2 : 1
         self.unit = unit
         lesson = unit.lessons[0]
     }
 
-    private var activities: [TableCourseActivity] { unit.activities(for: lesson) }
+    private var activities: [TableCourseActivity] { unit.activities(for: lesson, version: contentVersion) }
     private var questions: [TableCourseActivity] { activities.filter { !$0.isExample } }
     private var missedActivities: [TableCourseActivity] {
         zip(questions, firstAnswers).compactMap { activity, answer in
@@ -504,7 +510,7 @@ public struct TableCourseProgress: Codable, Equatable, Sendable {
     }
 
     public var isValid: Bool {
-        guard contentVersion == Self.currentContentVersion,
+        guard contentVersion == 1 || (contentVersion == 2 && unit.usesSpacedReview),
               lesson.unit == unit,
               !finished || lesson == unit.lessons.last,
               priorResultsAreValid,
@@ -537,7 +543,7 @@ public struct TableCourseProgress: Codable, Equatable, Sendable {
         let expected = unit.lessons.prefix(lesson.indexInUnit)
         guard priorResults.count == expected.count else { return false }
         return zip(priorResults, expected).allSatisfy { result, expectedLesson in
-            let count = unit.activities(for: expectedLesson).filter { !$0.isExample }.count
+            let count = unit.activities(for: expectedLesson, version: contentVersion).filter { !$0.isExample }.count
             return result.lesson == expectedLesson
                 && result.questionCount == count
                 && (0...count).contains(result.firstRight)

@@ -454,7 +454,11 @@ final class ProgressionModel {
         guard expectedEpoch == epoch, state.progress(in: previous.unit) == previous else { return false }
         var updated = previous
         guard updated.apply(action) else { return false }
-        return commit { $0.tableCourse?[updated.unit.rawValue] = updated }
+        let now = courseReviewNow
+        return commit {
+            $0.tableCourse?[updated.unit.rawValue] = updated
+            $0.scheduleMasteryReview(for: updated, now: now)
+        }
     }
 
     #if DEBUG
@@ -505,7 +509,7 @@ final class ProgressionModel {
                            seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max)) -> Bool {
         guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
         if let current = state.courseReview { return current.scope == scope }
-        let eligible = CourseReviewSession.eligibleSkills(in: state, scope: scope)
+        let eligible = CourseReviewSession.eligibleSkills(in: state, scope: scope, today: courseReviewDay)
         guard let review = CourseReviewSession(scope: scope, eligibleSkills: eligible, seed: seed) else {
             return false
         }
@@ -525,7 +529,10 @@ final class ProgressionModel {
     func closeFinishedCourseReview(from previous: CourseReviewSession, expectedEpoch: UUID) -> Bool {
         guard expectedEpoch == epoch, state.courseReview == previous,
               previous.phase == .finished else { return false }
-        return commit(startsDetailedTracking: false) { $0.courseReview = nil }
+        return commit(startsDetailedTracking: false) {
+            $0.finishMasteryReview(previous)
+            $0.courseReview = nil
+        }
     }
 
     /// Learn leads with the basics lesson only for someone who has not started the
@@ -539,6 +546,22 @@ final class ProgressionModel {
     /// its marker.
     func completeBasicsLesson() {
         _ = commit { $0.basicsLessonCompleted = true }
+    }
+
+    private var courseReviewNow: Date {
+        let now = Date()
+        #if DEBUG
+        let env = ProcessInfo.processInfo.environment
+        if env["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+           env["GT_TEST_COURSE_DAY_OFFSET"] == "1" {
+            return Calendar.current.date(byAdding: .day, value: 1, to: now) ?? now
+        }
+        #endif
+        return now
+    }
+
+    var courseReviewDay: DayKey {
+        PairLessonFollowUpProgress.localDay(at: courseReviewNow)
     }
 
     // MARK: - One-pair lesson

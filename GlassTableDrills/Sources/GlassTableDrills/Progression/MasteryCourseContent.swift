@@ -5,15 +5,15 @@ enum MasteryCourseContent {
     typealias Copy = TableCourseText
     typealias Row = TableCourseRow
 
-    static func activities(for lesson: TableCourseLesson) -> [TableCourseActivity] {
+    static func activities(for lesson: TableCourseLesson, revised: Bool) -> [TableCourseActivity] {
         switch lesson {
         case .d7:
             [
-                shortRaise("D7-example", bet: 10, shove: 14, task: .acted, example: true),
-                shortRaise("D7-01", bet: 12, shove: 19, task: .acted),
-                shortRaise("D7-02", bet: 8, shove: 13, task: .newPlayer),
-                shortRaise("D7-03", bet: 9, shove: 6, task: .shortCall),
-                shortRaise("D7-04", bet: 11, shove: 22, task: .acted),
+                shortRaise("D7-example", bet: 10, shove: 14, task: .acted, example: true, revised: revised),
+                shortRaise("D7-01", bet: 12, shove: 19, task: .acted, revised: revised),
+                shortRaise("D7-02", bet: 8, shove: 13, task: .newPlayer, revised: revised),
+                shortRaise("D7-03", bet: 9, shove: 6, task: .shortCall, revised: revised),
+                shortRaise("D7-04", bet: 11, shove: 22, task: .acted, revised: revised),
             ]
         case .d8:
             [
@@ -31,13 +31,13 @@ enum MasteryCourseContent {
                 depth("M1-03", 10, 42, pot: 20, task: .future),
                 depth("M1-04", 78, 60, pot: 30, task: .future),
             ]
-        case .m2: multiway
+        case .m2: revised ? Array(multiway.dropLast()) + [multiwayShowdown("M2-v2-04", "AhJd", "AdTc", "9h9s", "As9c7d3h2s")] : multiway
         case .m3: streets
         case .m4: formats
-        case .m5: conduct
+        case .m5: revised ? revisedConduct : conduct
         case .n1: turnHands
         case .n2: riverHands
-        case .n3: fullHand
+        case .n3: revised ? revisedFullHand : fullHand
         default: []
         }
     }
@@ -92,25 +92,33 @@ enum MasteryCourseContent {
         return cards
     }
 
-    private enum RaiseTask { case acted, newPlayer, shortCall }
+    enum RaiseTask { case acted, newPlayer, shortCall }
 
-    private static func shortRaise(_ id: String, bet: Int, shove: Int, task: RaiseTask,
-                                   example: Bool = false) -> TableCourseActivity {
+    static func shortRaise(_ id: String, bet: Int, shove: Int, task: RaiseTask,
+                                   example: Bool = false, revised: Bool = false) -> TableCourseActivity {
         let title = Copy("올인 뒤에 어떤 행동을 할 수 있을까?", "What actions are open after the all-in?")
         let rows = [
             Row(Copy("A의 플랍 벳", "A’s opening flop bet"), same("\(bet)")),
             Row(Copy("B의 올인 총액", "B’s all-in total"), same("\(shove)")),
         ]
-        let common = Copy("노리밋 홀덤 토너먼트 규칙을 적용해요. 이 스트리트에서 A가 먼저 벳했고, B는 가진 칩을 모두 냈어요.",
+        let common = revised
+            ? Copy("빅 블라인드가 2인 노리밋 홀덤 토너먼트예요. 플랍에서 앞선 벳 없이 A가 먼저 벳했고, B는 칩을 모두 냈어요.",
+                   "This is a no-limit Hold’em tournament with a big blind of 2. A made the opening bet on the flop. B put in their entire stack.")
+            : Copy("노리밋 홀덤 토너먼트 규칙을 적용해요. 이 스트리트에서 A가 먼저 벳했고, B는 가진 칩을 모두 냈어요.",
                           "Use no-limit Hold’em tournament rules. A opened the betting on this street and B put in their entire stack.")
         let call = Copy("콜 또는 폴드", "Call or fold")
         let raise = Copy("콜, 폴드 또는 레이즈", "Call, fold, or raise")
         switch task {
         case .acted:
             let short = shove - bet < bet
-            return scenario(id, title, Copy(
+            let minimum = short ? shove : 2 * shove - bet
+            let situation = revised
+                ? Copy("\(common.text(in: .korean)) C는 B의 올인을 콜했어요. A와 C는 이번 플랍에서 각각 총 \(minimum) 이상을 낼 수 있어요. 다시 A 차례예요.",
+                       "\(common.text(in: .english)) C called B’s all-in. A and C can each put in at least \(minimum) total on this flop. Action returns to A.")
+                : Copy(
                 "\(common.text(in: .korean)) C도 올인을 콜했고, A와 C에게는 칩이 충분해요. 다시 A 차례예요.",
-                "\(common.text(in: .english)) C calls the all-in. A and C still have chips, and action returns to A."),
+                "\(common.text(in: .english)) C calls the all-in. A and C still have chips, and action returns to A.")
+            return scenario(id, title, situation,
                 [raise, call, Copy("체크 또는 콜", "Check or call")], answer: short ? 1 : 0,
                 short
                     ? Copy("증가분 \(shove - bet)은 최소 레이즈 폭 \(bet)보다 작아요. 이미 벳한 A에게 레이즈가 다시 열리지 않아요. 차액을 콜하거나 폴드할 수 있어요.",
@@ -122,9 +130,12 @@ enum MasteryCourseContent {
                 ], example: example)
         case .newPlayer:
             let minimum = shove + bet
-            return scenario(id, Copy("아직 행동하지 않았다면?", "What if you have yet to act?"),
-                Copy("\(common.text(in: .korean)) C는 칩이 충분하고 아직 행동하지 않았어요. A에게도 칩이 남았어요. C의 최소 레이즈 총액은?",
-                     "\(common.text(in: .english)) C has chips and has yet to act. A still has chips behind. What is C’s minimum raise-to total?"),
+            let question = revised
+                ? Copy("\(common.text(in: .korean)) C는 아직 행동하지 않았어요. C와 A는 플랍에서 각각 총 \(minimum + 9)까지 낼 수 있어요. C의 최소 레이즈 총액은?",
+                       "\(common.text(in: .english)) C has yet to act. C and A can each put in up to \(minimum + 9) total on the flop. What is C’s minimum raise-to total?")
+                : Copy("\(common.text(in: .korean)) C는 칩이 충분하고 아직 행동하지 않았어요. A에게도 칩이 남았어요. C의 최소 레이즈 총액은?",
+                     "\(common.text(in: .english)) C has chips and has yet to act. A still has chips behind. What is C’s minimum raise-to total?")
+            return scenario(id, Copy("아직 행동하지 않았다면?", "What if you have yet to act?"), question,
                 [same("\(2 * bet)"), same("\(minimum)"), same("\(2 * shove)")], answer: 1,
                 Copy("C는 아직 행동하지 않았으므로 레이즈할 수 있어요. B의 올인은 최소 레이즈 폭을 바꾸지 않아요. 현재 총액 \(shove)에 기존 벳 \(bet)만큼 더해요.",
                      "C has not acted, so raising is available. The short all-in leaves the full-raise increment unchanged. Add the opening bet of \(bet) to the current total of \(shove)."),
@@ -139,9 +150,9 @@ enum MasteryCourseContent {
         }
     }
 
-    private enum PotTask { case layers, payout, folded }
+    enum PotTask { case layers, payout, folded }
 
-    private static func pots(_ id: String, _ paid: [Int], _ task: PotTask,
+    static func pots(_ id: String, _ paid: [Int], _ task: PotTask,
                              example: Bool = false) -> TableCourseActivity {
         let a = paid[0], b = paid[1], c = paid[2]
         let main = 3 * a, side = 2 * (b - a), refund = c - b
@@ -184,9 +195,9 @@ enum MasteryCourseContent {
         }
     }
 
-    private enum DepthTask { case effective, spr, future }
+    enum DepthTask { case effective, spr, future }
 
-    private static func depth(_ id: String, _ hero: Int, _ opponent: Int, pot: Int, task: DepthTask,
+    static func depth(_ id: String, _ hero: Int, _ opponent: Int, pot: Int, task: DepthTask,
                               example: Bool = false) -> TableCourseActivity {
         let effective = min(hero, opponent)
         let rows = [
@@ -221,4 +232,36 @@ enum MasteryCourseContent {
                 evidence: .init(rows: rows))
         }
     }
+}
+
+extension MasteryCourseContent {
+    // These fixtures are reserved for the one-time spaced scope. Existing on-demand
+    // snapshots continue resolving through the original bank and its variant order.
+    static let spacedQuestions: [CourseReviewSkill: TableCourseActivity] = [
+        .d7: shortRaise("D7-spaced-01", bet: 15, shove: 30, task: .acted, revised: true),
+        .d8: pots("D8-spaced-01", [26, 39, 39], .folded),
+        .m1: depth("M1-spaced-01", 78, 54, pot: 18, task: .spr),
+        .m2: multiwayShowdown("M2-spaced-01", "KhJh", "Ks8c", "AcAd", "Kd8d6c3s2h"),
+        .m3: scenario("M3-spaced-01", Copy("턴에서 상대 레인지 다시 읽기", "Reconsider the range on the turn"),
+                      Copy("상대가 플랍에서 오버페어나 플러시 드로우로만 콜한다는 연습 규칙을 써요. 네 번째 공용 카드로 6♦가 나왔어요. 플랍 콜 범위가 어떻게 달라졌을까요?",
+                           "In this exercise the opponent calls the flop only with an overpair or a flush draw. The fourth board card is 6♦. What changed for that calling range?"),
+                      [Copy("모든 오버페어가 플러시가 됐어요", "Every overpair has become a flush"),
+                       Copy("다이아몬드 드로우는 플러시가 됐고 오버페어도 가능해요", "Diamond draws made a flush, and overpairs remain possible"),
+                       Copy("플러시 드로우는 여전히 미완성이에요", "The flush draws all remain unmade")],
+                      answer: 1, Copy("공용 카드에 다이아몬드가 세 장이에요. 다이아몬드 두 장으로 콜했던 패는 플러시가 됐어요. 오버페어를 든 상대도 규칙에 맞아요.",
+                                      "Three diamonds are now on the board. Two diamonds in the opponent’s hand make a flush. Their policy still allows an overpair."),
+                      evidence: .init(cards: cards("Ts9c"), board: cards("Td7d3s6d"))),
+        .m4: blindDepth("M4-spaced-01", stack: 5_200, oldBlind: 200, newBlind: 400),
+        .m5: scenario("M5-spaced-01", Copy("칩 더미가 겹쳐 보일 때", "When the chips overlap"),
+                      Copy("토너먼트 플랍에서 상대가 말없이 칩을 밀었어요. 내 차례인데 큰 칩이 작은 칩에 가려져 액수가 안 보여요. 먼저 무엇을 할까요?",
+                           "On the tournament flop an opponent puts out chips silently. It is your turn and you cannot see the amount because the larger chip is obscured. What do you do first?"),
+                      [Copy("딜러에게 내가 맞춰야 할 금액을 물어요", "Ask the dealer what amount you face"),
+                       Copy("짐작해서 일부만 내요", "Guess and put in part of the amount"),
+                       Copy("옆 사람에게 콜할지 물어요", "Ask a neighbor whether to call")],
+                      answer: 0, Copy("딜러에게 베팅 금액을 확인한 다음 내 행동을 결정해요.",
+                                      "Ask the dealer to clarify the bet before deciding how to act.")),
+        .n1: turn("N1-spaced-01", "8h7h", "KdKc", "6h5s2hJs", pot: 27, call: 9, .price),
+        .n2: showdown("N2-spaced-01", "Ah4h", "9d9s", "As9h6h2cKh"),
+        .n3: transferHand("N3-spaced-01", "AsTs", "QcQd", "Ks7s4h2c", open: 7, call: 6),
+    ]
 }

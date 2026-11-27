@@ -53,7 +53,7 @@ final class MasteryCourseContentTests: XCTestCase {
                 }
             }
         }
-        XCTAssertEqual(counts.examples, 10)
+        XCTAssertEqual(counts.examples, 11)
         XCTAssertEqual(counts.questions, 43)
         XCTAssertEqual(counts.reviews, 30)
     }
@@ -66,7 +66,7 @@ final class MasteryCourseContentTests: XCTestCase {
             (.m2, [0, 2, 1, 2]),
             (.m3, [1, 0, 2, 1]),
             (.m4, [2, 2, 0, 1]),
-            (.m5, [1, 2, 0, 0]),
+            (.m5, [1, 2, 1, 0]),
             (.n1, [1, 1, 0, 0, 1]),
             (.n2, [0, 2, 1, 1, 2]),
             (.n3, [1, 0, 0, 0, 0]),
@@ -113,8 +113,15 @@ final class MasteryCourseContentTests: XCTestCase {
             else { try answerLesson(&progress) }
         }
         var state = ProgressState(tableCourse: [unit.rawValue: progress])
-        XCTAssertEqual(CourseReviewSession.eligibleSkills(in: state, scope: .tableUnit(unit)), [.d7, .d8])
-        var review = try XCTUnwrap(CourseReviewSession(scope: .tableUnit(unit), eligibleSkills: [.d7, .d8], seed: 91))
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        state.scheduleMasteryReview(for: progress, now: now)
+        let today = DayKey(now)
+        let tomorrow = try XCTUnwrap(state.masteryReview?["d7"]?.dueDay)
+        XCTAssertTrue(state.masteryReviewDue(on: today).isEmpty)
+        XCTAssertEqual(state.masteryReviewDue(on: tomorrow), [.d7, .d8])
+        XCTAssertTrue(CourseReviewSession.eligibleSkills(in: state, scope: .tableUnit(unit)).isEmpty)
+        let eligible = CourseReviewSession.eligibleSkills(in: state, scope: .spacedMastery, today: tomorrow)
+        var review = try XCTUnwrap(CourseReviewSession(scope: .spacedMastery, eligibleSkills: eligible, seed: 91))
         let first = try XCTUnwrap(review.activity)
         XCTAssertNotEqual(first.tableEvidence, missed.evidence)
         let right = try XCTUnwrap(first.correctChoice)
@@ -132,6 +139,17 @@ final class MasteryCourseContentTests: XCTestCase {
         state = try roundTrip(state)
         XCTAssertEqual(state.courseReview, review)
         XCTAssertTrue(state.courseReview?.isValid(in: state) == true)
+        XCTAssertTrue(review.apply(.select(right)))
+        XCTAssertTrue(review.apply(.submit))
+        XCTAssertTrue(review.apply(.advance))
+        XCTAssertEqual(review.phase, .setResults)
+        XCTAssertEqual(review.firstRight, 1)
+        XCTAssertEqual(review.retryRight, 1)
+        XCTAssertTrue(review.apply(.advance))
+        state.finishMasteryReview(review)
+        state.courseReview = nil
+        XCTAssertTrue(state.masteryReviewDue(on: tomorrow).isEmpty)
+        XCTAssertFalse(state.hasUpcomingMasteryReview)
     }
 
     private func answerLesson(_ progress: inout TableCourseProgress) throws {

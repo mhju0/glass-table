@@ -17,9 +17,9 @@ extension MasteryCourseContent {
         turn("N1-review-03", "Ah5h", "JcJd", "2h7hTc4d", pot: 18, call: 5, .decision),
     ]
 
-    private enum TurnTask { case outs, price, decision }
+    enum TurnTask { case outs, price, decision }
 
-    private static func turn(_ id: String, _ own: String, _ other: String, _ shared: String,
+    static func turn(_ id: String, _ own: String, _ other: String, _ shared: String,
                              pot: Int, call: Int, _ task: TurnTask, example: Bool = false,
                              history: Copy? = nil) -> TableCourseActivity {
         let hero = cards(own), villain = cards(other), board = cards(shared)
@@ -91,7 +91,7 @@ extension MasteryCourseContent {
         resultBias("N2-review-03", "QdTd", "AsAh", "2d5dJc9s7h", pot: 18, call: 4),
     ]
 
-    private static func showdown(_ id: String, _ own: String, _ other: String, _ shared: String,
+    static func showdown(_ id: String, _ own: String, _ other: String, _ shared: String,
                                  example: Bool = false) -> TableCourseActivity {
         let hero = cards(own), villain = cards(other), board = cards(shared)
         precondition(Set(hero + villain + board).count == 9)
@@ -142,7 +142,7 @@ extension MasteryCourseContent {
             ])
     }
 
-    private static func cardNames(_ cards: [Card]) -> String {
+    static func cardNames(_ cards: [Card]) -> String {
         cards.map { card in
             let rank = String(card.description.dropLast()).replacingOccurrences(of: "T", with: "10")
             return rank + ["♣", "♦", "♥", "♠"][card.suit]
@@ -186,4 +186,48 @@ extension MasteryCourseContent {
         showdown("N3-review-02", "8c7c", "JdJs", "9c5h6sAd4d"),
         resultBias("N3-review-03", "QhJh", "KsKc", "3h5h8d4sTd", pot: 21, call: 7),
     ]
+}
+
+extension MasteryCourseContent {
+    static let revisedFullHand = Array(fullHand.dropLast()) + [
+        scenario("N3-v2-synthesis", Copy("이 핸드의 결정과 결과", "Putting the decision and result together"),
+                 Copy("턴에 콜의 EV가 더 높았고 리버 7♦로 스트레이트가 됐어요. 앞의 두 판단을 함께 확인해요.",
+                      "Calling had higher EV on the turn. The 7♦ completed your straight on the river. Put the two earlier answers together."),
+                 [], answer: 0,
+                 Copy("리버가 빗나갔어도 같은 턴 정보에서는 콜의 EV가 높아요.",
+                      "A different river would leave the turn EV comparison unchanged."),
+                 evidence: .init(cards: cards("JsTs"), board: cards("9s4s6d8h7d"), opponent: cards("QhQc")),
+                 example: true),
+        transferHand("N3-v2-05", "QhTh", "KcKd", "Jh8h3d5s", open: 5, call: 7),
+    ]
+
+    static func transferHand(_ id: String, _ own: String, _ other: String, _ shared: String,
+                             open: Int, call: Int) -> TableCourseActivity {
+        let hero = cards(own), villain = cards(other), board = cards(shared)
+        let known = Set(hero + villain + board)
+        precondition(known.count == 8)
+        let rivers = Deck.all.filter { !known.contains($0) }
+        let results = rivers.map { compareHands(hero: hero + board + [$0], villain: villain + board + [$0]) }
+        let wins = results.count { $0 == 0 }, ties = results.count { $0 == 2 }
+        let pot = 2 * open + 1, finalPot = pot + 2 * call
+        let callWins = (2 * wins + ties) * finalPot > 2 * rivers.count * call
+        return scenario(id, Copy("처음 보는 핸드의 턴 판단", "Work through a new hand"),
+            Copy("블라인드는 1/2, 앤티와 수수료는 없어요. 버튼인 내가 \(open)으로 오픈했어요. 스몰 블라인드는 폴드, 빅 블라인드는 콜했어요. 플랍에서 둘 다 체크했고 턴에 상대가 \(call) 올인했어요. 내 스택은 충분해요. 표시한 상대 패를 가정하고 리버 한 장 뒤 쇼다운한다고 할 때, 맞는 설명은?",
+                 "Blinds are 1/2, with no antes or fees. You open the button to \(open). The small blind folds and the big blind calls. Both check the flop. The big blind shoves \(call) on the turn and you cover. Assume the opponent holds the cards shown. A call deals one river and goes to showdown. Which analysis fits?"),
+            [Copy("플랍에서 마지막 차례예요. \(call)/\(finalPot)보다 평균 팟 몫이 낮아 폴드가 나아요.",
+                  "You act last on the flop. Your share falls below \(call)/\(finalPot), so folding has higher EV."),
+             Copy("플랍에서 마지막 차례예요. \(call)/\(finalPot)보다 평균 팟 몫이 높아 콜이 나아요.",
+                  "You act last on the flop. Your share exceeds \(call)/\(finalPot), so calling has higher EV."),
+             Copy("플랍에서 먼저 행동해요. 올인 전 팟으로 콜 가격을 나눠요.",
+                  "You act first on the flop. Price the call against the pot before the shove.")],
+            answer: callWins ? 1 : 0,
+            Copy("버튼은 빅 블라인드 뒤에 행동해요. 두 사람이 \(open)씩 냈고 스몰 블라인드 1이 남아요. 양쪽에 올인 금액을 한 번씩 더한 최종 팟과 콜의 가격을 비교해요.",
+                 "The button acts after the big blind. Both put in \(open), and the small blind’s 1 stays. The final pot includes the shove and your match."),
+            evidence: .init(cards: hero, board: board, opponent: villain), reveal: [
+                Row(Copy("턴 시작 팟", "Pot at turn start"), same("\(open) + \(open) + 1 = \(pot)")),
+                Row(Copy("콜 뒤 팟", "Pot after calling"), same("\(pot) + \(call) + \(call) = \(finalPot)")),
+                Row(Copy("평균 팟 몫", "Expected share"), same("(\(wins) + \(ties) ÷ 2) ÷ 44")),
+                Row(Copy("본전에 필요한 몫", "Break-even share"), same("\(call) ÷ \(finalPot)")),
+            ])
+    }
 }

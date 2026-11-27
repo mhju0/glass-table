@@ -1,5 +1,7 @@
 # Hold’em course and delayed-review plan
 
+The [teaching review follow-up](2026-11-27-holdem-mastery-teaching-review.md) supersedes this candidate’s review access, assessment and duration model.
+
 ## Playable scope
 
 [Verified] The baseline at `bac368f` contains 66 core lessons and 15 electives. This expansion adds ten core lessons: ten worked activities, 43 scored prompts and 30 held-out review prompts. The existing Lessons route leads from chip counting to D7/D8, from price and chance to M1–M5 and from the guided capstone to N1–N3. The guided practice hand remains available. Within the core path the three new units have fresh save identities so earlier unit cursors and frozen reviews survive the schema 14 upgrade.

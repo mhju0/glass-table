@@ -235,6 +235,13 @@ public enum CourseReviewContent {
         return result
     }()
 
+    static func spacedActivity(for skill: CourseReviewSkill) -> CourseReviewActivity? {
+        spacedBank[skill]
+    }
+
+    private static let spacedBank = Dictionary(uniqueKeysWithValues:
+        MasteryCourseContent.spacedQuestions.map { ($0.key, tableQuestion($0.value)) })
+
     private static func tableQuestion(_ activity: TableCourseActivity) -> CourseReviewActivity {
         let options = zip(activity.choices(in: .korean), activity.choices(in: .english)).map { Copy($0, $1) }
         return CourseReviewActivity(

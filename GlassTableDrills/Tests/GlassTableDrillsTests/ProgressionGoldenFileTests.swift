@@ -30,7 +30,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
                                    "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
                                    "schema10-course-review-correction", "schema11-table-course-drafts",
                                    "schema12-expanded-course", "schema13-elective-drafts",
-                                   "schema14-mastery-review-draft"]
+                                   "schema14-mastery-review-draft", "schema15-spaced-review-draft"]
 
     private func fixture(_ name: String) throws -> Data {
         let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json",
@@ -49,8 +49,8 @@ final class ProgressionGoldenFileTests: XCTestCase {
             .filter { $0.lastPathComponent.contains(marker) }
     }
 
-    func testCurrentSchemaVersionIsFourteen() {
-        XCTAssertEqual(ProgressState.currentSchemaVersion, 14)
+    func testCurrentSchemaVersionIsFifteen() {
+        XCTAssertEqual(ProgressState.currentSchemaVersion, 15)
     }
 
     func testEveryFixtureLoadsValidatesRoundTripsAndRegrades() throws {
@@ -102,7 +102,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
                                     "schema7-pair-follow-up", "schema8-unit-a-reveal", "schema9-unit-b-draft",
                                    "schema10-course-review-correction", "schema11-table-course-drafts",
                                    "schema12-expanded-course", "schema13-elective-drafts",
-                                   "schema14-mastery-review-draft"].contains(name) ? 0 : 3
+                                   "schema14-mastery-review-draft", "schema15-spaced-review-draft"].contains(name) ? 0 : 3
             XCTAssertEqual(regraded, expectedRegrades, name)
 
             // No key the old build wrote is lost when the current build saves it.
@@ -569,7 +569,7 @@ final class ProgressionGoldenFileTests: XCTestCase {
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 13 must load") }
         let backup = try XCTUnwrap(files(containing: "schema-13-").first)
         XCTAssertEqual(try Data(contentsOf: backup), bytes)
-        XCTAssertEqual(state.schemaVersion, 14)
+        XCTAssertEqual(state.schemaVersion, 15)
         XCTAssertNil(state.progress(in: .allIns))
         XCTAssertNil(state.progress(in: .tableContexts))
         XCTAssertNil(state.progress(in: .independentHands))
@@ -593,10 +593,17 @@ final class ProgressionGoldenFileTests: XCTestCase {
         let bytes = try fixture("schema14-mastery-review-draft")
         let s = try store(with: bytes)
         guard case let .loaded(state) = s.load() else { return XCTFail("schema 14 must load") }
-        XCTAssertEqual(try s.exportData(state), bytes)
+        let backup = try XCTUnwrap(files(containing: "schema-14-").first)
+        XCTAssertEqual(try Data(contentsOf: backup), bytes)
+        XCTAssertEqual(state.schemaVersion, 15)
+        XCTAssertEqual(state.masteryReview?.keys.sorted(), ["d7", "d8"])
+        XCTAssertTrue(state.masteryReviewDue(on: DayKey(Date())).isEmpty)
         XCTAssertEqual(state.progress(in: .allIns)?.phase, .finished)
         let lesson = try XCTUnwrap(state.progress(in: .independentHands))
+        XCTAssertEqual(lesson.contentVersion, 1)
         XCTAssertEqual(lesson.activity?.id, "N1-01")
+        XCTAssertEqual(lesson.activity?.choices(in: .english),
+                       ["Calling has higher EV", "Folding has higher EV", "They are equal"])
         XCTAssertTrue(lesson.revealed)
         XCTAssertEqual(lesson.answeredCorrectly, false)
         let review = try XCTUnwrap(state.courseReview)
@@ -605,9 +612,66 @@ final class ProgressionGoldenFileTests: XCTestCase {
         XCTAssertFalse(review.revealed)
         XCTAssertTrue(review.canSubmit)
         XCTAssertEqual(review.activity?.id, "D8-review-03")
+        XCTAssertEqual(review.firstRight, 1)
+        XCTAssertEqual(review.retryCount, 1)
+        var resumed = review
+        XCTAssertTrue(resumed.apply(.submit))
+        XCTAssertTrue(resumed.apply(.advance))
+        XCTAssertEqual(resumed.retryRight, 1)
+        XCTAssertEqual(resumed.firstRight, 1)
 
         var old = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
         old["schemaVersion"] = 13
+        try freshDirectory()
+        try assertRecovery(for: old, error: .invalidProgress)
+    }
+
+    func testVersionOneFinalQuestionRemainsScoredAfterSchemaFourteenUpgrade() throws {
+        let fixtureBytes = try fixture("schema14-mastery-review-draft")
+        var original = try XCTUnwrap(JSONSerialization.jsonObject(with: fixtureBytes) as? [String: Any])
+        var table = try XCTUnwrap(original["tableCourse"] as? [String: Any])
+        var draft = try XCTUnwrap(table["independentHands"] as? [String: Any])
+        draft["lesson"] = "n3"
+        draft["activityIndex"] = 5
+        draft["firstAnswers"] = [1, 0, 0, 0]
+        draft["selection"] = 0
+        draft["priorResults"] = ["n1", "n2"].map {
+            ["lesson": $0, "firstRight": 5, "questionCount": 5, "retryRight": 0, "retryCount": 0]
+        }
+        table["independentHands"] = draft
+        original["tableCourse"] = table
+        let bytes = try JSONSerialization.data(withJSONObject: original)
+        let s = try store(with: bytes)
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 14 must load") }
+        var progress = try XCTUnwrap(state.progress(in: .independentHands))
+        XCTAssertEqual(progress.contentVersion, 1)
+        XCTAssertEqual(progress.activity?.id, "N3-05")
+        XCTAssertEqual(progress.selection, 0)
+        XCTAssertFalse(progress.revealed)
+        XCTAssertTrue(progress.apply(.submit))
+        XCTAssertEqual(progress.answeredCorrectly, true)
+        XCTAssertTrue(progress.apply(.advance))
+        XCTAssertEqual(progress.completedResults.last?.firstRight, 5)
+        XCTAssertEqual(progress.completedResults.last?.questionCount, 5)
+        XCTAssertEqual(try files(containing: "schema-14-").map { try Data(contentsOf: $0) }, [bytes])
+    }
+
+    func testSchemaFifteenRestoresExactSpacedRetryAndRejectsDowngrade() throws {
+        let bytes = try fixture("schema15-spaced-review-draft")
+        let s = try store(with: bytes)
+        guard case let .loaded(state) = s.load() else { return XCTFail("schema 15 must load") }
+        XCTAssertEqual(try s.exportData(state), bytes)
+        XCTAssertEqual(state.progress(in: .allIns)?.contentVersion, 2)
+        XCTAssertEqual(state.masteryReview?.keys.sorted(), ["d7", "d8"])
+        let review = try XCTUnwrap(state.courseReview)
+        XCTAssertEqual(review.scope, .spacedMastery)
+        XCTAssertEqual(review.phase, .retry)
+        XCTAssertEqual(review.activity?.id, "D8-spaced-01")
+        XCTAssertEqual(review.firstRight, 1)
+        XCTAssertTrue(review.canSubmit)
+
+        var old = try XCTUnwrap(JSONSerialization.jsonObject(with: bytes) as? [String: Any])
+        old["schemaVersion"] = 14
         try freshDirectory()
         try assertRecovery(for: old, error: .invalidProgress)
     }

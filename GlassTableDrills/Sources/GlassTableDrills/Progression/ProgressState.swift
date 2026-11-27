@@ -221,7 +221,7 @@ public struct FirstLessonSnapshot: Codable, Equatable, Sendable {
 /// `pairLesson`. Schema 7 adds `pairLessonFollowUp`. Schema 8 adds `unitA` and schema 9 adds `unitB`.
 /// Any new key or new meaning bumps the schema (ADR 0001).
 public struct ProgressState: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 14
+    public static let currentSchemaVersion = 15
     /// Ring-buffer cap for the answer log. Bounded on purpose — an unbounded history
     /// is the one thing that would make a single-file store the wrong choice.
     public static let answerLogCap = 500
@@ -269,6 +269,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
     public var unitB: UnitBProgress?
     public var courseReview: CourseReviewSession?
     public var tableCourse: [String: TableCourseProgress]?
+    public internal(set) var masteryReview: [String: MasteryReviewAppointment]?
 
     public init(schemaVersion: Int = ProgressState.currentSchemaVersion,
                 concepts: [String: ConceptRecord] = [:],
@@ -328,7 +329,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         case activeRound, activeNodeSession, activeReviewSession, dailySummaries, recentEvidence,
              tableState, recentHands, quickPlaySessions, activeQuickPlaySessionID
         case processedAttemptIDs, basicsLessonCompleted, lessonTrend, openingDismissed, pendingFirstLesson
-        case lastNodeID, pairLesson, pairLessonFollowUp, unitA, unitB, courseReview, tableCourse
+        case lastNodeID, pairLesson, pairLessonFollowUp, unitA, unitB, courseReview, tableCourse, masteryReview
     }
 
     public init(from decoder: Decoder) throws {
@@ -397,6 +398,7 @@ public struct ProgressState: Codable, Equatable, Sendable {
         unitB = try c.decodeIfPresent(UnitBProgress.self, forKey: .unitB)
         courseReview = try c.decodeIfPresent(CourseReviewSession.self, forKey: .courseReview)
         tableCourse = try c.decodeIfPresent([String: TableCourseProgress].self, forKey: .tableCourse)
+        masteryReview = try c.decodeIfPresent([String: MasteryReviewAppointment].self, forKey: .masteryReview)
     }
 
     public func record(for concept: Concept) -> ConceptRecord {

@@ -120,13 +120,60 @@ final class ExpandedCourseFlowTests: XCTestCase {
         XCTAssertEqual(element("retry-score", app).label, "1 of 1 correct")
         tap("next", app)
         finish(.d8, in: app)
-        tap("review", app)
-        XCTAssertTrue(app.staticTexts["course-review-scope"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.staticTexts["course-review-scope"].label, "All-ins and side pots")
+        XCTAssertTrue(element("review-upcoming", app).exists)
+        XCTAssertFalse(button("spaced-review", app).exists)
+        XCTAssertEqual(button("done", app).label, "Try the guided hand")
+        tap("done", app)
+        XCTAssertTrue(element("activity-D-table-01", app).waitForExistence(timeout: 10))
+        tap("close", app)
+        openCourseReviewHub(app)
+        XCTAssertTrue(app.staticTexts["course-review-spaced-upcoming"].exists)
+        XCTAssertFalse(app.buttons["course-review-spaced-mastery"].exists)
+
+        app.terminate()
+        app.launchEnvironment["GT_TEST_COURSE_DAY_OFFSET"] = "1"
+        app.launch()
+        openCourseReviewHub(app)
+        let fresh = app.buttons["course-review-spaced-mastery"]
+        XCTAssertTrue(fresh.waitForExistence(timeout: 10) && fresh.isHittable)
+        fresh.tap()
+        XCTAssertEqual(app.staticTexts["course-review-scope"].label, "Review with fresh questions")
         XCTAssertEqual(app.staticTexts["course-review-step"].label, "Question 1 of 2")
-        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(
-            format: "identifier BEGINSWITH %@", "course-review-activity-D"
-        )).firstMatch.exists)
+        let question = app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier MATCHES %@", "course-review-activity-D[78]-spaced-01"
+        )).firstMatch
+        XCTAssertTrue(question.exists)
+        let firstID = question.identifier
+        app.buttons["course-review-close"].tap()
+        app.terminate()
+        app.launch()
+        openCourseReviewHub(app)
+        app.buttons["course-review-resume"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)[firstID].waitForExistence(timeout: 10))
+
+    }
+
+    func testOutOfOrderAllInsDoneOpensChipLessonThroughLearn() {
+        let app = launch(.d8, language: .korean)
+        // Seed the second all-in lesson only. Use Learn to open the draft without its prerequisite.
+        tap("close", app)
+        let row = app.buttons["learn-table-allIns"]
+        let path = app.scrollViews.firstMatch
+        for _ in 0..<12 where !row.isHittable { path.swipeUp() }
+        XCTAssertTrue(row.exists && row.isHittable)
+        row.tap()
+        finish(.d8, in: app)
+        tap("done", app)
+        XCTAssertTrue(element("activity-D1-example", app).waitForExistence(timeout: 10))
+    }
+
+    private func openCourseReviewHub(_ app: XCUIApplication) {
+        let row = app.buttons["learn-course-review"]
+        let path = app.scrollViews.firstMatch
+        for _ in 0..<10 where !row.isHittable { path.swipeUp() }
+        XCTAssertTrue(row.exists && row.isHittable)
+        row.tap()
+        XCTAssertTrue(app.scrollViews["course-review-hub"].waitForExistence(timeout: 10))
     }
 
     func testIndependentHandKeepsKoreanAX5PriceEvidenceAndChoicesReachable() throws {
@@ -151,6 +198,25 @@ final class ExpandedCourseFlowTests: XCTestCase {
         row.tap()
         assertActivity(lesson[1], in: app)
         XCTAssertTrue(element("feedback", app).exists)
+    }
+
+    func testKoreanCapstoneScoresAnUnseenHandAfterUngradedSynthesis() {
+        let app = launch(.n3, language: .korean)
+        for activity in TableCourseUnit.independentHands.activities(for: .n3) {
+            assertActivity(activity, in: app)
+            if activity.isExample {
+                XCTAssertFalse(button("submit", app).exists)
+                tap("next", app)
+            } else {
+                if activity.id == "N3-v2-05" {
+                    XCTAssertEqual(element("activity-N3-v2-05", app).label, "처음 보는 핸드의 턴 판단")
+                    XCTAssertFalse(element("feedback", app).exists)
+                }
+                answer(activity, in: app)
+            }
+        }
+        XCTAssertEqual(element("first-score", app).label, "5개 중 5개 정답")
+        XCTAssertFalse(element("retry-score", app).exists)
     }
 
     func testOptionalWeightedCombosResumesDraftAndRetriesTheSameItem() throws {

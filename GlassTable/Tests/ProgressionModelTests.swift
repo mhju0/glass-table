@@ -215,6 +215,50 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(ProgressionModel(store: store).state.unitB?.lesson, .twoPair)
     }
 
+    func testSchemaFourteenReviewCorrectionResumesThroughTheAppModel() throws {
+        var progress = TableCourseProgress(unit: .allIns)
+        while progress.phase != .finished {
+            if let choice = progress.activity?.correctChoice {
+                XCTAssertTrue(progress.apply(.select(choice)))
+                XCTAssertTrue(progress.apply(.submit))
+            }
+            XCTAssertTrue(progress.apply(.advance))
+        }
+        var review = try XCTUnwrap(CourseReviewSession(scope: .tableUnit(.allIns),
+                                                      eligibleSkills: [.d7, .d8], seed: 91))
+        let first = try XCTUnwrap(review.activity)
+        let right = try XCTUnwrap(first.correctChoice)
+        XCTAssertTrue(review.apply(.select((right + 1) % first.choices(in: .english).count)))
+        XCTAssertTrue(review.apply(.submit))
+        XCTAssertTrue(review.apply(.advance))
+        XCTAssertTrue(review.apply(.select(try XCTUnwrap(review.activity?.correctChoice))))
+        XCTAssertTrue(review.apply(.submit))
+        XCTAssertTrue(review.apply(.advance))
+        XCTAssertTrue(review.apply(.select(right)))
+        let state = ProgressState(courseReview: review, tableCourse: ["allIns": progress])
+        var old = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        var units = try XCTUnwrap(old["tableCourse"] as? [String: [String: Any]])
+        units["allIns"]?["contentVersion"] = 1
+        old["schemaVersion"] = 14
+        old["tableCourse"] = units
+        let oldBytes = try JSONSerialization.data(withJSONObject: old)
+        try oldBytes.write(to: store.url)
+
+        let app = ProgressionModel(store: store)
+        XCTAssertNil(app.unreadable)
+        XCTAssertFalse(app.beginCourseReview(.spacedMastery, expectedEpoch: app.epoch))
+        XCTAssertTrue(app.beginCourseReview(.tableUnit(.allIns), expectedEpoch: app.epoch))
+        let restored = try XCTUnwrap(app.state.courseReview)
+        XCTAssertEqual(restored.activity, first)
+        XCTAssertEqual(restored.selection, right)
+        XCTAssertEqual(restored.firstRight, 1)
+        XCTAssertTrue(app.applyCourseReview(.submit, from: restored, expectedEpoch: app.epoch))
+        let reloaded = ProgressionModel(store: store)
+        XCTAssertEqual(reloaded.state.courseReview?.answeredCorrectly, true)
+        XCTAssertEqual(reloaded.state.courseReview?.firstRight, 1)
+        XCTAssertEqual(reloaded.state.courseReview?.retryRight, 1)
+    }
+
     func testOptionalReviewCommitsOnlyItsSnapshotAndPreservesDueWork() throws {
         let setup = ProgressionModel(store: store)
         XCTAssertFalse(setup.beginCourseReview(.all, expectedEpoch: setup.epoch, seed: 42))

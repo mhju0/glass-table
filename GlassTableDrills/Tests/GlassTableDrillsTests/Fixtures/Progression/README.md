@@ -86,3 +86,5 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
 - `schema14-mastery-review-draft.json` is an encoder export with D7 and D8
   completed, N1 paused on a wrong first-answer reveal, and a mixed D7/D8 review
   paused on the exact correction draft.
+- `schema15-spaced-review-draft.json` is an encoder export of completed version 2 D7/D8
+  and a mixed spaced review with a selected but unsubmitted exact retry.

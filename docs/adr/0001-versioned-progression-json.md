@@ -43,7 +43,7 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (14). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (15). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
@@ -144,3 +144,18 @@ variants keep their order and meaning. A schema 13 upgrade copies the original
 bytes and introduces no synthetic lesson completion. The schema 14 golden
 fixture covers a saved independent-hand reveal and a mixed-review correction
 draft. Appending future skills must preserve old seeded snapshots.
+
+## Schema 15 · Reserved next-day review and versioned mastery lessons
+
+Schema 15 records a due day and completion flag for each mastered D7–N3 lesson.
+Record completion with the lesson progress write after its exact corrections.
+On upgrade, schedule already completed schema 14 lessons for the next local
+day, preserving the original bytes first. Old progress has no completion
+timestamp. A paused lesson keeps version 1 activities and scoring for its
+entire unit. New enrollments in the three mastery units use version 2.
+
+Existing review snapshots resolve through the version 1 on-demand bank,
+including its original order and seeding. The new spaced scope uses a
+reserved question per eligible lesson and freezes the enrolled objectives.
+After Done, mark the reviewed lessons complete and clear the snapshot in
+the same atomic save. A clock change cannot invalidate a frozen review.

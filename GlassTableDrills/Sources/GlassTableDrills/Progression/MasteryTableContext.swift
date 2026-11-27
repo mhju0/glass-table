@@ -1,4 +1,5 @@
 // Copyright (c) 2026 Michael Ju (github.com/mhju0)
+import GlassTableEngine
 
 extension MasteryCourseContent {
     static let multiway = [
@@ -95,7 +96,7 @@ extension MasteryCourseContent {
         riverPlan("M3-review-03", "KcTd", "Ks7c2s9h5h", weaker: 3, stronger: 3),
     ]
 
-    private static func riverPlan(_ id: String, _ hero: String, _ board: String, weaker: Int,
+    static func riverPlan(_ id: String, _ hero: String, _ board: String, weaker: Int,
                                   stronger: Int) -> TableCourseActivity {
         let bet = 12
         return scenario(id, Copy("리버에서 벳할까요, 체크할까요?", "Bet or check on the river?"),
@@ -129,7 +130,7 @@ extension MasteryCourseContent {
         formatDecision("M4-review-03", bubble: false, alternate: true),
     ]
 
-    private static func blindDepth(_ id: String, stack: Int, oldBlind: Int, newBlind: Int,
+    static func blindDepth(_ id: String, stack: Int, oldBlind: Int, newBlind: Int,
                                    example: Bool = false) -> TableCourseActivity {
         let before = stack / oldBlind, after = stack / newBlind
         return scenario(id, Copy("블라인드가 오르면?", "When the blinds go up"),
@@ -186,9 +187,9 @@ extension MasteryCourseContent {
         etiquette("M5-review-03", .discuss, alternate: true),
     ]
 
-    private enum ConductTask { case turn, declare, discuss, unclear }
+    enum ConductTask { case turn, declare, discuss, unclear }
 
-    private static func etiquette(_ id: String, _ task: ConductTask, example: Bool = false,
+    static func etiquette(_ id: String, _ task: ConductTask, example: Bool = false,
                                   alternate: Bool = false) -> TableCourseActivity {
         let title = Copy("딜러와 다른 플레이어에게 명확하게", "Make your actions clear at the table")
         switch task {
@@ -235,5 +236,45 @@ extension MasteryCourseContent {
                  Copy("행동하기 전에 딜러에게 금액을 확인해요. 테이블의 상황은 확인할 수 있고, 어떤 결정을 할지는 내가 판단해요.",
                       "Clarify the amount with the dealer before acting. You can ask about the table state and make the decision yourself."))
         }
+    }
+}
+
+extension MasteryCourseContent {
+    static let revisedConduct = Array(conduct.prefix(3)) + [
+        scenario("M5-v2-03", Copy("옆자리의 조언", "Advice from the next seat"),
+                 Copy("토너먼트 리버에서 내 차례예요. 이미 폴드한 옆 사람이 ‘상대는 블러프야’라고 말하려 해요. 어떻게 할까요?",
+                      "It’s your turn on the river in a tournament. A player who already folded is about to advise you that the bettor is bluffing. What should you do?"),
+                 [Copy("작게 말해 달라고 해요", "Ask them to whisper their advice"),
+                  Copy("말을 멈춰 달라고 하고 내가 판단해요", "Ask them to stop and decide on your own"),
+                  Copy("그 사람이 대신 결정하게 해요", "Let them make the decision")], answer: 1,
+                 Copy("폴드한 사람도 진행 중인 핸드에 조언할 수 없어요. 딜러에게 베팅 금액은 확인할 수 있고 결정은 내가 해요.",
+                      "The rule covers players who have folded. You can ask the dealer for the bet amount and make the decision yourself.")),
+        conduct[4],
+    ]
+
+    static func multiwayShowdown(_ id: String, _ hero: String, _ first: String, _ second: String,
+                                  _ board: String) -> TableCourseActivity {
+        let shared = cards(board)
+        let players = [hero, first, second].map(cards)
+        precondition(Set(shared + players.flatMap { $0 }).count == 11)
+        let fives = players.map { bestFiveCards($0 + shared) }
+        let winner = fives.indices.first { index in
+            fives.indices.filter { $0 != index }.allSatisfy {
+                compareHands(hero: fives[index], villain: fives[$0]) == 0
+            }
+        }
+        guard let winner else { preconditionFailure("Authored showdown needs one outright winner") }
+        let names = [Copy("나", "You"), same("A"), same("B")]
+        let shownHands = zip(names.dropFirst(), players.dropFirst()).map { name, hand in
+            Row(name, same(cardNames(hand)))
+        }
+        let comparisons = zip(names, fives).map { name, five in Row(name, same(cardNames(five))) }
+        return scenario(id, Copy("세 사람의 쇼다운", "Three hands at showdown"),
+                        Copy("세 사람 모두 같은 팟을 받을 자격이 있어요. 각자 가장 강한 다섯 장을 비교하면 누가 이길까요?",
+                             "All three players are eligible for one pot. Compare their strongest five-card hands. Who wins?"),
+                        names, answer: winner,
+                        Copy("세 사람의 베스트 파이브를 아래에 모았어요. 그중 가장 강한 패가 팟을 받아요.",
+                             "The reveal shows all three best fives. The strongest takes the pot."),
+                        evidence: .init(cards: players[0], board: shared, rows: shownHands), reveal: comparisons)
     }
 }

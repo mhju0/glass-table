@@ -161,7 +161,14 @@ struct TableCourseView: View {
                     showCoach = true
                 }
             }
-            if finished && [.turns, .possibleHands, .capstone, .independentHands].contains(unit) {
+            if unit.usesSpacedReview {
+                masteryReviewLink
+                if finished && unit == .independentHands {
+                    link(language.text("전체 복습", "Review everything so far"), id: "table-course-review") {
+                        onReview(.all)
+                    }
+                }
+            } else if finished && [.turns, .possibleHands, .capstone].contains(unit) {
                 link(language.text("전체 복습", "Review everything so far"), id: "table-course-review") {
                     onReview(.all)
                 }
@@ -175,7 +182,7 @@ struct TableCourseView: View {
                 }
                 link(reviewLabel, id: "table-course-review") { onReview(scope) }
             }
-            if finished && progress.completedResults.count > 1 {
+            if finished && !unit.usesSpacedReview && progress.completedResults.count > 1 {
                 Text(language.text("앞 레슨", "Earlier lessons")).font(GT.title(19))
                     .foregroundStyle(GT.ink).accessibilityAddTraits(.isHeader)
                 ForEach(progress.completedResults.dropLast(), id: \.lesson) { result in
@@ -186,6 +193,18 @@ struct TableCourseView: View {
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder private var masteryReviewLink: some View {
+        if !model.state.masteryReviewDue(on: model.courseReviewDay).isEmpty
+            || model.state.courseReview?.scope == .spacedMastery {
+            link(CourseReviewScope.spacedMastery.title(in: language), id: "table-course-spaced-review") {
+                onReview(.spacedMastery)
+            }
+        } else if model.state.hasUpcomingMasteryReview {
+            prose(language.text("새 문제 복습은 레슨 다음 날 열려요.", "Fresh review opens the day after the lesson."))
+                .accessibilityIdentifier("table-course-review-upcoming")
         }
     }
 
@@ -220,7 +239,7 @@ struct TableCourseView: View {
             let next: TableCourseUnit? = switch unit {
             case .turns: .chips
             case .chips: .allIns
-            case .allIns: .milestone
+            case .allIns: model.state.progress(in: .chips)?.phase == .finished ? .milestone : .chips
             case .milestone: .startingHands
             case .startingHands: .possibleHands
             case .possibleHands: .winningCards
@@ -231,7 +250,8 @@ struct TableCourseView: View {
             case .independentHands, .combinations, .expectedValue, .boardPatterns: nil
             }
             let title = switch unit {
-            case .allIns: language.text("안내 핸드 연습", "Try the guided hand")
+            case .allIns: next == .milestone ? language.text("안내 핸드 연습", "Try the guided hand")
+                : language.text("칩 세기 레슨 열기", "Open Count chips")
             case .independentHands: language.text("자유 플레이", "Free Play")
             default: next == nil ? language.text("완료", "Done") : language.text("계속", "Continue")
             }
