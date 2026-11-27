@@ -226,9 +226,12 @@ final class FreeTableMotionFlowTests: XCTestCase {
                 XCTAssertEqual(scroll.frame.intersection(app.frame).intersection(raise.frame).height,
                                raise.frame.height, accuracy: 0.5, "The full action label is visible")
                 capture(app, "AX-\(language)-\(seats)-dealt-action-controls-full")
-                scroll.swipeDown()
                 let math = app.buttons["free-table-help"]
-                XCTAssertTrue(math.isHittable)
+                for _ in 0..<6 {
+                    scroll.swipeDown()
+                    if math.isHittable { break }
+                }
+                XCTAssertTrue(math.isHittable, "Decision help must be reachable for \(language), \(seats) seats")
                 math.tap()
                 XCTAssertTrue(app.otherElements["free-math-hand"].waitForExistence(timeout: 5))
                 let close = app.buttons["free-table-back-close"]
