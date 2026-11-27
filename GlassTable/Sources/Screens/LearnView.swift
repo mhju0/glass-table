@@ -52,6 +52,14 @@ struct LearnView: View {
                 if highlightsUnitA { unitARecommendation }
                 if highlightsUnitB { unitBRecommendation }
                 if let unit = recommendedTableCourse { tableCourseRow(unit, primary: true) }
+                if coreComplete { coreCompleteLine }
+                if journeyComplete {
+                    Label(language.text("추천 과정 완료", "Recommended course complete"), systemImage: "checkmark.circle.fill")
+                        .font(GT.semibold(16))
+                        .foregroundStyle(GT.onFelt)
+                        .padding(.vertical, GT.Space.related)
+                        .accessibilityIdentifier("learn-journey-complete")
+                }
                 if !canRecommendCourse { recommendationForMarkedLesson }
                 if !highlightsUnitA { unitARecommendation }
                 if !highlightsUnitB { unitBRecommendation }
@@ -61,7 +69,6 @@ struct LearnView: View {
                 ForEach(tableCourseUnits.filter { $0 != recommendedTableCourse }) { unit in
                     tableCourseRow(unit, primary: false)
                 }
-                if coreComplete { coreCompleteLine }
                 sectionHeader(language.text("기존 연습", "Other practice"), count: nil)
                 if canRecommendCourse { recommendationForMarkedLesson }
                 if marked == nil { allDoneLine }
@@ -125,6 +132,10 @@ struct LearnView: View {
             && TableCourseUnit.corePath.allSatisfy { model.state.progress(in: $0)?.phase == .finished }
     }
 
+    private var journeyComplete: Bool {
+        coreComplete && TableCourseUnit.completionPractice.allSatisfy { model.state.progress(in: $0)?.phase == .finished }
+    }
+
     private var coreCompleteLine: some View {
         Label(language.text("기본 과정 완료", "Core lessons complete"), systemImage: "checkmark.circle.fill")
             .font(GT.semibold(16))
@@ -134,7 +145,7 @@ struct LearnView: View {
     }
 
     private var tableCourseUnits: [TableCourseUnit] {
-        var units = TableCourseUnit.corePath
+        var units = TableCourseUnit.corePath + TableCourseUnit.completionPractice
         if model.state.progress(in: .chips)?.phase == .finished {
             units.insert(.milestone, at: 3)
         }
@@ -159,7 +170,15 @@ struct LearnView: View {
             detail = language.text("레슨 완료", "Lessons complete")
             action = language.text("결과 보기", "View results")
         } else {
-            detail = (progress?.lesson ?? unit.lessons[0]).title(in: language)
+            let title = (progress?.lesson ?? unit.lessons[0]).title(in: language)
+            if TableCourseUnit.completionPractice.contains(unit) {
+                let count = progress?.completedLessons ?? 0
+                let total = unit.lessons.count
+                detail = language.text("\(title) · \(total)개 중 \(count)개 완료",
+                                       "\(title) · \(count) of \(total) complete")
+            } else {
+                detail = title
+            }
             action = progress != nil ? language.text("이어서", "Continue")
                 : primary ? language.text("시작", "Start") : language.text("열기", "Open")
         }
@@ -325,8 +344,8 @@ struct LearnView: View {
             action = language.text("열기", "Open")
         }
         return recommendation(title: language.text("레슨 복습", "Review lessons"),
-                              detail: language.text("레슨, 단원 또는 지금까지 배운 내용을 복습해요.",
-                                                    "Review a lesson, a unit, or everything studied."),
+                              detail: language.text("앞 과정의 레슨과 단원, 그리고 열려 있는 새 문제를 복습해요.",
+                                                    "Review earlier lessons and units or try available fresh questions."),
                               status: nil, action: action, id: "learn-course-review",
                               emphasized: false, perform: onOpenCourseReview)
     }

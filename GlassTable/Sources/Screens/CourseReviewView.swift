@@ -57,6 +57,7 @@ struct CourseReviewView: View {
     private var hub: some View {
         let skills = CourseReviewSession.eligibleSkills(in: model.state)
         let fresh = model.state.masteryReviewDue(on: reviewDay ?? model.courseReviewDay)
+        let missed = CourseReviewSession.eligibleSkills(in: model.state, scope: .journeyPractice)
         return ScrollView {
             VStack(alignment: .leading, spacing: GT.Space.section) {
                 heading(language.text("복습", "Review"), id: "course-review-title")
@@ -79,12 +80,21 @@ struct CourseReviewView: View {
                                             "Fresh review opens the day after the lesson."))
                             .accessibilityIdentifier("course-review-spaced-upcoming")
                     }
+                    if !missed.isEmpty {
+                        destination(scopeTitle(.journeyPractice),
+                                    detail: language.text("틀린 주제마다 다른 핸드 두 개", "Two different hands per missed topic"),
+                                    id: "course-review-journey-practice", prominent: fresh.isEmpty) {
+                            open(.journeyPractice)
+                        }
+                    }
                     if !skills.isEmpty {
                         destination(scopeTitle(.all), detail: studiedCount(skills.count),
-                                    id: "course-review-all", prominent: fresh.isEmpty) { open(.all) }
+                                    id: "course-review-all", prominent: fresh.isEmpty && missed.isEmpty) { open(.all) }
+                        prose(language.text("기존 레슨의 복습 항목을 다뤄요. 다음 날 열리는 복습과 새 핸드 연습 복습은 각각 따로 열려요.",
+                                            "Covers earlier lesson-bank topics. Next-day review and practice on missed topics open separately."))
                         unitOptions
                         lessonOptions
-                    } else if fresh.isEmpty && !model.state.hasUpcomingMasteryReview {
+                    } else if fresh.isEmpty && missed.isEmpty && !model.state.hasUpcomingMasteryReview {
                         emptyState
                     }
                 }
@@ -537,10 +547,7 @@ struct CourseReviewView: View {
     }
 
     private func scopeTitle(_ scope: CourseReviewScope) -> String {
-        if scope == .all && textSize.isAccessibilitySize {
-            return language.text("전체 복습", "Review all")
-        }
-        return scope.title(in: language)
+        scope.title(in: language)
     }
 
     private func studiedCount(_ count: Int) -> String {
@@ -549,6 +556,9 @@ struct CourseReviewView: View {
 
     private func coverageLabel(_ session: CourseReviewSession) -> String {
         let count = "\(session.coveredCount)/\(session.itemCount)"
+        if session.scope == .journeyPractice {
+            return language.text("복습한 핸드 \(count)", "Hands practised \(count)")
+        }
         if case .lesson = session.scope {
             return language.text("답한 문제 \(count)", "Answered \(count)")
         }

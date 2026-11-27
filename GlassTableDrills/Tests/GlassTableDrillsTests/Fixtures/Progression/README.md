@@ -88,3 +88,4 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
   paused on the exact correction draft.
 - `schema15-spaced-review-draft.json` is an encoder export of completed version 2 D7/D8
   and a mixed spaced review with a selected but unsubmitted exact retry.
+- `schema16-journey-review-draft.json` is an encoder export with R1 completed, its range correction scored, R2 open, and a separate unsubmitted reserve-hand review draft.

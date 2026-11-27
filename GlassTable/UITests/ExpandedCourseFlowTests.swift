@@ -219,6 +219,72 @@ final class ExpandedCourseFlowTests: XCTestCase {
         XCTAssertFalse(element("retry-score", app).exists)
     }
 
+    func testCoreCompletionStaysEarnedAndStudyContinuesThroughExactAndFreshReview() throws {
+        let app = launch(nil, coreBefore: .readHands)
+        let core = app.descendants(matching: .any)["learn-course-complete"]
+        XCTAssertTrue(core.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.descendants(matching: .any)["learn-journey-complete"].exists)
+        let row = app.buttons["learn-table-readHands"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
+        XCTAssertTrue(row.label.contains("Read hands street by street"))
+        attach(app, "journey-recommendation-en")
+        row.tap()
+        let activities = TableCourseUnit.readHands.activities(for: .r1)
+        for activity in activities {
+            assertActivity(activity, in: app)
+            if activity.isExample {
+                tap("next", app)
+            } else if activity.id == "R1-02" {
+                let correct = try XCTUnwrap(activity.correctChoice)
+                tap("choice-\((correct + 1) % activity.optionCount)", app)
+                tap("submit", app)
+                tap("next", app)
+            } else {
+                answer(activity, in: app)
+            }
+        }
+        let miss = try XCTUnwrap(activities.first { $0.id == "R1-02" })
+        XCTAssertTrue(element("retry", app).exists)
+        assertActivity(miss, in: app)
+        button("close", app).tap()
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(core.waitForExistence(timeout: 10))
+        XCTAssertTrue(row.isHittable)
+        row.tap()
+        XCTAssertTrue(element("retry", app).exists)
+        assertActivity(miss, in: app)
+        XCTAssertFalse(button("submit", app).isEnabled)
+        answer(miss, in: app)
+        XCTAssertEqual(element("first-score", app).label, "5 of 6 correct")
+        XCTAssertEqual(element("retry-score", app).label, "1 of 1 correct")
+        XCTAssertTrue(button("next", app).isHittable)
+        tap("weak-review", app)
+        XCTAssertTrue(app.staticTexts["course-review-scope"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.staticTexts["course-review-scope"].label, "Review missed topics on new hands")
+        XCTAssertEqual(app.staticTexts["course-review-coverage"].label, "Hands practised 0/2")
+        XCTAssertEqual(app.staticTexts["course-review-step"].label, "Question 1 of 2")
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "course-review-activity-JR-range-"
+        )).firstMatch.exists)
+        attach(app, "journey-fresh-review-en")
+    }
+
+    func testKoreanFreshFinalCaseKeepsCoreCreditAndOpensNewCompletion() {
+        let app = launch(.s11, language: .korean, coreBefore: .decideHands)
+        let first = element("activity-S11-01", app)
+        XCTAssertTrue(first.waitForExistence(timeout: 10))
+        XCTAssertFalse(element("activity-S11-example", app).exists)
+        finish(.s11, in: app)
+        XCTAssertEqual(element("first-score", app).label, "6개 중 6개 정답")
+        XCTAssertFalse(element("retry-score", app).exists)
+        XCTAssertTrue(button("free-play", app).exists)
+        attach(app, "journey-final-result-ko")
+        tap("done", app)
+        XCTAssertTrue(app.descendants(matching: .any)["learn-journey-complete"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["learn-course-complete"].exists)
+    }
+
     func testOptionalWeightedCombosResumesDraftAndRetriesTheSameItem() throws {
         let app = launch(.j4, language: .korean, accessible: true)
         attach(app, "combos-weights-ko-dark-ax5")

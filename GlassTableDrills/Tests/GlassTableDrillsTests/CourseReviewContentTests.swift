@@ -5,9 +5,9 @@ import XCTest
 
 final class CourseReviewContentTests: XCTestCase {
     func testCompleteReviewRosterHasStableCoverage() {
-        XCTAssertEqual(CourseReviewSkill.allCases.count, 85)
+        XCTAssertEqual(CourseReviewSkill.allCases.count, 89)
         let variants = CourseReviewSkill.allCases.map(CourseReviewContent.variantCount(for:))
-        XCTAssertEqual(variants.reduce(0, +), 249)
+        XCTAssertEqual(variants.reduce(0, +), 257)
     }
 
     func testEveryReviewObjectiveHasDistinctLocalizedQuestions() throws {
@@ -20,7 +20,10 @@ final class CourseReviewContentTests: XCTestCase {
             XCTAssertNil(CourseReviewContent.activity(for: skill, variant: count))
             for item in try items(skill) {
                 XCTAssertTrue(ids.insert(item.id).inserted, item.id)
-                if skill.tableLesson == nil {
+                if CourseReviewSkill.journeySkills.contains(skill) {
+                    XCTAssertEqual(count, 2, skill.rawValue)
+                    XCTAssertNotNil(item.tableEvidence)
+                } else if skill.tableLesson == nil {
                     XCTAssertTrue(deals.insert(signature([item.learner, item.board, item.opponent])).inserted, item.id)
                 } else {
                     XCTAssertEqual(count, 3, skill.rawValue)
@@ -82,7 +85,7 @@ final class CourseReviewContentTests: XCTestCase {
         XCTAssertEqual(pairDeals.count, 35)
         taught.formUnion(pairDeals)
 
-        for item in try CourseReviewSkill.allCases.filter({ $0.tableLesson == nil }).flatMap(items) {
+        for item in try CourseReviewSkill.allCases.filter({ $0.tableLesson == nil && !CourseReviewSkill.journeySkills.contains($0) }).flatMap(items) {
             XCTAssertFalse(taught.contains(signature([item.learner, item.board, item.opponent])), item.id)
         }
     }

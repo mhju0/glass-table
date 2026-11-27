@@ -102,13 +102,22 @@ struct TableCourseView: View {
                 Text(language.text("정정 \(index)/\(total)", "Correction \(index) of \(total)"))
                     .accessibilityIdentifier("table-course-retry")
             } else {
-                Text(progress.lesson.title(in: language))
+                Text(caseTitle(progress))
                     .accessibilityIdentifier("table-course-lesson")
             }
         }
         .font(GT.semibold(14))
         .foregroundStyle(GT.inkSecondary)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func caseTitle(_ progress: TableCourseProgress) -> String {
+        let title = progress.lesson.title(in: language)
+        guard TableCourseUnit.completionPractice.contains(unit),
+              let index = unit.lessons.firstIndex(of: progress.lesson) else { return title }
+        let number = index + 1
+        return language.text("핸드 \(number)/\(unit.lessons.count) · \(title)",
+                             "Hand \(number) of \(unit.lessons.count) · \(title)")
     }
 
     private func question(_ activity: TableCourseActivity, progress: TableCourseProgress,
@@ -161,15 +170,25 @@ struct TableCourseView: View {
                     showCoach = true
                 }
             }
-            if unit.usesSpacedReview {
+            if TableCourseUnit.completionPractice.contains(unit) {
+                if !CourseReviewSession.eligibleSkills(in: model.state, scope: .journeyPractice).isEmpty {
+                    link(CourseReviewScope.journeyPractice.title(in: language), id: "table-course-weak-review") {
+                        onReview(.journeyPractice)
+                    }
+                }
+                if finished && unit == .decideHands {
+                    link(language.text("자유 플레이", "Free Play"), id: "table-course-free-play", action: onFreePlay)
+                }
+            } else if unit.usesSpacedReview {
                 masteryReviewLink
                 if finished && unit == .independentHands {
-                    link(language.text("전체 복습", "Review everything so far"), id: "table-course-review") {
+                    link(language.text("자유 플레이", "Free Play"), id: "table-course-free-play", action: onFreePlay)
+                    link(language.text("앞 과정의 복습 항목", "Review earlier course topics"), id: "table-course-review") {
                         onReview(.all)
                     }
                 }
             } else if finished && [.turns, .possibleHands, .capstone].contains(unit) {
-                link(language.text("전체 복습", "Review everything so far"), id: "table-course-review") {
+                link(language.text("앞 과정의 복습 항목", "Review earlier course topics"), id: "table-course-review") {
                     onReview(.all)
                 }
                 link(language.text("단원 복습", "Review this unit"), id: "table-course-review-unit") {
@@ -182,7 +201,8 @@ struct TableCourseView: View {
                 }
                 link(reviewLabel, id: "table-course-review") { onReview(scope) }
             }
-            if finished && !unit.usesSpacedReview && progress.completedResults.count > 1 {
+            if finished && !unit.usesSpacedReview && !TableCourseUnit.completionPractice.contains(unit)
+                && progress.completedResults.count > 1 {
                 Text(language.text("앞 레슨", "Earlier lessons")).font(GT.title(19))
                     .foregroundStyle(GT.ink).accessibilityAddTraits(.isHeader)
                 ForEach(progress.completedResults.dropLast(), id: \.lesson) { result in
@@ -247,17 +267,18 @@ struct TableCourseView: View {
             case .priceChance: .tableContexts
             case .tableContexts: .capstone
             case .capstone: .independentHands
-            case .independentHands, .combinations, .expectedValue, .boardPatterns: nil
+            case .independentHands: .readHands
+            case .readHands: .decideHands
+            case .decideHands, .combinations, .expectedValue, .boardPatterns: nil
             }
             let title = switch unit {
             case .allIns: next == .milestone ? language.text("안내 핸드 연습", "Try the guided hand")
                 : language.text("칩 세기 레슨 열기", "Open Count chips")
-            case .independentHands: language.text("자유 플레이", "Free Play")
+            case .independentHands: language.text("핸드 읽기 연습", "Read hands street by street")
             default: next == nil ? language.text("완료", "Done") : language.text("계속", "Continue")
             }
             PrimaryCTAButton(title: title) {
-                if unit == .independentHands { onFreePlay() }
-                else if let next { onContinue(next) }
+                if let next { onContinue(next) }
                 else { dismiss() }
             }
             .accessibilityIdentifier("table-course-done")

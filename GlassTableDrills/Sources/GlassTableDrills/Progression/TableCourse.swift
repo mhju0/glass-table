@@ -16,10 +16,14 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     case allIns
     case tableContexts
     case independentHands
+    case readHands
+    case decideHands
 
     public var usesSpacedReview: Bool {
         self == .allIns || self == .tableContexts || self == .independentHands
     }
+
+    public static let completionPractice: [Self] = [.readHands, .decideHands]
 
     public static let electives: [Self] = [.combinations, .expectedValue, .boardPatterns]
 
@@ -35,6 +39,7 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
         case .possibleHands, .winningCards, .priceChance, .capstone, .combinations: 12
         case .expectedValue, .boardPatterns: 13
         case .allIns, .tableContexts, .independentHands: 14
+        case .readHands, .decideHands: 16
         }
     }
 
@@ -46,6 +51,8 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
 
     public func title(in language: LearningLanguage) -> String {
         switch self {
+        case .readHands: language.text("핸드 읽기 연습", "Read hands street by street")
+        case .decideHands: language.text("핸드 판단과 최종 평가", "Make decisions and finish the course")
         case .allIns: language.text("올인과 팟 나누기", "All-ins and side pots")
         case .tableContexts: language.text("테이블 상황에 맞춰 판단하기", "Adjust to the table")
         case .independentHands: language.text("새 핸드를 혼자 분석하기", "Analyze new hands on your own")
@@ -70,6 +77,7 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     fileprivate func activities(for lesson: TableCourseLesson, version: Int) -> [TableCourseActivity] {
         guard lesson.unit == self else { return [] }
         switch self {
+        case .readHands, .decideHands: return JourneyCaseContent.activities(for: lesson)
         case .allIns, .tableContexts, .independentHands: return MasteryCourseContent.activities(for: lesson, revised: version == 2)
         case .turns: return Self.turnsActivities[lesson, default: []]
         case .chips: return Self.chipActivities[lesson, default: []]
@@ -127,6 +135,8 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
     case d7, d8
     case m1, m2, m3, m4, m5
     case n1, n2, n3
+    case r1, r2, r3, r4, r5, r6, r7, r8, r9, r10
+    case s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11
 
     public var id: String { rawValue }
 
@@ -137,6 +147,8 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
         case .d7, .d8: .allIns
         case .m1, .m2, .m3, .m4, .m5: .tableContexts
         case .n1, .n2, .n3: .independentHands
+        case .r1, .r2, .r3, .r4, .r5, .r6, .r7, .r8, .r9, .r10: .readHands
+        case .s1, .s2, .s3, .s4, .s5, .s6, .s7, .s8, .s9, .s10, .s11: .decideHands
         case .tableMilestone: .milestone
         case .e1, .e2, .e3, .e4, .e5, .e6, .e7: .startingHands
         case .f1, .f2, .f3, .f4, .f5, .f6: .possibleHands
@@ -165,6 +177,9 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
         case .d3: language.text("차이만큼 더 내기", "Add the difference")
         case .d4: language.text("폴드해도 팟에 남는 칩", "Folded chips stay in the pot")
         case .d5: language.text("콜에 필요한 칩", "Find the call amount")
+        case .r1, .r2, .r3, .r4, .r5, .r6, .r7, .r8, .r9, .r10,
+             .s1, .s2, .s3, .s4, .s5, .s6, .s7, .s8, .s9, .s10, .s11:
+            JourneyCaseContent.title(for: self, language: language)
         case .d7: language.text("최소 레이즈보다 작은 올인", "Short all-ins and reopening")
         case .d8: language.text("메인 팟과 사이드 팟", "Main and side pots")
         case .m1: language.text("상대와 맞붙을 수 있는 칩", "Effective stack and SPR")
@@ -403,6 +418,7 @@ public struct TableCourseLessonResult: Codable, Equatable, Sendable {
     public let questionCount: Int
     public let retryRight: Int
     public let retryCount: Int
+    public let missedJourneySkills: [CourseReviewSkill]?
 }
 
 /// Saved indices refer to the authored activity and option order for this version.
@@ -488,8 +504,12 @@ public struct TableCourseProgress: Codable, Equatable, Sendable {
     }
 
     private var currentResult: TableCourseLessonResult {
-        TableCourseLessonResult(lesson: lesson, firstRight: firstRight, questionCount: questionCount,
-                                retryRight: retryRight, retryCount: retryCount)
+        let misses = TableCourseUnit.completionPractice.contains(unit)
+            ? CourseReviewSkill.journeySkills.filter { skill in
+                missedActivities.contains { JourneyCaseContent.skill(for: $0.id) == skill }
+            } : nil
+        return TableCourseLessonResult(lesson: lesson, firstRight: firstRight, questionCount: questionCount,
+                                       retryRight: retryRight, retryCount: retryCount, missedJourneySkills: misses)
     }
 
     public var completedResults: [TableCourseLessonResult] {
@@ -544,7 +564,15 @@ public struct TableCourseProgress: Codable, Equatable, Sendable {
         guard priorResults.count == expected.count else { return false }
         return zip(priorResults, expected).allSatisfy { result, expectedLesson in
             let count = unit.activities(for: expectedLesson, version: contentVersion).filter { !$0.isExample }.count
-            return result.lesson == expectedLesson
+            let wellFormedTopics: Bool
+            if TableCourseUnit.completionPractice.contains(unit), let topics = result.missedJourneySkills {
+                wellFormedTopics = topics == CourseReviewSkill.journeySkills.filter(topics.contains)
+                    && topics.count <= result.retryCount
+                    && topics.isEmpty == (result.retryCount == 0)
+            } else {
+                wellFormedTopics = !TableCourseUnit.completionPractice.contains(unit) && result.missedJourneySkills == nil
+            }
+            return wellFormedTopics && result.lesson == expectedLesson
                 && result.questionCount == count
                 && (0...count).contains(result.firstRight)
                 && result.retryCount == count - result.firstRight

@@ -10,6 +10,8 @@ final class TableCourseProgressTests: XCTestCase {
             (.chips, ["d1", "d2", "d3", "d4", "d5", "d6"]),
             (.allIns, ["d7", "d8"]),
             (.tableContexts, ["m1", "m2", "m3", "m4", "m5"]),
+            (.readHands, (1...10).map { "r\($0)" }),
+            (.decideHands, (1...11).map { "s\($0)" }),
             (.independentHands, ["n1", "n2", "n3"]),
             (.milestone, ["d-table"]),
             (.startingHands, ["e1", "e2", "e3", "e4", "e5", "e6", "e7"]),

@@ -37,6 +37,9 @@ public enum CourseReviewSkill: String, CaseIterable, Codable, Identifiable, Send
     case k1, k2, k3, k4, k5
     case l1, l2, l3, l4, l5
     case d7, d8, m1, m2, m3, m4, m5, n1, n2, n3
+    case journeyPosition, journeyRange, journeyPrice, journeyShowdown
+
+    static let journeySkills: [Self] = [.journeyPosition, .journeyRange, .journeyPrice, .journeyShowdown]
 
     public var id: String { rawValue }
     public var isUnitA: Bool { rawValue.hasPrefix("a") }
@@ -53,6 +56,13 @@ public enum CourseReviewSkill: String, CaseIterable, Codable, Identifiable, Send
     }
 
     public func lessonTitle(in language: LearningLanguage) -> String {
+        switch self {
+        case .journeyPosition: return language.text("자리와 프리플랍 규칙", "Seats and preflop rules")
+        case .journeyRange: return language.text("보드와 레인지", "Board and range")
+        case .journeyPrice: return language.text("팟과 콜 판단", "Pot and call decision")
+        case .journeyShowdown: return language.text("쇼다운", "Showdown")
+        default: break
+        }
         let lessonID = lessonEntry.rawValue
         return UnitALesson(rawValue: lessonID)?.title(in: language)
             ?? UnitBLesson(rawValue: lessonID)?.title(in: language)
@@ -102,11 +112,13 @@ public enum CourseReviewScope: Codable, Equatable, Hashable, Sendable {
     case tableUnit(TableCourseUnit)
     case lesson(CourseReviewSkill)
     case spacedMastery
+    case journeyPractice
 
     public func title(in language: LearningLanguage) -> String {
         switch self {
+        case .journeyPractice: language.text("틀린 주제를 새 핸드로 복습", "Review missed topics on new hands")
         case .spacedMastery: language.text("새 문제로 복습", "Review with fresh questions")
-        case .all: language.text("지금까지 배운 내용 복습", "Review everything so far")
+        case .all: language.text("앞 과정의 복습 항목", "Review earlier course topics")
         case .unitA: language.text("A단원 복습", "Unit A review")
         case .unitB: language.text("B단원 복습", "Unit B review")
         case .tableUnit(let unit): unit.title(in: language)
@@ -116,8 +128,9 @@ public enum CourseReviewScope: Codable, Equatable, Hashable, Sendable {
 
     fileprivate func contains(_ skill: CourseReviewSkill) -> Bool {
         switch self {
+        case .journeyPractice: CourseReviewSkill.journeySkills.contains(skill)
         case .spacedMastery: skill.tableLesson?.unit.usesSpacedReview == true
-        case .all: true
+        case .all: !CourseReviewSkill.journeySkills.contains(skill)
         case .unitA: skill.isUnitA
         case .unitB: skill.rawValue.hasPrefix("b")
         case .tableUnit(.capstone): TableCourseUnit.capstone.lessons.contains { $0.reviewSkill == skill }
@@ -208,6 +221,13 @@ public struct CourseReviewSession: Codable, Equatable, Sendable {
     public static func eligibleSkills(in state: ProgressState, scope: CourseReviewScope = .all,
                                       today: DayKey = DayKey(Date())) -> [CourseReviewSkill] {
         if scope == .spacedMastery { return state.masteryReviewDue(on: today) }
+        if scope == .journeyPractice {
+            let recorded = TableCourseUnit.completionPractice.flatMap {
+                state.progress(in: $0)?.completedResults ?? []
+            }
+            let missed = Set(recorded.flatMap { $0.missedJourneySkills ?? [] })
+            return CourseReviewSkill.journeySkills.filter(missed.contains)
+        }
         return legacySkills(in: state, scope: scope).filter { $0.tableLesson?.unit.usesSpacedReview != true }
     }
 
@@ -275,7 +295,9 @@ public struct CourseReviewSession: Codable, Equatable, Sendable {
             }
             let count = CourseReviewContent.variantCount(for: skill)
             let needed: Int
-            if case .lesson = scope, skills.count == 1 {
+            if scope == .journeyPractice {
+                needed = 2
+            } else if case .lesson = scope, skills.count == 1 {
                 needed = singleLessonItemCount
             } else {
                 needed = 1
@@ -294,7 +316,7 @@ public struct CourseReviewSession: Codable, Equatable, Sendable {
         switch scope {
         case .lesson:
             return skills
-        case .unitA, .unitB, .tableUnit, .spacedMastery:
+        case .unitA, .unitB, .tableUnit, .spacedMastery, .journeyPractice:
             return shuffledSkills(skills, rng: &rng)
         case .all:
             var first = shuffledSkills(skills.filter(\.isUnitA), rng: &rng)
@@ -472,6 +494,10 @@ public struct CourseReviewSession: Codable, Equatable, Sendable {
             return isValid && state.schemaVersion >= 15 && skills.allSatisfy {
                 state.masteryReview?[$0.id]?.finished == false
             }
+        }
+        if scope == .journeyPractice {
+            return isValid && state.schemaVersion >= 16
+                && Set(skills).isSubset(of: Set(Self.eligibleSkills(in: state, scope: scope)))
         }
         return isValid && Set(skills).isSubset(of: Set(Self.legacySkills(in: state, scope: scope)))
     }

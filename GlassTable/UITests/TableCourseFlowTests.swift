@@ -30,7 +30,7 @@ final class TableCourseFlowTests: XCTestCase {
         tap("next", app)
         tap("review", app)
         XCTAssertTrue(app.staticTexts["course-review-scope"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.staticTexts["course-review-scope"].label, "Review everything so far")
+        XCTAssertEqual(app.staticTexts["course-review-scope"].label, "Review earlier course topics")
         attach(app, "turns-cumulative-review-en-light")
     }
 

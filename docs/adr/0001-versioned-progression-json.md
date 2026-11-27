@@ -43,7 +43,7 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (15). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (16). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
@@ -159,3 +159,13 @@ including its original order and seeding. The new spaced scope uses a
 reserved question per eligible lesson and freezes the enrolled objectives.
 After Done, mark the reviewed lessons complete and clear the snapshot in
 the same atomic save. A clock change cannot invalidate a frozen review.
+
+## Schema 16 · Completion cases and missed-topic practice
+
+The earlier course units and their completion continue to use the existing
+saved results. Schema 16 adds two new unit IDs and a review scope. Only completed
+case results from these units carry a stable list of topics missed on first
+attempts. That list feeds a separate review scope with two reserve hands for
+each topic. Earlier cumulative and next-day snapshots keep their existing
+sequence and grading. Migration copies the original schema 15 bytes and
+introduces no case completion or review marks.

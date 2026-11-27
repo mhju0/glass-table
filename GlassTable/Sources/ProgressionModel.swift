@@ -477,10 +477,10 @@ final class ProgressionModel {
     }
 
     func completeEarlierCoreDemo(before unit: TableCourseUnit, expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch,
-              let index = TableCourseUnit.corePath.firstIndex(of: unit) else { return false }
+        let path = TableCourseUnit.corePath + TableCourseUnit.completionPractice
+        guard expectedEpoch == epoch, let index = path.firstIndex(of: unit) else { return false }
         var earlier: [String: TableCourseProgress] = state.tableCourse ?? [:]
-        for prior in TableCourseUnit.corePath.prefix(index) where earlier[prior.rawValue] == nil {
+        for prior in path.prefix(index) where earlier[prior.rawValue] == nil {
             guard let sample = Self.tableCourseSample(prior, stopAt: nil) else { return false }
             earlier[prior.rawValue] = sample
         }
