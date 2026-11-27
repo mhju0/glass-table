@@ -37,7 +37,7 @@ final class ExpandedCourseFlowTests: XCTestCase {
         for activity in content {
             assertActivity(activity, in: app)
             if let answer = activity.correctChoice {
-                tap("choice-\(answer)", app)
+                selectFullyVisibleChoice(answer, in: app)
                 tap("submit", app)
                 XCTAssertTrue(element("feedback", app).exists)
                 if activity.choices(in: .english)[answer] == "Break even" {
@@ -347,6 +347,27 @@ final class ExpandedCourseFlowTests: XCTestCase {
     private func assertActivity(_ activity: TableCourseActivity, in app: XCUIApplication) {
         let target = element("activity-\(activity.id)", app)
         XCTAssertTrue(target.exists || target.waitForExistence(timeout: 10), activity.id)
+    }
+
+    private func selectFullyVisibleChoice(_ answer: Int, in app: XCUIApplication) {
+        let choice = button("choice-\(answer)", app)
+        let submit = button("submit", app)
+        let scroll = app.scrollViews["table-course-scroll"]
+        XCTAssertTrue(choice.waitForExistence(timeout: 8))
+        let top = max(scroll.frame.minY, button("close", app).frame.maxY)
+        let bottom = min(scroll.frame.maxY, submit.frame.minY)
+        func isFullyVisible() -> Bool {
+            let frame = choice.frame
+            return frame.minY >= top && frame.maxY <= bottom && choice.isHittable
+        }
+        for _ in 0..<12 {
+            if isFullyVisible() { break }
+            if choice.frame.minY < top { scroll.swipeDown() } else { scroll.swipeUp() }
+        }
+        XCTAssertTrue(isFullyVisible(), "The answer must be clear of the lesson header and footer")
+        choice.tap()
+        XCTAssertTrue(choice.isSelected, "The answer tap must register before submitting")
+        XCTAssertTrue(submit.isEnabled)
     }
 
     private func tap(_ suffix: String, _ app: XCUIApplication) {
