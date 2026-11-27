@@ -71,7 +71,7 @@ final class FreeRaiseFlowTests: XCTestCase {
         XCTAssertFalse(app.alerts.firstMatch.exists)
         let settled = app.buttons["free-next-hand"]
         let fold = app.buttons["free-fold"]
-        expectation(for: NSPredicate(format: "exists == true"), evaluatedWith: fold)
+        expectation(for: NSPredicate { _, _ in fold.exists || settled.exists }, evaluatedWith: nil)
         waitForExpectations(timeout: 15)
         XCTAssertTrue(fold.exists || settled.exists)
     }
