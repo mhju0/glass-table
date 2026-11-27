@@ -136,7 +136,7 @@ struct LearnView: View {
     private var tableCourseUnits: [TableCourseUnit] {
         var units = TableCourseUnit.corePath
         if model.state.progress(in: .chips)?.phase == .finished {
-            units.insert(.milestone, at: 2)
+            units.insert(.milestone, at: 3)
         }
         return units
     }

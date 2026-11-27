@@ -13,12 +13,16 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     case combinations
     case expectedValue
     case boardPatterns
+    case allIns
+    case tableContexts
+    case independentHands
 
     public static let electives: [Self] = [.combinations, .expectedValue, .boardPatterns]
 
     /// Keep the lesson path order independent of the optional guided hand and electives.
     public static let corePath: [Self] = [
-        .turns, .chips, .startingHands, .possibleHands, .winningCards, .priceChance, .capstone,
+        .turns, .chips, .allIns, .startingHands, .possibleHands, .winningCards, .priceChance,
+        .tableContexts, .capstone, .independentHands,
     ]
 
     var minimumSchemaVersion: Int {
@@ -26,6 +30,7 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
         case .turns, .chips, .milestone, .startingHands: 11
         case .possibleHands, .winningCards, .priceChance, .capstone, .combinations: 12
         case .expectedValue, .boardPatterns: 13
+        case .allIns, .tableContexts, .independentHands: 14
         }
     }
 
@@ -37,6 +42,9 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
 
     public func title(in language: LearningLanguage) -> String {
         switch self {
+        case .allIns: language.text("올인과 팟 나누기", "All-ins and side pots")
+        case .tableContexts: language.text("테이블 상황에 맞춰 판단하기", "Adjust to the table")
+        case .independentHands: language.text("새 핸드를 혼자 분석하기", "Analyze new hands on your own")
         case .turns: language.text("차례와 행동", "Turns and legal moves")
         case .chips: language.text("칩 세기", "Count chips")
         case .milestone: language.text("한 판 따라가기", "Follow a practice hand")
@@ -54,6 +62,7 @@ public enum TableCourseUnit: String, CaseIterable, Codable, Identifiable, Sendab
     public func activities(for lesson: TableCourseLesson) -> [TableCourseActivity] {
         guard lesson.unit == self else { return [] }
         switch self {
+        case .allIns, .tableContexts, .independentHands: return MasteryCourseContent.activities(for: lesson)
         case .turns: return Self.turnsActivities[lesson, default: []]
         case .chips: return Self.chipActivities[lesson, default: []]
         case .milestone: return ChipUnitContent.milestone
@@ -107,6 +116,9 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
     case j1, j2, j3, j4, j5
     case k1, k2, k3, k4, k5
     case l1, l2, l3, l4, l5
+    case d7, d8
+    case m1, m2, m3, m4, m5
+    case n1, n2, n3
 
     public var id: String { rawValue }
 
@@ -114,6 +126,9 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
         switch self {
         case .c1, .c2, .c3, .c4, .c5, .c6, .c7, .c8, .c9: .turns
         case .d1, .d2, .d3, .d4, .d5, .d6: .chips
+        case .d7, .d8: .allIns
+        case .m1, .m2, .m3, .m4, .m5: .tableContexts
+        case .n1, .n2, .n3: .independentHands
         case .tableMilestone: .milestone
         case .e1, .e2, .e3, .e4, .e5, .e6, .e7: .startingHands
         case .f1, .f2, .f3, .f4, .f5, .f6: .possibleHands
@@ -142,6 +157,16 @@ public enum TableCourseLesson: String, CaseIterable, Codable, Identifiable, Send
         case .d3: language.text("차이만큼 더 내기", "Add the difference")
         case .d4: language.text("폴드해도 팟에 남는 칩", "Folded chips stay in the pot")
         case .d5: language.text("콜에 필요한 칩", "Find the call amount")
+        case .d7: language.text("최소 레이즈보다 작은 올인", "Short all-ins and reopening")
+        case .d8: language.text("메인 팟과 사이드 팟", "Main and side pots")
+        case .m1: language.text("상대와 맞붙을 수 있는 칩", "Effective stack and SPR")
+        case .m2: language.text("셋 이상 남았을 때", "More than two players")
+        case .m3: language.text("다음 카드와 베팅 계획", "Update your plan across streets")
+        case .m4: language.text("캐시 게임과 토너먼트", "Cash games and tournaments")
+        case .m5: language.text("테이블에서 지킬 약속", "Act clearly at the table")
+        case .n1: language.text("턴에서 콜 가격 따져 보기", "Price a turn call")
+        case .n3: language.text("새 핸드를 처음부터 끝까지", "Analyze a whole hand")
+        case .n2: language.text("리버의 결과와 판단 설명하기", "Explain a river decision")
         case .d6: language.text("한 판의 팟 따라가기", "Follow a pot across streets")
         case .tableMilestone: language.text("연습 핸드 한 판", "One guided practice hand")
         case .e1: language.text("페어, 수티드, 오프수트", "Pair, suited, or offsuit")

@@ -159,6 +159,7 @@ public struct ProgressionStore {
         // 8 → 9 adds `unitB`. The existing pair lesson can satisfy B2 when reached.
         // 9 → 10 adds the optional on-demand `courseReview` snapshot.
         // 10 → 11 adds resumable C–E units and a separate guided hand.
+        // 13 → 14 admits new course units without reindexing a previous unit.
         return upgraded
     }
 

@@ -43,7 +43,7 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (13). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (14). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
@@ -135,3 +135,12 @@ Schema 13 admits two more `tableCourse` units and their review scopes and
 skills. Earlier unit cursors and frozen review activities keep their exact
 meaning. An upgrade copies the schema 12 bytes before writing the new
 schema. A file with a new elective under an older schema is rejected.
+
+## Schema 14 · All-ins, table context, and independent hands
+
+Schema 14 admits D7/D8, M1–M5 and N1–N3 in three new `tableCourse` units
+and accepts their review skill IDs and unit scopes. Earlier units and review
+variants keep their order and meaning. A schema 13 upgrade copies the original
+bytes and introduces no synthetic lesson completion. The schema 14 golden
+fixture covers a saved independent-hand reveal and a mixed-review correction
+draft. Appending future skills must preserve old seeded snapshots.

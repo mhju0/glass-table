@@ -8,6 +8,9 @@ final class TableCourseProgressTests: XCTestCase {
         let expected: [(TableCourseUnit, [String])] = [
             (.turns, ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9"]),
             (.chips, ["d1", "d2", "d3", "d4", "d5", "d6"]),
+            (.allIns, ["d7", "d8"]),
+            (.tableContexts, ["m1", "m2", "m3", "m4", "m5"]),
+            (.independentHands, ["n1", "n2", "n3"]),
             (.milestone, ["d-table"]),
             (.startingHands, ["e1", "e2", "e3", "e4", "e5", "e6", "e7"]),
             (.possibleHands, ["f1", "f2", "f3", "f4", "f5", "f6"]),
@@ -19,7 +22,7 @@ final class TableCourseProgressTests: XCTestCase {
             (.boardPatterns, ["l1", "l2", "l3", "l4", "l5"]),
         ]
         XCTAssertEqual(TableCourseUnit.corePath.flatMap(\.lessons).count
-                       + UnitALesson.allCases.count + UnitBLesson.allCases.count, 66)
+                       + UnitALesson.allCases.count + UnitBLesson.allCases.count, 76)
         XCTAssertEqual(TableCourseUnit.electives.flatMap(\.lessons).count, 15)
         XCTAssertTrue(Set(TableCourseUnit.corePath).isDisjoint(with: TableCourseUnit.electives))
         XCTAssertEqual(Set(expected.map { $0.0 }), Set(TableCourseUnit.allCases))

@@ -35,6 +35,7 @@ public enum CourseReviewSkill: String, CaseIterable, Codable, Identifiable, Send
     case j1, j2, j3, j4, j5
     case k1, k2, k3, k4, k5
     case l1, l2, l3, l4, l5
+    case d7, d8, m1, m2, m3, m4, m5, n1, n2, n3
 
     public var id: String { rawValue }
     public var isUnitA: Bool { rawValue.hasPrefix("a") }

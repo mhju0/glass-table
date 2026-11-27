@@ -83,3 +83,6 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
   drafts and retains the existing frozen review correction.
 - `schema13-elective-drafts.json` is an encoder export. It preserves the schema
   12 contents and adds a staged EV choice and a revealed board-pattern answer.
+- `schema14-mastery-review-draft.json` is an encoder export with D7 and D8
+  completed, N1 paused on a wrong first-answer reveal, and a mixed D7/D8 review
+  paused on the exact correction draft.

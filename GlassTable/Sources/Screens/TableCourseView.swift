@@ -151,7 +151,7 @@ struct TableCourseView: View {
                 score(language.text("정정", "Corrections"), right: progress.retryRight,
                       total: progress.retryCount, id: "table-course-retry-score")
             }
-            if finished && unit == .chips {
+            if finished && unit == .allIns {
                 link(language.text("시작 핸드로 이동", "Go to starting hands"), id: "table-course-skip-guide") {
                     onContinue(.startingHands)
                 }
@@ -161,7 +161,7 @@ struct TableCourseView: View {
                     showCoach = true
                 }
             }
-            if finished && [.turns, .possibleHands, .capstone].contains(unit) {
+            if finished && [.turns, .possibleHands, .capstone, .independentHands].contains(unit) {
                 link(language.text("전체 복습", "Review everything so far"), id: "table-course-review") {
                     onReview(.all)
                 }
@@ -219,21 +219,24 @@ struct TableCourseView: View {
         if progress.phase == .finished {
             let next: TableCourseUnit? = switch unit {
             case .turns: .chips
-            case .chips: .milestone
+            case .chips: .allIns
+            case .allIns: .milestone
             case .milestone: .startingHands
             case .startingHands: .possibleHands
             case .possibleHands: .winningCards
             case .winningCards: .priceChance
-            case .priceChance: .capstone
-            case .capstone, .combinations, .expectedValue, .boardPatterns: nil
+            case .priceChance: .tableContexts
+            case .tableContexts: .capstone
+            case .capstone: .independentHands
+            case .independentHands, .combinations, .expectedValue, .boardPatterns: nil
             }
             let title = switch unit {
-            case .chips: language.text("안내 핸드 연습", "Try the guided hand")
-            case .capstone: language.text("자유 플레이", "Free Play")
+            case .allIns: language.text("안내 핸드 연습", "Try the guided hand")
+            case .independentHands: language.text("자유 플레이", "Free Play")
             default: next == nil ? language.text("완료", "Done") : language.text("계속", "Continue")
             }
             PrimaryCTAButton(title: title) {
-                if unit == .capstone { onFreePlay() }
+                if unit == .independentHands { onFreePlay() }
                 else if let next { onContinue(next) }
                 else { dismiss() }
             }

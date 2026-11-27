@@ -5,9 +5,9 @@ import XCTest
 
 final class CourseReviewContentTests: XCTestCase {
     func testCompleteReviewRosterHasStableCoverage() {
-        XCTAssertEqual(CourseReviewSkill.allCases.count, 75)
+        XCTAssertEqual(CourseReviewSkill.allCases.count, 85)
         let variants = CourseReviewSkill.allCases.map(CourseReviewContent.variantCount(for:))
-        XCTAssertEqual(variants.reduce(0, +), 219)
+        XCTAssertEqual(variants.reduce(0, +), 249)
     }
 
     func testEveryReviewObjectiveHasDistinctLocalizedQuestions() throws {

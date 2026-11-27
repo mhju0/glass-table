@@ -56,19 +56,19 @@ final class ExpandedCourseFlowTests: XCTestCase {
         XCTAssertFalse(element("retry-score", app).exists)
     }
 
-    func testCapstoneIsRecommendedAndCanReturnThroughCoachToFreePlay() {
-        let app = launch(nil, coreBefore: .capstone)
-        let proposed = app.buttons["learn-table-capstone"]
+    func testCapstoneIsRecommendedAndContinuesThroughCoachToIndependentAnalysis() {
+        let landing = launch(nil, coreBefore: .capstone)
+        let proposed = landing.buttons["learn-table-capstone"]
         XCTAssertTrue(proposed.waitForExistence(timeout: 15))
         XCTAssertTrue(proposed.isHittable)
-        XCTAssertTrue(app.buttons["learn-table-combinations"].exists)
-        XCTAssertGreaterThan(app.buttons["learn-table-turns"].frame.minY, proposed.frame.minY)
-        attach(app, "core-recommendation-en-light")
+        XCTAssertTrue(landing.buttons["learn-table-combinations"].exists)
+        XCTAssertGreaterThan(landing.buttons["learn-table-turns"].frame.minY, proposed.frame.minY)
+        attach(landing, "core-recommendation-en-light")
+        proposed.tap()
+        XCTAssertTrue(element("activity-I1-example", landing).waitForExistence(timeout: 12))
+        landing.terminate()
 
-        app.terminate()
-        app.launchEnvironment["GT_DEMO_TABLE_COURSE"] = "i6"
-        app.launch()
-        XCTAssertTrue(button("close", app).waitForExistence(timeout: 15))
+        let app = launch(.i6, coreBefore: .capstone)
         attach(app, "capstone-intro-en-light")
         finish(.i6, in: app, capture: ["I6-04": "capstone-river-en-light",
                                        "I6-05": "capstone-showdown-en-light"])
@@ -84,10 +84,73 @@ final class ExpandedCourseFlowTests: XCTestCase {
         close.tap()
         XCTAssertTrue(element("results", app).waitForExistence(timeout: 10))
         tap("done", app)
-        XCTAssertTrue(app.buttons["play-quick"].waitForExistence(timeout: 10))
-        app.tabBars.buttons["Learn"].tap()
-        XCTAssertTrue(app.staticTexts["learn-course-complete"].exists
-                      || app.descendants(matching: .any)["learn-course-complete"].exists)
+        XCTAssertTrue(element("lesson", app).waitForExistence(timeout: 10))
+        XCTAssertEqual(element("lesson", app).label, TableCourseLesson.n1.title(in: .english))
+        XCTAssertFalse(app.staticTexts["learn-course-complete"].exists)
+    }
+
+    func testAllInLessonsOpenFromLessonsAndResumeExactDraftAndReview() throws {
+        let app = launch(nil, coreBefore: .allIns)
+        let row = app.buttons["learn-table-allIns"]
+        XCTAssertTrue(row.waitForExistence(timeout: 12) && row.isHittable)
+        row.tap()
+        let lessons = TableCourseUnit.allIns
+        let questions = lessons.activities(for: .d7)
+        tap("next", app)
+        let first = questions[1]
+        assertActivity(first, in: app)
+        tap("choice-0", app)
+        tap("close", app)
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(row.waitForExistence(timeout: 12) && row.isHittable)
+        row.tap()
+        assertActivity(first, in: app)
+        XCTAssertTrue(button("choice-0", app).isSelected)
+        XCTAssertFalse(element("feedback", app).exists)
+        tap("submit", app)
+        XCTAssertTrue(element("feedback", app).exists)
+        tap("next", app)
+        for question in questions.dropFirst(2) { answer(question, in: app) }
+        XCTAssertTrue(element("retry", app).exists)
+        assertActivity(first, in: app)
+        XCTAssertFalse(button("submit", app).isEnabled)
+        answer(first, in: app)
+        XCTAssertEqual(element("first-score", app).label, "3 of 4 correct")
+        XCTAssertEqual(element("retry-score", app).label, "1 of 1 correct")
+        tap("next", app)
+        finish(.d8, in: app)
+        tap("review", app)
+        XCTAssertTrue(app.staticTexts["course-review-scope"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.staticTexts["course-review-scope"].label, "All-ins and side pots")
+        XCTAssertEqual(app.staticTexts["course-review-step"].label, "Question 1 of 2")
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", "course-review-activity-D"
+        )).firstMatch.exists)
+    }
+
+    func testIndependentHandKeepsKoreanAX5PriceEvidenceAndChoicesReachable() throws {
+        let app = launch(nil, language: .korean, accessible: true, coreBefore: .independentHands)
+        let row = app.buttons["learn-table-independentHands"]
+        XCTAssertTrue(row.waitForExistence(timeout: 12) && row.isHittable)
+        row.tap()
+        let lesson = TableCourseUnit.independentHands.activities(for: .n1)
+        assertActivity(lesson[0], in: app)
+        attach(app, "independent-example-ko-dark-ax5")
+        tap("next", app)
+        assertActivity(lesson[1], in: app)
+        XCTAssertFalse(element("feedback", app).exists)
+        let right = try XCTUnwrap(lesson[1].correctChoice)
+        tap("choice-\(right)", app)
+        XCTAssertEqual(button("choice-\(right)", app).label, "폴드의 EV가 높아요")
+        tap("submit", app)
+        XCTAssertTrue(element("feedback", app).exists)
+        attach(app, "independent-reveal-ko-dark-ax5")
+        tap("close", app)
+        XCTAssertTrue(row.waitForExistence(timeout: 10) && row.isHittable)
+        row.tap()
+        assertActivity(lesson[1], in: app)
+        XCTAssertTrue(element("feedback", app).exists)
     }
 
     func testOptionalWeightedCombosResumesDraftAndRetriesTheSameItem() throws {
