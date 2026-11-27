@@ -103,6 +103,7 @@ final class FreeTableBackFlowTests: XCTestCase {
     func testReviewThisHandWalksThroughEveryDecisionThenTheShowdown() {
         let app = launch(phase: "result-review")
         app.buttons["free-review"].tap()
+        app.buttons["free-review-decisions"].tap()
         let progress = app.staticTexts["coach-progress"]
         XCTAssertTrue(progress.waitForExistence(timeout: 5))
         XCTAssertTrue(progress.label.hasPrefix("Step 1 of "), progress.label)
@@ -140,6 +141,9 @@ final class FreeTableBackFlowTests: XCTestCase {
         let review = app.buttons["free-review"]
         for _ in 0..<6 where !review.isHittable { app.swipeUp() }
         review.tap()
+        let detail = app.buttons["free-review-decisions"]
+        for _ in 0..<6 where !detail.isHittable { app.swipeUp() }
+        detail.tap()
         let next = app.buttons["coach-next"]
         XCTAssertTrue(next.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["coach-back"].exists, "No Previous on the first step")

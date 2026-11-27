@@ -119,7 +119,7 @@ struct PlayView: View {
                           onNewTable: { setupAfterTable = true; showTable = false })
         }
         .fullScreenCover(isPresented: $showArchive) {
-            QuickPlayArchiveView(sessions: savedGames) { showArchive = false }
+            QuickPlayArchiveView(sessions: savedGames, epoch: epoch ?? model.epoch) { showArchive = false }
         }
         .sheet(isPresented: $showStyles) { StyleGuideView { showStyles = false } }
         .modifier(ProgressSaveNotice())
@@ -139,9 +139,21 @@ struct PlayView: View {
                     configureQuickReview()
                 }
                 if model.state.tableState == nil {
-                    let players = ProcessInfo.processInfo.environment["GT_DEMO_PLAYERS"].flatMap(Int.init) ?? 4
-                    let styles = Array([Archetype.tag, .station, .lag].prefix(max(1, min(3, players - 1))))
-                    perform { try model.startTable(seed: 97, styles: styles, expectedEpoch: model.epoch) }
+                    let environment = ProcessInfo.processInfo.environment
+                    let questFixture = environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) == nil
+                        ? nil : environment["GT_TEST_FREE_PLAY_REVIEW"]
+                    if questFixture == "winner" || questFixture == "quick" {
+                        let quick = questFixture == "quick"
+                        perform {
+                            try model.startTable(seed: quick ? 97 : 0, styles: quick ? [.tag] : [.station],
+                                                 startingStack: quick ? 40 : nil, handLimit: quick ? 10 : nil,
+                                                 expectedEpoch: model.epoch)
+                        }
+                    } else {
+                        let players = environment["GT_DEMO_PLAYERS"].flatMap(Int.init) ?? 4
+                        let styles = Array([Archetype.tag, .station, .lag].prefix(max(1, min(3, players - 1))))
+                        perform { try model.startTable(seed: 97, styles: styles, expectedEpoch: model.epoch) }
+                    }
                 }
                 showTable = model.state.tableState != nil
             }

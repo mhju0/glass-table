@@ -159,6 +159,14 @@ public struct ProgressionStore {
         // 8 → 9 adds `unitB`. The existing pair lesson can satisfy B2 when reached.
         // 9 → 10 adds the optional on-demand `courseReview` snapshot.
         // 10 → 11 adds resumable C–E units and a separate guided hand.
+        // 13 → 14 admits new course units without reindexing a previous unit.
+        if state.schemaVersion == 14 {
+            let now = Date()
+            for progress in state.tableCourse?.values ?? [:].values {
+                upgraded.scheduleMasteryReview(for: progress, now: now)
+            }
+        }
+        // 16 → 17 adds the optional quest for the open Free Play table.
         return upgraded
     }
 
@@ -258,15 +266,20 @@ public struct ProgressionStore {
                   state.schemaVersion >= 11 && !$0.isEmpty
                       && $0.allSatisfy {
                           $0.key == $0.value.unit.rawValue
-                              && state.schemaVersion >= $0.value.unit.minimumSchemaVersion && $0.value.isValid
+                              && state.schemaVersion >= $0.value.unit.minimumSchemaVersion
+                              && (state.schemaVersion >= 15 || $0.value.contentVersion == 1) && $0.value.isValid
                       }
               }) ?? true,
+              state.hasValidMasteryReview,
               state.progress(in: .milestone) == nil || state.progress(in: .chips)?.phase == .finished,
               state.courseReview.map({ state.schemaVersion >= 10 && $0.isValid(in: state) }) ?? true,
               state.recentHands.count <= 200,
               Set(state.recentHands.map(\.handID)).count == state.recentHands.count,
               state.recentHands.allSatisfy({ DayKey(raw: $0.day) != nil }),
-              (try? state.tableState?.validate()) != nil || state.tableState == nil
+              (try? state.tableState?.validate()) != nil || state.tableState == nil,
+              state.freePlayQuest.map({ quest in
+                  state.schemaVersion >= 17 && state.tableState.map { quest.isValid(for: $0) } == true
+              }) ?? true
         else { throw StoreError.invalidProgress }
         do { try state.validateQuickPlayArchive() } catch { throw StoreError.invalidProgress }
     }

@@ -227,12 +227,23 @@ public enum CourseReviewContent {
             case .combinations: CombinationUnitContent.reviewActivities(for: lesson)
             case .expectedValue: ExpectedValueUnitContent.reviewActivities(for: lesson)
             case .boardPatterns: BoardPatternsUnitContent.reviewActivities(for: lesson)
-            case .capstone, .milestone: []
+            case .allIns, .tableContexts, .independentHands: MasteryCourseContent.reviewActivities(for: lesson)
+            case .capstone, .milestone, .readHands, .decideHands: []
             }
             result[skill] = heldOut.map(tableQuestion)
         }
+        for (skill, activities) in JourneyCaseContent.review {
+            result[skill] = activities.map(tableQuestion)
+        }
         return result
     }()
+
+    static func spacedActivity(for skill: CourseReviewSkill) -> CourseReviewActivity? {
+        spacedBank[skill]
+    }
+
+    private static let spacedBank = Dictionary(uniqueKeysWithValues:
+        MasteryCourseContent.spacedQuestions.map { ($0.key, tableQuestion($0.value)) })
 
     private static func tableQuestion(_ activity: TableCourseActivity) -> CourseReviewActivity {
         let options = zip(activity.choices(in: .korean), activity.choices(in: .english)).map { Copy($0, $1) }

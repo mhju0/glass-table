@@ -19,6 +19,91 @@ final class ProgressionModelTests: XCTestCase {
         try? FileManager.default.removeItem(at: dir)
     }
 
+    func testFreePlayQuestResumesAndCountsAnAnswerOnlyOnce() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(try model.startTable(seed: 97, styles: [.station], expectedEpoch: model.epoch))
+        let first = try XCTUnwrap(model.state.tableState)
+        XCTAssertTrue(model.joinFreePlayQuest(handID: first.handID, expectedEpoch: model.epoch))
+        let joinedRevision = model.state.revision
+        XCTAssertTrue(model.joinFreePlayQuest(handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.revision, joinedRevision)
+        XCTAssertFalse(model.resolveFreePlayQuest(1, handID: first.handID, expectedEpoch: model.epoch))
+
+        for index in 0..<16 {
+            let current = try XCTUnwrap(model.state.tableState)
+            if current.review != nil { break }
+            let action: PracticeAction = current.legalActions.contains(.check) ? .check : .call
+            XCTAssertTrue(try model.applyTableAction(action, actionID: "quest-\(index)",
+                                                    handID: first.handID, expectedEpoch: model.epoch))
+        }
+        let settled = try XCTUnwrap(model.state.tableState)
+        let question = try XCTUnwrap(FreePlayQuestQuestion(settled))
+        let answer = question.hand.category
+        XCTAssertTrue(model.resolveFreePlayQuest(answer, handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.freePlayQuest?.correct, 1)
+        XCTAssertEqual(model.state.tableState, settled)
+        let acceptedRevision = model.state.revision
+        XCTAssertTrue(model.resolveFreePlayQuest(answer, handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertFalse(model.resolveFreePlayQuest(nil, handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertEqual(model.state.revision, acceptedRevision)
+
+        let reopened = ProgressionModel(store: store)
+        XCTAssertEqual(reopened.state.freePlayQuest, model.state.freePlayQuest)
+        XCTAssertEqual(reopened.state.tableState, settled)
+        XCTAssertTrue(try reopened.nextTableHand(handID: "quest-next", after: first.handID, expectedEpoch: reopened.epoch))
+        let next = try XCTUnwrap(reopened.state.tableState)
+        XCTAssertEqual(next.handNumber, 1)
+        XCTAssertEqual(reopened.state.freePlayQuest?.correct, 1)
+        XCTAssertNil(reopened.state.freePlayQuest?.response)
+        XCTAssertFalse(reopened.resolveFreePlayQuest(answer, handID: first.handID, expectedEpoch: reopened.epoch))
+        XCTAssertFalse(try reopened.nextTableHand(handID: "quest-duplicate", after: first.handID,
+                                                   expectedEpoch: reopened.epoch))
+        XCTAssertEqual(reopened.state.tableState, next)
+        XCTAssertTrue(reopened.endTable(handID: next.handID, expectedEpoch: reopened.epoch))
+        XCTAssertNil(reopened.state.freePlayQuest)
+    }
+
+    func testFailedImplicitQuestSkipIsOnlyCommittedByALiveReviewRequest() throws {
+        let model = ProgressionModel(store: store)
+        XCTAssertTrue(try model.startTable(seed: 97, styles: [.tag], startingStack: 40, handLimit: 10,
+                                           expectedEpoch: model.epoch))
+        let first = try XCTUnwrap(model.state.tableState)
+        XCTAssertTrue(model.joinFreePlayQuest(handID: first.handID, expectedEpoch: model.epoch))
+        for index in 0..<16 {
+            let current = try XCTUnwrap(model.state.tableState)
+            if current.review != nil { break }
+            let action: PracticeAction = current.legalActions.contains(.check) ? .check : .call
+            XCTAssertTrue(try model.applyTableAction(action, actionID: "review-\(index)",
+                                                    handID: first.handID, expectedEpoch: model.epoch))
+        }
+        let before = model.state
+        XCTAssertTrue(model.freePlayQuestAwaitsAnswer(handID: first.handID))
+        XCTAssertTrue(model.prepareFreePlayReview(handID: "earlier-hand", expectedEpoch: model.epoch))
+        XCTAssertFalse(model.prepareFreePlayReview(handID: first.handID, expectedEpoch: UUID()))
+        XCTAssertEqual(model.state, before)
+
+        let files = FileManager.default
+        try files.setAttributes([.immutable: true], ofItemAtPath: store.url.path)
+        defer { try? files.setAttributes([.immutable: false], ofItemAtPath: store.url.path) }
+        XCTAssertFalse(model.prepareFreePlayReview(handID: first.handID, expectedEpoch: model.epoch))
+        XCTAssertNotNil(model.saveError)
+        XCTAssertEqual(model.state, before)
+
+        try files.setAttributes([.immutable: false], ofItemAtPath: store.url.path)
+        model.retrySave()
+        XCTAssertNil(model.saveError)
+        XCTAssertEqual(model.state, before)
+        XCTAssertEqual(ProgressionModel(store: store).state, before)
+
+        XCTAssertTrue(model.prepareFreePlayReview(handID: first.handID, expectedEpoch: model.epoch))
+        let response = try XCTUnwrap(model.state.freePlayQuest?.response)
+        XCTAssertEqual(response.handID, first.handID)
+        XCTAssertNil(response.category)
+        XCTAssertEqual(model.state.freePlayQuest?.correct, 0)
+        XCTAssertEqual(model.state.quickPlaySessions, before.quickPlaySessions)
+        XCTAssertEqual(model.state.tableState, before.tableState)
+    }
+
     func testPairLessonPreservesTheOpenLegacySessionAndResumesItsReveal() throws {
         let model = ProgressionModel(store: store)
         let legacyNode = try XCTUnwrap(Curriculum.node(id: "u1-showdown"))
@@ -213,6 +298,50 @@ final class ProgressionModelTests: XCTestCase {
         XCTAssertEqual(model.state.pairLesson, pair)
         XCTAssertEqual(model.state.pairLessonFollowUp, saved.pairLessonFollowUp)
         XCTAssertEqual(ProgressionModel(store: store).state.unitB?.lesson, .twoPair)
+    }
+
+    func testSchemaFourteenReviewCorrectionResumesThroughTheAppModel() throws {
+        var progress = TableCourseProgress(unit: .allIns)
+        while progress.phase != .finished {
+            if let choice = progress.activity?.correctChoice {
+                XCTAssertTrue(progress.apply(.select(choice)))
+                XCTAssertTrue(progress.apply(.submit))
+            }
+            XCTAssertTrue(progress.apply(.advance))
+        }
+        var review = try XCTUnwrap(CourseReviewSession(scope: .tableUnit(.allIns),
+                                                      eligibleSkills: [.d7, .d8], seed: 91))
+        let first = try XCTUnwrap(review.activity)
+        let right = try XCTUnwrap(first.correctChoice)
+        XCTAssertTrue(review.apply(.select((right + 1) % first.choices(in: .english).count)))
+        XCTAssertTrue(review.apply(.submit))
+        XCTAssertTrue(review.apply(.advance))
+        XCTAssertTrue(review.apply(.select(try XCTUnwrap(review.activity?.correctChoice))))
+        XCTAssertTrue(review.apply(.submit))
+        XCTAssertTrue(review.apply(.advance))
+        XCTAssertTrue(review.apply(.select(right)))
+        let state = ProgressState(courseReview: review, tableCourse: ["allIns": progress])
+        var old = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        var units = try XCTUnwrap(old["tableCourse"] as? [String: [String: Any]])
+        units["allIns"]?["contentVersion"] = 1
+        old["schemaVersion"] = 14
+        old["tableCourse"] = units
+        let oldBytes = try JSONSerialization.data(withJSONObject: old)
+        try oldBytes.write(to: store.url)
+
+        let app = ProgressionModel(store: store)
+        XCTAssertNil(app.unreadable)
+        XCTAssertFalse(app.beginCourseReview(.spacedMastery, expectedEpoch: app.epoch))
+        XCTAssertTrue(app.beginCourseReview(.tableUnit(.allIns), expectedEpoch: app.epoch))
+        let restored = try XCTUnwrap(app.state.courseReview)
+        XCTAssertEqual(restored.activity, first)
+        XCTAssertEqual(restored.selection, right)
+        XCTAssertEqual(restored.firstRight, 1)
+        XCTAssertTrue(app.applyCourseReview(.submit, from: restored, expectedEpoch: app.epoch))
+        let reloaded = ProgressionModel(store: store)
+        XCTAssertEqual(reloaded.state.courseReview?.answeredCorrectly, true)
+        XCTAssertEqual(reloaded.state.courseReview?.firstRight, 1)
+        XCTAssertEqual(reloaded.state.courseReview?.retryRight, 1)
     }
 
     func testOptionalReviewCommitsOnlyItsSnapshotAndPreservesDueWork() throws {

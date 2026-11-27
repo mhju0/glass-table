@@ -30,7 +30,7 @@ final class TableCourseFlowTests: XCTestCase {
         tap("next", app)
         tap("review", app)
         XCTAssertTrue(app.staticTexts["course-review-scope"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.staticTexts["course-review-scope"].label, "Review everything so far")
+        XCTAssertEqual(app.staticTexts["course-review-scope"].label, "Review earlier course topics")
         attach(app, "turns-cumulative-review-en-light")
     }
 
@@ -66,9 +66,9 @@ final class TableCourseFlowTests: XCTestCase {
         }
         XCTAssertTrue(element("results", replay).exists)
         tap("next", replay)
-        XCTAssertEqual(replay.buttons["table-course-done"].label, "안내 핸드 연습")
+        XCTAssertEqual(replay.buttons["table-course-done"].label, "계속")
         tap("done", replay)
-        XCTAssertTrue(element("activity-D-table-01", replay).waitForExistence(timeout: 10))
+        XCTAssertTrue(element("activity-D7-example", replay).waitForExistence(timeout: 10))
         replay.terminate()
 
         let guide = launch("d-table")

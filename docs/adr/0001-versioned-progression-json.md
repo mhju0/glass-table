@@ -43,7 +43,7 @@ described below for files written by builds 30 and later.
 
 | Version | Field | Accepted values | Checked in |
 |---|---|---|---|
-| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (13). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
+| File schema | `schemaVersion` | 1…`ProgressState.currentSchemaVersion` (17). Newer files are refused. | `ProgressionStore.decodeAndValidate` (header read before full decode), `validate(_ ProgressState)` and `load`/`upgrade` |
 | Lesson session format | `activeNodeSession.formatVersion` | 1…`Curriculum.sessionFormat` (2); 1 = five questions, 2 = three | `ProgressionStore.validate(_ NodeSessionSnapshot)` via `Curriculum.sessionConcepts(for:seed:format:)` |
 | Pair lesson content | `pairLesson.contentVersion` | Exactly 1 when `pairLesson` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonProgress.isValid` |
 | Pair lesson follow-up | `pairLessonFollowUp.contentVersion` | Exactly 1 when `pairLessonFollowUp` is present | `ProgressionStore.validate(_ ProgressState)` via `PairLessonFollowUpProgress.isValid` |
@@ -135,3 +135,49 @@ Schema 13 admits two more `tableCourse` units and their review scopes and
 skills. Earlier unit cursors and frozen review activities keep their exact
 meaning. An upgrade copies the schema 12 bytes before writing the new
 schema. A file with a new elective under an older schema is rejected.
+
+## Schema 14 · All-ins, table context, and independent hands
+
+Schema 14 admits D7/D8, M1–M5 and N1–N3 in three new `tableCourse` units
+and accepts their review skill IDs and unit scopes. Earlier units and review
+variants keep their order and meaning. A schema 13 upgrade copies the original
+bytes and introduces no synthetic lesson completion. The schema 14 golden
+fixture covers a saved independent-hand reveal and a mixed-review correction
+draft. Appending future skills must preserve old seeded snapshots.
+
+## Schema 15 · Reserved next-day review and versioned mastery lessons
+
+Schema 15 records a due day and completion flag for each mastered D7–N3 lesson.
+Record completion with the lesson progress write after its exact corrections.
+On upgrade, schedule already completed schema 14 lessons for the next local
+day, preserving the original bytes first. Old progress has no completion
+timestamp. A paused lesson keeps version 1 activities and scoring for its
+entire unit. New enrollments in the three mastery units use version 2.
+
+Existing review snapshots resolve through the version 1 on-demand bank,
+including its original order and seeding. The new spaced scope uses a
+reserved question per eligible lesson and freezes the enrolled objectives.
+After Done, mark the reviewed lessons complete and clear the snapshot in
+the same atomic save. A clock change cannot invalidate a frozen review.
+
+## Schema 16 · Completion cases and missed-topic practice
+
+The earlier course units and their completion continue to use the existing
+saved results. Schema 16 adds two new unit IDs and a review scope. Only completed
+case results from these units carry a stable list of topics missed on first
+attempts. That list feeds a separate review scope with two reserve hands for
+each topic. Earlier cumulative and next-day snapshots keep their existing
+sequence and grading. Migration copies the original schema 15 bytes and
+introduces no case completion or review marks.
+
+## Schema 17 · Free Play showdown quest
+
+The optional `freePlayQuest` belongs to the open Free Play table. It records
+the number of correct recognitions, capped at two, and the answer or skip for
+the current settled hand. The next deal clears that hand response in the same
+save as the new table. Ending the table clears the quest. The session meter
+uses the existing hand number and settlement, so it adds no saved counter.
+
+The schema 16 bytes are copied before migration. The existing course results,
+drafts, scheduled reviews, and table snapshot retain their values. Files
+carrying the quest under an earlier schema are rejected.

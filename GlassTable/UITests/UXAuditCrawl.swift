@@ -502,13 +502,18 @@ final class UXAuditCrawl: XCTestCase {
     private func exploreReview(hand: Int) {
         if tap(app.buttons["free-review"], "핸드 돌아보기") {
             pause(1)
-            for page in 1...12 {
-                rec.shot("\(hand)번 핸드 · 돌아보기 \(page)", after: page == 1 ? "‘핸드 돌아보기’ 탭" : "‘다음’ 탭")
-                guard app.buttons["coach-next"].exists else { break }
-                tap(app.buttons["coach-next"], "다음"); pause(0.6)
+            rec.shot("\(hand)번 핸드 · 돌아보기", after: "‘핸드 돌아보기’ 탭")
+            if tap(app.buttons["free-review-decisions"], "선택 하나씩 보기") {
+                for page in 1...12 {
+                    rec.shot("\(hand)번 핸드 · 선택 \(page)", after: page == 1 ? "‘선택 하나씩 보기’ 탭" : "‘다음’ 탭")
+                    guard app.buttons["coach-next"].exists else { break }
+                    tap(app.buttons["coach-next"], "다음"); pause(0.6)
+                }
+                if app.buttons["coach-done"].exists { tap(app.buttons["coach-done"], "돌아보기 닫기") }
+                else { closeTop("핸드 돌아보기") }
+            } else {
+                tap(app.buttons["free-progress-close"], "결과로 돌아가기")
             }
-            if app.buttons["coach-done"].exists { tap(app.buttons["coach-done"], "돌아보기 닫기") }
-            else { closeTop("핸드 돌아보기") }
             pause()
         }
         guard tap(app.buttons["free-table-help"], "도움") else { return }

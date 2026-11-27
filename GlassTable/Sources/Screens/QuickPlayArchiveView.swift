@@ -5,9 +5,13 @@ import GlassTableEngine
 
 struct QuickPlayArchiveView: View {
     @Environment(\.learningLanguage) private var language
+    @Environment(ProgressionModel.self) private var model
+    @Environment(\.scenePhase) private var scenePhase
     let sessions: [QuickPlaySession]
+    let epoch: UUID
     let onClose: () -> Void
     @State private var selectedHand: ArchivedHandSelection?
+    @State private var pendingHand: PracticeTableState?
 
     var body: some View {
         NavigationStack {
@@ -29,10 +33,30 @@ struct QuickPlayArchiveView: View {
             }
             .accessibilityIdentifier("quick-game-scroll")
             .background(FeltBackground())
-            .gtChrome(leading: { ChromeButton.close(onClose).accessibilityIdentifier("quick-game-close") })
+            .gtChrome(leading: {
+                ChromeButton.close {
+                    pendingHand = nil
+                    onClose()
+                }.accessibilityIdentifier("quick-game-close")
+            })
+            .modifier(ProgressSaveNotice())
             .fullScreenCover(item: $selectedHand) { hand in
                 FreeTableHandCoachView(table: hand.table) { selectedHand = nil }
             }
+            .onChange(of: model.saveError != nil) { _, failed in
+                guard !failed, let pendingHand else { return }
+                guard model.state.tableState?.handID == pendingHand.handID else {
+                    self.pendingHand = nil
+                    return
+                }
+                openHand(pendingHand)
+            }
+            .onChange(of: model.epoch) { _, _ in
+                pendingHand = nil
+                selectedHand = nil
+                onClose()
+            }
+            .onDisappear { pendingHand = nil }
         }
         .accessibilityIdentifier("quick-game-review")
     }
@@ -73,12 +97,24 @@ struct QuickPlayArchiveView: View {
                 .font(GT.body(14)).foregroundStyle(GT.inkSecondary)
             ForEach(session.hands, id: \.handID) { hand in
                 SecondaryCTAButton(title: language.text("\(hand.handNumber + 1)번째 핸드 돌아보기", "Review hand \(hand.handNumber + 1)")) {
-                    selectedHand = ArchivedHandSelection(table: hand)
+                    openHand(hand)
                 }
                 .accessibilityIdentifier("archive-hand-\(hand.handNumber + 1)")
             }
         }
         .gtInset(GT.Space.card, firstText: .title(22)).gtPanel()
+    }
+
+    private func openHand(_ hand: PracticeTableState) {
+        guard scenePhase == .active, epoch == model.epoch else { return }
+        let awaiting = model.freePlayQuestAwaitsAnswer(handID: hand.handID)
+        if awaiting && model.saveError != nil { return }
+        pendingHand = nil
+        if model.prepareFreePlayReview(handID: hand.handID, expectedEpoch: epoch) {
+            selectedHand = ArchivedHandSelection(table: hand)
+        } else if awaiting && model.saveError != nil {
+            pendingHand = hand
+        }
     }
 
     private func metric(_ name: String, _ value: String) -> some View {

@@ -83,3 +83,10 @@ fixture to `ProgressionGoldenFileTests.fixtures`.
   drafts and retains the existing frozen review correction.
 - `schema13-elective-drafts.json` is an encoder export. It preserves the schema
   12 contents and adds a staged EV choice and a revealed board-pattern answer.
+- `schema14-mastery-review-draft.json` is an encoder export with D7 and D8
+  completed, N1 paused on a wrong first-answer reveal, and a mixed D7/D8 review
+  paused on the exact correction draft.
+- `schema15-spaced-review-draft.json` is an encoder export of completed version 2 D7/D8
+  and a mixed spaced review with a selected but unsubmitted exact retry.
+- `schema16-journey-review-draft.json` is an encoder export with R1 completed, its range correction scored, R2 open, and a separate unsubmitted reserve-hand review draft.
+- `schema17-free-play-quest.json` combines that course draft, the completed all-in unit and appointments from schema 15, and the settled Long Table hand from the schema 2 build 16 fixture. The learner answered “one pair” once. The golden test checks the combined fixture against the store encoder.

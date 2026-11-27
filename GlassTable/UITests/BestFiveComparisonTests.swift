@@ -171,6 +171,9 @@ final class BestFiveComparisonTests: XCTestCase {
             XCTAssertTrue(review.waitForExistence(timeout: 15))
             for _ in 0..<6 where !review.isHittable { app.swipeUp() }
             review.tap()
+            let detail = app.buttons["free-review-decisions"]
+            for _ in 0..<6 where !detail.isHittable { app.swipeUp() }
+            detail.tap()
             let progress = app.staticTexts["coach-progress"]
             XCTAssertTrue(progress.waitForExistence(timeout: 5))
             let next = app.buttons["coach-next"]

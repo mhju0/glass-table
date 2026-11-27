@@ -454,7 +454,11 @@ final class ProgressionModel {
         guard expectedEpoch == epoch, state.progress(in: previous.unit) == previous else { return false }
         var updated = previous
         guard updated.apply(action) else { return false }
-        return commit { $0.tableCourse?[updated.unit.rawValue] = updated }
+        let now = courseReviewNow
+        return commit {
+            $0.tableCourse?[updated.unit.rawValue] = updated
+            $0.scheduleMasteryReview(for: updated, now: now)
+        }
     }
 
     #if DEBUG
@@ -473,10 +477,10 @@ final class ProgressionModel {
     }
 
     func completeEarlierCoreDemo(before unit: TableCourseUnit, expectedEpoch: UUID) -> Bool {
-        guard expectedEpoch == epoch,
-              let index = TableCourseUnit.corePath.firstIndex(of: unit) else { return false }
+        let path = TableCourseUnit.corePath + TableCourseUnit.completionPractice
+        guard expectedEpoch == epoch, let index = path.firstIndex(of: unit) else { return false }
         var earlier: [String: TableCourseProgress] = state.tableCourse ?? [:]
-        for prior in TableCourseUnit.corePath.prefix(index) where earlier[prior.rawValue] == nil {
+        for prior in path.prefix(index) where earlier[prior.rawValue] == nil {
             guard let sample = Self.tableCourseSample(prior, stopAt: nil) else { return false }
             earlier[prior.rawValue] = sample
         }
@@ -505,7 +509,7 @@ final class ProgressionModel {
                            seed: UInt64 = UInt64.random(in: UInt64.min...UInt64.max)) -> Bool {
         guard expectedEpoch == epoch, unreadable == nil, saveError == nil else { return false }
         if let current = state.courseReview { return current.scope == scope }
-        let eligible = CourseReviewSession.eligibleSkills(in: state, scope: scope)
+        let eligible = CourseReviewSession.eligibleSkills(in: state, scope: scope, today: courseReviewDay)
         guard let review = CourseReviewSession(scope: scope, eligibleSkills: eligible, seed: seed) else {
             return false
         }
@@ -525,7 +529,10 @@ final class ProgressionModel {
     func closeFinishedCourseReview(from previous: CourseReviewSession, expectedEpoch: UUID) -> Bool {
         guard expectedEpoch == epoch, state.courseReview == previous,
               previous.phase == .finished else { return false }
-        return commit(startsDetailedTracking: false) { $0.courseReview = nil }
+        return commit(startsDetailedTracking: false) {
+            $0.finishMasteryReview(previous)
+            $0.courseReview = nil
+        }
     }
 
     /// Learn leads with the basics lesson only for someone who has not started the
@@ -539,6 +546,22 @@ final class ProgressionModel {
     /// its marker.
     func completeBasicsLesson() {
         _ = commit { $0.basicsLessonCompleted = true }
+    }
+
+    private var courseReviewNow: Date {
+        let now = Date()
+        #if DEBUG
+        let env = ProcessInfo.processInfo.environment
+        if env["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
+           env["GT_TEST_COURSE_DAY_OFFSET"] == "1" {
+            return Calendar.current.date(byAdding: .day, value: 1, to: now) ?? now
+        }
+        #endif
+        return now
+    }
+
+    var courseReviewDay: DayKey {
+        PairLessonFollowUpProgress.localDay(at: courseReviewNow)
     }
 
     // MARK: - One-pair lesson
@@ -1055,9 +1078,46 @@ final class ProgressionModel {
         return commit { candidate in
             candidate.captureQuickPlay(previous)
             candidate.tableState = table
+            candidate.freePlayQuest?.beginNextHand()
             candidate.captureQuickPlay(table)
             if let observation { candidate.appendHandObservation(observation) }
         }
+    }
+
+    @discardableResult
+    func joinFreePlayQuest(handID: String, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, let table = state.tableState, table.handID == handID else { return false }
+        if state.freePlayQuest != nil { return true }
+        var quest = FreePlayQuest()
+        // A result already on screen may have shown its rank before the player joined.
+        quest.resolve(nil, table: table)
+        return commit(startsDetailedTracking: false) { $0.freePlayQuest = quest }
+    }
+
+    @discardableResult
+    func resolveFreePlayQuest(_ category: Int?, handID: String, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch, let table = state.tableState, table.handID == handID,
+              var quest = state.freePlayQuest else { return false }
+        if let response = quest.response {
+            return response.handID == handID && response.category == category
+        }
+        guard quest.resolve(category, table: table) else { return false }
+        return commit(startsDetailedTracking: false) { $0.freePlayQuest = quest }
+    }
+
+    func freePlayQuestAwaitsAnswer(handID: String) -> Bool {
+        guard let table = state.tableState, table.handID == handID, let quest = state.freePlayQuest,
+              !quest.isComplete, quest.response == nil else { return false }
+        return FreePlayQuestQuestion(table) != nil
+    }
+
+    func prepareFreePlayReview(handID: String, expectedEpoch: UUID) -> Bool {
+        guard expectedEpoch == epoch else { return false }
+        guard freePlayQuestAwaitsAnswer(handID: handID) else { return true }
+        guard let table = state.tableState, var quest = state.freePlayQuest,
+              quest.resolve(nil, table: table) else { return false }
+        // The view may retry this request while it still owns the review route.
+        return commit(startsDetailedTracking: false, keepFailedCandidate: false) { $0.freePlayQuest = quest }
     }
 
     /// Explicit ending discards an unfinished hand and retains settled archive evidence.
@@ -1068,6 +1128,7 @@ final class ProgressionModel {
         return commit {
             $0.finishQuickPlay(table)
             $0.tableState = nil
+            $0.freePlayQuest = nil
         }
     }
 
@@ -1139,10 +1200,14 @@ final class ProgressionModel {
     private func injectTableSaveFailureIfRequested(candidate: ProgressState) throws {
         let environment = ProcessInfo.processInfo.environment
         guard !tableSaveFailureConsumed,
-              environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil,
-              environment["GT_TEST_TABLE_SAVE_FAILURE"] == "1",
-              candidate.recentEvidence.filter({ $0.key.mode == "table" }).count
-                > state.recentEvidence.filter({ $0.key.mode == "table" }).count else { return }
+              environment["GT_TEST_STORE_ID"].flatMap(UUID.init(uuidString:)) != nil else { return }
+        let gradedDecision = environment["GT_TEST_TABLE_SAVE_FAILURE"] == "1"
+            && candidate.recentEvidence.filter({ $0.key.mode == "table" }).count
+                > state.recentEvidence.filter({ $0.key.mode == "table" }).count
+        let questSkip = environment["GT_TEST_FREE_PLAY_REVIEW_SAVE_FAILURE"] == "1"
+            && state.freePlayQuest?.response == nil
+            && candidate.freePlayQuest?.response.map { $0.category == nil } == true
+        guard gradedDecision || questSkip else { return }
         tableSaveFailureConsumed = true
         throw CocoaError(.fileWriteUnknown)
     }
@@ -1226,7 +1291,8 @@ final class ProgressionModel {
     }
 
     @discardableResult
-    private func commit(startsDetailedTracking: Bool = true, _ mutate: (inout ProgressState) -> Void) -> Bool {
+    private func commit(startsDetailedTracking: Bool = true, keepFailedCandidate: Bool = true,
+                        _ mutate: (inout ProgressState) -> Void) -> Bool {
         guard unreadable == nil, saveError == nil else { return false }
         var candidate = state
         mutate(&candidate)
@@ -1243,7 +1309,7 @@ final class ProgressionModel {
             state = candidate
             return true
         } catch {
-            pendingState = candidate
+            if keepFailedCandidate { pendingState = candidate }
             saveError = String(describing: error)
             return false
         }
